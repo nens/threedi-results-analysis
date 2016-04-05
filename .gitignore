@@ -1,0 +1,5 @@
+*.pyc
+*.zip
+.coverage
+.noseids
+help/build/

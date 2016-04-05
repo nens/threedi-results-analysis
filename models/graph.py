@@ -1,0 +1,107 @@
+
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize, QVariant, QAbstractItemModel
+from PyQt4.QtGui import QStyle, QColor
+from collections import OrderedDict
+import copy
+from collections import OrderedDict
+import numpy as np
+
+
+from ThreeDiToolbox.utils.user_messages import log
+from base import BaseModel, BaseModelItem
+from base_fields import ValueField, ColorField, CheckboxField, BaseField
+import pyqtgraph as pg
+
+
+COLOR_LIST = [
+    (242, 243, 244),
+    (34, 34, 34),
+    (243, 195, 0),
+    (135, 86, 146),
+    (243, 132, 0),
+    (161, 202, 241),
+    (190, 0, 50),
+    (194, 178, 128),
+    (132, 132, 130),
+    (0, 136, 86),
+    (230, 143, 172),
+    (0, 103, 165),
+    (249, 147, 121),
+    (96, 78, 151),
+    (246, 166, 0),
+    (179, 68, 108),
+    (220, 211, 0),
+    (136, 45, 23),
+    (141, 182, 0),
+    (101, 69, 34),
+    (226, 88, 34),
+    (43, 61, 38)
+]
+
+
+def select_default_color(item_field):
+
+    model = item_field._item._model
+    colors = OrderedDict([(str(color), color) for color in COLOR_LIST])
+
+    for item in model.rows:
+        if str(item.color.value) in colors:
+            del colors[str(item.color.value)]
+
+    if len(colors) >= 1:
+        return colors.values()[0]
+
+    return COLOR_LIST[0]
+
+class LocationTimeseriesModel(BaseModel):
+
+    class Fields:
+
+        active = CheckboxField(show=True, default_value=True, column_width=20, column_name='')
+        color = ColorField(show=True, column_width=30, column_name='', default_value=select_default_color)
+        object_id = ValueField(show=True, column_width=50, column_name='id')
+        object_name = ValueField(show=True, column_width=140, column_name='name')
+        object_type = ValueField(show=False)
+
+        # def plots(self, parameters=None, netcdf_nr=0):
+        #     ts_table = self.timeseries_table(parameters, netcdf_nr)
+        #     pen = pg.mkPen(color=self.color.qvalue, width=2)
+        #     return self.plot(ts_table, pen=pen)
+        #
+        # def timeseries_table(self, parameters=None, netcdf_nr=0):
+        #
+        #     float_data = []
+        #     for t, v in self.datasource.rows[netcdf_nr].get_timeseries(self.object_type, self.object_id, parameters):
+        #         # some value data may come back as 'NULL' string; convert it to None
+        #         # or else convert it to float
+        #         v = None if v == 'NULL' else float(v)
+        #         float_data.append((float(t), v))
+        #     return np.array(float_data, dtype=float)
+
+    def is_datasource_layer(self, layer):
+        pass
+
+    # def get_data(self, row, field_id, key=None, netcdf_ds_nr=None):
+    #
+    #     #overwrite to dynamically get information from datasource
+    #     if key is None:
+    #         return self._data[row][field_id]
+    #     else:
+    #         if netcdf_ds_nr is None:
+    #             return self._data[row][field_id][key]
+    #         else:
+    #             return self._data[row][field_id][key][netcdf_ds_nr]
+    #
+    #
+    # def set_data(self, row, field_id, value, key=None, netcdf_ds_nr=None):
+    #
+    #     if key is None:
+    #         self._data[row][field_id] = value
+    #     else:
+    #         if netcdf_ds_nr is None:
+    #             self._data[row][field_id][key] = value
+    #         else:
+    #             self._data[row][field_id][key][netcdf_ds_nr] = value
+    #
+    #     return value
+

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/plugins/ThreeDiToolbox" >
+        <file>icon.png</file>
+        <file>icon_graph.png</file>
+        <file>icon_toolbox.png</file>
+		<file>icon_toolbox_small.png</file>
+		<file>icon_hammer_small.png</file>
+    </qresource>
+</RCC>
