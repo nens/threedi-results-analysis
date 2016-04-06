@@ -27,11 +27,12 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 
 # Initialize Qt resources from file resources.py
-import resources
+import resources  # NoQa
 
 # Import the code of the tools
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
+from .utils.user_messages import log
 
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 
@@ -223,6 +224,7 @@ class ThreeDiTools:
                 tool.on_unload()
 
         # remove the toolbar
-        del self.toolbar
-
-
+        try:
+            del self.toolbar
+        except AttributeError:
+            log("Error, toolbar already removed?")

@@ -5,8 +5,8 @@ from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePoli
 
 from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
     parameter_config
-
 from ..models.graph import LocationTimeseriesModel
+from ..utils.user_messages import log
 
 import pyqtgraph as pg
 
@@ -173,11 +173,19 @@ class LocationTimeseriesTable(QTableView):
 
             if row != self._last_hovered_row:
                 if self._last_hovered_row is not None:
-                    self.hover_exit(self._last_hovered_row)
+                    try:
+                        self.hover_exit(self._last_hovered_row)
+                    except IndexError:
+                        log("Hover row index %s out of range" %
+                            self._last_hovered_row, level='WARNING')
                     #self.hoverExitRow.emit(self._last_hovered_row)
                 #self.hoverEnteredRow.emit(index.row())
                 if row is not None:
-                    self.hover_enter(row)
+                    try:
+                        self.hover_enter(row)
+                    except:
+                        log("Hover row index %s out of range" % row,
+                            level='WARNING')
                 self._last_hovered_row = row
                 pass
         return QTableView.eventFilter(self, widget, event)
