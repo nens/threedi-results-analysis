@@ -27,8 +27,7 @@
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load ThreeDiToolbox class from file ThreeDiToolbox.
 
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
+    :param iface: QgsInterface. A QGIS interface instance.
     """
 
     from .threedi_tools import ThreeDiTools
