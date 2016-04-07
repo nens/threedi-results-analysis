@@ -42,7 +42,7 @@ def get_timesteps(ds):
 
 class NetcdfDataSource(object):
 
-    def __init__(self, file_path, id_mapping_file=None):
+    def __init__(self, file_path):
         """
         Args:
             file_path: path to netcdf
@@ -54,8 +54,7 @@ class NetcdfDataSource(object):
 
         self.channel_mapper = get_channel_mapper(self.ds)
 
-        if not id_mapping_file:
-            self.id_mapping_file = get_id_mapping_file(file_path)
+        self.id_mapping_file = get_id_mapping_file(file_path)
         # Load id mapping
         with open(self.id_mapping_file) as f:
             self.id_mapping = json.load(f)
