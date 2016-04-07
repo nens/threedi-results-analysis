@@ -184,6 +184,15 @@ class ThreeDiTools:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
+        try:
+            #load optional settings for remote debugging for development purposes
+            #add file remote_debugger_settings.py in main directory to use debugger
+            import remote_debugger_settings
+        except:
+            print 'could not load remote debugger'
+
+
+
         # add 3di logo and about info (doing nothing right now)
 
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
@@ -210,8 +219,8 @@ class ThreeDiTools:
                 action)
             self.iface.removeToolBarIcon(action)
 
-            #for tool in self.tools:
-            #    tool.onClosePlugin()
+            for tool in self.tools:
+                tool.on_unload()
 
         # remove the toolbar
         del self.toolbar

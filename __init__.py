@@ -21,6 +21,9 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
+import sys, os
+
+sys.path.append(os.path.join(os.path.realpath(__file__),os.pardir))
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
@@ -30,12 +33,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    try:
-        #load optional settings for remote debugging for development purposes
-        #add file remote_debugger_settings.py in main directory to use debugger
-        import remote_debugger_settings
-    except:
-        print 'could not load remote debugger'
 
     from .threedi_tools import ThreeDiTools
     return ThreeDiTools(iface)
