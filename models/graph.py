@@ -81,11 +81,8 @@ class LocationTimeseriesModel(BaseModel):
             float_data = []
             # for t, v in self.model.datasource.rows[netcdf_nr].datasource().get_timeseries(
             #         self.object_type.value, self.object_id.value, parameters):
-
-#            from ..qdebug import pyqt_set_trace; pyqt_set_trace()
-
             for t, v in self.model.datasource.rows[netcdf_nr]\
-                    .datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters): 
+                    .datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters):
                 # some value data may come back as 'NULL' string; convert it to None
                 # or else convert it to float
                 v = None if v == 'NULL' else float(v)
