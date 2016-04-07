@@ -32,6 +32,26 @@ def get_available_parameters(object_type):
 
 layer_information = [
     #layer name, object_type, q/h type
+    ('v2_connection_nodes', 'connection_nodes', 'h'),
+    ('v2_pipe_view', 'pipe', 'q'),
+    ('v2_channel', 'channel', 'q'),
+    ('v2_culvert', 'culvert', 'q'),
+    ('v2_pumpstation', 'pumpstation', 'q'),
+    ('v2_pumpstation_view', 'pumpstation', 'q'),
+    ('v2_weir_view', 'weir', 'q'),
+    ('v2_orifice_view', 'orifice', 'q'),
+    ('sewerage_manhole', 'manhole', 'h'),
+    ('sewerage_pipe_view', 'pipe', 'q'),
+    ('sewerage_pumpstation', 'pumpstation', 'q'),
+    ('sewerage_pumpstation_view', 'pumpstation', 'q'),
+    ('sewerage_weir_view', 'weir', 'q'),
+    ('sewerage_orifice_view', 'orifice', 'q')
+]
+
+# Old names
+# TODO: remove them
+layer_information = [
+    #layer name, object_type, q/h type
     ('v2_connection_nodes', 'v2_connection_nodes', 'h'),
     ('v2_pipe_view', 'v2_pipe', 'q'),
     ('v2_channel', 'v2_channel', 'q'),
@@ -49,7 +69,7 @@ layer_information = [
 ]
 
 parameter_config = {
-    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'qpump']},
+    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'q_pump']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm']}],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]

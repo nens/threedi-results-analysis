@@ -18,3 +18,4 @@ class TimeseriesDatasourceModel(BaseModel):
             else: # self.type.value == 'spatialite':
                 self._datasource = TdiSpatialite(self.file_path.value)
                 return self._datasource
+
