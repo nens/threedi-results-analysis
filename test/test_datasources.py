@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from datasource.spatialite import TdiSpatialite
+from ..datasource.spatialite import TdiSpatialite
 
 
 class TestSpatialiteDatasource(unittest.TestCase):

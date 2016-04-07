@@ -1,4 +1,4 @@
-from ThreeDiToolbox.datasource.spatialite import TdiSpatialite
+from ..datasource.spatialite import TdiSpatialite
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
 

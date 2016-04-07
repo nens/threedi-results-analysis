@@ -1,10 +1,7 @@
 from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
-from ThreeDiToolbox.utils.user_messages import log
+from ..utils.user_messages import log
 import inspect
 from base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
-import numpy as np
-import pyqtgraph as pg
-from ThreeDiToolbox.datasource.spatialite import TdiSpatialite
 
 
 class BaseModelItem(object):

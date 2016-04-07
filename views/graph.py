@@ -3,10 +3,10 @@ from PyQt4.QtCore import Qt, QSize, QEvent, QModelIndex, QPersistentModelIndex,\
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QColor, QPushButton, QSpacerItem,\
     QApplication, QWidget, QGridLayout, QVBoxLayout, QTabWidget, QDockWidget, QComboBox
 
-from ThreeDiToolbox.datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
+from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
     parameter_config
 
-from ThreeDiToolbox.models.graph import LocationTimeseriesModel
+from ..models.graph import LocationTimeseriesModel
 
 import pyqtgraph as pg
 

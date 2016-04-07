@@ -1,6 +1,6 @@
 from pyspatialite import dbapi2 as sqlite
 
-from ThreeDiToolbox.utils.user_messages import log
+from ..utils.user_messages import log
 
 
 WATERLEVEL = ('s1', 'waterlevel','m MSL')

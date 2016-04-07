@@ -66,7 +66,7 @@ class ThreeDiToolbox:
         #print "** CLOSING ThreeDiToolbox"
 
         # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
+        self.dockwidget.closingPlugin.disconnect(self.on_unload)
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
@@ -92,7 +92,7 @@ class ThreeDiToolbox:
                 self.dockwidget = ThreeDiToolboxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+            self.dockwidget.closingPlugin.connect(self.on_unload)
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
