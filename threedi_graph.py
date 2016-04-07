@@ -60,8 +60,8 @@ class ThreeDiGraph:
         for widget in self.dock_widgets:
             widget.close()
 
-        self.ts_datasource.close()
-        self.ts_datasource = None
+        #self.ts_datasource.close()
+        #self.ts_datasource = None
 
     # noinspection PyPep8Naming
     def onCloseChildWidget(self, widget_nr):

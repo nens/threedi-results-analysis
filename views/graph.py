@@ -219,7 +219,7 @@ class LocationTimeseriesTable(QTableView):
 class GraphWidget(QWidget):
 
     def __init__(self, parent=None, ts_datasource=None, parameter_config=[], name=""):
-        super(GraphWidget, self).__init__(None)
+        super(GraphWidget, self).__init__(parent)
 
         self.name = name
         self.parameters = dict([(p['name'], p) for p in parameter_config])
@@ -458,15 +458,16 @@ class GraphDockWidget(QDockWidget):
         """
 
         dock_widget.setObjectName("dock_widget")
+        dock_widget.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.dockWidgetContent = QWidget()
+        self.dockWidgetContent = QWidget(self)
         self.dockWidgetContent.setObjectName("dockWidgetContent")
 
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
 
         # add button to add objects to graphs
-        self.buttonBarHLayout = QHBoxLayout()
+        self.buttonBarHLayout = QHBoxLayout(self)
         self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
         self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)

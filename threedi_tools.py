@@ -33,7 +33,7 @@ import resources
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
 
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from models.datasources import TimeseriesDatasourceModel
 
 
 class ThreeDiTools:

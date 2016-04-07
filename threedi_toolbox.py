@@ -66,7 +66,8 @@ class ThreeDiToolbox:
         #print "** CLOSING ThreeDiToolbox"
 
         # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.on_unload)
+        if self.dockwidget:
+            self.dockwidget.closingPlugin.disconnect(self.on_unload)
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
