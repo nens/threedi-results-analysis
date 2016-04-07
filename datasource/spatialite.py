@@ -1,6 +1,6 @@
 from pyspatialite import dbapi2 as sqlite
 
-from ThreeDiToolbox.utils.user_messages import log
+from ..utils.user_messages import log
 
 
 WATERLEVEL = ('s1', 'waterlevel','m MSL')
@@ -255,14 +255,24 @@ class TdiSpatialite(object):
     def get_timeseries(self, object_type, object_id, parameters):
 
         object_type = get_object_type(object_type)
-        query = """SELECT v.time, v.value FROM result_type t, result_value v
-            WHERE v.result_type_id = t.id
-            AND t.object_type='%(object_type)s'
+        query = """SELECT t.id FROM result_type t
+            WHERE t.object_type='%(object_type)s'
             AND t.object_id='%(object_id)s'
-            AND t.variable in (%(variable)s)
-            ORDER BY v.time;""" % {'object_type': object_type,
+            AND t.variable in (%(variable)s);""" % {'object_type': object_type,
                                     'object_id': object_id,
                                     'variable': ','.join(["'%s'"%p for p in parameters])}
+        log("Executing query: %s" % query)
+        cursor = self.get_db_cursor()
+        res = cursor.execute(query)
+        rows = res.fetchall()
+        if not rows:
+            return []
+
+        result_id = rows[0][0]
+
+        query = """SELECT v.time, v.value FROM result_value v
+            WHERE v.result_type_id = %(result_id)s
+            ORDER BY v.time;""" % {'result_id': result_id}
         log("Executing query: %s" % query)
         cursor = self.get_db_cursor()
         res = cursor.execute(query)

@@ -53,8 +53,18 @@ class ThreeDiGraph:
         self.dock_widgets = []
         self.widget_nr = 0
 
+    def on_unload(self):
+        """
+        on close of graph plugin
+        """
+        for widget in self.dock_widgets:
+            widget.close()
+
+        self.ts_datasource.close()
+        self.ts_datasource = None
+
     # noinspection PyPep8Naming
-    def onClosePlugin(self, widget_nr):
+    def onCloseChildWidget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
         nr = None
 
@@ -67,7 +77,7 @@ class ThreeDiGraph:
         # close widget
         if nr is not None:
             widget = self.dock_widgets[nr]
-            widget.closingPlugin.disconnect(self.onClosePlugin)
+            widget.closingWidget.disconnect(self.onCloseChildWidget)
 
             del self.dock_widgets[nr]
 
@@ -83,7 +93,7 @@ class ThreeDiGraph:
         self.dock_widgets.append(new_widget)
 
         # connect cleanup on closing of dockwidget
-        new_widget.closingPlugin.connect(self.onClosePlugin)
+        new_widget.closingWidget.connect(self.onCloseChildWidget)
 
         # show the dockwidget
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)

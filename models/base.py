@@ -1,21 +1,15 @@
-from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize, QVariant, QAbstractItemModel
-from PyQt4.QtGui import QStyle, QColor
-from collections import OrderedDict
-from ThreeDiToolbox.utils.user_messages import log
+from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
+from ..utils.user_messages import log
 import inspect
 from base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
-import numpy as np
-import pyqtgraph as pg
-from ThreeDiToolbox.datasource.spatialite import TdiSpatialite
 
 
 class BaseModelItem(object):
 
-    _model_collection = None
-
     def __init__(self, model=None, **kwargs):
 
-        self._model = model
+        self.model = model
+        self._plots = {}
 
         for field_name, field_class in self._fields:
             value = None
@@ -28,12 +22,18 @@ class BaseModelItem(object):
         #for function_name, function in self._functions:
         #    setattr(self, function_name, function)
 
+    def get_row_nr(self):
+        """
+        get rownr of this item in the model
+        :return: int: row number
+        """
+
+        return self.model.rows.index(self)
 
     def __getitem__(self, item):
 
-        name = self._model._columns[item].name
+        name = self.model.columns[item].name
         return getattr(self, name)
-
 
     def get_fields(self, show_only=False):
 
@@ -42,31 +42,10 @@ class BaseModelItem(object):
         else:
             return self._fields
 
-    def pen(self):
-        return pg.mkPen(color=self.color.qvalue, width=2)
-
-    def timeseries_table(self, parameters=None, netcdf_nr=0):
-
-        float_data = []
-        ts = self._model.datasource.rows[netcdf_nr]
-        b = ts.datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters)
-        for t, v in self._model.datasource.rows[netcdf_nr].datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters):
-            # some value data may come back as 'NULL' string; convert it to None
-            # or else convert it to float
-            v = None if v == 'NULL' else float(v)
-            float_data.append((float(t), v))
-        return np.array(float_data, dtype=float)
-
-    def datasource(self):
-        if hasattr(self, '_datasource'):
-            return self._datasource
-        else: # self.type.value == 'spatialite':
-            self._datasource = TdiSpatialite(self.file_path.value)
-            return self._datasource
-
-
 
 class BaseModel(QAbstractTableModel):
+    """Customized QAbstractTableModel with more pythonic way of field declaration and storage of settings and values in
+    ModelItems, ItemFields and Fields"""
 
     _base_model_item_class = BaseModelItem
     datasource = None
@@ -90,32 +69,31 @@ class BaseModel(QAbstractTableModel):
         self.datasource = datasource
 
         # create item class
-        self._fields = [(name, value) for name, value
+        self._fields = sorted([(name, cl) for name, cl
                     in inspect.getmembers(self.Fields, lambda a:not(inspect.isroutine(a)))
-                    if not name.startswith('__')]
+                    if not name.startswith('__')], key=lambda cl: cl[1]._nr)
 
-        self._columns = sorted([cl for name, cl in self._fields if cl.show], key=lambda cl: cl._nr)
+        self.columns = [cl for name, cl in self._fields]
 
         item_functions = [(name, value) for name, value
                     in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
                     if not name.startswith('__')]
 
-        self.item_class = type(self.class_name + 'Item', (self._base_model_item_class, ), {
-            '_fields': self._fields, '_functions': item_functions
+        self.item_class = type(self.class_name + 'Item', (self._base_model_item_class, self.Fields), {
+            '_fields': self._fields
         })
 
-#        for function_name, function in item_functions:
-#            setattr(self.item_class, function_name, function)
+        #for function_name, function in item_functions:
+        #    setattr(self.item_class, function_name, function)
 
-        # initiate fields with fieldname and link to model
-        for name, field in self._fields:
+        # initiate fields with fieldname, link to model and column_nr
+        for i in range(0, len(self._fields)):
+            name, field = self._fields[i]
             if hasattr(field, 'contribute_to_class'):
-                field.contribute_to_class(name, self)
+                field.contribute_to_class(name, self, i)
 
         # process initial data
         self.insertRows(initial_data, signal=False)
-
-        return
 
     def _create_item(self, *args, **kwargs):
         """
@@ -140,7 +118,17 @@ class BaseModel(QAbstractTableModel):
         :param index: QModelIndex
         :return:
         """
-        return len(self._columns)
+        return len(self.columns)
+
+    def index(self, row_nr, col_nr, parent=None):
+        """
+        Creates index for this model. Required function for QAbstractTableModel
+        :param row_nr: int row number
+        :param col_nr: int column number
+        :param parent: parent of index
+        :return: QModelIndex instance
+        """
+        return self.createIndex(row_nr, col_nr)
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt function to get data from items for the visible columns"""
@@ -163,11 +151,8 @@ class BaseModel(QAbstractTableModel):
                 return item[index.column()].qvalue
             else:
                 return None
-        elif role == Qt.ToolTipRole:
-            return 'tooltip'
-        else:
-            log(str(role))
-            pass
+        # elif role == Qt.ToolTipRole:
+        #     return 'tooltip'
 
     def headerData(self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         """
@@ -179,7 +164,7 @@ class BaseModel(QAbstractTableModel):
         """
         if orientation == Qt.Horizontal:
             if role == Qt.DisplayRole:
-                return self._columns[col_nr].column_name
+                return self.columns[col_nr].column_name
         else:
             # give grey balk at start of row a small dimension to select row
             if Qt.SizeHintRole:
@@ -191,21 +176,17 @@ class BaseModel(QAbstractTableModel):
         :param index: QtModelIndex instance
         :param value: new value for ItemField
         :param role: Qt role (DisplayRole, CheckStateRole)
-        :return: self
+        :return: was setting value successful
         """
 
-        if self._columns[index.column()].field_type == CHECKBOX_FIELD:
-            self._rows[index.row()][index.column()].qvalue = value
-            self.dataChanged.emit(index, index)
-        else:
-            self._rows[index.row()][index.column()].qvalue = value
-            self.dataChanged.emit(index, index)
-        return self
+        # dataChanged.emit is done within the ItemField, triggered by setting the value
+        self._rows[index.row()][index.column()].value = value
+        return True
 
     def flags(self, index):
 
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if self._columns[index.column()].field_type == CHECKBOX_FIELD:
+        if self.columns[index.column()].field_type == CHECKBOX_FIELD:
             flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
 
         return flags
@@ -215,7 +196,6 @@ class BaseModel(QAbstractTableModel):
         required Qt function for adding rows, including sending signals
         :param data_items: list with values as dictionaries
         :param signal: send signal, False will prevent function from sending signal
-        :return: self
         """
         if signal:
             self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()+len(data_items)-1)
@@ -227,15 +207,12 @@ class BaseModel(QAbstractTableModel):
         if signal:
             self.endInsertRows()
 
-        return self
-
     def removeRows(self, row, count, parent=QModelIndex()):
         """
         required Qt function to remove rows from model
         :param row: first number to remove (count starts with row 1)
         :param count: number of rows to remove
         :param parent: some Qt parameter
-        :return:
         """
         #signal
         self.beginRemoveRows(parent, row, row+count-1)
@@ -252,4 +229,3 @@ class BaseModel(QAbstractTableModel):
         :return: list of model items of model
         """
         return self._rows
-

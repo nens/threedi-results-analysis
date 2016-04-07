@@ -3,10 +3,10 @@ from PyQt4.QtCore import Qt, QSize, QEvent, QModelIndex, QPersistentModelIndex,\
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QColor, QPushButton, QSpacerItem,\
     QApplication, QWidget, QGridLayout, QVBoxLayout, QTabWidget, QDockWidget, QComboBox
 
-from ThreeDiToolbox.datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
+from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
     parameter_config
 
-from ThreeDiToolbox.models.graph import LocationTimeseriesModel
+from ..models.graph import LocationTimeseriesModel
 
 import pyqtgraph as pg
 
@@ -36,9 +36,25 @@ class GraphPlot(pg.PlotWidget):
 
         self.current_parameter = None
 
-    def close(self):
+    def on_close(self):
+        """
+        unloading widget and remove all required stuff
+        :return:
+        """
+        if self.model:
+            self.model.dataChanged.disconnect(self.data_changed)
+            self.model.rowsInserted.disconnect(self.insert_plot)
+            self.model.rowsAboutToBeRemoved.disconnect(self.remove_plot)
+            self.model = None
 
-        self.unload_model(remove_plots=False)
+
+    def closeEvent(self, event):
+        """
+        overwrite of QDockWidget class to emit signal
+        :param event: QEvent
+        """
+        self.on_close()
+        event.accept()
 
     def setModel(self, model):
 
@@ -46,14 +62,6 @@ class GraphPlot(pg.PlotWidget):
         self.model.dataChanged.connect(self.data_changed)
         self.model.rowsInserted.connect(self.insert_plot)
         self.model.rowsAboutToBeRemoved.connect(self.remove_plot)
-
-    def unload_model(self, remove_plots=True):
-
-        #todo, remove_plots
-        self.model.dataChanged.disconnect(self.data_changed)
-        self.model.rowsInserted.disconnect(self.insert_plot)
-        self.model.rowsAboutToBeRemoved.disconnect(self.remove_plot)
-        self.model = None
 
     def insert_plot(self, parent, start, end):
         """
@@ -64,7 +72,7 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end+1):
             item = self.model.rows[i]
-            self.addItem(self.plot(item.timeseries_table(self.current_parameter['parameters']), pen=item.pen()))
+            self.addItem(item.plots(self.current_parameter['parameters']))
 
     def remove_plot(self, index, start, end):
         """
@@ -75,18 +83,24 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end+1):
             item = self.model.rows[i]
-            if item.active:
-                self.removeItem(item.plots(self.current_parameter.parameter))
+            if item.active.value:
+                self.removeItem(item.plots(self.current_parameter['parameters']))
 
     def data_changed(self, index):
 
-        if self.model._columns[index.column()].name == 'active':
-            active = self.model.rows[index.row()].active
+        if self.model.columns[index.column()].name == 'active':
+            active = self.model.rows[index.row()].active.value
 
             if active:
                 self.show_timeseries(index.row())
             else:
                 self.hide_timeseries(index.row())
+        elif self.model.columns[index.column()].name == 'hover':
+            item = self.model.rows[index.row()]
+            if item.hover.value:
+                item.plots(self.current_parameter['parameters']).setPen(color=item.color.qvalue, width=4)
+            else:
+                item.plots(self.current_parameter['parameters']).setPen(color=item.color.qvalue, width=2)
 
     def hide_timeseries(self, row_nr):
 
@@ -107,9 +121,9 @@ class GraphPlot(pg.PlotWidget):
         self.current_parameter = parameter
 
         for item in self.model.rows:
-            if item.active:
-                self.removeItem(self.model.plots(old_parameter))
-                self.addItem(self.model.plots(self.current_parameter))
+            if item.active.value:
+                self.removeItem(item.plots(old_parameter['parameters']))
+                self.addItem(item.plots(self.current_parameter['parameters']))
 
         self.setLabel("left", self.current_parameter['name'], self.current_parameter['unit'])
 
@@ -128,6 +142,21 @@ class LocationTimeseriesTable(QTableView):
 
         self._last_hovered_row = None
         self.viewport().installEventFilter(self)
+
+    def on_close(self):
+        """
+        unloading widget and remove all required stuff
+        :return:
+        """
+        self.viewport().removeEventFilter(self)
+
+    def closeEvent(self, event):
+        """
+        overwrite of QDockWidget class to emit signal
+        :param event: QEvent
+        """
+        self.on_close()
+        event.accept()
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
@@ -155,17 +184,15 @@ class LocationTimeseriesTable(QTableView):
 
     def hover_exit(self, row_nr):
 
-        #todo: nicer to handle this through the model
-        row = self.model.rows[row_nr]
-        #row['plots'].setPen(color=row['color'], width=2)
-
+        if row_nr >= 0:
+            item = self.model.rows[row_nr]
+            item.hover.value = False
 
     def hover_enter(self, row_nr):
 
-        #todo: nicer to handle this through the model
-        row = self.model.rows[row_nr]
-        #row['plots'].setPen(color=row['color'], width=4)
-
+        if row_nr >= 0:
+            item = self.model.rows[row_nr]
+            item.hover.value = True
 
     def setModel(self, model):
         super(LocationTimeseriesTable, self).setModel(model)
@@ -174,22 +201,20 @@ class LocationTimeseriesTable(QTableView):
 
         self.resizeColumnsToContents()
         for col_nr in range(0, model.columnCount()):
-            width = model._columns[col_nr].column_width
+            width = model.columns[col_nr].column_width
             if width:
                 self.setColumnWidth(col_nr, width)
+            if not model.columns[col_nr].show:
+                self.setColumnHidden(col_nr, True);
 
     def hover_row(self, index):
-        print "row %i, col %i"%(index.row(), index.column())
+        pass
+        #log("row %i, col %i"%(index.row(), index.column()))
         # if index.row() != self.row_hovered:
         #     if self.row_hovered is not None:
         #         self.model.setData()
         #     self.row_hovered = index.row()
         #     self.model.setData()
-
-
-    def close(self):
-        pass
-
 
 class GraphWidget(QWidget):
 
@@ -216,6 +241,22 @@ class GraphWidget(QWidget):
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+
+    def on_close(self):
+        """
+        unloading widget and remove all required stuff
+        :return:
+        """
+        self.parameter_combo_box.currentIndexChanged.disconnect(self.parameter_change)
+        self.remove_timeseries_button.clicked.disconnect(self.remove_objects_table)
+
+    def closeEvent(self, event):
+        """
+        overwrite of QDockWidget class to emit signal
+        :param event: QEvent
+        """
+        self.on_close()
+        event.accept()
 
     def setup_ui(self):
         """
@@ -318,14 +359,11 @@ class GraphWidget(QWidget):
         for row in reversed(sorted(rows)):
             self.model.removeRows(row,1)
 
-    def close(self):
-        pass
-
 
 class GraphDockWidget(QDockWidget):
     """Main Dock Widget for showing 3di results in Graphs"""
 
-    closingPlugin = pyqtSignal(int)
+    closingWidget = pyqtSignal(int)
 
     def __init__(self, iface, parent_widget=None, parent_class=None, nr=0, ts_datasource=None):
         """Constructor"""
@@ -349,6 +387,26 @@ class GraphDockWidget(QDockWidget):
         self.h_graph_widget = GraphWidget(self, self.ts_datasource, parameter_config['h'], "H graph")
         self.graphTabWidget.addTab(self.q_graph_widget, self.q_graph_widget.name)
         self.graphTabWidget.addTab(self.h_graph_widget, self.h_graph_widget.name)
+
+    def on_close(self):
+        """
+        unloading widget and remove all required stuff
+        :return:
+        """
+        self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
+        self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
+
+        #self.q_graph_widget.close()
+        #self.h_graph_widget.close()
+
+    def closeEvent(self, event):
+        """
+        overwrite of QDockWidget class to emit signal
+        :param event: QEvent
+        """
+        self.on_close()
+        self.closingWidget.emit(self.nr)
+        event.accept()
 
     def selected_layer_changed(self, active_layer):
 
@@ -392,14 +450,6 @@ class GraphDockWidget(QDockWidget):
         else:
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(self.graphTabWidget.indexOf(self.h_graph_widget))
-
-    def closeEvent(self, event):
-        """
-        overwrite of QDockWidget class to emit signal
-        :param event: QEvent
-        """
-        self.closingPlugin.emit(self.nr)
-        event.accept()
 
     def setup_ui(self, dock_widget):
         """

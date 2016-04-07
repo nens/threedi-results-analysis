@@ -1,7 +1,7 @@
 import unittest
 from PyQt4.QtCore import Qt
 
-from models.graph import LocationTimeseriesModel
+from ..models.graph import LocationTimeseriesModel
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -37,8 +37,8 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
 
     def test_set_values(self):
         """test setting properties"""
-        model = LocationTimeseriesModel()
-        item = model._create_item(**self.test_values)
+        model = LocationTimeseriesModel(initial_data=[{'object_id': 1, 'object_name': 'object_1', 'active': True}])
+        item = model.rows[0]
 
         item.active.value = False
         item.color.value = [30, 40, 50]
@@ -93,13 +93,13 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             datasource=self.datasource)
 
         self.assertEqual(collection.rowCount(), 0)
-        self.assertEqual(collection.columnCount(), 4)#only visible columns
+        self.assertEqual(collection.columnCount(), 6)
 
         headers = [collection.headerData(i)
                    for i in range(0, collection.columnCount())]
 
         self.assertListEqual(headers,
-                             ['', '', 'id', 'name'])#display column names
+                             ['', '', 'id', 'name', 'object_type', 'hover'])#display column names
 
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
@@ -108,7 +108,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             initial_data=self.initial_data)
 
         self.assertEqual(collection.rowCount(), 4)
-        self.assertEqual(collection.columnCount(), 4)
+        self.assertEqual(collection.columnCount(), 6)
         self.assertEqual(collection.data(
             collection.createIndex(0, 0, None),
             role=Qt.DisplayRole), None)
@@ -135,7 +135,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         collection.insertRows(self.additional_data)
 
         self.assertEqual(collection.rowCount(), 8)
-        self.assertEqual(collection.columnCount(), 4)
+        self.assertEqual(collection.columnCount(), 6)
 
         self.assertEqual(collection.data(
             collection.createIndex(7, 3, None),
