@@ -79,9 +79,15 @@ class NetcdfDataSource(object):
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
 
-    def get_parameters(self, object_type=None):
-
-        pass
+    def get_parameters(self, object_type=None, parameters=[]):
+        # TODO: this whole block is ugly as sin, needs better logic for the
+        # pumpstations....
+        if 'pump' in object_type:
+            # Pump is a special case and has its own netcdf array
+            return ['q_pump']
+        elif 'q_pump' in parameters:
+            parameters.pop(parameters.index('q_pump'))
+        return parameters
 
     def get_object(self, object_type, object_id):
 
@@ -111,9 +117,7 @@ class NetcdfDataSource(object):
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
         flowline_id = self.channel_mapper[inp_id]
 
-        # TODO: not sure if this makes sense...
-        possible_parameters = set(layer_qh_type_mapping[object_type])
-        _parameters = [p for p in parameters if p in possible_parameters]
+        _parameters = self.get_parameters(object_type, parameters)
 
         # Get data from all parameters and just put them in the same list:
         result = []
@@ -121,4 +125,6 @@ class NetcdfDataSource(object):
             vals = self.ds.variables[p][:, flowline_id]
             timestamps = self.get_timestamps(self.ds)
             result += zip(timestamps, vals)
+
+        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
         return result
