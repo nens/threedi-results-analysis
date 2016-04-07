@@ -1,5 +1,3 @@
-from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize, QVariant, QAbstractItemModel
-
 from ThreeDiToolbox.datasource.spatialite import TdiSpatialite
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
@@ -15,9 +13,8 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
 
         def datasource(self):
-            if self._datasource:
-                pass
-            elif self.type.value == 'spatialite':
+            if hasattr(self, '_datasource'):
+                return self._datasource
+            else: # self.type.value == 'spatialite':
                 self._datasource = TdiSpatialite(self.file_path.value)
-
-            return self._datasource
+                return self._datasource
