@@ -111,6 +111,7 @@ class TdiSpatialite(object):
         :return: cursor of spatialite database
         """
         dbname = self.data_source_uri
+        log(dbname)
         conn = sqlite.connect(dbname)
         cursor = conn.cursor()
         if not cursor and raise_exception_on_failure:
@@ -284,8 +285,10 @@ class TdiSpatialite(object):
             # [(0.0, 0.0), (66.875, 0.0), (120.625, 0.0), ...]
             msg = ("No data found for object_type %(object_type)s "
                    "with object_id: %(object_id)s and variable: %(variable)s."
-                   "Query: %s" % {'object_type': object_type,
+                   "Query: %(query)s" % {'object_type': object_type,
                                   'object_id': object_id,
-                                  'variable': ','.join(["'%s'"%p for p in parameters])})
+                                  'variable': ','.join(["'%s'"%p for p in parameters]),
+                                  'query': query,
+                                 })
             log(msg, level='WARNING')
             return []

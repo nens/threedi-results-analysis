@@ -9,6 +9,7 @@ from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log
 
 import pyqtgraph as pg
+from qgis.core import QgsDataSourceURI
 
 
 pg.setConfigOption('background', 'w')
@@ -232,6 +233,7 @@ class GraphWidget(QWidget):
         self.name = name
         self.parameters = dict([(p['name'], p) for p in parameter_config])
         self.ts_datasource = ts_datasource
+        self.parent = parent
 
         self.setup_ui()
 
@@ -344,13 +346,22 @@ class GraphWidget(QWidget):
         :param features: Qgis layer features to be added
         """
 
+        # Get the active database as URI, connInfo is something like:
+        # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
+        # DS_152_1D_totaal_bergingsbak/results/
+        # DS_152_1D_totaal_bergingsbak_result.sqlite'"
+        connInfo = QgsDataSourceURI(
+            layer.dataProvider().dataSourceUri()).connectionInfo()
+        filename = connInfo.split("'")[1]
+
         # get attribute information from selected layers
         items = []
         for feature in features:
             item = {
                 'object_type': layer.name(),
                 'object_id': feature['id'],
-                'object_name': feature['display_name']
+                'object_name': feature['display_name'],
+                'file_path': filename
             }
             items.append(item)
 
