@@ -24,13 +24,26 @@ def get_id_mapping_file(netcdf_file_path):
     return glob.glob(os.path.join(inpdir, pattern))[0]
 
 
-def get_channel_mapper(ds):
-    """Map inp ids to flowline ids. Note that you need to subtract 1 from
-    the resulting flowline id because of Python's 0-based indexing array
-    (versus Fortran's 1-based indexing). These flowline ids are used for
-    pipes, weirs and orifices.
+def get_channel_mapping(ds):
+    """Map inp ids to flowline ids.
+
+    Note that you need to subtract 1 from the resulting flowline id because of
+    Python's 0-based indexing array (versus Fortran's 1-based indexing). These
+    flowline ids are used for  pipes, weirs and orifices.
     """
     cm = np.copy(ds.variables['channel_mapping'])
+    cm[:, 1] = cm[:, 1] - 1  # the index transformation
+    return dict(cm)
+
+
+def get_node_mapping(ds):
+    """Map inp ids to node ids.
+
+    Note that you need to subtract 1 from the resulting node id because of
+    Python's 0-based indexing array (versus Fortran's 1-based indexing). These
+    node ids are used for manholes.
+    """
+    cm = np.copy(ds.variables['node_mapping'])
     cm[:, 1] = cm[:, 1] - 1  # the index transformation
     return dict(cm)
 
@@ -52,7 +65,8 @@ class NetcdfDataSource(object):
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
 
-        self.channel_mapper = get_channel_mapper(self.ds)
+        self.channel_mapping = get_channel_mapping(self.ds)
+        self.node_mapping = get_node_mapping(self.ds)
 
         self.id_mapping_file = get_id_mapping_file(file_path)
         # Load id mapping
@@ -96,6 +110,13 @@ class NetcdfDataSource(object):
 
         pass
 
+    def get_netcdf_id(self, inp_id, object_type):
+        """Get the node or flow link id needed to get data from netcdf."""
+        if object_type in ['manhole', 'connection_nodes']:
+            return self.node_mapping[inp_id]
+        else:
+            return self.channel_mapping[inp_id]
+
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
@@ -108,24 +129,25 @@ class NetcdfDataSource(object):
             object_id: spatialite id?
             parameters: a list of params, e.g.: ['q', 'q_pump']
 
-        Returns: a list of 2-tuples (time, value)
+        Returns:
+            a list of 2-tuples (time, value)
         """
         log(str(locals()))
 
         # Normalize the name
         _object_type = get_object_type(object_type)
 
-        # Mapping: spatialite id -> inp id -> flowline_id
+        # Mapping: spatialite id -> inp id -> netcdf id
         obj_id_mapping = self.id_mapping[_object_type]
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
-        flowline_id = self.channel_mapper[inp_id]
+        netcdf_id = self.get_netcdf_id(inp_id, _object_type)
 
         _parameters = self.get_parameters(object_type, parameters)
 
         # Get data from all parameters and just put them in the same list:
         result = []
         for p in _parameters:
-            vals = self.ds.variables[p][:, flowline_id]
+            vals = self.ds.variables[p][:, netcdf_id]
             timestamps = self.get_timestamps(self.ds)
             result += zip(timestamps, vals)
 
