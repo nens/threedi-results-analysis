@@ -86,7 +86,10 @@ class NetcdfDataSource(object):
             # Pump is a special case and has its own netcdf array
             return ['q_pump']
         elif 'q_pump' in parameters:
-            parameters.pop(parameters.index('q_pump'))
+            # Don't mutate parameters, we need to clone the list:
+            new_params = list(parameters)
+            new_params.pop(new_params.index('q_pump'))
+            return new_params
         return parameters
 
     def get_object(self, object_type, object_id):
