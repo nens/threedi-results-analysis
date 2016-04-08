@@ -135,7 +135,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.ts_datasource.spatialite_filepath = fname
         index_nr = self.modelSpatialiteComboBox.findText(fname)
 
-        items =
         if index_nr < 0:
             self.modelSpatialiteComboBox.addItem(fname)
             index_nr = self.modelSpatialiteComboBox.findText(fname)
