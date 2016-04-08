@@ -5,11 +5,13 @@ from base_fields import CheckboxField, ValueField
 
 class TimeseriesDatasourceModel(BaseModel):
 
+    model_spatialite_filepath = None
+
     class Fields:
 
         active = CheckboxField(show=True, default_value=True, column_width=20, column_name='')
-        object_name = ValueField(show=True, column_width=50, column_name='Name')
-        file_path = ValueField(show=False)
+        name = ValueField(show=True, column_width=130, column_name='Name')
+        file_path = ValueField(show=True, column_width=260, column_name='File')
         type = ValueField(show=False)
 
         def datasource(self):
