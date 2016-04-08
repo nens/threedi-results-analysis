@@ -4,3 +4,6 @@
 .noseids
 help/build/
 .idea
+
+# Test data
+test/data

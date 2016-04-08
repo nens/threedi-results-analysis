@@ -53,6 +53,20 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
+def netcdf_parameters(object_type=None, parameters=[]):
+    # TODO: this whole block is ugly as sin, needs better logic for the
+    # pumpstations....
+    if 'pumpstation' in object_type:
+        # Pumpstation is a special case and has its own netcdf array
+        return ['q_pump']
+    elif 'q_pump' in parameters:
+        # Don't mutate parameters, we need to clone the list:
+        new_params = list(parameters)
+        new_params.pop(new_params.index('q_pump'))
+        return new_params
+    return parameters
+
+
 class NetcdfDataSource(object):
 
     def __init__(self, file_path):
@@ -93,18 +107,8 @@ class NetcdfDataSource(object):
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
 
-    def get_parameters(self, object_type=None, parameters=[]):
-        # TODO: this whole block is ugly as sin, needs better logic for the
-        # pumpstations....
-        if 'pump' in object_type:
-            # Pump is a special case and has its own netcdf array
-            return ['q_pump']
-        elif 'q_pump' in parameters:
-            # Don't mutate parameters, we need to clone the list:
-            new_params = list(parameters)
-            new_params.pop(new_params.index('q_pump'))
-            return new_params
-        return parameters
+    def get_parameters(self, object_type=None):
+        pass
 
     def get_object(self, object_type, object_id):
 
@@ -132,8 +136,6 @@ class NetcdfDataSource(object):
         Returns:
             a list of 2-tuples (time, value)
         """
-        log(str(locals()))
-
         # Normalize the name
         _object_type = get_object_type(object_type)
 
@@ -142,7 +144,7 @@ class NetcdfDataSource(object):
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
         netcdf_id = self.get_netcdf_id(inp_id, _object_type)
 
-        _parameters = self.get_parameters(object_type, parameters)
+        _parameters = netcdf_parameters(object_type, parameters)
 
         # Get data from all parameters and just put them in the same list:
         result = []
