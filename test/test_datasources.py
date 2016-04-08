@@ -4,16 +4,19 @@ import unittest
 from ..datasource.spatialite import TdiSpatialite
 
 
+spatialite_datasource_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'data', 'test_spatialite.sqlite')
+
+
+@unittest.skipIf(not os.path.exists(spatialite_datasource_path),
+                 "Path to test spatialite doesn't exist.")
 class TestSpatialiteDatasource(unittest.TestCase):
     """ Test spatialite datasource"""
 
-    datasource_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'data', 'test_spatialite.sqlite')
-
     def setUp(self):
         """Runs before each test."""
-        self.ds = TdiSpatialite(self.datasource_path)
+        self.ds = TdiSpatialite(self.spatialite_datasource_path)
 
     def test_init(self):
         """test initialisation and access to database"""
