@@ -5,6 +5,7 @@ from ..utils.user_messages import log
 
 WATERLEVEL = ('s1', 'waterlevel','m MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
+# TODO: unorm is deprecated, now simpy 'u'
 VELOCITY = ('unorm', 'velocity', 'm/s')
 VOLUME = ('vol', 'volume', 'm3')
 DISCHARGE_PUMP = ('q_pump', 'discharge', 'm3/s')
@@ -32,25 +33,46 @@ def get_available_parameters(object_type):
 
 layer_information = [
     #layer name, object_type, q/h type
-    ('v2_connection_nodes', 'v2_connection_nodes', 'h'),
-    ('v2_pipe_view', 'v2_pipe', 'q'),
-    ('v2_channel', 'v2_channel', 'q'),
-    ('v2_culvert', 'v2_culvert', 'q'),
-    ('v2_pumpstation', 'v2_pumpstation', 'q'),
-    ('v2_pumpstation_view', 'v2_pumpstation', 'q'),
-    ('v2_weir_view', 'v2_weir', 'q'),
-    ('v2_orifice_view', 'v2_orifice', 'q'),
-    ('sewerage_manhole', 'sewerage_manhole', 'h'),
-    ('sewerage_pipe_view', 'sewerage_pipe', 'q'),
-    ('sewerage_pumpstation', 'sewerage_pumpstation', 'q'),
-    ('sewerage_pumpstation_view', 'sewerage_pumpstation', 'q'),
-    ('sewerage_weir_view', 'sewerage_weir', 'q'),
-    ('sewerage_orifice_view', 'sewerage_orifice', 'q')
+    ('v2_connection_nodes', 'connection_nodes', 'h'),
+    ('v2_pipe_view', 'pipe', 'q'),
+    ('v2_channel', 'channel', 'q'),
+    ('v2_culvert', 'culvert', 'q'),
+    ('v2_pumpstation', 'pumpstation', 'q'),
+    ('v2_pumpstation_view', 'pumpstation', 'q'),
+    ('v2_weir_view', 'weir', 'q'),
+    ('v2_orifice_view', 'orifice', 'q'),
+    ('sewerage_manhole', 'manhole', 'h'),
+    ('sewerage_pipe_view', 'pipe', 'q'),
+    ('sewerage_pumpstation', 'pumpstation', 'q'),
+    ('sewerage_pumpstation_view', 'pumpstation', 'q'),
+    ('sewerage_weir_view', 'weir', 'q'),
+    ('sewerage_orifice_view', 'orifice', 'q')
 ]
 
+# Old names
+# TODO: remove them
+# layer_information = [
+#     #layer name, object_type, q/h type
+#     ('v2_connection_nodes', 'v2_connection_nodes', 'h'),
+#     ('v2_pipe_view', 'v2_pipe', 'q'),
+#     ('v2_channel', 'v2_channel', 'q'),
+#     ('v2_culvert', 'v2_culvert', 'q'),
+#     ('v2_pumpstation', 'v2_pumpstation', 'q'),
+#     ('v2_pumpstation_view', 'v2_pumpstation', 'q'),
+#     ('v2_weir_view', 'v2_weir', 'q'),
+#     ('v2_orifice_view', 'v2_orifice', 'q'),
+#     ('sewerage_manhole', 'sewerage_manhole', 'h'),
+#     ('sewerage_pipe_view', 'sewerage_pipe', 'q'),
+#     ('sewerage_pumpstation', 'sewerage_pumpstation', 'q'),
+#     ('sewerage_pumpstation_view', 'sewerage_pumpstation', 'q'),
+#     ('sewerage_weir_view', 'sewerage_weir', 'q'),
+#     ('sewerage_orifice_view', 'sewerage_orifice', 'q')
+# ]
+
+# TODO: unorm is deprecated, now simpy 'u'
 parameter_config = {
-    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'qpump']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm']}],
+    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'q_pump']},
+          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm', 'u']}],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
 }
@@ -111,6 +133,7 @@ class TdiSpatialite(object):
         :return: cursor of spatialite database
         """
         dbname = self.data_source_uri
+        log(dbname)
         conn = sqlite.connect(dbname)
         cursor = conn.cursor()
         if not cursor and raise_exception_on_failure:
@@ -253,6 +276,15 @@ class TdiSpatialite(object):
 
 
     def get_timeseries(self, object_type, object_id, parameters):
+        """Get a list of time series from spatialite.
+
+        Args:
+            object_type: e.g. 'v2_weir'
+            object_id: spatialite id?
+            parameters: a list of params, e.g.: ['q', 'q_pump']
+
+        Returns: a list of 2-tuples (time, value)
+        """
 
         object_type = get_object_type(object_type)
         query = """SELECT t.id FROM result_type t
@@ -284,8 +316,10 @@ class TdiSpatialite(object):
             # [(0.0, 0.0), (66.875, 0.0), (120.625, 0.0), ...]
             msg = ("No data found for object_type %(object_type)s "
                    "with object_id: %(object_id)s and variable: %(variable)s."
-                   "Query: %s" % {'object_type': object_type,
+                   "Query: %(query)s" % {'object_type': object_type,
                                   'object_id': object_id,
-                                  'variable': ','.join(["'%s'"%p for p in parameters])})
+                                  'variable': ','.join(["'%s'"%p for p in parameters]),
+                                  'query': query,
+                                 })
             log(msg, level='WARNING')
             return []

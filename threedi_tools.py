@@ -27,11 +27,12 @@ from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 
 # Initialize Qt resources from file resources.py
-import resources
+import resources  # NoQa
 
 # Import the code of the tools
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
+from .utils.user_messages import log
 
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 
@@ -48,7 +49,6 @@ class ThreeDiTools:
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
-
         self.iface = iface
 
         # initialize plugin directory
@@ -80,11 +80,20 @@ class ThreeDiTools:
         self.tools = []
 
         self.ts_datasource = TimeseriesDatasourceModel()
-        items = [{
-            'ds_type': 'spatialite',
-            'name': 'rhenen test store',
-            'file_path': 'C:/Users/bastiaan.roos/Desktop/rhenen/rhenen_2d_13/results/rhenen_2d_13_result.sqlite'
-        }]
+        items = [
+#            {
+#            'ds_type': 'spatialite',
+#            'type': 'spatialite',
+#            'name': 'rhenen test store',
+            # 'file_path': 'C:/Users/bastiaan.roos/Desktop/rhenen/rhenen_2d_13/results/rhenen_2d_13_result.sqlite'
+#            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/DS_152_1D_totaal_bergingsbak_result.sqlite'
+#            },
+            {
+            'ds_type': 'netcdf',  # What is ds_type? TimeseriesDatasourceModel only has 'type'
+            'type': 'netcdf',
+            'name': 'DS152',
+            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/subgrid_map.nc'
+            }]
 
         self.ts_datasource.insertRows(items)
 
@@ -223,6 +232,7 @@ class ThreeDiTools:
                 tool.on_unload()
 
         # remove the toolbar
-        del self.toolbar
-
-
+        try:
+            del self.toolbar
+        except AttributeError:
+            log("Error, toolbar already removed?")
