@@ -1,9 +1,10 @@
-
 from collections import OrderedDict
-import numpy as np
 
-from base import BaseModel
-from base_fields import ValueField, ColorField, CheckboxField
+from .base import BaseModel
+from .base_fields import ValueField, ColorField, CheckboxField
+from ..datasource.spatialite import TdiSpatialite
+
+import numpy as np
 import pyqtgraph as pg
 
 
@@ -57,6 +58,14 @@ class LocationTimeseriesModel(BaseModel):
         object_name = ValueField(show=True, column_width=140, column_name='name')
         object_type = ValueField(show=False)
         hover = ValueField(show=False, default_value=False)
+        file_path = ValueField(show=True)
+
+        def datasource(self):
+            if hasattr(self, '_datasource'):
+                return self._datasource
+            else: # self.type.value == 'spatialite':
+                self._datasource = TdiSpatialite(self.file_path.value)
+                return self._datasource
 
         def plots(self, parameters=None, netcdf_nr=0):
             if not str(parameters) in self._plots:
@@ -69,12 +78,15 @@ class LocationTimeseriesModel(BaseModel):
             return self._plots[str(parameters)][str(netcdf_nr)]
 
         def timeseries_table(self, parameters=None, netcdf_nr=0):
-
             float_data = []
+            # for t, v in self.model.datasource.rows[netcdf_nr].datasource().get_timeseries(
+            #         self.object_type.value, self.object_id.value, parameters):
             for t, v in self.model.datasource.rows[netcdf_nr]\
                     .datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters):
                 # some value data may come back as 'NULL' string; convert it to None
                 # or else convert it to float
                 v = None if v == 'NULL' else float(v)
                 float_data.append((float(t), v))
+
+
             return np.array(float_data, dtype=float)

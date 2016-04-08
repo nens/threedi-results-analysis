@@ -5,10 +5,11 @@ from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePoli
 
 from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
     parameter_config
-
 from ..models.graph import LocationTimeseriesModel
+from ..utils.user_messages import log
 
 import pyqtgraph as pg
+from qgis.core import QgsDataSourceURI
 
 
 pg.setConfigOption('background', 'w')
@@ -173,11 +174,19 @@ class LocationTimeseriesTable(QTableView):
 
             if row != self._last_hovered_row:
                 if self._last_hovered_row is not None:
-                    self.hover_exit(self._last_hovered_row)
+                    try:
+                        self.hover_exit(self._last_hovered_row)
+                    except IndexError:
+                        log("Hover row index %s out of range" %
+                            self._last_hovered_row, level='WARNING')
                     #self.hoverExitRow.emit(self._last_hovered_row)
                 #self.hoverEnteredRow.emit(index.row())
                 if row is not None:
-                    self.hover_enter(row)
+                    try:
+                        self.hover_enter(row)
+                    except:
+                        log("Hover row index %s out of range" % row,
+                            level='WARNING')
                 self._last_hovered_row = row
                 pass
         return QTableView.eventFilter(self, widget, event)
@@ -224,6 +233,7 @@ class GraphWidget(QWidget):
         self.name = name
         self.parameters = dict([(p['name'], p) for p in parameter_config])
         self.ts_datasource = ts_datasource
+        self.parent = parent
 
         self.setup_ui()
 
@@ -336,13 +346,22 @@ class GraphWidget(QWidget):
         :param features: Qgis layer features to be added
         """
 
+        # Get the active database as URI, connInfo is something like:
+        # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
+        # DS_152_1D_totaal_bergingsbak/results/
+        # DS_152_1D_totaal_bergingsbak_result.sqlite'"
+        connInfo = QgsDataSourceURI(
+            layer.dataProvider().dataSourceUri()).connectionInfo()
+        filename = connInfo.split("'")[1]
+
         # get attribute information from selected layers
         items = []
         for feature in features:
             item = {
                 'object_type': layer.name(),
                 'object_id': feature['id'],
-                'object_name': feature['display_name']
+                'object_name': feature['display_name'],
+                'file_path': filename
             }
             items.append(item)
 
