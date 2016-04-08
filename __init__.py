@@ -21,18 +21,14 @@
  ***************************************************************************/
  This script initializes the plugin, making it known to QGIS.
 """
-import sys, os
 
-sys.path.append(os.path.join(os.path.realpath(__file__),os.pardir))
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load ThreeDiToolbox class from file ThreeDiToolbox.
 
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
+    :param iface: QgsInterface. A QGIS interface instance.
     """
-    #
 
     from .threedi_tools import ThreeDiTools
     return ThreeDiTools(iface)

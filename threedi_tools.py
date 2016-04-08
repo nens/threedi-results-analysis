@@ -34,7 +34,7 @@ from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
 from .utils.user_messages import log
 
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from models.datasources import TimeseriesDatasourceModel
 
 
 class ThreeDiTools:
