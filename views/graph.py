@@ -1,9 +1,10 @@
-from PyQt4.QtCore import Qt, QSize, QEvent, QModelIndex, QPersistentModelIndex,\
-    pyqtSignal, QMetaObject
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QColor, QPushButton, QSpacerItem,\
-    QApplication, QWidget, QGridLayout, QVBoxLayout, QTabWidget, QDockWidget, QComboBox
 
-from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
+from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
+from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
+    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
+    QDockWidget, QComboBox
+
+from ..datasource.spatialite import get_object_type, layer_qh_type_mapping, \
     parameter_config
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log
@@ -36,6 +37,7 @@ class GraphPlot(pg.PlotWidget):
         self.setLabel("bottom", "Tijd", "s")
 
         self.current_parameter = None
+        self.model = None
 
     def on_close(self):
         """
@@ -47,7 +49,6 @@ class GraphPlot(pg.PlotWidget):
             self.model.rowsInserted.disconnect(self.insert_plot)
             self.model.rowsAboutToBeRemoved.disconnect(self.remove_plot)
             self.model = None
-
 
     def closeEvent(self, event):
         """
@@ -77,7 +78,8 @@ class GraphPlot(pg.PlotWidget):
 
     def remove_plot(self, index, start, end):
         """
-        remove list of items of model from plot. based on Qt model removeRows trigger
+        remove list of items of model from plot. based on Qt model removeRows
+        trigger
         :param index: Qt Index (not used)
         :param start: first row nr
         :param end: last row nr
@@ -85,7 +87,8 @@ class GraphPlot(pg.PlotWidget):
         for i in range(start, end+1):
             item = self.model.rows[i]
             if item.active.value:
-                self.removeItem(item.plots(self.current_parameter['parameters']))
+                self.removeItem(item.plots(
+                        self.current_parameter['parameters']))
 
     def data_changed(self, index):
 
@@ -99,18 +102,22 @@ class GraphPlot(pg.PlotWidget):
         elif self.model.columns[index.column()].name == 'hover':
             item = self.model.rows[index.row()]
             if item.hover.value:
-                item.plots(self.current_parameter['parameters']).setPen(color=item.color.qvalue, width=4)
+                item.plots(self.current_parameter['parameters']).\
+                        setPen(color=item.color.qvalue, width=4)
             else:
-                item.plots(self.current_parameter['parameters']).setPen(color=item.color.qvalue, width=2)
+                item.plots(self.current_parameter['parameters']).\
+                        setPen(color=item.color.qvalue, width=2)
 
     def hide_timeseries(self, row_nr):
 
-        plot = self.model.rows[row_nr].plots(self.current_parameter['parameters'])
+        plot = self.model.rows[row_nr].plots(
+                self.current_parameter['parameters'])
         self.removeItem(plot)
 
     def show_timeseries(self, row_nr):
 
-        plot = self.model.rows[row_nr].plots(self.current_parameter['parameters'])
+        plot = self.model.rows[row_nr].plots(
+                self.current_parameter['parameters'])
         self.addItem(plot)
 
     def set_parameter(self, parameter):
@@ -126,7 +133,9 @@ class GraphPlot(pg.PlotWidget):
                 self.removeItem(item.plots(old_parameter['parameters']))
                 self.addItem(item.plots(self.current_parameter['parameters']))
 
-        self.setLabel("left", self.current_parameter['name'], self.current_parameter['unit'])
+        self.setLabel("left",
+                      self.current_parameter['name'],
+                      self.current_parameter['unit'])
 
 
 class LocationTimeseriesTable(QTableView):
@@ -139,7 +148,6 @@ class LocationTimeseriesTable(QTableView):
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.model = None
-        # self.entered.connect(self.hover_row)
 
         self._last_hovered_row = None
         self.viewport().installEventFilter(self)
@@ -216,18 +224,10 @@ class LocationTimeseriesTable(QTableView):
             if not model.columns[col_nr].show:
                 self.setColumnHidden(col_nr, True)
 
-    def hover_row(self, index):
-        pass
-        #log("row %i, col %i"%(index.row(), index.column()))
-        # if index.row() != self.row_hovered:
-        #     if self.row_hovered is not None:
-        #         self.model.setData()
-        #     self.row_hovered = index.row()
-        #     self.model.setData()
-
 class GraphWidget(QWidget):
 
-    def __init__(self, parent=None, ts_datasource=None, parameter_config=[], name=""):
+    def __init__(self, parent=None, ts_datasource=None,
+                 parameter_config=[], name=""):
         super(GraphWidget, self).__init__(parent)
 
         self.name = name
@@ -245,11 +245,13 @@ class GraphWidget(QWidget):
         for pc in self.parameters.keys():
             self.parameter_combo_box.addItem(pc)
         self.parameter_combo_box.setCurrentIndex(1)
-        self.current_parameter = self.parameters[self.parameter_combo_box.currentText()]
+        self.current_parameter = \
+                self.parameters[self.parameter_combo_box.currentText()]
         self.graph_plot.set_parameter(self.current_parameter)
 
         # set listeners
-        self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
+        self.parameter_combo_box.currentIndexChanged.connect(
+                self.parameter_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
 
     def on_close(self):
@@ -257,8 +259,10 @@ class GraphWidget(QWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        self.parameter_combo_box.currentIndexChanged.disconnect(self.parameter_change)
-        self.remove_timeseries_button.clicked.disconnect(self.remove_objects_table)
+        self.parameter_combo_box.currentIndexChanged.disconnect(
+                self.parameter_change)
+        self.remove_timeseries_button.clicked.disconnect(
+                self.remove_objects_table)
 
     def closeEvent(self, event):
         """
@@ -283,7 +287,8 @@ class GraphWidget(QWidget):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.graph_plot.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+                self.graph_plot.sizePolicy().hasHeightForWidth())
         self.graph_plot.setSizePolicy(sizePolicy)
         self.graph_plot.setMinimumSize(QSize(250, 250))
         self.hLayout.addWidget(self.graph_plot)
@@ -301,7 +306,8 @@ class GraphWidget(QWidget):
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.location_timeseries_table.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+                self.location_timeseries_table.sizePolicy().hasHeightForWidth())
         self.location_timeseries_table.setSizePolicy(sizePolicy)
         self.location_timeseries_table.setMinimumSize(QSize(250, 0))
         self.vLayoutTable.addWidget(self.location_timeseries_table)
@@ -314,11 +320,13 @@ class GraphWidget(QWidget):
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+                self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
         self.remove_timeseries_button.setSizePolicy(sizePolicy)
         self.remove_timeseries_button.setObjectName("remove_timeseries_button")
         self.hLayoutButtons.addWidget(self.remove_timeseries_button)
-        self.hLayoutButtons.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.hLayoutButtons.addItem(
+                QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         self.retranslateUi()
 
@@ -326,7 +334,8 @@ class GraphWidget(QWidget):
         """
         set translated widget text
         """
-        self.remove_timeseries_button.setText(_translate("DockWidget", "Verwijder", None))
+        self.remove_timeseries_button.setText(
+                _translate("DockWidget", "Verwijder", None))
 
     def parameter_change(self, nr):
         """
@@ -334,10 +343,9 @@ class GraphWidget(QWidget):
         :param nr: nr of selected option of combobox
         :return:
         """
-        self.current_parameter = self.parameters[self.parameter_combo_box.currentText()]
+        self.current_parameter = \
+                self.parameters[self.parameter_combo_box.currentText()]
         self.graph_plot.set_parameter(self.current_parameter)
-
-        #todo: trigger refresh of graphs
 
     def add_objects(self, layer, features):
         """
@@ -384,7 +392,8 @@ class GraphDockWidget(QDockWidget):
 
     closingWidget = pyqtSignal(int)
 
-    def __init__(self, iface, parent_widget=None, parent_class=None, nr=0, ts_datasource=None):
+    def __init__(self, iface, parent_widget=None,
+                 parent_class=None, nr=0, ts_datasource=None):
         """Constructor"""
         super(GraphDockWidget, self).__init__(parent_widget)
 
@@ -402,10 +411,14 @@ class GraphDockWidget(QDockWidget):
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
 
         # add graph widgets
-        self.q_graph_widget = GraphWidget(self, self.ts_datasource, parameter_config['q'], "Q graph")
-        self.h_graph_widget = GraphWidget(self, self.ts_datasource, parameter_config['h'], "H graph")
-        self.graphTabWidget.addTab(self.q_graph_widget, self.q_graph_widget.name)
-        self.graphTabWidget.addTab(self.h_graph_widget, self.h_graph_widget.name)
+        self.q_graph_widget = GraphWidget(self, self.ts_datasource,
+                                          parameter_config['q'], "Q graph")
+        self.h_graph_widget = GraphWidget(self, self.ts_datasource,
+                                          parameter_config['h'], "H graph")
+        self.graphTabWidget.addTab(self.q_graph_widget,
+                                   self.q_graph_widget.name)
+        self.graphTabWidget.addTab(self.h_graph_widget,
+                                   self.h_graph_widget.name)
 
     def on_close(self):
         """
@@ -465,10 +478,12 @@ class GraphDockWidget(QDockWidget):
 
         if layer_qh_type_mapping[current_layer.name()] == 'q':
             self.q_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(self.graphTabWidget.indexOf(self.q_graph_widget))
+            self.graphTabWidget.setCurrentIndex(
+                    self.graphTabWidget.indexOf(self.q_graph_widget))
         else:
             self.h_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(self.graphTabWidget.indexOf(self.h_graph_widget))
+            self.graphTabWidget.setCurrentIndex(
+                    self.graphTabWidget.indexOf(self.h_graph_widget))
 
     def setup_ui(self, dock_widget):
         """
@@ -490,7 +505,8 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
         self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding,
+                                 QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
         self.mainVLayout.addItem(self.buttonBarHLayout)
 
@@ -499,7 +515,8 @@ class GraphDockWidget(QDockWidget):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(6)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.graphTabWidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+                self.graphTabWidget.sizePolicy().hasHeightForWidth())
         self.graphTabWidget.setSizePolicy(sizePolicy)
         self.graphTabWidget.setObjectName("graphTabWidget")
         self.mainVLayout.addWidget(self.graphTabWidget)
@@ -510,8 +527,7 @@ class GraphDockWidget(QDockWidget):
         QMetaObject.connectSlotsByName(dock_widget)
 
     def retranslate_ui(self, DockWidget):
-        DockWidget.setWindowTitle(_translate("DockWidget", "3di resultaat grafieken %i" % self.nr, None))
-        self.addSelectedObjectButton.setText(_translate("DockWidget", "Voeg toe", None))
-
-
-
+        DockWidget.setWindowTitle(_translate(
+            "DockWidget", "3di resultaat grafieken %i" % self.nr, None))
+        self.addSelectedObjectButton.setText(_translate(
+            "DockWidget", "Voeg toe", None))
