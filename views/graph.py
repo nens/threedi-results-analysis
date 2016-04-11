@@ -214,7 +214,7 @@ class LocationTimeseriesTable(QTableView):
             if width:
                 self.setColumnWidth(col_nr, width)
             if not model.columns[col_nr].show:
-                self.setColumnHidden(col_nr, True);
+                self.setColumnHidden(col_nr, True)
 
     def hover_row(self, index):
         pass

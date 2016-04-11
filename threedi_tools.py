@@ -30,9 +30,10 @@ from PyQt4.QtGui import QAction, QIcon
 import resources  # NoQa
 
 # Import the code of the tools
+from threedi_result_selection import ThreeDiResultSelection
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
-from .utils.user_messages import log
+from .utils.user_messages import pop_up_info, log
 
 from models.datasources import TimeseriesDatasourceModel
 
@@ -88,15 +89,11 @@ class ThreeDiTools:
             # 'file_path': 'C:/Users/bastiaan.roos/Desktop/rhenen/rhenen_2d_13/results/rhenen_2d_13_result.sqlite'
 #            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/DS_152_1D_totaal_bergingsbak_result.sqlite'
 #            },
-            {
-            'ds_type': 'netcdf',  # What is ds_type? TimeseriesDatasourceModel only has 'type'
-            'type': 'netcdf',
-            'name': 'DS152',
-            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/subgrid_map.nc'
-            }]
+            ]
 
         self.ts_datasource.insertRows(items)
 
+        self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(ThreeDiGraph(iface, self.ts_datasource))
 
@@ -114,7 +111,6 @@ class ThreeDiTools:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('ThreeDiTools', message)
-
 
     def add_action(
         self,
@@ -206,7 +202,7 @@ class ThreeDiTools:
 
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
         action = QAction(icon, "3di about", self.iface.mainWindow())
-        action.triggered.connect(self.unload)
+        action.triggered.connect(self.about)
         action.setEnabled(True)
         self.toolbar.addAction(action)
 
@@ -216,6 +212,13 @@ class ThreeDiTools:
                 text=self.tr(tool.menu_text),
                 callback=tool.run,
                 parent=self.iface.mainWindow())
+
+    def about(self):
+        """
+            shows dialog with version information
+        :return:
+        """
+        pop_up_info("3di Tools versie ??", "About", self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
