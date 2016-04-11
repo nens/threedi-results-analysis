@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                :  7 april 2016
         git sha              : $Format:%H$
@@ -78,6 +78,5 @@ class ThreeDiResultSelection:
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
 
-            # show the dockwidget
-            # self.iface.addWidget(self.dialog)
+            # show the widget
             self.dialog.show()

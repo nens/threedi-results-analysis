@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
@@ -23,8 +23,6 @@
 import os.path
 from PyQt4.QtCore import Qt
 import qgis
-
-from utils.user_messages import log, pop_up_info
 
 from views.graph import GraphDockWidget
 
@@ -84,9 +82,7 @@ class ThreeDiGraph:
     def run(self):
         """
         Run method that loads and starts the plugin (docked graph widget)
-        :return:
         """
-
         # create the dockwidget
         self.widget_nr += 1
         new_widget = GraphDockWidget(self.iface, parent_class=self, nr=self.widget_nr, ts_datasource=self.ts_datasource)

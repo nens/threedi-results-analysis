@@ -6,13 +6,12 @@ from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 
-
-from ..datasource.spatialite import layer_qh_type_mapping, layer_object_type_mapping
-
+from ..datasource.spatialite import layer_qh_type_mapping
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui', 'threedi_result_selection_dialog.ui'))
+    os.path.dirname(__file__), os.pardir, 'ui',
+            'threedi_result_selection_dialog.ui'))
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
@@ -37,33 +36,40 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 self.resultTableView.setColumnHidden(col_nr, True)
 
         # set events
-        self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
+        self.selectTsDatasourceButton.clicked.connect(
+                self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.connect(self.select_model_spatialite_file)
+        self.removeTsDatasourceButton.clicked.connect(
+                self.remove_selected_ts_ds)
+        self.selectModelSpatialiteButton.clicked.connect(
+                self.select_model_spatialite_file)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
 
         if self.ts_datasource.model_spatialite_filepath and \
-                        self.ts_datasource.model_spatialite_filepath not in combo_list:
+                self.ts_datasource.model_spatialite_filepath not in combo_list:
             combo_list.append(self.ts_datasource.spatialite_filepath)
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
         if self.ts_datasource.model_spatialite_filepath:
             self.modelSpatialiteComboBox.setCurrentIndex(
-                self.modelSpatialiteComboBox.findData(self.ts_datasource.spatialite_filepath))
+                    self.modelSpatialiteComboBox.findData(
+                            self.ts_datasource.spatialite_filepath))
 
-        self.modelSpatialiteComboBox.currentIndexChanged.connect(self.model_spatialite_change)
+        self.modelSpatialiteComboBox.currentIndexChanged.connect(
+            self.model_spatialite_change)
 
     def on_close(self):
 
-        self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
+        self.selectTsDatasourceButton.clicked.disconnect(
+                self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.connect(self.select_model_spatialite_file)
-
+        self.removeTsDatasourceButton.clicked.disconnect(
+                self.remove_selected_ts_ds)
+        self.selectModelSpatialiteButton.clicked.connect(
+                self.select_model_spatialite_file)
 
     def closeEvent(self, event):
         self.closingDialog.emit()
@@ -79,7 +85,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        fname = QFileDialog.getOpenFileName(self, 'Open resultaten file', init_path , 'NetCDF (*.nc)')
+        fname = QFileDialog.getOpenFileName(self, 'Open resultaten file',
+                                            init_path , 'NetCDF (*.nc)')
 
         if fname:
             items = [{
@@ -107,7 +114,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         tdi_spatialites = []
 
         for layer in self.iface.legendInterface().layers():
-            if layer.name() in layer_qh_type_mapping.keys() and layer.dataProvider().name() == 'spatialite':
+            if layer.name() in layer_qh_type_mapping.keys() and \
+                            layer.dataProvider().name() == 'spatialite':
                 source = layer.dataProvider().dataSourceUri().split("'")[1]
                 if source not in tdi_spatialites:
                     tdi_spatialites.append(source)
@@ -116,7 +124,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def model_spatialite_change(self, nr):
 
-        self.ts_datasource.model_spatialite_filepath = self.modelSpatialiteComboBox.currentText()
+        self.ts_datasource.model_spatialite_filepath = \
+                self.modelSpatialiteComboBox.currentText()
 
     def select_model_spatialite_file(self):
 
@@ -127,7 +136,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        fname = QFileDialog.getOpenFileName(self, 'Open 3di model spatialite file', init_path , 'Spatialite (*.sqlite)')
+        fname = QFileDialog.getOpenFileName(self,
+                                            'Open 3di model spatialite file',
+                                            init_path ,
+                                            'Spatialite (*.sqlite)')
 
         if fname is None:
             return False
@@ -154,7 +166,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         #     # Open the connection
         #     db.open()
         #     # query the table
-        #     query = db.exec_("""SELECT name FROM sqlite_master WHERE type in ('table', 'view');""")
+        #     query = db.exec_("""SELECT name FROM sqlite_master
+        #                               WHERE type in ('table', 'view');""")
         #
         #     while query.next():
         #         table_name = query.record().value(0)
@@ -164,7 +177,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         #             uri2 = QgsDataSourceURI()
         #             uri2.setDatabase(fname)
         #             uri2.setDataSource(schema, table_name, 'the_geom')
-        #             vlayer = QgsVectorLayer(uri2.uri(), table_name, 'spatialite')
+        #             vlayer = QgsVectorLayer(uri2.uri(),
+        #                                     table_name,
+        #                                     'spatialite')
         #             a = vlayer.dataProvider().dataSourceUri()
         #
         #             if vlayer.isValid():

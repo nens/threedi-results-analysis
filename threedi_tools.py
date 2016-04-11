@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
@@ -23,7 +23,7 @@
 
 import os.path
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 
 # Initialize Qt resources from file resources.py
@@ -193,13 +193,10 @@ class ThreeDiTools:
             #load optional settings for remote debugging for development purposes
             #add file remote_debugger_settings.py in main directory to use debugger
             import remote_debugger_settings
-        except:
-            print 'could not load remote debugger'
-
-
+        except ImportError:
+            pass
 
         # add 3di logo and about info (doing nothing right now)
-
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
         action = QAction(icon, "3di about", self.iface.mainWindow())
         action.triggered.connect(self.about)
@@ -218,6 +215,7 @@ class ThreeDiTools:
             shows dialog with version information
         :return:
         """
+        #todo: add version number and link to sites
         pop_up_info("3di Tools versie ??", "About", self.iface.mainWindow())
 
     def unload(self):
