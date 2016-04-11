@@ -43,7 +43,7 @@ class ThreeDiResultSelection:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icon.png'
+        self.icon_path = ':/plugins/ThreeDiToolbox/icon_add_datasource.png'
         self.menu_text = u'Selecteer 3di resultaten'
 
         self.is_active = False
