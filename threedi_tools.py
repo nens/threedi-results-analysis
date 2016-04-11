@@ -171,8 +171,6 @@ class ThreeDiTools:
                 action)
 
         self.actions.append(action)
-
-
         return action
 
     def initGui(self):
@@ -205,7 +203,12 @@ class ThreeDiTools:
         :return:
         """
         #todo: add version number and link to sites
-        pop_up_info("3di Tools versie ??", "About", self.iface.mainWindow())
+        version = open(os.path.join(
+                os.path.dirname(__file__),
+                'version.rst')).readline().rstrip('/n')
+
+        pop_up_info("3di Tools versie %s"%version,
+                    "About", self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
