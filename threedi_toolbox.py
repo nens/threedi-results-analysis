@@ -56,7 +56,6 @@ class ThreeDiToolbox:
 
         self.toolbox = None
 
-
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
@@ -64,8 +63,13 @@ class ThreeDiToolbox:
 
         # disconnects
         if self.dockwidget:
-            self.dockwidget.closingPlugin.disconnect(self.on_unload)
+            self.dockwidget.close()
 
+    def on_close_child_widget(self):
+        """Cleanup necessary items here when plugin dockwidget is closed"""
+        self.dockwidget.closingWidget.disconnect(self.on_close_child_widget)
+
+        self.dock_widget = None
         self.pluginIsActive = False
 
     def run(self):
@@ -84,7 +88,7 @@ class ThreeDiToolbox:
                 self.dockwidget = ThreeDiToolboxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.on_unload)
+            self.dockwidget.closingPlugin.connect(self.on_close_child_widget)
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
