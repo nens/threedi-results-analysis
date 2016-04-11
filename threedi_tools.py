@@ -89,12 +89,7 @@ class ThreeDiTools:
             # 'file_path': 'C:/Users/bastiaan.roos/Desktop/rhenen/rhenen_2d_13/results/rhenen_2d_13_result.sqlite'
 #            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/DS_152_1D_totaal_bergingsbak_result.sqlite'
 #            },
-            {
-            'ds_type': 'netcdf',  # What is ds_type? TimeseriesDatasourceModel only has 'type'
-            'type': 'netcdf',
-            'name': 'DS152',
-            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/subgrid_map.nc'
-            }]
+            ]
 
         self.ts_datasource.insertRows(items)
 

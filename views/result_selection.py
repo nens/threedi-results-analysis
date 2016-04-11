@@ -83,7 +83,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         if fname:
             items = [{
-                'ds_type': 'netcdf',
+                'type': 'netcdf',
                 'name': os.path.basename(fname).lower().rstrip('.nc'),
                 'file_path': fname
             }]
