@@ -3,14 +3,21 @@ from PyQt4.QtCore import Qt, QSize, QEvent, QModelIndex, QPersistentModelIndex,\
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QColor, QPushButton, QSpacerItem,\
     QApplication, QWidget, QGridLayout, QVBoxLayout, QTabWidget, QDockWidget, QComboBox
 
-from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping, \
-    parameter_config
+from ..datasource.spatialite import get_object_type, get_available_parameters, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log
 
 import pyqtgraph as pg
 from qgis.core import QgsDataSourceURI
 
+# GraphDockWidget labels related parameters.
+# TODO: unorm is deprecated, now 'u1'
+parameter_config = {
+    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
+          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']}],
+    'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
+          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
+}
 
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
