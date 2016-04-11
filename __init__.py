@@ -51,11 +51,11 @@ except ImportError:
         netCDF4 = None
 
 if netCDF4 is not None:
-    msg += 'Python-netcdf version %{python-netcdf}s, netCDF4 version ' \
-           '%{netcdf)s and HDF5 version %{netcdf)s.'% {
-            'python-netcdf': netCDF4.__version__,
-            'netcdf': netCDF4.__netcdf4libversion__,
-            'hdf5': netCDF4.__hdf5libversion__}
+    msg += 'Python-netcdf version {python_netcdf}, netCDF4 version ' \
+           '{netcdf} and HDF5 version {netcdf}.'.format(
+                    python_netcdf = netCDF4.__version__,
+                    netcdf = netCDF4.__netcdf4libversion__,
+                    hdf5 = netCDF4.__hdf5libversion__)
 
     log(msg)
     print msg
