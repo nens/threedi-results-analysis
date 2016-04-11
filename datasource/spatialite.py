@@ -5,7 +5,7 @@ from ..utils.user_messages import log
 
 WATERLEVEL = ('s1', 'waterlevel','m MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
-# TODO: unorm is deprecated, now simpy 'u'
+# TODO: unorm is deprecated, now 'u1'
 VELOCITY = ('unorm', 'velocity', 'm/s')
 VOLUME = ('vol', 'volume', 'm3')
 DISCHARGE_PUMP = ('q_pump', 'discharge', 'm3/s')
@@ -69,10 +69,10 @@ layer_information = [
 #     ('sewerage_orifice_view', 'sewerage_orifice', 'q')
 # ]
 
-# TODO: unorm is deprecated, now simpy 'u'
+# TODO: unorm is deprecated, now 'u1'
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'q_pump']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm', 'u']}],
+          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm', 'u1']}],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
 }

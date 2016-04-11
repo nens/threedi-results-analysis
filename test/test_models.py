@@ -33,11 +33,15 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
         self.assertEqual(item.active.value, self.test_values['active'])
         self.assertEqual(item.color.value, self.test_values['color'])
         self.assertEqual(item.object_id.value, self.test_values['object_id'])
-        self.assertEqual(item.object_name.value, self.test_values['object_name'])
+        self.assertEqual(
+            item.object_name.value, self.test_values['object_name'])
 
     def test_set_values(self):
         """test setting properties"""
-        model = LocationTimeseriesModel(initial_data=[{'object_id': 1, 'object_name': 'object_1', 'active': True}])
+        model = LocationTimeseriesModel(
+            initial_data=[{'object_id': 1,
+                           'object_name': 'object_1',
+                           'active': True}])
         item = model.rows[0]
 
         item.active.value = False
@@ -57,8 +61,8 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
         self.assertEqual(item.active.column_width, 20)
         self.assertEqual(item.active.column_name, "")
 
-        #todo: test column, get_fields
-        #todo: test plots, get_timetables
+        # todo: test column, get_fields
+        # todo: test plots, get_timetables
 
     def tearDown(self):
         """Runs after each test."""
@@ -93,13 +97,13 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             datasource=self.datasource)
 
         self.assertEqual(collection.rowCount(), 0)
-        self.assertEqual(collection.columnCount(), 6)
+        self.assertEqual(collection.columnCount(), 7)
 
         headers = [collection.headerData(i)
                    for i in range(0, collection.columnCount())]
 
         self.assertListEqual(headers,
-                             ['', '', 'id', 'name', 'object_type', 'hover'])#display column names
+                             ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])#display column names
 
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
@@ -108,7 +112,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             initial_data=self.initial_data)
 
         self.assertEqual(collection.rowCount(), 4)
-        self.assertEqual(collection.columnCount(), 6)
+        self.assertEqual(collection.columnCount(), 7)
         self.assertEqual(collection.data(
             collection.createIndex(0, 0, None),
             role=Qt.DisplayRole), None)
@@ -135,13 +139,13 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         collection.insertRows(self.additional_data)
 
         self.assertEqual(collection.rowCount(), 8)
-        self.assertEqual(collection.columnCount(), 6)
+        self.assertEqual(collection.columnCount(), 7)
 
         self.assertEqual(collection.data(
             collection.createIndex(7, 3, None),
             role=Qt.DisplayRole), 'object_8')
 
-        collection.removeRows(2,4)
+        collection.removeRows(2, 4)
 
         self.assertEqual(collection.rowCount(), 4)
 
@@ -160,7 +164,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
             datasource=self.datasource,
             initial_data=self.initial_data)
 
-        #first test checkField
+        # first test checkField
         collection.setData(collection.createIndex(0, 0),
                            Qt.Unchecked,
                            Qt.CheckStateRole)
