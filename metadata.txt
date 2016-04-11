@@ -10,14 +10,14 @@
 name=3di toolbox
 qgisMinimumVersion=2.8
 description=Toolbox for working with 3di hydraulic models
-version=0.1
+version=0.2
 author=Nelen&Schuurmans
 email=bastiaan.roos@nelen-schuurmans.nl
 
 about=Toolbox for working with hydraulic 3di models. This includes tools for data validation, model creation and working with results.
 
-tracker=https://github.com/nens/threedi-toolbox
-repository=https://github.com/nens/threedi-toolbox
+tracker=https://github.com/nens/threedi-qgis-plugin
+repository=https://github.com/nens/threedi-qgis-plugin
 # End of mandatory metadata
 
 # Recommended items:
@@ -28,7 +28,7 @@ repository=https://github.com/nens/threedi-toolbox
 # Tags are comma separated with spaces allowed
 tags=analysis, dem, hydraulics, network analysis, postgis
 
-homepage=https://github.com/nens/threedi-toolbox
+homepage=https://github.com/nens/threedi-qgis-plugin
 category=Plugins
 icon=icon.png
 # experimental flag
