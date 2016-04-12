@@ -2,12 +2,12 @@
 from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox
+    QDockWidget, QComboBox, QMessageBox
 
 from ..datasource.spatialite import get_object_type, layer_qh_type_mapping, \
     parameter_config
 from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log
+from ..utils.user_messages import log, statusbar_message
 
 import pyqtgraph as pg
 from qgis.core import QgsDataSourceURI
@@ -352,6 +352,7 @@ class GraphWidget(QWidget):
 
         :param layer: layer of features
         :param features: Qgis layer features to be added
+        return boolean: new objects are added
         """
 
         # Get the active database as URI, connInfo is something like:
@@ -364,16 +365,39 @@ class GraphWidget(QWidget):
 
         # get attribute information from selected layers
         items = []
+        existing_items = ["%s_%s"%(item.object_type.value,
+                                   str(item.object_id.value))
+                for item in self.model.rows]
         for feature in features:
-            item = {
-                'object_type': layer.name(),
-                'object_id': feature['id'],
-                'object_name': feature['display_name'],
-                'file_path': filename
-            }
-            items.append(item)
+            #check if object not already exist
+
+            if (layer.name() + '_' + str(feature['id'])) not in existing_items:
+                item = {
+                    'object_type': layer.name(),
+                    'object_id': feature['id'],
+                    'object_name': feature['display_name'],
+                    'file_path': filename
+                }
+                items.append(item)
+
+        if len(items) > 20:
+            msg = "%i nieuwe objecten zijn geselecteerd. Toevoegen aan de " \
+                  "grafiek kan enkele tijd duren. Wilt u doorgaan?"%len(items)
+            reply = QMessageBox.question(self, 'Objecten toevoegen',
+                     msg, QMessageBox.Yes, QMessageBox.No)
+
+            if reply == QMessageBox.No:
+                return False
+
 
         self.model.insertRows(items)
+        msg = "%i nieuwe objecten toegevoegd aan grafiek "%len(items)
+        skipped_items = len(features) - len(items)
+        if skipped_items > 0:
+            msg += "(%i reeds toegevoegde objecten overgeslagen)"%skipped_items
+
+        statusbar_message(msg)
+        return True
 
     def remove_objects_table(self):
         """
