@@ -293,6 +293,7 @@ class LocationTimeseriesTable(QTableView):
 
             elif event.type() == QEvent.Leave:
                 row = None
+                self.hoverExitRow.emit(self._last_hovered_row)
             else:
                 row = self._last_hovered_row
 
@@ -303,8 +304,8 @@ class LocationTimeseriesTable(QTableView):
                     except IndexError:
                         log("Hover row index %s out of range" %
                             self._last_hovered_row, level='WARNING')
-                    #self.hoverExitRow.emit(self._last_hovered_row)
-                #self.hoverEnteredRow.emit(index.row())
+                    # self.hoverExitRow.emit(self._last_hovered_row)
+                # self.hoverEnterRow.emit(row)
                 if row is not None:
                     try:
                         self.hover_enter(row)
@@ -316,15 +317,15 @@ class LocationTimeseriesTable(QTableView):
         return QTableView.eventFilter(self, widget, event)
 
     def hover_exit(self, row_nr):
-
         if row_nr >= 0:
             item = self.model.rows[row_nr]
             item.hover.value = False
 
     def hover_enter(self, row_nr):
-
         if row_nr >= 0:
             item = self.model.rows[row_nr]
+            obj_id = item.object_id.value
+            self.hoverEnterRow.emit(obj_id)
             item.hover.value = True
 
     def setModel(self, model):
@@ -389,6 +390,19 @@ class GraphWidget(QWidget):
         self.on_close()
         event.accept()
 
+    def highlight_feature(self, obj_id):
+        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+        log(str(obj_id))
+        selection = [obj_id]
+        current_layer = self.parent.iface.mapCanvas().currentLayer()
+        current_layer.setSelectedFeatures(selection)
+
+    def unhighlight_features(self, obj_id):
+        log(str(obj_id))
+        current_layer = self.parent.iface.mapCanvas().currentLayer()
+        if current_layer:
+            current_layer.setSelectedFeatures([])
+
     def setup_ui(self):
         """
         Create Qt widgets and elements
@@ -420,6 +434,8 @@ class GraphWidget(QWidget):
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
+        self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
+        self.location_timeseries_table.hoverExitRow.connect(self.unhighlight_features)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
