@@ -391,14 +391,11 @@ class GraphWidget(QWidget):
         event.accept()
 
     def highlight_feature(self, obj_id):
-        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
-        log(str(obj_id))
         selection = [obj_id]
         current_layer = self.parent.iface.mapCanvas().currentLayer()
         current_layer.setSelectedFeatures(selection)
 
     def unhighlight_features(self, obj_id):
-        log(str(obj_id))
         current_layer = self.parent.iface.mapCanvas().currentLayer()
         if current_layer:
             current_layer.removeSelection()
