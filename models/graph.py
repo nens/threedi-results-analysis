@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 from collections import OrderedDict
+from random import randint
 
 from .base import BaseModel
 from .base_fields import ValueField, ColorField, CheckboxField
@@ -34,6 +36,11 @@ COLOR_LIST = [
 
 
 def select_default_color(item_field):
+    """
+    returns color for lines
+    :param item_field: ItemField object
+    :return: tuple with the 3 color bands (values between 0-256)
+    """
 
     model = item_field.item.model
     colors = OrderedDict([(str(color), color) for color in COLOR_LIST])
@@ -45,48 +52,63 @@ def select_default_color(item_field):
     if len(colors) >= 1:
         return colors.values()[0]
 
-    return COLOR_LIST[0]
+    # predefined colors are all used, return random color
+    return (randint(0,256), randint(0,256), randint(0,256))
 
 
 class LocationTimeseriesModel(BaseModel):
+    """Model implementation for (selected objects) for display in graph"""
 
     class Fields:
+        """Fields and functions of ModelItem"""
 
-        active = CheckboxField(show=True, default_value=True, column_width=20, column_name='')
-        color = ColorField(show=True, column_width=30, column_name='', default_value=select_default_color)
+        active = CheckboxField(show=True, default_value=True, column_width=20,
+                               column_name='')
+        color = ColorField(show=True, column_width=30, column_name='',
+                           default_value=select_default_color)
         object_id = ValueField(show=True, column_width=50, column_name='id')
-        object_name = ValueField(show=True, column_width=140, column_name='name')
+        object_name = ValueField(show=True, column_width=140,
+                                 column_name='name')
         object_type = ValueField(show=False)
         hover = ValueField(show=False, default_value=False)
         file_path = ValueField(show=True)
 
-        def datasource(self):
-            if hasattr(self, '_datasource'):
-                return self._datasource
-            else: # self.type.value == 'spatialite':
-                self._datasource = TdiSpatialite(self.file_path.value)
-                return self._datasource
+        _plots = {}
 
-        def plots(self, parameters=None, netcdf_nr=0):
+        def plots(self, parameters=None, result_ds_nr=0):
+            """
+            get pyqtgraph plot of selected object and timeseries
+            :param parameters: string, parameter identification
+            :param result_ds_nr: nr of result datasource in model
+            :return: pyqtgraph PlotDataItem
+            """
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
-            if not str(netcdf_nr) in self._plots[str(parameters)]:
-                ts_table = self.timeseries_table(parameters=parameters, netcdf_nr=netcdf_nr)
+            if not str(result_ds_nr) in self._plots[str(parameters)]:
+                ts_table = self.timeseries_table(parameters=parameters,
+                                                 result_ds_nr=result_ds_nr)
                 pen = pg.mkPen(color=self.color.qvalue, width=2)
-                self._plots[str(parameters)][str(netcdf_nr)] = pg.PlotDataItem(ts_table, pen=pen)
+                self._plots[str(parameters)][str(result_ds_nr)] = \
+                        pg.PlotDataItem(ts_table, pen=pen)
 
-            return self._plots[str(parameters)][str(netcdf_nr)]
+            return self._plots[str(parameters)][str(result_ds_nr)]
 
-        def timeseries_table(self, parameters=None, netcdf_nr=0):
+        def timeseries_table(self, parameters=None, result_ds_nr=0):
+            """
+            get list of timestamp values for object and parameters
+            from result datasource
+            :param parameters:
+            :param result_ds_nr:
+            :return: numpy array with timestamp, values
+            """
             float_data = []
-            # for t, v in self.model.datasource.rows[netcdf_nr].datasource().get_timeseries(
-            #         self.object_type.value, self.object_id.value, parameters):
-            for t, v in self.model.datasource.rows[netcdf_nr]\
-                    .datasource().get_timeseries(self.object_type.value, self.object_id.value, parameters):
-                # some value data may come back as 'NULL' string; convert it to None
+            for t, v in self.model.datasource.rows[result_ds_nr]\
+                    .datasource().get_timeseries(self.object_type.value,
+                                                 self.object_id.value,
+                                                 parameters):
+                # value data may come back as 'NULL' string; convert it to None
                 # or else convert it to float
                 v = None if v == 'NULL' else float(v)
                 float_data.append((float(t), v))
-
 
             return np.array(float_data, dtype=float)
