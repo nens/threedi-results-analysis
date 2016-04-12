@@ -186,7 +186,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                             init_path ,
                                             'Spatialite (*.sqlite)')
 
-        if fname is None:
+        if fname == "":
             return False
 
         self.ts_datasource.spatialite_filepath = fname
