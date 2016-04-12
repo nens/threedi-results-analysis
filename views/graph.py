@@ -392,11 +392,6 @@ class GraphWidget(QWidget):
         self.on_close()
         event.accept()
 
-    def unhighlight_all(self):
-        layers = self.parent.iface.mapCanvas().layers()
-        for lyr in layers:
-            lyr.removeSelection()
-
     def highlight_feature(self, obj_id, obj_type):
         selection = [obj_id]
         layers = self.parent.iface.mapCanvas().layers()
@@ -407,8 +402,11 @@ class GraphWidget(QWidget):
                 # Clear other layers
                 lyr.removeSelection()
 
-    def unhighlight_features(self):
-        self.unhighlight_all()
+    def unhighlight_all_features(self):
+        """Remove the highlights from all layers"""
+        layers = self.parent.iface.mapCanvas().layers()
+        for lyr in layers:
+            lyr.removeSelection()
 
     def setup_ui(self):
         """
@@ -444,7 +442,7 @@ class GraphWidget(QWidget):
         self.location_timeseries_table.hoverEnterRow.connect(
             self.highlight_feature)
         self.location_timeseries_table.hoverExitAllRows.connect(
-            self.unhighlight_features)
+            self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
