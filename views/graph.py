@@ -257,7 +257,8 @@ class GraphPlot(pg.PlotWidget):
 class LocationTimeseriesTable(QTableView):
 
     hoverExitRow = pyqtSignal(int)
-    hoverEnterRow = pyqtSignal(int)
+    hoverExitAllRows = pyqtSignal()  # exit the whole widget
+    hoverEnterRow = pyqtSignal(int, str)
 
     def __init__(self, parent=None):
         super(LocationTimeseriesTable, self).__init__(parent)
@@ -293,7 +294,7 @@ class LocationTimeseriesTable(QTableView):
 
             elif event.type() == QEvent.Leave:
                 row = None
-                self.hoverExitRow.emit(self._last_hovered_row)
+                self.hoverExitAllRows.emit()
             else:
                 row = self._last_hovered_row
 
@@ -325,7 +326,8 @@ class LocationTimeseriesTable(QTableView):
         if row_nr >= 0:
             item = self.model.rows[row_nr]
             obj_id = item.object_id.value
-            self.hoverEnterRow.emit(obj_id)
+            obj_type = item.object_type.value
+            self.hoverEnterRow.emit(obj_id, obj_type)
             item.hover.value = True
 
     def setModel(self, model):
@@ -390,15 +392,23 @@ class GraphWidget(QWidget):
         self.on_close()
         event.accept()
 
-    def highlight_feature(self, obj_id):
-        selection = [obj_id]
-        current_layer = self.parent.iface.mapCanvas().currentLayer()
-        current_layer.setSelectedFeatures(selection)
+    def unhighlight_all(self):
+        layers = self.parent.iface.mapCanvas().layers()
+        for lyr in layers:
+            lyr.removeSelection()
 
-    def unhighlight_features(self, obj_id):
-        current_layer = self.parent.iface.mapCanvas().currentLayer()
-        if current_layer:
-            current_layer.removeSelection()
+    def highlight_feature(self, obj_id, obj_type):
+        selection = [obj_id]
+        layers = self.parent.iface.mapCanvas().layers()
+        for lyr in layers:
+            if lyr.name() == obj_type:
+                lyr.setSelectedFeatures(selection)
+            else:
+                # Clear other layers
+                lyr.removeSelection()
+
+    def unhighlight_features(self):
+        self.unhighlight_all()
 
     def setup_ui(self):
         """
@@ -431,8 +441,10 @@ class GraphWidget(QWidget):
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
-        self.location_timeseries_table.hoverEnterRow.connect(self.highlight_feature)
-        self.location_timeseries_table.hoverExitRow.connect(self.unhighlight_features)
+        self.location_timeseries_table.hoverEnterRow.connect(
+            self.highlight_feature)
+        self.location_timeseries_table.hoverExitAllRows.connect(
+            self.unhighlight_features)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
