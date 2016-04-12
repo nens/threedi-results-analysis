@@ -32,7 +32,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class ThreeDiToolboxDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
-    closingPlugin = pyqtSignal()
+    closingWidget = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -41,5 +41,5 @@ class ThreeDiToolboxDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
     def closeEvent(self, event):
-        self.closingPlugin.emit()
+        self.closingWidget.emit()
         event.accept()
