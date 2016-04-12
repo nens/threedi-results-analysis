@@ -401,7 +401,7 @@ class GraphWidget(QWidget):
         log(str(obj_id))
         current_layer = self.parent.iface.mapCanvas().currentLayer()
         if current_layer:
-            current_layer.setSelectedFeatures([])
+            current_layer.removeSelection()
 
     def setup_ui(self):
         """
