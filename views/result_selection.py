@@ -1,12 +1,13 @@
-
+# -*- coding: utf-8 -*-
 import os
 from PyQt4.QtCore import pyqtSignal, QSettings
-from PyQt4.QtGui import QWidget, QFileDialog
+from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 
-from ..datasource.spatialite import layer_qh_type_mapping
+from ..datasource.spatialite import layer_qh_type_mapping, \
+    layer_object_type_mapping
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -15,11 +16,11 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
-
+    """Dialog for selecting model (spatialite and result files netCDFs"""
     closingDialog = pyqtSignal()
 
     def __init__(self, parent=None, iface=None, ts_datasource=None):
-        """Constructor."""
+        """constructor"""
         super(ThreeDiResultSelectionWidget, self).__init__(parent)
 
         self.iface = iface
@@ -62,6 +63,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.model_spatialite_change)
 
     def on_close(self):
+        """
+        clean object on close
+        """
 
         self.selectTsDatasourceButton.clicked.disconnect(
                 self.select_ts_datasource)
@@ -72,11 +76,19 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 self.select_model_spatialite_file)
 
     def closeEvent(self, event):
+        """
+        function called by qt on close
+        :param event: QEvent, close event
+        """
         self.closingDialog.emit()
         self.on_close()
         event.accept()
 
     def select_ts_datasource(self):
+        """
+        file dialog for selecting netCDF result files
+        :return: boolean, if file is selected
+        """
 
         settings = QSettings('3di', 'qgisplugin')
 
@@ -102,6 +114,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         return False
 
     def remove_selected_ts_ds(self):
+        """
+        remove selected result files from model (called by 'remove' button)
+        """
 
         selection_model = self.resultTableView.selectionModel()
         #get unique rows in selected fields
@@ -110,6 +125,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.ts_datasource.removeRows(row,1)
 
     def get_3di_spatialites_legendlist(self):
+        """
+        get list of spatialite data sources currently active in canvas
+        :return: list of strings, unique spatialite paths
+        """
 
         tdi_spatialites = []
 
@@ -123,11 +142,37 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         return tdi_spatialites
 
     def model_spatialite_change(self, nr):
+        """
+        called by combobox when selected spatialite changed
+        :param nr: integer, nr of item selected in combobox
+        """
 
         self.ts_datasource.model_spatialite_filepath = \
                 self.modelSpatialiteComboBox.currentText()
 
+    def _add_spl_layer_to_canvas(self, fname, table_name):
+        """
+        add spatialite layer to canvas (map)
+        :param fname: string, spatialite path
+        :param table_name: string, table or view name
+        """
+
+        schema = ''
+
+        uri2 = QgsDataSourceURI()
+        uri2.setDatabase(fname)
+        uri2.setDataSource(schema, table_name, 'the_geom')
+        vlayer = QgsVectorLayer(uri2.uri(),
+                                table_name,
+                                'spatialite')
+        if vlayer.isValid():
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+
     def select_model_spatialite_file(self):
+        """
+        file dialog when selection 'load model'
+        :return: Boolean, if file is selected
+        """
 
         settings = QSettings('3di', 'qgisplugin')
 
@@ -153,35 +198,38 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
 
-        # if fname not in self.get_3di_spatialites_legendlist():
-        #     # add spatialite to layer menu
-        #     #todo: ask user
-        #
-        #     uri = QgsDataSourceURI()
-        #     uri.setDatabase(fname)
-        #     db = QSqlDatabase.addDatabase("QSQLITE")
-        #
-        #     # Reuse the path to DB to set database name
-        #     db.setDatabaseName(uri.database())
-        #     # Open the connection
-        #     db.open()
-        #     # query the table
-        #     query = db.exec_("""SELECT name FROM sqlite_master
-        #                               WHERE type in ('table', 'view');""")
-        #
-        #     while query.next():
-        #         table_name = query.record().value(0)
-        #         if table_name in layer_object_type_mapping.keys():
-        #             schema = ''
-        #
-        #             uri2 = QgsDataSourceURI()
-        #             uri2.setDatabase(fname)
-        #             uri2.setDataSource(schema, table_name, 'the_geom')
-        #             vlayer = QgsVectorLayer(uri2.uri(),
-        #                                     table_name,
-        #                                     'spatialite')
-        #             a = vlayer.dataProvider().dataSourceUri()
-        #
-        #             if vlayer.isValid():
-        #                 QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+        if fname not in self.get_3di_spatialites_legendlist():
+            # add spatialite to layer menu
+            msg = "Voeg de kaartlagen uit de spatialite toe?"
+            reply = QMessageBox.question(self, 'Kaartlagen toevoegen',
+                     msg, QMessageBox.Yes, QMessageBox.No)
 
+            if reply == QMessageBox.No:
+                return True
+
+            uri = QgsDataSourceURI()
+            uri.setDatabase(fname)
+            db = QSqlDatabase.addDatabase("QSQLITE")
+
+            # Reuse the path to DB to set database name
+            db.setDatabaseName(uri.database())
+            # Open the connection
+            db.open()
+            # query the table
+            query = db.exec_("""SELECT f_table_name FROM geometry_columns
+                WHERE f_geometry_column = 'the_geom';""")
+
+            while query.next():
+                table_name = query.record().value(0)
+                if table_name in layer_object_type_mapping.keys():
+                    self._add_spl_layer_to_canvas(fname, table_name)
+
+            query = db.exec_("""SELECT view_name FROM views_geometry_columns
+                WHERE view_geometry = 'the_geom';""")
+
+            while query.next():
+                view_name = query.record().value(0)
+                if view_name in layer_object_type_mapping.keys():
+                    self._add_spl_layer_to_canvas(fname, view_name)
+
+        return True
