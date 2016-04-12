@@ -71,7 +71,7 @@ class LocationTimeseriesModel(BaseModel):
                                  column_name='name')
         object_type = ValueField(show=False)
         hover = ValueField(show=False, default_value=False)
-        file_path = ValueField(show=True)
+        file_path = ValueField(show=False)
 
         _plots = {}
 
