@@ -42,11 +42,10 @@ SOURCES = \
 
 PLUGINNAME = ThreeDiToolbox
 
-PY_FILES = \
-	__init__.py \
-	threedi_toolbox.py threedi_toolbox_dockwidget.py
+PY_FILES = __init__.py
+# ^^^ The rest of the python files is picked up because they're in git.
 
-UI_FILES = threedi_toolbox_dockwidget_base.ui
+UI_FILES = ui/*.ui
 
 EXTRAS = metadata.txt icon.png
 
