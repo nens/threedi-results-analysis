@@ -42,11 +42,10 @@ SOURCES = \
 
 PLUGINNAME = ThreeDiToolbox
 
-PY_FILES = \
-	__init__.py \
-	threedi_toolbox.py threedi_toolbox_dockwidget.py
+PY_FILES = __init__.py
+# ^^^ The rest of the python files is picked up because they're in git.
 
-UI_FILES = threedi_toolbox_dockwidget_base.ui
+UI_FILES = ui/*.ui
 
 EXTRAS = metadata.txt icon.png
 
@@ -121,7 +120,6 @@ dclean:
 	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
 	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
 
-
 derase:
 	@echo
 	@echo "-------------------------"
@@ -129,7 +127,7 @@ derase:
 	@echo "-------------------------"
 	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 
-zip: deploy dclean
+zip_old_unused: deploy dclean
 	@echo
 	@echo "---------------------------"
 	@echo "Creating plugin zip bundle."
@@ -138,6 +136,18 @@ zip: deploy dclean
 	# content. You can then upload the zip file on http://plugins.qgis.org
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+
+zip: compile doc transcompile
+	@echo
+	@echo "---------------------------"
+	@echo "Creating plugin zip bundle."
+	@echo "---------------------------"
+	rm -rf /tmp/$(PLUGINNAME)
+	cd /tmp; cp -r $(CURDIR) $(PLUGINNAME)
+	rm -rf /tmp/$(PLUGINNAME)/.git
+	rm -rf /tmp/$(PLUGINNAME)/*.zip
+	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
+	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
