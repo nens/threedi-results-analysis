@@ -125,14 +125,14 @@ class NetcdfDataSource(object):
             a list of 2-tuples (time, value)
         """
         # Normalize the name
-        _object_type = get_object_type(object_type)
+        n_object_type = get_object_type(object_type)
 
         # Mapping: spatialite id -> inp id -> netcdf id
-        obj_id_mapping = self.id_mapping[_object_type]
+        obj_id_mapping = self.id_mapping[n_object_type]
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
-        netcdf_id = self.get_netcdf_id(inp_id, _object_type)
+        netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
 
-        variables = get_variables(object_type, parameters)
+        variables = get_variables(n_object_type, parameters)
 
         # Get data from all variables and just put them in the same list:
         result = []

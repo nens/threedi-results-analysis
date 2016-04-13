@@ -296,9 +296,9 @@ class TdiSpatialite(object):
 
         Returns: a list of 2-tuples (time, value)
         """
+        object_type = get_object_type(object_type)
         variables = get_variables(object_type, parameters)
 
-        object_type = get_object_type(object_type)
         query = """SELECT t.id FROM result_type t
             WHERE t.object_type='%(object_type)s'
             AND t.object_id='%(object_id)s'
