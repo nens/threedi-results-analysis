@@ -88,7 +88,7 @@ class ThreeDiToolbox:
                 self.dockwidget = ThreeDiToolboxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.on_close_child_widget)
+            self.dockwidget.closingWidget.connect(self.on_close_child_widget)
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
