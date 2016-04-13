@@ -20,7 +20,10 @@ Release
 You can make releases with ``zest.releaser`` if you also have ``qgispluginreleaser`` installed. The
 ``fullrelease`` command should be sufficient. Under the hood it calls ``make zip`` which is modified
 a bit (see ``Makefile``, old zip directive is still avaiable) so that it doesn't copy everything to your
-QGIS plugin directory.
+QGIS plugin directory::
+
+    $ cd /path/to/the/plugin
+    $ fullrelease  # *** NOTE: if it asks you if you want to check out the tag press 'y'. ***
 
 Manually copy to server::
 
