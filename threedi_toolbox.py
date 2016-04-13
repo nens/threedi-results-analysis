@@ -26,7 +26,7 @@ from PyQt4.QtCore import Qt
 
 # Import the code for the DockWidget
 from threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
-from src.toolbox.toolbox import ToolboxModel
+from .models.toolbox import ToolboxModel
 
 
 class ThreeDiToolbox:
@@ -96,7 +96,5 @@ class ThreeDiToolbox:
             self.add_tools()
 
     def add_tools(self):
-
-        self.toolbox = ToolboxModel()
-
-        self.dockwidget.treeView.setModel(self.toolbox.model)
+        self.toolboxmodel = ToolboxModel()
+        self.dockwidget.treeView.setModel(self.toolboxmodel)
