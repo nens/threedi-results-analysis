@@ -1,3 +1,5 @@
+from functools import partial
+
 from pyspatialite import dbapi2 as sqlite
 
 from ..utils.user_messages import log
@@ -69,16 +71,29 @@ layer_information = [
 #     ('sewerage_orifice_view', 'sewerage_orifice', 'q')
 # ]
 
-# TODO: unorm is deprecated, now 'u1'
-parameter_config = {
-    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q', 'q_pump']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['unorm', 'u1']}],
-    'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
-          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
-}
 
 layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
 layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
+
+
+def get_datasource_variable(parameter, object_type):
+    """Get the actual variable name that is used in the datasource,
+    i.e., that is at the moment defined as the netCDF variable name.
+    """
+    # Pumpstation is a special case and has its own netcdf array
+    if parameter == 'q' and object_type == 'pumpstation':
+        return 'q_pump'
+    return parameter
+
+
+def get_variables(object_type=None, parameters=[]):
+    """Get datasource variable names."""
+    # Don't mutate parameters, we need to clone the list:
+    new_params = list(parameters)
+    # Note: object_type must be passed as a kwargs, or else this partial
+    # function doesn't work, and parameter will be substituted instead.
+    f = partial(get_datasource_variable, object_type=object_type)
+    return map(f, new_params)
 
 
 def get_object_type(current_layer_name):
@@ -89,7 +104,6 @@ def get_object_type(current_layer_name):
         msg = "Unsupported layer: %s." % current_layer_name
         log(msg, level='WARNING')
         return None
-
 
 
 def _get_spatialite_path(self):
@@ -255,7 +269,6 @@ class TdiSpatialite(object):
         else:
             []
 
-
     def get_timestamp_count(self, object_type, parameters):
 
         query = """SELECT DISTINCT count(*) FROM result_type t, result_value v
@@ -273,8 +286,6 @@ class TdiSpatialite(object):
         else:
             return 0
 
-
-
     def get_timeseries(self, object_type, object_id, parameters):
         """Get a list of time series from spatialite.
 
@@ -285,14 +296,16 @@ class TdiSpatialite(object):
 
         Returns: a list of 2-tuples (time, value)
         """
-
         object_type = get_object_type(object_type)
+        variables = get_variables(object_type, parameters)
+
         query = """SELECT t.id FROM result_type t
             WHERE t.object_type='%(object_type)s'
             AND t.object_id='%(object_id)s'
-            AND t.variable in (%(variable)s);""" % {'object_type': object_type,
-                                    'object_id': object_id,
-                                    'variable': ','.join(["'%s'"%p for p in parameters])}
+            AND t.variable in (%(variable)s);""" % {
+                'object_type': object_type,
+                'object_id': object_id,
+                'variable': ','.join(["'%s'" % v for v in variables])}
         log("Executing query: %s" % query)
         cursor = self.get_db_cursor()
         res = cursor.execute(query)
@@ -314,12 +327,14 @@ class TdiSpatialite(object):
         else:
             # rows is something like:
             # [(0.0, 0.0), (66.875, 0.0), (120.625, 0.0), ...]
-            msg = ("No data found for object_type %(object_type)s "
-                   "with object_id: %(object_id)s and variable: %(variable)s."
-                   "Query: %(query)s" % {'object_type': object_type,
-                                  'object_id': object_id,
-                                  'variable': ','.join(["'%s'"%p for p in parameters]),
-                                  'query': query,
-                                 })
+            msg = (
+                "No data found for object_type %(object_type)s "
+                "with object_id: %(object_id)s and variable: %(variable)s."
+                "Query: %(query)s" % {
+                    'object_type': object_type,
+                    'object_id': object_id,
+                    'variable': ','.join(["'%s'" % v for v in variables]),
+                    'query': query,
+                    })
             log(msg, level='WARNING')
             return []

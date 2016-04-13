@@ -1,7 +1,11 @@
 import os
 import unittest
 
-from ..datasource.spatialite import TdiSpatialite
+from ..datasource.spatialite import (
+    TdiSpatialite,
+    get_datasource_variable,
+    get_variables,
+    )
 from ..datasource.netcdf import NetcdfDataSource
 
 spatialite_datasource_path = os.path.join(
@@ -11,6 +15,35 @@ spatialite_datasource_path = os.path.join(
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'testmodel', 'results', 'subgrid_map.nc')
+
+
+class TestParameters(unittest.TestCase):
+    """Test functions that convert parameters to variable names in the
+    datasource."""
+
+    def test_get_datasource_variable_kunstwerk(self):
+        out = get_datasource_variable('q', 'pipe')
+        self.assertEqual(out, 'q')
+
+    def test_get_datasource_variable_pump(self):
+        out = get_datasource_variable('q', 'pumpstation')
+        self.assertEqual(out, 'q_pump')
+
+    def test_get_datasource_variable_manhole(self):
+        out = get_datasource_variable('s1', 'manhole')
+        self.assertEqual(out, 's1')
+
+    def test_get_variables(self):
+        vars = get_variables(object_type='pipe', parameters=['q'])
+        self.assertEqual(vars, ['q'])
+
+    def test_get_variables2(self):
+        vars = get_variables('pipe', ['u1'])
+        self.assertEqual(vars, ['u1'])
+
+    def test_get_variables3(self):
+        vars = get_variables('pumpstation', ['q'])
+        self.assertEqual(vars, ['q_pump'])
 
 
 @unittest.skipIf(not os.path.exists(spatialite_datasource_path),

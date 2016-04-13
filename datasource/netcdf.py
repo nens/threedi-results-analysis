@@ -6,7 +6,7 @@ from netCDF4 import Dataset
 import numpy as np
 
 from ..utils.user_messages import log
-from .spatialite import get_object_type, layer_qh_type_mapping
+from .spatialite import get_object_type, get_variables
 
 
 def get_id_mapping_file(netcdf_file_path):
@@ -53,18 +53,6 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
-def netcdf_parameters(object_type=None, parameters=[]):
-    # TODO: this whole block is ugly as sin, needs better logic for the
-    # pumpstations....
-    if 'pumpstation' in object_type:
-        # Pumpstation is a special case and has its own netcdf array
-        return ['q_pump']
-    elif 'q_pump' in parameters:
-        # Don't mutate parameters, we need to clone the list:
-        new_params = list(parameters)
-        new_params.pop(new_params.index('q_pump'))
-        return new_params
-    return parameters
 
 
 class NetcdfDataSource(object):
@@ -137,19 +125,19 @@ class NetcdfDataSource(object):
             a list of 2-tuples (time, value)
         """
         # Normalize the name
-        _object_type = get_object_type(object_type)
+        n_object_type = get_object_type(object_type)
 
         # Mapping: spatialite id -> inp id -> netcdf id
-        obj_id_mapping = self.id_mapping[_object_type]
+        obj_id_mapping = self.id_mapping[n_object_type]
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
-        netcdf_id = self.get_netcdf_id(inp_id, _object_type)
+        netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
 
-        _parameters = netcdf_parameters(object_type, parameters)
+        variables = get_variables(n_object_type, parameters)
 
-        # Get data from all parameters and just put them in the same list:
+        # Get data from all variables and just put them in the same list:
         result = []
-        for p in _parameters:
-            vals = self.ds.variables[p][:, netcdf_id]
+        for v in variables:
+            vals = self.ds.variables[v][:, netcdf_id]
             timestamps = self.get_timestamps(self.ds)
             result += zip(timestamps, vals)
 
