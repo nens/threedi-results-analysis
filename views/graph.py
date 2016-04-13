@@ -393,14 +393,12 @@ class GraphWidget(QWidget):
         event.accept()
 
     def highlight_feature(self, obj_id, obj_type):
-        selection = [obj_id]
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
+            # Clear other layers
+            lyr.removeSelection()
             if lyr.name() == obj_type:
-                lyr.setSelectedFeatures(selection)
-            else:
-                # Clear other layers
-                lyr.removeSelection()
+                lyr.select(obj_id)
 
     def unhighlight_all_features(self):
         """Remove the highlights from all layers"""
