@@ -202,11 +202,13 @@ class ThreeDiTools:
             shows dialog with version information
         :return:
         """
+        #todo: add version number and link to sites
         version = open(os.path.join(
                 os.path.dirname(__file__),
-                'version.rst')).readline().rtrim('/n')
+                'version.rst')).readline().rstrip('/n')
 
-        pop_up_info("3di Tools versie ??", "About", self.iface.mainWindow())
+        pop_up_info("3di Tools versie %s"%version,
+                    "About", self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
