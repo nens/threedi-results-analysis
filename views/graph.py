@@ -38,7 +38,10 @@ class GraphPlot(pg.PlotWidget):
     """Graph element"""
 
     def __init__(self, parent=None):
-        "Constructor"
+        """
+
+        :param parent: Qt parent widget
+        """
 
         super(GraphPlot, self).__init__(parent)
 
@@ -125,20 +128,17 @@ class GraphPlot(pg.PlotWidget):
 
     def ds_data_changed(self, index):
         """
-        change graphs based on changes in locations
+        change graphs based on changes in locations. based on Qt
+        data change trigger
         :param index: index of changed field
         """
         if self.ds_model.columns[index.column()].name == 'active':
 
-            active = self.ds_model.rows[index.row()].active.value
-
-            if active:
-                for i in range(0, len(self.location_model.rows)):
-                    if self.location_model.rows[i].active.value:
+            for i in range(0, len(self.location_model.rows)):
+                if self.location_model.rows[i].active.value:
+                    if self.ds_model.rows[index.row()].active.value:
                         self.show_timeseries(i, index.row())
-            else:
-                for i in range(0, len(self.location_model.rows)):
-                    if self.location_model.rows[i].active.value:
+                    else:
                         self.hide_timeseries(i, index.row())
 
     def on_insert_locations(self, parent, start, end):
@@ -179,15 +179,12 @@ class GraphPlot(pg.PlotWidget):
         :param index: index of changed field
         """
         if self.location_model.columns[index.column()].name == 'active':
-            active = self.location_model.rows[index.row()].active.value
 
-            if active:
-                for i in range(0, len(self.ds_model.rows)):
-                    if self.ds_model.rows[i].active.value:
+            for i in range(0, len(self.ds_model.rows)):
+                if self.ds_model.rows[i].active.value:
+                    if self.location_model.rows[index.row()].active.value:
                         self.show_timeseries(index.row(), i)
-            else:
-                for i in range(0, len(self.ds_model.rows)):
-                    if self.ds_model.rows[i].active.value:
+                    else:
                         self.hide_timeseries(index.row(), i)
 
         elif self.location_model.columns[index.column()].name == 'hover':
@@ -197,17 +194,17 @@ class GraphPlot(pg.PlotWidget):
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
                         item.plots(self.current_parameter['parameters'],
-                                   index).setPen(
-                                            color=item.color.qvalue, width=5,
-                                            style=ds.pattern.value)
+                                   index).setPen(color=item.color.qvalue,
+                                                 width=5,
+                                                 style=ds.pattern.value)
             else:
                 for ds in self.ds_model.rows:
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
                         item.plots(self.current_parameter['parameters'],
-                                   index).setPen(
-                                            color=item.color.qvalue, width=2,
-                                            style=ds.pattern.value)
+                                   index).setPen(color=item.color.qvalue,
+                                                 width=2,
+                                                 style=ds.pattern.value)
 
     def hide_timeseries(self, location_nr, ds_nr):
         """
@@ -472,7 +469,7 @@ class GraphWidget(QWidget):
 
         :param layer: layer of features
         :param features: Qgis layer features to be added
-        return boolean: new objects are added
+        :return: boolean: new objects are added
         """
 
         # Get the active database as URI, connInfo is something like:
@@ -485,7 +482,7 @@ class GraphWidget(QWidget):
 
         # get attribute information from selected layers
         items = []
-        existing_items = ["%s_%s"%(item.object_type.value,
+        existing_items = ["%s_%s" % (item.object_type.value,
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
@@ -502,19 +499,18 @@ class GraphWidget(QWidget):
 
         if len(items) > 20:
             msg = "%i nieuwe objecten zijn geselecteerd. Toevoegen aan de " \
-                  "grafiek kan enkele tijd duren. Wilt u doorgaan?"%len(items)
+                  "grafiek kan enkele tijd duren. Wilt u doorgaan?" % len(items)
             reply = QMessageBox.question(self, 'Objecten toevoegen',
                      msg, QMessageBox.Yes, QMessageBox.No)
 
             if reply == QMessageBox.No:
                 return False
 
-
         self.model.insertRows(items)
-        msg = "%i nieuwe objecten toegevoegd aan grafiek "%len(items)
+        msg = "%i nieuwe objecten toegevoegd aan grafiek " % len(items)
         skipped_items = len(features) - len(items)
         if skipped_items > 0:
-            msg += "(%i reeds toegevoegde objecten overgeslagen)"%skipped_items
+            msg += "(%i al aanwezige objecten overgeslagen)" % skipped_items
 
         statusbar_message(msg)
         return True
@@ -528,7 +524,7 @@ class GraphWidget(QWidget):
         #get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.model.removeRows(row,1)
+            self.model.removeRows(row, 1)
 
 
 class GraphDockWidget(QDockWidget):

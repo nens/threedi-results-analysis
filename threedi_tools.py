@@ -205,7 +205,7 @@ class ThreeDiTools:
         #todo: add version number and link to sites
         version = open(os.path.join(
                 os.path.dirname(__file__),
-                'version.rst')).readline().rstrip('/n')
+                'version.rst')).readline().rstrip()
 
         pop_up_info("3di Tools versie %s"%version,
                     "About", self.iface.mainWindow())

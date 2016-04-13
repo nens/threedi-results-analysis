@@ -16,11 +16,15 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
-    """Dialog for selecting model (spatialite and result files netCDFs"""
+    """Dialog for selecting model (spatialite and result files netCDFs)"""
     closingDialog = pyqtSignal()
 
     def __init__(self, parent=None, iface=None, ts_datasource=None):
-        """constructor"""
+        """Constructor
+        :parent: Qt parent Widget
+        :iface: QGiS interface
+        :ts_datasource: TimeseriesDatasourceModel instance
+        """
         super(ThreeDiResultSelectionWidget, self).__init__(parent)
 
         self.iface = iface
@@ -64,7 +68,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def on_close(self):
         """
-        clean object on close
+        Clean object on close
         """
 
         self.selectTsDatasourceButton.clicked.disconnect(
@@ -77,7 +81,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         """
-        function called by qt on close
+        Close widget, called by Qt on close
         :param event: QEvent, close event
         """
         self.closingDialog.emit()
@@ -86,7 +90,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def select_ts_datasource(self):
         """
-        file dialog for selecting netCDF result files
+        Open File dialog for selecting netCDF result files, triggered by button
         :return: boolean, if file is selected
         """
 
@@ -97,8 +101,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        fname = QFileDialog.getOpenFileName(self, 'Open resultaten file',
-                                            init_path , 'NetCDF (*.nc)')
+        fname = QFileDialog.getOpenFileName(self,
+                                            'Open resultaten file',
+                                            init_path ,
+                                            'NetCDF (*.nc)')
 
         if fname:
             items = [{
@@ -115,7 +121,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def remove_selected_ts_ds(self):
         """
-        remove selected result files from model (called by 'remove' button)
+        Remove selected result files from model, called by 'remove' button
         """
 
         selection_model = self.resultTableView.selectionModel()
@@ -126,7 +132,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def get_3di_spatialites_legendlist(self):
         """
-        get list of spatialite data sources currently active in canvas
+        Get list of spatialite data sources currently active in canvas
         :return: list of strings, unique spatialite paths
         """
 
@@ -143,7 +149,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def model_spatialite_change(self, nr):
         """
-        called by combobox when selected spatialite changed
+        Change active modelsource. Called by combobox when selected
+        spatialite changed
         :param nr: integer, nr of item selected in combobox
         """
 
@@ -152,7 +159,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def _add_spl_layer_to_canvas(self, fname, table_name):
         """
-        add spatialite layer to canvas (map)
+        Add spatialite layer to canvas (map)
         :param fname: string, spatialite path
         :param table_name: string, table or view name
         """
@@ -162,15 +169,15 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         uri2 = QgsDataSourceURI()
         uri2.setDatabase(fname)
         uri2.setDataSource(schema, table_name, 'the_geom')
-        vlayer = QgsVectorLayer(uri2.uri(),
-                                table_name,
-                                'spatialite')
-        if vlayer.isValid():
-            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+        vector_layer = QgsVectorLayer(uri2.uri(),
+                                      table_name,
+                                      'spatialite')
+        if vector_layer.isValid():
+            QgsMapLayerRegistry.instance().addMapLayer(vector_layer)
 
     def select_model_spatialite_file(self):
         """
-        file dialog when selection 'load model'
+        Open file dialog on click on button 'load model'
         :return: Boolean, if file is selected
         """
 
@@ -181,34 +188,37 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        fname = QFileDialog.getOpenFileName(self,
-                                            'Open 3di model spatialite file',
-                                            init_path ,
-                                            'Spatialite (*.sqlite)')
+        filename = QFileDialog.getOpenFileName(self,
+                                               'Open 3di model spatialite file',
+                                               init_path ,
+                                               'Spatialite (*.sqlite)')
 
-        if fname == "":
+        if filename == "":
             return False
 
-        self.ts_datasource.spatialite_filepath = fname
-        index_nr = self.modelSpatialiteComboBox.findText(fname)
+        self.ts_datasource.spatialite_filepath = filename
+        index_nr = self.modelSpatialiteComboBox.findText(filename)
 
         if index_nr < 0:
-            self.modelSpatialiteComboBox.addItem(fname)
-            index_nr = self.modelSpatialiteComboBox.findText(fname)
+            self.modelSpatialiteComboBox.addItem(filename)
+            index_nr = self.modelSpatialiteComboBox.findText(filename)
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
 
-        if fname not in self.get_3di_spatialites_legendlist():
+        if filename not in self.get_3di_spatialites_legendlist():
             # add spatialite to layer menu
             msg = "Voeg de kaartlagen uit de spatialite toe?"
-            reply = QMessageBox.question(self, 'Kaartlagen toevoegen',
-                     msg, QMessageBox.Yes, QMessageBox.No)
+            reply = QMessageBox.question(self,
+                                         'Kaartlagen toevoegen',
+                                         msg,
+                                         QMessageBox.Yes,
+                                         QMessageBox.No)
 
             if reply == QMessageBox.No:
                 return True
 
             uri = QgsDataSourceURI()
-            uri.setDatabase(fname)
+            uri.setDatabase(filename)
             db = QSqlDatabase.addDatabase("QSQLITE")
 
             # Reuse the path to DB to set database name
@@ -222,7 +232,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             while query.next():
                 table_name = query.record().value(0)
                 if table_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(fname, table_name)
+                    self._add_spl_layer_to_canvas(filename, table_name)
 
             query = db.exec_("""SELECT view_name FROM views_geometry_columns
                 WHERE view_geometry = 'the_geom';""")
@@ -230,6 +240,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             while query.next():
                 view_name = query.record().value(0)
                 if view_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(fname, view_name)
+                    self._add_spl_layer_to_canvas(filename, view_name)
 
         return True

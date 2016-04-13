@@ -36,7 +36,7 @@ COLOR_LIST = [
 
 def select_default_color(item_field):
     """
-    returns color for lines
+    return color for lines
     :param item_field: ItemField object
     :return: tuple with the 3 color bands (values between 0-256)
     """
@@ -61,15 +61,23 @@ class LocationTimeseriesModel(BaseModel):
     class Fields:
         """Fields and functions of ModelItem"""
 
-        active = CheckboxField(show=True, default_value=True, column_width=20,
+        active = CheckboxField(show=True,
+                               default_value=True,
+                               column_width=20,
                                column_name='')
-        color = ColorField(show=True, column_width=30, column_name='',
+        color = ColorField(show=True,
+                           column_width=30,
+                           column_name='',
                            default_value=select_default_color)
-        object_id = ValueField(show=True, column_width=50, column_name='id')
-        object_name = ValueField(show=True, column_width=140,
+        object_id = ValueField(show=True,
+                               column_width=50,
+                               column_name='id')
+        object_name = ValueField(show=True,
+                                 column_width=140,
                                  column_name='name')
         object_type = ValueField(show=False)
-        hover = ValueField(show=False, default_value=False)
+        hover = ValueField(show=False,
+                           default_value=False)
         file_path = ValueField(show=False)
 
         _plots = {}
@@ -89,7 +97,8 @@ class LocationTimeseriesModel(BaseModel):
                                                  result_ds_nr=result_ds_nr)
                 pattern = self.model.datasource.rows[result_ds_nr].\
                                                     pattern.value
-                pen = pg.mkPen(color=self.color.qvalue, width=2,
+                pen = pg.mkPen(color=self.color.qvalue,
+                               width=2,
                                style=pattern)
 
                 self._plots[str(parameters)][result_key] = \
@@ -112,7 +121,7 @@ class LocationTimeseriesModel(BaseModel):
                                                  parameters):
                 # value data may come back as 'NULL' string; convert it to None
                 # or else convert it to float
-                v = None if v == 'NULL' else float(v)
+                v = None if v == 'NULL' else float(v + float(result_ds_nr))
                 float_data.append((float(t), v))
 
             return np.array(float_data, dtype=float)
