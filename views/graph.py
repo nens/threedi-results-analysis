@@ -257,7 +257,8 @@ class GraphPlot(pg.PlotWidget):
 class LocationTimeseriesTable(QTableView):
 
     hoverExitRow = pyqtSignal(int)
-    hoverEnterRow = pyqtSignal(int)
+    hoverExitAllRows = pyqtSignal()  # exit the whole widget
+    hoverEnterRow = pyqtSignal(int, str)
 
     def __init__(self, parent=None):
         super(LocationTimeseriesTable, self).__init__(parent)
@@ -293,6 +294,7 @@ class LocationTimeseriesTable(QTableView):
 
             elif event.type() == QEvent.Leave:
                 row = None
+                self.hoverExitAllRows.emit()
             else:
                 row = self._last_hovered_row
 
@@ -303,8 +305,8 @@ class LocationTimeseriesTable(QTableView):
                     except IndexError:
                         log("Hover row index %s out of range" %
                             self._last_hovered_row, level='WARNING')
-                    #self.hoverExitRow.emit(self._last_hovered_row)
-                #self.hoverEnteredRow.emit(index.row())
+                    # self.hoverExitRow.emit(self._last_hovered_row)
+                # self.hoverEnterRow.emit(row)
                 if row is not None:
                     try:
                         self.hover_enter(row)
@@ -316,15 +318,16 @@ class LocationTimeseriesTable(QTableView):
         return QTableView.eventFilter(self, widget, event)
 
     def hover_exit(self, row_nr):
-
         if row_nr >= 0:
             item = self.model.rows[row_nr]
             item.hover.value = False
 
     def hover_enter(self, row_nr):
-
         if row_nr >= 0:
             item = self.model.rows[row_nr]
+            obj_id = item.object_id.value
+            obj_type = item.object_type.value
+            self.hoverEnterRow.emit(obj_id, obj_type)
             item.hover.value = True
 
     def setModel(self, model):
@@ -389,6 +392,20 @@ class GraphWidget(QWidget):
         self.on_close()
         event.accept()
 
+    def highlight_feature(self, obj_id, obj_type):
+        layers = self.parent.iface.mapCanvas().layers()
+        for lyr in layers:
+            # Clear other layers
+            lyr.removeSelection()
+            if lyr.name() == obj_type:
+                lyr.select(obj_id)
+
+    def unhighlight_all_features(self):
+        """Remove the highlights from all layers"""
+        layers = self.parent.iface.mapCanvas().layers()
+        for lyr in layers:
+            lyr.removeSelection()
+
     def setup_ui(self):
         """
         Create Qt widgets and elements
@@ -420,6 +437,10 @@ class GraphWidget(QWidget):
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
+        self.location_timeseries_table.hoverEnterRow.connect(
+            self.highlight_feature)
+        self.location_timeseries_table.hoverExitAllRows.connect(
+            self.unhighlight_all_features)
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
