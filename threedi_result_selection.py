@@ -21,6 +21,8 @@
  ***************************************************************************/
 """
 import os.path
+from PyQt4.QtCore import Qt
+
 from views.result_selection import ThreeDiResultSelectionWidget
 
 
@@ -73,10 +75,17 @@ class ThreeDiResultSelection:
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(None, self.iface, self.ts_datasource)
+                self.dialog = ThreeDiResultSelectionWidget(None,
+                                                           self.iface,
+                                                           self.ts_datasource)
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
 
             # show the widget
             self.dialog.show()
+        else:
+            self.dialog.setWindowState(self.dialog.windowState() &
+                                       ~Qt.WindowMinimized |
+                                       Qt.WindowActive)
+            self.dialog.raise_()
