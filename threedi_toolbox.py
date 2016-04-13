@@ -23,6 +23,7 @@
 import os.path
 
 from PyQt4.QtCore import Qt
+from PyQt4 import QtGui
 
 # Import the code for the DockWidget
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
@@ -95,6 +96,44 @@ class ThreeDiToolbox:
             self.dockwidget.show()
             self.add_tools()
 
+    @staticmethod
+    def is_leaf(q_model_index):
+        """Check if QModelIndex is a leaf, i.e., has no children."""
+        return (q_model_index.isValid() and
+                not q_model_index.child(0, 0).isValid())
+
+    @staticmethod
+    def leaf_path(q_model_index):
+        if not q_model_index.parent().isValid():
+            return [q_model_index.data()]
+        else:
+            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + \
+                [q_model_index.data()]
+
+    def foo(self):
+        # Get clicked QModelIndex
+        qm_idx = self.dockwidget.treeView.currentIndex()
+        # We're only interested in leaves of the tree:
+        # TODO: need to make sure the leaf is not an empty directory
+        if self.is_leaf(qm_idx):
+            filename = qm_idx.data()
+            item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
+            path = self.leaf_path(qm_idx)
+            print(filename)
+            print(item)
+            print(path)
+            module_path = './src/' + '/'.join(path)
+            name = path[-1].split('.')[0]
+            print(module_path)
+            print(name)
+            import imp
+            mod = imp.load_source(name, module_path)
+            print(mod)
+            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+
     def add_tools(self):
         self.toolboxmodel = ToolboxModel()
         self.dockwidget.treeView.setModel(self.toolboxmodel)
+        self.dockwidget.treeView.setEditTriggers(
+            QtGui.QAbstractItemView.NoEditTriggers)
+        self.dockwidget.treeView.doubleClicked.connect(self.foo)
