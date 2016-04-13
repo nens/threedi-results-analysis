@@ -5,15 +5,28 @@ threedi-qgis-plugin
 
 
 Installation
+----
+The plugin could be added using one of the following ways:
+- Through the Lizard QGIS repository. Via menu bar go to: Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
+Install the plugin by selecting ThreeDiToolbox.
+- Copy/ symlink everything in this map to your plugin directory (on Linux: ``~/.qgis2/python/plugins``, on
+Windows: ``c:\\Users\<username>\.qgis2\python\plugins\``)
+
+Installation on Windows
+------------
+Using the 64 bit installation of QGIS is recommended for this plugin.
+
+The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under Windows.
+
+If you are using other the 32 bit installation of QGIS, best to upgrade to the 64 bit version or build
+the python netCDF4 including c bindings yourself.
+
+Installation on Linux
 ------------
 
-There are multiple ways to install:
+Install the python netCDF4 package using ``pip install netCDF4``
 
-- Copy/symlink everything to your QGIS plugin directory (on Linux: ``~/.qgis2/python/plugins``)
-- Add https://plugins.lizard.net/plugins.xml as a plugin repository to QGIS.
 
-      - Via menu bar go to: Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
-      
 Release
 -------
 
