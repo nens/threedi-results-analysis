@@ -38,7 +38,6 @@ class ToolGroup(object):
 class ToolboxModel(QStandardItemModel):
 
     def __init__(self, toolbox_dir=None, parent=None):
-
         super(ToolboxModel, self).__init__(parent)
 
         self.directory = toolbox_dir
@@ -46,9 +45,6 @@ class ToolboxModel(QStandardItemModel):
             self.directory = DEFAULT_TOOLBOX_DIR
 
         self.file_structure = self.get_directory_structure(self.directory)
-
-        # self.model = QStandardItemModel()
-
         self.add_items(self, self.file_structure)
 
     def add_items(self, parent, elements):
