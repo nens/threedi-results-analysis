@@ -4,7 +4,6 @@ from random import randint
 
 from .base import BaseModel
 from .base_fields import ValueField, ColorField, CheckboxField
-from ..datasource.spatialite import TdiSpatialite
 
 import numpy as np
 import pyqtgraph as pg
@@ -82,16 +81,21 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr: nr of result datasource in model
             :return: pyqtgraph PlotDataItem
             """
+            result_key = str(self.model.datasource.rows[result_ds_nr])
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
-            if not str(result_ds_nr) in self._plots[str(parameters)]:
+            if not result_key in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(parameters=parameters,
                                                  result_ds_nr=result_ds_nr)
-                pen = pg.mkPen(color=self.color.qvalue, width=2)
-                self._plots[str(parameters)][str(result_ds_nr)] = \
+                pattern = self.model.datasource.rows[result_ds_nr].\
+                                                    pattern.value
+                pen = pg.mkPen(color=self.color.qvalue, width=2,
+                               style=pattern)
+
+                self._plots[str(parameters)][result_key] = \
                         pg.PlotDataItem(ts_table, pen=pen)
 
-            return self._plots[str(parameters)][str(result_ds_nr)]
+            return self._plots[str(parameters)][result_key]
 
         def timeseries_table(self, parameters=None, result_ds_nr=0):
             """

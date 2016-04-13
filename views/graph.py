@@ -28,8 +28,10 @@ except AttributeError:
 
 
 class GraphPlot(pg.PlotWidget):
+    """Graph element"""
 
     def __init__(self, parent=None):
+        "Constructor"
 
         super(GraphPlot, self).__init__(parent)
 
@@ -37,18 +39,28 @@ class GraphPlot(pg.PlotWidget):
         self.setLabel("bottom", "Tijd", "s")
 
         self.current_parameter = None
-        self.model = None
+        self.location_model = None
+        self.datasource_model = None
 
     def on_close(self):
         """
         unloading widget and remove all required stuff
         :return:
         """
-        if self.model:
-            self.model.dataChanged.disconnect(self.data_changed)
-            self.model.rowsInserted.disconnect(self.insert_plot)
-            self.model.rowsAboutToBeRemoved.disconnect(self.remove_plot)
-            self.model = None
+        if self.location_model:
+            self.location_model.dataChanged.disconnect(
+                                            self.location_data_changed)
+            self.location_model.rowsInserted.disconnect(
+                                            self.on_insert_locations)
+            self.location_model.rowsAboutToBeRemoved.disconnect(
+                                            self.on_remove_locations)
+            self.location_model = None
+
+        if self.ds_model:
+            self.ds_model.dataChanged.disconnect(self.ds_data_changed)
+            self.ds_model.rowsInserted.disconnect(self.on_insert_ds)
+            self.ds_model.rowsAboutToBeRemoved.disconnect(self.on_remove_ds)
+            self.ds_model = None
 
     def closeEvent(self, event):
         """
@@ -58,69 +70,163 @@ class GraphPlot(pg.PlotWidget):
         self.on_close()
         event.accept()
 
-    def setModel(self, model):
+    def set_location_model(self, model):
 
-        self.model = model
-        self.model.dataChanged.connect(self.data_changed)
-        self.model.rowsInserted.connect(self.insert_plot)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_plot)
+        self.location_model = model
+        self.location_model.dataChanged.connect(self.location_data_changed)
+        self.location_model.rowsInserted.connect(self.on_insert_locations)
+        self.location_model.rowsAboutToBeRemoved.connect(
+                self.on_remove_locations)
 
-    def insert_plot(self, parent, start, end):
+    def set_ds_model(self, model):
+
+        self.ds_model = model
+        self.ds_model.dataChanged.connect(self.ds_data_changed)
+        self.ds_model.rowsInserted.connect(self.on_insert_ds)
+        self.ds_model.rowsAboutToBeRemoved.connect(self.on_remove_ds)
+
+    def on_insert_ds(self, parent, start, end):
         """
-        add list of items of model from plot. based on Qt addRows model trigger
+        add list of items to graph. based on Qt addRows model trigger
         :param parent: parent of event (Qt parameter)
         :param start: first row nr
         :param end: last row nr
         """
         for i in range(start, end+1):
-            item = self.model.rows[i]
-            self.addItem(item.plots(self.current_parameter['parameters']))
+            ds = self.ds_model.rows[i]
+            if ds.active.value:
+                for item in self.location_model.rows:
+                    if item.active.value:
+                        self.addItem(item.plots(
+                                self.current_parameter['parameters'], i))
 
-    def remove_plot(self, index, start, end):
+    def on_remove_ds(self, index, start, end):
         """
-        remove list of items of model from plot. based on Qt model removeRows
+        remove items from graph. based on Qt model removeRows
         trigger
         :param index: Qt Index (not used)
         :param start: first row nr
         :param end: last row nr
         """
         for i in range(start, end+1):
-            item = self.model.rows[i]
-            if item.active.value:
-                self.removeItem(item.plots(
-                        self.current_parameter['parameters']))
+            ds = self.ds_model.rows[i]
+            if ds.active.value:
+                for item in self.location_model.rows:
+                    if item.active.value:
+                        self.removeItem(item.plots(
+                                self.current_parameter['parameters'], i))
 
-    def data_changed(self, index):
+    def ds_data_changed(self, index):
+        """
+        change graphs based on changes in locations
+        :param index: index of changed field
+        """
+        if self.ds_model.columns[index.column()].name == 'active':
 
-        if self.model.columns[index.column()].name == 'active':
-            active = self.model.rows[index.row()].active.value
+            active = self.ds_model.rows[index.row()].active.value
 
             if active:
-                self.show_timeseries(index.row())
+                for i in range(0, len(self.location_model.rows)):
+                    if self.location_model.rows[i].active.value:
+                        self.show_timeseries(i, index.row())
             else:
-                self.hide_timeseries(index.row())
-        elif self.model.columns[index.column()].name == 'hover':
-            item = self.model.rows[index.row()]
+                for i in range(0, len(self.location_model.rows)):
+                    if self.location_model.rows[i].active.value:
+                        self.hide_timeseries(i, index.row())
+
+    def on_insert_locations(self, parent, start, end):
+        """
+        add list of items to graph. based on Qt addRows model trigger
+        :param parent: parent of event (Qt parameter)
+        :param start: first row nr
+        :param end: last row nr
+        """
+        for i in range(start, end+1):
+            item = self.location_model.rows[i]
+            for ds in self.ds_model.rows:
+                if ds.active.value:
+                    index = self.ds_model.rows.index(ds)
+                    self.addItem(item.plots(
+                            self.current_parameter['parameters'], index))
+
+    def on_remove_locations(self, index, start, end):
+        """
+        remove items from graph. based on Qt model removeRows
+        trigger
+        :param index: Qt Index (not used)
+        :param start: first row nr
+        :param end: last row nr
+        """
+        for i in range(start, end+1):
+            item = self.location_model.rows[i]
+            if item.active.value:
+                for ds in self.ds_model.rows:
+                    if ds.active.value:
+                        index = self.ds_model.rows.index(ds)
+                        self.removeItem(item.plots(
+                                self.current_parameter['parameters'], index))
+
+    def location_data_changed(self, index):
+        """
+        change graphs based on changes in locations
+        :param index: index of changed field
+        """
+        if self.location_model.columns[index.column()].name == 'active':
+            active = self.location_model.rows[index.row()].active.value
+
+            if active:
+                for i in range(0, len(self.ds_model.rows)):
+                    if self.ds_model.rows[i].active.value:
+                        self.show_timeseries(index.row(), i)
+            else:
+                for i in range(0, len(self.ds_model.rows)):
+                    if self.ds_model.rows[i].active.value:
+                        self.hide_timeseries(index.row(), i)
+
+        elif self.location_model.columns[index.column()].name == 'hover':
+            item = self.location_model.rows[index.row()]
             if item.hover.value:
-                item.plots(self.current_parameter['parameters']).\
-                        setPen(color=item.color.qvalue, width=4)
+                for ds in self.ds_model.rows:
+                    if ds.active.value:
+                        index = self.ds_model.rows.index(ds)
+                        item.plots(self.current_parameter['parameters'],
+                                   index).setPen(
+                                            color=item.color.qvalue, width=5,
+                                            style=ds.pattern.value)
             else:
-                item.plots(self.current_parameter['parameters']).\
-                        setPen(color=item.color.qvalue, width=2)
+                for ds in self.ds_model.rows:
+                    if ds.active.value:
+                        index = self.ds_model.rows.index(ds)
+                        item.plots(self.current_parameter['parameters'],
+                                   index).setPen(
+                                            color=item.color.qvalue, width=2,
+                                            style=ds.pattern.value)
 
-    def hide_timeseries(self, row_nr):
+    def hide_timeseries(self, location_nr, ds_nr):
+        """
+        hide timeseries of location in graph
+        :param row_nr: integer, row number of location
+        """
 
-        plot = self.model.rows[row_nr].plots(
-                self.current_parameter['parameters'])
+        plot = self.location_model.rows[location_nr].plots(
+                    self.current_parameter['parameters'], ds_nr)
         self.removeItem(plot)
 
-    def show_timeseries(self, row_nr):
+    def show_timeseries(self, location_nr, ds_nr):
+        """
+        show timeseries of location in graph
+        :param row_nr: integer, row number of location
+        """
 
-        plot = self.model.rows[row_nr].plots(
-                self.current_parameter['parameters'])
+        plot = self.location_model.rows[location_nr].plots(
+                self.current_parameter['parameters'], ds_nr)
         self.addItem(plot)
 
     def set_parameter(self, parameter):
+        """
+        on selection of parameter (in combobox), change timeseries in graphs
+        :param parameter: parameter indentification string
+        """
 
         if self.current_parameter == parameter:
             return
@@ -128,10 +234,16 @@ class GraphPlot(pg.PlotWidget):
         old_parameter = self.current_parameter
         self.current_parameter = parameter
 
-        for item in self.model.rows:
+        for item in self.location_model.rows:
             if item.active.value:
-                self.removeItem(item.plots(old_parameter['parameters']))
-                self.addItem(item.plots(self.current_parameter['parameters']))
+                for ds in self.ds_model.rows:
+                    if ds.active.value:
+                        index = self.ds_model.rows.index(ds)
+
+                        self.removeItem(item.plots(
+                                old_parameter['parameters'], index))
+                        self.addItem(item.plots(
+                                self.current_parameter['parameters'], index))
 
         self.setLabel("left",
                       self.current_parameter['name'],
@@ -238,7 +350,8 @@ class GraphWidget(QWidget):
         self.setup_ui()
 
         self.model = LocationTimeseriesModel(datasource=self.ts_datasource)
-        self.graph_plot.setModel(self.model)
+        self.graph_plot.set_location_model(self.model)
+        self.graph_plot.set_ds_model(self.ts_datasource)
         self.location_timeseries_table.setModel(self.model)
 
         # init parameter selection
