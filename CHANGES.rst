@@ -1,7 +1,7 @@
 threedi-qgis-plugin changelog
 =============================
 
-0.3 (unreleased)
+0.3 (2016-04-13)
 ----------------
 
 - Add tool version number to about box.
