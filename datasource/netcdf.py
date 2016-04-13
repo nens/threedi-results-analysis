@@ -137,7 +137,14 @@ class NetcdfDataSource(object):
         # Get data from all variables and just put them in the same list:
         result = []
         for v in variables:
-            vals = self.ds.variables[v][:, netcdf_id]
+            try:
+                vals = self.ds.variables[v][:, netcdf_id]
+            except KeyError:
+                log("Variable not in netCDF: %s, skipping..." % v)
+                continue
+            except IndexError:
+                log("Id %s not found for %s" % (netcdf_id, v))
+                continue
             timestamps = self.get_timestamps(self.ds)
             result += zip(timestamps, vals)
 

@@ -23,23 +23,24 @@ class TestParameters(unittest.TestCase):
 
     def test_get_datasource_variable_kunstwerk(self):
         out = get_datasource_variable('q', 'pipe')
-        self.assertEqual(out, 'q')
+        self.assertEqual(out, ['q'])
 
     def test_get_datasource_variable_pump(self):
         out = get_datasource_variable('q', 'pumpstation')
-        self.assertEqual(out, 'q_pump')
+        self.assertEqual(out, ['q_pump'])
 
     def test_get_datasource_variable_manhole(self):
         out = get_datasource_variable('s1', 'manhole')
-        self.assertEqual(out, 's1')
+        self.assertEqual(out, ['s1'])
 
     def test_get_variables(self):
         vars = get_variables(object_type='pipe', parameters=['q'])
         self.assertEqual(vars, ['q'])
 
     def test_get_variables2(self):
+        """Get both u variable names for backwards compatability."""
         vars = get_variables('pipe', ['u1'])
-        self.assertEqual(vars, ['u1'])
+        self.assertEqual(vars, ['u1', 'unorm'])
 
     def test_get_variables3(self):
         vars = get_variables('pumpstation', ['q'])
