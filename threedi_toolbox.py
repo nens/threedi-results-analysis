@@ -25,7 +25,7 @@ import os.path
 from PyQt4.QtCore import Qt
 
 # Import the code for the DockWidget
-from threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
+from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from .models.toolbox import ToolboxModel
 
 
