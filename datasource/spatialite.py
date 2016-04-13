@@ -79,11 +79,18 @@ layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 def get_datasource_variable(parameter, object_type):
     """Get the actual variable name that is used in the datasource,
     i.e., that is at the moment defined as the netCDF variable name.
+
+    Returns:
+        A list of one or more variables
     """
     # Pumpstation is a special case and has its own netcdf array
     if parameter == 'q' and object_type == 'pumpstation':
-        return 'q_pump'
-    return parameter
+        return ['q_pump']
+    # This is for backwards compatability, we want to check try both variable
+    # names for the velocity parameter.
+    if parameter in ['u1', 'unorm']:
+        return ['u1', 'unorm']
+    return [parameter]
 
 
 def get_variables(object_type=None, parameters=[]):
@@ -93,7 +100,9 @@ def get_variables(object_type=None, parameters=[]):
     # Note: object_type must be passed as a kwargs, or else this partial
     # function doesn't work, and parameter will be substituted instead.
     f = partial(get_datasource_variable, object_type=object_type)
-    return map(f, new_params)
+    lists = map(f, new_params)
+    # Flatten the list of lists:
+    return [item for sublist in lists for item in sublist]
 
 
 def get_object_type(current_layer_name):
