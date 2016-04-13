@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
@@ -22,10 +22,7 @@
 """
 import os.path
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon, QTreeWidgetItem, QStandardItemModel, QStandardItem, QStyle
-# Initialize Qt resources from file resources.py
-import resources
+from PyQt4.QtCore import Qt
 
 # Import the code for the DockWidget
 from threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
@@ -59,7 +56,6 @@ class ThreeDiToolbox:
 
         self.toolbox = None
 
-
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
@@ -67,14 +63,13 @@ class ThreeDiToolbox:
 
         # disconnects
         if self.dockwidget:
-            self.dockwidget.closingPlugin.disconnect(self.on_unload)
+            self.dockwidget.close()
 
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
-        # when closing the docked window:
-        # self.dockwidget = None
+    def on_close_child_widget(self):
+        """Cleanup necessary items here when plugin dockwidget is closed"""
+        self.dockwidget.closingWidget.disconnect(self.on_close_child_widget)
 
+        self.dock_widget = None
         self.pluginIsActive = False
 
     def run(self):
@@ -88,12 +83,12 @@ class ThreeDiToolbox:
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
+            if self.dockwidget is None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = ThreeDiToolboxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.on_unload)
+            self.dockwidget.closingWidget.connect(self.on_close_child_widget)
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
@@ -102,6 +97,6 @@ class ThreeDiToolbox:
 
     def add_tools(self):
 
-        self.toolbox = ToolboxModel()#self.dockwidget.treeView.style().standardIcon(QStyle.SP_DirIcon))
+        self.toolbox = ToolboxModel()
 
         self.dockwidget.treeView.setModel(self.toolbox.model)

@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                :  7 april 2016
         git sha              : $Format:%H$
@@ -21,6 +21,8 @@
  ***************************************************************************/
 """
 import os.path
+from PyQt4.QtCore import Qt
+
 from views.result_selection import ThreeDiResultSelectionWidget
 
 
@@ -43,7 +45,7 @@ class ThreeDiResultSelection:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icon.png'
+        self.icon_path = ':/plugins/ThreeDiToolbox/icon_add_datasource.png'
         self.menu_text = u'Selecteer 3di resultaten'
 
         self.is_active = False
@@ -73,11 +75,17 @@ class ThreeDiResultSelection:
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(None, self.iface, self.ts_datasource)
+                self.dialog = ThreeDiResultSelectionWidget(None,
+                                                           self.iface,
+                                                           self.ts_datasource)
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
 
-            # show the dockwidget
-            # self.iface.addWidget(self.dialog)
+            # show the widget
             self.dialog.show()
+        else:
+            self.dialog.setWindowState(self.dialog.windowState() &
+                                       ~Qt.WindowMinimized |
+                                       Qt.WindowActive)
+            self.dialog.raise_()

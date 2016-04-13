@@ -1,8 +1,32 @@
+# -*- coding: utf-8 -*-
+from PyQt4.QtCore import Qt
 from ..datasource.spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
 
+
+def get_line_pattern(item_field):
+    """
+    get (default) line pattern for plots from this datasource
+    :param item_field:
+    :return:
+    """
+    available_styles = [
+        Qt.SolidLine,
+        Qt.DashLine,
+        Qt.DotLine,
+        Qt.DashDotLine,
+        Qt.DashDotDotLine
+    ]
+
+    used_patterns = [item.pattern.value for item in item_field.item.model.rows]
+
+    for style in available_styles:
+        if style not in used_patterns:
+            return style
+
+    return Qt.SolidLine
 
 class TimeseriesDatasourceModel(BaseModel):
 
@@ -14,6 +38,7 @@ class TimeseriesDatasourceModel(BaseModel):
         name = ValueField(show=True, column_width=130, column_name='Name')
         file_path = ValueField(show=True, column_width=260, column_name='File')
         type = ValueField(show=False)
+        pattern = ValueField(show=False, default_value=get_line_pattern)
 
         def datasource(self):
             if hasattr(self, '_datasource'):
@@ -24,4 +49,3 @@ class TimeseriesDatasourceModel(BaseModel):
             elif self.type.value == 'netcdf':
                 self._datasource = NetcdfDataSource(self.file_path.value)
                 return self._datasource
-

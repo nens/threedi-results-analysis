@@ -6,5 +6,7 @@
 help/build/
 .idea
 
+remote_debugger_settings.py
+
 # Test data
 test/data

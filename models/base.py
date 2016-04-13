@@ -69,9 +69,11 @@ class BaseModel(QAbstractTableModel):
         self.datasource = datasource
 
         # create item class
-        self._fields = sorted([(name, cl) for name, cl
-                    in inspect.getmembers(self.Fields, lambda a:not(inspect.isroutine(a)))
-                    if not name.startswith('__')], key=lambda cl: cl[1]._nr)
+        self._fields = sorted(
+                [(name, cl) for name, cl in inspect.getmembers(self.Fields,
+                                            lambda a:not(inspect.isroutine(a)))
+                    if not name.startswith('__') and not name.startswith('_') ],
+                    key=lambda cl: cl[1]._nr)
 
         self.columns = [cl for name, cl in self._fields]
 

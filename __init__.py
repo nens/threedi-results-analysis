@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                              -------------------
         begin                : 2016-03-04
         copyright            : (C) 2016 by Nelen&Schuurmans
@@ -25,10 +25,10 @@ import sys
 import os
 from utils.user_messages import pop_up_info, log
 
-
+msg = ''
 try:
     import netCDF4
-    log('Use local installation of python netCDF4 library')
+    msg += 'Use local installation of python netCDF4 library'
 except ImportError:
     if os.name == 'nt':
         if sys.maxsize > 2**32:
@@ -39,21 +39,28 @@ except ImportError:
                 'external', 'netCDF4-win64'))
             import netCDF4
 
-            msg = 'Used netCDF4 library, provided with plugin. Python-netcdf version %{python-netcdf}s, '\
-                'netCDF4 version %{netcdf)s and HDF5 version %{netcdf)s.'% {
-                'python-netcdf': netCDF4.__version__,
-                'netcdf': netCDF4.__netcdf4libversion__,
-                'hdf5': netCDF4.__hdf5libversion__
-            }
-            log(msg)
-            print msg
+            msg += 'Used netCDF4 library, provided with plugin. '
         else:
-            pop_up_info('Error: could not find netCDF4 installation. Change to the 64-bit vresion of QGIS or try to '
-                        'install the netCDF4 python libary yourself.')
+            pop_up_info('Error: could not find netCDF4 installation. Change '
+                        'to the 64-bit vresion of QGIS or try to install the '
+                        'netCDF4 python libary yourself.')
+            netCDF4 = None
     else:
-        pop_up_info('Error: could not find netCDF4 installation. Please install python-netCDF4 package.')
+        pop_up_info('Error: could not find netCDF4 installation. Please '
+                    'install python-netCDF4 package.')
+        netCDF4 = None
 
-print os.path.dirname(netCDF4.__file__)
+if netCDF4 is not None:
+    msg += 'Python-netcdf version {python_netcdf}, netCDF4 version ' \
+           '{netcdf} and HDF5 version {netcdf}.'.format(
+                    python_netcdf = netCDF4.__version__,
+                    netcdf = netCDF4.__netcdf4libversion__,
+                    hdf5 = netCDF4.__hdf5libversion__)
+
+    log(msg)
+    print msg
+    print os.path.dirname(netCDF4.__file__)
+
 
 try:
     import pyqtgraph

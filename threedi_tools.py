@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
@@ -23,7 +23,7 @@
 
 import os.path
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 
 # Initialize Qt resources from file resources.py
@@ -81,17 +81,6 @@ class ThreeDiTools:
         self.tools = []
 
         self.ts_datasource = TimeseriesDatasourceModel()
-        items = [
-#            {
-#            'ds_type': 'spatialite',
-#            'type': 'spatialite',
-#            'name': 'rhenen test store',
-            # 'file_path': 'C:/Users/bastiaan.roos/Desktop/rhenen/rhenen_2d_13/results/rhenen_2d_13_result.sqlite'
-#            'file_path': '/home/jackieleng/git/threedi-turtle/var/models/DS_152_1D_totaal_bergingsbak/results/DS_152_1D_totaal_bergingsbak_result.sqlite'
-#            },
-            ]
-
-        self.ts_datasource.insertRows(items)
 
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
@@ -182,8 +171,6 @@ class ThreeDiTools:
                 action)
 
         self.actions.append(action)
-
-
         return action
 
     def initGui(self):
@@ -193,13 +180,10 @@ class ThreeDiTools:
             #load optional settings for remote debugging for development purposes
             #add file remote_debugger_settings.py in main directory to use debugger
             import remote_debugger_settings
-        except:
-            print 'could not load remote debugger'
-
-
+        except ImportError:
+            pass
 
         # add 3di logo and about info (doing nothing right now)
-
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
         action = QAction(icon, "3di about", self.iface.mainWindow())
         action.triggered.connect(self.about)
@@ -218,7 +202,13 @@ class ThreeDiTools:
             shows dialog with version information
         :return:
         """
-        pop_up_info("3di Tools versie ??", "About", self.iface.mainWindow())
+        #todo: add version number and link to sites
+        version = open(os.path.join(
+                os.path.dirname(__file__),
+                'version.rst')).readline().rstrip()
+
+        pop_up_info("3di Tools versie %s"%version,
+                    "About", self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

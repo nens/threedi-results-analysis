@@ -2,8 +2,8 @@
 """
 /***************************************************************************
  ThreeDiToolboxDockWidget
-                                 A QGIS plugin
- Toolbox for working with 3di hydraulic models
+                                 A QGIS plugin for working with 3di
+                                 hydraulic models
                              -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
@@ -32,19 +32,14 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class ThreeDiToolboxDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
-    closingPlugin = pyqtSignal()
+    closingWidget = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
         super(ThreeDiToolboxDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
     def closeEvent(self, event):
-        self.closingPlugin.emit()
+        self.closingWidget.emit()
         event.accept()
-
