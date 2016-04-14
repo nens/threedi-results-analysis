@@ -7,10 +7,9 @@ threedi-qgis-plugin
 Installation
 ----
 The plugin could be added using one of the following ways:
-- Through the Lizard QGIS repository. Via menu bar go to: Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
-Install the plugin by selecting ThreeDiToolbox.
-- Copy/ symlink everything in this map to your plugin directory (on Linux: ``~/.qgis2/python/plugins``, on
-Windows: ``c:\\Users\<username>\.qgis2\python\plugins\``)
+
+- Through the Lizard QGIS repository. Via menu bar go to: Plugins > Manage And Install Plugins... > Settings; add the repo and reload. Install the plugin by selecting ThreeDiToolbox.
+- Copy/ symlink everything in this map to your plugin directory (on Linux: ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``)
 
 Installation on Windows
 ------------
@@ -41,3 +40,14 @@ QGIS plugin directory::
 Manually copy to server::
 
     $ scp ThreeDiToolbox.0.2.zip 119-packages-d1.external-nens.local:/srv/packages.lizardsystem.nl/var/plugins
+
+
+Tests
+-----
+
+For now running tests is a bit cumbersome because of the relative imports in the code. You have to be
+outside of the repository directory and then run test modules independently like this::
+
+    $ python -m unittest threedi-qgis-plugin.test.test_datasources
+
+TODO: make something like nosetests work (now not possible because of the relative imports).
