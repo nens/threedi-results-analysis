@@ -110,30 +110,67 @@ class ThreeDiToolbox:
             return ThreeDiToolbox.leaf_path(q_model_index.parent()) + \
                 [q_model_index.data()]
 
-    def foo(self):
-        # Get clicked QModelIndex
-        qm_idx = self.dockwidget.treeView.currentIndex()
+    def run_script(self, qm_idx):
+        """Dynamically import and run the selected script from the tree view.
+
+        Args:
+            qm_idx: the clicked QModelIndex
+        """
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
+            if not self.dialog_is_yes():
+                return
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
             print(filename)
             print(item)
             print(path)
-            module_path = './src/' + '/'.join(path)
-            name = path[-1].split('.')[0]
+            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+
+            curr_dir = os.path.dirname(__file__)
+            module_path = os.path.join(curr_dir, 'src', *path)
+            name, ext = os.path.splitext(path[-1])
+            if ext != '.py':
+                print("Not a Python script")
+                return
             print(module_path)
             print(name)
             import imp
             mod = imp.load_source(name, module_path)
             print(mod)
+
+            command = mod.CustomCommand(
+                iface=self.iface, ts_datasource=self.ts_datasource)
+            command.run_it()
             # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+
+    def dialog_is_yes(self):
+        """Message box question to ask if we want to proceed.
+
+        Returns:
+            True (yes) or False (no).
+        """
+        msg_box = QtGui.QMessageBox()
+        # Not sure about first arg in, should be pass in self.dockwidget
+        # instead?
+        reply = msg_box.question(
+            msg_box, 'Message',
+            "Are you sure you want to run this script?",
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            QtGui.QMessageBox.No)
+
+        if reply == QtGui.QMessageBox.Yes:
+            print("YES")
+            return True
+        else:
+            print("NO")
+            return False
 
     def add_tools(self):
         self.toolboxmodel = ToolboxModel()
         self.dockwidget.treeView.setModel(self.toolboxmodel)
         self.dockwidget.treeView.setEditTriggers(
             QtGui.QAbstractItemView.NoEditTriggers)
-        self.dockwidget.treeView.doubleClicked.connect(self.foo)
+        self.dockwidget.treeView.doubleClicked.connect(self.run_script)
