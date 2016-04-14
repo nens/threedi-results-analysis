@@ -7,10 +7,8 @@ import numpy as np
 from ..datasource.netcdf import NetcdfDataSource
 
 
-def is_pumpstation(structure_type):
-    return (structure_type == 'v2_pumpstation' or
-            structure_type == 'sewerage_pumpstation')
-
+# TODO: what's the deal with the inp_id of pipes which must be
+# decremented by 1?
 
 class NcStats(object):
     """Get basic stats about subgrid netCDF files"""
@@ -29,16 +27,15 @@ class NcStats(object):
         Args:
             netcdf_file_path: path to netcdf
             ds: netcdf dataset
+            datasource: NetcdfDataSource object
         """
         if datasource:
             self.datasource = datasource
         elif not ds and netcdf_file_path:
-            self.netcdf_file_path = netcdf_file_path
             self.datasource = NetcdfDataSource(netcdf_file_path)
         elif ds:
             # TODO: needs fixing
             raise NotImplementedError('TODO')
-            self.ds = ds
         else:
             raise ValueError("No netCDF source")
 
@@ -47,7 +44,11 @@ class NcStats(object):
 
     def strvol(self, flowline_id):
         """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps"""
+        orifices. So no pumps
+
+        Note: apparently deprecated!
+
+        """
         # TODO: not sure if used
         return self.ds.variables['strvol'][flowline_id]
 
