@@ -33,6 +33,7 @@ import resources  # NoQa
 from threedi_result_selection import ThreeDiResultSelection
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
+from threedi_sideview import ThreeDiSideView
 from .utils.user_messages import pop_up_info, log
 
 from models.datasources import TimeseriesDatasourceModel
@@ -85,6 +86,8 @@ class ThreeDiTools:
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(ThreeDiGraph(iface, self.ts_datasource))
+        self.tools.append(ThreeDiSideView(iface, self.ts_datasource))
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
