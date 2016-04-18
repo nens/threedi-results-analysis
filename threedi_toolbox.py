@@ -130,7 +130,7 @@ class ThreeDiToolbox:
             # from .qdebug import pyqt_set_trace; pyqt_set_trace()
 
             curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, 'src', *path)
+            module_path = os.path.join(curr_dir, 'commands', *path)
             name, ext = os.path.splitext(path[-1])
             if ext != '.py':
                 print("Not a Python script")
