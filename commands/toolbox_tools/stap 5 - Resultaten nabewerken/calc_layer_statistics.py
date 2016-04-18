@@ -27,10 +27,14 @@ class CustomCommand(object):
 
         # Current layer information
         self.current_layer = self.iface.mapCanvas().currentLayer()
+        if not self.current_layer:
+            pop_up_info("No layer selected, things will not go well..",
+                        title='Error')
+            return
         self.feature_ids = [i.id() for i in self.current_layer.getFeatures()]
 
-        # The NcStats parameter we want to calculate
-        self.PARAMETER = 'tot_vol'  # TODO: still hardcoded for now
+        # All the NcStats parameters we want to calculate.
+        self.parameters = ['tot_vol', 'q_max', 'cumulative_duration', 'q_end']
 
 
     def run_it(self):
@@ -52,23 +56,24 @@ class CustomCommand(object):
         nds = tds.datasource()  # the netcdf datasource
         ncstats = NcStats(datasource=nds)
         layer_name = self.current_layer.name()
+        filenames = []
+        for param_name in self.parameters:
+            # Generate data
+            result = dict()
+            method = getattr(ncstats, param_name)
+            for fid in self.feature_ids:
+                result[fid] = method(layer_name, fid)
 
-        # Generate data
-        result = dict()
-        param_name = self.PARAMETER
-        method = getattr(ncstats, param_name)
-        for fid in self.feature_ids:
-            result[fid] = method(layer_name, fid)
+            # Write to csv file
+            filename = layer_name + '_' + param_name + '.csv'
+            filenames.append(filename)
+            with open(filename, 'wb') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
 
-        # Write to csv file
-        filename = layer_name + '_' + param_name + '.csv'
-        with open(filename, 'wb') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
+                header = ['id', param_name]
+                writer.writerow(header)
 
-            header = ['id', param_name]
-            writer.writerow(header)
+                for fid, val in result.items():
+                    writer.writerow([fid, val])
 
-            for fid, val in result.items():
-                writer.writerow([fid, val])
-
-        pop_up_info("Generated %s" % filename)
+        pop_up_info("Generated: %s" % ', '.join(filenames))
