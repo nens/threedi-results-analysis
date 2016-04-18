@@ -112,7 +112,7 @@ class NcStats(object):
         # return highest absolute value, while retaining the sign of the number
         largest = max(_min, _max, key=abs)
         (rows,) = np.where(q_slice == largest)
-        return rows[0]
+        return self.timestamps[rows[0]]
 
     def cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.
