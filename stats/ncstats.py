@@ -43,7 +43,6 @@ class NcStats(object):
         else:
             raise ValueError("No netCDF source")
 
-        self.channel_mapping = self.datasource.channel_mapping
         self.timesteps = self.datasource.timesteps
 
     def strvol(self, flowline_id):
