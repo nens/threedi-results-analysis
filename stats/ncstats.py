@@ -20,6 +20,10 @@ class NcStats(object):
     # should probably be no issues since the time and q arrays are of the
     # same length, but you never know. Might need some investigation.
 
+    # Update this list if you add a new method
+    AVAILABLE_PARAMETERS = [
+        'tot_vol', 'q_max', 'cumulative_duration', 'q_end']
+
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
         NOTE: ds arg is not supported at this time!!!

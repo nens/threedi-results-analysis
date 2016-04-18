@@ -34,7 +34,7 @@ class CustomCommand(object):
         self.feature_ids = [i.id() for i in self.current_layer.getFeatures()]
 
         # All the NcStats parameters we want to calculate.
-        self.parameters = ['tot_vol', 'q_max', 'cumulative_duration', 'q_end']
+        self.parameters = NcStats.AVAILABLE_PARAMETERS
 
 
     def run_it(self):
