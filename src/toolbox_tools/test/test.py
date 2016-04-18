@@ -4,7 +4,9 @@ csv.
 
 import csv
 import inspect
+
 from ThreeDiToolbox.stats.ncstats import NcStats
+from ThreeDiToolbox.utils.user_messages import pop_up_info
 
 class CustomCommand(object):
 
@@ -28,7 +30,7 @@ class CustomCommand(object):
         self.feature_ids = [i.id() for i in self.current_layer.getFeatures()]
 
         # The NcStats parameter we want to calculate
-        self.PARAMTER = 'tot_vol'  # TODO: still hardcoded for now
+        self.PARAMETER = 'tot_vol'  # TODO: still hardcoded for now
 
 
     def run_it(self):
@@ -40,6 +42,12 @@ class CustomCommand(object):
 
         # For now just get the first datasource
         # TODO: improve this
+        if len(self.ts_datasources.rows) <= 0:
+            pop_up_info("No datasource found. Aborting.", title='Error')
+            return
+        if len(self.ts_datasources.rows) > 1:
+            pop_up_info("More than one datasource found, only the first one "
+                        "will be used", title='Warning')
         tds = self.ts_datasources.rows[0]
         nds = tds.datasource()  # the netcdf datasource
         ncstats = NcStats(datasource=nds)
@@ -53,7 +61,8 @@ class CustomCommand(object):
             result[fid] = method(layer_name, fid)
 
         # Write to csv file
-        with open(layer_name + '_' + param_name + '.csv', 'wb') as csvfile:
+        filename = layer_name + '_' + param_name + '.csv'
+        with open(filename, 'wb') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
 
             header = ['id', param_name]
@@ -61,3 +70,5 @@ class CustomCommand(object):
 
             for fid, val in result.items():
                 writer.writerow([fid, val])
+
+        pop_up_info("Generated %s" % filename)

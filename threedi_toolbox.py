@@ -119,7 +119,7 @@ class ThreeDiToolbox:
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            if not self.dialog_is_yes():
+            if not self.pop_up_question():
                 return
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
@@ -146,7 +146,7 @@ class ThreeDiToolbox:
             command.run_it()
             # from .qdebug import pyqt_set_trace; pyqt_set_trace()
 
-    def dialog_is_yes(self):
+    def pop_up_question(self):
         """Message box question to ask if we want to proceed.
 
         Returns:
