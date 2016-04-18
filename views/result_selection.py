@@ -101,19 +101,19 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        fname = QFileDialog.getOpenFileName(self,
+        filename = QFileDialog.getOpenFileName(self,
                                             'Open resultaten file',
                                             init_path ,
                                             'NetCDF (*.nc)')
 
-        if fname:
+        if filename:
             items = [{
                 'type': 'netcdf',
                 'name': os.path.basename(fname).lower().rstrip('.nc'),
                 'file_path': fname
             }]
             self.ts_datasource.insertRows(items)
-            settings.setValue('last_used_path', os.path.dirname(fname))
+            settings.setValue('last_used_path', os.path.dirname(filename))
 
             return True
 
