@@ -68,6 +68,7 @@ class ThreeDiToolbox:
 
     def on_close_child_widget(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
+        self.dockwidget.treeView.doubleClicked.disconnect(self.run_script)
         self.dockwidget.closingWidget.disconnect(self.on_close_child_widget)
 
         self.dock_widget = None
