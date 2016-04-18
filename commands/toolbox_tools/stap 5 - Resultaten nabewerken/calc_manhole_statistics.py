@@ -31,10 +31,9 @@ class CustomCommand(object):
             pop_up_info("No layer selected, things will not go well..",
                         title='Error')
             return
-        self.feature_ids = [i.id() for i in self.current_layer.getFeatures()]
 
         # All the NcStats parameters we want to calculate.
-        self.parameters = NcStats.AVAILABLE_STRUCTURE_PARAMETERS
+        self.parameters = NcStats.AVAILABLE_MANHOLE_PARAMETERS
 
 
     def run_it(self):
@@ -57,11 +56,57 @@ class CustomCommand(object):
         ncstats = NcStats(datasource=nds)
         layer_name = self.current_layer.name()
         filenames = []
+
+        # MANHOLE SPECIFIC CALCULATION:
+        # #############################
+        # Generate data
+        wos_height = dict()
+        water_depth = dict()
+        param_name = 's1_max'
+        method = getattr(ncstats, param_name)
+        # Using the getFeatures iterator should be more efficient
+        for feature in self.current_layer.getFeatures():
+            fid = feature.id()
+            try:
+                s1_max = method(layer_name, fid)
+            except ValueError:
+                s1_max = None
+            # Water op straat berekening (wos_height):
+            try:
+                wos_height[fid] = s1_max - feature['surface_level']
+            except TypeError:
+                wos_height[fid] = None
+            # Waterdiepte berekening:
+            try:
+                water_depth[fid] = s1_max - feature['bottom_level']
+            except TypeError:
+                water_depth[fid] = None
+
+        # Write to csv file
+        filename = layer_name + '_' + 'water_op_straat' + '.csv'
+        filenames.append(filename)
+        with open(filename, 'wb') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+
+            header = ['id', 'wos_height', 'waterdiepte']
+            writer.writerow(header)
+
+            # TODO: ugly, can be rewritten in terms of dicts and using the
+            # DictWriter
+            for fid, wos in wos_height.items():
+                depth = water_depth.get(fid)
+                writer.writerow([fid, wos, depth])
+        # ################################
+
         for param_name in self.parameters:
             # Generate data
             result = dict()
+            wos_height = dict()
+            water_depth = dict()
             method = getattr(ncstats, param_name)
-            for fid in self.feature_ids:
+            # Using the getFeatures iterator should be more efficient
+            for feature in self.current_layer.getFeatures():
+                fid = feature.id()
                 result[fid] = method(layer_name, fid)
 
             # Write to csv file

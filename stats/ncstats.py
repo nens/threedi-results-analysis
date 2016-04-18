@@ -20,10 +20,11 @@ class NcStats(object):
     # should probably be no issues since the time and q arrays are of the
     # same length, but you never know. Might need some investigation.
 
-    # Update this list if you add a new method
-    AVAILABLE_PARAMETERS = [
+    # Update these lists if you add a new method
+    AVAILABLE_STRUCTURE_PARAMETERS = [
         'tot_vol', 'q_max', 'cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -113,6 +114,12 @@ class NcStats(object):
         largest = max(_min, _max, key=abs)
         (rows,) = np.where(q_slice == largest)
         return self.timestamps[rows[0]]
+
+    def s1_max(self, structure_type, obj_id):
+        """Maximum value of a s1 timeseries."""
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['s1'])
+        return slice.max()
 
     def cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.
