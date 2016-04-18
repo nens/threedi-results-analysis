@@ -22,7 +22,8 @@ class NcStats(object):
 
     # Update this list if you add a new method
     AVAILABLE_PARAMETERS = [
-        'tot_vol', 'q_max', 'cumulative_duration', 'q_end']
+        'tot_vol', 'q_max', 'cumulative_duration', 'q_end', 'tot_vol_positive',
+        'tot_vol_negative']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -68,6 +69,26 @@ class NcStats(object):
         q_slice = np.absolute(q_slice)
         # calc total vol thru structure
         vols = self.timesteps * q_slice[0:-1]
+        return vols.sum()
+
+    def tot_vol_positive(self, structure_type, obj_id):
+        """Total volume through structure, counting only positive q's."""
+        q_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['q'])
+        # mask negative values
+        ma_q_slice = np.ma.masked_where(q_slice < 0, q_slice)
+        # calc total vol thru structure
+        vols = self.timesteps * ma_q_slice[0:-1]
+        return vols.sum()
+
+    def tot_vol_negative(self, structure_type, obj_id):
+        """Total volume through structure, counting only negative q's."""
+        q_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['q'])
+        # mask positive values
+        ma_q_slice = np.ma.masked_where(q_slice > 0, q_slice)
+        # calc total vol thru structure
+        vols = self.timesteps * ma_q_slice[0:-1]
         return vols.sum()
 
     def q_max(self, structure_type, obj_id):
