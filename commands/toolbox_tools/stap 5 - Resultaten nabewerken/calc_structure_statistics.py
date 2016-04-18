@@ -1,5 +1,5 @@
-"""This script calculates statistics on the current layer and outputs it to
-csv.
+"""This script calculates statistics on the current layer for structures and
+outputs it to csv.
 """
 
 import csv
