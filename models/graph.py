@@ -121,7 +121,7 @@ class LocationTimeseriesModel(BaseModel):
                                                  parameters):
                 # value data may come back as 'NULL' string; convert it to None
                 # or else convert it to float
-                v = None if v == 'NULL' else float(v + float(result_ds_nr))
+                v = None if v == 'NULL' else float(v)
                 float_data.append((float(t), v))
 
             return np.array(float_data, dtype=float)
