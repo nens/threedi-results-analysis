@@ -23,7 +23,7 @@ class NcStats(object):
     # Update this list if you add a new method
     AVAILABLE_PARAMETERS = [
         'tot_vol', 'q_max', 'cumulative_duration', 'q_end', 'tot_vol_positive',
-        'tot_vol_negative']
+        'tot_vol_negative', 'time_q_max']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -45,6 +45,7 @@ class NcStats(object):
             raise ValueError("No netCDF source")
 
         self.timesteps = self.datasource.timesteps
+        self.timestamps = self.datasource.get_timestamps()
 
     def strvol(self, flowline_id):
         """Total volume through a structure. Structures are: pipes, weirs,
@@ -100,6 +101,18 @@ class NcStats(object):
         _max = q_slice.max()
         # return highest absolute value, while retaining the sign of the number
         return max(_min, _max, key=abs)
+
+    def time_q_max(self, structure_type, obj_id):
+        """The time at maximum value of a q timeseries
+        """
+        q_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['q'])
+        _min = q_slice.min()
+        _max = q_slice.max()
+        # return highest absolute value, while retaining the sign of the number
+        largest = max(_min, _max, key=abs)
+        (rows,) = np.where(q_slice == largest)
+        return rows[0]
 
     def cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.

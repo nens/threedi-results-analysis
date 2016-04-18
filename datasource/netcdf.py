@@ -144,7 +144,7 @@ class NetcdfDataSource(object):
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            timestamps = self.get_timestamps(self.ds)
+            timestamps = self.get_timestamps()
             result += zip(timestamps, vals)
 
         # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
