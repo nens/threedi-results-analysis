@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
+from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox
+    QDockWidget, QComboBox, QMessageBox, QColor, QCursor
+
+import numpy as np
+import os
 
 from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
         QgsDistanceArcProperter, QgsGraphAnalyzer
 
-from qgis.core import QgsPoint, QgsRectangle
+from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, QgsFeatureRequest
+from qgis.networkanalysis import QgsArcProperter
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
 from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
+from ..utils.route import Route
 
 
 import pyqtgraph as pg
@@ -39,7 +44,7 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
-class SideViewWidget(pg.PlotWidget):
+class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
 
     def __init__(self, parent=None, nr=0, datasource_model=None, name=""):
@@ -47,7 +52,7 @@ class SideViewWidget(pg.PlotWidget):
 
         :param parent: Qt parent widget
         """
-        super(SideViewWidget, self).__init__(parent)
+        super(SideViewPlotWidget, self).__init__(parent)
 
         self.name = name
         self.nr = nr
@@ -56,11 +61,51 @@ class SideViewWidget(pg.PlotWidget):
         self.setLabel("bottom", "Afstand", "m")
         self.setLabel("left", "Hoogte", "mNAP")
 
-        self.ds_model = datasource_model
+        pen = pg.mkPen(color=QColor(256,0,0),
+                           width=2)
 
-        self.ds_model.dataChanged.connect(self.ds_data_changed)
-        self.ds_model.rowsInserted.connect(self.on_insert_ds)
-        self.ds_model.rowsAboutToBeRemoved.connect(self.on_remove_ds)
+        self.bottom_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
+        self.upper_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
+
+        self.addItem(self.bottom_plot)
+        self.addItem(self.upper_plot)
+
+    def set_sideprofile(self, profile, route_points):
+
+        bottom_line = []
+        upper_line = []
+
+        for route_part in profile:
+            for begin_dist, end_dist, distance, direction, feature in route_part:
+
+                if direction == 1:
+                    begin_level = feature['invert_level_start_point']
+                    end_level = feature['invert_level_end_point']
+                else:
+                    begin_level = feature['invert_level_end_point']
+                    end_level = feature['invert_level_start_point']
+
+                bottom_line.append((float(begin_dist), float(begin_level)))
+                bottom_line.append((float(end_dist), float(end_level)))
+
+                shape = feature['sewerage_cross_section_definition_shape']
+                if shape == 1:
+                    height = feature['sewerage_cross_section_definition_height']
+                elif shape == 2:
+                    height = feature['sewerage_cross_section_definition_width']
+                else:
+                    # todo: get height of other shapes
+                    height = 1
+
+                upper_line.append((float(begin_dist), float(begin_level)+float(height)))
+                upper_line.append((float(end_dist), float(end_level)+float(height)))
+
+        ts_table = np.array(bottom_line, dtype=float)
+        self.bottom_plot.setData(ts_table)
+
+        ts_table = np.array(upper_line, dtype=float)
+        self.upper_plot.setData(ts_table)
+        self.autoRange()
 
     def on_close(self):
         """
@@ -82,48 +127,14 @@ class SideViewWidget(pg.PlotWidget):
         self.on_close()
         event.accept()
 
-    def on_insert_ds(self, parent, start, end):
-        """
-        add list of items to graph. based on Qt addRows model trigger
-        :param parent: parent of event (Qt parameter)
-        :param start: first row nr
-        :param end: last row nr
-        """
-        for i in range(start, end+1):
-            ds = self.ds_model.rows[i]
-            if ds.active.value:
-                # todo: do something
-                pass
-
-    def on_remove_ds(self, index, start, end):
-        """
-        remove items from graph. based on Qt model removeRows
-        trigger
-        :param index: Qt Index (not used)
-        :param start: first row nr
-        :param end: last row nr
-        """
-        for i in range(start, end+1):
-            ds = self.ds_model.rows[i]
-            if ds.active.value:
-                # todo: do something
-                pass
-
-    def ds_data_changed(self, index):
-        """
-        change graphs based on changes in locations. based on Qt
-        data change trigger
-        :param index: index of changed field
-        """
-        if self.ds_model.columns[index.column()].name == 'active':
-            # todo: do something
-            pass
 
 class RouteTool(QgsMapTool):
-    def __init__(self, canvas, layer, callback_on_select):
+    def __init__(self, canvas, point_layer, line_layer, callback_on_select):
         QgsMapTool.__init__(self, canvas)
         self.canvas = canvas
-        self.layer = layer
+        self.layer = point_layer
+        self.line_layer = line_layer
+        self.point_layer = point_layer
         self.callback_on_select = callback_on_select
 
     def canvasPressEvent(self, event):
@@ -146,6 +157,12 @@ class RouteTool(QgsMapTool):
                             min(point_ll.y(), point_ru.y()),
                             max(point_ll.x(), point_ru.x()),
                             max(point_ll.y(), point_ru.y()))
+
+        transform = QgsCoordinateTransform(self.canvas.mapSettings().destinationCrs(),
+                                           self.layer.crs())
+
+        rect = transform.transform(rect)
+
         self.layer.removeSelection()
         self.layer.select(rect, False)
 
@@ -155,10 +172,11 @@ class RouteTool(QgsMapTool):
             self.callback_on_select(selected)
 
     def activate(self):
-        pass
+        self.canvas.setCursor(QCursor(Qt.CrossCursor))
+
 
     def deactivate(self):
-        pass
+        self.canvas.setCursor(QCursor(Qt.ArrowCursor))
 
     def isZoomTool(self):
         return False
@@ -175,6 +193,18 @@ class RouteTool(QgsMapTool):
 class SideViewDockWidget(QDockWidget):
     """Main Dock Widget for showing 3di results in Graphs"""
 
+    # todo:s
+    # toon vlaggetje bij geselecteerde punten
+    # meer punten achter elkaar selecteerbaar
+    # punten verplaatsen
+    # als op lijn wordt gedrukt en vastgehouden
+    # op leidingen kunnen drukken in plaats van alleen op putten
+    # detecteer dichtsbijzijnde punt in plaats van willekeurige binnen gebied
+    # toon op basis van eerst geselecteerde punt de mogelijke andere punten
+
+    # let op CRS van vreschillende lagen en CRS changes
+
+
     closingWidget = pyqtSignal(int)
 
     def __init__(self, iface, parent_widget=None,
@@ -187,69 +217,63 @@ class SideViewDockWidget(QDockWidget):
         self.nr = nr
         self.ts_datasource = ts_datasource
 
+        # setup ui
         self.setup_ui(self)
+
+        self.sideviews = []
+        widget = SideViewPlotWidget(self, 0, self.ts_datasource, "name")
+        self.active_sideview = widget
+        self.sideviews.append((0, widget))
+        self.side_view_tab_widget.addTab(widget, widget.name)
 
         # add listeners
         self.select_sideview_button.clicked.connect(
                 self.toggle_route_tool)
 
+        # init class attributes
         self.sideviews = []
+        self.route_tool_active = False
 
-        # add graph widgets
-        widget = SideViewWidget(self, 0, self.ts_datasource, "name")
-
-        self.active_sideview = widget
-        self.sideviews.append((0, widget))
-
-        self.side_view_tab_widget.addTab(widget, widget.name)
-
-        # init graph
-        line_layer = None
-        point_layer = None
+        # find layers
+        self.line_layer = None
+        self.point_layer = None
 
         for layer in self.iface.legendInterface().layers():
             if layer.name() == 'sewerage_pipe_view':
-                line_layer = layer
+                self.line_layer = layer
             elif layer.name() == 'sewerage_manhole':
-                point_layer = layer
+                self.point_layer = layer
 
-        if line_layer is None or point_layer is None:
+        if self.line_layer is None or self.point_layer is None:
             print("no layer found for graph")
             return
 
-        self.director = QgsLineVectorLayerDirector(line_layer,
-                                                   -1, '', '', '', 3)
+        # init route graph
+        director = QgsLineVectorLayerDirector(self.line_layer, -1, '', '', '', 3)
+        self.route = Route(self.line_layer, director)
 
-        properter = QgsDistanceArcProperter()
-        self.director.addProperter(properter)
-        crs = layer.self.iface.mapCanvas().mapRenderer().destinationCrs()
-        self.builder = QgsGraphBuilder(crs)
-
-        points = []
-        for feature in point_layer.getFeatures():
-            points.append(QgsPoint(feature.geometry().asPoint()))
-
-        self.tied_points = self.director.makeGraph(self.builder, points)
-        self.graph = self.builder.graph()
-
-        # temp layer for lines
-        self.rb = QgsRubberBand(self.iface.mapCanvas())
-        self.rb.setColor(Qt.red)
-
-        # temp layer for points
-        #self.point_markers = QgsVertexMarker(self.iface.mapCanvas())
-
-        self.id_start = None
-        self.id_end = None
-        self.start_point = None
-
-        self.point_layer = point_layer
+        # link route map tool
         self.route_tool = RouteTool(self.iface.mapCanvas(),
                                     self.point_layer,
+                                    self.line_layer,
                                     self.on_route_point_select)
 
-        self.route_tool_active = False
-        self.path_found = False
+        # temp layer for sideprofile trac
+        self.rb = QgsRubberBand(self.iface.mapCanvas())
+        self.rb.setColor(Qt.red)
+        self.rb.setWidth(4)
+
+        # temp layer for last selected point
+        self.point_markers = QgsVertexMarker(self.iface.mapCanvas())
+
+        # add tree layer to map (for fun and testing purposes)
+        self.vl_tree_layer = self.route.get_virtual_tree_layer()
+
+        self.vl_tree_layer.loadNamedStyle(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), os.pardir,
+                'layer_styles', 'tools', 'tree.qml'))
+
+        QgsMapLayerRegistry.instance().addMapLayer(self.vl_tree_layer)
 
     def toggle_route_tool(self):
 
@@ -261,70 +285,28 @@ class SideViewDockWidget(QDockWidget):
             self.iface.mapCanvas().setMapTool(self.route_tool)
 
     def on_route_point_select(self, selected_features):
-        # selecteer 1 punt --> toon vlaggetje
-        # selecteer 2e punt --> toon vlaggetje
-        # als control ingedrukt, verleng lijn
-        # als op lijn wordt gedrukt en vastgehouden --> voeg tussenpunt toe
-        # toon op basis van eerst geselecteerde punt de mogelijke andere punten
 
-        # let op CRS van vreschillende lagen en CRS changes
+        if self.route.has_path:
+            self.route.reset()
 
-        # detect nearby point on map click
+        # else
+        next_point = QgsPoint(selected_features[0].geometry().asPoint())
 
-        if self.path_found:
-            # reset for now
-            self.path_found = False
-            self.id_start = None
-            self.start_point = None
-            self.id_end = None
+        success, msg = self.route.add_point(next_point)
 
-        if self.start_point is None or self.id_start < 0:
+        if not success:
+            statusbar_message(msg)
 
-            self.on_select_first_route_point(selected_features[0])
-            return
+        self.active_sideview.set_sideprofile(self.route.path,
+                                             self.route.path_points)
 
-        end_point = QgsPoint(selected_features[0].geometry().asPoint())
-
-        self.id_end = self.graph.findVertex(end_point)
-
-        if self.tree[self.id_end] == -1:
-             print("Path not found")
-        else:
-            self.path_found = True
-            p = []
-            curPos = self.id_end
-            while curPos != self.id_start:
-                p.append(self.graph.vertex(
-                        self.graph.arc(self.tree[curPos]).inVertex()).point())
-                curPos = self.graph.arc(self.tree[curPos]).outVertex()
-
-            p.append(self.start_point)
-
-            for pnt in p:
-                self.rb.addPoint(pnt)
-
-    def on_select_first_route_point(self, feature):
+        transform = QgsCoordinateTransform(self.line_layer.crs(),
+                                           self.iface.mapCanvas().mapRenderer().destinationCrs())
 
         self.rb.reset()
-
-        self.start_point = QgsPoint(feature.geometry().asPoint())
-
-        self.id_start = self.graph.findVertex(self.start_point)
-
-        if self.id_start == -1:
-             print("Path not found")
-             return
-
-        (self.tree, self.cost) = QgsGraphAnalyzer.dijkstra(self.graph,
-                                                           self.id_start,
-                                                           0)
-
-        # for i in range(0, len(self.tree)):
-        #     tp = self.tree[i]
-        #     cp = self.cost[i]
-        #     v = int(tp)
-        #     if int(tp) > 0:
-        #         self.point_markers.setCenter(self.tied_points[i])
+        for pnt in self.route.path_vertexes:
+            t_pnt = transform.transform(pnt)
+            self.rb.addPoint(t_pnt)
 
 
     def on_close(self):
@@ -339,6 +321,8 @@ class SideViewDockWidget(QDockWidget):
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
 
         self.rb.reset()
+        # todo: find out how to unload layer from memory
+        QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer)
 
     def closeEvent(self, event):
         """
@@ -348,28 +332,6 @@ class SideViewDockWidget(QDockWidget):
         self.on_close()
         self.closingWidget.emit(self.nr)
         event.accept()
-
-    def select_sideview_traject(self):
-        """
-        Activate tool for selecting of traject on map for sideview
-        """
-
-        canvas = self.iface.mapCanvas()
-        current_layer = canvas.currentLayer()
-        if not current_layer:
-            #todo: feedback select layer first
-            return
-
-        provider = current_layer.dataProvider()
-        if not provider.name() == 'spatialite':
-            return
-
-        if current_layer.name() not in layer_qh_type_mapping.keys():
-            #todo: feedback layer not supported
-            return
-
-        selected_features = current_layer.selectedFeatures()
-
 
     def setup_ui(self, dock_widget):
         """
