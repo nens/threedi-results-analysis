@@ -107,7 +107,10 @@ class CustomCommand(object):
             # Using the getFeatures iterator should be more efficient
             for feature in self.current_layer.getFeatures():
                 fid = feature.id()
-                result[fid] = method(layer_name, fid)
+                try:
+                    result[fid] = method(layer_name, fid)
+                except ValueError:
+                    result[fid] = None
 
             # Write to csv file
             filename = layer_name + '_' + param_name + '.csv'
