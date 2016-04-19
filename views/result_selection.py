@@ -57,14 +57,16 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         if self.ts_datasource.model_spatialite_filepath and \
                 self.ts_datasource.model_spatialite_filepath not in combo_list:
-            combo_list.append(self.ts_datasource.spatialite_filepath)
+            combo_list.append(self.ts_datasource.model_spatialite_filepath)
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
+        current_index = self.modelSpatialiteComboBox.findText(
+                            self.ts_datasource.model_spatialite_filepath)
+
         if self.ts_datasource.model_spatialite_filepath:
             self.modelSpatialiteComboBox.setCurrentIndex(
-                    self.modelSpatialiteComboBox.findData(
-                            self.ts_datasource.spatialite_filepath))
+                    current_index)
 
         self.modelSpatialiteComboBox.currentIndexChanged.connect(
             self.model_spatialite_change)
@@ -164,9 +166,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         try:
             id_mapping_file = get_id_mapping_file(
                             self.ts_datasource.model_spatialite_filepath)
-        except KeyError:
+        except IndexError:
             pop_up_info("Kan het id_mapping bestand niet vinden in de directory "
-                        "../input_generated/ (relatief aan spatialite).")
+                        "../input_generated/ (relatief aan spatialite).",
+                        "Fout bij laden model")
 
     def _add_spl_layer_to_canvas(self, fname, table_name):
         """
