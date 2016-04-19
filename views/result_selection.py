@@ -8,6 +8,9 @@ from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 
 from ..datasource.spatialite import layer_qh_type_mapping, \
     layer_object_type_mapping
+from ..datasource.netcdf import get_id_mapping_file
+from ..utils.user_messages import pop_up_info
+
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -109,8 +112,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         if filename:
             items = [{
                 'type': 'netcdf',
-                'name': os.path.basename(fname).lower().rstrip('.nc'),
-                'file_path': fname
+                'name': os.path.basename(filename).lower().rstrip('.nc'),
+                'file_path': filename
             }]
             self.ts_datasource.insertRows(items)
             settings.setValue('last_used_path', os.path.dirname(filename))
@@ -156,6 +159,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.ts_datasource.model_spatialite_filepath = \
                 self.modelSpatialiteComboBox.currentText()
+
+        # check on id_mapping
+        try:
+            id_mapping_file = get_id_mapping_file(
+                            self.ts_datasource.model_spatialite_filepath)
+        except KeyError:
+            pop_up_info("Kan het id_mapping bestand niet vinden in de directory "
+                        "../input_generated/ (relatief aan spatialite).")
 
     def _add_spl_layer_to_canvas(self, fname, table_name):
         """
