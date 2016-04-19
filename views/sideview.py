@@ -47,7 +47,7 @@ except AttributeError:
 class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
 
-    def __init__(self, parent=None, nr=0, datasource_model=None, name=""):
+    def __init__(self, parent=None, nr=0, node_layer=None, line_layer=None, datasource_model=None, name=""):
         """
 
         :param parent: Qt parent widget
@@ -56,17 +56,30 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.name = name
         self.nr = nr
+        self.node_layer = node_layer
+        self.line_layer = line_layer
 
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Afstand", "m")
         self.setLabel("left", "Hoogte", "mNAP")
 
-        pen = pg.mkPen(color=QColor(256,0,0),
-                           width=2)
+        pen = pg.mkPen(color=QColor(30, 30 , 30), width=2)
 
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
         self.upper_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
 
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=2,  style=Qt.DashLine)
+        self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=2)
+        self.surface_level_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
+
+        self.fill = pg.FillBetweenItem(self.bottom_plot,
+                                       self.upper_plot,
+                                       pg.mkBrush(200, 200, 200))
+
+        self.addItem(self.drain_level_plot)
+        self.addItem(self.surface_level_plot)
+        self.addItem(self.fill)
         self.addItem(self.bottom_plot)
         self.addItem(self.upper_plot)
 
@@ -74,19 +87,39 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         bottom_line = []
         upper_line = []
+        drain_level = []
+        surface_level = []
 
+        first = True
         for route_part in profile:
             for begin_dist, end_dist, distance, direction, feature in route_part:
 
                 if direction == 1:
                     begin_level = feature['invert_level_start_point']
                     end_level = feature['invert_level_end_point']
+                    begin_node_id = feature['manhole_start_id']
+                    end_node_id = feature['manhole_end_id']
                 else:
                     begin_level = feature['invert_level_end_point']
                     end_level = feature['invert_level_start_point']
+                    begin_node_id = feature['manhole_end_id']
+                    end_node_id = feature['manhole_start_id']
 
-                bottom_line.append((float(begin_dist), float(begin_level)))
-                bottom_line.append((float(end_dist), float(end_level)))
+                request = QgsFeatureRequest().setFilterExpression(u'"id" = %s' % str(begin_node_id))
+                begin_node = self.node_layer.getFeatures(request).next()
+                request = QgsFeatureRequest().setFilterExpression(u'"id" = %s' % str(end_node_id))
+                end_node = self.node_layer.getFeatures(request).next()
+
+                if first:
+                    bottom_line.append((float(begin_dist)-0.5*float(begin_node['length']), float(begin_node['surface_level'])))
+                    bottom_line.append((float(begin_dist)-0.5*float(begin_node['length']), float(begin_node['bottom_level'])))
+                    bottom_line.append((float(begin_dist)+0.5*float(begin_node['length']), float(begin_node['bottom_level'])))
+
+                bottom_line.append((float(begin_dist)+0.5*float(begin_node['length']), float(begin_level)))
+                bottom_line.append((float(end_dist)-0.5*float(end_node['length']), float(end_level)))
+                bottom_line.append((float(end_dist)-0.5*float(end_node['length']), float(end_node['bottom_level'])))
+                bottom_line.append((float(end_dist)+0.5*float(end_node['length']), float(end_node['bottom_level'])))
+                # todo last: bottom_line.append((float(begin_dist)+0,5*float(end_node['length']), float(begin_node['surface_level'])))
 
                 shape = feature['sewerage_cross_section_definition_shape']
                 if shape == 1:
@@ -97,14 +130,35 @@ class SideViewPlotWidget(pg.PlotWidget):
                     # todo: get height of other shapes
                     height = 1
 
-                upper_line.append((float(begin_dist), float(begin_level)+float(height)))
-                upper_line.append((float(end_dist), float(end_level)+float(height)))
+                if first:
+                    upper_line.append((float(begin_dist)-0.5*float(begin_node['length']), float(begin_node['surface_level'])))
+                    upper_line.append((float(begin_dist)+0.5*float(begin_node['length']), float(begin_node['surface_level'])))
+
+                upper_line.append((float(begin_dist)+0.5*float(begin_node['length']), float(begin_level)+float(height)))
+                upper_line.append((float(end_dist)-0.5*float(end_node['length']), float(end_level)+float(height)))
+                upper_line.append((float(end_dist)-0.5*float(end_node['length']), float(end_node['surface_level'])))
+                upper_line.append((float(end_dist)+0.5*float(end_node['length']), float(end_node['surface_level'])))
+
+                if first:
+                    drain_level.append((float(begin_dist), float(begin_node['drain_level'])))
+                    surface_level.append((float(begin_dist), float(begin_node['surface_level'])))
+                    first = False
+
+                drain_level.append((float(end_dist), float(end_node['drain_level'])))
+                surface_level.append((float(end_dist), float(end_node['surface_level'])))
 
         ts_table = np.array(bottom_line, dtype=float)
         self.bottom_plot.setData(ts_table)
 
         ts_table = np.array(upper_line, dtype=float)
         self.upper_plot.setData(ts_table)
+
+        ts_table = np.array(drain_level, dtype=float)
+        self.drain_level_plot.setData(ts_table)
+
+        ts_table = np.array(surface_level, dtype=float)
+        self.surface_level_plot.setData(ts_table)
+
         self.autoRange()
 
     def on_close(self):
@@ -220,18 +274,12 @@ class SideViewDockWidget(QDockWidget):
         # setup ui
         self.setup_ui(self)
 
-        self.sideviews = []
-        widget = SideViewPlotWidget(self, 0, self.ts_datasource, "name")
-        self.active_sideview = widget
-        self.sideviews.append((0, widget))
-        self.side_view_tab_widget.addTab(widget, widget.name)
 
         # add listeners
         self.select_sideview_button.clicked.connect(
                 self.toggle_route_tool)
 
         # init class attributes
-        self.sideviews = []
         self.route_tool_active = False
 
         # find layers
@@ -247,6 +295,15 @@ class SideViewDockWidget(QDockWidget):
         if self.line_layer is None or self.point_layer is None:
             print("no layer found for graph")
             return
+
+
+        self.sideviews = []
+        widget = SideViewPlotWidget(self, 0, self.point_layer, self.line_layer, self.ts_datasource, "name")
+        self.active_sideview = widget
+        self.sideviews.append((0, widget))
+        self.side_view_tab_widget.addTab(widget, widget.name)
+
+
 
         # init route graph
         director = QgsLineVectorLayerDirector(self.line_layer, -1, '', '', '', 3)
