@@ -23,10 +23,11 @@
 import os.path
 
 from PyQt4.QtCore import Qt
+from PyQt4 import QtGui
 
 # Import the code for the DockWidget
-from threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
-from src.toolbox.toolbox import ToolboxModel
+from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
+from .models.toolbox import ToolboxModel
 
 
 class ThreeDiToolbox:
@@ -67,6 +68,7 @@ class ThreeDiToolbox:
 
     def on_close_child_widget(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
+        self.dockwidget.treeView.doubleClicked.disconnect(self.run_script)
         self.dockwidget.closingWidget.disconnect(self.on_close_child_widget)
 
         self.dock_widget = None
@@ -95,8 +97,81 @@ class ThreeDiToolbox:
             self.dockwidget.show()
             self.add_tools()
 
+    @staticmethod
+    def is_leaf(q_model_index):
+        """Check if QModelIndex is a leaf, i.e., has no children."""
+        return (q_model_index.isValid() and
+                not q_model_index.child(0, 0).isValid())
+
+    @staticmethod
+    def leaf_path(q_model_index):
+        if not q_model_index.parent().isValid():
+            return [q_model_index.data()]
+        else:
+            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + \
+                [q_model_index.data()]
+
+    def run_script(self, qm_idx):
+        """Dynamically import and run the selected script from the tree view.
+
+        Args:
+            qm_idx: the clicked QModelIndex
+        """
+        # We're only interested in leaves of the tree:
+        # TODO: need to make sure the leaf is not an empty directory
+        if self.is_leaf(qm_idx):
+            if not self.pop_up_question():
+                return
+            filename = qm_idx.data()
+            item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
+            path = self.leaf_path(qm_idx)
+            print(filename)
+            print(item)
+            print(path)
+            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+
+            curr_dir = os.path.dirname(__file__)
+            module_path = os.path.join(curr_dir, 'commands', *path)
+            name, ext = os.path.splitext(path[-1])
+            if ext != '.py':
+                print("Not a Python script")
+                return
+            print(module_path)
+            print(name)
+            import imp
+            mod = imp.load_source(name, module_path)
+            print(mod)
+
+            command = mod.CustomCommand(
+                iface=self.iface, ts_datasource=self.ts_datasource)
+            command.run_it()
+            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+
+    def pop_up_question(self):
+        """Message box question to ask if we want to proceed.
+
+        Returns:
+            True (yes) or False (no).
+        """
+        msg_box = QtGui.QMessageBox()
+        # Not sure about first arg in, should be pass in self.dockwidget
+        # instead?
+        reply = msg_box.question(
+            msg_box, 'Message',
+            "Are you sure you want to run this script?",
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            QtGui.QMessageBox.No)
+
+        if reply == QtGui.QMessageBox.Yes:
+            print("YES")
+            return True
+        else:
+            print("NO")
+            return False
+
     def add_tools(self):
-
-        self.toolbox = ToolboxModel()
-
-        self.dockwidget.treeView.setModel(self.toolbox.model)
+        self.toolboxmodel = ToolboxModel()
+        self.dockwidget.treeView.setModel(self.toolboxmodel)
+        self.dockwidget.treeView.setEditTriggers(
+            QtGui.QAbstractItemView.NoEditTriggers)
+        self.dockwidget.treeView.doubleClicked.connect(self.run_script)

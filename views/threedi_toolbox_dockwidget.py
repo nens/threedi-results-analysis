@@ -27,7 +27,8 @@ from PyQt4 import QtGui, uic
 from PyQt4.QtCore import pyqtSignal
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'ui', 'threedi_toolbox_dockwidget_base.ui'))
+    os.path.dirname(__file__), '..', 'ui',
+    'threedi_toolbox_dockwidget_base.ui'))
 
 
 class ThreeDiToolboxDockWidget(QtGui.QDockWidget, FORM_CLASS):

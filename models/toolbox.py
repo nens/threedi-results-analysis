@@ -2,6 +2,9 @@ import os, inspect
 
 from PyQt4.QtGui import QStandardItemModel, QStandardItem, QIcon, QStyle
 
+DEFAULT_TOOLBOX_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
+    "..", "commands", "toolbox_tools")
 
 class Tool(object):
 
@@ -32,25 +35,17 @@ class ToolGroup(object):
 
 
 
-class ToolboxModel(object):
+class ToolboxModel(QStandardItemModel):
 
-    def __init__(self, toolbox_dir=None):
-
-        super(ToolboxModel, self).__init__()
+    def __init__(self, toolbox_dir=None, parent=None):
+        super(ToolboxModel, self).__init__(parent)
 
         self.directory = toolbox_dir
         if self.directory is None:
-            self.directory = os.path.join(
-                os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
-                "..", "toolbox_tools")
+            self.directory = DEFAULT_TOOLBOX_DIR
 
         self.file_structure = self.get_directory_structure(self.directory)
-
-        self.model = QStandardItemModel()
-
-        self.add_items(self.model, self.file_structure)
-
-        pass
+        self.add_items(self, self.file_structure)
 
     def add_items(self, parent, elements):
         icon_toolbox = QIcon(':/plugins/ThreeDiToolbox/icon_toolbox_small.png')
