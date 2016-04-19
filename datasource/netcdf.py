@@ -53,8 +53,6 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
-
-
 class NetcdfDataSource(object):
 
     def __init__(self, file_path):
@@ -69,6 +67,7 @@ class NetcdfDataSource(object):
 
         self.channel_mapping = get_channel_mapping(self.ds)
         self.node_mapping = get_node_mapping(self.ds)
+        self.timesteps = get_timesteps(self.ds)
 
         self.id_mapping_file = get_id_mapping_file(file_path)
         # Load id mapping
@@ -118,7 +117,7 @@ class NetcdfDataSource(object):
 
         Args:
             object_type: e.g. 'v2_weir'
-            object_id: spatialite id?
+            object_id: spatialite id
             parameters: a list of params, e.g.: ['q', 'q_pump']
 
         Returns:
@@ -145,8 +144,54 @@ class NetcdfDataSource(object):
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            timestamps = self.get_timestamps(self.ds)
+            timestamps = self.get_timestamps()
             result += zip(timestamps, vals)
 
         # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+        return result
+
+    def get_timeseries_values(self, object_type, object_id, parameters):
+        """Get a list of time series from netcdf; only the values.
+
+        Note: if there are multiple parameters, all result values are just
+        lumped together and returned
+
+        Args:
+            object_type: e.g. 'v2_weir'
+            object_id: spatialite id
+            parameters: a list of params, e.g.: ['q', 'q_pump']
+
+        Returns:
+            an array of values
+        """
+        # TODO: remove the lumping together of arrays of multiple parameters
+        # feature, because that's probably really UNWANTED
+        # Just do one parameter!
+
+        # Normalize the name
+        n_object_type = get_object_type(object_type)
+
+        # Mapping: spatialite id -> inp id -> netcdf id
+        obj_id_mapping = self.id_mapping[n_object_type]
+        inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
+        netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
+
+        variables = get_variables(n_object_type, parameters)
+        if len(variables) > 1:
+            log("Warning! More than one variable used in getting the "
+                "time series! Not sure if you'd want this!", level='CRITICAL')
+
+        # Get data from all variables and just put them in the same list:
+        result = np.array([])
+        for v in variables:
+            try:
+                # shape ds.variables['q'] array = (t, number of ids)
+                vals = self.ds.variables[v][:, netcdf_id]
+            except KeyError:
+                log("Variable not in netCDF: %s, skipping..." % v)
+                continue
+            except IndexError:
+                log("Id %s not found for %s" % (netcdf_id, v))
+                continue
+            result = np.hstack((result, vals))
         return result
