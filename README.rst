@@ -17,9 +17,6 @@ Installation on Windows
 Using the 64 bit installation of QGIS is recommended for this plugin.
 
 The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under Windows.
-If you are using Windows 7 or 8, make sure you have the 64 bit version of Microsoft Visual Studio 2008
-installed (msvc2008.dll). You can download this version from http://www.microsoft.com/en-us/download/details.aspx?id=15336
-and the Microsoft Visual Studio 200 service pack 1 (https://www.microsoft.com/en-us/download/details.aspx?id=26368)
 
 If you are using other the 32 bit installation of QGIS, best to upgrade to the 64 bit version or build
 the python netCDF4 including c bindings yourself.
