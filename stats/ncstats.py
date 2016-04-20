@@ -7,9 +7,6 @@ import numpy as np
 from ..datasource.netcdf import NetcdfDataSource
 
 
-# TODO: what's the deal with the inp_id of pipes which must be
-# decremented by 1?
-
 class NcStats(object):
     """Get basic stats about subgrid netCDF files"""
 

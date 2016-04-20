@@ -103,7 +103,11 @@ class NetcdfDataSource(object):
 
     def get_netcdf_id(self, inp_id, object_type):
         """Get the node or flow link id needed to get data from netcdf."""
-        if object_type in ['manhole', 'connection_nodes']:
+        # Note: because pumpstation uses q_pump it also has a special way of
+        # accessing that array.
+        if object_type in ['pumpstation']:
+            return inp_id - 1
+        elif object_type in ['manhole', 'connection_nodes']:
             return self.node_mapping[inp_id]
         else:
             return self.channel_mapping[inp_id]
@@ -127,7 +131,14 @@ class NetcdfDataSource(object):
         n_object_type = get_object_type(object_type)
 
         # Mapping: spatialite id -> inp id -> netcdf id
-        obj_id_mapping = self.id_mapping[n_object_type]
+        try:
+            obj_id_mapping = self.id_mapping[n_object_type]
+        except:
+            # TODO: another v2 <-> sewerage difference...
+            log("id_mapping json v2 <-> sewerage naming discrepancy",
+                level='WARNING')
+            v2_object_type = 'v2_' + n_object_type
+            obj_id_mapping = self.id_mapping[v2_object_type]
         inp_id = obj_id_mapping[str(object_id)]  # strings because: JSON
         netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
 
@@ -142,7 +153,8 @@ class NetcdfDataSource(object):
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
-                log("Id %s not found for %s" % (netcdf_id, v))
+                from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+                log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
             timestamps = self.get_timestamps()
             result += zip(timestamps, vals)
