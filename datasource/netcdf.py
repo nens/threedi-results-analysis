@@ -153,7 +153,6 @@ class NetcdfDataSource(object):
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
-                from ..qdebug import pyqt_set_trace; pyqt_set_trace()
                 log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
             timestamps = self.get_timestamps()
