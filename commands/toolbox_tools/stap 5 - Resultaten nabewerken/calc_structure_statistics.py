@@ -1,4 +1,4 @@
-"""This script calculates statistics on the current layer for structures and
+"""This script calculates statistics on the selected layer for structures and
 outputs it to csv.
 """
 import csv
@@ -79,27 +79,29 @@ class CustomCommand(object):
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
         ncstats = NcStats(datasource=nds)
-        filenames = []
-        for param_name in self.parameters:
-            # Generate data
-            result = dict()
-            method = getattr(ncstats, param_name)
-            for feature in self.layer.getFeatures():
-                fid = feature.id()
-                result[fid] = method(layer_name, fid)
 
-            # Write to csv file
-            filename = layer_name + '_' + param_name + '.csv'
-            filepath = os.path.join(result_dir, filename)
-            filenames.append(filename)
-            with open(filepath, 'wb') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',')
+        # Generate data
+        result = dict()
+        for feature in self.layer.getFeatures():
+            fid = feature.id()
+            result[fid] = dict()
+            result[fid]['id'] = fid
+            for param_name in self.parameters:
+                method = getattr(ncstats, param_name)
+                try:
+                    result[fid][param_name] = method(layer_name, fid)
+                except ValueError:
+                    result[fid][param_name] = None
 
-                header = ['id', param_name]
-                writer.writerow(header)
+        # Write to csv file
+        filename = layer_name + '_stats.csv'
+        filepath = os.path.join(result_dir, filename)
+        with open(filepath, 'wb') as csvfile:
+            fieldnames = ['id'] + self.parameters
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
+                                    delimiter=',')
+            writer.writeheader()
+            for fid, val_dict in result.items():
+                writer.writerow(val_dict)
 
-                for fid, val in result.items():
-                    writer.writerow([fid, val])
-
-        pop_up_info("Generated: %s inside: %s" %
-                    (', '.join(filenames), result_dir))
+        pop_up_info("Generated: %s" % filepath)
