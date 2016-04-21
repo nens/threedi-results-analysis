@@ -6,7 +6,7 @@ import inspect
 import os
 
 from ThreeDiToolbox.stats.ncstats import NcStats
-from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_info, log
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 
 
@@ -97,6 +97,9 @@ class CustomCommand(object):
                             layer_name, fid) - feature['surface_level']
                     except (ValueError, TypeError):
                         result[fid][param_name] = None
+                    except KeyError:
+                        log("Feature doesn't have surface level")
+                        result[fid][param_name] = None
                 # Waterdiepte berekening:
                 elif param_name == 'water_depth':
                     try:
@@ -104,7 +107,10 @@ class CustomCommand(object):
                             layer_name, fid) - feature['bottom_level']
                     except (ValueError, TypeError):
                         result[fid][param_name] = None
-                # Business as usual (Ncstats method)
+                    except KeyError:
+                        log("Feature doesn't have bottom level")
+                        result[fid][param_name] = None
+                # Business as usual (NcStats method)
                 else:
                     method = getattr(ncstats, param_name)
                     try:
