@@ -31,15 +31,52 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.iface = iface
         self.ts_datasource = ts_datasource
         self.command = command
-        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
-        # self.layerComboBox.activated.connect(self.hello)
+
+        # Populate combo boxes
+        self.layers = self.iface.mapCanvas().layers()
+        # Note: the order in the combo box is the same as in the QGIS layer
+        # selection box, so there should be no ambiguity even if layers have
+        # the same name because you know the order.
+        layer_names = [l.name() for l in self.layers]
+        self.layerComboBox.addItems(layer_names)
+        # Populate datasource combo box
+        self.datasources = self.ts_datasource.rows
+        self.datasource_names = [d.file_path.value for d in self.datasources]
+        self.datasourceComboBox.addItems(self.datasource_names)
+
+        # These variables are selected by the combo box:
+        try:
+            self.selected_layer = self.layers[0]
+        except IndexError:
+            self.selected_layer = None
+        try:
+            self.selected_datasource = self.ts_datasource.rows[0]
+        except IndexError:
+            self.selected_datasource = None
+
+        # Connect signals
+        self.layerComboBox.activated[int].connect(self.on_layerbox_activate)
+        self.datasourceComboBox.activated[int].connect(
+            self.on_datasourcebox_activate)
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
+
+    def on_layerbox_activate(self, idx):
+        print(idx)
+        self.selected_layer = self.layers[idx]
+        print("Selected layer: %s" % self.selected_layer.name())
+
+    def on_datasourcebox_activate(self, idx):
+        print(idx)
+        self.selected_datasource = self.datasources[idx]
+        print("Selected datasource: %s" %
+              self.selected_datasource.file_path.value)
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
         self.accept()
-        self.command.run_it()
+        self.command.run_it(layer=self.selected_layer,
+                            datasource=self.selected_datasource)
 
     def on_reject(self):
         """Cancel"""
@@ -55,4 +92,8 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         # Clean up signals
         self.buttonBox.accepted.disconnect(self.on_accept)
         self.buttonBox.rejected.disconnect(self.on_reject)
+        self.layerComboBox.activated[int].disconnect(
+            self.on_layerbox_activate)
+        self.datasourceComboBox.activated[int].disconnect(
+            self.on_datasourcebox_activate)
         event.accept()
