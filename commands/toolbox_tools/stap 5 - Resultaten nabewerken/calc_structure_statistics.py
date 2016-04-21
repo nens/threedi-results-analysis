@@ -71,8 +71,10 @@ class CustomCommand(object):
             pop_up_info("No datasource found, aborting.", title='Error')
             return
         layer_name = self.layer.name()
-        if 'manhole' in layer_name or 'connection_node' in layer_name:
-            pop_up_info("%s is not a structure layer" % layer_name,
+        structures = ['weir', 'pumpstation', 'pipe', 'orifice', 'culvert']
+        if not any(s in layer_name for s in structures):
+            pop_up_info("%s is not a valid structure layer. Valid are: %s" %
+                        (layer_name, structures),
                         title='Error')
             return
 
