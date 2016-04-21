@@ -142,9 +142,12 @@ class ThreeDiToolbox:
             mod = imp.load_source(name, module_path)
             print(mod)
 
-            command = mod.CustomCommand(
+            self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource)
-            command.run_it()
+            if hasattr(self.command, 'show_gui'):
+                self.command.show_gui()
+            else:
+                self.command.run_it()
             # from .qdebug import pyqt_set_trace; pyqt_set_trace()
 
     def pop_up_question(self):

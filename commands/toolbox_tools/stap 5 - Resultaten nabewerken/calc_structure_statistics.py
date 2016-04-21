@@ -7,6 +7,7 @@ import inspect
 
 from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 
 class CustomCommand(object):
 
@@ -36,13 +37,15 @@ class CustomCommand(object):
         # All the NcStats parameters we want to calculate.
         self.parameters = NcStats.AVAILABLE_STRUCTURE_PARAMETERS
 
+    def show_gui(self):
+        self.tool_dialog_widget = ToolDialogWidget(command=self)
+        self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self):
         print(self.args)
         print(self.kwargs)
         print(self._fields)
         print("We ran the script!")
-
 
         # For now just get the first datasource
         # TODO: improve this
