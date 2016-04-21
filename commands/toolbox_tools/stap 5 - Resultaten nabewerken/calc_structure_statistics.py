@@ -1,7 +1,6 @@
 """This script calculates statistics on the current layer for structures and
 outputs it to csv.
 """
-
 import csv
 import inspect
 import os
@@ -9,6 +8,7 @@ import os
 from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
+
 
 class CustomCommand(object):
 
@@ -70,18 +70,22 @@ class CustomCommand(object):
         if not self.datasource:
             pop_up_info("No datasource found, aborting.", title='Error')
             return
+        layer_name = self.layer.name()
+        if 'manhole' in layer_name or 'connection_node' in layer_name:
+            pop_up_info("%s is not a structure layer" % layer_name,
+                        title='Error')
+            return
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
         ncstats = NcStats(datasource=nds)
-        layer_name = self.layer.name()
-        feature_ids = [i.id() for i in self.layer.getFeatures()]
         filenames = []
         for param_name in self.parameters:
             # Generate data
             result = dict()
             method = getattr(ncstats, param_name)
-            for fid in feature_ids:
+            for feature in self.layer.getFeatures():
+                fid = feature.id()
                 result[fid] = method(layer_name, fid)
 
             # Write to csv file
