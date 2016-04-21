@@ -44,7 +44,11 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.datasource_names = [d.file_path.value for d in self.datasources]
         self.datasourceComboBox.addItems(self.datasource_names)
 
-        # These variables are selected by the combo box:
+        # These variables are selected by the combo box. Because the combobox
+        # 'activated' signal only fires when you click on it and doesn't set
+        # the items the first time you open the dialog, we've got to
+        # explicitly set the the first item as being implicitly selected
+        # already because that's what most users would expect.
         try:
             self.selected_layer = self.layers[0]
         except IndexError:
