@@ -23,7 +23,7 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
             iface: QGiS interface
             ts_datasource: TimeseriesDatasourceModel instance
             command: Command instance with a run_it method which will be called
-                      on acceptance of the dialog
+                     on acceptance of the dialog
         """
         super(ToolDialogWidget, self).__init__(parent)
         self.setupUi(self)
@@ -46,16 +46,13 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.reject()
         print("Reject")
 
-    def on_close_cleanup(self):
-        """Clean object on close"""
-        self.buttonBox.accepted.disconnect(self.on_accept)
-        self.buttonBox.rejected.disconnect(self.on_reject)
-
     def closeEvent(self, event):
         """
         Close widget, called by Qt on close
         :param event: QEvent, close event
         """
         self.closingDialog.emit()
-        self.on_close_cleanup()
+        # Clean up signals
+        self.buttonBox.accepted.disconnect(self.on_accept)
+        self.buttonBox.rejected.disconnect(self.on_reject)
         event.accept()
