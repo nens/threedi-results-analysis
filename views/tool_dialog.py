@@ -12,7 +12,6 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class ToolDialogWidget(QDialog, FORM_CLASS):
-    closingDialog = pyqtSignal()
 
     def __init__(self, parent=None, iface=None, ts_datasource=None,
                  command=None):
@@ -92,7 +91,6 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         Close widget, called by Qt on close
         :param event: QEvent, close event
         """
-        self.closingDialog.emit()
         # Clean up signals
         self.buttonBox.accepted.disconnect(self.on_accept)
         self.buttonBox.rejected.disconnect(self.on_reject)
