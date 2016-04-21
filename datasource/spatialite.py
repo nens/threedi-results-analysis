@@ -106,7 +106,7 @@ def get_variables(object_type=None, parameters=[]):
 
 
 def get_object_type(current_layer_name):
-
+    """Get a normalized object type for internal purposes."""
     if current_layer_name in layer_object_type_mapping.keys():
         return layer_object_type_mapping[current_layer_name]
     else:

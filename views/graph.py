@@ -507,13 +507,23 @@ class GraphWidget(QWidget):
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
-            #check if object not already exist
+            fid = feature.id()
 
-            if (layer.name() + '_' + str(feature['id'])) not in existing_items:
+            try:
+                object_name = feature['display_name']
+            except KeyError:
+                # TODO: need a more generic way, i.e., this needs to be fixed
+                # in the views themselved:
+                log("Guessing the object_name now because it's a v2 model",
+                    level='WARNING')
+                object_name = feature[2]
+
+            # check if object not already exist
+            if (layer.name() + '_' + str(fid)) not in existing_items:
                 item = {
                     'object_type': layer.name(),
-                    'object_id': feature['id'],
-                    'object_name': feature['display_name'],
+                    'object_id': fid,
+                    'object_name': object_name,
                     'file_path': filename
                 }
                 items.append(item)
