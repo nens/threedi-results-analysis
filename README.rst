@@ -4,15 +4,9 @@ threedi-qgis-plugin
 3Di QGIS Plugin (3Di Toolbox)
 
 
-Installation
-----
-The plugin could be added using one of the following ways:
-
-- Through the Lizard QGIS repository. Via menu bar go to: Plugins > Manage And Install Plugins... > Settings; add the repo and reload. Install the plugin by selecting ThreeDiToolbox.
-- Copy/ symlink everything in this map to your plugin directory (on Linux: ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``)
-
 Installation on Windows
-------------
+-----------------------
+
 Using the 64 bit installation of QGIS is recommended for this plugin.
 
 The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under Windows.
@@ -20,22 +14,35 @@ The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit instal
 If you are using other the 32 bit installation of QGIS, best to upgrade to the 64 bit version or build
 the python netCDF4 including c bindings yourself.
 
+
 Installation on Linux
-------------
+---------------------
 
 Install the python netCDF4 package using ``pip install netCDF4``
+
+
+Installing the plugin
+---------------------
+
+The plugin can be added using one of the following ways:
+
+- Through the Lizard QGIS repository. Via menu bar go to:
+  Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
+  Install the plugin by selecting ThreeDiToolbox.
+- Copy/symlink the repo directory to your plugin directory (on Linux:
+  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``)
 
 
 Release
 -------
 
-You can make releases with ``zest.releaser`` if you also have ``qgispluginreleaser`` installed. The
+You can make releases using ``zest.releaser`` with ``qgispluginreleaser`` installed. The
 ``fullrelease`` command should be sufficient. Under the hood it calls ``make zip`` which is modified
 a bit (see ``Makefile``, old zip directive is still avaiable) so that it doesn't copy everything to your
 QGIS plugin directory::
 
     $ cd /path/to/the/plugin
-    $ fullrelease  # *** NOTE: if it asks you if you want to check out the tag press 'y'. ***
+    $ fullrelease  # NOTE: if it asks you if you want to check out the tag press 'y'.
 
 Manually copy to server::
 
@@ -49,5 +56,10 @@ For now running tests is a bit cumbersome because of the relative imports in the
 outside of the repository directory and then run test modules independently like this::
 
     $ python -m unittest threedi-qgis-plugin.test.test_datasources
+    etc.
 
-TODO: make something like nosetests work (now not possible because of the relative imports).
+**New method** with ``nose`` test runner. Make sure you have ``nose`` installed (``pip install nose``).
+First you have to rename the plugin dir to the right package name, which is ``ThreeDiToolbox`` or
+else the relative imports won't work correctly. Then go outside the plugin dir and run ``nosetests``::
+
+    $ nosetests ThreeDiToolbox
