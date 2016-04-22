@@ -13,6 +13,7 @@ __date__ = '20/01/2011'
 __copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
                  'Disaster Reduction')
 
+import os
 import unittest
 from qgis.core import QgsProviderRegistry
 
@@ -20,6 +21,7 @@ from utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
 
 
+@unittest.skipIf(os.name == 'posix', "Apparently doesn't work on Linux")
 class QGISTest(unittest.TestCase):
     """Test the QGIS Environment"""
 
