@@ -8,6 +8,8 @@ from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 
 from ..datasource.spatialite import layer_qh_type_mapping, \
     layer_object_type_mapping
+from ..datasource.netcdf import get_id_mapping_file
+from ..utils.user_messages import pop_up_info
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -107,6 +109,18 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                             'NetCDF (*.nc)')
 
         if fname:
+            # Little test for checking if there is an id mapping file available
+            # If not we're not going to proceed.
+            try:
+                get_id_mapping_file(fname)
+            except IndexError:
+                pop_up_info("No id mapping file found, we tried the following "
+                            "locations: [../input_generated]. Please add this "
+                            "file to the correct location and try again.",
+                            title='Error')
+                return False
+
+            # Add to the datasource
             items = [{
                 'type': 'netcdf',
                 'name': os.path.basename(fname).lower().rstrip('.nc'),
