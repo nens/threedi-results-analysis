@@ -118,7 +118,7 @@ class NetcdfDataSource(object):
         try:
             # This is the sewerage situation
             obj_id_mapping = self.id_mapping[normalized_object_type]
-        except:
+        except KeyError:
             # This is the v2 situation
             # TODO: another v2 <-> sewerage difference...
             log("id_mapping json v2 <-> sewerage naming discrepancy",

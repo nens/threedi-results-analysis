@@ -1,12 +1,14 @@
-"""This script calculates statistics on the current layer for structures and
+"""This script calculates statistics on the selected layer for structures and
 outputs it to csv.
 """
-
 import csv
 import inspect
+import os
 
 from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
+
 
 class CustomCommand(object):
 
@@ -23,57 +25,85 @@ class CustomCommand(object):
                                 lambda a: not(inspect.isroutine(a)))
              if not name.startswith('__') and not name.startswith('_')])
         self.iface = kwargs.get('iface')
-        self.ts_datasources = kwargs.get('ts_datasource')
-
-        # Current layer information
-        self.current_layer = self.iface.mapCanvas().currentLayer()
-        if not self.current_layer:
-            pop_up_info("No layer selected, things will not go well..",
-                        title='Error')
-            return
-        self.feature_ids = [i.id() for i in self.current_layer.getFeatures()]
+        self.ts_datasource = kwargs.get('ts_datasource')
 
         # All the NcStats parameters we want to calculate.
         self.parameters = NcStats.AVAILABLE_STRUCTURE_PARAMETERS
 
+        # These will be dynamically set:
+        self.layer = None
+        self.datasource = None
 
-    def run_it(self):
-        print(self.args)
-        print(self.kwargs)
-        print(self._fields)
-        print("We ran the script!")
+    def load_defaults(self):
+        """If you only want to use run_it without show_gui, you can try calling
+        this method first to set some defaults.
 
-
-        # For now just get the first datasource
-        # TODO: improve this
-        if len(self.ts_datasources.rows) <= 0:
+        This method will try to load the first datasource and the current QGIS
+        layer.
+        """
+        try:
+            self.datasource = self.ts_datasource.rows[0]
+        except IndexError:
             pop_up_info("No datasource found. Aborting.", title='Error')
             return
-        if len(self.ts_datasources.rows) > 1:
-            pop_up_info("More than one datasource found, only the first one "
-                        "will be used", title='Warning')
-        tds = self.ts_datasources.rows[0]
-        nds = tds.datasource()  # the netcdf datasource
+
+        # Current layer information
+        self.layer = self.iface.mapCanvas().currentLayer()
+        if not self.layer:
+            pop_up_info("No layer selected, things will not go well..",
+                        title='Error')
+            return
+
+    def show_gui(self):
+        self.tool_dialog_widget = ToolDialogWidget(
+            iface=self.iface, ts_datasource=self.ts_datasource, command=self)
+        self.tool_dialog_widget.exec_()  # block execution
+
+    def run_it(self, layer=None, datasource=None):
+        if layer:
+            self.layer = layer
+        if datasource:
+            self.datasource = datasource
+        if not self.layer:
+            pop_up_info("No layer selected, aborting", title='Error')
+            return
+        if not self.datasource:
+            pop_up_info("No datasource found, aborting.", title='Error')
+            return
+        layer_name = self.layer.name()
+        structures = ['weir', 'pumpstation', 'pipe', 'orifice', 'culvert']
+        if not any(s in layer_name for s in structures):
+            pop_up_info("%s is not a valid structure layer. Valid are: %s" %
+                        (layer_name, structures),
+                        title='Error')
+            return
+
+        result_dir = os.path.dirname(self.datasource.file_path.value)
+        nds = self.datasource.datasource()  # the netcdf datasource
         ncstats = NcStats(datasource=nds)
-        layer_name = self.current_layer.name()
-        filenames = []
-        for param_name in self.parameters:
-            # Generate data
-            result = dict()
-            method = getattr(ncstats, param_name)
-            for fid in self.feature_ids:
-                result[fid] = method(layer_name, fid)
 
-            # Write to csv file
-            filename = layer_name + '_' + param_name + '.csv'
-            filenames.append(filename)
-            with open(filename, 'wb') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',')
+        # Generate data
+        result = dict()
+        for feature in self.layer.getFeatures():
+            fid = feature.id()
+            result[fid] = dict()
+            result[fid]['id'] = fid
+            for param_name in self.parameters:
+                method = getattr(ncstats, param_name)
+                try:
+                    result[fid][param_name] = method(layer_name, fid)
+                except ValueError:
+                    result[fid][param_name] = None
 
-                header = ['id', param_name]
-                writer.writerow(header)
+        # Write to csv file
+        filename = layer_name + '_stats.csv'
+        filepath = os.path.join(result_dir, filename)
+        with open(filepath, 'wb') as csvfile:
+            fieldnames = ['id'] + self.parameters
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
+                                    delimiter=',')
+            writer.writeheader()
+            for fid, val_dict in result.items():
+                writer.writerow(val_dict)
 
-                for fid, val in result.items():
-                    writer.writerow([fid, val])
-
-        pop_up_info("Generated: %s" % ', '.join(filenames))
+        pop_up_info("Generated: %s" % filepath)

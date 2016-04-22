@@ -1,12 +1,14 @@
-"""This script calculates statistics on the current layer for structures and
-outputs it to csv.
+"""This script calculates statistics on the selected layer for manholes and
+connection nodes and outputs it to csv.
 """
-
 import csv
 import inspect
+import os
 
 from ThreeDiToolbox.stats.ncstats import NcStats
-from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_info, log
+from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
+
 
 class CustomCommand(object):
 
@@ -23,105 +25,108 @@ class CustomCommand(object):
                                 lambda a: not(inspect.isroutine(a)))
              if not name.startswith('__') and not name.startswith('_')])
         self.iface = kwargs.get('iface')
-        self.ts_datasources = kwargs.get('ts_datasource')
+        self.ts_datasource = kwargs.get('ts_datasource')
+
+        self.derived_parameters = ['wos_height', 'water_depth']
+        # All the NcStats parameters we want to calculate.
+        self.parameters = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
+            self.derived_parameters
+
+        # These will be dynamically set:
+        self.layer = None
+        self.datasource = None
+
+    def load_defaults(self):
+        """If you only want to use run_it without show_gui, you can try calling
+        this method first to set some defaults.
+
+        This method will try to load the first datasource and the current QGIS
+        layer.
+        """
+        try:
+            self.datasource = self.ts_datasource.rows[0]
+        except IndexError:
+            pop_up_info("No datasource found. Aborting.", title='Error')
+            return
 
         # Current layer information
-        self.current_layer = self.iface.mapCanvas().currentLayer()
-        if not self.current_layer:
+        self.layer = self.iface.mapCanvas().currentLayer()
+        if not self.layer:
             pop_up_info("No layer selected, things will not go well..",
                         title='Error')
             return
 
-        # All the NcStats parameters we want to calculate.
-        self.parameters = NcStats.AVAILABLE_MANHOLE_PARAMETERS
+    def show_gui(self):
+        self.tool_dialog_widget = ToolDialogWidget(
+            iface=self.iface, ts_datasource=self.ts_datasource, command=self)
+        self.tool_dialog_widget.exec_()  # block execution
 
-
-    def run_it(self):
-        print(self.args)
-        print(self.kwargs)
-        print(self._fields)
-        print("We ran the script!")
-
-
-        # For now just get the first datasource
-        # TODO: improve this
-        if len(self.ts_datasources.rows) <= 0:
-            pop_up_info("No datasource found. Aborting.", title='Error')
+    def run_it(self, layer=None, datasource=None):
+        if layer:
+            self.layer = layer
+        if datasource:
+            self.datasource = datasource
+        if not self.layer:
+            pop_up_info("No layer selected, aborting", title='Error')
             return
-        if len(self.ts_datasources.rows) > 1:
-            pop_up_info("More than one datasource found, only the first one "
-                        "will be used", title='Warning')
-        tds = self.ts_datasources.rows[0]
-        nds = tds.datasource()  # the netcdf datasource
-        ncstats = NcStats(datasource=nds)
-        layer_name = self.current_layer.name()
-        filenames = []
+        if not self.datasource:
+            pop_up_info("No datasource found, aborting.", title='Error')
+            return
+        layer_name = self.layer.name()
+        if 'manhole' not in layer_name and 'connection_node' not in layer_name:
+            pop_up_info(
+                "%s doesn't contain manholes or connection nodes" % layer_name,
+                title='Error')
+            return
 
-        # MANHOLE SPECIFIC CALCULATION:
-        # #############################
+        result_dir = os.path.dirname(self.datasource.file_path.value)
+        nds = self.datasource.datasource()  # the netcdf datasource
+        ncstats = NcStats(datasource=nds)
+
         # Generate data
-        wos_height = dict()
-        water_depth = dict()
-        param_name = 's1_max'
-        method = getattr(ncstats, param_name)
-        # Using the getFeatures iterator should be more efficient
-        for feature in self.current_layer.getFeatures():
+        result = dict()
+        for feature in self.layer.getFeatures():
             fid = feature.id()
-            try:
-                s1_max = method(layer_name, fid)
-            except ValueError:
-                s1_max = None
-            # Water op straat berekening (wos_height):
-            try:
-                wos_height[fid] = s1_max - feature['surface_level']
-            except TypeError:
-                wos_height[fid] = None
-            # Waterdiepte berekening:
-            try:
-                water_depth[fid] = s1_max - feature['bottom_level']
-            except TypeError:
-                water_depth[fid] = None
+            result[fid] = dict()
+            result[fid]['id'] = fid
+            for param_name in self.parameters:
+                # Water op straat berekening (wos_height):
+                if param_name == 'wos_height':
+                    try:
+                        result[fid][param_name] = ncstats.s1_max(
+                            layer_name, fid) - feature['surface_level']
+                    except (ValueError, TypeError):
+                        result[fid][param_name] = None
+                    except KeyError:
+                        log("Feature doesn't have surface level")
+                        result[fid][param_name] = None
+                # Waterdiepte berekening:
+                elif param_name == 'water_depth':
+                    try:
+                        result[fid][param_name] = ncstats.s1_max(
+                            layer_name, fid) - feature['bottom_level']
+                    except (ValueError, TypeError):
+                        result[fid][param_name] = None
+                    except KeyError:
+                        log("Feature doesn't have bottom level")
+                        result[fid][param_name] = None
+                # Business as usual (NcStats method)
+                else:
+                    method = getattr(ncstats, param_name)
+                    try:
+                        result[fid][param_name] = method(layer_name, fid)
+                    except ValueError:
+                        result[fid][param_name] = None
 
         # Write to csv file
-        filename = layer_name + '_' + 'water_op_straat' + '.csv'
-        filenames.append(filename)
-        with open(filename, 'wb') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
+        filename = layer_name + '_stats.csv'
+        filepath = os.path.join(result_dir, filename)
+        with open(filepath, 'wb') as csvfile:
+            fieldnames = ['id'] + self.parameters
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
+                                    delimiter=',')
+            writer.writeheader()
+            for fid, val_dict in result.items():
+                writer.writerow(val_dict)
 
-            header = ['id', 'wos_height', 'waterdiepte']
-            writer.writerow(header)
-
-            # TODO: ugly, can be rewritten in terms of dicts and using the
-            # DictWriter
-            for fid, wos in wos_height.items():
-                depth = water_depth.get(fid)
-                writer.writerow([fid, wos, depth])
-        # ################################
-
-        for param_name in self.parameters:
-            # Generate data
-            result = dict()
-            wos_height = dict()
-            water_depth = dict()
-            method = getattr(ncstats, param_name)
-            # Using the getFeatures iterator should be more efficient
-            for feature in self.current_layer.getFeatures():
-                fid = feature.id()
-                try:
-                    result[fid] = method(layer_name, fid)
-                except ValueError:
-                    result[fid] = None
-
-            # Write to csv file
-            filename = layer_name + '_' + param_name + '.csv'
-            filenames.append(filename)
-            with open(filename, 'wb') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',')
-
-                header = ['id', param_name]
-                writer.writerow(header)
-
-                for fid, val in result.items():
-                    writer.writerow([fid, val])
-
-        pop_up_info("Generated: %s" % ', '.join(filenames))
+        pop_up_info("Generated: %s" % filepath)
