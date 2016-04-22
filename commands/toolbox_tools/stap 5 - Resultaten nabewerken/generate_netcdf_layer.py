@@ -7,7 +7,6 @@ from qgis.core import (
     )
 from PyQt4.QtCore import QVariant
 
-from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
@@ -20,9 +19,6 @@ class CustomCommand(CustomCommandBase):
         self.kwargs = kwargs
         self.iface = kwargs.get('iface')
         self.ts_datasource = kwargs.get('ts_datasource')
-
-        # All the NcStats parameters we want to calculate.
-        self.parameters = NcStats.AVAILABLE_STRUCTURE_PARAMETERS
 
         # These will be dynamically set:
         self.layer = None
