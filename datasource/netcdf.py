@@ -103,9 +103,11 @@ class NetcdfDataSource(object):
 
     def get_netcdf_id(self, inp_id, object_type):
         """Get the node or flow link id needed to get data from netcdf."""
+        if object_type == 'flowline':
+            return inp_id
         # Note: because pumpstation uses q_pump it also has a special way of
         # accessing that array.
-        if object_type in ['pumpstation']:
+        elif object_type in ['pumpstation']:
             return inp_id - 1
         elif object_type in ['manhole', 'connection_nodes']:
             return self.node_mapping[inp_id]
@@ -115,6 +117,8 @@ class NetcdfDataSource(object):
     def get_inp_id(self, object_id, normalized_object_type):
         """Get the id mapping dict correctly and then return the mapped id,
         aka: the inp_id"""
+        if normalized_object_type == 'flowline':
+            return object_id
         try:
             # This is the sewerage situation
             obj_id_mapping = self.id_mapping[normalized_object_type]

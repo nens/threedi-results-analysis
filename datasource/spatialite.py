@@ -24,7 +24,8 @@ VARIABLE_LABELS = {
     'sewerage_pipe': (DISCHARGE, VELOCITY, ),
     'sewerage_weir': (DISCHARGE, VELOCITY, ),
     'sewerage_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_pumpstation': (DISCHARGE_PUMP, )
+    'sewerage_pumpstation': (DISCHARGE_PUMP, ),
+    'flowlines': (DISCHARGE, VELOCITY)
 }
 
 
@@ -48,7 +49,8 @@ layer_information = [
     ('sewerage_pumpstation', 'pumpstation', 'q'),
     ('sewerage_pumpstation_view', 'pumpstation', 'q'),
     ('sewerage_weir_view', 'weir', 'q'),
-    ('sewerage_orifice_view', 'orifice', 'q')
+    ('sewerage_orifice_view', 'orifice', 'q'),
+    ('flowlines', 'flowline', 'q')
 ]
 
 # Old names
