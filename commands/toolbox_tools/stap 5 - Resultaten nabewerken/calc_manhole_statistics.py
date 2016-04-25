@@ -8,9 +8,10 @@ import os
 from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import pop_up_info, log
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
-class CustomCommand(object):
+class CustomCommand(CustomCommandBase):
 
     class Fields(object):
         name = "Test script"
@@ -36,25 +37,8 @@ class CustomCommand(object):
         self.layer = None
         self.datasource = None
 
-    def load_defaults(self):
-        """If you only want to use run_it without show_gui, you can try calling
-        this method first to set some defaults.
-
-        This method will try to load the first datasource and the current QGIS
-        layer.
-        """
-        try:
-            self.datasource = self.ts_datasource.rows[0]
-        except IndexError:
-            pop_up_info("No datasource found. Aborting.", title='Error')
-            return
-
-        # Current layer information
-        self.layer = self.iface.mapCanvas().currentLayer()
-        if not self.layer:
-            pop_up_info("No layer selected, things will not go well..",
-                        title='Error')
-            return
+    def run(self):
+        self.show_gui()
 
     def show_gui(self):
         self.tool_dialog_widget = ToolDialogWidget(
@@ -129,4 +113,4 @@ class CustomCommand(object):
             for fid, val_dict in result.items():
                 writer.writerow(val_dict)
 
-        pop_up_info("Generated: %s" % filepath)
+        pop_up_info("Generated: %s" % filepath, title='Finished')

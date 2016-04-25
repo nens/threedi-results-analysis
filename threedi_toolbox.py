@@ -146,11 +146,7 @@ class ThreeDiToolbox:
 
             self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource)
-            if hasattr(self.command, 'show_gui'):
-                self.command.show_gui()
-            else:
-                self.command.run_it()
-            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+            self.command.run()
 
     def pop_up_question(self, msg='', title=''):
         """Message box question to ask if we want to proceed.

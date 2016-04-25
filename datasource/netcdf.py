@@ -101,17 +101,6 @@ class NetcdfDataSource(object):
 
         pass
 
-    def get_netcdf_id(self, inp_id, object_type):
-        """Get the node or flow link id needed to get data from netcdf."""
-        # Note: because pumpstation uses q_pump it also has a special way of
-        # accessing that array.
-        if object_type in ['pumpstation']:
-            return inp_id - 1
-        elif object_type in ['manhole', 'connection_nodes']:
-            return self.node_mapping[inp_id]
-        else:
-            return self.channel_mapping[inp_id]
-
     def get_inp_id(self, object_id, normalized_object_type):
         """Get the id mapping dict correctly and then return the mapped id,
         aka: the inp_id"""
@@ -126,6 +115,17 @@ class NetcdfDataSource(object):
             v2_object_type = 'v2_' + normalized_object_type
             obj_id_mapping = self.id_mapping[v2_object_type]
         return obj_id_mapping[str(object_id)]  # strings because JSON
+
+    def get_netcdf_id(self, inp_id, object_type):
+        """Get the node or flow link id needed to get data from netcdf."""
+        # Note: because pumpstation uses q_pump it also has a special way of
+        # accessing that array.
+        if object_type in ['pumpstation']:
+            return inp_id - 1
+        elif object_type in ['manhole', 'connection_nodes']:
+            return self.node_mapping[inp_id]
+        else:
+            return self.channel_mapping[inp_id]
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
@@ -145,9 +145,16 @@ class NetcdfDataSource(object):
         # Normalize the name
         n_object_type = get_object_type(object_type)
 
-        # Mapping: spatialite id -> inp id -> netcdf id
-        inp_id = self.get_inp_id(object_id, n_object_type)
-        netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
+        # Here we map the feature ids (== object ids) to internal netcdf ids.
+        # Note: 'flowline' and 'node' are memory layers that are made from the
+        # netcdf, so they don't need an id mapping or netcdf mapping
+        if n_object_type == 'flowline' or n_object_type == 'node':
+            # TODO: need to test this id to make sure (-1/+1??)!!
+            netcdf_id = object_id - 1
+        else:
+            # Mapping: spatialite id -> inp id -> netcdf id
+            inp_id = self.get_inp_id(object_id, n_object_type)
+            netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
 
