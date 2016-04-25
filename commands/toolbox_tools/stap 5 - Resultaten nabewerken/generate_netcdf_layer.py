@@ -49,6 +49,7 @@ def make_flowline_layer(ds):
     # add fields
     pr.addAttributes([
         # This is the flowline index in Python (0-based indexing)
+        # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("flowline_idx", QVariant.Int),
         ])
     vl.updateFields()  # tell the vector layer to fetch changes from the provider
@@ -62,6 +63,54 @@ def make_flowline_layer(ds):
         p2 = QgsPoint(x_p2[i], y_p2[i])
 
         fet.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
+        fet.setAttributes([i])
+        features.append(fet)
+    pr.addFeatures(features)
+
+    # update layer's extent when new features have been added
+    # because change of extent in provider is not propagated to the layer
+    vl.updateExtents()
+
+    # add the layer
+    QgsMapLayerRegistry.instance().addMapLayers([vl])
+
+
+def make_node_layer(ds):
+    """Make a memory layer that contains all nodes.
+
+    Args:
+        ds: netCDF Dataset
+    """
+    # Get relevant netCDF.Variables
+    projection = ds.variables['projected_coordinate_system']
+    epsg = projection.epsg  # = 28992
+    # FlowElem centers:
+    flowelem_xcc = ds.variables['FlowElem_xcc']  # in meters
+    flowelem_ycc = ds.variables['FlowElem_ycc']  # in meters
+
+    # create layer
+    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
+    uri = "Point?crs=epsg:{}&index=yes".format(
+        epsg)
+    vl = QgsVectorLayer(uri, "nodes", "memory")
+    pr = vl.dataProvider()
+
+    # add fields
+    pr.addAttributes([
+        # This is the node index in Python (0-based indexing)
+        # Important: this differs from the feature id which is node idx+1!!
+        QgsField("node_idx", QVariant.Int),
+        ])
+    vl.updateFields()  # tell the vector layer to fetch changes from the provider
+
+    # add features
+    features = []
+    for i in range(flowelem_xcc.shape[0]):
+        fet = QgsFeature()
+
+        p1 = QgsPoint(flowelem_xcc[i], flowelem_ycc[i])
+
+        fet.setGeometry(QgsGeometry.fromPoint(p1))
         fet.setAttributes([i])
         features.append(fet)
     pr.addFeatures(features)
@@ -104,3 +153,4 @@ class CustomCommand(CustomCommandBase):
         ds = nds.ds
 
         make_flowline_layer(ds)
+        make_node_layer(ds)
