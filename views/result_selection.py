@@ -4,7 +4,8 @@ from PyQt4.QtCore import pyqtSignal, QSettings
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGis
+
 
 from ..datasource.spatialite import layer_qh_type_mapping, \
     layer_object_type_mapping
@@ -171,7 +172,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                         "../input_generated/ (relatief aan spatialite).",
                         "Fout bij laden model")
 
-    def _add_spl_layer_to_canvas(self, fname, table_name):
+    def _add_spl_layer_to_canvas(self, fname, table_name, group_name):
         """
         Add spatialite layer to canvas (map)
         :param fname: string, spatialite path
@@ -183,11 +184,23 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         uri2 = QgsDataSourceURI()
         uri2.setDatabase(fname)
         uri2.setDataSource(schema, table_name, 'the_geom')
+
+        if 'manhole' in table_name:
+            uri2.setWkbType(QGis.WKBPoint)
+        else:
+            uri2.setWkbType(QGis.WKBLineString)
+
         vector_layer = QgsVectorLayer(uri2.uri(),
                                       table_name,
                                       'spatialite')
+
+
+        valid = vector_layer.isValid()
         if vector_layer.isValid():
             QgsMapLayerRegistry.instance().addMapLayer(vector_layer)
+            legend = self.iface.legendInterface()
+            legend.setLayerExpanded(vector_layer, True)
+            legend.moveLayer(vector_layer, group_name)
 
     def select_model_spatialite_file(self):
         """
@@ -231,6 +244,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             if reply == QMessageBox.No:
                 return True
 
+            legend = self.iface.legendInterface()
+
+            modelgroup = legend.addGroup(u'Model', False)
+            legend.setGroupVisible(modelgroup, True)
+            legend.setGroupExpanded(modelgroup, True)
+
+
             uri = QgsDataSourceURI()
             uri.setDatabase(filename)
             db = QSqlDatabase.addDatabase("QSQLITE")
@@ -246,7 +266,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             while query.next():
                 table_name = query.record().value(0)
                 if table_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(filename, table_name)
+                    self._add_spl_layer_to_canvas(filename, table_name, modelgroup)
 
             query = db.exec_("""SELECT view_name FROM views_geometry_columns
                 WHERE view_geometry = 'the_geom';""")
@@ -254,6 +274,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             while query.next():
                 view_name = query.record().value(0)
                 if view_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(filename, view_name)
+                    self._add_spl_layer_to_canvas(filename, view_name, modelgroup)
 
         return True
