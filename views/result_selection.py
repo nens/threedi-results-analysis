@@ -113,6 +113,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                             'NetCDF (*.nc)')
 
         if filename:
+
             items = [{
                 'type': 'netcdf',
                 'name': os.path.basename(filename).lower().rstrip('.nc'),
@@ -120,6 +121,15 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             }]
             self.ts_datasource.insertRows(items)
             settings.setValue('last_used_path', os.path.dirname(filename))
+
+            # check on id_mapping
+            try:
+                id_mapping_file = get_id_mapping_file(filename)
+            except IndexError:
+                pop_up_info("Kan het id_mapping bestand niet vinden in de "
+                            "directory ../input_generated/ (relatief aan "
+                            "netCDF).",
+                            "Fout bij laden resultaat")
 
             return True
 
@@ -162,15 +172,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.ts_datasource.model_spatialite_filepath = \
                 self.modelSpatialiteComboBox.currentText()
-
-        # check on id_mapping
-        try:
-            id_mapping_file = get_id_mapping_file(
-                            self.ts_datasource.model_spatialite_filepath)
-        except IndexError:
-            pop_up_info("Kan het id_mapping bestand niet vinden in de directory "
-                        "../input_generated/ (relatief aan spatialite).",
-                        "Fout bij laden model")
 
     def _add_spl_layer_to_canvas(self, fname, table_name, group_name):
         """
