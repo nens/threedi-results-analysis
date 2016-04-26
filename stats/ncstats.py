@@ -7,9 +7,6 @@ import numpy as np
 from ..datasource.netcdf import NetcdfDataSource
 
 
-# TODO: what's the deal with the inp_id of pipes which must be
-# decremented by 1?
-
 class NcStats(object):
     """Get basic stats about subgrid netCDF files"""
 
@@ -47,16 +44,6 @@ class NcStats(object):
 
         self.timesteps = self.datasource.timesteps
         self.timestamps = self.datasource.get_timestamps()
-
-    def strvol(self, flowline_id):
-        """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps
-
-        Note: apparently deprecated!
-
-        """
-        # TODO: not sure if used
-        return self.ds.variables['strvol'][flowline_id]
 
     def tot_vol(self, structure_type, obj_id):
         """Total volume through a structure. Structures are: pipes, weirs,

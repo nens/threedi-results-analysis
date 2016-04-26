@@ -13,7 +13,6 @@ from ..datasource.netcdf import get_id_mapping_file
 from ..utils.user_messages import pop_up_info
 
 
-
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), os.pardir, 'ui',
             'threedi_result_selection_dialog.ui'))
@@ -113,7 +112,18 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                             'NetCDF (*.nc)')
 
         if filename:
+            # Little test for checking if there is an id mapping file available
+            # If not we're not going to proceed.
+            try:
+                get_id_mapping_file(filename)
+            except IndexError:
+                pop_up_info("No id mapping file found, we tried the following "
+                            "locations: [../input_generated]. Please add this "
+                            "file to the correct location and try again.",
+                            title='Error')
+                return False
 
+            # Add to the datasource
             items = [{
                 'type': 'netcdf',
                 'name': os.path.basename(filename).lower().rstrip('.nc'),
@@ -121,15 +131,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             }]
             self.ts_datasource.insertRows(items)
             settings.setValue('last_used_path', os.path.dirname(filename))
-
-            # check on id_mapping
-            try:
-                id_mapping_file = get_id_mapping_file(filename)
-            except IndexError:
-                pop_up_info("Kan het id_mapping bestand niet vinden in de "
-                            "directory ../input_generated/ (relatief aan "
-                            "netCDF).",
-                            "Fout bij laden resultaat")
 
             return True
 

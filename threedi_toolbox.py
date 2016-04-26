@@ -120,7 +120,9 @@ class ThreeDiToolbox:
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            if not self.pop_up_question():
+            if not self.pop_up_question(
+                    msg="Are you sure you want to run this script?",
+                    title="Warning"):
                 return
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
@@ -142,12 +144,11 @@ class ThreeDiToolbox:
             mod = imp.load_source(name, module_path)
             print(mod)
 
-            command = mod.CustomCommand(
+            self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource)
-            command.run_it()
-            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+            self.command.run()
 
-    def pop_up_question(self):
+    def pop_up_question(self, msg='', title=''):
         """Message box question to ask if we want to proceed.
 
         Returns:
@@ -157,8 +158,7 @@ class ThreeDiToolbox:
         # Not sure about first arg in, should be pass in self.dockwidget
         # instead?
         reply = msg_box.question(
-            msg_box, 'Message',
-            "Are you sure you want to run this script?",
+            msg_box, title, msg,
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
             QtGui.QMessageBox.No)
 

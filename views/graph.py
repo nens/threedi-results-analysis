@@ -23,6 +23,9 @@ parameter_config = {
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
+# Layer providers that we can use for the graph
+VALID_PROVIDERS = ['spatialite', 'memory']
+
 
 try:
     _encoding = QApplication.UnicodeUTF8
@@ -499,7 +502,10 @@ class GraphWidget(QWidget):
         # DS_152_1D_totaal_bergingsbak_result.sqlite'"
         connInfo = QgsDataSourceURI(
             layer.dataProvider().dataSourceUri()).connectionInfo()
-        filename = connInfo.split("'")[1]
+        try:
+            filename = connInfo.split("'")[1]
+        except IndexError:
+            filename = 'nofilename'
 
         # get attribute information from selected layers
         items = []
@@ -507,13 +513,28 @@ class GraphWidget(QWidget):
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
-            #check if object not already exist
+            fid = feature.id()
 
-            if (layer.name() + '_' + str(feature['id'])) not in existing_items:
+            try:
+                object_name = feature['display_name']
+            except KeyError:
+                # TODO: need a more generic way, i.e., this needs to be fixed
+                # in the views themselved:
+                log("Guessing the object_name now because it's a v2 model",
+                    level='WARNING')
+                try:
+                    object_name = feature[2]
+                except KeyError:
+                    log("It's probably a memory layer, but putting a dummy "
+                        "name just for safety.")
+                    object_name = 'dummy'
+
+            # check if object not already exist
+            if (layer.name() + '_' + str(fid)) not in existing_items:
                 item = {
                     'object_type': layer.name(),
-                    'object_id': feature['id'],
-                    'object_name': feature['display_name'],
+                    'object_id': fid,
+                    'object_name': object_name,
                     'file_path': filename
                 }
                 items.append(item)
@@ -613,14 +634,13 @@ class GraphDockWidget(QDockWidget):
             provider = current_layer.dataProvider()
             valid_object_type = get_object_type(current_layer.name())
 
-            if provider.name() == 'spatialite' and valid_object_type:
+            if provider.name() in VALID_PROVIDERS and valid_object_type:
                 tdi_layer = True
 
         #activate button if 3di layers found
         self.addSelectedObjectButton.setEnabled(tdi_layer)
 
     def add_objects(self):
-
         canvas = self.iface.mapCanvas()
         current_layer = canvas.currentLayer()
         if not current_layer:
@@ -628,7 +648,7 @@ class GraphDockWidget(QDockWidget):
             return
 
         provider = current_layer.dataProvider()
-        if not provider.name() == 'spatialite':
+        if provider.name() not in VALID_PROVIDERS:
             return
 
         if current_layer.name() not in layer_qh_type_mapping.keys():

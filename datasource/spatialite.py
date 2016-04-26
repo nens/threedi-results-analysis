@@ -24,7 +24,9 @@ VARIABLE_LABELS = {
     'sewerage_pipe': (DISCHARGE, VELOCITY, ),
     'sewerage_weir': (DISCHARGE, VELOCITY, ),
     'sewerage_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_pumpstation': (DISCHARGE_PUMP, )
+    'sewerage_pumpstation': (DISCHARGE_PUMP, ),
+    'flowlines': (DISCHARGE, VELOCITY),
+    'nodes': (WATERLEVEL, ),
 }
 
 
@@ -48,7 +50,9 @@ layer_information = [
     ('sewerage_pumpstation', 'pumpstation', 'q'),
     ('sewerage_pumpstation_view', 'pumpstation', 'q'),
     ('sewerage_weir_view', 'weir', 'q'),
-    ('sewerage_orifice_view', 'orifice', 'q')
+    ('sewerage_orifice_view', 'orifice', 'q'),
+    ('flowlines', 'flowline', 'q'),
+    ('nodes', 'node', 'h'),
 ]
 
 # Old names
@@ -106,7 +110,7 @@ def get_variables(object_type=None, parameters=[]):
 
 
 def get_object_type(current_layer_name):
-
+    """Get a normalized object type for internal purposes."""
     if current_layer_name in layer_object_type_mapping.keys():
         return layer_object_type_mapping[current_layer_name]
     else:
