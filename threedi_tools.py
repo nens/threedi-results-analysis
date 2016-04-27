@@ -34,6 +34,7 @@ from threedi_result_selection import ThreeDiResultSelection
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
 from threedi_sideview import ThreeDiSideView
+from threedi_timeslider import TimesliderWidget, Qt, QSlider
 from .utils.user_messages import pop_up_info, log
 
 from models.datasources import TimeseriesDatasourceModel
@@ -82,6 +83,9 @@ class ThreeDiTools:
         self.tools = []
 
         self.ts_datasource = TimeseriesDatasourceModel()
+        self.timeslider_widget = TimesliderWidget(self.toolbar,
+                                                  self.iface,
+                                                  self.ts_datasource)
 
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
@@ -199,6 +203,10 @@ class ThreeDiTools:
                 text=self.tr(tool.menu_text),
                 callback=tool.run,
                 parent=self.iface.mainWindow())
+
+        sl = QSlider(Qt.Horizontal)
+        self.toolbar.addWidget(self.timeslider_widget)
+
 
     def about(self):
         """
