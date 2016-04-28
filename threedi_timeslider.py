@@ -21,13 +21,15 @@
  ***************************************************************************/
 """
 import os.path
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, pyqtSignal
 from PyQt4.QtGui import QSlider
 import qgis
 
 
 class TimesliderWidget(QSlider):
     """QGIS Plugin Implementation."""
+
+    datasource_changed = pyqtSignal()
 
     def __init__(self, parent, iface, ts_datasource):
         """Constructor.
@@ -42,11 +44,18 @@ class TimesliderWidget(QSlider):
 
         self.iface = iface
         self.ts_datasource = ts_datasource
+        self.active_datasource = None
 
         self.setEnabled(False)
         self.ts_datasource.dataChanged.connect(self.ds_data_changed)
         self.ts_datasource.rowsInserted.connect(self.on_insert_ds)
         self.ts_datasource.rowsRemoved.connect(self.on_remove_ds)
+
+
+    def get_current_ts_datasource_item(self):
+
+        return self.active_datasource
+
 
     def on_insert_ds(self, parent, start, end):
         """
@@ -59,26 +68,30 @@ class TimesliderWidget(QSlider):
         :param start: first row nr
         :param end: last row nr
         """
-        c = self.ts_datasource.rowCount()
         if self.ts_datasource.rowCount() > 0:
             self.setEnabled(True)
             ds = self.ts_datasource.rows[0]
+            if ds != self.active_datasource:
 
-            self.timestamps = ds.datasource().get_timestamps()
-            self.min_value = self.timestamps[0]
-            self.max_value = self.timestamps[-1]
-            self.interval = self.timestamps[1] - self.timestamps[0]
-            self.nr_values = len(self.timestamps)
+                self.timestamps = ds.datasource().get_timestamps()
+                self.min_value = self.timestamps[0]
+                self.max_value = self.timestamps[-1]
+                self.interval = self.timestamps[1] - self.timestamps[0]
+                self.nr_values = len(self.timestamps)
 
-            self.setMaximum(self.nr_values)
-            self.setMinimum(0)
-            self.setTickPosition(QSlider.TicksBelow)
-            self.setTickInterval(1)
-            self.setSingleStep(1)
+                self.setMaximum(self.nr_values - 1)
+                self.setMinimum(0)
+                self.setTickPosition(QSlider.TicksBelow)
+                self.setTickInterval(1)
+                self.setSingleStep(1)
+                self.active_datasource = ds
+                self.setValue(0)
+                self.datasource_changed.emit()
         else:
             self.setMaximum(1)
             self.setValue(0)
             self.setEnabled(False)
+            self.active_datasource = None
 
     def on_remove_ds(self, index, start, end):
         """

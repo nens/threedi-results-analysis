@@ -90,7 +90,7 @@ class ThreeDiTools:
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(ThreeDiGraph(iface, self.ts_datasource))
-        self.tools.append(ThreeDiSideView(iface, self.ts_datasource))
+        self.tools.append(ThreeDiSideView(iface, self))
 
 
     # noinspection PyMethodMayBeStatic

@@ -30,17 +30,19 @@ from views.sideview import SideViewDockWidget
 class ThreeDiSideView:
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, tdi_root_tool):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
             application at run time.
         :type iface: QgsInterface
+        :param tdi_root_tool: 3di root tool instance
+        :type tdi_root_tool: ThreeDiTools
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.tdi_root_tool = tdi_root_tool
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -57,9 +59,6 @@ class ThreeDiSideView:
         """
         for widget in self.dock_widgets:
             widget.close()
-
-        #self.ts_datasource.close()
-        #self.ts_datasource = None
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -87,7 +86,7 @@ class ThreeDiSideView:
         new_widget = SideViewDockWidget(self.iface,
                                         parent_class=self,
                                         nr=self.widget_nr,
-                                        ts_datasource=self.ts_datasource)
+                                        tdi_root_tool=self.tdi_root_tool)
         self.dock_widgets.append(new_widget)
 
         # connect cleanup on closing of dockwidget

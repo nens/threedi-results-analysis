@@ -47,7 +47,9 @@ except AttributeError:
 class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
 
-    def __init__(self, parent=None, nr=0, node_layer=None, line_layer=None, datasource_model=None, name=""):
+    profile_route_updated = pyqtSignal()
+
+    def __init__(self, parent=None, nr=0, node_layer=None, line_layer=None, tdi_root_tool=None, name=""):
         """
 
         :param parent: Qt parent widget
@@ -58,6 +60,11 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.nr = nr
         self.node_layer = node_layer
         self.line_layer = line_layer
+        self.time_slider = tdi_root_tool.timeslider_widget
+
+        self.profile = []
+        self.profile_nodes = []
+
 
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Afstand", "m")
@@ -77,13 +84,25 @@ class SideViewPlotWidget(pg.PlotWidget):
                                        self.upper_plot,
                                        pg.mkBrush(200, 200, 200))
 
+        pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
+        self.water_level_plot = pg.PlotDataItem(np.array([(0.0, 0.0)]), pen=pen)
+
         self.addItem(self.drain_level_plot)
         self.addItem(self.surface_level_plot)
         self.addItem(self.fill)
         self.addItem(self.bottom_plot)
         self.addItem(self.upper_plot)
+        self.addItem(self.water_level_plot)
+
+        # set listeners to signals
+        self.profile_route_updated.connect(self.update_water_level_cache)
+        self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
+        self.time_slider.datasource_changed.connect(self.update_water_level_cache)
 
     def set_sideprofile(self, profile, route_points):
+
+        self.profile = profile
+        self.profile_nodes = []
 
         bottom_line = []
         upper_line = []
@@ -91,6 +110,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         surface_level = []
 
         first = True
+
         for route_part in profile:
             for begin_dist, end_dist, distance, direction, feature in route_part:
 
@@ -121,13 +141,17 @@ class SideViewPlotWidget(pg.PlotWidget):
                 bottom_line.append((float(end_dist)+0.5*float(end_node['length']), float(end_node['bottom_level'])))
                 # todo last: bottom_line.append((float(begin_dist)+0,5*float(end_node['length']), float(begin_node['surface_level'])))
 
-                shape = feature['sewerage_cross_section_definition_shape']
-                if shape == 1:
-                    height = feature['sewerage_cross_section_definition_height']
-                elif shape == 2:
-                    height = feature['sewerage_cross_section_definition_width']
-                else:
-                    # todo: get height of other shapes
+                try:
+                    shape = feature['sewerage_cross_section_definition_shape']
+                    if shape == 1:
+                        height = feature['sewerage_cross_section_definition_height']
+                    elif shape == 2:
+                        height = feature['sewerage_cross_section_definition_width']
+                    else:
+                        # todo: get height of other shapes
+                        height = 1
+                except (TypeError, KeyError):
+                    log('Old spatialite file, does not has field "sewerage_cross_section_definition_*". Take default dimensions.')
                     height = 1
 
                 if first:
@@ -142,24 +166,78 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if first:
                     drain_level.append((float(begin_dist), float(begin_node['drain_level'])))
                     surface_level.append((float(begin_dist), float(begin_node['surface_level'])))
-                    first = False
 
                 drain_level.append((float(end_dist), float(end_node['drain_level'])))
                 surface_level.append((float(end_dist), float(end_node['surface_level'])))
 
-        ts_table = np.array(bottom_line, dtype=float)
-        self.bottom_plot.setData(ts_table)
+                # store node information for water level line
+                if first:
+                    self.profile_nodes.append({'distance': begin_dist,
+                                               'id': begin_node_id})
+                    first = False
 
-        ts_table = np.array(upper_line, dtype=float)
-        self.upper_plot.setData(ts_table)
+                self.profile_nodes.append({'distance': end_dist,
+                                               'id': end_node_id})
 
-        ts_table = np.array(drain_level, dtype=float)
-        self.drain_level_plot.setData(ts_table)
+        if len(profile) > 0:
+            ts_table = np.array(bottom_line, dtype=float)
+            self.bottom_plot.setData(ts_table)
 
-        ts_table = np.array(surface_level, dtype=float)
-        self.surface_level_plot.setData(ts_table)
+            ts_table = np.array(upper_line, dtype=float)
+            self.upper_plot.setData(ts_table)
 
-        self.autoRange()
+            ts_table = np.array(drain_level, dtype=float)
+            self.drain_level_plot.setData(ts_table)
+
+            ts_table = np.array(surface_level, dtype=float)
+            self.surface_level_plot.setData(ts_table)
+
+            # reset water level line
+            ts_table = np.array(np.array([(0.0, 0.0)]), dtype=float)
+            self.water_level_plot.setData(ts_table)
+
+            self.autoRange()
+
+            self.profile_route_updated.emit()
+        else:
+            # reset sideview
+            ts_table = np.array(np.array([(0.0, 0.0)]), dtype=float)
+            self.bottom_plot.setData(ts_table)
+            self.upper_plot.setData(ts_table)
+            self.drain_level_plot.setData(ts_table)
+            self.surface_level_plot.setData(ts_table)
+            self.water_level_plot.setData(ts_table)
+
+            self.profile = []
+            self.profile_nodes = []
+
+    def update_water_level_cache(self):
+
+        ds_item = self.time_slider.get_current_ts_datasource_item()
+        if ds_item:
+            ds = ds_item.datasource()
+            for node in self.profile_nodes:
+                ts = ds.get_timeseries('sewerage_manhole', node['id'], ['s1'])
+                node['timeseries'] = ts
+
+            self.draw_waterlevel_line()
+
+        else:
+             # reset water level line
+            ts_table = np.array(np.array([(0.0, 0.0)]), dtype=float)
+            self.water_level_plot.setData(ts_table)
+
+    def draw_waterlevel_line(self):
+
+        timestamp_nr = self.time_slider.value()
+
+        water_level_line = []
+        for node in self.profile_nodes:
+            water_level_line.append((node['distance'], node['timeseries'][timestamp_nr][1]))
+
+        ts_table = np.array(water_level_line, dtype=float)
+        self.water_level_plot.setData(ts_table)
+
 
     def on_close(self):
         """
@@ -167,11 +245,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         :return:
         """
 
-        if self.ds_model:
-            self.ds_model.dataChanged.disconnect(self.ds_data_changed)
-            self.ds_model.rowsInserted.disconnect(self.on_insert_ds)
-            self.ds_model.rowsAboutToBeRemoved.disconnect(self.on_remove_ds)
-            self.ds_model = None
+        self.profile_route_updated.disconnect(self.update_water_level_cache)
+        self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
+        self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
 
     def closeEvent(self, event):
         """
@@ -262,14 +338,14 @@ class SideViewDockWidget(QDockWidget):
     closingWidget = pyqtSignal(int)
 
     def __init__(self, iface, parent_widget=None,
-                 parent_class=None, nr=0, ts_datasource=None):
+                 parent_class=None, nr=0, tdi_root_tool=None):
         """Constructor"""
         super(SideViewDockWidget, self).__init__(parent_widget)
 
         self.iface = iface
         self.parent_class = parent_class
         self.nr = nr
-        self.ts_datasource = ts_datasource
+        self.tdi_root_tool = tdi_root_tool
 
         # setup ui
         self.setup_ui(self)
@@ -298,7 +374,7 @@ class SideViewDockWidget(QDockWidget):
 
 
         self.sideviews = []
-        widget = SideViewPlotWidget(self, 0, self.point_layer, self.line_layer, self.ts_datasource, "name")
+        widget = SideViewPlotWidget(self, 0, self.point_layer, self.line_layer, self.tdi_root_tool, "name")
         self.active_sideview = widget
         self.sideviews.append((0, widget))
         self.side_view_tab_widget.addTab(widget, widget.name)
@@ -411,9 +487,9 @@ class SideViewDockWidget(QDockWidget):
         self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
         spacer_item = QSpacerItem(40,
-                                 20,
-                                 QSizePolicy.Expanding,
-                                 QSizePolicy.Minimum)
+                                  20,
+                                  QSizePolicy.Expanding,
+                                  QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
         self.main_vlayout.addItem(self.button_bar_hlayout)
 
