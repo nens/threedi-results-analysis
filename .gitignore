@@ -10,3 +10,4 @@ remote_debugger_settings.py
 
 # Test data
 test/data
+remote_debugger_settings.py
