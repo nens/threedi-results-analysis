@@ -636,6 +636,8 @@ class GraphDockWidget(QDockWidget):
 
             if provider.name() in VALID_PROVIDERS and valid_object_type:
                 tdi_layer = True
+            elif current_layer.name() in ('flowlines', 'nodes'):
+                tdi_layer = True
 
         #activate button if 3di layers found
         self.addSelectedObjectButton.setEnabled(tdi_layer)
@@ -652,10 +654,22 @@ class GraphDockWidget(QDockWidget):
             return
 
         if current_layer.name() not in layer_qh_type_mapping.keys():
-            #todo: feedback layer not supported
-            return
+            if current_layer.name() not in ('flowlines', 'nodes'):
+                #todo: feedback layer not supported
+                return
 
         selected_features = current_layer.selectedFeatures()
+
+        if current_layer.name() ==  'flowlines':
+            self.q_graph_widget.add_objects(current_layer, selected_features)
+            self.graphTabWidget.setCurrentIndex(
+                    self.graphTabWidget.indexOf(self.q_graph_widget))
+            return
+        elif current_layer.name() ==  'nodes':
+            self.h_graph_widget.add_objects(current_layer, selected_features)
+            self.graphTabWidget.setCurrentIndex(
+                self.graphTabWidget.indexOf(self.h_graph_widget))
+            return
 
         if layer_qh_type_mapping[current_layer.name()] == 'q':
             self.q_graph_widget.add_objects(current_layer, selected_features)
