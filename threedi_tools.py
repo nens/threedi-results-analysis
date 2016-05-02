@@ -87,10 +87,17 @@ class ThreeDiTools:
                                                   self.iface,
                                                   self.ts_datasource)
 
+
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
+        self.sideview_tool = ThreeDiSideView(iface, self)
+
+
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
-        self.tools.append(ThreeDiGraph(iface, self.ts_datasource))
-        self.tools.append(ThreeDiSideView(iface, self))
+        self.tools.append(self.graph_tool)
+        self.tools.append(self.sideview_tool)
+
+        self.active_datasource = None
 
 
     # noinspection PyMethodMayBeStatic
@@ -110,6 +117,7 @@ class ThreeDiTools:
 
     def add_action(
         self,
+        tool_instance,
         icon_path,
         text,
         callback,
@@ -177,6 +185,7 @@ class ThreeDiTools:
                 self.menu,
                 action)
 
+        setattr(tool_instance, 'action_icon', action)
         self.actions.append(action)
         return action
 
@@ -199,6 +208,7 @@ class ThreeDiTools:
 
         for tool in self.tools:
             self.add_action(
+                tool,
                 tool.icon_path,
                 text=self.tr(tool.menu_text),
                 callback=tool.run,
@@ -207,6 +217,40 @@ class ThreeDiTools:
         sl = QSlider(Qt.Horizontal)
         self.toolbar.addWidget(self.timeslider_widget)
 
+        self.ts_datasource.rowsRemoved.connect(self.check_status_model_and_results)
+        self.ts_datasource.rowsInserted.connect(self.check_status_model_and_results)
+        self.ts_datasource.dataChanged.connect(self.check_status_model_and_results)
+
+        self.check_status_model_and_results()
+
+    def check_status_model_and_results(self, args):
+        """ Check if a (new and valid) model or result is selected and react on this
+            by pre-processing of things and activation/ deactivation of tools.
+            function is triggered by changes in the ts_datasource
+            args:
+                args: (list) the arguments provided by the different signals
+        """
+
+        if self.ts_datasource.rowCount() > 0:
+            self.graph_tool.action_icon.setEnabled(True)
+            self.sideview_tool.action_icon.setEnabled(True)
+        else:
+            self.graph_tool.action_icon.setEnabled(False)
+            self.sideview_tool.action_icon.setEnabled(False)
+
+        if self.ts_datasource.rowCount() > 0:
+            ds = self.ts_datasource.rows[0]
+            if ds != self.active_datasource:
+                # check if group exist
+                legend = self.iface.legendInterface()
+
+                modelgroup = legend.addGroup(u'Model', False)
+                legend.setGroupVisible(modelgroup, True)
+                legend.setGroupExpanded(modelgroup, True)
+
+                # todo: create layers from netCDF
+
+                self.active_datasource = ds
 
     def about(self):
         """
