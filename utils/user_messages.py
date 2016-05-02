@@ -3,6 +3,7 @@
 from PyQt4.QtGui  import QMessageBox, QProgressBar
 from PyQt4.QtCore import Qt
 from qgis.core import QgsMessageLog
+from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 
@@ -21,6 +22,17 @@ def statusbar_message(msg=''):
     """Display message in status bar """
     iface.mainWindow().statusBar().showMessage(msg)
 
+
+def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
+    """ Show message in the message bar (just above the map)
+    args:
+        title: (str) title of messages, showed bold in the start of the message
+        msg: (str) message
+        level: (int) INFO = 0, WARNING = 1, CRITICAL = 2, SUCCESS = 3. it is possible to use QgsMessage.INFO, etc
+        duration: (int) how long this the message displays in seconds
+    """
+
+    iface.messageBar().pushMessage(title, msg, level, duration)
 
 class StatusProgressBar(object):
 
