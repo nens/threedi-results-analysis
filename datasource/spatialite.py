@@ -27,6 +27,7 @@ VARIABLE_LABELS = {
     'sewerage_pumpstation': (DISCHARGE_PUMP, ),
     'flowlines': (DISCHARGE, VELOCITY),
     'nodes': (WATERLEVEL, ),
+    'pumplines': (DISCHARGE, VELOCITY),
 }
 
 
@@ -53,6 +54,7 @@ layer_information = [
     ('sewerage_orifice_view', 'orifice', 'q'),
     ('flowlines', 'flowline', 'q'),
     ('nodes', 'node', 'h'),
+    ('pumplines', 'pumpline', 'q'),
 ]
 
 # Old names
@@ -79,6 +81,8 @@ layer_information = [
 layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
 layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 
+PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
+
 
 def get_datasource_variable(parameter, object_type):
     """Get the actual variable name that is used in the datasource,
@@ -87,8 +91,10 @@ def get_datasource_variable(parameter, object_type):
     Returns:
         A list of one or more variables
     """
+    # TODO: this function is ugly and very unclear
+
     # Pumpstation is a special case and has its own netcdf array
-    if parameter == 'q' and object_type == 'pumpstation':
+    if parameter == 'q' and object_type in PUMPLIKE_OBJECTS:
         return ['q_pump']
     # This is for backwards compatability, we want to check try both variable
     # names for the velocity parameter.

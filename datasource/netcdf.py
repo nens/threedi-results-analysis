@@ -148,7 +148,7 @@ class NetcdfDataSource(object):
         # Here we map the feature ids (== object ids) to internal netcdf ids.
         # Note: 'flowline' and 'node' are memory layers that are made from the
         # netcdf, so they don't need an id mapping or netcdf mapping
-        if n_object_type == 'flowline' or n_object_type == 'node':
+        if n_object_type in ['flowline', 'node', 'pumpline']:
             # TODO: need to test this id to make sure (-1/+1??)!!
             netcdf_id = object_id - 1
         else:
