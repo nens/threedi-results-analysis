@@ -37,6 +37,8 @@ def make_pumpline_layer(ds):
     # future, so who cares?
     node_mapping = get_node_mapping(ds)
     for i in range(pumpline.shape[1]):
+        # Note: there is no need to subtract 1 from the index because the
+        # node_mapping already does this for you
         pumpline_p1[i] = node_mapping.get(pumpline_p1[i], 0)
         pumpline_p2[i] = node_mapping.get(pumpline_p2[i], 0)
 
