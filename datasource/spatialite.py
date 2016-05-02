@@ -5,7 +5,7 @@ from pyspatialite import dbapi2 as sqlite
 from ..utils.user_messages import log
 
 
-WATERLEVEL = ('s1', 'waterlevel','m MSL')
+WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
 # TODO: unorm is deprecated, now 'u1'
 VELOCITY = ('unorm', 'velocity', 'm/s')
@@ -27,7 +27,7 @@ VARIABLE_LABELS = {
     'sewerage_pumpstation': (DISCHARGE_PUMP, ),
     'flowlines': (DISCHARGE, VELOCITY),
     'nodes': (WATERLEVEL, ),
-    'pumplines': (DISCHARGE, VELOCITY),
+    'pumplines': (DISCHARGE_PUMP, ),
 }
 
 
