@@ -37,8 +37,8 @@ def get_available_parameters(object_type):
 
 
 layer_information = [
-    # layer name, object_type, q/h type
-    ('v2_connection_nodes', 'connection_nodes', 'h'),
+    # layer name, (normalized) object_type, q/h type
+    ('v2_connection_nodes', 'connection_node', 'h'),
     ('v2_pipe_view', 'pipe', 'q'),
     ('v2_channel', 'channel', 'q'),
     ('v2_culvert', 'culvert', 'q'),
@@ -57,26 +57,24 @@ layer_information = [
     ('pumplines', 'pumpline', 'q'),
 ]
 
-# Old names
-# TODO: remove them
-# layer_information = [
-#     #layer name, object_type, q/h type
-#     ('v2_connection_nodes', 'v2_connection_nodes', 'h'),
-#     ('v2_pipe_view', 'v2_pipe', 'q'),
-#     ('v2_channel', 'v2_channel', 'q'),
-#     ('v2_culvert', 'v2_culvert', 'q'),
-#     ('v2_pumpstation', 'v2_pumpstation', 'q'),
-#     ('v2_pumpstation_view', 'v2_pumpstation', 'q'),
-#     ('v2_weir_view', 'v2_weir', 'q'),
-#     ('v2_orifice_view', 'v2_orifice', 'q'),
-#     ('sewerage_manhole', 'sewerage_manhole', 'h'),
-#     ('sewerage_pipe_view', 'sewerage_pipe', 'q'),
-#     ('sewerage_pumpstation', 'sewerage_pumpstation', 'q'),
-#     ('sewerage_pumpstation_view', 'sewerage_pumpstation', 'q'),
-#     ('sewerage_weir_view', 'sewerage_weir', 'q'),
-#     ('sewerage_orifice_view', 'sewerage_orifice', 'q')
-# ]
-
+# Map a generic parameter to the netCDF variable name. Because the parameters
+# we've chosen are almost always analogous to the real netCDF variable names
+# (e.g. 's1', 'vol', 'q') only exceptional cases are listed here, which in
+# practise means only mapping q to q_pump for pumps.
+PARAMETER_TO_VARIABLE = {
+    'pumpstation': {
+        'q': 'q_pump',
+        # pumps have no velocity
+        'u1': 'dummy',
+        'unorm': 'dummy',
+        },
+    'pumpline': {
+        'q': 'q_pump',
+        # pumps have no velocity
+        'u1': 'dummy',
+        'unorm': 'dummy',
+        },
+    }
 
 layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
 layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
@@ -85,7 +83,9 @@ PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
 
 
 def get_datasource_variable(parameter, object_type):
-    """Get the actual variable name that is used in the datasource,
+    """DEPRECATED!!
+
+    Get the actual variable name that is used in the datasource,
     i.e., that is at the moment defined as the netCDF variable name.
 
     Returns:
@@ -103,8 +103,10 @@ def get_datasource_variable(parameter, object_type):
     return [parameter]
 
 
-def get_variables(object_type=None, parameters=[]):
-    """Get datasource variable names."""
+def OLD_get_variables(object_type=None, parameters=[]):
+    """DEPRECATED!!
+
+    Get datasource variable names."""
     # Don't mutate parameters, we need to clone the list:
     new_params = list(parameters)
     # Note: object_type must be passed as a kwargs, or else this partial
@@ -113,6 +115,28 @@ def get_variables(object_type=None, parameters=[]):
     lists = map(f, new_params)
     # Flatten the list of lists:
     return [item for sublist in lists for item in sublist]
+
+
+def get_variables(object_type=None, parameters=[]):
+    """Get datasource variable names."""
+    # Don't mutate parameters, we need to clone the list:
+    new_params = list(parameters)
+    for i in range(len(new_params)):
+        p = new_params[i]
+        # See if there is a mapping, else use to the original parameter
+        try:
+            new_params[i] = PARAMETER_TO_VARIABLE[object_type][p]
+        except KeyError:
+            new_params[i] = p
+
+    # For backwards compatibility with the original 'unorm' name we add
+    # the 'unorm' variable together with 'u1'. The reason this works in
+    # get_timeseries is because get_timeseries skips unknown variable
+    # names. So in the old netCDF only 'unorm' will be used, and in the
+    # new situation only 'u1' will be used.
+    if 'u1' in new_params:
+        new_params.append('unorm')
+    return new_params
 
 
 def get_object_type(current_layer_name):

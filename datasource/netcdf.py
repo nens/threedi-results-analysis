@@ -122,7 +122,7 @@ class NetcdfDataSource(object):
         # accessing that array.
         if object_type in ['pumpstation']:
             return inp_id - 1
-        elif object_type in ['manhole', 'connection_nodes']:
+        elif object_type in ['manhole', 'connection_node']:
             return self.node_mapping[inp_id]
         else:
             return self.channel_mapping[inp_id]
@@ -132,7 +132,8 @@ class NetcdfDataSource(object):
         """Get a list of time series from netcdf.
 
         Note: if there are multiple parameters, all result values are just
-        lumped together and returned
+        lumped together and returned. If a parameter is unknown it will be
+        skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
@@ -179,7 +180,8 @@ class NetcdfDataSource(object):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
-        lumped together and returned
+        lumped together and returned. If a parameter is unknown it will be
+        skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
