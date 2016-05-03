@@ -59,14 +59,21 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 self.ts_datasource.model_spatialite_filepath not in combo_list:
             combo_list.append(self.ts_datasource.model_spatialite_filepath)
 
+        if not self.ts_datasource.model_spatialite_filepath:
+            combo_list.append('')
+
         self.modelSpatialiteComboBox.addItems(combo_list)
 
-        current_index = self.modelSpatialiteComboBox.findText(
-                            self.ts_datasource.model_spatialite_filepath)
 
         if self.ts_datasource.model_spatialite_filepath:
+            current_index = self.modelSpatialiteComboBox.findText(
+                self.ts_datasource.model_spatialite_filepath)
+
             self.modelSpatialiteComboBox.setCurrentIndex(
                     current_index)
+        else:
+            current_index = self.modelSpatialiteComboBox.findText('')
+            self.modelSpatialiteComboBox.setCurrentIndex(current_index)
 
         self.modelSpatialiteComboBox.currentIndexChanged.connect(
             self.model_spatialite_change)
@@ -186,11 +193,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         uri2 = QgsDataSourceURI()
         uri2.setDatabase(fname)
         uri2.setDataSource(schema, table_name, 'the_geom')
-
-        if 'manhole' in table_name:
-            uri2.setWkbType(QGis.WKBPoint)
-        else:
-            uri2.setWkbType(QGis.WKBLineString)
 
         vector_layer = QgsVectorLayer(uri2.uri(),
                                       table_name,
