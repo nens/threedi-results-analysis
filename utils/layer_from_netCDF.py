@@ -1,14 +1,11 @@
+"""
+    functions for creation of QgsVectorLayers from 3di netCDF files
+"""
 
-
-from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPoint, \
-    QgsMapLayerRegistry
+from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
+    QgsPoint
 from PyQt4.QtCore import QVariant
-
 from user_messages import pop_up_info, StatusProgressBar
-from ..views.tool_dialog import ToolDialogWidget
-
-from ..datasource.netcdf import get_channel_mapping, get_node_mapping
-
 
 
 def make_flowline_layer(ds, progress_bar=None):
@@ -66,7 +63,7 @@ def make_flowline_layer(ds, progress_bar=None):
         # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("flowline_idx", QVariant.Int),
         QgsField("inp_id", QVariant.Int),
-        QgsField("splt_id", QVariant.Int),
+        QgsField("spatialite_id", QVariant.Int),
         QgsField("type", QVariant.String, len=25)
         ])
     vl.updateFields()  # tell the vector layer to fetch changes from the provider
@@ -78,9 +75,9 @@ def make_flowline_layer(ds, progress_bar=None):
     # create mapping of inp_id to spatialite_id and feature type
     inp_to_splt_mapping = {}
     for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir", "v2_orifice"):
-        if  feature_type in ds.id_mapping:
-            for splt_id, inp_id in ds.id_mapping[feature_type].items():
-                inp_to_splt_mapping[inp_id] = (feature_type, splt_id)
+        if feature_type in ds.id_mapping:
+            for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -109,12 +106,12 @@ def make_flowline_layer(ds, progress_bar=None):
         feat.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
 
         inp_id = None
-        splt_tbl = None
-        splt_id = None
+        spatialite_tbl = None
+        spatialite_id = None
 
         try:
             inp_id = int(flowid_to_inp_mapping[i+1])
-            splt_tbl, splt_id = inp_to_splt_mapping[inp_id]
+            spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
             cat = '1dlink'
         except KeyError:
             if cat == '1dlink':
@@ -123,9 +120,9 @@ def make_flowline_layer(ds, progress_bar=None):
                 cat = '2d_bound_link'
             if i == start_1d_bounds:
                 cat = '1d_bound_link'
-            splt_tbl = cat
+            spatialite_tbl = cat
 
-        feat.setAttributes([i, inp_id, splt_id, splt_tbl])
+        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
 
         features.append(feat)
 
@@ -177,7 +174,7 @@ def make_node_layer(ds, progress_bar=None):
         # Important: this differs from the feature id which is node idx+1!!
         QgsField("node_idx", QVariant.Int),
         QgsField("inp_id", QVariant.Int),
-        QgsField("splt_id", QVariant.Int),
+        QgsField("spatialite_id", QVariant.Int),
         QgsField("type", QVariant.String, len=25)
         ])
     vl.updateFields()  # tell the vector layer to fetch changes from the provider
@@ -190,8 +187,8 @@ def make_node_layer(ds, progress_bar=None):
     inp_to_splt_mapping = {}
     for feature_type in ("v2_connection_nodes", "v2_manhole", "v2_1d_boundary_conditions"):
         if feature_type in ds.id_mapping:
-            for splt_id, inp_id in ds.id_mapping[feature_type].items():
-                inp_to_splt_mapping[inp_id] = (feature_type, splt_id)
+            for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
     # add features
@@ -204,15 +201,15 @@ def make_node_layer(ds, progress_bar=None):
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
         inp_id = None
-        splt_tbl = None
-        splt_id = None
+        spatialite_tbl = None
+        spatialite_id = None
         try:
             inp_id = flowid_to_inp_mapping[i]
-            splt_tbl, splt_id = inp_to_splt_mapping[inp_id]
+            spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
         except KeyError:
             pass
 
-        feat.setAttributes([i, inp_id, splt_id, splt_tbl])
+        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
         features.append(feat)
     progress_bar.increase_progress(30, "append data to memory layer")
     pr.addFeatures(features)
