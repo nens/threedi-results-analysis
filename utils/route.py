@@ -24,7 +24,7 @@ class AttributeProperter(QgsArcProperter):
         QgsArcProperter.__init__(self)
         self.attribute = attribute
     def property(self, distance, feature):
-        if self.attribute == 'id':
+        if self.attribute == 'ROWID':
             value = feature.id()
         else:
             value = feature[self.attribute]
@@ -37,16 +37,17 @@ class AttributeProperter(QgsArcProperter):
 class Route(object):
 
     def __init__(self, line_layer, director,
-                 weight_properter=QgsDistanceArcProperter()):
+                 weight_properter=QgsDistanceArcProperter(), id_field="ROWID"):
 
         self.line_layer = line_layer
         self.director = director
+        self.id_field = id_field
         #self.director = QgsLineVectorLayerDirector(self.line_layer, -1, '', '', '', 3)
 
         # build graph for network
         properter_1 = weight_properter
         properter_2 = QgsDistanceArcProperter()
-        properter_3 = AttributeProperter('id')
+        properter_3 = AttributeProperter(self.id_field)
         self.director.addProperter(properter_1)
         self.director.addProperter(properter_2)
         self.director.addProperter(properter_3)
@@ -169,13 +170,14 @@ class Route(object):
 
             id_line = self.graph.arc(self.tree[cur_pos]).properties()[2]
 
-            request = QgsFeatureRequest().setFilterExpression(u'"id" = %s' % str(id_line))
+            filt = u'"%s" = %s' % (self.id_field, str(id_line))
+            request = QgsFeatureRequest().setFilterExpression(filt)
             feature = self.line_layer.getFeatures(request).next()
 
             if point == feature.geometry().vertexAt(0):
                 # current point on tree (end point of this line) is equal to
                 # begin of original feature, so direction is opposite: -1
-                route_direction_feature = -11
+                route_direction_feature = -1
             else:
                 route_direction_feature = 1
 
