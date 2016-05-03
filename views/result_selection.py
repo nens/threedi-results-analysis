@@ -236,48 +236,48 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
 
-        if filename not in self.get_3di_spatialites_legendlist():
-            # add spatialite to layer menu
-            msg = "Voeg de kaartlagen uit de spatialite toe?"
-            reply = QMessageBox.question(self,
-                                         'Kaartlagen toevoegen',
-                                         msg,
-                                         QMessageBox.Yes,
-                                         QMessageBox.No)
-
-            if reply == QMessageBox.No:
-                return True
-
-            legend = self.iface.legendInterface()
-
-            modelgroup = legend.addGroup(u'Model', False)
-            legend.setGroupVisible(modelgroup, True)
-            legend.setGroupExpanded(modelgroup, True)
-
-
-            uri = QgsDataSourceURI()
-            uri.setDatabase(filename)
-            db = QSqlDatabase.addDatabase("QSQLITE")
-
-            # Reuse the path to DB to set database name
-            db.setDatabaseName(uri.database())
-            # Open the connection
-            db.open()
-            # query the table
-            query = db.exec_("""SELECT f_table_name FROM geometry_columns
-                WHERE f_geometry_column = 'the_geom';""")
-
-            while query.next():
-                table_name = query.record().value(0)
-                if table_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(filename, table_name, modelgroup)
-
-            query = db.exec_("""SELECT view_name FROM views_geometry_columns
-                WHERE view_geometry = 'the_geom';""")
-
-            while query.next():
-                view_name = query.record().value(0)
-                if view_name in layer_object_type_mapping.keys():
-                    self._add_spl_layer_to_canvas(filename, view_name, modelgroup)
-
-        return True
+        # if filename not in self.get_3di_spatialites_legendlist():
+        #     # add spatialite to layer menu
+        #     msg = "Voeg de kaartlagen uit de spatialite toe?"
+        #     reply = QMessageBox.question(self,
+        #                                  'Kaartlagen toevoegen',
+        #                                  msg,
+        #                                  QMessageBox.Yes,
+        #                                  QMessageBox.No)
+        #
+        #     if reply == QMessageBox.No:
+        #         return True
+        #
+        #     legend = self.iface.legendInterface()
+        #
+        #     modelgroup = legend.addGroup(u'Model', False)
+        #     legend.setGroupVisible(modelgroup, True)
+        #     legend.setGroupExpanded(modelgroup, True)
+        #
+        #
+        #     uri = QgsDataSourceURI()
+        #     uri.setDatabase(filename)
+        #     db = QSqlDatabase.addDatabase("QSQLITE")
+        #
+        #     # Reuse the path to DB to set database name
+        #     db.setDatabaseName(uri.database())
+        #     # Open the connection
+        #     db.open()
+        #     # query the table
+        #     query = db.exec_("""SELECT f_table_name FROM geometry_columns
+        #         WHERE f_geometry_column = 'the_geom';""")
+        #
+        #     while query.next():
+        #         table_name = query.record().value(0)
+        #         if table_name in layer_object_type_mapping.keys():
+        #             self._add_spl_layer_to_canvas(filename, table_name, modelgroup)
+        #
+        #     query = db.exec_("""SELECT view_name FROM views_geometry_columns
+        #         WHERE view_geometry = 'the_geom';""")
+        #
+        #     while query.next():
+        #         view_name = query.record().value(0)
+        #         if view_name in layer_object_type_mapping.keys():
+        #             self._add_spl_layer_to_canvas(filename, view_name, modelgroup)
+        #
+        # return True
