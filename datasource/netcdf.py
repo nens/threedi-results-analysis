@@ -122,7 +122,7 @@ class NetcdfDataSource(object):
         # accessing that array.
         if object_type in ['pumpstation']:
             return inp_id - 1
-        elif object_type in ['manhole', 'connection_node']:
+        elif object_type in ['manhole', 'connection_nodes']:
             return self.node_mapping[inp_id]
         else:
             return self.channel_mapping[inp_id]

@@ -28,6 +28,7 @@ from PyQt4 import QtGui
 # Import the code for the DockWidget
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from .models.toolbox import ToolboxModel
+from .utils.user_messages import pop_up_question
 
 
 class ThreeDiToolbox:
@@ -120,7 +121,7 @@ class ThreeDiToolbox:
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            if not self.pop_up_question(
+            if not pop_up_question(
                     msg="Are you sure you want to run this script?",
                     title="Warning"):
                 return
@@ -147,27 +148,6 @@ class ThreeDiToolbox:
             self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource)
             self.command.run()
-
-    def pop_up_question(self, msg='', title=''):
-        """Message box question to ask if we want to proceed.
-
-        Returns:
-            True (yes) or False (no).
-        """
-        msg_box = QtGui.QMessageBox()
-        # Not sure about first arg in, should be pass in self.dockwidget
-        # instead?
-        reply = msg_box.question(
-            msg_box, title, msg,
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-            QtGui.QMessageBox.No)
-
-        if reply == QtGui.QMessageBox.Yes:
-            print("YES")
-            return True
-        else:
-            print("NO")
-            return False
 
     def add_tools(self):
         self.toolboxmodel = ToolboxModel()

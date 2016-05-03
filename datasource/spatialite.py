@@ -38,7 +38,11 @@ def get_available_parameters(object_type):
 
 layer_information = [
     # layer name, (normalized) object_type, q/h type
-    ('v2_connection_nodes', 'connection_node', 'h'),
+
+    # Note: the reason why this is plural is because this is (inconsistently)
+    # also plural in the id mapping json, in contrast to all other object
+    # types
+    ('v2_connection_nodes', 'connection_nodes', 'h'),
     ('v2_pipe_view', 'pipe', 'q'),
     ('v2_channel', 'channel', 'q'),
     ('v2_culvert', 'culvert', 'q'),

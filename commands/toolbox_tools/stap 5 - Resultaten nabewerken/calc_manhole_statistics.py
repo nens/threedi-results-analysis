@@ -6,9 +6,11 @@ import inspect
 import os
 
 from ThreeDiToolbox.stats.ncstats import NcStats
-from ThreeDiToolbox.utils.user_messages import pop_up_info, log
+from ThreeDiToolbox.utils.user_messages import (
+    pop_up_info, log, pop_up_question)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.commands.base.custom_command import (
+    CustomCommandBase, join_stats)
 
 
 class CustomCommand(CustomCommandBase):
@@ -70,7 +72,8 @@ class CustomCommand(CustomCommandBase):
         # Generate data
         result = dict()
         for feature in self.layer.getFeatures():
-            fid = feature.id()
+            # fid = feature.id()  # = ROWID
+            fid = feature['id']  # more explicit
             result[fid] = dict()
             result[fid]['id'] = fid
             for param_name in self.parameters:
@@ -114,3 +117,8 @@ class CustomCommand(CustomCommandBase):
                 writer.writerow(val_dict)
 
         pop_up_info("Generated: %s" % filepath, title='Finished')
+
+        if pop_up_question(
+                msg="Do you want to join the CSV with the view layer?",
+                title="Join"):
+            join_stats(filepath, self.layer, 'id')
