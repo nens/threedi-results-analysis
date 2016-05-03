@@ -256,7 +256,7 @@ class ThreeDiTools:
             # layers from it
             # todo: find a better interface to check - this is directly on the
             # netCDF itself
-            if hasattr(ds_item.datasource().ds.variables, 'FlowElem_xcc'):
+            if 'breach_mapping' in ds_item.datasource().ds.variables:
                 # get or create group in legend
                 legend = self.iface.legendInterface()
                 if self.group_layer is None:
