@@ -123,4 +123,8 @@ class CustomCommand(CustomCommandBase):
         # add the layer
         QgsMapLayerRegistry.instance().addMapLayers([vlayer])
 
-        make_pumpline_layer(nds.ds)
+        try:
+            make_pumpline_layer(nds.ds)
+        except:
+            print("Pumps are still in development")
+            pass
