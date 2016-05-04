@@ -4,6 +4,7 @@ from ..datasource.spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
+from ..utils.layer_from_netCDF import make_flowline_layer, make_node_layer
 
 
 def get_line_pattern(item_field):
@@ -40,6 +41,9 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
+        _line_layer = None
+        _node_layer = None
+
         def datasource(self):
             if hasattr(self, '_datasource'):
                 return self._datasource
@@ -49,3 +53,13 @@ class TimeseriesDatasourceModel(BaseModel):
             elif self.type.value == 'netcdf':
                 self._datasource = NetcdfDataSource(self.file_path.value)
                 return self._datasource
+
+        def get_memory_layers(self):
+
+            if self._line_layer is None:
+                self._line_layer = make_flowline_layer(self.datasource())
+
+            if self._node_layer is None:
+                self._node_layer = make_node_layer(self.datasource())
+
+            return self._line_layer, self._node_layer

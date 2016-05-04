@@ -10,117 +10,7 @@ from PyQt4.QtCore import QVariant
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-
-
-def make_flowline_layer(ds):
-    """Make a memory layer that contains all flowlines.
-
-    Args:
-        ds: netCDF Dataset
-    """
-    # Get relevant netCDF.Variables
-    projection = ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
-    # Connections (2, nFlowLine):
-    flowline_connection = ds.variables['FlowLine_connection']
-    # FlowElem centers:
-    flowelem_xcc = ds.variables['FlowElem_xcc']  # in meters
-    flowelem_ycc = ds.variables['FlowElem_ycc']  # in meters
-
-    # -1 probably because of fortran indexing
-    flowline_p1 = flowline_connection[0, :].astype(int) - 1
-    flowline_p2 = flowline_connection[1, :].astype(int) - 1
-
-    # Point 1 of the connection
-    x_p1 = flowelem_xcc[:][flowline_p1]
-    y_p1 = flowelem_ycc[:][flowline_p1]
-
-    # Point 2 of the connection
-    x_p2 = flowelem_xcc[:][flowline_p2]
-    y_p2 = flowelem_ycc[:][flowline_p2]
-
-    # create layer
-    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:{}&index=yes".format(
-        epsg)
-    vl = QgsVectorLayer(uri, "flowlines", "memory")
-    pr = vl.dataProvider()
-
-    # add fields
-    pr.addAttributes([
-        # This is the flowline index in Python (0-based indexing)
-        # Important: this differs from the feature id which is flowline idx+1!!
-        QgsField("flowline_idx", QVariant.Int),
-        ])
-    vl.updateFields()  # tell the vector layer to fetch changes from the provider
-
-    # add features
-    features = []
-    for i in range(flowline_connection.shape[1]):
-        fet = QgsFeature()
-
-        p1 = QgsPoint(x_p1[i], y_p1[i])
-        p2 = QgsPoint(x_p2[i], y_p2[i])
-
-        fet.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
-        fet.setAttributes([i])
-        features.append(fet)
-    pr.addFeatures(features)
-
-    # update layer's extent when new features have been added
-    # because change of extent in provider is not propagated to the layer
-    vl.updateExtents()
-
-    # add the layer
-    QgsMapLayerRegistry.instance().addMapLayers([vl])
-
-
-def make_node_layer(ds):
-    """Make a memory layer that contains all nodes.
-
-    Args:
-        ds: netCDF Dataset
-    """
-    # Get relevant netCDF.Variables
-    projection = ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
-    # FlowElem centers:
-    flowelem_xcc = ds.variables['FlowElem_xcc']  # in meters
-    flowelem_ycc = ds.variables['FlowElem_ycc']  # in meters
-
-    # create layer
-    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "Point?crs=epsg:{}&index=yes".format(
-        epsg)
-    vl = QgsVectorLayer(uri, "nodes", "memory")
-    pr = vl.dataProvider()
-
-    # add fields
-    pr.addAttributes([
-        # This is the node index in Python (0-based indexing)
-        # Important: this differs from the feature id which is node idx+1!!
-        QgsField("node_idx", QVariant.Int),
-        ])
-    vl.updateFields()  # tell the vector layer to fetch changes from the provider
-
-    # add features
-    features = []
-    for i in range(flowelem_xcc.shape[0]):
-        fet = QgsFeature()
-
-        p1 = QgsPoint(flowelem_xcc[i], flowelem_ycc[i])
-
-        fet.setGeometry(QgsGeometry.fromPoint(p1))
-        fet.setAttributes([i])
-        features.append(fet)
-    pr.addFeatures(features)
-
-    # update layer's extent when new features have been added
-    # because change of extent in provider is not propagated to the layer
-    vl.updateExtents()
-
-    # add the layer
-    QgsMapLayerRegistry.instance().addMapLayers([vl])
+from ThreeDiToolbox.utils.layer_from_netCDF import  make_flowline_layer, make_node_layer
 
 
 class CustomCommand(CustomCommandBase):
@@ -150,7 +40,12 @@ class CustomCommand(CustomCommandBase):
             pop_up_info("No datasource found, aborting.", title='Error')
             return
         nds = self.datasource.datasource()  # the netcdf datasource
-        ds = nds.ds
 
-        make_flowline_layer(ds)
-        make_node_layer(ds)
+        vlayer = make_flowline_layer(nds)
+        # add the layer
+        QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+
+        vlayer = make_node_layer(nds)
+        # add the layer
+        QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+

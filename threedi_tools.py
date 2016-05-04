@@ -26,6 +26,9 @@ import os.path
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
 
+from qgis.core import QgsMapLayerRegistry
+
+
 # Initialize Qt resources from file resources.py
 import resources  # NoQa
 
@@ -33,7 +36,9 @@ import resources  # NoQa
 from threedi_result_selection import ThreeDiResultSelection
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
-from .utils.user_messages import pop_up_info, log
+from threedi_sideview import ThreeDiSideView
+from threedi_timeslider import TimesliderWidget, Qt, QSlider
+from .utils.user_messages import pop_up_info, log, messagebar_message
 
 from models.datasources import TimeseriesDatasourceModel
 
@@ -81,10 +86,24 @@ class ThreeDiTools:
         self.tools = []
 
         self.ts_datasource = TimeseriesDatasourceModel()
+        self.timeslider_widget = TimesliderWidget(self.toolbar,
+                                                  self.iface,
+                                                  self.ts_datasource)
+
+
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
+        self.sideview_tool = ThreeDiSideView(iface, self)
+
 
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
-        self.tools.append(ThreeDiGraph(iface, self.ts_datasource))
+        self.tools.append(self.graph_tool)
+        self.tools.append(self.sideview_tool)
+
+        self.active_datasource = None
+        self.group_layer_name = '3di toolbox layers'
+        self.group_layer = None
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -103,6 +122,7 @@ class ThreeDiTools:
 
     def add_action(
         self,
+        tool_instance,
         icon_path,
         text,
         callback,
@@ -170,6 +190,7 @@ class ThreeDiTools:
                 self.menu,
                 action)
 
+        setattr(tool_instance, 'action_icon', action)
         self.actions.append(action)
         return action
 
@@ -177,8 +198,8 @@ class ThreeDiTools:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         try:
-            #load optional settings for remote debugging for development purposes
-            #add file remote_debugger_settings.py in main directory to use debugger
+            # load optional settings for remote debugging for development purposes
+            # add file remote_debugger_settings.py in main directory to use debugger
             import remote_debugger_settings
         except ImportError:
             pass
@@ -192,10 +213,82 @@ class ThreeDiTools:
 
         for tool in self.tools:
             self.add_action(
+                tool,
                 tool.icon_path,
                 text=self.tr(tool.menu_text),
                 callback=tool.run,
                 parent=self.iface.mainWindow())
+
+        sl = QSlider(Qt.Horizontal)
+        self.toolbar.addWidget(self.timeslider_widget)
+
+        self.ts_datasource.rowsRemoved.connect(
+                self.check_status_model_and_results)
+        self.ts_datasource.rowsInserted.connect(
+                self.check_status_model_and_results)
+        self.ts_datasource.dataChanged.connect(
+                self.check_status_model_and_results)
+
+        self.check_status_model_and_results()
+
+    def check_status_model_and_results(self, *args):
+        """ Check if a (new and valid) model or result is selected and react on
+            this by pre-processing of things and activation/ deactivation of
+            tools. function is triggered by changes in the ts_datasource
+            args:
+                *args: (list) the arguments provided by the different signals
+        """
+        # enable/ disable tools that depend on netCDF results
+        if self.ts_datasource.rowCount() > 0:
+            self.graph_tool.action_icon.setEnabled(True)
+            self.sideview_tool.action_icon.setEnabled(True)
+        else:
+            self.graph_tool.action_icon.setEnabled(False)
+            self.sideview_tool.action_icon.setEnabled(False)
+
+        # todo: for now always first netCDF is used. let the user select the
+        # active netCDF
+        if self.ts_datasource.rowCount() > 0 and \
+                        self.ts_datasource.rows[0] != self.active_datasource:
+            ds_item = self.ts_datasource.rows[0]
+            self.active_datasource = ds_item
+            # check if netcdf file contain geometry information, if so, create
+            # layers from it
+            # todo: find a better interface to check - this is directly on the
+            # netCDF itself
+            if 'breach_mapping' in ds_item.datasource().ds.variables:
+                # get or create group in legend
+                legend = self.iface.legendInterface()
+                if self.group_layer is None:
+                    self.group_layer = legend.addGroup(self.group_layer_name,
+                                                       True)
+
+                legend.setGroupVisible(self.group_layer, True)
+
+                # get memory layers
+                line_layer, point_layer = ds_item.get_memory_layers()
+
+                # apply default styling on memory layers
+                line_layer.loadNamedStyle(os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'layer_styles', 'tools', 'flowlines.qml'))
+
+                point_layer.loadNamedStyle(os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'layer_styles', 'tools', 'nodes.qml'))
+
+                # add layers to the map
+                QgsMapLayerRegistry.instance().addMapLayers([line_layer,
+                                                             point_layer])
+                # move the layers to the group
+                legend.setLayerExpanded(line_layer, True)
+                legend.setLayerExpanded(point_layer, True)
+                legend.moveLayer(line_layer, self.group_layer)
+                legend.moveLayer(point_layer, self.group_layer)
+            else:
+                messagebar_message("netCDF", "netCDF does not contain geometry"
+                                             " information, not all results"
+                                             " will be supported", 0, 10)
 
     def about(self):
         """
