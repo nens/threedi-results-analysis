@@ -87,12 +87,13 @@ def make_flowline_layer(ds, progress_bar=None):
     progress_bar.increase_progress(20, "Prepare data")
     # add features
     features = []
+
     # Order of links in netCDF is:
-    # - 2d links (x and y) (nr: part of ds.ds.nFlowElem2d)
-    # - 1d links (nr: ds.ds.nFlowElem1d)
-    # - 1d-2d links (nr: part of ds.ds.nFlowElem2d)
-    # - 2d bound links (nr: ds.ds.nFlowElem2dBounds)
-    # - 1d bound links (nr: ds.ds.nFlowElem1dBounds)
+    # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
+    # - 1d links (nr: ds.ds.nFlowLine1d)
+    # - 1d-2d links (nr: part of ds.ds.nFlowLine2d)
+    # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
+    # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
     # because there is not (yet) distinction  between number of 2d links and 1d-2d links,
     # we will guess the numbers based on the fact that only id mapping is available
     # for all 1d links. (when numbers become available, this code can be improved
@@ -180,7 +181,8 @@ def make_node_layer(ds, progress_bar=None):
         QgsField("node_idx", QVariant.Int),
         QgsField("inp_id", QVariant.Int),
         QgsField("spatialite_id", QVariant.Int),
-        QgsField("type", QVariant.String, len=25)
+        QgsField("feature_type", QVariant.String, len=25),
+        QgsField("node_type", QVariant.String, len=25)
         ])
     # tell the vector layer to fetch changes from the provider
     vl.updateFields()
@@ -208,16 +210,13 @@ def make_node_layer(ds, progress_bar=None):
 
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
-        inp_id = None
-        spatialite_tbl = None
-        spatialite_id = None
-        try:
-            inp_id = node_idx_to_inp_id[i]
-            spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
-        except KeyError:
-            pass
+        # Getting all node types, feature types, and whatnot:
+        node_type = ds.get_node_type(i)
+        inp_id = node_idx_to_inp_id.get(i, None)
+        feature_type, spatialite_id = inp_to_splt_mapping.get(
+            inp_id, (None, None))
 
-        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
+        feat.setAttributes([i, inp_id, spatialite_id, feature_type, node_type])
         features.append(feat)
     progress_bar.increase_progress(30, "append data to memory layer")
     pr.addFeatures(features)

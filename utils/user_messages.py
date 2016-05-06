@@ -28,7 +28,8 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
     args:
         title: (str) title of messages, showed bold in the start of the message
         msg: (str) message
-        level: (int) INFO = 0, WARNING = 1, CRITICAL = 2, SUCCESS = 3. it is possible to use QgsMessage.INFO, etc
+        level: (int) INFO = 0, WARNING = 1, CRITICAL = 2, SUCCESS = 3. It is
+            possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
 

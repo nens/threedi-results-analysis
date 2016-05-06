@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.1-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.8.9-Wien" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="node_idx">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
@@ -7,41 +7,135 @@
     <edittype widgetv2type="TextEdit" name="inp_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="splt_id">
+    <edittype widgetv2type="TextEdit" name="spatialite_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="type">
+    <edittype widgetv2type="TextEdit" name="feature_type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="node_type">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
   </edittypes>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+  <renderer-v2 attr="node_type" symbollevels="0" type="categorizedSymbol">
+    <categories>
+      <category render="true" symbol="0" value="1d" label="1d"/>
+      <category render="true" symbol="1" value="1d_bound" label="1d_bound"/>
+      <category render="true" symbol="2" value="2d" label="2d"/>
+      <category render="true" symbol="3" value="" label=""/>
+    </categories>
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
+      <symbol alpha="1" type="marker" name="0">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="95,208,77,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
+          <prop k="size_map_unit_scale" v="0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" type="marker" name="1">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="223,128,237,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
+          <prop k="size_map_unit_scale" v="0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" type="marker" name="2">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="46,157,221,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
+          <prop k="size_map_unit_scale" v="0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" type="marker" name="3">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="222,106,39,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
+          <prop k="size_map_unit_scale" v="0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+    </symbols>
+    <source-symbol>
+      <symbol alpha="1" type="marker" name="0">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="119,119,119,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0"/>
           <prop k="offset_unit" v="MM"/>
           <prop k="outline_color" v="184,184,184,255"/>
           <prop k="outline_style" v="solid"/>
           <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
           <prop k="size" v="2"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_map_unit_scale" v="0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
         </layer>
       </symbol>
-    </symbols>
+    </source-symbol>
     <rotation/>
-    <sizescale scalemethod="diameter"/>
+    <sizescale scalemethod="area"/>
   </renderer-v2>
-  <labeling type="simple"/>
   <customproperties>
     <property key="labeling" value="pal"/>
     <property key="labeling/addDirectionSymbol" value="false"/>
@@ -72,8 +166,9 @@
     <property key="labeling/enabled" value="false"/>
     <property key="labeling/fieldName" value=""/>
     <property key="labeling/fitInPolygonOnly" value="false"/>
+    <property key="labeling/fontBold" value="true"/>
     <property key="labeling/fontCapitals" value="0"/>
-    <property key="labeling/fontFamily" value="MS Shell Dlg 2"/>
+    <property key="labeling/fontFamily" value="Ubuntu"/>
     <property key="labeling/fontItalic" value="false"/>
     <property key="labeling/fontLetterSpacing" value="0"/>
     <property key="labeling/fontLimitPixelSize" value="false"/>
@@ -85,7 +180,7 @@
     <property key="labeling/fontSizeMapUnitMinScale" value="0"/>
     <property key="labeling/fontStrikeout" value="false"/>
     <property key="labeling/fontUnderline" value="false"/>
-    <property key="labeling/fontWeight" value="50"/>
+    <property key="labeling/fontWeight" value="63"/>
     <property key="labeling/fontWordSpacing" value="0"/>
     <property key="labeling/formatNumbers" value="false"/>
     <property key="labeling/isExpression" value="true"/>
@@ -102,14 +197,14 @@
     <property key="labeling/minFeatureSize" value="0"/>
     <property key="labeling/multilineAlign" value="0"/>
     <property key="labeling/multilineHeight" value="1"/>
-    <property key="labeling/namedStyle" value="Normal"/>
+    <property key="labeling/namedStyle" value="Medium"/>
     <property key="labeling/obstacle" value="true"/>
     <property key="labeling/obstacleFactor" value="1"/>
     <property key="labeling/obstacleType" value="0"/>
     <property key="labeling/offsetType" value="0"/>
     <property key="labeling/placeDirectionSymbol" value="0"/>
     <property key="labeling/placement" value="0"/>
-    <property key="labeling/placementFlags" value="10"/>
+    <property key="labeling/placementFlags" value="0"/>
     <property key="labeling/plussign" value="false"/>
     <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
     <property key="labeling/preserveRotation" value="true"/>
@@ -190,8 +285,6 @@
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
@@ -218,41 +311,12 @@
     <multilineenabled fieldname="" on=""/>
     <selectedonly on=""/>
   </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-    </DiagramCategory>
-  </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <editform></editform>
+  <editforminit/>
+  <featformsuppress>0</featformsuppress>
   <annotationform></annotationform>
+  <editorlayout>generatedlayout</editorlayout>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions/>
-  <editform></editform>
-  <editforminit/>
-  <editforminitcodesource>0</editforminitcodesource>
-  <editforminitfilepath></editforminitfilepath>
-  <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
-"""
-Formulieren van QGIS mogen een functie van Python hebben die wordt aangeroepen wanneer het formulier wordt geopend.
-
-Gebruik deze functie om extra logica aan uw formulieren toe te voegen.
-
-Voer de naam van de functie in in het veld "Python Init functie".
-Een voorbeeld volgt:
-"""
-from PyQt4.QtGui import QWidget
-
-def my_form_open(dialog, layer, feature):
-	geom = feature.geometry()
-	control = dialog.findChild(QWidget, "MyLineEdit")
-]]></editforminitcode>
-  <featformsuppress>0</featformsuppress>
-  <editorlayout>generatedlayout</editorlayout>
-  <widgets/>
-  <conditionalstyles>
-    <rowstyles/>
-    <fieldstyles/>
-  </conditionalstyles>
-  <layerGeometryType>0</layerGeometryType>
 </qgis>

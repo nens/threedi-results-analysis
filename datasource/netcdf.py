@@ -53,6 +53,8 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
+
+
 class NetcdfDataSource(object):
 
     def __init__(self, file_path):
@@ -126,6 +128,31 @@ class NetcdfDataSource(object):
             return self.node_mapping[inp_id]
         else:
             return self.channel_mapping[inp_id]
+
+    def get_node_type(self, node_idx):
+        """Get the node type based on its index."""
+        # Order of nodes in netCDF is:
+        # 1. nFlowElem2d
+        # 2. nFlowElem1d
+        # 3. nFlowElem2dBounds
+        # 4. nFlowElem1dBounds
+        #    ----------------- +
+        #    nFlowElem
+        n2dtot = self.ds.nFlowElem2d
+        n1dtot = self.ds.nFlowElem1d
+        n2dobc = self.ds.nFlowElem2dBounds
+        n1dobc = self.ds.nFlowElem1dBounds
+
+        if node_idx < n2dtot:
+            return '2d'
+        elif node_idx < n2dtot + n1dtot:
+            return '1d'
+        elif node_idx < n2dtot + n1dtot + n2dobc:
+            return '2d_bound'
+        elif node_idx < n2dtot + n1dtot + n2dobc + n1dobc:
+            return '1d_bound'
+        else:
+            return 'unknown'
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
