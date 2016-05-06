@@ -177,7 +177,7 @@ class NetcdfDataSource(object):
             return '1d_bound'
         else:
            raise ValueError("Index %s is not smaller than the number of lines (%s)" %
-                            (node_idx, self.ds.nFlowLine))
+                            (line_idx, self.ds.nFlowLine))
 
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
