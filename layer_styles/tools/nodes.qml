@@ -51,11 +51,11 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="223,128,237,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="circle"/>
+          <prop k="name" v="rectangle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_color" v="0,0,0,255"/>
           <prop k="outline_style" v="solid"/>
           <prop k="outline_width" v="0"/>
           <prop k="outline_width_map_unit_scale" v="0,0"/>
@@ -93,11 +93,11 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="222,106,39,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="circle"/>
+          <prop k="name" v="rectangle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="184,184,184,255"/>
+          <prop k="outline_color" v="0,0,0,255"/>
           <prop k="outline_style" v="solid"/>
           <prop k="outline_width" v="0"/>
           <prop k="outline_width_map_unit_scale" v="0,0"/>
