@@ -88,21 +88,10 @@ def make_flowline_layer(ds, progress_bar=None):
     # add features
     features = []
 
-    # Order of links in netCDF is:
-    # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
-    # - 1d links (nr: ds.ds.nFlowLine1d)
-    # - 1d-2d links (nr: part of ds.ds.nFlowLine2d)
-    # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
-    # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
-    # because there is not (yet) distinction  between number of 2d links and 1d-2d links,
-    # we will guess the numbers based on the fact that only id mapping is available
-    # for all 1d links. (when numbers become available, this code can be improved
-    # and optimized
-
-    cat = '2d_links'
-    start_2d_bounds = (flowline_connection.shape[1] - ds.ds.nFlowLine2dBounds
-                       - ds.ds.nFlowLine1dBounds)
-    start_1d_bounds = flowline_connection.shape[1] - ds.ds.nFlowLine1dBounds
+    # TODO: because there is not (yet) distinction  between number of 2d
+    # links and 1d-2d links, we will guess the numbers based on the fact that
+    # only id mapping is available for all 1d links. (when numbers become
+    # available, this code can be improved and optimized
     for i in range(flowline_connection.shape[1]):
         feat = QgsFeature()
 
@@ -118,14 +107,10 @@ def make_flowline_layer(ds, progress_bar=None):
         try:
             inp_id = int(flowid_to_inp_mapping[i+1])
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
-            cat = '1dlink'
         except KeyError:
-            if cat == '1dlink':
-                cat = '1d_2d_link'
-            if i == start_2d_bounds:
-                cat = '2d_bound_link'
-            if i == start_1d_bounds:
-                cat = '1d_bound_link'
+            cat = ds.get_line_type(i)
+            if cat == '1d':
+                cat = '1d_2d'
             spatialite_tbl = cat
 
         feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])

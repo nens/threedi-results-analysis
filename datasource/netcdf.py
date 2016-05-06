@@ -141,7 +141,6 @@ class NetcdfDataSource(object):
         n2dtot = self.ds.nFlowElem2d
         n1dtot = self.ds.nFlowElem1d
         n2dobc = self.ds.nFlowElem2dBounds
-        n1dobc = self.ds.nFlowElem1dBounds
 
         if node_idx < n2dtot:
             return '2d'
@@ -149,10 +148,35 @@ class NetcdfDataSource(object):
             return '1d'
         elif node_idx < n2dtot + n1dtot + n2dobc:
             return '2d_bound'
-        elif node_idx < n2dtot + n1dtot + n2dobc + n1dobc:
+        elif node_idx < self.ds.nFlowElem:
             return '1d_bound'
         else:
             return 'unknown'
+
+    def get_line_type(self, line_idx):
+        """Get line type based on its index."""
+        # Order of links in netCDF is:
+        # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
+        # - 1d links (nr: ds.ds.nFlowLine1d)
+        # - 1d-2d links (nr: part of ds.ds.nFlowLine2d)
+        # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
+        # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
+
+        end_2d_bound = self.ds.nFlowLine - self.ds.nFlowLine1dBounds
+        end_1d = (self.ds.nFlowLine - self.ds.nFlowLine2dBounds -
+                  self.ds.nFlowLine1dBounds)
+
+        if line_idx < self.ds.nFlowLine2d:
+            return '2d'
+        elif line_idx < end_1d:
+            return '1d'
+        elif line_idx < end_2d_bound:
+            return '2d_bound'
+        elif line_idx < self.ds.nFlowLine:
+            return '1d_bound'
+        else:
+            return "unknown"
+
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):

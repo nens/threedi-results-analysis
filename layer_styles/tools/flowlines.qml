@@ -17,8 +17,8 @@
   <renderer-v2 attr="type" forceraster="0" symbollevels="0" type="categorizedSymbol" enableorderby="0">
     <categories>
       <category render="true" symbol="0" value="" label=""/>
-      <category render="true" symbol="1" value="1d_2d_link" label="1d_2d_link"/>
-      <category render="true" symbol="2" value="2d_links" label="2d_links"/>
+      <category render="true" symbol="1" value="1d_2d" label="1d_2d"/>
+      <category render="true" symbol="2" value="2d" label="2d"/>
       <category render="true" symbol="3" value="v2_channel" label="v2_channel"/>
       <category render="true" symbol="4" value="v2_culvert" label="v2_culvert"/>
       <category render="true" symbol="5" value="v2_pipe" label="v2_pipe"/>
