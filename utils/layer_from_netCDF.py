@@ -5,7 +5,9 @@
 from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
     QgsPoint
 from PyQt4.QtCore import QVariant
-from user_messages import pop_up_info, StatusProgressBar
+
+from ..datasource.netcdf import get_node_mapping
+from .user_messages import StatusProgressBar
 
 
 def make_flowline_layer(ds, progress_bar=None):
@@ -222,3 +224,74 @@ def make_node_layer(ds, progress_bar=None):
     progress_bar.increase_progress(5, "ready")
     return vl
 
+
+def make_pumpline_layer(nds):
+    """Make a memory layer that contains all pumplines.
+
+    Args:
+        nds: netCDF Datasource
+    """
+    # Get relevant netCDF.Variables
+    projection = nds.ds.variables['projected_coordinate_system']
+    epsg = projection.epsg  # = 28992
+    # Pumpline connections (2, jap1d):
+    pumpline = nds.ds.variables['pump_mapping']
+    # FlowElem centers:
+    flowelem_xcc = nds.ds.variables['FlowElem_xcc']  # in meters
+    flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
+
+    # -1 probably because of fortran indexing
+    pumpline_p1 = pumpline[0, :].astype(int)  # - 1
+    pumpline_p2 = pumpline[1, :].astype(int)  # - 1
+
+    # TODO: Not very efficient, but this mapping is not needed anyway in the
+    # future, so who cares?
+    node_mapping = get_node_mapping(nds.ds)
+    for i in range(pumpline.shape[1]):
+        # Note: there is no need to subtract 1 from the index because the
+        # node_mapping already does this for you
+        pumpline_p1[i] = node_mapping.get(pumpline_p1[i], 0)
+        pumpline_p2[i] = node_mapping.get(pumpline_p2[i], 0)
+
+    # Point 1 of the connection
+    x_p1 = flowelem_xcc[:][pumpline_p1]
+    y_p1 = flowelem_ycc[:][pumpline_p1]
+
+    # Point 2 of the connection
+    x_p2 = flowelem_xcc[:][pumpline_p2]
+    y_p2 = flowelem_ycc[:][pumpline_p2]
+
+    # create layer
+    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
+    uri = "LineString?crs=epsg:{}&index=yes".format(
+        epsg)
+    vl = QgsVectorLayer(uri, "pumplines", "memory")
+    pr = vl.dataProvider()
+
+    # add fields
+    pr.addAttributes([
+        # This is the flowline index in Python (0-based indexing)
+        # Important: this differs from the feature id which is flowline idx+1!!
+        QgsField("pumpline_idx", QVariant.Int),
+        ])
+    vl.updateFields()  # tell the vector layer to fetch changes from the provider
+
+    # add features
+    features = []
+    number_of_pumplines = pumpline.shape[1]
+    for i in range(number_of_pumplines):
+        fet = QgsFeature()
+
+        p1 = QgsPoint(x_p1[i], y_p1[i])
+        p2 = QgsPoint(x_p2[i], y_p2[i])
+
+        fet.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
+        fet.setAttributes([i])
+        features.append(fet)
+    pr.addFeatures(features)
+
+    # update layer's extent when new features have been added
+    # because change of extent in provider is not propagated to the layer
+    vl.updateExtents()
+
+    return vl

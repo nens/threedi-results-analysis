@@ -1,6 +1,4 @@
-
-
-from PyQt4.QtGui  import QMessageBox, QProgressBar
+from PyQt4.QtGui import QMessageBox, QProgressBar
 from PyQt4.QtCore import Qt
 from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
@@ -14,9 +12,11 @@ def log(msg, level='INFO'):
     loglevel = getattr(QgsMessageLog, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
 
+
 def pop_up_info(msg='', title='Information', parent=None):
     """Display an info message via Qt box"""
     QMessageBox.information(parent, title, '%s' % msg)
+
 
 def statusbar_message(msg=''):
     """Display message in status bar """
@@ -33,6 +33,24 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
     """
 
     iface.messageBar().pushMessage(title, msg, level, duration)
+
+
+def pop_up_question(msg='', title=''):
+    """Message box question (Yes or No).
+
+    Returns:
+        True if 'Yes' was clicked, or False if 'No' was clicked.
+    """
+    msg_box = QMessageBox()
+    # Not sure about first arg in, should be pass in self.dockwidget
+    # instead?
+    reply = msg_box.question(
+        msg_box, title, msg,
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No)
+
+    return (reply == QMessageBox.Yes)
+
 
 class StatusProgressBar(object):
 

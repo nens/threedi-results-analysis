@@ -1,16 +1,12 @@
-"""This script calculates statistics on the selected layer for structures and
-outputs it to csv.
+"""This script generates node and line layers from netCDF.
 """
-from qgis.core import (
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsPoint,
-    QgsMapLayerRegistry
-    )
-from PyQt4.QtCore import QVariant
+from qgis.core import QgsMapLayerRegistry
 
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.layer_from_netCDF import  make_flowline_layer, make_node_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import (
+    make_flowline_layer, make_node_layer, make_pumpline_layer)
 
 
 class CustomCommand(CustomCommandBase):
@@ -41,11 +37,17 @@ class CustomCommand(CustomCommandBase):
             return
         nds = self.datasource.datasource()  # the netcdf datasource
 
-        vlayer = make_flowline_layer(nds)
-        # add the layer
-        QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+        flowline_layer = make_flowline_layer(nds)
+        node_layer = make_node_layer(nds)
 
-        vlayer = make_node_layer(nds)
-        # add the layer
-        QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+        vlayers = [flowline_layer, node_layer]
 
+        try:
+            pump_layer = make_pumpline_layer(nds)
+            vlayers.append(pump_layer)
+        except:
+            print("Pumps are still in development")
+            pass
+
+        # add the layers
+        QgsMapLayerRegistry.instance().addMapLayers(vlayers)

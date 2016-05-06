@@ -132,7 +132,8 @@ class NetcdfDataSource(object):
         """Get a list of time series from netcdf.
 
         Note: if there are multiple parameters, all result values are just
-        lumped together and returned
+        lumped together and returned. If a parameter is unknown it will be
+        skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
@@ -148,7 +149,7 @@ class NetcdfDataSource(object):
         # Here we map the feature ids (== object ids) to internal netcdf ids.
         # Note: 'flowline' and 'node' are memory layers that are made from the
         # netcdf, so they don't need an id mapping or netcdf mapping
-        if n_object_type == 'flowline' or n_object_type == 'node':
+        if n_object_type in ['flowline', 'node', 'pumpline']:
             # TODO: need to test this id to make sure (-1/+1??)!!
             netcdf_id = object_id - 1
         else:
@@ -179,7 +180,8 @@ class NetcdfDataSource(object):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
-        lumped together and returned
+        lumped together and returned. If a parameter is unknown it will be
+        skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
