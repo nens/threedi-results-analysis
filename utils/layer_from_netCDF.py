@@ -15,8 +15,8 @@ def make_flowline_layer(ds, progress_bar=None):
 
     Args:
         ds: NetcdfDataSource
-        progress_bar: (StatusProgressBar) - progress bar instance for feedback over progress.
-                        this tool will make 100 steps
+        progress_bar: (StatusProgressBar) - progress bar instance for feedback
+            about progress. This tool will make 100 steps
 
     Returns:
         (QgsVectorLayer) In memory layer with all lines
@@ -68,37 +68,30 @@ def make_flowline_layer(ds, progress_bar=None):
         QgsField("spatialite_id", QVariant.Int),
         QgsField("type", QVariant.String, len=25)
         ])
-    vl.updateFields()  # tell the vector layer to fetch changes from the provider
+    # tell the vector layer to fetch changes from the provider
+    vl.updateFields()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in ds.ds.variables['channel_mapping']])
+    flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in
+                                  ds.ds.variables['channel_mapping']])
 
     # create mapping of inp_id to spatialite_id and feature type
     inp_to_splt_mapping = {}
-    for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir", "v2_orifice"):
+    for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
+                         "v2_orifice"):
         if feature_type in ds.id_mapping:
             for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
                 inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
-
     progress_bar.increase_progress(20, "Prepare data")
     # add features
     features = []
-    # Order of links in netCDF is:
-    # - 2d links (x and y) (nr: part of ds.ds.nFlowElem2d)
-    # - 1d links (nr: ds.ds.nFlowElem1d)
-    # - 1d-2d links (nr: part of ds.ds.nFlowElem2d)
-    # - 2d bound links (nr: ds.ds.nFlowElem2dBounds)
-    # - 1d bound links (nr: ds.ds.nFlowElem1dBounds)
-    # because there is not (yet) distinction  between number of 2d links and 1d-2d links,
-    # we will guess the numbers based on the fact that only id mapping is available
-    # for all 1d links. (when numbers become available, this code can be improved
-    # and optimized
 
-    cat = '2d_links'
-    start_2d_bounds = flowline_connection.shape[1] - ds.ds.nFlowLine2dBounds - ds.ds.nFlowLine1dBounds
-    start_1d_bounds = flowline_connection.shape[1] - ds.ds.nFlowLine1dBounds
+    # TODO: because there is not (yet) distinction  between number of 2d
+    # links and 1d-2d links, we will guess the numbers based on the fact that
+    # only id mapping is available for all 1d links. (when numbers become
+    # available, this code can be improved and optimized
     for i in range(flowline_connection.shape[1]):
         feat = QgsFeature()
 
@@ -114,14 +107,10 @@ def make_flowline_layer(ds, progress_bar=None):
         try:
             inp_id = int(flowid_to_inp_mapping[i+1])
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
-            cat = '1dlink'
         except KeyError:
-            if cat == '1dlink':
-                cat = '1d_2d_link'
-            if i == start_2d_bounds:
-                cat = '2d_bound_link'
-            if i == start_1d_bounds:
-                cat = '1d_bound_link'
+            cat = ds.get_line_type(i)
+            if cat == '1d':
+                cat = '1d_2d'
             spatialite_tbl = cat
 
         feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
@@ -145,8 +134,8 @@ def make_node_layer(ds, progress_bar=None):
 
     Args:
         ds: NetcdfDataSource
-        progress_bar: (StatusProgressBar) - progress bar instance for feedback over progress.
-                this tool will make 100 steps
+        progress_bar: (StatusProgressBar) - progress bar instance for feedback
+            about progress. This tool will make 100 steps.
 
     Returns:
         (QgsVectorLayer) In memory layer with all points
@@ -177,17 +166,21 @@ def make_node_layer(ds, progress_bar=None):
         QgsField("node_idx", QVariant.Int),
         QgsField("inp_id", QVariant.Int),
         QgsField("spatialite_id", QVariant.Int),
-        QgsField("type", QVariant.String, len=25)
+        QgsField("feature_type", QVariant.String, len=25),
+        QgsField("node_type", QVariant.String, len=25)
         ])
-    vl.updateFields()  # tell the vector layer to fetch changes from the provider
+    # tell the vector layer to fetch changes from the provider
+    vl.updateFields()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    flowid_to_inp_mapping = dict([(flowid-1, inp_id) for inp_id, flowid in ds.ds.variables['node_mapping']])
+    node_idx_to_inp_id = dict([(flowid-1, inp_id) for inp_id, flowid in
+                               ds.ds.variables['node_mapping']])
 
     # create mapping of inp_id to spatialite_id and feature type
     inp_to_splt_mapping = {}
-    for feature_type in ("v2_connection_nodes", "v2_manhole", "v2_1d_boundary_conditions"):
+    for feature_type in ("v2_connection_nodes", "v2_manhole",
+                         "v2_1d_boundary_conditions"):
         if feature_type in ds.id_mapping:
             for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
                 inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
@@ -202,16 +195,13 @@ def make_node_layer(ds, progress_bar=None):
 
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
-        inp_id = None
-        spatialite_tbl = None
-        spatialite_id = None
-        try:
-            inp_id = flowid_to_inp_mapping[i]
-            spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
-        except KeyError:
-            pass
+        # Getting all node types, feature types, and whatnot:
+        node_type = ds.get_node_type(i)
+        inp_id = node_idx_to_inp_id.get(i, None)
+        feature_type, spatialite_id = inp_to_splt_mapping.get(
+            inp_id, (None, None))
 
-        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
+        feat.setAttributes([i, inp_id, spatialite_id, feature_type, node_type])
         features.append(feat)
     progress_bar.increase_progress(30, "append data to memory layer")
     pr.addFeatures(features)
@@ -274,7 +264,8 @@ def make_pumpline_layer(nds):
         # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("pumpline_idx", QVariant.Int),
         ])
-    vl.updateFields()  # tell the vector layer to fetch changes from the provider
+    # tell the vector layer to fetch changes from the provider
+    vl.updateFields()
 
     # add features
     features = []
