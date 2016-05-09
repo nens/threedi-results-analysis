@@ -15,10 +15,8 @@ This plugin has the following dependencies/requirements:
 
 Windows
   The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under
-  Windows (tested on Windows 7 SP1 and Windows 10).
-
-  If you are using other the 32 bit installation of QGIS, it's best to upgrade to the 64 bit version or build
-  the python netCDF4 including C bindings yourself.
+  Windows (tested on Windows 7 SP1 and Windows 10). If you are using other the 32 bit installation of QGIS,
+  it's best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
 Linux
   Install the python netCDF4 package using ``pip install netCDF4``. The included pyqtgraph should be good.
