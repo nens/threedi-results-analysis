@@ -4,21 +4,24 @@ threedi-qgis-plugin
 3Di QGIS Plugin (3Di Toolbox)
 
 
-Installation on Windows
------------------------
+Requirements
+------------
 
-Using the 64 bit installation of QGIS is recommended for this plugin. The package includes the dependencies
-'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under Windows (installation is tested on clean
-installations of Windows 7 sp1 and Windows 10).
+This plugin has the following dependencies/requirements:
 
-If you are using other the 32 bit installation of QGIS, best to upgrade to the 64 bit version or build
-the python netCDF4 including c bindings yourself.
+- QGIS 2.8 or 2.14 (64bit is recommended)
+- pyqtgraph (included)
+- netCDF4 (included for Windows using 64bit QGIS)
 
+Windows
+  The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under
+  Windows (installation is tested on clean installations of Windows 7 sp1 and Windows 10).
 
-Installation on Linux
----------------------
+  If you are using other the 32 bit installation of QGIS, it's best to upgrade to the 64 bit version or build
+  the python netCDF4 including C bindings yourself.
 
-Install the python netCDF4 package using ``pip install netCDF4``
+Linux
+  Install the python netCDF4 package using ``pip install netCDF4``. The included pyqtgraph should be good.
 
 
 Installing the plugin
