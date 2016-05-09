@@ -151,7 +151,8 @@ class NetcdfDataSource(object):
         elif node_idx < self.ds.nFlowElem:
             return '1d_bound'
         else:
-            return 'unknown'
+           raise ValueError("Index %s is not smaller than the number of nodes (%s)" %
+                            (node_idx, self.ds.nFlowElem))
 
     def get_line_type(self, line_idx):
         """Get line type based on its index."""
@@ -175,7 +176,8 @@ class NetcdfDataSource(object):
         elif line_idx < self.ds.nFlowLine:
             return '1d_bound'
         else:
-            return "unknown"
+           raise ValueError("Index %s is not smaller than the number of lines (%s)" %
+                            (line_idx, self.ds.nFlowLine))
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
