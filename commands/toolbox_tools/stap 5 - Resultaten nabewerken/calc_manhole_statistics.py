@@ -5,7 +5,7 @@ import csv
 import inspect
 import os
 
-from ThreeDiToolbox.stats.ncstats import NcStats
+from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
@@ -31,9 +31,6 @@ class CustomCommand(CustomCommandBase):
         self.ts_datasource = kwargs.get('ts_datasource')
 
         self.derived_parameters = ['wos_height', 'water_depth']
-        # All the NcStats parameters we want to calculate.
-        self.parameters = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
-            self.derived_parameters
 
         # These will be dynamically set:
         self.layer = None
@@ -67,7 +64,23 @@ class CustomCommand(CustomCommandBase):
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
-        ncstats = NcStats(datasource=nds)
+
+        # Select the right version of NcStats
+        if nds.type == nds.AGGREGATED:
+            if not pop_up_question(
+                    msg="Based on the filename this netCDF file was "
+                        "recognized as an aggregated netCDF. Is this correct?",
+                    title="netCDF type"):
+                pop_up_info("Script stopped, try again.", title='Error')
+                return
+            ncstats = NcStatsAgg(datasource=nds)
+        else:
+            ncstats = NcStats(datasource=nds)
+
+        # All the NcStats parameters we want to calculate (can differ per
+        # NcStats version)
+        parameters = ncstats.AVAILABLE_MANHOLE_PARAMETERS + \
+            self.derived_parameters
 
         # Generate data
         result = dict()
@@ -76,7 +89,7 @@ class CustomCommand(CustomCommandBase):
             fid = feature['id']  # more explicit
             result[fid] = dict()
             result[fid]['id'] = fid
-            for param_name in self.parameters:
+            for param_name in parameters:
                 # Water op straat berekening (wos_height):
                 if param_name == 'wos_height':
                     try:
@@ -109,7 +122,7 @@ class CustomCommand(CustomCommandBase):
         filename = layer_name + '_stats.csv'
         filepath = os.path.join(result_dir, filename)
         with open(filepath, 'wb') as csvfile:
-            fieldnames = ['id'] + self.parameters
+            fieldnames = ['id'] + parameters
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                     delimiter=',')
             writer.writeheader()

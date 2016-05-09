@@ -61,6 +61,8 @@ class CustomCommand(CustomCommandBase):
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
+
+        # Select the right version of NcStats
         if nds.type == nds.AGGREGATED:
             if not pop_up_question(
                     msg="Based on the filename this netCDF file was "
@@ -78,7 +80,7 @@ class CustomCommand(CustomCommandBase):
             fid = feature['ROWID']
             result[fid] = dict()
             result[fid]['id'] = fid
-            for param_name in NcStats.AVAILABLE_STRUCTURE_PARAMETERS:
+            for param_name in ncstats.AVAILABLE_STRUCTURE_PARAMETERS:
                 method = getattr(ncstats, param_name)
                 try:
                     result[fid][param_name] = method(layer_name, fid)
@@ -89,7 +91,7 @@ class CustomCommand(CustomCommandBase):
         filename = layer_name + '_stats.csv'
         filepath = os.path.join(result_dir, filename)
         with open(filepath, 'wb') as csvfile:
-            fieldnames = ['id'] + NcStats.AVAILABLE_STRUCTURE_PARAMETERS
+            fieldnames = ['id'] + ncstats.AVAILABLE_STRUCTURE_PARAMETERS
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                     delimiter=',')
             writer.writeheader()
