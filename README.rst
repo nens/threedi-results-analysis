@@ -70,5 +70,6 @@ Notes
 -----
 
 .. [1] The repo dir itself is a package (has an ``__init__.py``). To make everything work correctly
-       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this:
-       ``git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox``.
+       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this::
+
+           $ git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox
