@@ -5,7 +5,8 @@ threedi-qgis-plugin
 
 
 Installation on Windows
----------------------
+-----------------------
+
 Using the 64 bit installation of QGIS is recommended for this plugin. The package includes the dependencies
 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under Windows (installation is tested on clean
 installations of Windows 7 sp1 and Windows 10).
@@ -28,8 +29,12 @@ The plugin can be added using one of the following ways:
 - Through the Lizard QGIS repository. Via menu bar go to:
   Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
   Install the plugin by selecting ThreeDiToolbox.
-- Copy/symlink the repo directory to your plugin directory (on Linux:
-  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``)
+- Copy or symlink the repo directory to your plugin directory (on Linux:
+  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``) [1]_
+
+.. [1] The repo dir itself is a package (has an ``__init__.py``). To make everything work correctly
+       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this:
+       ``git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox``.
 
 
 Release
@@ -59,6 +64,6 @@ outside of the repository directory and then run test modules independently like
 
 **New method** with ``nose`` test runner. Make sure you have ``nose`` installed (``pip install nose``).
 First you have to rename the plugin dir to the right package name, which is ``ThreeDiToolbox`` or
-else the relative imports won't work correctly. Then go outside the plugin dir and run ``nosetests``::
+else the relative imports won't work correctly (see [1]_). Then run ``nosetests`` inside the plugin directory::
 
-    $ nosetests ThreeDiToolbox
+    $ nosetests
