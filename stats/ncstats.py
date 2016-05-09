@@ -5,6 +5,7 @@ it work with our own data sources.
 import numpy as np
 
 from ..datasource.netcdf import NetcdfDataSource
+from ..utils import cached_property
 
 
 class NcStats(object):
@@ -42,12 +43,18 @@ class NcStats(object):
         else:
             raise ValueError("No netCDF source")
 
-        self.timesteps = self.datasource.timesteps
-        self.timestamps = self.datasource.get_timestamps()
+    @property
+    def timesteps(self):
+        return self.datasource.timesteps
+
+    @cached_property
+    def timestamps(self):
+        return self.datasource.get_timestamps()
 
     def tot_vol(self, structure_type, obj_id):
         """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps
+        orifices, pumps (pumps q's are in another netCDF array, but are
+        supported in the datasource using the usual 'q' name).
 
         Note that the last element in q_slice is skipped (skipping the first
         element is another option, but not implemented here). Also note that q
@@ -134,3 +141,53 @@ class NcStats(object):
     def close(self):
         # TODO: is this used? also law of demeter
         self.datasource.ds.close()
+
+
+class NcStatsAgg(NcStats):
+    """A version of NcStats that works with the so called 'aggregation'
+    version of the 3Di netCDF result."""
+
+    # Update these lists if you add a new method
+    AVAILABLE_STRUCTURE_PARAMETERS = ['tot_vol', 'q_max']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
+
+    def __init__(self, *args, **kwargs):
+        super(NcStatsAgg, self).__init__(*args, **kwargs)
+
+    def tot_vol(self, structure_type, obj_id):
+        """Total volume through a structure. Structures are: pipes, weirs,
+        orifices. So no pumps.
+
+        Note that q can be negative, so the absolute values are used.
+        """
+        if 'pump' in structure_type:
+            raise NotImplementedError(
+                "Total volume doesn't work for pumps yet using the "
+                "aggregated netCDF")
+        q_cum_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['q_cum'])
+        q_cum_slice = np.absolute(q_cum_slice)
+
+        # We can sum without integration because q_cum is already an
+        # integrated variable.
+        return q_cum_slice.sum()
+
+    def q_max(self, structure_type, obj_id):
+        """Maximum value of a q timeseries; can be negative.
+        """
+        if 'pump' in structure_type:
+            raise NotImplementedError(
+                "Max q doesn't work for pumps yet using the "
+                "aggregated netCDF")
+        q_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['q_max'])
+        _min = q_slice.min()
+        _max = q_slice.max()
+        # return highest absolute value, while retaining the sign of the number
+        return max(_min, _max, key=abs)
+
+    def s1_max(self, structure_type, obj_id):
+        """Maximum value of a s1 timeseries."""
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['s1_max'])
+        return slice.max()

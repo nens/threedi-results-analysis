@@ -33,14 +33,14 @@ from qgis.core import QgsMapLayerRegistry
 import resources  # NoQa
 
 # Import the code of the tools
-from threedi_result_selection import ThreeDiResultSelection
-from threedi_toolbox import ThreeDiToolbox
-from threedi_graph import ThreeDiGraph
-from threedi_sideview import ThreeDiSideView
-from threedi_timeslider import TimesliderWidget
-from .utils.user_messages import pop_up_info, log, messagebar_message
-
-from models.datasources import TimeseriesDatasourceModel
+from .threedi_result_selection import ThreeDiResultSelection
+from .threedi_toolbox import ThreeDiToolbox
+from .threedi_graph import ThreeDiGraph
+from .threedi_sideview import ThreeDiSideView
+from .threedi_timeslider import TimesliderWidget
+from .utils.user_messages import (
+    pop_up_info, log, messagebar_message, pop_up_question)
+from .models.datasources import TimeseriesDatasourceModel
 
 
 class ThreeDiTools:
@@ -254,8 +254,14 @@ class ThreeDiTools:
         # active netCDF
         if (self.ts_datasource.rowCount() > 0 and
                 self.ts_datasource.rows[0] != self.active_datasource):
+
             ds_item = self.ts_datasource.rows[0]
             self.active_datasource = ds_item
+
+            if not pop_up_question(msg="Add netCDF layers to map?",
+                                   title="netCDF layers"):
+                return
+
             # check if netcdf file contain geometry information, if so, create
             # layers from it
             # todo: find a better interface to check - this is directly on the

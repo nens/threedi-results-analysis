@@ -7,6 +7,7 @@ import numpy as np
 
 from ..utils.user_messages import log
 from .spatialite import get_object_type, get_variables
+from ..utils import cached_property
 
 
 def get_id_mapping_file(netcdf_file_path):
@@ -53,9 +54,10 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
-
-
 class NetcdfDataSource(object):
+
+    REGULAR = 'regular'  # e.g. 'subgrid_map.nc'
+    AGGREGATED = 'aggregated'  # e.g. 'flow_aggregate.nc'
 
     def __init__(self, file_path):
         """
@@ -67,19 +69,37 @@ class NetcdfDataSource(object):
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
 
-        self.channel_mapping = get_channel_mapping(self.ds)
-        self.node_mapping = get_node_mapping(self.ds)
-        self.timesteps = get_timesteps(self.ds)
-
         self.id_mapping_file = get_id_mapping_file(file_path)
         # Load id mapping
         with open(self.id_mapping_file) as f:
             self.id_mapping = json.load(f)
 
+    @cached_property
+    def channel_mapping(self):
+        return get_channel_mapping(self.ds)
+
+    @cached_property
+    def node_mapping(self):
+        return get_node_mapping(self.ds)
+
+    @cached_property
+    def timesteps(self):
+        return get_timesteps(self.ds)
+
+    @property
+    def type(self):
+        """A naive way to find the netcdf type."""
+        if 'aggregate' in os.path.basename(self.file_path):
+            return self.AGGREGATED
+        return self.REGULAR
+
     @property
     def metadata(self):
 
         pass
+
+    def get_timestamps(self, object_type=None, parameter=None):
+        return self.ds.variables['time'][:]
 
     def get_object_types(self, parameter=None):
 
@@ -92,9 +112,6 @@ class NetcdfDataSource(object):
     def get_object_count(self, object_type):
 
         pass
-
-    def get_timestamps(self, object_type=None, parameter=None):
-        return self.ds.variables['time'][:]
 
     def get_parameters(self, object_type=None):
         pass
@@ -151,8 +168,9 @@ class NetcdfDataSource(object):
         elif node_idx < self.ds.nFlowElem:
             return '1d_bound'
         else:
-           raise ValueError("Index %s is not smaller than the number of nodes (%s)" %
-                            (node_idx, self.ds.nFlowElem))
+            raise ValueError(
+                "Index %s is not smaller than the number of nodes (%s)" %
+                (node_idx, self.ds.nFlowElem))
 
     def get_line_type(self, line_idx):
         """Get line type based on its index."""
@@ -176,8 +194,9 @@ class NetcdfDataSource(object):
         elif line_idx < self.ds.nFlowLine:
             return '1d_bound'
         else:
-           raise ValueError("Index %s is not smaller than the number of lines (%s)" %
-                            (line_idx, self.ds.nFlowLine))
+            raise ValueError(
+                "Index %s is not smaller than the number of lines (%s)" %
+                (line_idx, self.ds.nFlowLine))
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
@@ -225,7 +244,6 @@ class NetcdfDataSource(object):
             timestamps = self.get_timestamps()
             result += zip(timestamps, vals)
 
-        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
         return result
 
     def get_timeseries_values(self, object_type, object_id, parameters):

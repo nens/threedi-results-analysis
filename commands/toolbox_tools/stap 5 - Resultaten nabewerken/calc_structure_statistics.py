@@ -5,7 +5,7 @@ import csv
 import inspect
 import os
 
-from ThreeDiToolbox.stats.ncstats import NcStats
+from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
 from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import (
@@ -28,9 +28,6 @@ class CustomCommand(CustomCommandBase):
              if not name.startswith('__') and not name.startswith('_')])
         self.iface = kwargs.get('iface')
         self.ts_datasource = kwargs.get('ts_datasource')
-
-        # All the NcStats parameters we want to calculate.
-        self.parameters = NcStats.AVAILABLE_STRUCTURE_PARAMETERS
 
         # These will be dynamically set:
         self.layer = None
@@ -64,7 +61,16 @@ class CustomCommand(CustomCommandBase):
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
-        ncstats = NcStats(datasource=nds)
+        if nds.type == nds.AGGREGATED:
+            if not pop_up_question(
+                    msg="Based on the filename this netCDF file was "
+                        "recognized as an aggregated netCDF. Is this correct?",
+                    title="netCDF type"):
+                pop_up_info("Script stopped, try again.", title='Error')
+                return
+            ncstats = NcStatsAgg(datasource=nds)
+        else:
+            ncstats = NcStats(datasource=nds)
 
         # Generate data
         result = dict()
@@ -72,7 +78,7 @@ class CustomCommand(CustomCommandBase):
             fid = feature['ROWID']
             result[fid] = dict()
             result[fid]['id'] = fid
-            for param_name in self.parameters:
+            for param_name in NcStats.AVAILABLE_STRUCTURE_PARAMETERS:
                 method = getattr(ncstats, param_name)
                 try:
                     result[fid][param_name] = method(layer_name, fid)
@@ -83,7 +89,7 @@ class CustomCommand(CustomCommandBase):
         filename = layer_name + '_stats.csv'
         filepath = os.path.join(result_dir, filename)
         with open(filepath, 'wb') as csvfile:
-            fieldnames = ['id'] + self.parameters
+            fieldnames = ['id'] + NcStats.AVAILABLE_STRUCTURE_PARAMETERS
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                     delimiter=',')
             writer.writeheader()
