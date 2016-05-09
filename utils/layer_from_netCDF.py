@@ -225,23 +225,19 @@ def make_pumpline_layer(nds):
     projection = nds.ds.variables['projected_coordinate_system']
     epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
-    pumpline = nds.ds.variables['pump_mapping']
+    pumpline = nds.ds.variables['PumpLine_connections']
+
+    # TODO: temporary fix for inconsistent shapes. To be removed when netcdf
+    # shape is the same as the flowline shape:
+    pumpline = pumpline[:].T
+
     # FlowElem centers:
     flowelem_xcc = nds.ds.variables['FlowElem_xcc']  # in meters
     flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
 
     # -1 probably because of fortran indexing
-    pumpline_p1 = pumpline[0, :].astype(int)  # - 1
-    pumpline_p2 = pumpline[1, :].astype(int)  # - 1
-
-    # TODO: Not very efficient, but this mapping is not needed anyway in the
-    # future, so who cares?
-    node_mapping = get_node_mapping(nds.ds)
-    for i in range(pumpline.shape[1]):
-        # Note: there is no need to subtract 1 from the index because the
-        # node_mapping already does this for you
-        pumpline_p1[i] = node_mapping.get(pumpline_p1[i], 0)
-        pumpline_p2[i] = node_mapping.get(pumpline_p2[i], 0)
+    pumpline_p1 = pumpline[0, :].astype(int) - 1
+    pumpline_p2 = pumpline[1, :].astype(int) - 1
 
     # Point 1 of the connection
     x_p1 = flowelem_xcc[:][pumpline_p1]

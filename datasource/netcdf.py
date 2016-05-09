@@ -177,7 +177,6 @@ class NetcdfDataSource(object):
         else:
             return "unknown"
 
-
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
@@ -249,9 +248,16 @@ class NetcdfDataSource(object):
         # Normalize the name
         n_object_type = get_object_type(object_type)
 
-        # Mapping: spatialite id -> inp id -> netcdf id
-        inp_id = self.get_inp_id(object_id, n_object_type)
-        netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
+        # Here we map the feature ids (== object ids) to internal netcdf ids.
+        # Note: 'flowline' and 'node' are memory layers that are made from the
+        # netcdf, so they don't need an id mapping or netcdf mapping
+        if n_object_type in ['flowline', 'node', 'pumpline']:
+            # TODO: need to test this id to make sure (-1/+1??)!!
+            netcdf_id = object_id - 1
+        else:
+            # Mapping: spatialite id -> inp id -> netcdf id
+            inp_id = self.get_inp_id(object_id, n_object_type)
+            netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
         if len(variables) > 1:
