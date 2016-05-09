@@ -85,7 +85,6 @@ class CustomCommand(CustomCommandBase):
         # Generate data
         result = dict()
         for feature in self.layer.getFeatures():
-            # fid = feature.id()  # = ROWID
             fid = feature['id']  # more explicit
             result[fid] = dict()
             result[fid]['id'] = fid
