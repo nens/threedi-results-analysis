@@ -1,7 +1,13 @@
 threedi-qgis-plugin
 ===================
 
-3Di QGIS Plugin (3Di Toolbox)
+A QGIS Plugin for working with 3Di models and netCDF results. Features include:
+
+- Importing spatialite and netCDF datasources
+- Visualization of 3Di network structure based on the netCDF
+- Visualization of netCDF time series results
+- Sideviews
+- An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
 
 
 Requirements
