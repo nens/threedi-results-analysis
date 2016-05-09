@@ -32,10 +32,6 @@ The plugin can be added using one of the following ways:
 - Copy or symlink the repo directory to your plugin directory (on Linux:
   ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``) [1]_
 
-.. [1] The repo dir itself is a package (has an ``__init__.py``). To make everything work correctly
-       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this:
-       ``git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox``.
-
 
 Release
 -------
@@ -67,3 +63,11 @@ First you have to rename the plugin dir to the right package name, which is ``Th
 else the relative imports won't work correctly (see [1]_). Then run ``nosetests`` inside the plugin directory::
 
     $ nosetests
+
+
+Notes
+-----
+
+.. [1] The repo dir itself is a package (has an ``__init__.py``). To make everything work correctly
+       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this:
+       ``git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox``.
