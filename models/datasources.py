@@ -4,7 +4,8 @@ from ..datasource.spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
-from ..utils.layer_from_netCDF import make_flowline_layer, make_node_layer
+from ..utils.layer_from_netCDF import (
+    make_flowline_layer, make_node_layer, make_pumpline_layer)
 
 
 def get_line_pattern(item_field):
@@ -29,13 +30,15 @@ def get_line_pattern(item_field):
 
     return Qt.SolidLine
 
+
 class TimeseriesDatasourceModel(BaseModel):
 
     model_spatialite_filepath = None
 
     class Fields:
 
-        active = CheckboxField(show=True, default_value=True, column_width=20, column_name='')
+        active = CheckboxField(show=True, default_value=True, column_width=20,
+                               column_name='')
         name = ValueField(show=True, column_width=130, column_name='Name')
         file_path = ValueField(show=True, column_width=260, column_name='File')
         type = ValueField(show=False)
@@ -43,6 +46,7 @@ class TimeseriesDatasourceModel(BaseModel):
 
         _line_layer = None
         _node_layer = None
+        _pumpline_layer = None
 
         def datasource(self):
             if hasattr(self, '_datasource'):
@@ -55,11 +59,13 @@ class TimeseriesDatasourceModel(BaseModel):
                 return self._datasource
 
         def get_memory_layers(self):
-
             if self._line_layer is None:
                 self._line_layer = make_flowline_layer(self.datasource())
 
             if self._node_layer is None:
                 self._node_layer = make_node_layer(self.datasource())
 
-            return self._line_layer, self._node_layer
+            if self._pumpline_layer is None:
+                self._pumpline_layer = make_pumpline_layer(self.datasource())
+
+            return self._line_layer, self._node_layer, self._pumpline_layer

@@ -248,8 +248,8 @@ class ThreeDiTools:
 
         # todo: for now always first netCDF is used. let the user select the
         # active netCDF
-        if self.ts_datasource.rowCount() > 0 and \
-                        self.ts_datasource.rows[0] != self.active_datasource:
+        if (self.ts_datasource.rowCount() > 0 and
+                self.ts_datasource.rows[0] != self.active_datasource):
             ds_item = self.ts_datasource.rows[0]
             self.active_datasource = ds_item
             # check if netcdf file contain geometry information, if so, create
@@ -266,25 +266,26 @@ class ThreeDiTools:
                 legend.setGroupVisible(self.group_layer, True)
 
                 # get memory layers
-                line_layer, point_layer = ds_item.get_memory_layers()
+                line_layer, node_layer, pumpline_layer = \
+                    ds_item.get_memory_layers()
 
                 # apply default styling on memory layers
                 line_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'flowlines.qml'))
 
-                point_layer.loadNamedStyle(os.path.join(
+                node_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'nodes.qml'))
 
                 # add layers to the map
-                QgsMapLayerRegistry.instance().addMapLayers([line_layer,
-                                                             point_layer])
+                QgsMapLayerRegistry.instance().addMapLayers(
+                    [line_layer, node_layer, pumpline_layer])
+
                 # move the layers to the group
-                legend.setLayerExpanded(line_layer, True)
-                legend.setLayerExpanded(point_layer, True)
-                legend.moveLayer(line_layer, self.group_layer)
-                legend.moveLayer(point_layer, self.group_layer)
+                for lyr in [line_layer, node_layer, pumpline_layer]:
+                    legend.setLayerExpanded(lyr, True)
+                    legend.moveLayer(lyr, self.group_layer)
             else:
                 messagebar_message("netCDF", "netCDF does not contain geometry"
                                              " information, not all results"
