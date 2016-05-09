@@ -30,7 +30,8 @@ The plugin can be added using one of the following ways:
   Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
-  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``) [1]_
+  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``);
+  make sure the dir is called ``ThreeDiToolbox`` ([1]_)
 
 
 Release
