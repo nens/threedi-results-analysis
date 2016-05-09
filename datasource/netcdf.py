@@ -283,6 +283,8 @@ class NetcdfDataSource(object):
         if len(variables) > 1:
             log("Warning! More than one variable used in getting the "
                 "time series! Not sure if you'd want this!", level='CRITICAL')
+            raise ValueError("More than one variable used, proceed with "
+                             "caution!")
 
         # Get data from all variables and just put them in the same list:
         result = np.array([])
