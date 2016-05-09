@@ -5,7 +5,7 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 
 - Importing spatialite and netCDF datasources
 - Visualization of 3Di network structure based on the netCDF
-- Visualization of netCDF time series results
+- Visualization of datasource time series
 - Sideviews
 - An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
 
@@ -13,19 +13,17 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 Requirements
 ------------
 
-This plugin has the following dependencies/requirements:
-
-- QGIS 2.8 or 2.14 (64bit is recommended)
+- QGIS 2.8 or 2.14 (64 bit is recommended)
 - pyqtgraph (included)
-- netCDF4 (included for Windows using 64bit QGIS)
+- netCDF4 (included only for Windows using 64 bit QGIS)
 
 Windows
-  The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64bit installations of QGIS under
-  Windows (tested on Windows 7 SP1 and Windows 10). If you are using other the 32 bit installation of QGIS,
-  it's best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
+  The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64 bit installations of QGIS under
+  Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
+  it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
 Linux
-  Install the python netCDF4 package using ``pip install netCDF4``. The included pyqtgraph should be good.
+  Install the python netCDF4 package using ``pip install netCDF4``.
 
 
 Installing the plugin
@@ -33,7 +31,7 @@ Installing the plugin
 
 The plugin can be added using one of the following ways:
 
-- Through the Lizard QGIS repository. Via menu bar go to:
+- Using the Lizard QGIS repository: via the QGIS menu bar go to
   Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
