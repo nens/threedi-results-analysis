@@ -4,16 +4,21 @@ threedi-qgis-plugin changelog
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Several new features were added (side view, netCDF network generation,
+  etc.), plus improvements in existing features.
 
 
 0.3 (2016-04-13)
 ----------------
 
 - Add tool version number to about box.
+
 - Add support of multiple result files.
+
 - Warn user on adding to many locations to graph.
+
 - Only new locations will be added to graph.
+
 - Improved color selections for timeseries after the first 20.
 
 
