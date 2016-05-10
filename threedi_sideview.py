@@ -47,7 +47,7 @@ class ThreeDiSideView:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icon.png'
+        self.icon_path = ':/plugins/ThreeDiToolbox/icon_route.png'
         self.menu_text = u'Show sideview of 3di model with results'
 
         self.dock_widgets = []

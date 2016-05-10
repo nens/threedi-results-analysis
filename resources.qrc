@@ -6,5 +6,7 @@
 		<file>icon_toolbox_small.png</file>
 		<file>icon_hammer_small.png</file>
         <file>icon_add_datasource.png</file>
+		<file>icon_route.png</file>
+		<file>icon_route_small.png</file>
     </qresource>
 </RCC>
