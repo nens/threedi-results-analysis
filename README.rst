@@ -36,7 +36,7 @@ Installation
 The plugin can be added using one of the following ways:
 
 - Using the Lizard QGIS repository: via the QGIS menu bar go to
-  Plugins > Manage And Install Plugins... > Settings; add the repo and reload.
+  Plugins > Manage And Install Plugins... > Settings; add ``https://plugins.lizard.net/`` and reload.
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
   ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``);
