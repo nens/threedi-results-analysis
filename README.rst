@@ -9,9 +9,9 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 - Sideviews
 - An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
 
-Go to the Wiki_ for more info.
+`Take a look at the Wiki for information`_.
 
-.. _Wiki: https://github.com/nens/threedi-qgis-plugin/wiki
+.. _`Take a look at the Wiki for information`: https://github.com/nens/threedi-qgis-plugin/wiki
 
 
 Requirements
