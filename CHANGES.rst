@@ -1,7 +1,7 @@
 threedi-qgis-plugin changelog
 =============================
 
-0.4 (unreleased)
+0.4 (2016-05-10)
 ----------------
 
 - Several new features were added (side view, netCDF network generation,
