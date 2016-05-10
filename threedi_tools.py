@@ -37,7 +37,7 @@ from threedi_result_selection import ThreeDiResultSelection
 from threedi_toolbox import ThreeDiToolbox
 from threedi_graph import ThreeDiGraph
 from threedi_sideview import ThreeDiSideView
-from threedi_timeslider import TimesliderWidget, Qt, QSlider
+from threedi_timeslider import TimesliderWidget
 from .utils.user_messages import pop_up_info, log, messagebar_message
 
 from models.datasources import TimeseriesDatasourceModel
@@ -219,15 +219,14 @@ class ThreeDiTools:
                 callback=tool.run,
                 parent=self.iface.mainWindow())
 
-        sl = QSlider(Qt.Horizontal)
         self.toolbar.addWidget(self.timeslider_widget)
 
         self.ts_datasource.rowsRemoved.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
         self.ts_datasource.rowsInserted.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
         self.ts_datasource.dataChanged.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
 
         self.check_status_model_and_results()
 
@@ -238,12 +237,17 @@ class ThreeDiTools:
             args:
                 *args: (list) the arguments provided by the different signals
         """
-        # enable/ disable tools that depend on netCDF results
+        # Enable/disable tools that depend on netCDF results.
+        # For side views also the spatialite needs to be imported or else it
+        # crashes with a  segmentation fault
         if self.ts_datasource.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
-            self.sideview_tool.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
+        if (self.ts_datasource.rowCount() > 0 and
+                self.ts_datasource.model_spatialite_filepath is not None):
+            self.sideview_tool.action_icon.setEnabled(True)
+        else:
             self.sideview_tool.action_icon.setEnabled(False)
 
         # todo: for now always first netCDF is used. let the user select the
