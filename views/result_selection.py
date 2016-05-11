@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt4.QtCore import pyqtSignal, QSettings
+from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
@@ -180,6 +180,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.ts_datasource.model_spatialite_filepath = \
                 self.modelSpatialiteComboBox.currentText()
+        # Just emitting some dummy model indices cuz what else can we do, there
+        # is no corresponding rows/columns that's been changed
+        self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def _add_spl_layer_to_canvas(self, fname, table_name, group_name):
         """
