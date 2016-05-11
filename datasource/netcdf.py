@@ -153,13 +153,6 @@ class NetcdfDataSource(object):
         return get_timesteps(self.ds)
 
     @property
-    def type(self):
-        """A naive way to find the netcdf type."""
-        if 'aggregate' in os.path.basename(self.file_path):
-            return self.AGGREGATED
-        return self.REGULAR
-
-    @property
     def metadata(self):
         pass
 

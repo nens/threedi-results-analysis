@@ -236,6 +236,8 @@ def make_pumpline_layer(nds):
     flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
 
     # -1 probably because of fortran indexing
+    # CAUTION: pumpline index can be 0, (what that means I don't really know,
+    # but it does mean that the pump isn't valid) thus we can get a -1 here:
     pumpline_p1 = pumpline[0, :].astype(int) - 1
     pumpline_p2 = pumpline[1, :].astype(int) - 1
 
@@ -259,6 +261,8 @@ def make_pumpline_layer(nds):
         # This is the flowline index in Python (0-based indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("pumpline_idx", QVariant.Int),
+        QgsField("node_idx1", QVariant.Int),
+        QgsField("node_idx2", QVariant.Int),
         ])
     # tell the vector layer to fetch changes from the provider
     vl.updateFields()
@@ -272,8 +276,11 @@ def make_pumpline_layer(nds):
         p1 = QgsPoint(x_p1[i], y_p1[i])
         p2 = QgsPoint(x_p2[i], y_p2[i])
 
+        node_idx1 = int(pumpline_p1[i])
+        node_idx2 = int(pumpline_p2[i])
+
         fet.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
-        fet.setAttributes([i])
+        fet.setAttributes([i, node_idx1, node_idx2])
         features.append(fet)
     pr.addFeatures(features)
 
