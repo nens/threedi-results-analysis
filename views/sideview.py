@@ -698,7 +698,7 @@ class SideViewDockWidget(QDockWidget):
 
         self.rb.reset()
         # todo: find out how to unload layer from memory
-        QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer)
+        QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer.id())
 
     def closeEvent(self, event):
         """
