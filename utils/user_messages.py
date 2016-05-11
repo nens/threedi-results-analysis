@@ -36,17 +36,14 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
     iface.messageBar().pushMessage(title, msg, level, duration)
 
 
-def pop_up_question(msg='', title=''):
+def pop_up_question(msg='', title='', parent=None):
     """Message box question (Yes or No).
 
     Returns:
         True if 'Yes' was clicked, or False if 'No' was clicked.
     """
-    msg_box = QMessageBox()
-    # Not sure about first arg in, should be pass in self.dockwidget
-    # instead?
-    reply = msg_box.question(
-        msg_box, title, msg,
+    reply = QMessageBox.question(
+        parent, title, msg,
         QMessageBox.Yes | QMessageBox.No,
         QMessageBox.No)
 
