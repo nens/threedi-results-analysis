@@ -17,12 +17,39 @@ def get_id_mapping_file(netcdf_file_path):
     relative to the netcdf file and that it always starts with
     'id_mapping'.
 
-    Returns: id_mapping file path
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        id_mapping file path
+
+    Raises:
+        IndexError if nothing is found
     """
     pattern = 'id_mapping*'
     inpdir = os.path.join(os.path.dirname(netcdf_file_path),
                           '..', 'input_generated')
     return glob.glob(os.path.join(inpdir, pattern))[0]
+
+
+def get_aggregation_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file.
+
+    It is assumed that the file is called 'flow_aggregate.nc' and in the same
+    directory as the 'regular' result netcdf.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = 'flow_aggregate.nc'
+    result_dir = os.path.dirname(netcdf_file_path)
+    return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
 def get_channel_mapping(ds):
@@ -55,24 +82,53 @@ def get_timesteps(ds):
 
 
 class NetcdfDataSource(object):
+    """This netCDF datasource combines three things:
 
-    REGULAR = 'regular'  # e.g. 'subgrid_map.nc'
-    AGGREGATED = 'aggregated'  # e.g. 'flow_aggregate.nc'
+    1. the regular 3Di result netcdf: subgrid_map.nc
+    2. the spatialite mappings from id_mapping.json
+    3. the aggregation netcdf flow_aggregate.nc
+
+    To initialize this class only the subgrid_map.nc netcdf is required though,
+    the locations of the other two files can be derived from it. Furthermore,
+    the other files should be lazily loaded because they are not required in
+    all use cases and/or they are not always available. In the latter case you
+    will still want the parts of your program to work that DO NOT require the
+    additional files. However, if you DO want to enforce these files to be
+    required, you can do so by checking them using the helper functions
+    'get_id_mapping_file' and 'get_aggregation_netcdf'.
+    """
 
     def __init__(self, file_path):
         """
         Args:
-            file_path: path to netcdf
+            file_path: path to result netcdf
         """
         self.file_path = file_path
         # Load netcdf
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
 
-        self.id_mapping_file = get_id_mapping_file(file_path)
+    @property
+    def id_mapping_file(self):
+        return get_id_mapping_file(self.file_path)
+
+    @cached_property
+    def id_mapping(self):
         # Load id mapping
         with open(self.id_mapping_file) as f:
-            self.id_mapping = json.load(f)
+            return json.load(f)
+
+    @property
+    def aggregation_netcdf_file(self):
+        return get_aggregation_netcdf(self.file_path)
+
+    @cached_property
+    def ds_aggregation(self):
+        """The aggregation netcdf dataset."""
+        # Load aggregation netcdf
+        log("Opening aggregation netcdf: %s" % self.aggregation_netcdf_file)
+        return Dataset(self.aggregation_netcdf_file, mode='r',
+                       format='NETCDF4')
 
     @cached_property
     def channel_mapping(self):
@@ -95,29 +151,24 @@ class NetcdfDataSource(object):
 
     @property
     def metadata(self):
-
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
 
     def get_object_types(self, parameter=None):
-
         pass
 
     def get_objects(self, object_type):
-
         pass
 
     def get_object_count(self, object_type):
-
         pass
 
     def get_parameters(self, object_type=None):
         pass
 
     def get_object(self, object_type, object_id):
-
         pass
 
     def get_inp_id(self, object_id, normalized_object_type):

@@ -5,7 +5,7 @@ import csv
 import inspect
 import os
 
-from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
+from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
@@ -64,18 +64,7 @@ class CustomCommand(CustomCommandBase):
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
-
-        # Select the right version of NcStats
-        if nds.type == nds.AGGREGATED:
-            if not pop_up_question(
-                    msg="Based on the filename this netCDF file was "
-                        "recognized as an aggregated netCDF. Is this correct?",
-                    title="netCDF type"):
-                pop_up_info("Script stopped, try again.", title='Error')
-                return
-            ncstats = NcStatsAgg(datasource=nds)
-        else:
-            ncstats = NcStats(datasource=nds)
+        ncstats = NcStats(datasource=nds)
 
         # All the NcStats parameters we want to calculate (can differ per
         # NcStats version)

@@ -145,7 +145,7 @@ class NcStats(object):
 
 class NcStatsAgg(NcStats):
     """A version of NcStats that works with the so called 'aggregation'
-    version of the 3Di netCDF result."""
+    version of the 3Di netCDF files."""
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = ['tot_vol', 'q_max']
