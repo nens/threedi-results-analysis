@@ -13,9 +13,13 @@ from ..utils import cached_property
 def get_id_mapping_file(netcdf_file_path):
     """An ad-hoc way to get the id_mapping file.
 
-    We assume the id_mapping file is always in ../input_generated
-    relative to the netcdf file and that it always starts with
-    'id_mapping'.
+    We assume the id_mapping file is in on of the following locations (note:
+    this order is also the searching order):
+
+    1) . (in the same dir as the netcdf)
+    2) ../input_generated
+
+    relative to the netcdf file and that it starts with 'id_mapping'.
 
     Args:
         netcdf_file_path: path to the result netcdf
@@ -29,7 +33,13 @@ def get_id_mapping_file(netcdf_file_path):
     pattern = 'id_mapping*'
     inpdir = os.path.join(os.path.dirname(netcdf_file_path),
                           '..', 'input_generated')
-    return glob.glob(os.path.join(inpdir, pattern))[0]
+    resultdir = os.path.dirname(netcdf_file_path)
+
+    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
+    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
+
+    inpfiles = from_resultdir + from_inpdir
+    return inpfiles[0]
 
 
 def get_aggregation_netcdf(netcdf_file_path):

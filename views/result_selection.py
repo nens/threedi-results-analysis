@@ -125,8 +125,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 get_id_mapping_file(filename)
             except IndexError:
                 pop_up_info("No id mapping file found, we tried the following "
-                            "locations: [../input_generated]. Please add this "
-                            "file to the correct location and try again.",
+                            "locations: [., ../input_generated]. Please add "
+                            "this file to the correct location and try again.",
                             title='Error')
                 return False
 
