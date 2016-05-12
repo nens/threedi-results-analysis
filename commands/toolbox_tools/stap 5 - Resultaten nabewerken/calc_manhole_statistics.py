@@ -14,6 +14,13 @@ from ThreeDiToolbox.commands.base.custom_command import (
 
 
 class CustomCommand(CustomCommandBase):
+    """
+    Things to note:
+
+    If you select a memory layer the behaviour will be different from clicking
+    on a normal spatialite view. For example, NcStatsAgg will be used instead
+    of NcStats.
+    """
 
     class Fields(object):
         name = "Test script"
