@@ -138,6 +138,12 @@ class NcStats(object):
             structure_type, obj_id, ['q'])
         return q_slice[-1]
 
+    def get_value_from_parameter(
+            self, structure_type, obj_id, parameter_name):
+        """Select the method from parameter name and call the method."""
+        method = getattr(self, parameter_name)
+        return method(structure_type, obj_id)
+
     def close(self):
         # TODO: is this used? also law of demeter
         self.datasource.ds.close()
@@ -198,15 +204,38 @@ class NcStatsAgg(NcStats):
     version of the 3Di netCDF files."""
 
     # Update these lists if you add a new method
-    AVAILABLE_STRUCTURE_PARAMETERS = ['tot_vol', 'q_max']
+    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
     AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
 
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
 
-    def tot_vol(self, structure_type, obj_id):
-        """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps.
+    def _max(self, structure_type, obj_id, parameter):
+        """Maximum value of a timeseries.
+
+        Args:
+            parameter: must be a parameter that ends in '_max'
+        """
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        return slice.max()
+
+    def _min(self, structure_type, obj_id, parameter):
+        """Minimum value of a timeseries.
+
+        Args:
+            parameter: must be a parameter that ends in '_min'
+        """
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        return slice.min()
+
+    def _cum(self, structure_type, obj_id, parameter):
+        """Cumulative value of a timeseries.
+
+        This is used to calculate e.g. total volume through a structure (the
+        cumulative values in the netcdf are integrated over time).
+        Structures are: pipes, weirs, orifices. So no pumps.
 
         Note that q can be negative, so the absolute values are used.
         """
@@ -214,30 +243,25 @@ class NcStatsAgg(NcStats):
             raise NotImplementedError(
                 "Total volume doesn't work for pumps yet using the "
                 "aggregated netCDF")
-        q_cum_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q_cum'])
-        q_cum_slice = np.absolute(q_cum_slice)
+        cum_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        cum_slice = np.absolute(cum_slice)
 
-        # We can sum without integration because q_cum is already an
+        # We can sum without integration because parameter is already an
         # integrated variable.
-        return q_cum_slice.sum()
+        return cum_slice.sum()
 
-    def q_max(self, structure_type, obj_id):
-        """Maximum value of a q timeseries; can be negative.
+    def get_value_from_parameter(self, structure_type, obj_id,
+                                 parameter_name):
+        """Select method and get value
+
+        Args:
+            structure_type: raw layer name; structure type normalization,
+                is delegated to the NetcdfDataSource
+            obj_id: layer feature id?? -------------> TODO: needs checking!!!
+            parameter_name: the netcdf variable name
         """
-        if 'pump' in structure_type:
-            raise NotImplementedError(
-                "Max q doesn't work for pumps yet using the "
-                "aggregated netCDF")
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q_max'])
-        _min = q_slice.min()
-        _max = q_slice.max()
-        # return highest absolute value, while retaining the sign of the number
-        return max(_min, _max, key=abs)
-
-    def s1_max(self, structure_type, obj_id):
-        """Maximum value of a s1 timeseries."""
-        slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1_max'])
-        return slice.max()
+        if parameter_name.endswith('_max'):
+            return self._max(structure_type, obj_id, parameter_name)
+        elif parameter_name.endswith('_cum'):
+            return self._cum(structure_type, obj_id, parameter_name)

@@ -258,7 +258,8 @@ def make_pumpline_layer(nds):
 
     # add fields
     pr.addAttributes([
-        # This is the flowline index in Python (0-based indexing)
+        # These are the pumpline index, and node indexes in Python (0-based
+        # indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("pumpline_idx", QVariant.Int),
         QgsField("node_idx1", QVariant.Int),

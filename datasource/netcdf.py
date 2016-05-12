@@ -300,17 +300,24 @@ class NetcdfDataSource(object):
 
         return result
 
-    def get_timeseries_values(self, object_type, object_id, parameters):
+    def get_timeseries_values(self, object_type, object_id, parameters,
+                              source='default'):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
         lumped together and returned. If a parameter is unknown it will be
         skipped.
 
+        Note 2: source defines the netcdf file source we should get our data
+        from, because the NetcdfDataSource can contain the default netcdf
+        but also an aggregation netcdf.
+
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
             parameters: a list of params, e.g.: ['q', 'q_pump']
+            source: the netcdf source type, i.e., 'default' (subgrid_map.nc)
+                or 'aggregation' (flow_aggregate.nc)
 
         Returns:
             an array of values
@@ -340,12 +347,20 @@ class NetcdfDataSource(object):
             raise ValueError("More than one variable used, proceed with "
                              "caution!")
 
+        # Select the source netcdf:
+        if source == 'default':
+            ds = self.ds
+        elif source == 'aggregation':
+            ds = self.ds_aggregation
+        else:
+            raise ValueError("Unexpected source type %s", source)
+
         # Get data from all variables and just put them in the same list:
         result = np.array([])
         for v in variables:
             try:
                 # shape ds.variables['q'] array = (t, number of ids)
-                vals = self.ds.variables[v][:, netcdf_id]
+                vals = ds.variables[v][:, netcdf_id]
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue

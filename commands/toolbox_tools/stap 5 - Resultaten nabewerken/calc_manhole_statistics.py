@@ -5,7 +5,7 @@ import csv
 import inspect
 import os
 
-from ThreeDiToolbox.stats.ncstats import NcStats
+from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
@@ -56,15 +56,26 @@ class CustomCommand(CustomCommandBase):
             pop_up_info("No datasource found, aborting.", title='Error')
             return
         layer_name = self.layer.name()
-        if 'manhole' not in layer_name and 'connection_node' not in layer_name:
+        node_objects = ['manhole', 'connection_node', 'node']
+        if not any(s in layer_name for s in node_objects):
             pop_up_info(
-                "%s doesn't contain manholes or connection nodes" % layer_name,
+                "%s is not a valid node layer" % layer_name,
                 title='Error')
             return
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
-        ncstats = NcStats(datasource=nds)
+
+        # Get the primary key of the layer, plus other specifics:
+        if layer_name == 'nodes':
+            layer_id_name = 'node_idx'
+            # TODO: not sure if we want to make ncstats distinction based on
+            # the layer type
+            ncstats = NcStatsAgg(datasource=nds)
+        else:
+            # It's spatialite
+            layer_id_name = 'id'
+            ncstats = NcStats(datasource=nds)
 
         # All the NcStats parameters we want to calculate (can differ per
         # NcStats version)
@@ -74,16 +85,17 @@ class CustomCommand(CustomCommandBase):
         # Generate data
         result = dict()
         for feature in self.layer.getFeatures():
-            fid = feature['id']  # more explicit
+            fid = feature[layer_id_name]
             result[fid] = dict()
-            result[fid]['id'] = fid
+            result[fid]['id'] = fid  # normalize layer id name
             for param_name in parameters:
                 # Water op straat berekening (wos_height):
                 if param_name == 'wos_height':
                     try:
                         result[fid][param_name] = ncstats.s1_max(
-                            layer_name, fid) - feature['surface_level']
-                    except (ValueError, TypeError):
+                            layer_name, feature.id()) - feature[
+                                'surface_level']
+                    except (ValueError, TypeError, AttributeError):
                         result[fid][param_name] = None
                     except KeyError:
                         log("Feature doesn't have surface level")
@@ -92,17 +104,19 @@ class CustomCommand(CustomCommandBase):
                 elif param_name == 'water_depth':
                     try:
                         result[fid][param_name] = ncstats.s1_max(
-                            layer_name, fid) - feature['bottom_level']
-                    except (ValueError, TypeError):
+                            layer_name, feature.id()) - feature[
+                                'bottom_level']
+                    except (ValueError, TypeError, AttributeError):
                         result[fid][param_name] = None
                     except KeyError:
                         log("Feature doesn't have bottom level")
                         result[fid][param_name] = None
                 # Business as usual (NcStats method)
                 else:
-                    method = getattr(ncstats, param_name)
                     try:
-                        result[fid][param_name] = method(layer_name, fid)
+                        result[fid][param_name] = \
+                            ncstats.get_value_from_parameter(
+                                layer_name, feature.id(), param_name)
                     except ValueError:
                         result[fid][param_name] = None
 
@@ -122,4 +136,4 @@ class CustomCommand(CustomCommandBase):
         if pop_up_question(
                 msg="Do you want to join the CSV with the view layer?",
                 title="Join"):
-            join_stats(filepath, self.layer, 'id')
+            join_stats(filepath, self.layer, layer_id_name)
