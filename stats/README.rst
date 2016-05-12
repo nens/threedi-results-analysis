@@ -3,11 +3,11 @@ Stats overview
 
 The statistics scripts support the following netCDF aggregation variables:
 
-================  ==============
-NetCDF Agg. Var.  Layer type
-================  ==============
-q_cum             flowlines
-q_max             flowlines
-q_min             flowlines
-s1_max            nodes
-================  ==============
+================  ============== =============================
+NetCDF Agg. Var.  Layer type     Script
+================  ============== =============================
+q_cum             flowlines      calc_structure_statistics.py
+q_max             flowlines      calc_structure_statistics.py
+q_min             flowlines      calc_structure_statistics.py
+s1_max            nodes          calc_manhole_statistics.py
+================  ============== =============================
