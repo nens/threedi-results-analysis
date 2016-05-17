@@ -13,11 +13,11 @@
     <edittype widgetv2type="TextEdit" name="feature_type">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="node_type">
+    <edittype widgetv2type="TextEdit" name="type">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
   </edittypes>
-  <renderer-v2 attr="node_type" symbollevels="0" type="categorizedSymbol">
+  <renderer-v2 attr="type" symbollevels="0" type="categorizedSymbol">
     <categories>
       <category render="true" symbol="0" value="1d" label="1d"/>
       <category render="true" symbol="1" value="1d_bound" label="1d_bound"/>

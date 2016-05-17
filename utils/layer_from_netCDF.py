@@ -166,7 +166,7 @@ def make_node_layer(ds, progress_bar=None):
         QgsField("inp_id", QVariant.Int),
         QgsField("spatialite_id", QVariant.Int),
         QgsField("feature_type", QVariant.String, len=25),
-        QgsField("node_type", QVariant.String, len=25)
+        QgsField("type", QVariant.String, len=25)  # = node type
         ])
     # tell the vector layer to fetch changes from the provider
     vl.updateFields()

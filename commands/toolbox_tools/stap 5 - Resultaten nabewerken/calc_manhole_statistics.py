@@ -92,6 +92,14 @@ class CustomCommand(CustomCommandBase):
         # Generate data
         result = dict()
         for feature in self.layer.getFeatures():
+
+            # skip 2d stuff
+            try:
+                if feature['type'] == '2d':
+                    continue
+            except KeyError:
+                pass
+
             fid = feature[layer_id_name]
             result[fid] = dict()
             result[fid]['id'] = fid  # normalize layer id name
