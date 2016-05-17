@@ -6,7 +6,6 @@ from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
     QgsPoint
 from PyQt4.QtCore import QVariant
 
-from ..datasource.netcdf import get_node_mapping
 from .user_messages import StatusProgressBar
 
 
