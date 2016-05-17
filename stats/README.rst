@@ -14,7 +14,7 @@ s1_max            nodes          calc_manhole_statistics.py
 
 
 Spatialite views
->>>>>>>>>>>>>>>>
+----------------
 
 Additionally, you get the *old* behaviour if you use the Spatialite views:
 
