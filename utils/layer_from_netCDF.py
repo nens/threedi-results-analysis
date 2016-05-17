@@ -236,8 +236,8 @@ def make_pumpline_layer(nds):
     flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
 
     # -1 probably because of fortran indexing
-    # CAUTION: pumpline index can be 0, (what that means I don't really know,
-    # but it does mean that the pump isn't valid) thus we can get a -1 here:
+    # CAUTION: pumpline index can be 0, (which means it is pumping out of the,
+    # system) thus we can get a -1 here, which is NOT a valid index
     pumpline_p1 = pumpline[0, :].astype(int) - 1
     pumpline_p2 = pumpline[1, :].astype(int) - 1
 
