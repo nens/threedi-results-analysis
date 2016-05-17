@@ -19,7 +19,6 @@ Spatialite views
 Additionally, you get the *old* behaviour if you use the Spatialite views:
 
 calc_structure_statistics.py:
-
     - tot_vol
     - q_max
     - cumulative_duration
@@ -29,7 +28,6 @@ calc_structure_statistics.py:
     - time_q_max
 
 calc_manhole_statistics.py:
-
     - s1_max
     - wos_height
     - water_depth
