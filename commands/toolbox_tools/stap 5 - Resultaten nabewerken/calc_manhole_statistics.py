@@ -62,6 +62,9 @@ class CustomCommand(CustomCommandBase):
         if not self.datasource:
             pop_up_info("No datasource found, aborting.", title='Error')
             return
+
+        include_2d = pop_up_question("Include 2D?")
+
         layer_name = self.layer.name()
         node_objects = ['manhole', 'connection_node', 'node']
         if not any(s in layer_name for s in node_objects):
@@ -94,11 +97,12 @@ class CustomCommand(CustomCommandBase):
         for feature in self.layer.getFeatures():
 
             # skip 2d stuff
-            try:
-                if feature['type'] == '2d':
-                    continue
-            except KeyError:
-                pass
+            if not include_2d:
+                try:
+                    if feature['type'] == '2d':
+                        continue
+                except KeyError:
+                    pass
 
             fid = feature[layer_id_name]
             result[fid] = dict()

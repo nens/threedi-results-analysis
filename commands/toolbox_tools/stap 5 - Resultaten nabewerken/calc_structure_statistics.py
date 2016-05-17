@@ -67,6 +67,8 @@ class CustomCommand(CustomCommandBase):
                         "%s" % (layer_name, structures), title='Error')
             return
 
+        include_2d = pop_up_question("Include 2D?")
+
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
 
@@ -86,11 +88,12 @@ class CustomCommand(CustomCommandBase):
         for feature in self.layer.getFeatures():
 
             # skip 2d stuff
-            try:
-                if feature['type'] == '2d':
-                    continue
-            except KeyError:
-                pass
+            if not include_2d:
+                try:
+                    if feature['type'] == '2d':
+                        continue
+                except KeyError:
+                    pass
 
             fid = feature[layer_id_name]
             result[fid] = dict()
