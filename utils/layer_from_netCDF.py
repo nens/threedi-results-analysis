@@ -236,6 +236,8 @@ def make_pumpline_layer(nds):
     flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
 
     # -1 probably because of fortran indexing
+    # CAUTION: pumpline index can be 0, (which means it is pumping out of the,
+    # system) thus we can get a -1 here, which is NOT a valid index
     pumpline_p1 = pumpline[0, :].astype(int) - 1
     pumpline_p2 = pumpline[1, :].astype(int) - 1
 
@@ -256,9 +258,12 @@ def make_pumpline_layer(nds):
 
     # add fields
     pr.addAttributes([
-        # This is the flowline index in Python (0-based indexing)
+        # These are the pumpline index, and node indexes in Python (0-based
+        # indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
         QgsField("pumpline_idx", QVariant.Int),
+        QgsField("node_idx1", QVariant.Int),
+        QgsField("node_idx2", QVariant.Int),
         ])
     # tell the vector layer to fetch changes from the provider
     vl.updateFields()
@@ -269,11 +274,31 @@ def make_pumpline_layer(nds):
     for i in range(number_of_pumplines):
         fet = QgsFeature()
 
-        p1 = QgsPoint(x_p1[i], y_p1[i])
-        p2 = QgsPoint(x_p2[i], y_p2[i])
+        coord1 = (x_p1[i], y_p1[i])
+        coord2 = (x_p2[i], y_p2[i])
+        try:
+            # -1 means the pump is pumping out of the model
+            idx = [pumpline_p1[i], pumpline_p2[i]].index(-1)
+            if idx == 0:
+                start_coord = coord2
+            elif idx == 1:
+                start_coord = coord1
+            # Give these pumps a special geometry
+            p1 = QgsPoint(start_coord[0], start_coord[1])
+            p2 = QgsPoint(start_coord[0] - 3, start_coord[1] + 5)
+            p3 = QgsPoint(start_coord[0] + 3, start_coord[1] + 10)
+            p4 = QgsPoint(start_coord[0], start_coord[1] + 15)
+            geom = QgsGeometry.fromPolyline([p1, p2, p3, p4])
+        except ValueError:
+            p1 = QgsPoint(coord1[0], coord1[1])
+            p2 = QgsPoint(coord2[0], coord2[1])
+            geom = QgsGeometry.fromPolyline([p1, p2])
 
-        fet.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
-        fet.setAttributes([i])
+        node_idx1 = int(pumpline_p1[i])
+        node_idx2 = int(pumpline_p2[i])
+
+        fet.setGeometry(geom)
+        fet.setAttributes([i, node_idx1, node_idx2])
         features.append(fet)
     pr.addFeatures(features)
 

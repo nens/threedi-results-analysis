@@ -6,22 +6,60 @@ from netCDF4 import Dataset
 import numpy as np
 
 from ..utils.user_messages import log
+from ..utils import cached_property
 from .spatialite import get_object_type, get_variables
 
 
 def get_id_mapping_file(netcdf_file_path):
     """An ad-hoc way to get the id_mapping file.
 
-    We assume the id_mapping file is always in ../input_generated
-    relative to the netcdf file and that it always starts with
-    'id_mapping'.
+    We assume the id_mapping file is in on of the following locations (note:
+    this order is also the searching order):
 
-    Returns: id_mapping file path
+    1) . (in the same dir as the netcdf)
+    2) ../input_generated
+
+    relative to the netcdf file and that it starts with 'id_mapping'.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        id_mapping file path
+
+    Raises:
+        IndexError if nothing is found
     """
     pattern = 'id_mapping*'
     inpdir = os.path.join(os.path.dirname(netcdf_file_path),
                           '..', 'input_generated')
-    return glob.glob(os.path.join(inpdir, pattern))[0]
+    resultdir = os.path.dirname(netcdf_file_path)
+
+    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
+    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
+
+    inpfiles = from_resultdir + from_inpdir
+    return inpfiles[0]
+
+
+def get_aggregation_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file.
+
+    It is assumed that the file is called 'flow_aggregate.nc' and in the same
+    directory as the 'regular' result netcdf.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = 'flow_aggregate.nc'
+    result_dir = os.path.dirname(netcdf_file_path)
+    return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
 def get_channel_mapping(ds):
@@ -53,54 +91,91 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
-
-
 class NetcdfDataSource(object):
+    """This netCDF datasource combines three things:
+
+    1. the regular 3Di result netcdf: subgrid_map.nc
+    2. the spatialite mappings from id_mapping.json
+    3. the aggregation netcdf flow_aggregate.nc
+
+    To initialize this class only the subgrid_map.nc netcdf is required though,
+    the locations of the other two files can be derived from it. Furthermore,
+    the other files should be lazily loaded because they are not required in
+    all use cases and/or they are not always available. In the latter case you
+    will still want the parts of your program to work that DO NOT require the
+    additional files. However, if you DO want to enforce these files to be
+    required, you can do so by checking them using the helper functions
+    'get_id_mapping_file' and 'get_aggregation_netcdf'.
+    """
 
     def __init__(self, file_path):
         """
         Args:
-            file_path: path to netcdf
+            file_path: path to result netcdf
         """
         self.file_path = file_path
         # Load netcdf
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
 
-        self.channel_mapping = get_channel_mapping(self.ds)
-        self.node_mapping = get_node_mapping(self.ds)
-        self.timesteps = get_timesteps(self.ds)
+    @property
+    def id_mapping_file(self):
+        return get_id_mapping_file(self.file_path)
 
-        self.id_mapping_file = get_id_mapping_file(file_path)
+    @cached_property
+    def id_mapping(self):
         # Load id mapping
         with open(self.id_mapping_file) as f:
-            self.id_mapping = json.load(f)
+            return json.load(f)
+
+    @property
+    def aggregation_netcdf_file(self):
+        return get_aggregation_netcdf(self.file_path)
+
+    @cached_property
+    def ds_aggregation(self):
+        """The aggregation netcdf dataset."""
+        # Load aggregation netcdf
+        log("Opening aggregation netcdf: %s" % self.aggregation_netcdf_file)
+        return Dataset(self.aggregation_netcdf_file, mode='r',
+                       format='NETCDF4')
+
+    @cached_property
+    def channel_mapping(self):
+        return get_channel_mapping(self.ds)
+
+    @cached_property
+    def node_mapping(self):
+        return get_node_mapping(self.ds)
+
+    @cached_property
+    def timesteps(self):
+        return get_timesteps(self.ds)
+
+    @cached_property
+    def timestamps(self):
+        return self.get_timestamps()
 
     @property
     def metadata(self):
-
-        pass
-
-    def get_object_types(self, parameter=None):
-
-        pass
-
-    def get_objects(self, object_type):
-
-        pass
-
-    def get_object_count(self, object_type):
-
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
 
+    def get_object_types(self, parameter=None):
+        pass
+
+    def get_objects(self, object_type):
+        pass
+
+    def get_object_count(self, object_type):
+        pass
+
     def get_parameters(self, object_type=None):
         pass
 
     def get_object(self, object_type, object_id):
-
         pass
 
     def get_inp_id(self, object_id, normalized_object_type):
@@ -151,8 +226,9 @@ class NetcdfDataSource(object):
         elif node_idx < self.ds.nFlowElem:
             return '1d_bound'
         else:
-           raise ValueError("Index %s is not smaller than the number of nodes (%s)" %
-                            (node_idx, self.ds.nFlowElem))
+            raise ValueError(
+                "Index %s is not smaller than the number of nodes (%s)" %
+                (node_idx, self.ds.nFlowElem))
 
     def get_line_type(self, line_idx):
         """Get line type based on its index."""
@@ -176,8 +252,9 @@ class NetcdfDataSource(object):
         elif line_idx < self.ds.nFlowLine:
             return '1d_bound'
         else:
-           raise ValueError("Index %s is not smaller than the number of lines (%s)" %
-                            (line_idx, self.ds.nFlowLine))
+            raise ValueError(
+                "Index %s is not smaller than the number of lines (%s)" %
+                (line_idx, self.ds.nFlowLine))
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
@@ -225,20 +302,26 @@ class NetcdfDataSource(object):
             timestamps = self.get_timestamps()
             result += zip(timestamps, vals)
 
-        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
         return result
 
-    def get_timeseries_values(self, object_type, object_id, parameters):
+    def get_timeseries_values(self, object_type, object_id, parameters,
+                              source='default'):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
         lumped together and returned. If a parameter is unknown it will be
         skipped.
 
+        Note 2: source defines the netcdf file source we should get our data
+        from, because the NetcdfDataSource can contain the default netcdf
+        but also an aggregation netcdf.
+
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
             parameters: a list of params, e.g.: ['q', 'q_pump']
+            source: the netcdf source type, i.e., 'default' (subgrid_map.nc)
+                or 'aggregation' (flow_aggregate.nc)
 
         Returns:
             an array of values
@@ -265,13 +348,23 @@ class NetcdfDataSource(object):
         if len(variables) > 1:
             log("Warning! More than one variable used in getting the "
                 "time series! Not sure if you'd want this!", level='CRITICAL')
+            raise ValueError("More than one variable used, proceed with "
+                             "caution!")
+
+        # Select the source netcdf:
+        if source == 'default':
+            ds = self.ds
+        elif source == 'aggregation':
+            ds = self.ds_aggregation
+        else:
+            raise ValueError("Unexpected source type %s", source)
 
         # Get data from all variables and just put them in the same list:
         result = np.array([])
         for v in variables:
             try:
                 # shape ds.variables['q'] array = (t, number of ids)
-                vals = self.ds.variables[v][:, netcdf_id]
+                vals = ds.variables[v][:, netcdf_id]
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue

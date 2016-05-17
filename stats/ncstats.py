@@ -42,12 +42,18 @@ class NcStats(object):
         else:
             raise ValueError("No netCDF source")
 
-        self.timesteps = self.datasource.timesteps
-        self.timestamps = self.datasource.get_timestamps()
+    @property
+    def timesteps(self):
+        return self.datasource.timesteps
+
+    @property
+    def timestamps(self):
+        return self.datasource.timestamps
 
     def tot_vol(self, structure_type, obj_id):
         """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps
+        orifices, pumps (pumps q's are in another netCDF array, but are
+        supported in the datasource using the usual 'q' name).
 
         Note that the last element in q_slice is skipped (skipping the first
         element is another option, but not implemented here). Also note that q
@@ -131,6 +137,82 @@ class NcStats(object):
             structure_type, obj_id, ['q'])
         return q_slice[-1]
 
+    def get_value_from_parameter(
+            self, structure_type, obj_id, parameter_name):
+        """Select the method from parameter name and call the method."""
+        method = getattr(self, parameter_name)
+        return method(structure_type, obj_id)
+
     def close(self):
         # TODO: is this used? also law of demeter
         self.datasource.ds.close()
+
+
+class NcStatsAgg(NcStats):
+    """A version of NcStats that works with the so called 'aggregation'
+    version of the 3Di netCDF files."""
+
+    # Update these lists if you add a new method
+    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
+
+    def __init__(self, *args, **kwargs):
+        super(NcStatsAgg, self).__init__(*args, **kwargs)
+
+    def _max(self, structure_type, obj_id, parameter):
+        """Maximum value of a timeseries.
+
+        Args:
+            parameter: must be a parameter that ends in '_max'
+        """
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        return slice.max()
+
+    def _min(self, structure_type, obj_id, parameter):
+        """Minimum value of a timeseries.
+
+        Args:
+            parameter: must be a parameter that ends in '_min'
+        """
+        slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        return slice.min()
+
+    def _cum(self, structure_type, obj_id, parameter):
+        """Cumulative value of a timeseries.
+
+        This is used to calculate e.g. total volume through a structure (the
+        cumulative values in the netcdf are integrated over time).
+        Structures are: pipes, weirs, orifices. So no pumps.
+
+        Note that q can be negative, so the absolute values are used.
+        """
+        if 'pump' in structure_type:
+            raise NotImplementedError(
+                "Total volume doesn't work for pumps yet using the "
+                "aggregated netCDF")
+        cum_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, [parameter], source='aggregation')
+        cum_slice = np.absolute(cum_slice)
+
+        # We can sum without integration because parameter is already an
+        # integrated variable.
+        return cum_slice.sum()
+
+    def get_value_from_parameter(self, structure_type, obj_id,
+                                 parameter_name):
+        """Select method and get value
+
+        Args:
+            structure_type: raw layer name; structure type normalization,
+                is delegated to the NetcdfDataSource
+            obj_id: layer feature id?? -------------> TODO: needs checking!!!
+            parameter_name: the netcdf variable name
+        """
+        if parameter_name.endswith('_max'):
+            return self._max(structure_type, obj_id, parameter_name)
+        elif parameter_name.endswith('_cum'):
+            return self._cum(structure_type, obj_id, parameter_name)
+        elif parameter_name.endswith('_min'):
+            return self._min(structure_type, obj_id, parameter_name)
