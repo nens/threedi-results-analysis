@@ -148,56 +148,6 @@ class NcStats(object):
         self.datasource.ds.close()
 
 
-class OLD_NcStatsAgg(NcStats):
-    """A version of NcStats that works with the so called 'aggregation'
-    version of the 3Di netCDF files."""
-
-    # Update these lists if you add a new method
-    AVAILABLE_STRUCTURE_PARAMETERS = ['tot_vol', 'q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
-
-    def __init__(self, *args, **kwargs):
-        super(NcStatsAgg, self).__init__(*args, **kwargs)
-
-    def tot_vol(self, structure_type, obj_id):
-        """Total volume through a structure. Structures are: pipes, weirs,
-        orifices. So no pumps.
-
-        Note that q can be negative, so the absolute values are used.
-        """
-        if 'pump' in structure_type:
-            raise NotImplementedError(
-                "Total volume doesn't work for pumps yet using the "
-                "aggregated netCDF")
-        q_cum_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q_cum'])
-        q_cum_slice = np.absolute(q_cum_slice)
-
-        # We can sum without integration because q_cum is already an
-        # integrated variable.
-        return q_cum_slice.sum()
-
-    def q_max(self, structure_type, obj_id):
-        """Maximum value of a q timeseries; can be negative.
-        """
-        if 'pump' in structure_type:
-            raise NotImplementedError(
-                "Max q doesn't work for pumps yet using the "
-                "aggregated netCDF")
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q_max'])
-        _min = q_slice.min()
-        _max = q_slice.max()
-        # return highest absolute value, while retaining the sign of the number
-        return max(_min, _max, key=abs)
-
-    def s1_max(self, structure_type, obj_id):
-        """Maximum value of a s1 timeseries."""
-        slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1_max'])
-        return slice.max()
-
-
 class NcStatsAgg(NcStats):
     """A version of NcStats that works with the so called 'aggregation'
     version of the 3Di netCDF files."""
