@@ -265,3 +265,5 @@ class NcStatsAgg(NcStats):
             return self._max(structure_type, obj_id, parameter_name)
         elif parameter_name.endswith('_cum'):
             return self._cum(structure_type, obj_id, parameter_name)
+        elif parameter_name.endswith('_min'):
+            return self._min(structure_type, obj_id, parameter_name)
