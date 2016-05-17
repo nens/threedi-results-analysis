@@ -48,7 +48,7 @@ class NcStats(object):
 
     @property
     def timestamps(self):
-        return self.datasource.get_timestamps()
+        return self.datasource.timestamps
 
     def tot_vol(self, structure_type, obj_id):
         """Total volume through a structure. Structures are: pipes, weirs,

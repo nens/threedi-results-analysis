@@ -6,6 +6,7 @@ from netCDF4 import Dataset
 import numpy as np
 
 from ..utils.user_messages import log
+from ..utils import cached_property
 from .spatialite import get_object_type, get_variables
 
 
@@ -121,7 +122,7 @@ class NetcdfDataSource(object):
     def id_mapping_file(self):
         return get_id_mapping_file(self.file_path)
 
-    @property
+    @cached_property
     def id_mapping(self):
         # Load id mapping
         with open(self.id_mapping_file) as f:
@@ -131,7 +132,7 @@ class NetcdfDataSource(object):
     def aggregation_netcdf_file(self):
         return get_aggregation_netcdf(self.file_path)
 
-    @property
+    @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
         # Load aggregation netcdf
@@ -139,17 +140,21 @@ class NetcdfDataSource(object):
         return Dataset(self.aggregation_netcdf_file, mode='r',
                        format='NETCDF4')
 
-    @property
+    @cached_property
     def channel_mapping(self):
         return get_channel_mapping(self.ds)
 
-    @property
+    @cached_property
     def node_mapping(self):
         return get_node_mapping(self.ds)
 
-    @property
+    @cached_property
     def timesteps(self):
         return get_timesteps(self.ds)
+
+    @cached_property
+    def timestamps(self):
+        return self.get_timestamps()
 
     @property
     def metadata(self):
