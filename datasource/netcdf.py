@@ -360,16 +360,28 @@ class NetcdfDataSource(object):
             raise ValueError("Unexpected source type %s", source)
 
         # Get data from all variables and just put them in the same list:
-        result = np.array([])
+        timeseries_vals = np.array([])
         for v in variables:
+
+            # Keep the netCDF array in memory for performance
+            try:
+                cached_variable = getattr(self, v)
+            except AttributeError:
+                try:
+                    cached_variable = ds.variables[v][:]
+                    setattr(self, v, cached_variable)
+                except KeyError:
+                    log("Variable not in netCDF: %s, skipping..." % v)
+                    continue
+
             try:
                 # shape ds.variables['q'] array = (t, number of ids)
-                vals = ds.variables[v][:, netcdf_id]
+                vals = cached_variable[:, netcdf_id]
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            result = np.hstack((result, vals))
-        return result
+            timeseries_vals = np.hstack((timeseries_vals, vals))
+        return timeseries_vals
