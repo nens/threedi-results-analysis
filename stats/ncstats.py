@@ -5,7 +5,6 @@ it work with our own data sources.
 import numpy as np
 
 from ..datasource.netcdf import NetcdfDataSource
-from ..utils import cached_property
 
 
 class NcStats(object):
@@ -47,7 +46,7 @@ class NcStats(object):
     def timesteps(self):
         return self.datasource.timesteps
 
-    @cached_property
+    @property
     def timestamps(self):
         return self.datasource.get_timestamps()
 

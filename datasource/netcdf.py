@@ -122,7 +122,7 @@ class NetcdfDataSource(object):
     def id_mapping_file(self):
         return get_id_mapping_file(self.file_path)
 
-    @cached_property
+    @property
     def id_mapping(self):
         # Load id mapping
         with open(self.id_mapping_file) as f:
@@ -132,7 +132,15 @@ class NetcdfDataSource(object):
     def aggregation_netcdf_file(self):
         return get_aggregation_netcdf(self.file_path)
 
-    @cached_property
+    @property
+    def has_aggregation_netcdf(self):
+        try:
+            get_aggregation_netcdf(self.file_path)
+            return True
+        except:
+            return False
+
+    @property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
         # Load aggregation netcdf
@@ -140,15 +148,15 @@ class NetcdfDataSource(object):
         return Dataset(self.aggregation_netcdf_file, mode='r',
                        format='NETCDF4')
 
-    @cached_property
+    @property
     def channel_mapping(self):
         return get_channel_mapping(self.ds)
 
-    @cached_property
+    @property
     def node_mapping(self):
         return get_node_mapping(self.ds)
 
-    @cached_property
+    @property
     def timesteps(self):
         return get_timesteps(self.ds)
 
