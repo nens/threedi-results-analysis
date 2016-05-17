@@ -7,7 +7,6 @@ import numpy as np
 
 from ..utils.user_messages import log
 from .spatialite import get_object_type, get_variables
-from ..utils import cached_property
 
 
 def get_id_mapping_file(netcdf_file_path):
@@ -131,14 +130,6 @@ class NetcdfDataSource(object):
     @property
     def aggregation_netcdf_file(self):
         return get_aggregation_netcdf(self.file_path)
-
-    @property
-    def has_aggregation_netcdf(self):
-        try:
-            get_aggregation_netcdf(self.file_path)
-            return True
-        except:
-            return False
 
     @property
     def ds_aggregation(self):
