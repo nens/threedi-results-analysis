@@ -166,7 +166,8 @@ class NcStatsAgg(NcStats):
             parameter: must be a parameter that ends in '_max'
         """
         slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
+            structure_type, obj_id, [parameter], source='aggregation',
+            caching=True)
         return slice.max()
 
     def _min(self, structure_type, obj_id, parameter):
@@ -176,7 +177,8 @@ class NcStatsAgg(NcStats):
             parameter: must be a parameter that ends in '_min'
         """
         slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
+            structure_type, obj_id, [parameter], source='aggregation',
+            caching=True)
         return slice.min()
 
     def _cum(self, structure_type, obj_id, parameter):
@@ -193,7 +195,8 @@ class NcStatsAgg(NcStats):
                 "Total volume doesn't work for pumps yet using the "
                 "aggregated netCDF")
         cum_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
+            structure_type, obj_id, [parameter], source='aggregation',
+            caching=True)
         cum_slice = np.absolute(cum_slice)
 
         # We can sum without integration because parameter is already an

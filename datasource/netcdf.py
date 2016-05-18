@@ -305,7 +305,7 @@ class NetcdfDataSource(object):
         return result
 
     def get_timeseries_values(self, object_type, object_id, parameters,
-                              source='default'):
+                              source='default', caching=True):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
@@ -322,6 +322,10 @@ class NetcdfDataSource(object):
             parameters: a list of params, e.g.: ['q', 'q_pump']
             source: the netcdf source type, i.e., 'default' (subgrid_map.nc)
                 or 'aggregation' (flow_aggregate.nc)
+            caching: if True, keep netcdf array in memory
+
+        Important note: using True instead of False as a default for the
+        'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
             an array of values
@@ -364,19 +368,22 @@ class NetcdfDataSource(object):
         for v in variables:
 
             # Keep the netCDF array in memory for performance
-            try:
-                cached_variable = getattr(self, v)
-            except AttributeError:
+            if caching:
                 try:
-                    cached_variable = ds.variables[v][:]
-                    setattr(self, v, cached_variable)
-                except KeyError:
-                    log("Variable not in netCDF: %s, skipping..." % v)
-                    continue
+                    variable = getattr(self, v)
+                except AttributeError:
+                    try:
+                        variable = ds.variables[v][:]
+                        setattr(self, v, variable)
+                    except KeyError:
+                        log("Variable not in netCDF: %s, skipping..." % v)
+                        continue
+            else:
+                variable = ds.variables[v][:]
 
             try:
                 # shape ds.variables['q'] array = (t, number of ids)
-                vals = cached_variable[:, netcdf_id]
+                vals = variable[:, netcdf_id]
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
