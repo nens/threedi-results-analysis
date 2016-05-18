@@ -105,7 +105,7 @@ class CustomCommand(CustomCommandBase):
                     result[fid][param_name] = \
                         ncstats.get_value_from_parameter(
                             layer_name, feature.id(), param_name)
-                except ValueError:
+                except (ValueError, IndexError):
                     result[fid][param_name] = None
 
         # Write to csv file

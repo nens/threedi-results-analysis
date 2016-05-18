@@ -111,9 +111,10 @@ class CustomCommand(CustomCommandBase):
                 # Water op straat berekening (wos_height):
                 if param_name == 'wos_height':
                     try:
-                        result[fid][param_name] = ncstats.s1_max(
-                            layer_name, feature.id()) - feature[
-                                'surface_level']
+                        s1_max = ncstats.get_value_from_parameter(
+                            layer_name, feature.id(), 's1_max')
+                        result[fid][param_name] = s1_max - feature[
+                            'surface_level']
                     except (ValueError, TypeError, AttributeError):
                         result[fid][param_name] = None
                     except KeyError:
@@ -122,9 +123,10 @@ class CustomCommand(CustomCommandBase):
                 # Waterdiepte berekening:
                 elif param_name == 'water_depth':
                     try:
-                        result[fid][param_name] = ncstats.s1_max(
-                            layer_name, feature.id()) - feature[
-                                'bottom_level']
+                        s1_max = ncstats.get_value_from_parameter(
+                            layer_name, feature.id(), 's1_max')
+                        result[fid][param_name] = s1_max - feature[
+                            'bottom_level']
                     except (ValueError, TypeError, AttributeError):
                         result[fid][param_name] = None
                     except KeyError:
@@ -136,7 +138,7 @@ class CustomCommand(CustomCommandBase):
                         result[fid][param_name] = \
                             ncstats.get_value_from_parameter(
                                 layer_name, feature.id(), param_name)
-                    except ValueError:
+                    except (ValueError, IndexError):
                         result[fid][param_name] = None
 
         # Write to csv file
