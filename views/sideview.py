@@ -13,7 +13,7 @@ from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
 import qgis
 from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
     QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, \
-    QGis
+    QGis, QgsFeatureRequest
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
 from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
@@ -21,6 +21,8 @@ from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
 from ..utils.route import Route
+
+from ..utils.geo_processing import split_line_at_points
 
 
 import pyqtgraph as pg
@@ -67,12 +69,90 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
+INTERPOLATION_PHYSICAL = 0 # interpolation based on all profiles
+INTERPOLATION_CALCULATION = 1 # interpolation as the 3di calculation core is
+                              # performing the interpolation. for bottom
+                              # and surface level use profiles close to
+                              # calculation points. For height (profile) first
+                              # get heigth on centerpoints at links
+
+
+def get_level_and_height_along_channel(channel_profiles, profile_layer,
+                                       profile_def_layer, distance,
+                                       calculation_channel_parts=None,
+                                       method=INTERPOLATION_PHYSICAL):
+    """
+    Returns height and level of profile at given distance along channel
+
+    Args
+        channel_profiles (list): list of tuples of distance along line and
+                profile_ids
+        profile_layer (QgsPointLayer): ThreeDi Cross section layer (from
+                spatialite)
+        profile_def_layer (Qgs Table??): ThreeDi cross section definition table
+                (from spatialite)
+        distance (int): distance from starting point of channel in meter
+        calculation_channel_parts (list): .... required for interpolation
+                method 'INTERPOLATION_CALCULATION'
+        method (int): method used to interpolate channels:
+                INTERPOLATION_PHYSICAL/ INTERPOLATION_CALCULATION
+
+    Returns:
+        (Tuple: Float, Float, Float) Bottom level, profile height and
+                surface level
+    """
+    # todo: support calculation interpolation:
+    if method == INTERPOLATION_CALCULATION:
+        method = INTERPOLATION_PHYSICAL
+
+    if method == INTERPOLATION_PHYSICAL:
+        profile_before_id = None
+        profile_before_distance = 0
+        profile_after_id = None
+        profile_after_distance = None
+
+        for i in range(channel_profiles):
+            if distance < channel_profiles[i][0]:
+                profile_after_id = channel_profiles[i][1]
+                if i != 0:
+                    profile_before_id = channel_profiles[i-1][1]
+                    profile_before_distance = channel_profiles[i][1]
+
+        if profile_after_id is None:
+            # after last profile
+            profile_before_id = channel_profiles[-1][1]
+            profile_before_distance = channel_profiles[-1][1]
+
+        if profile_after_id is None:
+            # use only profile after
+            level, height, surface = get_profile_info(profile_after_id)
+            pass
+        elif profile_before_id is None:
+            # use only profile before
+            level, height, surface = get_profile_info(profile_before_id)
+            pass
+        else:
+            # interpolate profiles
+            blevel, bheight, bsurface = get_profile_info(profile_before_id)
+            alevel, aheight, asurface = get_profile_info(profile_before_id)
+            aweight = (distance - profile_before_distance) / \
+                      (profile_after_distance - profile_before_distance)
+            level = ((1 - aweight) * blevel + aweight * alevel) / 2
+            height = ((1 - aweight) * bheight + aweight * aheight) / 2
+            surface = ((1 - aweight) * bsurface + aweight * asurface) / 2
+
+    return level, height, surface
+
+
+
 class SideViewPlotWidget(pg.PlotWidget):
     """Side view plot element"""
 
     profile_route_updated = pyqtSignal()
 
-    def __init__(self, parent=None, nr=0, line_layer=None, point_dict=None, tdi_root_tool=None, name=""):
+
+    def __init__(self, parent=None, nr=0, line_layer=None, point_dict=None,
+                 channel_profiles=None, tdi_root_tool=None, name=""):
         """
 
         :param parent: Qt parent widget
@@ -83,6 +163,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.nr = nr
         self.node_dict = point_dict
         self.line_layer = line_layer
+        self.channel_profiles = channel_profiles
         self.time_slider = tdi_root_tool.timeslider_widget
 
         self.profile = []
@@ -385,11 +466,18 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        self.line_layer, self.point_dict = self.create_combined_layers(
-                self.tdi_root_tool.ts_datasource.model_spatialite_filepath)
+        self.line_layer, self.point_dict, self.channel_profiles = \
+            self.create_combined_layers(
+                self.tdi_root_tool.ts_datasource.model_spatialite_filepath,
+                tdi_root_tool.line_layer)
 
         self.sideviews = []
-        widget = SideViewPlotWidget(self, 0, self.line_layer, self.point_dict, self.tdi_root_tool, "name")
+        widget = SideViewPlotWidget(self, 0,
+                                    self.line_layer,
+                                    self.point_dict,
+                                    self.channel_profiles,
+                                    self.tdi_root_tool,
+                                    "name")
         self.active_sideview = widget
         self.sideviews.append((0, widget))
         self.side_view_tab_widget.addTab(widget, widget.name)
@@ -421,7 +509,7 @@ class SideViewDockWidget(QDockWidget):
 
         QgsMapLayerRegistry.instance().addMapLayer(self.vl_tree_layer)
 
-    def create_combined_layers(self, spatialite_path):
+    def create_combined_layers(self, spatialite_path, model_line_layer):
 
         def get_layer(spatialite_path, table_name, geom_column=''):
             uri2 = QgsDataSourceURI()
@@ -432,16 +520,25 @@ class SideViewDockWidget(QDockWidget):
                                    table_name,
                                    'spatialite')
         # connection node layer
-        profile_layer = get_layer(spatialite_path, 'v2_cross_section_definition')
-        connection_node_layer = get_layer(spatialite_path, 'v2_connection_nodes', 'the_geom')
+        profile_layer = get_layer(spatialite_path,
+                                  'v2_cross_section_definition')
+
+        cross_section_location_layer = get_layer(spatialite_path,
+                                  'v2_cross_section_location', 'the_geom')
+
+        connection_node_layer = get_layer(spatialite_path,
+                                          'v2_connection_nodes',
+                                          'the_geom')
         manhole_layer = get_layer(spatialite_path, 'v2_manhole')
-        boundary_layer = get_layer(spatialite_path, 'v2_1d_boundary_conditions')
+        boundary_layer = get_layer(spatialite_path,
+                                   'v2_1d_boundary_conditions')
         pipe_layer = get_layer(spatialite_path, 'v2_pipe')
-        # channel_layer = get_layer(spatialite_path, 'v2_channel', 'the_geom')
+        channel_layer = get_layer(spatialite_path, 'v2_channel', 'the_geom')
         weir_layer = get_layer(spatialite_path, 'v2_weir')
         orifice_layer = get_layer(spatialite_path, 'v2_orifice')
         pump_layer = get_layer(spatialite_path, 'v2_pumpstation')
         culvert_layer = get_layer(spatialite_path, 'v2_culvert')
+
 
         lines = []
         points = {}
@@ -449,17 +546,29 @@ class SideViewDockWidget(QDockWidget):
         for profile in profile_layer.getFeatures():
             # todo: add support for other definitions
             rel_bottom_level = 0
+            open = False
             if profile['shape'] == 1:
                 height = profile['height']
             elif profile['shape'] == 2:
                 height = profile['width']
             else:
                 height = 0.1
+                open = True
 
             profiles[profile['id']] = {
                 'height': height,
-                'rel_bottom_level': rel_bottom_level
+                'rel_bottom_level': rel_bottom_level,
+                'open': open
             }
+
+        channel_cs_locations = {}
+
+        for cs in cross_section_location_layer:
+
+            if cs['channel_id'] not in channel_cs_locations:
+                channel_cs_locations[cs['channel_id']] = []
+
+                channel_cs_locations[cs['channel_id']].append(cs)
 
         for cn in connection_node_layer.getFeatures():
             points[cn['id']] = {
@@ -478,6 +587,8 @@ class SideViewDockWidget(QDockWidget):
                                             p['surface_level'])
             p['bottom_level'] = python_value(manhole['bottom_level'])
             p['length'] = python_value(manhole['width'], 0)
+
+        # todo: add calculation nodes
 
         for bound in boundary_layer.getFeatures():
             p = points[bound['connection_node_id']]
@@ -589,7 +700,103 @@ class SideViewDockWidget(QDockWidget):
             }
             lines.append(pump_def)
 
+        channel_profiles = {}
+
         # todo: channels - add cross sections and calc points to line, etc.
+        for channel in channel_layer.getFeatures():
+            # prepare profile information of channel
+            if channel['id'] in channel_cs_locations:
+                profile_points = channel_cs_locations[channel['id']]
+            else:
+                profile_points = []
+
+            profile_channel_parts = split_line_at_points(channel,
+                                        profile_points,
+                                        start_node_field='start_node', #??
+                                        end_node_field='end_node', #??
+                                        node_id_field='',
+                                        start_distance_field='start_distance',
+                                        end_distance_field='end_distance')
+
+
+            if model_line_layer is None:
+                # no model results, so use model (spatialite only) and
+                # split on cross section locations
+
+                for i in range(profile_channel_parts):
+                    part = profile_channel_parts[i]
+                    cross_sections = dict([(p['id'], p) for
+                                      p in profile_points])
+
+                    start_cs = cross_sections[part['start_node']]
+                    end_cs = cross_sections[part['end_node']]
+
+                    start_cs_def = profiles[start_cs['definition_id']]
+                    end_cs_def = profiles[end_cs['definition_id']]
+
+                    start_level = start_cs['reference_level'] + \
+                              start_cs_def['rel_bottom_level']
+
+                    end_level = end_cs['reference_level'] + \
+                              end_cs_def['rel_bottom_level']
+
+
+                    channel_part = {
+                        'id': 'subch_' + str(channel['id']) + '_' + str(i),
+                        'type': self.CHANNEL,
+                        'start_node': part['start_node'],
+                        'end_node': part['end_node'],
+                        'start_level': start_level,
+                        'end_level': end_level,
+                        'start_height': start_cs_def['height'],
+                        'end_height': end_cs_def['height'],
+                    }
+            else:
+
+                # create channel part for each sub link (taking calculation nodes
+                # into account
+                # tod
+                channel_profiles[channel['id']] = []
+                for cp in profile_channel_parts[1:]:
+                    channel_profiles[channel['id']].append(
+                        (cp['start_distance'], cp['end_node']))
+
+                connection_nodes = [channel['start_node'], channel['end_node']]
+                # get calculation points on line
+                request = QgsFeatureRequest.setFilterExpression(
+                        u"'spatialite_id'='%s'".format(channel['id']))
+                for line in model_line_layer.getFeatures(request):
+                    #todo
+                    pass
+
+
+                channel_parts = split_line_at_points(channel,
+                                            calculation_points,
+                                            start_node_field='',
+                                            end_node_field='',
+                                            node_id_field='',
+                                            distance_field='start_distance')
+
+                for i in range(channel_parts):
+                    part = channel_parts[i]
+                    start_level, start_height, start_surface = 'todo'
+                    end_level = 'todo'
+                    start_height = 'todo'
+                    end_height = 'todo'
+
+                    channel_part_def = {
+                        'id': 'subchannel_' + str(channel['id']) + '_' + str(i),
+                        'type': self.CHANNEL,
+                        'start_node': part['connection_node_start_id'],
+                        'end_node': part['connection_node_end_id'],
+                        'start_level': start_level,
+                        'end_level': end_level,
+                        'start_height': start_height,
+                        'end_height': end_height,
+                        'channel_id': channel['id'],
+                        'subchannel_nr': i,
+                        'start_channel_distance': part['start_distance']
+                    }
 
         # make point dict permanent
         self.point_dict = points
@@ -611,8 +818,11 @@ class SideViewDockWidget(QDockWidget):
             QgsField("start_level", QVariant.Double),
             QgsField("end_level", QVariant.Double),
             QgsField("start_height", QVariant.Double),
-            QgsField("end_height", QVariant.Double)
-            ])
+            QgsField("end_height", QVariant.Double),
+            QgsField("channel_id", QVariant.String, len=25),
+            QgsField("sub_channel_nr", QVariant.Int),
+            QgsField("start_channel_distance", QVariant.Double)
+        ])
         vl.updateFields()  # tell the vector layer to fetch changes from the provider
 
         features = []
@@ -648,7 +858,7 @@ class SideViewDockWidget(QDockWidget):
 
         QgsMapLayerRegistry.instance().addMapLayer(vl)
 
-        return vl, points
+        return vl, points, channel_profiles
 
     def toggle_route_tool(self):
 
