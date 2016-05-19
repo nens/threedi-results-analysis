@@ -1,6 +1,4 @@
-
-
-from PyQt4.QtGui  import QMessageBox, QProgressBar
+from PyQt4.QtGui import QMessageBox, QProgressBar
 from PyQt4.QtCore import Qt
 from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
@@ -14,9 +12,11 @@ def log(msg, level='INFO'):
     loglevel = getattr(QgsMessageLog, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
 
+
 def pop_up_info(msg='', title='Information', parent=None):
     """Display an info message via Qt box"""
     QMessageBox.information(parent, title, '%s' % msg)
+
 
 def statusbar_message(msg=''):
     """Display message in status bar """
@@ -28,11 +28,27 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
     args:
         title: (str) title of messages, showed bold in the start of the message
         msg: (str) message
-        level: (int) INFO = 0, WARNING = 1, CRITICAL = 2, SUCCESS = 3. it is possible to use QgsMessage.INFO, etc
+        level: (int) INFO = 0, WARNING = 1, CRITICAL = 2, SUCCESS = 3. It is
+            possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
 
     iface.messageBar().pushMessage(title, msg, level, duration)
+
+
+def pop_up_question(msg='', title='', parent=None):
+    """Message box question (Yes or No).
+
+    Returns:
+        True if 'Yes' was clicked, or False if 'No' was clicked.
+    """
+    reply = QMessageBox.question(
+        parent, title, msg,
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No)
+
+    return (reply == QMessageBox.Yes)
+
 
 class StatusProgressBar(object):
 

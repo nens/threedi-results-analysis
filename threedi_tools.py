@@ -33,14 +33,14 @@ from qgis.core import QgsMapLayerRegistry
 import resources  # NoQa
 
 # Import the code of the tools
-from threedi_result_selection import ThreeDiResultSelection
-from threedi_toolbox import ThreeDiToolbox
-from threedi_graph import ThreeDiGraph
-from threedi_sideview import ThreeDiSideView
-from threedi_timeslider import TimesliderWidget, Qt, QSlider
-from .utils.user_messages import pop_up_info, log, messagebar_message
-
-from models.datasources import TimeseriesDatasourceModel
+from .threedi_result_selection import ThreeDiResultSelection
+from .threedi_toolbox import ThreeDiToolbox
+from .threedi_graph import ThreeDiGraph
+from .threedi_sideview import ThreeDiSideView
+from .threedi_timeslider import TimesliderWidget
+from .utils.user_messages import (
+    pop_up_info, log, messagebar_message, pop_up_question)
+from .models.datasources import TimeseriesDatasourceModel
 
 
 class ThreeDiTools:
@@ -222,15 +222,14 @@ class ThreeDiTools:
                 callback=tool.run,
                 parent=self.iface.mainWindow())
 
-        sl = QSlider(Qt.Horizontal)
         self.toolbar.addWidget(self.timeslider_widget)
 
         self.ts_datasource.rowsRemoved.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
         self.ts_datasource.rowsInserted.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
         self.ts_datasource.dataChanged.connect(
-                self.check_status_model_and_results)
+            self.check_status_model_and_results)
 
         self.check_status_model_and_results()
 
@@ -241,20 +240,31 @@ class ThreeDiTools:
             args:
                 *args: (list) the arguments provided by the different signals
         """
-        # enable/ disable tools that depend on netCDF results
+        # Enable/disable tools that depend on netCDF results.
+        # For side views also the spatialite needs to be imported or else it
+        # crashes with a  segmentation fault
         if self.ts_datasource.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
-            self.sideview_tool.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
+        if (self.ts_datasource.rowCount() > 0 and
+                self.ts_datasource.model_spatialite_filepath is not None):
+            self.sideview_tool.action_icon.setEnabled(True)
+        else:
             self.sideview_tool.action_icon.setEnabled(False)
 
         # todo: for now always first netCDF is used. let the user select the
         # active netCDF
-        if self.ts_datasource.rowCount() > 0 and \
-                        self.ts_datasource.rows[0] != self.active_datasource:
+        if (self.ts_datasource.rowCount() > 0 and
+                self.ts_datasource.rows[0] != self.active_datasource):
+
             ds_item = self.ts_datasource.rows[0]
             self.active_datasource = ds_item
+
+            if not pop_up_question(msg="Add netCDF layers to map?",
+                                   title="netCDF layers"):
+                return
+
             # check if netcdf file contain geometry information, if so, create
             # layers from it
             # todo: find a better interface to check - this is directly on the
@@ -269,25 +279,27 @@ class ThreeDiTools:
                 legend.setGroupVisible(self.group_layer, True)
 
                 # get memory layers
-                self.line_layer, self.point_layer = ds_item.get_memory_layers()
+                self.line_layer, self.node_layer, self.pumpline_layer = \
+                    ds_item.get_memory_layers()
 
                 # apply default styling on memory layers
                 self.line_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'flowlines.qml'))
 
-                self.point_layer.loadNamedStyle(os.path.join(
+                self.node_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'nodes.qml'))
 
                 # add layers to the map
-                QgsMapLayerRegistry.instance().addMapLayers([self.line_layer,
-                                                             self.point_layer])
+                QgsMapLayerRegistry.instance().addMapLayers(
+                    [self.line_layer, self.node_layer, self.pumpline_layer])
+
                 # move the layers to the group
-                legend.setLayerExpanded(self.line_layer, True)
-                legend.setLayerExpanded(self.point_layer, True)
-                legend.moveLayer(self.line_layer, self.group_layer)
-                legend.moveLayer(self.point_layer, self.group_layer)
+                for lyr in [self.line_layer, self.node_layer,
+                            self.pumpline_layer]:
+                    legend.setLayerExpanded(lyr, True)
+                    legend.moveLayer(lyr, self.group_layer)
             else:
                 messagebar_message("netCDF", "netCDF does not contain geometry"
                                              " information, not all results"

@@ -1,7 +1,7 @@
 import unittest
 from PyQt4.QtCore import Qt
 
-from ..models.graph import LocationTimeseriesModel
+from ThreeDiToolbox.models.graph import LocationTimeseriesModel
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
