@@ -118,6 +118,8 @@ class NetcdfDataSource(object):
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
 
+        self.cache = dict()
+
     @property
     def id_mapping_file(self):
         return get_id_mapping_file(self.file_path)
@@ -256,6 +258,19 @@ class NetcdfDataSource(object):
                 "Index %s is not smaller than the number of lines (%s)" %
                 (line_idx, self.ds.nFlowLine))
 
+    def obj_to_netcdf_id(self, object_id, normalized_object_type):
+        # Here we map the feature ids (== object ids) to internal netcdf ids.
+        # Note: 'flowline' and 'node' are memory layers that are made from the
+        # netcdf, so they don't need an id mapping or netcdf mapping
+        if normalized_object_type in ['flowline', 'node', 'pumpline']:
+            # TODO: need to test this id to make sure (-1/+1??)!!
+            netcdf_id = object_id - 1
+        else:
+            # Mapping: spatialite id -> inp id -> netcdf id
+            inp_id = self.get_inp_id(object_id, normalized_object_type)
+            netcdf_id = self.get_netcdf_id(inp_id, normalized_object_type)
+        return netcdf_id
+
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
@@ -275,16 +290,8 @@ class NetcdfDataSource(object):
         # Normalize the name
         n_object_type = get_object_type(object_type)
 
-        # Here we map the feature ids (== object ids) to internal netcdf ids.
-        # Note: 'flowline' and 'node' are memory layers that are made from the
-        # netcdf, so they don't need an id mapping or netcdf mapping
-        if n_object_type in ['flowline', 'node', 'pumpline']:
-            # TODO: need to test this id to make sure (-1/+1??)!!
-            netcdf_id = object_id - 1
-        else:
-            # Mapping: spatialite id -> inp id -> netcdf id
-            inp_id = self.get_inp_id(object_id, n_object_type)
-            netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
+        # Derive the netcdf id
+        netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
 
@@ -305,7 +312,7 @@ class NetcdfDataSource(object):
         return result
 
     def get_timeseries_values(self, object_type, object_id, parameters,
-                              source='default'):
+                              source='default', caching=True):
         """Get a list of time series from netcdf; only the values.
 
         Note: if there are multiple parameters, all result values are just
@@ -322,6 +329,10 @@ class NetcdfDataSource(object):
             parameters: a list of params, e.g.: ['q', 'q_pump']
             source: the netcdf source type, i.e., 'default' (subgrid_map.nc)
                 or 'aggregation' (flow_aggregate.nc)
+            caching: if True, keep netcdf array in memory
+
+        Important note: using True instead of False as a default for the
+        'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
             an array of values
@@ -333,16 +344,8 @@ class NetcdfDataSource(object):
         # Normalize the name
         n_object_type = get_object_type(object_type)
 
-        # Here we map the feature ids (== object ids) to internal netcdf ids.
-        # Note: 'flowline' and 'node' are memory layers that are made from the
-        # netcdf, so they don't need an id mapping or netcdf mapping
-        if n_object_type in ['flowline', 'node', 'pumpline']:
-            # TODO: need to test this id to make sure (-1/+1??)!!
-            netcdf_id = object_id - 1
-        else:
-            # Mapping: spatialite id -> inp id -> netcdf id
-            inp_id = self.get_inp_id(object_id, n_object_type)
-            netcdf_id = self.get_netcdf_id(inp_id, n_object_type)
+        # Derive the netcdf id
+        netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
         if len(variables) > 1:
@@ -360,16 +363,31 @@ class NetcdfDataSource(object):
             raise ValueError("Unexpected source type %s", source)
 
         # Get data from all variables and just put them in the same list:
-        result = np.array([])
+        timeseries_vals = np.array([])
         for v in variables:
+
+            # Keep the netCDF array in memory for performance
+            if caching:
+                try:
+                    variable = self.cache[v]
+                except KeyError:
+                    try:
+                        variable = ds.variables[v][:]  # make copy
+                        self.cache[v] = variable
+                    except KeyError:
+                        log("Variable not in netCDF: %s, skipping..." % v)
+                        continue
+            else:
+                variable = ds.variables[v][:]
+
             try:
                 # shape ds.variables['q'] array = (t, number of ids)
-                vals = ds.variables[v][:, netcdf_id]
+                vals = variable[:, netcdf_id]
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            result = np.hstack((result, vals))
-        return result
+            timeseries_vals = np.hstack((timeseries_vals, vals))
+        return timeseries_vals
