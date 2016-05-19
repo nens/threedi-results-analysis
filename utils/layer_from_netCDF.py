@@ -84,11 +84,11 @@ def make_flowline_layer(ds, progress_bar=None):
     # add features
     features = []
     # Order of links in netCDF is:
-    # - 2d links (x and y) (nr: part of ds.ds.nFlowElem2d)
-    # - 1d links (nr: ds.ds.nFlowElem1d)
-    # - 1d-2d links (nr: part of ds.ds.nFlowElem2d)
-    # - 2d bound links (nr: ds.ds.nFlowElem2dBounds)
-    # - 1d bound links (nr: ds.ds.nFlowElem1dBounds)
+    # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
+    # - 1d links (nr: ds.ds.nFlowLine1d)
+    # - 1d-2d links (nr: part of ds.ds.nFlowLine1d)
+    # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
+    # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
     # because there is not (yet) distinction  between number of 2d links and 1d-2d links,
     # we will guess the numbers based on the fact that only id mapping is available
     # for all 1d links. (when numbers become available, this code can be improved
