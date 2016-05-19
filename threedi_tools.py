@@ -104,6 +104,9 @@ class ThreeDiTools:
         self.group_layer_name = '3di toolbox layers'
         self.group_layer = None
 
+        self.line_layer = None
+        self.point_layer = None
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -266,25 +269,25 @@ class ThreeDiTools:
                 legend.setGroupVisible(self.group_layer, True)
 
                 # get memory layers
-                line_layer, point_layer = ds_item.get_memory_layers()
+                self.line_layer, self.point_layer = ds_item.get_memory_layers()
 
                 # apply default styling on memory layers
-                line_layer.loadNamedStyle(os.path.join(
+                self.line_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'flowlines.qml'))
 
-                point_layer.loadNamedStyle(os.path.join(
+                self.point_layer.loadNamedStyle(os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     'layer_styles', 'tools', 'nodes.qml'))
 
                 # add layers to the map
-                QgsMapLayerRegistry.instance().addMapLayers([line_layer,
-                                                             point_layer])
+                QgsMapLayerRegistry.instance().addMapLayers([self.line_layer,
+                                                             self.point_layer])
                 # move the layers to the group
-                legend.setLayerExpanded(line_layer, True)
-                legend.setLayerExpanded(point_layer, True)
-                legend.moveLayer(line_layer, self.group_layer)
-                legend.moveLayer(point_layer, self.group_layer)
+                legend.setLayerExpanded(self.line_layer, True)
+                legend.setLayerExpanded(self.point_layer, True)
+                legend.moveLayer(self.line_layer, self.group_layer)
+                legend.moveLayer(self.point_layer, self.group_layer)
             else:
                 messagebar_message("netCDF", "netCDF does not contain geometry"
                                              " information, not all results"
