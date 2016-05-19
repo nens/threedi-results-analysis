@@ -21,6 +21,7 @@ from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
 from ..utils.route import Route
+from ..utils import haversine
 
 
 import pyqtgraph as pg
@@ -297,9 +298,11 @@ class RouteTool(QgsMapTool):
         pass
 
     def canvasReleaseEvent(self, event):
-        #Get the click
+        # Get the click
         x = event.pos().x()
         y = event.pos().y()
+        transformed_point = self.canvas.getCoordinateTransform(
+            ).toMapCoordinates(x, y)
 
         # use 5 pixels for selecting
         point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x-5,
@@ -323,7 +326,7 @@ class RouteTool(QgsMapTool):
 
         if len(selected) > 0:
             # todo get point closest to selection point
-            self.callback_on_select(selected)
+            self.callback_on_select(selected, transformed_point)
 
     def activate(self):
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
@@ -668,14 +671,29 @@ class SideViewDockWidget(QDockWidget):
             self.route_tool_active = True
             self.iface.mapCanvas().setMapTool(self.route_tool)
 
-    def on_route_point_select(self, selected_features):
+    def on_route_point_select(self, selected_features, clicked_coordinate):
+        """Select and add the closest point from the list of selected features.
 
+        Args:
+            selected_features: list of features selected by click
+            clicked_coordinate: (x, y) (transformed) of the click
+        """
         if self.route.has_path:
             self.route.reset()
 
-        # Todo: improve this for better user experience. this is quiet random
-        # better to take closest point
-        next_point = QgsPoint(selected_features[0].geometry().vertexAt(0))
+        def haversine_clicked(coordinate):
+            """Calculate the distance w.r.t. the clicked location."""
+            lon1, lat1 = clicked_coordinate
+            lon2, lat2 = coordinate
+            return haversine(lon1, lat1, lon2, lat2)
+
+        selected_coordinates = reduce(
+            lambda accum, f: accum + [f.geometry().vertexAt(0),
+                                      f.geometry().vertexAt(1)],
+            selected_features, [])
+
+        closest_point = min(selected_coordinates, key=haversine_clicked)
+        next_point = QgsPoint(closest_point)
 
         success, msg = self.route.add_point(next_point)
 
