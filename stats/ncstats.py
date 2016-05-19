@@ -5,6 +5,7 @@ it work with our own data sources.
 import numpy as np
 
 from ..datasource.netcdf import NetcdfDataSource
+from ..datasource.spatialite import get_object_type
 
 
 class NcStats(object):
@@ -158,51 +159,36 @@ class NcStatsAgg(NcStats):
 
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
+        self.ds_agg = self.datasource.ds_aggregation
 
-    def _max(self, structure_type, obj_id, parameter):
-        """Maximum value of a timeseries.
+        # Construct a dict with thing we actually have in the loaded netcdf,
+        # and store netcdf arrays in memory.
+        self.variables = dict()
+        for p in (self.AVAILABLE_MANHOLE_PARAMETERS +
+                  self.AVAILABLE_STRUCTURE_PARAMETERS):
+            try:
+                copied_array = self.ds_agg.variables[p][:]
+                self.variables[p] = copied_array
+            except KeyError:
+                continue
 
-        Args:
-            parameter: must be a parameter that ends in '_max'
-        """
-        slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
-        return slice.max()
-
-    def _min(self, structure_type, obj_id, parameter):
-        """Minimum value of a timeseries.
-
-        Args:
-            parameter: must be a parameter that ends in '_min'
-        """
-        slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
-        return slice.min()
-
-    def _cum(self, structure_type, obj_id, parameter):
-        """Cumulative value of a timeseries.
-
-        This is used to calculate e.g. total volume through a structure (the
-        cumulative values in the netcdf are integrated over time).
-        Structures are: pipes, weirs, orifices. So no pumps.
-
-        Note that q can be negative, so the absolute values are used.
-        """
-        if 'pump' in structure_type:
-            raise NotImplementedError(
-                "Total volume doesn't work for pumps yet using the "
-                "aggregated netCDF")
-        cum_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, [parameter], source='aggregation')
-        cum_slice = np.absolute(cum_slice)
-
-        # We can sum without integration because parameter is already an
-        # integrated variable.
-        return cum_slice.sum()
+        # Generate result statistics a priori
+        for k, v in self.variables.items():
+            if k.endswith('_cum'):
+                # We can sum without integration because parameter is already
+                # an integrated variable.
+                calcd_array = v.sum(0)
+            elif k.endswith('_min'):
+                calcd_array = v.min(0)
+            elif k.endswith('_max'):
+                calcd_array = v.max(0)
+            else:
+                raise ValueError("Unknown variable")
+            self.variables[k] = calcd_array
 
     def get_value_from_parameter(self, structure_type, obj_id,
                                  parameter_name):
-        """Select method and get value
+        """Select array and get the value.
 
         Args:
             structure_type: raw layer name; structure type normalization,
@@ -210,9 +196,15 @@ class NcStatsAgg(NcStats):
             obj_id: layer feature id?? -------------> TODO: needs checking!!!
             parameter_name: the netcdf variable name
         """
-        if parameter_name.endswith('_max'):
-            return self._max(structure_type, obj_id, parameter_name)
-        elif parameter_name.endswith('_cum'):
-            return self._cum(structure_type, obj_id, parameter_name)
-        elif parameter_name.endswith('_min'):
-            return self._min(structure_type, obj_id, parameter_name)
+        if 'pump' in structure_type:
+            # TODO: fix this
+            raise NotImplementedError(
+                "Some things don't work for pumps yet using the "
+                "aggregated netCDF")
+        norm_object_type = get_object_type(structure_type)
+        netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
+        try:
+            variable = self.variables[parameter_name]
+            return variable[netcdf_id]
+        except KeyError:
+            raise ValueError("This aggregation variable has no stats")
