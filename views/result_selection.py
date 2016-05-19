@@ -109,7 +109,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         settings = QSettings('3di', 'qgisplugin')
 
         try:
-            init_path = settings.value('last_used_path', type=str)
+            init_path = settings.value('last_used_datasource_path', type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
 
@@ -137,7 +137,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 'file_path': filename
             }]
             self.ts_datasource.insertRows(items)
-            settings.setValue('last_used_path', os.path.dirname(filename))
+            settings.setValue('last_used_datasource_path',
+                              os.path.dirname(filename))
 
             return True
 
@@ -218,7 +219,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         settings = QSettings('3di', 'qgisplugin')
 
         try:
-            init_path = settings.value('last_used_path', type=str)
+            init_path = settings.value('last_used_spatialite_path', type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
 
@@ -238,6 +239,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             index_nr = self.modelSpatialiteComboBox.findText(filename)
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
+
+        settings.setValue('last_used_spatialite_path',
+                          os.path.dirname(filename))
+        return True
 
         # if filename not in self.get_3di_spatialites_legendlist():
         #     # add spatialite to layer menu
