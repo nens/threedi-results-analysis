@@ -6,6 +6,7 @@ from base import BaseModel
 from base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
     make_flowline_layer, make_node_layer, make_pumpline_layer)
+from ..utils.user_messages import log
 
 
 def get_line_pattern(item_field):
@@ -59,6 +60,8 @@ class TimeseriesDatasourceModel(BaseModel):
                 return self._datasource
 
         def get_memory_layers(self):
+            """Note: lines and nodes are always in the netCDF, pumps are not
+            always in the netCDF."""
             if self._line_layer is None:
                 self._line_layer = make_flowline_layer(self.datasource())
 
@@ -66,6 +69,10 @@ class TimeseriesDatasourceModel(BaseModel):
                 self._node_layer = make_node_layer(self.datasource())
 
             if self._pumpline_layer is None:
-                self._pumpline_layer = make_pumpline_layer(self.datasource())
+                try:
+                    self._pumpline_layer = make_pumpline_layer(
+                        self.datasource())
+                except KeyError:
+                    log("No pumps in netCDF", level='WARNING')
 
             return self._line_layer, self._node_layer, self._pumpline_layer
