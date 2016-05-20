@@ -81,18 +81,17 @@ class ThreeDiTools:
         self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
         self.toolbar.setObjectName(u'ThreeDiTools')
 
-        # init tools
-        self.tools = []
-
         self.ts_datasource = TimeseriesDatasourceModel()
 
-        # Init a few widgets that go in the toolbar
+        # Init a few widgets that go into the toolbar
         self.timeslider_widget = TimesliderWidget(self.toolbar,
                                                   self.iface,
                                                   self.ts_datasource)
         self.lcd = QLCDNumber()
+        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         # Init the rest of the tools
+        self.tools = []
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
         self.sideview_tool = ThreeDiSideView(iface, self)
 
@@ -222,7 +221,6 @@ class ThreeDiTools:
 
         self.toolbar.addWidget(self.timeslider_widget)
         self.toolbar.addWidget(self.lcd)
-        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.ts_datasource.rowsRemoved.connect(
             self.check_status_model_and_results)
@@ -325,6 +323,9 @@ class ThreeDiTools:
 
             for tool in self.tools:
                 tool.on_unload()
+
+        self.timeslider_widget.valueChanged.disconnect(
+            self.on_slider_change)
 
         # remove the toolbar
         try:
