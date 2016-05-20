@@ -4,7 +4,13 @@ threedi-qgis-plugin changelog
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Statistic scripts performance improved.
+
+- Various bug fixes (e.g. sideview)
+
+- Side view clicking improvements.
+
+- Pumplines.
 
 
 0.4 (2016-05-10)
