@@ -4,6 +4,8 @@ threedi-qgis-plugin changelog
 0.5 (unreleased)
 ----------------
 
+- Bugfix transformation clicked coordinate in RouteTool.
+
 - Statistic scripts performance improved.
 
 - Various bug fixes (e.g. sideview)

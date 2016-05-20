@@ -301,8 +301,6 @@ class RouteTool(QgsMapTool):
         # Get the click
         x = event.pos().x()
         y = event.pos().y()
-        transformed_point = self.canvas.getCoordinateTransform(
-            ).toMapCoordinates(x, y)
 
         # use 5 pixels for selecting
         point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x-5,
@@ -314,8 +312,8 @@ class RouteTool(QgsMapTool):
                             max(point_ll.x(), point_ru.x()),
                             max(point_ll.y(), point_ru.y()))
 
-        transform = QgsCoordinateTransform(self.canvas.mapSettings().destinationCrs(),
-                                           self.line_layer.crs())
+        transform = QgsCoordinateTransform(
+            self.canvas.mapSettings().destinationCrs(), self.line_layer.crs())
 
         rect = transform.transform(rect)
         self.line_layer.removeSelection()
@@ -323,6 +321,11 @@ class RouteTool(QgsMapTool):
         # todo: select is not fastest way to get line
         self.line_layer.select(rect, False)
         selected = self.line_layer.selectedFeatures()
+
+        clicked_point = self.canvas.getCoordinateTransform(
+            ).toMapCoordinates(x, y)
+        # transform to wgs84 (lon, lat) if not already:
+        transformed_point = transform.transform(clicked_point)
 
         if len(selected) > 0:
             # todo get point closest to selection point
@@ -676,7 +679,7 @@ class SideViewDockWidget(QDockWidget):
 
         Args:
             selected_features: list of features selected by click
-            clicked_coordinate: (x, y) (transformed) of the click
+            clicked_coordinate: (lon, lat) (transformed) of the click
         """
         if self.route.has_path:
             self.route.reset()
