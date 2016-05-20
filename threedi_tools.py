@@ -36,7 +36,7 @@ from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
-from .views.threedi_timeslider import TimesliderWidget
+from .views.timeslider import TimesliderWidget
 from .utils.user_messages import (
     pop_up_info, log, messagebar_message, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
