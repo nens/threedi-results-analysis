@@ -18,19 +18,24 @@ from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
+
 class AttributeProperter(QgsArcProperter):
     """custom properter"""
-    def __init__(self, attribute):
+    def __init__(self, attribute, attribute_index):
         QgsArcProperter.__init__(self)
         self.attribute = attribute
+        self.attribute_index = attribute_index
+
     def property(self, distance, feature):
         if self.attribute == 'ROWID':
             value = feature.id()
         else:
             value = feature[self.attribute]
         return value
+
     def requiredAttributes(self):
-        attributes = [self.attribute]
+        # Must be a list of the attribute indexes (int), not strings:
+        attributes = [self.attribute_index]
         return attributes
 
 
@@ -42,12 +47,12 @@ class Route(object):
         self.line_layer = line_layer
         self.director = director
         self.id_field = id_field
-        #self.director = QgsLineVectorLayerDirector(self.line_layer, -1, '', '', '', 3)
+        self.id_field_index = self.line_layer.fieldNameIndex(self.id_field)
 
         # build graph for network
         properter_1 = weight_properter
         properter_2 = QgsDistanceArcProperter()
-        properter_3 = AttributeProperter(self.id_field)
+        properter_3 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addProperter(properter_1)
         self.director.addProperter(properter_2)
         self.director.addProperter(properter_3)
