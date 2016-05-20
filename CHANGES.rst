@@ -1,7 +1,7 @@
 threedi-qgis-plugin changelog
 =============================
 
-0.5 (unreleased)
+0.5 (2016-05-20)
 ----------------
 
 - Bugfix transformation clicked coordinate in RouteTool.
