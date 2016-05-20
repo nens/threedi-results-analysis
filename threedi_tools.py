@@ -262,44 +262,35 @@ class ThreeDiTools:
                                    title="netCDF layers"):
                 return
 
-            # check if netcdf file contain geometry information, if so, create
-            # layers from it
-            # todo: find a better interface to check - this is directly on the
-            # netCDF itself
-            if 'breach_mapping' in ds_item.datasource().ds.variables:
-                # get or create group in legend
-                legend = self.iface.legendInterface()
-                if self.group_layer is None:
-                    self.group_layer = legend.addGroup(self.group_layer_name,
-                                                       True)
+            # get or create group in legend
+            legend = self.iface.legendInterface()
+            if self.group_layer is None:
+                self.group_layer = legend.addGroup(self.group_layer_name,
+                                                   True)
 
-                legend.setGroupVisible(self.group_layer, True)
+            legend.setGroupVisible(self.group_layer, True)
 
-                # get memory layers
-                line_layer, node_layer, pumpline_layer = \
-                    ds_item.get_memory_layers()
+            # get memory layers
+            line_layer, node_layer, pumpline_layer = \
+                ds_item.get_memory_layers()
 
-                # apply default styling on memory layers
-                line_layer.loadNamedStyle(os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    'layer_styles', 'tools', 'flowlines.qml'))
+            # apply default styling on memory layers
+            line_layer.loadNamedStyle(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'layer_styles', 'tools', 'flowlines.qml'))
 
-                node_layer.loadNamedStyle(os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    'layer_styles', 'tools', 'nodes.qml'))
+            node_layer.loadNamedStyle(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'layer_styles', 'tools', 'nodes.qml'))
 
-                # add layers to the map
-                QgsMapLayerRegistry.instance().addMapLayers(
-                    [line_layer, node_layer, pumpline_layer])
+            # add layers to the map
+            QgsMapLayerRegistry.instance().addMapLayers(
+                [line_layer, node_layer, pumpline_layer])
 
-                # move the layers to the group
-                for lyr in [line_layer, node_layer, pumpline_layer]:
-                    legend.setLayerExpanded(lyr, True)
-                    legend.moveLayer(lyr, self.group_layer)
-            else:
-                messagebar_message("netCDF", "netCDF does not contain geometry"
-                                             " information, not all results"
-                                             " will be supported", 0, 10)
+            # move the layers to the group
+            for lyr in [line_layer, node_layer, pumpline_layer]:
+                legend.setLayerExpanded(lyr, True)
+                legend.moveLayer(lyr, self.group_layer)
 
     def about(self):
         """
