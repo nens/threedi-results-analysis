@@ -24,8 +24,7 @@
 import os.path
 
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
-
+from PyQt4.QtGui import QAction, QIcon, QLCDNumber
 from qgis.core import QgsMapLayerRegistry
 
 
@@ -37,7 +36,7 @@ from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
-from .threedi_timeslider import TimesliderWidget
+from .views.threedi_timeslider import TimesliderWidget
 from .utils.user_messages import (
     pop_up_info, log, messagebar_message, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
@@ -86,14 +85,16 @@ class ThreeDiTools:
         self.tools = []
 
         self.ts_datasource = TimeseriesDatasourceModel()
+
+        # Init a few widgets that go in the toolbar
         self.timeslider_widget = TimesliderWidget(self.toolbar,
                                                   self.iface,
                                                   self.ts_datasource)
+        self.lcd = QLCDNumber()
 
-
+        # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
         self.sideview_tool = ThreeDiSideView(iface, self)
-
 
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
@@ -220,6 +221,8 @@ class ThreeDiTools:
                 parent=self.iface.mainWindow())
 
         self.toolbar.addWidget(self.timeslider_widget)
+        self.toolbar.addWidget(self.lcd)
+        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.ts_datasource.rowsRemoved.connect(
             self.check_status_model_and_results)
@@ -229,6 +232,10 @@ class ThreeDiTools:
             self.check_status_model_and_results)
 
         self.check_status_model_and_results()
+
+    def on_slider_change(self, value):
+        """Callback for slider valueChanged signal."""
+        self.lcd.display(value)
 
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
