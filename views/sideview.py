@@ -327,9 +327,12 @@ class RouteTool(QgsMapTool):
 
     def activate(self):
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
+        print("Route tool activated")
 
     def deactivate(self):
+        self.deactivated.emit()
         self.canvas.setCursor(QCursor(Qt.ArrowCursor))
+        print("Route tool deactivated")
 
     def isZoomTool(self):
         return False
@@ -403,6 +406,8 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool = RouteTool(self.iface.mapCanvas(),
                                     self.line_layer,
                                     self.on_route_point_select)
+
+        self.route_tool.deactivated.connect(self.unset_route_tool)
 
         # temp layer for side profile trac
         self.rb = QgsRubberBand(self.iface.mapCanvas())
@@ -650,8 +655,12 @@ class SideViewDockWidget(QDockWidget):
 
         return vl, points
 
-    def toggle_route_tool(self):
+    def unset_route_tool(self):
+        if self.route_tool_active:
+            self.route_tool_active = False
+            self.iface.mapCanvas().unsetMapTool(self.route_tool)
 
+    def toggle_route_tool(self):
         if self.route_tool_active:
             self.route_tool_active = False
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
@@ -684,17 +693,16 @@ class SideViewDockWidget(QDockWidget):
             t_pnt = transform.transform(pnt)
             self.rb.addPoint(t_pnt)
 
-
     def on_close(self):
         """
         unloading widget and remove all required stuff
         :return:
         """
         self.select_sideview_button.clicked.disconnect(
-                self.toggle_route_tool)
+            self.toggle_route_tool)
+        self.route_tool.deactivated.disconnect(self.unset_route_tool)
 
-        if self.route_tool_active:
-            self.iface.mapCanvas().unsetMapTool(self.route_tool)
+        self.unset_route_tool()
 
         self.rb.reset()
         # todo: find out how to unload layer from memory
