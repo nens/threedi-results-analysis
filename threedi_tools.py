@@ -77,13 +77,11 @@ class ThreeDiTools:
         self.actions = []
         self.menu = self.tr(u'&3di toolbox')
 
-        # set tools and toolbar and init other tools
-        self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
-        self.toolbar.setObjectName(u'ThreeDiTools')
-
         self.ts_datasource = TimeseriesDatasourceModel()
 
-        # Init a few widgets that go into the toolbar
+        # Set toolbar and init a few toolbar widgets
+        self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
+        self.toolbar.setObjectName(u'ThreeDiTools')
         self.timeslider_widget = TimesliderWidget(self.toolbar,
                                                   self.iface,
                                                   self.ts_datasource)
@@ -91,19 +89,18 @@ class ThreeDiTools:
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         # Init the rest of the tools
-        self.tools = []
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
         self.sideview_tool = ThreeDiSideView(iface, self)
 
+        self.tools = []
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(self.graph_tool)
         self.tools.append(self.sideview_tool)
 
         self.active_datasource = None
-        self.group_layer_name = '3di toolbox layers'
+        self.group_layer_name = '3Di toolbox layers'
         self.group_layer = None
-
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
