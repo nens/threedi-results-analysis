@@ -225,11 +225,7 @@ def make_pumpline_layer(nds):
     projection = nds.ds.variables['projected_coordinate_system']
     epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
-    pumpline = nds.ds.variables['PumpLine_connections']
-
-    # TODO: temporary fix for inconsistent shapes. To be removed when netcdf
-    # shape is the same as the flowline shape:
-    pumpline = pumpline[:].T
+    pumpline = nds.ds.variables['PumpLine_connection']
 
     # FlowElem centers:
     flowelem_xcc = nds.ds.variables['FlowElem_xcc']  # in meters

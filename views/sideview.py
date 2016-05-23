@@ -21,6 +21,7 @@ from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
 from ..utils.route import Route
+from ..utils import haversine
 
 from ..utils.geo_processing import split_line_at_points
 
@@ -378,7 +379,7 @@ class RouteTool(QgsMapTool):
         pass
 
     def canvasReleaseEvent(self, event):
-        #Get the click
+        # Get the click
         x = event.pos().x()
         y = event.pos().y()
 
@@ -392,8 +393,8 @@ class RouteTool(QgsMapTool):
                             max(point_ll.x(), point_ru.x()),
                             max(point_ll.y(), point_ru.y()))
 
-        transform = QgsCoordinateTransform(self.canvas.mapSettings().destinationCrs(),
-                                           self.line_layer.crs())
+        transform = QgsCoordinateTransform(
+            self.canvas.mapSettings().destinationCrs(), self.line_layer.crs())
 
         rect = transform.transform(rect)
         self.line_layer.removeSelection()
@@ -402,15 +403,23 @@ class RouteTool(QgsMapTool):
         self.line_layer.select(rect, False)
         selected = self.line_layer.selectedFeatures()
 
+        clicked_point = self.canvas.getCoordinateTransform(
+            ).toMapCoordinates(x, y)
+        # transform to wgs84 (lon, lat) if not already:
+        transformed_point = transform.transform(clicked_point)
+
         if len(selected) > 0:
             # todo get point closest to selection point
-            self.callback_on_select(selected)
+            self.callback_on_select(selected, transformed_point)
 
     def activate(self):
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
+        print("Route tool activated")
 
     def deactivate(self):
+        self.deactivated.emit()
         self.canvas.setCursor(QCursor(Qt.ArrowCursor))
+        print("Route tool deactivated")
 
     def isZoomTool(self):
         return False
@@ -491,6 +500,8 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool = RouteTool(self.iface.mapCanvas(),
                                     self.line_layer,
                                     self.on_route_point_select)
+
+        self.route_tool.deactivated.connect(self.unset_route_tool)
 
         # temp layer for side profile trac
         self.rb = QgsRubberBand(self.iface.mapCanvas())
@@ -860,8 +871,12 @@ class SideViewDockWidget(QDockWidget):
 
         return vl, points, channel_profiles
 
-    def toggle_route_tool(self):
+    def unset_route_tool(self):
+        if self.route_tool_active:
+            self.route_tool_active = False
+            self.iface.mapCanvas().unsetMapTool(self.route_tool)
 
+    def toggle_route_tool(self):
         if self.route_tool_active:
             self.route_tool_active = False
             self.iface.mapCanvas().unsetMapTool(self.route_tool)
@@ -869,14 +884,29 @@ class SideViewDockWidget(QDockWidget):
             self.route_tool_active = True
             self.iface.mapCanvas().setMapTool(self.route_tool)
 
-    def on_route_point_select(self, selected_features):
+    def on_route_point_select(self, selected_features, clicked_coordinate):
+        """Select and add the closest point from the list of selected features.
 
+        Args:
+            selected_features: list of features selected by click
+            clicked_coordinate: (lon, lat) (transformed) of the click
+        """
         if self.route.has_path:
             self.route.reset()
 
-        # Todo: improve this for better user experience. this is quiet random
-        # better to take closest point
-        next_point = QgsPoint(selected_features[0].geometry().vertexAt(0))
+        def haversine_clicked(coordinate):
+            """Calculate the distance w.r.t. the clicked location."""
+            lon1, lat1 = clicked_coordinate
+            lon2, lat2 = coordinate
+            return haversine(lon1, lat1, lon2, lat2)
+
+        selected_coordinates = reduce(
+            lambda accum, f: accum + [f.geometry().vertexAt(0),
+                                      f.geometry().vertexAt(1)],
+            selected_features, [])
+
+        closest_point = min(selected_coordinates, key=haversine_clicked)
+        next_point = QgsPoint(closest_point)
 
         success, msg = self.route.add_point(next_point)
 
@@ -894,17 +924,16 @@ class SideViewDockWidget(QDockWidget):
             t_pnt = transform.transform(pnt)
             self.rb.addPoint(t_pnt)
 
-
     def on_close(self):
         """
         unloading widget and remove all required stuff
         :return:
         """
         self.select_sideview_button.clicked.disconnect(
-                self.toggle_route_tool)
+            self.toggle_route_tool)
+        self.route_tool.deactivated.disconnect(self.unset_route_tool)
 
-        if self.route_tool_active:
-            self.iface.mapCanvas().unsetMapTool(self.route_tool)
+        self.unset_route_tool()
 
         self.rb.reset()
         # todo: find out how to unload layer from memory

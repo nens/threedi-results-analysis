@@ -24,8 +24,7 @@
 import os.path
 
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon
-
+from PyQt4.QtGui import QAction, QIcon, QLCDNumber
 from qgis.core import QgsMapLayerRegistry
 
 
@@ -37,7 +36,7 @@ from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
-from .threedi_timeslider import TimesliderWidget
+from .views.timeslider import TimesliderWidget
 from .utils.user_messages import (
     pop_up_info, log, messagebar_message, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
@@ -78,30 +77,29 @@ class ThreeDiTools:
         self.actions = []
         self.menu = self.tr(u'&3di toolbox')
 
-        # set tools and toolbar and init other tools
+        self.ts_datasource = TimeseriesDatasourceModel()
+
+        # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
         self.toolbar.setObjectName(u'ThreeDiTools')
-
-        # init tools
-        self.tools = []
-
-        self.ts_datasource = TimeseriesDatasourceModel()
         self.timeslider_widget = TimesliderWidget(self.toolbar,
                                                   self.iface,
                                                   self.ts_datasource)
+        self.lcd = QLCDNumber()
+        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
-
+        # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
         self.sideview_tool = ThreeDiSideView(iface, self)
 
-
+        self.tools = []
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(self.graph_tool)
         self.tools.append(self.sideview_tool)
 
         self.active_datasource = None
-        self.group_layer_name = '3di toolbox layers'
+        self.group_layer_name = '3Di toolbox layers'
         self.group_layer = None
 
         self.line_layer = None
@@ -223,6 +221,7 @@ class ThreeDiTools:
                 parent=self.iface.mainWindow())
 
         self.toolbar.addWidget(self.timeslider_widget)
+        self.toolbar.addWidget(self.lcd)
 
         self.ts_datasource.rowsRemoved.connect(
             self.check_status_model_and_results)
@@ -232,6 +231,10 @@ class ThreeDiTools:
             self.check_status_model_and_results)
 
         self.check_status_model_and_results()
+
+    def on_slider_change(self, value):
+        """Callback for slider valueChanged signal."""
+        self.lcd.display(value)
 
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
@@ -265,45 +268,35 @@ class ThreeDiTools:
                                    title="netCDF layers"):
                 return
 
-            # check if netcdf file contain geometry information, if so, create
-            # layers from it
-            # todo: find a better interface to check - this is directly on the
-            # netCDF itself
-            if 'breach_mapping' in ds_item.datasource().ds.variables:
-                # get or create group in legend
-                legend = self.iface.legendInterface()
-                if self.group_layer is None:
-                    self.group_layer = legend.addGroup(self.group_layer_name,
-                                                       True)
+            # get or create group in legend
+            legend = self.iface.legendInterface()
+            if self.group_layer is None:
+                self.group_layer = legend.addGroup(self.group_layer_name,
+                                                   True)
 
-                legend.setGroupVisible(self.group_layer, True)
+            legend.setGroupVisible(self.group_layer, True)
 
-                # get memory layers
-                self.line_layer, self.node_layer, self.pumpline_layer = \
-                    ds_item.get_memory_layers()
+            # get memory layers
+            line_layer, node_layer, pumpline_layer = \
+                ds_item.get_memory_layers()
 
-                # apply default styling on memory layers
-                self.line_layer.loadNamedStyle(os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    'layer_styles', 'tools', 'flowlines.qml'))
+            # apply default styling on memory layers
+            line_layer.loadNamedStyle(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'layer_styles', 'tools', 'flowlines.qml'))
 
-                self.node_layer.loadNamedStyle(os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    'layer_styles', 'tools', 'nodes.qml'))
+            node_layer.loadNamedStyle(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'layer_styles', 'tools', 'nodes.qml'))
 
-                # add layers to the map
-                QgsMapLayerRegistry.instance().addMapLayers(
-                    [self.line_layer, self.node_layer, self.pumpline_layer])
+            # add layers to the map
+            QgsMapLayerRegistry.instance().addMapLayers(
+                [line_layer, node_layer, pumpline_layer])
 
-                # move the layers to the group
-                for lyr in [self.line_layer, self.node_layer,
-                            self.pumpline_layer]:
-                    legend.setLayerExpanded(lyr, True)
-                    legend.moveLayer(lyr, self.group_layer)
-            else:
-                messagebar_message("netCDF", "netCDF does not contain geometry"
-                                             " information, not all results"
-                                             " will be supported", 0, 10)
+            # move the layers to the group
+            for lyr in [line_layer, node_layer, pumpline_layer]:
+                legend.setLayerExpanded(lyr, True)
+                legend.moveLayer(lyr, self.group_layer)
 
     def about(self):
         """
@@ -331,6 +324,9 @@ class ThreeDiTools:
 
             for tool in self.tools:
                 tool.on_unload()
+
+        self.timeslider_widget.valueChanged.disconnect(
+            self.on_slider_change)
 
         # remove the toolbar
         try:
