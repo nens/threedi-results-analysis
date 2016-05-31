@@ -42,7 +42,8 @@ class AttributeProperter(QgsArcProperter):
 class Route(object):
 
     def __init__(self, line_layer, director,
-                 weight_properter=QgsDistanceArcProperter(), id_field="ROWID"):
+                 weight_properter=QgsDistanceArcProperter(),
+                 distance_properter=QgsDistanceArcProperter(), id_field="ROWID"):
 
         self.line_layer = line_layer
         self.director = director
@@ -51,7 +52,7 @@ class Route(object):
 
         # build graph for network
         properter_1 = weight_properter
-        properter_2 = QgsDistanceArcProperter()
+        properter_2 = distance_properter
         properter_3 = AttributeProperter(self.id_field, self.id_field_index)
         self.director.addProperter(properter_1)
         self.director.addProperter(properter_2)
