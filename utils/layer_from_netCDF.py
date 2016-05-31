@@ -234,7 +234,7 @@ def make_pumpline_layer(nds):
     """
     # Get relevant netCDF.Variables
     projection = nds.ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
+    source_epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
     pumpline = nds.ds.variables['PumpLine_connection']
 
@@ -258,8 +258,8 @@ def make_pumpline_layer(nds):
 
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:{}&index=yes".format(
-        epsg)
+    uri = "LineString?crs=epsg:4326&index=yes"
+
     vl = QgsVectorLayer(uri, "pumplines", "memory")
     pr = vl.dataProvider()
 
@@ -278,6 +278,11 @@ def make_pumpline_layer(nds):
     # add features
     features = []
     number_of_pumplines = pumpline.shape[1]
+
+    source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+    dest_crs = QgsCoordinateReferenceSystem(4326)
+    transform = QgsCoordinateTransform(source_crs, dest_crs)
+
     for i in range(number_of_pumplines):
         fet = QgsFeature()
 
@@ -304,6 +309,7 @@ def make_pumpline_layer(nds):
         node_idx1 = int(pumpline_p1[i])
         node_idx2 = int(pumpline_p2[i])
 
+        geom.transform(transform)
         fet.setGeometry(geom)
         fet.setAttributes([i, node_idx1, node_idx2])
         features.append(fet)
