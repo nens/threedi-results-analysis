@@ -18,7 +18,7 @@ def join_stats(filepath, layer, view_layer_field, csv_field='id'):
     """
     filename = os.path.basename(filepath)
     csv_layer_name = os.path.splitext(filename)[0]
-    csv_uri = "file://" + filepath
+    csv_uri = "file:///" + filepath
     csv_layer = QgsVectorLayer(csv_uri, csv_layer_name, "delimitedtext")
     QgsMapLayerRegistry.instance().addMapLayer(csv_layer)
     join_info = QgsVectorJoinInfo()
