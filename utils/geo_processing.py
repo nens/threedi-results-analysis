@@ -83,9 +83,9 @@ def split_line_at_points(polyline, point_features,
             # todo: what to do of multiple points on same location?
             line_points.append(point[2])
             geom =  QgsGeometry.fromPolyline(line_points)
-            length = d.convertLengthMeasurement(
-                d.measureLength(geom),
-                QGis.Meters)
+            length, unit_type = d.convertMeasurement(
+                    d.computeDistance(line_points),
+                    QGis.Degrees, QGis.Meters, False)
 
             # add line parts
             line_parts.append({
@@ -102,9 +102,9 @@ def split_line_at_points(polyline, point_features,
 
     # last part of the line
     geom = QgsGeometry.fromPolyline(line_points)
-    length = d.convertLengthMeasurement(
-        d.measureLength(geom),
-        QGis.Meters)
+    length, something = d.convertMeasurement(
+        d.computeDistance(line_points),
+        QGis.Degrees, QGis.Meters, False)
 
     line_parts.append({
         'geom': geom,
