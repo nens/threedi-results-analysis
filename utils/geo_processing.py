@@ -1,6 +1,7 @@
-
+from .user_messages import log
 from qgis.core import QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis
 import math
+
 
 def split_line_at_points(polyline, point_features,
                          point_feature_id_field='id',
@@ -83,9 +84,15 @@ def split_line_at_points(polyline, point_features,
             # todo: what to do of multiple points on same location?
             line_points.append(point[2])
             geom =  QgsGeometry.fromPolyline(line_points)
-            length = d.convertLengthMeasurement(
-                d.measureLength(geom),
-                QGis.Meters)
+            try:
+                length = d.convertLengthMeasurement(
+                    d.measureLength(geom),
+                    QGis.Meters)
+            except AttributeError:
+                log("QgsDistanceArea.convertLengthMeasurement is unsupported "
+                    "in QGIS <2.14, reverting to another function.",
+                    level='WARN')
+                length = d.measureLine(line_points)
 
             # add line parts
             line_parts.append({
@@ -102,9 +109,14 @@ def split_line_at_points(polyline, point_features,
 
     # last part of the line
     geom = QgsGeometry.fromPolyline(line_points)
-    length = d.convertLengthMeasurement(
-        d.measureLength(geom),
-        QGis.Meters)
+    try:
+        length = d.convertLengthMeasurement(
+            d.measureLength(geom),
+            QGis.Meters)
+    except AttributeError:
+        log("QgsDistanceArea.convertLengthMeasurement is unsupported "
+            "in QGIS <2.14, reverting to another function.", level='WARN')
+        length = d.measureLine(line_points)
 
     line_parts.append({
         'geom': geom,
