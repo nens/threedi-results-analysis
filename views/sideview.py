@@ -849,13 +849,9 @@ class SideViewDockWidget(QDockWidget):
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 
-        if model_line_layer is None:
-            canvas = self.tdi_root_tool.iface.mapCanvas()
-            model_line_layer = canvas.currentLayer()
-
-        # create instance for distance calculation later on
-        d = QgsDistanceArea()
-        # d.setEllipsoidalMode(True)
+        # if model_line_layer is None:
+        #     canvas = self.tdi_root_tool.iface.mapCanvas()
+        #     model_line_layer = canvas.currentLayer()
 
         def get_layer(spatialite_path, table_name, geom_column=''):
             uri2 = QgsDataSourceURI()
