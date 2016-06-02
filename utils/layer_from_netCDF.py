@@ -3,7 +3,7 @@
 """
 
 from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
-    QgsPoint
+    QgsPoint, QgsCoordinateTransform, QgsCoordinateReferenceSystem
 from PyQt4.QtCore import QVariant
 
 from .user_messages import StatusProgressBar
@@ -26,7 +26,7 @@ def make_flowline_layer(ds, progress_bar=None):
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
     projection = ds.ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
+    source_epsg = projection.epsg  # = 28992
     # Connections (2, nFlowLine):
     try:
         flowline_connection = ds.ds.variables['FlowLine_connection']
@@ -53,8 +53,7 @@ def make_flowline_layer(ds, progress_bar=None):
     progress_bar.increase_progress(10, "create memory layer")
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:{}&index=yes".format(
-        epsg)
+    uri = "LineString?crs=epsg:4326&index=yes"
     vl = QgsVectorLayer(uri, "flowlines", "memory")
     pr = vl.dataProvider()
 
@@ -65,7 +64,9 @@ def make_flowline_layer(ds, progress_bar=None):
         QgsField("flowline_idx", QVariant.Int),
         QgsField("inp_id", QVariant.Int),
         QgsField("spatialite_id", QVariant.Int),
-        QgsField("type", QVariant.String, len=25)
+        QgsField("type", QVariant.String, len=25),
+        QgsField("start_node_idx", QVariant.Int),
+        QgsField("end_node_idx", QVariant.Int)
         ])
     # tell the vector layer to fetch changes from the provider
     vl.updateFields()
@@ -87,15 +88,21 @@ def make_flowline_layer(ds, progress_bar=None):
     # add features
     features = []
 
+    source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+    dest_crs = QgsCoordinateReferenceSystem(4326)
+
+    transform = QgsCoordinateTransform(source_crs, dest_crs)
+
     # TODO: because there is not (yet) distinction  between number of 2d
     # links and 1d-2d links, we will guess the numbers based on the fact that
     # only id mapping is available for all 1d links. (when numbers become
     # available, this code can be improved and optimized
+
     for i in range(flowline_connection.shape[1]):
         feat = QgsFeature()
 
-        p1 = QgsPoint(x_p1[i], y_p1[i])
-        p2 = QgsPoint(x_p2[i], y_p2[i])
+        p1 = transform.transform(QgsPoint(x_p1[i], y_p1[i]))
+        p2 = transform.transform(QgsPoint(x_p2[i], y_p2[i]))
 
         feat.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
 
@@ -112,7 +119,8 @@ def make_flowline_layer(ds, progress_bar=None):
                 cat = '1d_2d'
             spatialite_tbl = cat
 
-        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl])
+        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl,
+                            int(flowline_p1[i]), int(flowline_p2[i])])
 
         features.append(feat)
 
@@ -145,7 +153,7 @@ def make_node_layer(ds, progress_bar=None):
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
     projection = ds.ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
+    source_epsg = projection.epsg  # = 28992
     # FlowElem centers:
     flowelem_xcc = ds.ds.variables['FlowElem_xcc']  # in meters
     flowelem_ycc = ds.ds.variables['FlowElem_ycc']  # in meters
@@ -153,8 +161,7 @@ def make_node_layer(ds, progress_bar=None):
     progress_bar.increase_progress(10, "create memory layer")
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "Point?crs=epsg:{}&index=yes".format(
-        epsg)
+    uri = "Point?crs=epsg:4326&index=yes"
     vl = QgsVectorLayer(uri, "nodes", "memory")
     pr = vl.dataProvider()
 
@@ -187,10 +194,15 @@ def make_node_layer(ds, progress_bar=None):
     progress_bar.increase_progress(20, "Prepare data")
     # add features
     features = []
+
+    source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+    dest_crs = QgsCoordinateReferenceSystem(4326)
+    transform = QgsCoordinateTransform(source_crs, dest_crs)
+
     for i in range(flowelem_xcc.shape[0]):
         feat = QgsFeature()
 
-        p1 = QgsPoint(flowelem_xcc[i], flowelem_ycc[i])
+        p1 = transform.transform(QgsPoint(flowelem_xcc[i], flowelem_ycc[i]))
 
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
@@ -222,7 +234,7 @@ def make_pumpline_layer(nds):
     """
     # Get relevant netCDF.Variables
     projection = nds.ds.variables['projected_coordinate_system']
-    epsg = projection.epsg  # = 28992
+    source_epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
     pumpline = nds.ds.variables['PumpLine_connection']
 
@@ -246,8 +258,8 @@ def make_pumpline_layer(nds):
 
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:{}&index=yes".format(
-        epsg)
+    uri = "LineString?crs=epsg:4326&index=yes"
+
     vl = QgsVectorLayer(uri, "pumplines", "memory")
     pr = vl.dataProvider()
 
@@ -266,6 +278,11 @@ def make_pumpline_layer(nds):
     # add features
     features = []
     number_of_pumplines = pumpline.shape[1]
+
+    source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+    dest_crs = QgsCoordinateReferenceSystem(4326)
+    transform = QgsCoordinateTransform(source_crs, dest_crs)
+
     for i in range(number_of_pumplines):
         fet = QgsFeature()
 
@@ -292,6 +309,7 @@ def make_pumpline_layer(nds):
         node_idx1 = int(pumpline_p1[i])
         node_idx2 = int(pumpline_p2[i])
 
+        geom.transform(transform)
         fet.setGeometry(geom)
         fet.setAttributes([i, node_idx1, node_idx2])
         features.append(fet)

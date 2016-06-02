@@ -102,6 +102,10 @@ class ThreeDiTools:
         self.group_layer_name = '3Di toolbox layers'
         self.group_layer = None
 
+        self.line_layer = None
+        self.point_layer = None
+
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -273,24 +277,24 @@ class ThreeDiTools:
             legend.setGroupVisible(self.group_layer, True)
 
             # get memory layers
-            line_layer, node_layer, pumpline_layer = \
+            self.line_layer, self.node_layer, self.pumpline_layer = \
                 ds_item.get_memory_layers()
 
             # apply default styling on memory layers
-            line_layer.loadNamedStyle(os.path.join(
+            self.line_layer.loadNamedStyle(os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 'layer_styles', 'tools', 'flowlines.qml'))
 
-            node_layer.loadNamedStyle(os.path.join(
+            self.node_layer.loadNamedStyle(os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 'layer_styles', 'tools', 'nodes.qml'))
 
             # add layers to the map
             QgsMapLayerRegistry.instance().addMapLayers(
-                [line_layer, node_layer, pumpline_layer])
+                [self.line_layer, self.node_layer, self.pumpline_layer])
 
             # move the layers to the group
-            for lyr in [line_layer, node_layer, pumpline_layer]:
+            for lyr in [self.line_layer, self.node_layer, self.pumpline_layer]:
                 legend.setLayerExpanded(lyr, True)
                 legend.moveLayer(lyr, self.group_layer)
 
