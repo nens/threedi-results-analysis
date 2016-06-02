@@ -4,7 +4,11 @@ threedi-qgis-plugin changelog
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bug fix stat layer joining in Windows.
+
+- Add multiple clicks in sideview tool.
+
+- Add channels to the sideviews.
 
 
 0.5 (2016-05-20)
