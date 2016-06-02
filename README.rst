@@ -54,7 +54,7 @@ see: [2]_)::
 
 Manually copy to server::
 
-    $ scp ThreeDiToolbox.0.2.zip 119-packages-d1.external-nens.local:/srv/packages.lizardsystem.nl/var/plugins
+    $ scp ThreeDiToolbox.0.2.zip <user.name>@119-packages-d1.external-nens.local:/srv/packages.lizardsystem.nl/var/plugins
 
 
 Tests
