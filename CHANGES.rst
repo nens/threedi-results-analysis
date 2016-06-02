@@ -1,7 +1,7 @@
 threedi-qgis-plugin changelog
 =============================
 
-0.6 (unreleased)
+0.6 (2016-06-02)
 ----------------
 
 - Bug fix stat layer joining in Windows.
