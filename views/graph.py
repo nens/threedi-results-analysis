@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox
+from PyQt4.QtGui import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
+    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
+    QDockWidget, QComboBox, QMessageBox)
 
 from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
 import pyqtgraph as pg
-from qgis.core import QgsDataSourceURI
+from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
+                       QgsCoordinateTransform, QgsCoordinateReferenceSystem)
+from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
 # GraphDockWidget labels related parameters.
 # TODO: unorm is deprecated, now 'u1'
@@ -313,7 +315,7 @@ class LocationTimeseriesTable(QTableView):
                 if row is not None:
                     try:
                         self.hover_enter(row)
-                    except:
+                    except IndexError:
                         log("Hover row index %s out of range" % row,
                             level='WARNING')
                 self._last_hovered_row = row
@@ -349,13 +351,14 @@ class LocationTimeseriesTable(QTableView):
 class GraphWidget(QWidget):
 
     def __init__(self, parent=None, ts_datasource=None,
-                 parameter_config=[], name=""):
+                 parameter_config=[], name="", geometry_type=QGis.WKBPoint):
         super(GraphWidget, self).__init__(parent)
 
         self.name = name
         self.parameters = dict([(p['name'], p) for p in parameter_config])
         self.ts_datasource = ts_datasource
         self.parent = parent
+        self.geometry_type = geometry_type
 
         self.setup_ui()
 
@@ -377,6 +380,17 @@ class GraphWidget(QWidget):
                 self.parameter_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
 
+        if self.geometry_type == QGis.WKBPoint:
+            self.marker = QgsVertexMarker(self.parent.iface.mapCanvas())
+        else:
+            self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
+            self.marker.setColor(Qt.red)
+            self.marker.setWidth(2)
+
+        self.transform = QgsCoordinateTransform(
+                QgsCoordinateReferenceSystem(4326),
+                self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
+
     def on_close(self):
         """
         unloading widget and remove all required stuff
@@ -396,18 +410,39 @@ class GraphWidget(QWidget):
         event.accept()
 
     def highlight_feature(self, obj_id, obj_type):
+
+        pass
+        # todo: selection generated errors and crash of Qgis. Implement method
+        # with QgsRubberband and/ or QgsVertexMarker
+
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
             # Clear other layers
-            lyr.removeSelection()
+            # lyr.removeSelection()
             if lyr.name() == obj_type:
-                lyr.select(obj_id)
+                # query layer for object
+                request = QgsFeatureRequest()
+                request.setFilterFid(obj_id)
+                features = lyr.getFeatures(request)
+                for feature in features:
+                    if self.geometry_type == QGis.WKBPoint:
+                        geom = feature.geometry()
+                        geom.transform(self.transform)
+                        self.marker.setCenter(geom.asPoint())
+                        self.marker.setVisible(True)
+                    else:
+                        self.marker.setToGeometry(feature.geometry(), lyr)
 
     def unhighlight_all_features(self):
         """Remove the highlights from all layers"""
-        layers = self.parent.iface.mapCanvas().layers()
-        for lyr in layers:
-            lyr.removeSelection()
+
+        if self.geometry_type == QGis.WKBPoint:
+            self.marker.setVisible(False)
+        else:
+            self.marker.reset()
+        pass
+        # todo: selection generated errors and crash of Qgis. Implement method
+        # with QgsRubberband and/ or QgsVertexMarker
 
     def setup_ui(self):
         """
@@ -594,9 +629,11 @@ class GraphDockWidget(QDockWidget):
 
         # add graph widgets
         self.q_graph_widget = GraphWidget(self, self.ts_datasource,
-                                          parameter_config['q'], "Q graph")
+                                          parameter_config['q'], "Q graph",
+                                          QGis.WKBLineString)
         self.h_graph_widget = GraphWidget(self, self.ts_datasource,
-                                          parameter_config['h'], "H graph")
+                                          parameter_config['h'], "H graph",
+                                          QGis.WKBPoint)
         self.graphTabWidget.addTab(self.q_graph_widget,
                                    self.q_graph_widget.name)
         self.graphTabWidget.addTab(self.h_graph_widget,

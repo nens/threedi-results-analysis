@@ -4,7 +4,7 @@ threedi-qgis-plugin changelog
 0.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bug fix highlight graph location on table hover
 
 
 0.6 (2016-06-02)
