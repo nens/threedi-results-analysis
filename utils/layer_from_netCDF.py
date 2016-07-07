@@ -73,16 +73,21 @@ def make_flowline_layer(ds, progress_bar=None):
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in
+    if not hasattr(ds.ds.variables, 'channel_mapping'):
+        progress_bar.increase_progress(10, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
+        flowid_to_inp_mapping = {}
+        inp_to_splt_mapping = {}
+    else:
+        flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in
                                   ds.ds.variables['channel_mapping']])
 
-    # create mapping of inp_id to spatialite_id and feature type
-    inp_to_splt_mapping = {}
-    for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
-                         "v2_orifice"):
-        if feature_type in ds.id_mapping:
-            for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
-                inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
+        # create mapping of inp_id to spatialite_id and feature type
+        inp_to_splt_mapping = {}
+        for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
+                             "v2_orifice"):
+            if feature_type in ds.id_mapping:
+                for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                    inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
     # add features
@@ -180,16 +185,21 @@ def make_node_layer(ds, progress_bar=None):
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    node_idx_to_inp_id = dict([(flowid-1, inp_id) for inp_id, flowid in
-                               ds.ds.variables['node_mapping']])
+    if not hasattr(ds.ds.variables, 'node_mapping'):
+        progress_bar.increase_progress(10, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
+        node_idx_to_inp_id = {}
+        inp_to_splt_mapping = {}
+    else:
+        node_idx_to_inp_id = dict([(flowid-1, inp_id) for inp_id, flowid in
+                                   ds.ds.variables['node_mapping']])
 
-    # create mapping of inp_id to spatialite_id and feature type
-    inp_to_splt_mapping = {}
-    for feature_type in ("v2_connection_nodes", "v2_manhole",
-                         "v2_1d_boundary_conditions"):
-        if feature_type in ds.id_mapping:
-            for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
-                inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
+        # create mapping of inp_id to spatialite_id and feature type
+        inp_to_splt_mapping = {}
+        for feature_type in ("v2_connection_nodes", "v2_manhole",
+                             "v2_1d_boundary_conditions"):
+            if feature_type in ds.id_mapping:
+                for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                    inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
     # add features

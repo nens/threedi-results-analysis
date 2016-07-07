@@ -17,7 +17,9 @@ from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 # TODO: unorm is deprecated, now 'u1'
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']}],
+          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']},
+          {'name': 'Debiet interflow', 'unit': 'm3/s', 'parameters': ['qp']},
+          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': ['up1']}],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
 }

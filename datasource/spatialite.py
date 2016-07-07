@@ -8,9 +8,12 @@ from ..utils.user_messages import log
 WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
 # TODO: unorm is deprecated, now 'u1'
-VELOCITY = ('unorm', 'velocity', 'm/s')
+VELOCITY = ('u1', 'velocity', 'm/s')
 VOLUME = ('vol', 'volume', 'm3')
 DISCHARGE_PUMP = ('q_pump', 'discharge', 'm3/s')
+DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
+VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
+
 
 VARIABLE_LABELS = {
     'v2_connection_nodes': (WATERLEVEL, ),
@@ -25,7 +28,7 @@ VARIABLE_LABELS = {
     'sewerage_weir': (DISCHARGE, VELOCITY, ),
     'sewerage_orifice': (DISCHARGE, VELOCITY, ),
     'sewerage_pumpstation': (DISCHARGE_PUMP, ),
-    'flowlines': (DISCHARGE, VELOCITY),
+    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW, VELOCITY_INTERFLOW),
     'nodes': (WATERLEVEL, ),
     'pumplines': (DISCHARGE_PUMP, ),
 }
