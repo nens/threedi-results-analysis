@@ -656,7 +656,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         unloading widget and remove all required stuff
         :return:
         """
-
+        log('close sideview graph')
         self.profile_route_updated.disconnect(self.update_water_level_cache)
         self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
         self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
@@ -1329,18 +1329,22 @@ class SideViewDockWidget(QDockWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        self.select_sideview_button.clicked.disconnect(
-            self.toggle_route_tool)
-        self.reset_sideview_button.clicked.disconnect(
-            self.reset_sideview)
+        self.select_sideview_button.clicked.disconnect(self.toggle_route_tool)
+        self.reset_sideview_button.clicked.disconnect(self.reset_sideview)
 
         self.route_tool.deactivated.disconnect(self.unset_route_tool)
 
         self.unset_route_tool()
 
         self.rb.reset()
-        # todo: find out how to unload layer from memory
+
+        for sideview_plot in self.sideviews:
+            sideview_plot[1].on_close()
+
+        # todo: find out how to unload layer from memory (done automic if
+        # there are no references?)
         QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer.id())
+        QgsMapLayerRegistry.instance().removeMapLayer(self.line_layer.id())
 
     def closeEvent(self, event):
         """
