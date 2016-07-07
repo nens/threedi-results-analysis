@@ -890,8 +890,13 @@ class SideViewDockWidget(QDockWidget):
             rel_bottom_level = 0
             open = False
             if profile['shape'] == 1:
-                # square
-                height = float(profile['height'])
+                # rectangle
+                if profile['height'] is not None:
+                    height = float(profile['height'])
+                else:
+                    # square
+                    height = float(profile['width'])
+
             elif profile['shape'] == 2:
                 # round
                 height = float(profile['width'])
