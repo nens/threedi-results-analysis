@@ -244,12 +244,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                 # 2. add contours (bottom, upper, drain and surface lines)
                 if (python_value(last_channel_id) is not None and
                             last_channel_id == feature['channel_id']):
-                    # contours based on cross section lines already added, skip
+                    # 2a. contours based on cross section lines already added, skip
                     # for this line element based on sideview
                     log('skip channel part')
                     pass
                 elif ltype == SideViewDockWidget.CHANNEL:
-                    # add all information of channel based on cross section
+                    # 2b. add all information of channel based on cross section
                     # do this for the relevant part of the channel at once
 
                     # get cross section channel information
@@ -257,13 +257,12 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                     max_length_on_channel = route_part_total_distance - begin_dist
 
-                    # get relevant channel_profiles and sort based on direction
+                    # 2b.1 get relevant channel_profiles and sort based on direction
                     if direction == 1:
                         # get start distance from (selected) calc node layer 
                         channel_length = (profile_links[-1]['real_length'] +
                                  profile_links[-1]['start_channel_distance'])
 
-                        # todo: error in this part - dist_from_begin is wrong
                         dist_from_begin = feature['start_channel_distance']
                         end_dist_from_begin = min(channel_length,
                                     dist_from_begin + max_length_on_channel)
@@ -280,7 +279,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         # get start distance from (selected) calc node layer
                         dist_from_begin = (feature['start_channel_distance'] +
                                      feature['real_length'])
-                        end_dist_from_begin =  max(dist_from_begin - max_length_on_channel, 0.0)
+                        end_dist_from_begin = max(dist_from_begin - max_length_on_channel, 0.0)
                         length_on_channel = dist_from_begin - end_dist_from_begin
 
                         profile_links = [link for link in profile_links
@@ -291,46 +290,46 @@ class SideViewPlotWidget(pg.PlotWidget):
                             key=lambda x: x['start_channel_distance'],
                             reverse=True)
 
-                    # get info at end point of needed
+                    # 2b.2 get data for contours from relevant profile
                     sub_distance = begin_dist
                     for i, link in enumerate(profile_links):
-                        # begin of pipe
                         sub_begin_dist = sub_distance
+                        # get information of nodes and profiles and links between profiles
                         if direction == 1:
                             link_left = max(link['start_channel_distance'],
                                              dist_from_begin)
                             link_right = min(link['start_channel_distance'] + link['real_length'],
                                              end_dist_from_begin)
                             link_length = link_right - link_left
+                            sub_begin_node_id = link['start_node']
+                            sub_end_node_id = link['end_node']
+
                         else:
                             link_left = max(link['start_channel_distance'],
                                             end_dist_from_begin)
                             link_right = min(link['start_channel_distance'] + link['real_length'],
                                        dist_from_begin)
                             link_length = link_right - link_left
+                            sub_begin_node_id = link['end_node']
+                            sub_end_node_id = link['start_node']
 
                         length_on_channel -= link_length
                         sub_distance += link_length
                         sub_end_dist = sub_distance
 
-                        if direction == 1:
-                            sub_begin_node_id = link['start_node']
-                            sub_end_node_id = link['end_node']
-                        else:
-                            sub_begin_node_id = link['end_node']
-                            sub_end_node_id = link['start_node']
-
                         sub_begin_node = self.node_dict[sub_begin_node_id]
                         sub_end_node = self.node_dict[sub_end_node_id]
 
-                        if sub_begin_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
-                            # take same levels as at the end of line
+                        if sub_begin_node['type'] != SideViewDockWidget.CROSS_SECTION:
+                            # only level is known at cross_section. For other nodes, the
+                            # profile is the same as ther nearest cross-section on the link
                             begin_level = sub_end_node['bottom_level']
                             begin_height = sub_end_node['height']
                             begin_surface = sub_end_node['surface_level']
                             begin_drain = sub_end_node['drain_level']
-                        elif sub_first and sub_end_node['type'] not in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
-                            # interpolate based on starting point
+                        elif sub_first and sub_end_node['type'] == SideViewDockWidget.CROSS_SECTION:
+                            # if end en begin are crosssections and the sideview
+                            # starts in between cross sections
                             begin_weight = (link_length / link['real_length'])
                             end_weight = 1 - begin_weight
                             begin_level = (
@@ -355,12 +354,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                             begin_surface = sub_begin_node['surface_level']
                             begin_drain = sub_begin_node['drain_level']
 
-                        if sub_end_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
+                        if sub_end_node['type'] != SideViewDockWidget.CROSS_SECTION:
                             end_level = sub_begin_node['bottom_level']
                             end_height = sub_begin_node['height']
                             end_surface = sub_begin_node['surface_level']
                             end_drain = sub_begin_node['drain_level']
-                        elif i == len(profile_links) - 1 and sub_begin_node['type'] not in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
+                        elif i == len(profile_links) - 1 and sub_begin_node['type'] == SideViewDockWidget.CROSS_SECTION:
                             # interpolate based on starting point
 
                             end_weight = (link_length / link['real_length'])
@@ -411,7 +410,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                              end_level + end_height,
                              ltype))
 
-                        if (sub_first or sub_begin_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]):
+                        if (sub_first or sub_begin_node['type'] != SideViewDockWidget.CALCULATION_NODE):
                             drain_level.append((sub_begin_dist, begin_drain))
                             surface_level.append((sub_begin_dist, begin_surface))
 
@@ -420,7 +419,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                         sub_first = False
                 else:
-                    # structure or pipe
+                    # 2.c contours based on structure or pipe
                     if direction == 1:
                         begin_level = float(feature['start_level'])
                         end_level = float(feature['end_level'])
@@ -484,11 +483,10 @@ class SideViewPlotWidget(pg.PlotWidget):
                                             'idx': end_node_idx})
 
         if len(profile) > 0:
+            # Draw data into graph
+            # split lines into seperate parts for the different line types (channel, structure, etc.)
 
-            # split upper and lower line into different line types (with
-            # different styling
-
-            tables  = {
+            tables = {
                 SideViewDockWidget.PIPE: [],
                 SideViewDockWidget.CHANNEL: [],
                 SideViewDockWidget.CULVERT: [],
