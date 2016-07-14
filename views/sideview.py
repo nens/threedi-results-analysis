@@ -342,11 +342,11 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 begin_surface = (
                                     begin_weight * sub_begin_node['surface_level'] +
                                     end_weight * sub_end_node['surface_level'])
-                            if (sub_begin_node['drainage_level'] is not None and
-                                sub_end_node['drainage_level'] is not None):
-                                begin_drainage = (
-                                    begin_weight * sub_begin_node['surface_level'] +
-                                    end_weight * sub_end_node['surface_level'])
+                            if (sub_begin_node['drain_level'] is not None and
+                                sub_end_node['drain_level'] is not None):
+                                begin_drain = (
+                                    begin_weight * sub_begin_node['drain_level'] +
+                                    end_weight * sub_end_node['drain_level'])
                         else:
                             begin_level = sub_begin_node['bottom_level']
                             begin_height = sub_begin_node['height']
