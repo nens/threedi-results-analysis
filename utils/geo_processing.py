@@ -1,8 +1,8 @@
 
-from qgis.core import QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis
+from qgis.core import QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis, QgsCoordinateTransform, QgsCoordinateReferenceSystem
 import math
 
-def split_line_at_points(polyline, point_features,
+def split_line_at_points(polyline_input, point_features,
                          point_feature_id_field='id',
                          start_node_id=None, end_node_id=None):
     """
@@ -26,6 +26,15 @@ def split_line_at_points(polyline, point_features,
 
     snap_points = []
 
+    source_crs = QgsCoordinateReferenceSystem(4326)
+    dest_crs = QgsCoordinateReferenceSystem(3857)
+
+    transform = QgsCoordinateTransform(source_crs, dest_crs)
+    transform_back = QgsCoordinateTransform(dest_crs, source_crs)
+
+    polyline = QgsGeometry(polyline_input)
+    polyline.transform(transform)
+
     for point in point_features:
         if type(point) == QgsFeature:
             point = {
@@ -37,6 +46,10 @@ def split_line_at_points(polyline, point_features,
             geom = point['geom'].asPoint()
         else:
             geom = point['geom']
+
+        geom = QgsGeometry.fromPoint(geom)
+        geom.transform(transform)
+        geom = geom.asPoint()
 
         closest_seg = polyline.closestSegmentWithContext(geom)
         # get nearest point (related to the point) on the line
@@ -82,14 +95,15 @@ def split_line_at_points(polyline, point_features,
             # todo: throw error when at begin or end vertex of original line?
             # todo: what to do of multiple points on same location?
             line_points.append(point[2])
-            geom =  QgsGeometry.fromPolyline(line_points)
+            geom = QgsGeometry.fromPolyline(line_points)
+
             length, unit_type = d.convertMeasurement(
                     d.computeDistance(line_points),
-                    QGis.Degrees, QGis.Meters, False)
+                    QGis.Meters, QGis.Meters, False) # QGis.Degrees
 
             # add line parts
             line_parts.append({
-                'geom': geom,
+                'geom': geom.transform(transform_back),
                 'start_point_id': start_point_id,
                 'end_point_id': point[3],
                 'distance_at_line': total_line_distance,
@@ -104,7 +118,7 @@ def split_line_at_points(polyline, point_features,
     geom = QgsGeometry.fromPolyline(line_points)
     length, something = d.convertMeasurement(
         d.computeDistance(line_points),
-        QGis.Degrees, QGis.Meters, False)
+        QGis.Meters, QGis.Meters, False)
 
     line_parts.append({
         'geom': geom,

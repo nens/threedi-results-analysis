@@ -4,7 +4,13 @@ threedi-qgis-plugin changelog
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Support of interflow results
+
+- Bug fix: after closing sideview and reopening, errors where generated
+
+- Bug fix: support of square profiles by sideview
+
+- Bug fix: support of pure 2d models
 
 
 0.7 (2016-06-09)
