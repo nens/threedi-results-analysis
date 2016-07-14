@@ -13,7 +13,7 @@ from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
 import qgis
 from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
     QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, \
-    QGis, QgsFeatureRequest, QgsDistanceArea
+    QGis, QgsFeatureRequest, QgsDistanceArea, QgsCoordinateReferenceSystem
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 from collections import Counter
 
@@ -194,7 +194,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         for route_part in profile:
             sub_first = True
             last_channel_id = None
+            route_part_total_distance = float(route_part[-1][1])
             for begin_dist, end_dist, distance, direction, feature in route_part:
+
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
 
@@ -253,7 +255,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                     # get cross section channel information
                     profile_links = self.channel_profiles[feature['channel_id']]
 
-                    max_length_on_channel = total_length - begin_dist
+                    max_length_on_channel = route_part_total_distance - begin_dist
 
                     # get relevant channel_profiles and sort based on direction
                     if direction == 1:
@@ -261,6 +263,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         channel_length = (profile_links[-1]['real_length'] +
                                  profile_links[-1]['start_channel_distance'])
 
+                        # todo: error in this part - dist_from_begin is wrong
                         dist_from_begin = feature['start_channel_distance']
                         end_dist_from_begin = min(channel_length,
                                     dist_from_begin + max_length_on_channel)
@@ -320,17 +323,16 @@ class SideViewPlotWidget(pg.PlotWidget):
                         sub_begin_node = self.node_dict[sub_begin_node_id]
                         sub_end_node = self.node_dict[sub_end_node_id]
 
-                        if sub_begin_node['type'] == SideViewDockWidget.CONNECTION_NODE:
+                        if sub_begin_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
                             # take same levels as at the end of line
                             begin_level = sub_end_node['bottom_level']
                             begin_height = sub_end_node['height']
                             begin_surface = sub_end_node['surface_level']
                             begin_drain = sub_end_node['drain_level']
-                        elif sub_first and sub_end_node['type'] != SideViewDockWidget.CONNECTION_NODE:
+                        elif sub_first and sub_end_node['type'] not in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
                             # interpolate based on starting point
-                            end_weight = ((begin_dist - sub_begin_dist) /
-                                    link['real_length'])
-                            begin_weight = 1 - end_weight
+                            begin_weight = (link_length / link['real_length'])
+                            end_weight = 1 - begin_weight
                             begin_level = (
                                 begin_weight * sub_begin_node['bottom_level'] +
                                 end_weight * sub_end_node['bottom_level'])
@@ -353,15 +355,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                             begin_surface = sub_begin_node['surface_level']
                             begin_drain = sub_begin_node['drain_level']
 
-                        if sub_end_node['type'] == SideViewDockWidget.CONNECTION_NODE:
+                        if sub_end_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
                             end_level = sub_begin_node['bottom_level']
                             end_height = sub_begin_node['height']
                             end_surface = sub_begin_node['surface_level']
                             end_drain = sub_begin_node['drain_level']
-                        elif i == len(profile_links) - 1 and sub_begin_node['type'] != SideViewDockWidget.CONNECTION_NODE:
+                        elif i == len(profile_links) - 1 and sub_begin_node['type'] not in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]:
                             # interpolate based on starting point
-                            end_weight = ((end_dist - sub_begin_dist) /
-                                    link['real_length'])
+
+                            end_weight = (link_length / link['real_length'])
                             begin_weight = 1 - end_weight
                             end_level = (
                                 begin_weight * sub_begin_node['bottom_level'] +
@@ -378,11 +380,11 @@ class SideViewPlotWidget(pg.PlotWidget):
                             else:
                                 end_surface = np.nan
 
-                            if (sub_begin_node['drainage_level'] is not None and
-                                sub_end_node['drainage_level'] is not None):
+                            if (sub_begin_node['drain_level'] is not None and
+                                sub_end_node['drain_level'] is not None):
                                 end_drain = (
-                                    begin_weight * sub_begin_node['surface_level'] +
-                                    end_weight * sub_end_node['surface_level'])
+                                    begin_weight * sub_begin_node['drain_level'] +
+                                    end_weight * sub_end_node['drain_level'])
                             else:
                                 end_drain = np.nan
 
@@ -409,8 +411,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                              end_level + end_height,
                              ltype))
 
-                        if (sub_first or sub_begin_node['type'] ==
-                                    SideViewDockWidget.CONNECTION_NODE):
+                        if (sub_first or sub_begin_node['type'] in [SideViewDockWidget.CONNECTION_NODE, SideViewDockWidget.BOUNDARY]):
                             drain_level.append((sub_begin_dist, begin_drain))
                             surface_level.append((sub_begin_dist, begin_surface))
 
@@ -702,20 +703,17 @@ class RouteTool(QgsMapTool):
             self.canvas.mapSettings().destinationCrs(), self.line_layer.crs())
 
         rect = transform.transform(rect)
-        self.line_layer.removeSelection()
-
-        # todo: select is not fastest way to get line
-        self.line_layer.select(rect, False)
-        selected = self.line_layer.selectedFeatures()
+        filter = QgsFeatureRequest().setFilterRect(rect)
+        selected = self.line_layer.getFeatures(filter)
 
         clicked_point = self.canvas.getCoordinateTransform(
             ).toMapCoordinates(x, y)
         # transform to wgs84 (lon, lat) if not already:
         transformed_point = transform.transform(clicked_point)
 
-        if len(selected) > 0:
-            # todo get point closest to selection point
-            self.callback_on_select(selected, transformed_point)
+        selected_points = [s for s in selected]
+        if len(selected_points) > 0:
+            self.callback_on_select(selected_points, transformed_point)
 
     def activate(self):
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
@@ -881,7 +879,6 @@ class SideViewDockWidget(QDockWidget):
         pump_layer = get_layer(spatialite_path, 'v2_pumpstation')
         culvert_layer = get_layer(spatialite_path, 'v2_culvert')
 
-
         lines = []
         points = {}
         profiles = {}
@@ -938,6 +935,10 @@ class SideViewDockWidget(QDockWidget):
         for bound in boundary_layer.getFeatures():
             p = points[bound['connection_node_id']]
             p['type'] = self.BOUNDARY
+            p['surface_level'] = None
+            p['drain_level'] = None
+            p['bottom_level'] = None
+            p['length'] = 0.0
 
         for pipe in pipe_layer.getFeatures():
             # note: no support of calculation nodes on pipes
@@ -1051,7 +1052,7 @@ class SideViewDockWidget(QDockWidget):
 
         for cs in cross_section_location_layer.getFeatures():
 
-            ids = int(cs['channel_id'])
+            ids = cs['channel_id']
             if ids not in channel_cs_locations:
                 channel_cs_locations[ids] = []
 
@@ -1068,10 +1069,10 @@ class SideViewDockWidget(QDockWidget):
                 channel_calc_points[ids].append(line)
 
         for channel in channel_layer.getFeatures():
-            channel_profiles[int(channel['id'])] = []
+            channel_profiles[channel['id']] = []
             # prepare profile information of channel
-            if int(channel['id']) in channel_cs_locations:
-                crs_points = channel_cs_locations[int(channel['id'])]
+            if channel['id'] in channel_cs_locations:
+                crs_points = channel_cs_locations[channel['id']]
             else:
                 crs_points = []
 
@@ -1102,17 +1103,16 @@ class SideViewDockWidget(QDockWidget):
                     'end_node': end_id,
                     'real_length': part['length'],
                     'sub_channel_nr': i,
-                    'channel_id': int(channel['id']),
+                    'channel_id': channel['id'],
                     'start_channel_distance': part['distance_at_line']
                 }
                 if model_line_layer is None:
                     # no calc points available, use cross sections to devide
                     # graph layer in parts
                     lines.append(channel_part)
-                else:
-                    # use cross sections part for only as info for drawing
-                    # sideview
-                    channel_profiles[int(channel['id'])].append(channel_part)
+                # use cross sections part for only as info for drawing
+                # sideview
+                channel_profiles[channel['id']].append(channel_part)
 
             for p in crs_points:
                 crs_def = profiles[p['definition_id']]
@@ -1238,8 +1238,10 @@ class SideViewDockWidget(QDockWidget):
             else:
                 p2 = QgsPoint(p1.x(), p1.y()+0.0001)
 
-            feat.setGeometry(line.get('geom',
-                                      QgsGeometry.fromPolyline([p1, p2])))
+            geom = QgsGeometry.fromPolyline([p1, p2])
+            # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
+
+            feat.setGeometry(geom)
 
             feat.setAttributes([
                 i,
@@ -1299,6 +1301,9 @@ class SideViewDockWidget(QDockWidget):
             lambda accum, f: accum + [f.geometry().vertexAt(0),
                                       f.geometry().vertexAt(1)],
             selected_features, [])
+
+        if len(selected_coordinates) == 0:
+            return
 
         closest_point = min(selected_coordinates, key=haversine_clicked)
         next_point = QgsPoint(closest_point)
