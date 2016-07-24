@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import Qt
+from qgis.core import QgsVectorLayer
 from ..datasource.result_spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
@@ -7,6 +8,8 @@ from base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
     make_flowline_layer, make_node_layer, make_pumpline_layer)
 from ..utils.user_messages import log
+import os
+from ..datasource.spatialite import Spatialite
 
 
 def get_line_pattern(item_field):
@@ -62,17 +65,31 @@ class TimeseriesDatasourceModel(BaseModel):
         def get_memory_layers(self):
             """Note: lines and nodes are always in the netCDF, pumps are not
             always in the netCDF."""
+
+            file_name = self.datasource().file_path[:-3] + '.sqlite1'
+            spl = Spatialite(file_name)
+
             if self._line_layer is None:
-                self._line_layer = make_flowline_layer(self.datasource())
+                if 'model_lines' in [t[1] for t in spl.getTables()]:
+                    # todo check nr of attributes
+                    self._line_layer = spl.get_layer('model_lines', None, 'the_geom')
+                else:
+                    self._line_layer = make_flowline_layer(self.datasource(), spl)
 
             if self._node_layer is None:
-                self._node_layer = make_node_layer(self.datasource())
+                if 'model_nodes' in [t[1] for t in spl.getTables()]:
+                    self._node_layer = spl.get_layer('model_nodes', None, 'the_geom')
+                else:
+                    self._node_layer = make_node_layer(self.datasource(), spl)
 
             if self._pumpline_layer is None:
-                try:
-                    self._pumpline_layer = make_pumpline_layer(
-                        self.datasource())
-                except KeyError:
-                    log("No pumps in netCDF", level='WARNING')
+
+                if 'model_pumps' in [t[1] for t in spl.getTables()]:
+                    self._pumpline_layer = spl.get_layer('model_pumps', None, 'the_geom')
+                else:
+                    try:
+                        self._pumpline_layer = make_pumpline_layer(self.datasource(), spl)
+                    except KeyError:
+                        log("No pumps in netCDF", level='WARNING')
 
             return self._line_layer, self._node_layer, self._pumpline_layer

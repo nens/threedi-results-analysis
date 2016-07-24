@@ -3,13 +3,18 @@
 """
 
 from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
-    QgsPoint, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+    QgsPoint, QgsCoordinateTransform, QgsCoordinateReferenceSystem, \
+    QgsVectorFileWriter, QGis
+
+from qgis.gui import QgsMessageBar
+
 from PyQt4.QtCore import QVariant
 
-from .user_messages import StatusProgressBar
+from .user_messages import StatusProgressBar, messagebar_message
+from ..datasource.spatialite import Spatialite
 
 
-def make_flowline_layer(ds, progress_bar=None):
+def make_flowline_layer(ds, spatialite, progress_bar=None):
     """Make a memory layer that contains all flow lines.
 
     Args:
@@ -26,7 +31,7 @@ def make_flowline_layer(ds, progress_bar=None):
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
     projection = ds.ds.variables['projected_coordinate_system']
-    source_epsg = projection.epsg  # = 28992
+    source_epsg = projection.epsg
     # Connections (2, nFlowLine):
     try:
         flowline_connection = ds.ds.variables['FlowLine_connection']
@@ -53,28 +58,26 @@ def make_flowline_layer(ds, progress_bar=None):
     progress_bar.increase_progress(10, "create memory layer")
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:4326&index=yes"
-    vl = QgsVectorLayer(uri, "flowlines", "memory")
-    pr = vl.dataProvider()
 
-    # add fields
-    pr.addAttributes([
+    fields = [
         # This is the flowline index in Python (0-based indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
-        QgsField("flowline_idx", QVariant.Int),
-        QgsField("inp_id", QVariant.Int),
-        QgsField("spatialite_id", QVariant.Int),
-        QgsField("type", QVariant.String, len=25),
-        QgsField("start_node_idx", QVariant.Int),
-        QgsField("end_node_idx", QVariant.Int)
-        ])
-    # tell the vector layer to fetch changes from the provider
-    vl.updateFields()
+        "flowline_idx INTEGER",
+        "inp_id INTEGER",
+        "spatialite_id INTEGER",
+        "type STRING(25)",
+        "start_node_idx INTEGER NOT NULL",
+        "end_node_idx INTEGER NOT NULL"
+    ]
+
+    layer = spatialite.create_empty_layer('model_lines', QGis.WKBLineString, fields, 'flowline_idx' )
+
+    pr = layer.dataProvider()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
     if 'channel_mapping' not in ds.ds.variables:
-        progress_bar.increase_progress(10, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
+        progress_bar.increase_progress(0, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
         flowid_to_inp_mapping = {}
         inp_to_splt_mapping = {}
     else:
@@ -134,24 +137,26 @@ def make_flowline_layer(ds, progress_bar=None):
     pr.addFeatures(features)
 
     progress_bar.increase_progress(25, "update extent")
+
     # update layer's extent when new features have been added
     # because change of extent in provider is not propagated to the layer
-    vl.updateExtents()
+    layer.updateExtents()
 
-    progress_bar.increase_progress(5, "ready")
-    return vl
+    progress_bar.increase_progress(15, "ready")
+    return layer
 
 
-def make_node_layer(ds, progress_bar=None):
+def make_node_layer(ds, spatialite, progress_bar=None):
     """Make a memory layer that contains all nodes.
 
     Args:
         ds: NetcdfDataSource
         progress_bar: (StatusProgressBar) - progress bar instance for feedback
             about progress. This tool will make 100 steps.
+        layer_type (string) - layer type, 'memory' or 'ogr' for a shapefile
 
     Returns:
-        (QgsVectorLayer) In memory layer with all points
+        (QgsVectorLayer) In memory layer with all points or shapefile layer
     """
     if progress_bar is None:
         progress_bar = StatusProgressBar(100, 'create node layer: ')
@@ -166,29 +171,25 @@ def make_node_layer(ds, progress_bar=None):
 
     progress_bar.increase_progress(10, "create memory layer")
     # create layer
-    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "Point?crs=epsg:4326&index=yes"
-    vl = QgsVectorLayer(uri, "nodes", "memory")
-    pr = vl.dataProvider()
-
-    # add fields
-    pr.addAttributes([
+    fields = [
         # This is the node index in Python (0-based indexing)
         # Important: this differs from the feature id which is node idx+1!!
-        QgsField("node_idx", QVariant.Int),
-        QgsField("inp_id", QVariant.Int),
-        QgsField("spatialite_id", QVariant.Int),
-        QgsField("feature_type", QVariant.String, len=25),
-        QgsField("type", QVariant.String, len=25)  # = node type
-        ])
-    # tell the vector layer to fetch changes from the provider
-    vl.updateFields()
+        "node_idx INTEGER",
+        "inp_id INTEGER",
+        "spatialite_id INTEGER",
+        "feature_type STRING(25)",
+        "type STRING(25)"
+    ]
+
+    layer = spatialite.create_empty_layer('model_nodes', QGis.WKBPoint, fields, 'node_idx' )
+
+    pr = layer.dataProvider()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
 
     if 'node_mapping' not in ds.ds.variables:
-        progress_bar.increase_progress(10, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
+        progress_bar.increase_progress(0, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
         node_idx_to_inp_id = {}
         inp_to_splt_mapping = {}
     else:
@@ -232,14 +233,14 @@ def make_node_layer(ds, progress_bar=None):
     progress_bar.increase_progress(25, "update extent")
     # update layer's extent when new features have been added
     # because change of extent in provider is not propagated to the layer
-    vl.updateExtents()
+    layer.updateExtents()
 
-    progress_bar.increase_progress(5, "ready")
-    return vl
+    progress_bar.increase_progress(15, "ready")
+    return layer
 
 
-def make_pumpline_layer(nds):
-    """Make a memory layer that contains all pumplines.
+def make_pumpline_layer(nds, spatialite, progress_bar=None):
+    """Make a layer that contains all pumplines.
 
     Args:
         nds: netCDF Datasource
@@ -269,23 +270,19 @@ def make_pumpline_layer(nds):
     y_p2 = flowelem_ycc[:][pumpline_p2]
 
     # create layer
-    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
-    uri = "LineString?crs=epsg:4326&index=yes"
 
-    vl = QgsVectorLayer(uri, "pumplines", "memory")
-    pr = vl.dataProvider()
-
-    # add fields
-    pr.addAttributes([
+    fields = [
         # These are the pumpline index, and node indexes in Python (0-based
         # indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
-        QgsField("pumpline_idx", QVariant.Int),
-        QgsField("node_idx1", QVariant.Int),
-        QgsField("node_idx2", QVariant.Int),
-        ])
-    # tell the vector layer to fetch changes from the provider
-    vl.updateFields()
+        "pumpline_idx INTEGER",
+        "node_idx1 INTEGER",
+        "node_idx2 INTEGER"
+    ]
+
+    layer = spatialite.create_empty_layer('model_pumps', QGis.WKBPoint, fields, 'pumpline_idx' )
+
+    pr = layer.dataProvider()
 
     # add features
     features = []
@@ -329,6 +326,6 @@ def make_pumpline_layer(nds):
 
     # update layer's extent when new features have been added
     # because change of extent in provider is not propagated to the layer
-    vl.updateExtents()
+    layer.updateExtents()
 
-    return vl
+    return layer
