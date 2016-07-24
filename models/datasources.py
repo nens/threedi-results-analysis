@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import Qt
-from ..datasource.spatialite import TdiSpatialite
+from ..datasource.result_spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField

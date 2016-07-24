@@ -5,7 +5,7 @@ it work with our own data sources.
 import numpy as np
 
 from ..datasource.netcdf import NetcdfDataSource
-from ..datasource.spatialite import get_object_type
+from ..datasource.result_spatialite import get_object_type
 
 
 class NcStats(object):

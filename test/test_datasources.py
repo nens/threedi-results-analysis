@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from ThreeDiToolbox.datasource.spatialite import (
+from ThreeDiToolbox.datasource.result_spatialite import (
     TdiSpatialite,
     get_datasource_variable,
     get_variables,

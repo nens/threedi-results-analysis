@@ -1,5 +1,5 @@
 import sys
-sys.path.append('C:\\OSGeo4W64\\apps\\Python27\\Lib\\site-packages\\pycharm-debug.egg')
+sys.path.append('C:\\Program Files (x86)\\JetBrains\\PyCharm 2016.1.2\\debug-eggs\\pycharm-debug.egg')
 
 import pydevd
 

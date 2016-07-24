@@ -4,7 +4,7 @@ from PyQt4.QtGui import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
     QDockWidget, QComboBox, QMessageBox)
 
-from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
+from ..datasource.result_spatialite import get_object_type, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
