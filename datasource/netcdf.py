@@ -7,7 +7,7 @@ import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property
-from .spatialite import get_object_type, get_variables
+from .result_spatialite import get_object_type, get_variables
 
 
 def get_id_mapping_file(netcdf_file_path):
