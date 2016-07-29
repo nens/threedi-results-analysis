@@ -9,7 +9,7 @@ from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGi
 
 from ..datasource.spatialite import layer_qh_type_mapping, \
     layer_object_type_mapping
-from ..datasource.netcdf import get_id_mapping_file
+from ..datasource.netcdf import find_id_mapping_file
 from ..utils.user_messages import pop_up_info
 
 
@@ -122,7 +122,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # Little test for checking if there is an id mapping file available
             # If not we're not going to proceed.
             try:
-                get_id_mapping_file(filename)
+                find_id_mapping_file(filename)
             except IndexError:
                 pop_up_info("No id mapping file found, we tried the following "
                             "locations: [., ../input_generated]. Please add "
