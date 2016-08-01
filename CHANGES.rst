@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Updated some method names.
+
 - Updated NetcdfDataSource so that it keeps some netCDF attributes in memory.
 
 
