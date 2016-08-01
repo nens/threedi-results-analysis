@@ -142,7 +142,7 @@ class NetcdfDataSource(object):
         self.nodall = self.ds.nFlowElem
         # Links
         self.nFlowLine2d = self.ds.nFlowLine2d
-        self.nFLowLine = self.ds.nFlowLine
+        self.nFlowLine = self.ds.nFlowLine
         self.end_2d_bound_line = self.nFlowLine - self.ds.nFlowLine1dBounds
         self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
                             self.ds.nFlowLine1dBounds)
