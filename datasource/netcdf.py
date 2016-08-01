@@ -62,6 +62,9 @@ def find_aggregation_netcdf(netcdf_file_path):
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
+# TODO: this function doesn't work correctly because multiple links can
+# belong to one inp id.
+# I.e.: dict(cm) is wrong, because len(dict(cm)) != len(cm)
 def construct_channel_mapping(ds):
     """Map inp ids to flowline ids.
 
@@ -71,7 +74,9 @@ def construct_channel_mapping(ds):
     """
     cm = np.copy(ds.variables['channel_mapping'])
     cm[:, 1] = cm[:, 1] - 1  # the index transformation
+    # TODO: not a dict anymore, needs changing other places
     return dict(cm)
+    # return cm
 
 
 def construct_node_mapping(ds):
