@@ -113,7 +113,7 @@ class NetcdfDataSource(object):
     'find_id_mapping_file' and 'find_aggregation_netcdf'.
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, load_properties=True):
         """
         Args:
             file_path: path to result netcdf
@@ -122,10 +122,17 @@ class NetcdfDataSource(object):
         # Load netcdf
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
-
         self.cache = dict()
 
-        # Load and pre-calculate some properties
+        if load_properties:
+            self.load_properties()
+
+    def load_properties(self):
+        """Load and pre-calculate some properties.
+
+        Note: these properties are required for get_node_type and
+        get_line_type to work.
+        """
         # Nodes
         self.n2dtot = self.ds.nFlowElem2d
         self.n1dtot = self.ds.nFlowElem1d
