@@ -125,10 +125,20 @@ class NetcdfDataSource(object):
 
         self.cache = dict()
 
-        # Load some properties in memory
+        # Load and pre-calculate some properties
+        # Nodes
         self.n2dtot = self.ds.nFlowElem2d
         self.n1dtot = self.ds.nFlowElem1d
         self.n2dobc = self.ds.nFlowElem2dBounds
+        self.end_n1dtot = self.n2dtot + self.n1dtot
+        self.end_n2dobc = self.n2dtot + self.n1dtot + self.n2dobc
+        self.nodall = self.ds.nFlowElem
+        # Links
+        self.nFlowLine2d = self.ds.nFlowLine2d
+        self.nFLowLine = self.ds.nFlowLine
+        self.end_2d_bound_line = self.nFlowLine - self.ds.nFlowLine1dBounds
+        self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
+                            self.ds.nFlowLine1dBounds)
 
     @property
     def id_mapping_file(self):
@@ -227,16 +237,16 @@ class NetcdfDataSource(object):
         #    nFlowElem
         if node_idx < self.n2dtot:
             return '2d'
-        elif node_idx < self.n2dtot + self.n1dtot:
+        elif node_idx < self.end_n1dtot:
             return '1d'
-        elif node_idx < self.n2dtot + self.n1dtot + self.n2dobc:
+        elif node_idx < self.end_n2dobc:
             return '2d_bound'
-        elif node_idx < self.ds.nFlowElem:
+        elif node_idx < self.nodall:
             return '1d_bound'
         else:
             raise ValueError(
                 "Index %s is not smaller than the number of nodes (%s)" %
-                (node_idx, self.ds.nFlowElem))
+                (node_idx, self.nodall))
 
     def get_line_type(self, line_idx):
         """Get line type based on its index."""
@@ -246,23 +256,18 @@ class NetcdfDataSource(object):
         # - 1d-2d links (nr: part of ds.ds.nFlowLine2d)
         # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
         # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
-
-        end_2d_bound = self.ds.nFlowLine - self.ds.nFlowLine1dBounds
-        end_1d = (self.ds.nFlowLine - self.ds.nFlowLine2dBounds -
-                  self.ds.nFlowLine1dBounds)
-
-        if line_idx < self.ds.nFlowLine2d:
+        if line_idx < self.nFlowLine2d:
             return '2d'
-        elif line_idx < end_1d:
+        elif line_idx < self.end_1d_line:
             return '1d'
-        elif line_idx < end_2d_bound:
+        elif line_idx < self.end_2d_bound_line:
             return '2d_bound'
-        elif line_idx < self.ds.nFlowLine:
+        elif line_idx < self.nFlowLine:
             return '1d_bound'
         else:
             raise ValueError(
                 "Index %s is not smaller than the number of lines (%s)" %
-                (line_idx, self.ds.nFlowLine))
+                (line_idx, self.nFlowLine))
 
     def obj_to_netcdf_id(self, object_id, normalized_object_type):
         # Here we map the feature ids (== object ids) to internal netcdf ids.
