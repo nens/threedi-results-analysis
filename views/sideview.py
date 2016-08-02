@@ -17,7 +17,7 @@ from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 from collections import Counter
 
-from ..datasource.spatialite import get_object_type, layer_qh_type_mapping
+from ..datasource.spatialite import layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
