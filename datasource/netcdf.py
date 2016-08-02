@@ -286,9 +286,9 @@ class NetcdfDataSource(object):
                        end_ts=None):
         """Get a list of time series from netcdf.
 
-        Note: if there are multiple parameters, all result values are just
-        lumped together and returned. If a parameter is unknown it will be
-        skipped.
+        Note: you can have multiple parameters, all result values are put
+        into a dict under the corresponding key of the parameter. If a
+        parameter is unknown it will be skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
@@ -296,7 +296,7 @@ class NetcdfDataSource(object):
             parameters: a list of params, e.g.: ['q', 'q_pump']
 
         Returns:
-            a list of 2-tuples (time, value)
+            a dict of timeseries (lists of 2-tuples (time, value))
         """
         # Normalize the name
         n_object_type = normalized_object_type(object_type)
@@ -306,8 +306,8 @@ class NetcdfDataSource(object):
 
         variables = get_variables(n_object_type, parameters)
 
-        # Get data from all variables and just put them in the same list:
-        result = []
+        # Get data from all variables and just put them in a dict:
+        result = dict()
         for v in variables:
             try:
                 vals = self.ds.variables[v][:, netcdf_id]
@@ -318,7 +318,7 @@ class NetcdfDataSource(object):
                 log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
             timestamps = self.get_timestamps()
-            result += zip(timestamps, vals)
+            result[v] = zip(timestamps, vals)
 
         return result
 
@@ -326,9 +326,9 @@ class NetcdfDataSource(object):
                               source='default', caching=True):
         """Get a list of time series from netcdf; only the values.
 
-        Note: if there are multiple parameters, all result values are just
-        lumped together and returned. If a parameter is unknown it will be
-        skipped.
+        Note: you can have multiple parameters, all result values are put
+        into a dict under the corresponding key of the parameter. If a
+        parameter is unknown it will be skipped.
 
         Note 2: source defines the netcdf file source we should get our data
         from, because the NetcdfDataSource can contain the default netcdf
@@ -346,12 +346,8 @@ class NetcdfDataSource(object):
         'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
-            an array of values
+            a dict of arrays of values
         """
-        # TODO: remove the lumping together of arrays of multiple parameters
-        # feature, because that's probably really UNWANTED
-        # Just do one parameter!
-
         # Normalize the name
         n_object_type = normalized_object_type(object_type)
 
@@ -359,11 +355,6 @@ class NetcdfDataSource(object):
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
-        if len(variables) > 1:
-            log("Warning! More than one variable used in getting the "
-                "time series! Not sure if you'd want this!", level='CRITICAL')
-            raise ValueError("More than one variable used, proceed with "
-                             "caution!")
 
         # Select the source netcdf:
         if source == 'default':
@@ -373,8 +364,8 @@ class NetcdfDataSource(object):
         else:
             raise ValueError("Unexpected source type %s", source)
 
-        # Get data from all variables and just put them in the same list:
-        timeseries_vals = np.array([])
+        # Get data from all variables and put them in a dict:
+        timeseries_vals = dict()
         for v in variables:
 
             # Keep the netCDF array in memory for performance
@@ -400,5 +391,5 @@ class NetcdfDataSource(object):
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            timeseries_vals = np.hstack((timeseries_vals, vals))
+            timeseries_vals[v] = vals
         return timeseries_vals

@@ -4,7 +4,8 @@ from PyQt4.QtGui import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
     QDockWidget, QComboBox, QMessageBox)
 
-from ..datasource.spatialite import layer_qh_type_mapping
+from ..datasource.spatialite import (
+    layer_qh_type_mapping, normalized_object_type)
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
@@ -671,7 +672,7 @@ class GraphDockWidget(QDockWidget):
 
         if current_layer:
             provider = current_layer.dataProvider()
-            valid_object_type = get_object_type(current_layer.name())
+            valid_object_type = normalized_object_type(current_layer.name())
 
             if provider.name() in VALID_PROVIDERS and valid_object_type:
                 tdi_layer = True

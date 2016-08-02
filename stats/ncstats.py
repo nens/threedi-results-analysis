@@ -69,7 +69,7 @@ class NcStats(object):
         can be negative, so the absolute values are used.
         """
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         q_slice = np.absolute(q_slice)
         # calc total vol thru structure
         vols = self.timesteps * q_slice[0:-1]
@@ -78,7 +78,7 @@ class NcStats(object):
     def tot_vol_positive(self, structure_type, obj_id):
         """Total volume through structure, counting only positive q's."""
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         # mask negative values
         ma_q_slice = np.ma.masked_where(q_slice < 0, q_slice)
         # calc total vol thru structure
@@ -88,7 +88,7 @@ class NcStats(object):
     def tot_vol_negative(self, structure_type, obj_id):
         """Total volume through structure, counting only negative q's."""
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         # mask positive values
         ma_q_slice = np.ma.masked_where(q_slice > 0, q_slice)
         # calc total vol thru structure
@@ -99,7 +99,7 @@ class NcStats(object):
         """Maximum value of a q timeseries; can be negative.
         """
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         _min = q_slice.min()
         _max = q_slice.max()
         # return highest absolute value, while retaining the sign of the number
@@ -109,7 +109,7 @@ class NcStats(object):
         """The time at maximum value of a q timeseries
         """
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         _min = q_slice.min()
         _max = q_slice.max()
         # return highest absolute value, while retaining the sign of the number
@@ -119,9 +119,9 @@ class NcStats(object):
 
     def s1_max(self, structure_type, obj_id):
         """Maximum value of a s1 timeseries."""
-        slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1'])
-        return slice.max()
+        s1_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['s1'])['s1']
+        return s1_slice.max()
 
     def q_cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.
@@ -130,7 +130,7 @@ class NcStats(object):
             # TODO: q values can be vary small, maybe add a threshold??
             raise NotImplementedError()
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
 
         # normalize nonzero qs to 1, so it becomes a binary representation
         # of q, which we can simply multiply with the timesteps
@@ -160,7 +160,7 @@ class NcStats(object):
         """q at last timeSTAMP (!= timestep)
         """
         q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])
+            structure_type, obj_id, ['q'])['q']
         return q_slice[-1]
 
     def get_value_from_parameter(
