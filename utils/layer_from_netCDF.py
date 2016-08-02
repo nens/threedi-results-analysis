@@ -120,7 +120,7 @@ def make_flowline_layer(ds, progress_bar=None):
             inp_id = int(flowid_to_inp_mapping[i+1])
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
         except KeyError:
-            cat = ds.get_line_type(i)
+            cat = ds.line_type_of(i)
             if cat == '1d':
                 cat = '1d_2d'
             spatialite_tbl = cat

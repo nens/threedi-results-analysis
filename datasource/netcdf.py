@@ -130,8 +130,8 @@ class NetcdfDataSource(object):
     def load_properties(self):
         """Load and pre-calculate some properties.
 
-        Note: these properties are required for get_node_type and
-        get_line_type to work.
+        Note: these properties are required for node_type_of and
+        line_type_of to work.
         """
         # Nodes
         self.n2dtot = self.ds.nFlowElem2d
@@ -200,7 +200,7 @@ class NetcdfDataSource(object):
     def get_object(self, object_type, object_id):
         pass
 
-    def get_inp_id(self, object_id, normalized_object_type):
+    def inp_id_from(self, object_id, normalized_object_type):
         """Get the id mapping dict correctly and then return the mapped id,
         aka: the inp_id"""
         try:
@@ -215,7 +215,7 @@ class NetcdfDataSource(object):
             obj_id_mapping = self.id_mapping[v2_object_type]
         return obj_id_mapping[str(object_id)]  # strings because JSON
 
-    def get_netcdf_id(self, inp_id, object_type):
+    def netcdf_id_from(self, inp_id, object_type):
         """Get the node or flow link id needed to get data from netcdf."""
         # Note: because pumpstation uses q_pump it also has a special way of
         # accessing that array.
@@ -226,7 +226,7 @@ class NetcdfDataSource(object):
         else:
             return self.channel_mapping[inp_id]
 
-    def get_node_type(self, node_idx):
+    def node_type_of(self, node_idx):
         """Get the node type based on its index."""
         # Order of nodes in netCDF is:
         # 1. nFlowElem2d
@@ -248,7 +248,7 @@ class NetcdfDataSource(object):
                 "Index %s is not smaller than the number of nodes (%s)" %
                 (node_idx, self.nodall))
 
-    def get_line_type(self, line_idx):
+    def line_type_of(self, line_idx):
         """Get line type based on its index."""
         # Order of links in netCDF is:
         # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
@@ -278,8 +278,8 @@ class NetcdfDataSource(object):
             netcdf_id = object_id - 1
         else:
             # Mapping: spatialite id -> inp id -> netcdf id
-            inp_id = self.get_inp_id(object_id, normalized_object_type)
-            netcdf_id = self.get_netcdf_id(inp_id, normalized_object_type)
+            inp_id = self.inp_id_from(object_id, normalized_object_type)
+            netcdf_id = self.netcdf_id_from(inp_id, normalized_object_type)
         return netcdf_id
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
