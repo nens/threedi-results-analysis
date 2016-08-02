@@ -188,7 +188,7 @@ def make_node_layer(ds, progress_bar=None):
     # create inverse mapping
 
     if 'node_mapping' not in ds.ds.variables:
-        progress_bar.increase_progress(10, "no node mapping found in netCDF, skip object mapping. Model only has 1d?")
+        progress_bar.increase_progress(10, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
         node_idx_to_inp_id = {}
         inp_to_splt_mapping = {}
     else:
