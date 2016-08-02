@@ -145,7 +145,8 @@ class TestSpatialiteDatasource(unittest.TestCase):
 class TestNetcdfDatasource(unittest.TestCase):
 
     def setUp(self):
-        self.ncds = NetcdfDataSource(netcdf_datasource_path)
+        self.ncds = NetcdfDataSource(netcdf_datasource_path,
+                                     load_properties=False)
 
     def test_netcdf_loaded(self):
         """We can open the Netcdf file"""
