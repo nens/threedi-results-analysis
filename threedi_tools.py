@@ -23,10 +23,10 @@
 
 import os.path
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt4.QtCore import (QSettings, QTranslator, qVersion, QCoreApplication,
+    QObject)
 from PyQt4.QtGui import QAction, QIcon, QLCDNumber
 from qgis.core import QgsMapLayerRegistry
-
 
 # Initialize Qt resources from file resources.py
 import resources  # NoQa
@@ -38,11 +38,12 @@ from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
 from .utils.user_messages import (
-    pop_up_info, log, messagebar_message, pop_up_question)
+    pop_up_info, log, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
+from .utils.qprojects import ProjectStateMixin
 
 
-class ThreeDiTools:
+class ThreeDiTools(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
 
     def __init__(self, iface):
@@ -54,6 +55,8 @@ class ThreeDiTools:
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
+        QObject.__init__(self)
+
         self.iface = iface
 
         # initialize plugin directory
@@ -104,7 +107,6 @@ class ThreeDiTools:
 
         self.line_layer = None
         self.point_layer = None
-
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -230,6 +232,8 @@ class ThreeDiTools:
         self.ts_datasource.dataChanged.connect(
             self.check_status_model_and_results)
 
+        self.init_state_sync()
+
         self.check_status_model_and_results()
 
     def on_slider_change(self, value):
@@ -315,6 +319,8 @@ class ThreeDiTools:
         """Removes the plugin menu item and icon from QGIS GUI."""
 
         #print "** UNLOAD ThreeDiToolbox"
+
+        self.unload_state_sync()
 
         for action in self.actions:
             self.iface.removePluginMenu(
