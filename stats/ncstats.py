@@ -145,7 +145,7 @@ class NcStats(object):
         This means, count the timesteps where s1 - surface level > 0.
         """
         s1_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1'])
+            structure_type, obj_id, ['s1'])['s1']
 
         water_op_straat = s1_slice - surface_level
 
