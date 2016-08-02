@@ -6,7 +6,7 @@ import numpy as np
 import inspect
 
 from ..datasource.netcdf import NetcdfDataSource
-from ..datasource.spatialite import get_object_type
+from ..datasource.spatialite import normalized_object_type
 
 
 def tailored_args(f, **kwargs):
@@ -233,7 +233,7 @@ class NcStatsAgg(NcStats):
             raise NotImplementedError(
                 "Some things don't work for pumps yet using the "
                 "aggregated netCDF")
-        norm_object_type = get_object_type(structure_type)
+        norm_object_type = normalized_object_type(structure_type)
         netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
         try:
             variable = self.variables[parameter_name]

@@ -7,7 +7,7 @@ import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property
-from .spatialite import get_object_type, get_variables
+from .spatialite import normalized_object_type, get_variables
 
 
 def find_id_mapping_file(netcdf_file_path):
@@ -299,7 +299,7 @@ class NetcdfDataSource(object):
             a list of 2-tuples (time, value)
         """
         # Normalize the name
-        n_object_type = get_object_type(object_type)
+        n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
@@ -353,7 +353,7 @@ class NetcdfDataSource(object):
         # Just do one parameter!
 
         # Normalize the name
-        n_object_type = get_object_type(object_type)
+        n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)

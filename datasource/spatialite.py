@@ -146,7 +146,7 @@ def get_variables(object_type=None, parameters=[]):
     return new_params
 
 
-def get_object_type(current_layer_name):
+def normalized_object_type(current_layer_name):
     """Get a normalized object type for internal purposes."""
     if current_layer_name in layer_object_type_mapping.keys():
         return layer_object_type_mapping[current_layer_name]
@@ -346,7 +346,7 @@ class TdiSpatialite(object):
 
         Returns: a list of 2-tuples (time, value)
         """
-        object_type = get_object_type(object_type)
+        object_type = normalized_object_type(object_type)
         variables = get_variables(object_type, parameters)
 
         query = """SELECT t.id FROM result_type t
