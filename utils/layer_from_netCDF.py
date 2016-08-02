@@ -219,7 +219,7 @@ def make_node_layer(ds, progress_bar=None):
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
         # Getting all node types, feature types, and whatnot:
-        node_type = ds.get_node_type(i)
+        node_type = ds.node_type_of(i)
         inp_id = node_idx_to_inp_id.get(i, None)
         feature_type, spatialite_id = inp_to_splt_mapping.get(
             inp_id, (None, None))
