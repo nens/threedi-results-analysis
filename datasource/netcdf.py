@@ -147,26 +147,19 @@ class NetcdfDataSource(object):
         self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
                             self.ds.nFlowLine1dBounds)
 
-    @property
-    def id_mapping_file(self):
-        return find_id_mapping_file(self.file_path)
-
     @cached_property
     def id_mapping(self):
         # Load id mapping
-        with open(self.id_mapping_file) as f:
+        with open(find_id_mapping_file(self.file_path)) as f:
             return json.load(f)
-
-    @property
-    def aggregation_netcdf_file(self):
-        return find_aggregation_netcdf(self.file_path)
 
     @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
         # Load aggregation netcdf
-        log("Opening aggregation netcdf: %s" % self.aggregation_netcdf_file)
-        return Dataset(self.aggregation_netcdf_file, mode='r',
+        aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+        log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+        return Dataset(aggregation_netcdf_file, mode='r',
                        format='NETCDF4')
 
     @cached_property
