@@ -1,4 +1,5 @@
 import glob
+from itertools import (starmap, product)
 import json
 import os
 
@@ -7,7 +8,14 @@ import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property
-from .spatialite import normalized_object_type, get_variables
+from .spatialite import (
+    normalized_object_type,
+    get_variables,
+    SUBGRID_MAP_VARIABLES,
+)
+
+AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
+AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
 
 
 def find_id_mapping_file(netcdf_file_path):
@@ -96,6 +104,30 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
+# Note: copied from threedi codebase
+def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
+    """Make combinatons with cartesian product and concatenate the pairs
+    with an underscore.
+
+    Returns:
+        the combinations as an iterable
+
+    >>> sorted(list(product_and_concat(['a'], ['b'])))
+    ['a_b']
+    >>> sorted(product_and_concat(['a', 'b'], ['c']))
+    ['a_c', 'b_c']
+    >>> sorted(product_and_concat(['a'], ['b', 'c']))
+    ['a_b', 'a_c']
+    >>> sorted(product_and_concat(['a', 'b'], ['c', 'd']))
+    ['a_c', 'a_d', 'b_c', 'b_d']
+    >>> sorted(product_and_concat('q'))
+    ['q_avg', 'q_cum', 'q_max', 'q_min']
+    """
+    prods = product(variables, aggregation_options)
+    nc_vars = starmap(lambda x, y: '%s_%s' % (x, y), prods)
+    return nc_vars
+
+
 class NetcdfDataSource(object):
     """This netCDF datasource combines three things:
 
@@ -126,6 +158,8 @@ class NetcdfDataSource(object):
 
         if load_properties:
             self.load_properties()
+
+        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
 
     def load_properties(self):
         """Load and pre-calculate some properties.
@@ -178,6 +212,22 @@ class NetcdfDataSource(object):
     def timestamps(self):
         return self.get_timestamps()
 
+    @cached_property
+    def available_subgrid_map_vars(self):
+        return self.get_available_variables(
+            only_subgrid_map=True)['subgrid_map']
+
+    @cached_property
+    def available_aggregation_vars(self):
+        # TODO: aggregation netcdf isn't always available
+        try:
+            vars = self.get_available_variables(
+                only_aggregation=True)['aggregation']
+        except:  # TODO: handle custom exception
+            vars = []
+            raise
+        return vars
+
     @property
     def metadata(self):
         pass
@@ -196,6 +246,36 @@ class NetcdfDataSource(object):
 
     def get_parameters(self, object_type=None):
         pass
+
+    def get_available_variables(self, only_subgrid_map=False,
+                                only_aggregation=False):
+        """Query the netCDF files and get all variables which we can retrieve
+        data for.
+
+        Returns:
+            a dict with entries for subgrid_map and aggregation vars
+        """
+        do_all = not any([only_subgrid_map, only_aggregation])
+        result = dict()
+
+        if do_all or only_subgrid_map:
+            possible_subgrid_map_vars = [v for v, _, _ in
+                                         SUBGRID_MAP_VARIABLES]
+            subgrid_map_vars = self.ds.variables.keys()
+            available_subgrid_map_vars = set(
+                possible_subgrid_map_vars).intersection(set(subgrid_map_vars))
+            result['subgrid_map'] = list(available_subgrid_map_vars)
+        if do_all or only_aggregation:
+            possible_agg_vars = [product_and_concat([v]) for v, _, _ in
+                                 AGGREGATION_VARIABLES]
+            # This flattens the list of lists
+            possible_agg_vars = [item for sublist in possible_agg_vars for
+                                 item in sublist]
+            agg_vars = self.ds_aggregation.variables.keys()
+            available_agg_vars = set(
+                possible_agg_vars).intersection(set(agg_vars))
+            result['aggregation'] = list(available_agg_vars)
+        return result
 
     def get_object(self, object_type, object_id):
         pass
@@ -317,8 +397,7 @@ class NetcdfDataSource(object):
             except IndexError:
                 log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
-            timestamps = self.get_timestamps()
-            result[v] = zip(timestamps, vals)
+            result[v] = zip(self.timestamps, vals)
 
         return result
 

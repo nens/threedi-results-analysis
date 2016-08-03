@@ -7,12 +7,21 @@ from ..utils.user_messages import log
 
 WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
-# TODO: unorm is deprecated, now 'u1'
 VELOCITY = ('u1', 'velocity', 'm/s')
 VOLUME = ('vol', 'volume', 'm3')
 DISCHARGE_PUMP = ('q_pump', 'discharge', 'm3/s')
 DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
 VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
+
+SUBGRID_MAP_VARIABLES = [
+    WATERLEVEL,
+    DISCHARGE,
+    VELOCITY,
+    VOLUME,
+    DISCHARGE_PUMP,
+    DISCHARGE_INTERFLOW,
+    VELOCITY_INTERFLOW,
+]
 
 
 VARIABLE_LABELS = {
@@ -28,7 +37,8 @@ VARIABLE_LABELS = {
     'sewerage_weir': (DISCHARGE, VELOCITY, ),
     'sewerage_orifice': (DISCHARGE, VELOCITY, ),
     'sewerage_pumpstation': (DISCHARGE_PUMP, ),
-    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW, VELOCITY_INTERFLOW),
+    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
+                  VELOCITY_INTERFLOW),
     'nodes': (WATERLEVEL, ),
     'pumplines': (DISCHARGE_PUMP, ),
 }
@@ -73,13 +83,11 @@ PARAMETER_TO_VARIABLE = {
         'q': 'q_pump',
         # pumps have no velocity
         'u1': 'dummy',
-        'unorm': 'dummy',
         },
     'pumpline': {
         'q': 'q_pump',
         # pumps have no velocity
         'u1': 'dummy',
-        'unorm': 'dummy',
         },
     }
 
@@ -87,41 +95,6 @@ layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
 layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 
 PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
-
-
-def get_datasource_variable(parameter, object_type):
-    """DEPRECATED!!
-
-    Get the actual variable name that is used in the datasource,
-    i.e., that is at the moment defined as the netCDF variable name.
-
-    Returns:
-        A list of one or more variables
-    """
-    # TODO: this function is ugly and very unclear
-
-    # Pumpstation is a special case and has its own netcdf array
-    if parameter == 'q' and object_type in PUMPLIKE_OBJECTS:
-        return ['q_pump']
-    # This is for backwards compatability, we want to check try both variable
-    # names for the velocity parameter.
-    if parameter in ['u1', 'unorm']:
-        return ['u1', 'unorm']
-    return [parameter]
-
-
-def OLD_get_variables(object_type=None, parameters=[]):
-    """DEPRECATED!!
-
-    Get datasource variable names."""
-    # Don't mutate parameters, we need to clone the list:
-    new_params = list(parameters)
-    # Note: object_type must be passed as a kwargs, or else this partial
-    # function doesn't work, and parameter will be substituted instead.
-    f = partial(get_datasource_variable, object_type=object_type)
-    lists = map(f, new_params)
-    # Flatten the list of lists:
-    return [item for sublist in lists for item in sublist]
 
 
 def get_variables(object_type=None, parameters=[]):
@@ -135,14 +108,6 @@ def get_variables(object_type=None, parameters=[]):
             new_params[i] = PARAMETER_TO_VARIABLE[object_type][p]
         except KeyError:
             new_params[i] = p
-
-    # For backwards compatibility with the original 'unorm' name we add
-    # the 'unorm' variable together with 'u1'. The reason this works in
-    # get_timeseries is because get_timeseries skips unknown variable
-    # names. So in the old netCDF only 'unorm' will be used, and in the
-    # new situation only 'u1' will be used.
-    if 'u1' in new_params:
-        new_params.append('unorm')
     return new_params
 
 

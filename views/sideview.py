@@ -31,7 +31,6 @@ import pyqtgraph as pg
 from qgis.core import QgsDataSourceURI
 
 # GraphDockWidget labels related parameters.
-# TODO: unorm is deprecated, now 'u1'
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']}],

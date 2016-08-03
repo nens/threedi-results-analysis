@@ -15,7 +15,6 @@ from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
 # GraphDockWidget labels related parameters.
-# TODO: unorm is deprecated, now 'u1'
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']},
