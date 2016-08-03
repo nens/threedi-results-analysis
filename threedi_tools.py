@@ -41,6 +41,7 @@ from .utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
+from .utils.layer_tree_manager import LayerTreeManager
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
@@ -107,6 +108,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         self.line_layer = None
         self.point_layer = None
+
+        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasource)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -260,47 +263,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         else:
             self.sideview_tool.action_icon.setEnabled(False)
 
-        # todo: for now always first netCDF is used. let the user select the
-        # active netCDF
-        if (self.ts_datasource.rowCount() > 0 and
-                self.ts_datasource.rows[0] != self.active_datasource):
 
-            ds_item = self.ts_datasource.rows[0]
-            self.active_datasource = ds_item
-
-            if not pop_up_question(msg="Add netCDF layers to map?",
-                                   title="netCDF layers"):
-                return
-
-            # get or create group in legend
-            legend = self.iface.legendInterface()
-            if self.group_layer is None:
-                self.group_layer = legend.addGroup(self.group_layer_name,
-                                                   True)
-
-            legend.setGroupVisible(self.group_layer, True)
-
-            # get memory layers
-            self.line_layer, self.node_layer, self.pumpline_layer = \
-                ds_item.get_memory_layers()
-
-            # apply default styling on memory layers
-            self.line_layer.loadNamedStyle(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'layer_styles', 'tools', 'flowlines.qml'))
-
-            self.node_layer.loadNamedStyle(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'layer_styles', 'tools', 'nodes.qml'))
-
-            # add layers to the map
-            QgsMapLayerRegistry.instance().addMapLayers(
-                [self.line_layer, self.node_layer, self.pumpline_layer])
-
-            # move the layers to the group
-            for lyr in [self.line_layer, self.node_layer, self.pumpline_layer]:
-                legend.setLayerExpanded(lyr, True)
-                legend.moveLayer(lyr, self.group_layer)
 
     def about(self):
         """
@@ -330,6 +293,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
             for tool in self.tools:
                 tool.on_unload()
+
+        self.layer_manager.on_unload()
 
         self.timeslider_widget.valueChanged.disconnect(
             self.on_slider_change)
