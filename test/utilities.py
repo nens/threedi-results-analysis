@@ -22,10 +22,10 @@ def get_qgis_app():
     """
 
     try:
-        from PyQt4 import QtGui, QtCore
         from qgis.core import QgsApplication
         from qgis.gui import QgsMapCanvas
-        from test.example_tests.qgis_interface import QgisInterface
+        from PyQt4 import QtGui, QtCore
+        from qgis_interface import QgisInterface
     except ImportError:
         return None, None, None, None
 

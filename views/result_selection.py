@@ -6,7 +6,6 @@ from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGis
 
-
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
 

@@ -1,8 +1,13 @@
-from PyQt4.QtGui import QMessageBox, QProgressBar
-from PyQt4.QtCore import Qt
 from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
-from qgis.utils import iface
+
+from PyQt4.QtGui import QMessageBox, QProgressBar
+from PyQt4.QtCore import Qt
+
+try:
+    from qgis.utils import iface
+except:
+    iface = None
 
 
 def log(msg, level='INFO'):
@@ -11,6 +16,8 @@ def log(msg, level='INFO'):
         level = 'INFO'
     loglevel = getattr(QgsMessageLog, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
+    if iface is None:
+        print msg
 
 
 def pop_up_info(msg='', title='Information', parent=None):
@@ -20,7 +27,8 @@ def pop_up_info(msg='', title='Information', parent=None):
 
 def statusbar_message(msg=''):
     """Display message in status bar """
-    iface.mainWindow().statusBar().showMessage(msg)
+    if iface is not None:
+        iface.mainWindow().statusBar().showMessage(msg)
 
 
 def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
@@ -32,8 +40,8 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
             possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
-
-    iface.messageBar().pushMessage(title, msg, level, duration)
+    if iface is not None:
+        iface.messageBar().pushMessage(title, msg, level, duration)
 
 
 def pop_up_question(msg='', title='', parent=None):
@@ -62,7 +70,8 @@ class StatusProgressBar(object):
         self.progress_bar.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         self.message_bar.layout().addWidget(self.progress_bar)
-        iface.messageBar().pushWidget(self.message_bar, iface.messageBar().INFO)
+        if iface is not None:
+            iface.messageBar().pushWidget(self.message_bar, iface.messageBar().INFO)
 
         self.step_size = 1
         self.progress = 0
@@ -79,4 +88,5 @@ class StatusProgressBar(object):
             self.message_bar.setText(message)
 
     def __del__(self):
-        iface.messageBar().clearWidgets()
+        if iface is not None:
+            iface.messageBar().clearWidgets()

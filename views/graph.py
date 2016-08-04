@@ -5,6 +5,8 @@ from PyQt4.QtGui import (
     QTableView, QWidget, QVBoxLayout, QHBoxLayout,
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
     QDockWidget, QComboBox, QMessageBox)
+
+import pyqtgraph as pg
 from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
                        QgsCoordinateTransform, QgsCoordinateReferenceSystem)
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)

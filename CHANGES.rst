@@ -22,6 +22,14 @@ threedi-qgis-plugin changelog
 
 - Updated NetcdfDataSource so that it keeps some netCDF attributes in memory.
 
+- Stores selected model and results in Qgs project file (*.qgs)
+
+- Cache generated model layers in spatialite
+
+- Add point markers to selected sideview points
+
+- Show marker of current location when hovering over graph
+
 
 0.7.1 (2016-07-25)
 ------------------
@@ -100,4 +108,3 @@ threedi-qgis-plugin changelog
 ----------------
 
 - Test release.
-
