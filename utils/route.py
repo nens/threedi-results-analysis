@@ -14,7 +14,6 @@ from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, QgsVectorL
 from qgis.networkanalysis import QgsArcProperter
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
-from ..datasource.spatialite import layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 

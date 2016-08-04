@@ -7,9 +7,7 @@ from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 
-from ..datasource.spatialite import layer_qh_type_mapping, \
-    layer_object_type_mapping
-from ..datasource.netcdf import find_id_mapping_file
+from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
 
 

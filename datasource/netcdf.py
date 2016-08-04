@@ -8,13 +8,6 @@ import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property
-from .spatialite import (
-    normalized_object_type,
-    get_variables,
-    SUBGRID_MAP_VARIABLES,
-    AGGREGATION_VARIABLES,
-    AGGREGATION_OPTIONS,
-)
 
 # Explanation: aggregation using the cumulative method integrates the variable
 # over time. Therefore the units must be multiplied by the time also.
@@ -27,6 +20,142 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'qp': 'm3',
     'up1': 'm',
     }
+
+WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
+DISCHARGE = ('q', 'discharge', 'm3/s')
+VELOCITY = ('u1', 'velocity', 'm/s')
+VOLUME = ('vol', 'volume', 'm3')
+DISCHARGE_PUMP = ('q_pump', 'discharge pump', 'm3/s')
+DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
+VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
+
+Q_TYPES = ['q', 'u1', 'q_pump', 'qp', 'up1']
+H_TYPES = ['s1', 'vol']
+
+SUBGRID_MAP_VARIABLES = [
+    WATERLEVEL,
+    DISCHARGE,
+    VELOCITY,
+    VOLUME,
+    DISCHARGE_PUMP,
+    DISCHARGE_INTERFLOW,
+    VELOCITY_INTERFLOW,
+]
+
+AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
+AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
+
+
+VARIABLE_LABELS = {
+    'v2_connection_nodes': (WATERLEVEL, ),
+    'v2_pipe': (DISCHARGE, VELOCITY, ),
+    'v2_channel': (DISCHARGE, VELOCITY, ),
+    'v2_culvert': (DISCHARGE, VELOCITY, ),
+    'v2_pumpstation': (DISCHARGE_PUMP, ),
+    'v2_weir': (DISCHARGE, VELOCITY, ),
+    'v2_orifice': (DISCHARGE, VELOCITY, ),
+    'sewerage_manhole': (WATERLEVEL, VOLUME, ),
+    'sewerage_pipe': (DISCHARGE, VELOCITY, ),
+    'sewerage_weir': (DISCHARGE, VELOCITY, ),
+    'sewerage_orifice': (DISCHARGE, VELOCITY, ),
+    'sewerage_pumpstation': (DISCHARGE_PUMP, ),
+    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
+                  VELOCITY_INTERFLOW),
+    'nodes': (WATERLEVEL, ),
+    'pumplines': (DISCHARGE_PUMP, ),
+}
+
+
+# todo: this is the right place for these 2 supportive functions?
+def get_available_parameters(object_type):
+    return VARIABLE_LABELS[object_type]
+
+
+layer_information = [
+    # layer name, (normalized) object_type, q/h type
+
+    # Note: the reason why this is plural is because this is (inconsistently)
+    # also plural in the id mapping json, in contrast to all other object
+    # types
+    ('v2_connection_nodes', 'connection_nodes', 'h'),
+    ('v2_pipe_view', 'pipe', 'q'),
+    ('v2_channel', 'channel', 'q'),
+    ('v2_culvert', 'culvert', 'q'),
+    ('v2_pumpstation', 'pumpstation', 'q'),
+    ('v2_pumpstation_view', 'pumpstation', 'q'),
+    ('v2_weir_view', 'weir', 'q'),
+    ('v2_orifice_view', 'orifice', 'q'),
+    ('sewerage_manhole', 'manhole', 'h'),
+    ('sewerage_pipe_view', 'pipe', 'q'),
+    ('sewerage_pumpstation', 'pumpstation', 'q'),
+    ('sewerage_pumpstation_view', 'pumpstation', 'q'),
+    ('sewerage_weir_view', 'weir', 'q'),
+    ('sewerage_orifice_view', 'orifice', 'q'),
+    ('flowlines', 'flowline', 'q'),
+    ('nodes', 'node', 'h'),
+    ('pumplines', 'pumpline', 'q'),
+]
+
+# Map a generic parameter to the netCDF variable name. Because the parameters
+# we've chosen are almost always analogous to the real netCDF variable names
+# (e.g. 's1', 'vol', 'q') only exceptional cases are listed here, which in
+# practise means only mapping q to q_pump for pumps.
+PARAMETER_TO_VARIABLE = {
+    'pumpstation': {
+        'q': 'q_pump',
+        'q_pump': 'q_pump',
+        },
+    'pumpline': {
+        'q': 'q_pump',
+        'q_pump': 'q_pump',
+        },
+    }
+
+layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
+layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
+
+PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
+
+
+def get_variables(object_type=None, parameters=[]):
+    """Get datasource variable names.
+
+    Note: basically returns the parameters unaltered, except for pumps.
+    For pumps it does additionaly checks if it's a agg var.
+    """
+    # Don't mutate parameters, we need to clone the list:
+    new_params = list(parameters)
+    for i in range(len(new_params)):
+        p = new_params[i]
+        # See if there is a mapping, else use to the original parameter
+        try:
+            param_map = PARAMETER_TO_VARIABLE[object_type]
+            # We know there is a mapping, now test if it is a agg var.
+            splitted = p.rsplit('_', 1)
+            if splitted[0] in AGGREGATION_OPTIONS:
+                # It's an agg method, now check if the variable is supported.
+                # E.g. 'u1_avg' is not supported by pumps, so then we set a
+                # dummy var again.
+                if splitted[1] in param_map.keys():
+                    new_params[i] = p
+                else:
+                    new_params[i] = "DUMMYAGG$(*%&"
+            else:
+                # set to a dummy var which will be ignore by get_timeseries
+                new_params[i] = param_map.get(p, 'DUMMY%$#!')
+        except KeyError:
+            new_params[i] = p
+    return new_params
+
+
+def normalized_object_type(current_layer_name):
+    """Get a normalized object type for internal purposes."""
+    if current_layer_name in layer_object_type_mapping.keys():
+        return layer_object_type_mapping[current_layer_name]
+    else:
+        msg = "Unsupported layer: %s." % current_layer_name
+        log(msg, level='WARNING')
+        return None
 
 
 def find_id_mapping_file(netcdf_file_path):
