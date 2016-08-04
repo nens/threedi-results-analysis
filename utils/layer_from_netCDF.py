@@ -120,7 +120,7 @@ def make_flowline_layer(ds, progress_bar=None):
             inp_id = int(flowid_to_inp_mapping[i+1])
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
         except KeyError:
-            cat = ds.get_line_type(i)
+            cat = ds.line_type_of(i)
             if cat == '1d':
                 cat = '1d_2d'
             spatialite_tbl = cat
@@ -219,7 +219,7 @@ def make_node_layer(ds, progress_bar=None):
         feat.setGeometry(QgsGeometry.fromPoint(p1))
 
         # Getting all node types, feature types, and whatnot:
-        node_type = ds.get_node_type(i)
+        node_type = ds.node_type_of(i)
         inp_id = node_idx_to_inp_id.get(i, None)
         feature_type, spatialite_id = inp_to_splt_mapping.get(
             inp_id, (None, None))

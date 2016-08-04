@@ -1,4 +1,5 @@
 import glob
+from itertools import (starmap, product)
 import json
 import os
 
@@ -7,7 +8,25 @@ import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property
-from .spatialite import get_object_type, get_variables
+from .spatialite import (
+    normalized_object_type,
+    get_variables,
+    SUBGRID_MAP_VARIABLES,
+    AGGREGATION_VARIABLES,
+    AGGREGATION_OPTIONS,
+)
+
+# Explanation: aggregation using the cumulative method integrates the variable
+# over time. Therefore the units must be multiplied by the time also.
+CUMULATIVE_AGGREGATION_UNITS = {
+    's1': 'm MSL s',
+    'q': 'm3',
+    'u1': 'm',
+    'vol': 'm3 s',
+    'q_pump': 'm3',
+    'qp': 'm3',
+    'up1': 'm',
+    }
 
 
 def find_id_mapping_file(netcdf_file_path):
@@ -96,6 +115,30 @@ def get_timesteps(ds):
     return np.ediff1d(ds.variables['time'])
 
 
+# Note: copied from threedi codebase
+def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
+    """Make combinatons with cartesian product and concatenate the pairs
+    with an underscore.
+
+    Returns:
+        the combinations as an iterable
+
+    >>> sorted(list(product_and_concat(['a'], ['b'])))
+    ['a_b']
+    >>> sorted(product_and_concat(['a', 'b'], ['c']))
+    ['a_c', 'b_c']
+    >>> sorted(product_and_concat(['a'], ['b', 'c']))
+    ['a_b', 'a_c']
+    >>> sorted(product_and_concat(['a', 'b'], ['c', 'd']))
+    ['a_c', 'a_d', 'b_c', 'b_d']
+    >>> sorted(product_and_concat('q'))
+    ['q_avg', 'q_cum', 'q_max', 'q_min']
+    """
+    prods = product(variables, aggregation_options)
+    nc_vars = starmap(lambda x, y: '%s_%s' % (x, y), prods)
+    return nc_vars
+
+
 class NetcdfDataSource(object):
     """This netCDF datasource combines three things:
 
@@ -130,8 +173,8 @@ class NetcdfDataSource(object):
     def load_properties(self):
         """Load and pre-calculate some properties.
 
-        Note: these properties are required for get_node_type and
-        get_line_type to work.
+        Note: these properties are required for node_type_of and
+        line_type_of to work.
         """
         # Nodes
         self.n2dtot = self.ds.nFlowElem2d
@@ -147,26 +190,19 @@ class NetcdfDataSource(object):
         self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
                             self.ds.nFlowLine1dBounds)
 
-    @property
-    def id_mapping_file(self):
-        return find_id_mapping_file(self.file_path)
-
     @cached_property
     def id_mapping(self):
         # Load id mapping
-        with open(self.id_mapping_file) as f:
+        with open(find_id_mapping_file(self.file_path)) as f:
             return json.load(f)
-
-    @property
-    def aggregation_netcdf_file(self):
-        return find_aggregation_netcdf(self.file_path)
 
     @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
         # Load aggregation netcdf
-        log("Opening aggregation netcdf: %s" % self.aggregation_netcdf_file)
-        return Dataset(self.aggregation_netcdf_file, mode='r',
+        aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+        log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+        return Dataset(aggregation_netcdf_file, mode='r',
                        format='NETCDF4')
 
     @cached_property
@@ -185,12 +221,38 @@ class NetcdfDataSource(object):
     def timestamps(self):
         return self.get_timestamps()
 
+    @cached_property
+    def available_subgrid_map_vars(self):
+        return self.get_available_variables(
+            only_subgrid_map=True)['subgrid_map']
+
+    @cached_property
+    def available_aggregation_vars(self):
+        try:
+            _vars = self.get_available_variables(
+                only_aggregation=True)['aggregation']
+        except IndexError:
+            # If we're here it means no agg. netCDF was found. Fail without
+            # error, but do log it.
+            log("No aggregation netCDF was found, only the data from the "
+                "regular netCDF will be used.", level='WARNING')
+            _vars = []
+        return _vars
+
     @property
     def metadata(self):
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
+
+    def get_agg_var_timestamps(self, aggregation_variable_name):
+        """Get timestamps for aggregation variables.
+
+        Example: for 's1_max' the time variable name is 'time_s1_max'.
+        """
+        time_var_name = 'time_%s' % aggregation_variable_name
+        return self.ds_aggregation.variables[time_var_name][:]
 
     def get_object_types(self, parameter=None):
         pass
@@ -204,10 +266,40 @@ class NetcdfDataSource(object):
     def get_parameters(self, object_type=None):
         pass
 
+    def get_available_variables(self, only_subgrid_map=False,
+                                only_aggregation=False):
+        """Query the netCDF files and get all variables which we can retrieve
+        data for.
+
+        Returns:
+            a dict with entries for subgrid_map and aggregation vars
+        """
+        do_all = not any([only_subgrid_map, only_aggregation])
+        result = dict()
+
+        if do_all or only_subgrid_map:
+            possible_subgrid_map_vars = [v for v, _, _ in
+                                         SUBGRID_MAP_VARIABLES]
+            subgrid_map_vars = self.ds.variables.keys()
+            available_subgrid_map_vars = set(
+                possible_subgrid_map_vars).intersection(set(subgrid_map_vars))
+            result['subgrid_map'] = list(available_subgrid_map_vars)
+        if do_all or only_aggregation:
+            possible_agg_vars = [product_and_concat([v]) for v, _, _ in
+                                 AGGREGATION_VARIABLES]
+            # This flattens the list of lists
+            possible_agg_vars = [item for sublist in possible_agg_vars for
+                                 item in sublist]
+            agg_vars = self.ds_aggregation.variables.keys()
+            available_agg_vars = set(
+                possible_agg_vars).intersection(set(agg_vars))
+            result['aggregation'] = list(available_agg_vars)
+        return result
+
     def get_object(self, object_type, object_id):
         pass
 
-    def get_inp_id(self, object_id, normalized_object_type):
+    def inp_id_from(self, object_id, normalized_object_type):
         """Get the id mapping dict correctly and then return the mapped id,
         aka: the inp_id"""
         try:
@@ -222,7 +314,7 @@ class NetcdfDataSource(object):
             obj_id_mapping = self.id_mapping[v2_object_type]
         return obj_id_mapping[str(object_id)]  # strings because JSON
 
-    def get_netcdf_id(self, inp_id, object_type):
+    def netcdf_id_from(self, inp_id, object_type):
         """Get the node or flow link id needed to get data from netcdf."""
         # Note: because pumpstation uses q_pump it also has a special way of
         # accessing that array.
@@ -233,7 +325,7 @@ class NetcdfDataSource(object):
         else:
             return self.channel_mapping[inp_id]
 
-    def get_node_type(self, node_idx):
+    def node_type_of(self, node_idx):
         """Get the node type based on its index."""
         # Order of nodes in netCDF is:
         # 1. nFlowElem2d
@@ -255,7 +347,7 @@ class NetcdfDataSource(object):
                 "Index %s is not smaller than the number of nodes (%s)" %
                 (node_idx, self.nodall))
 
-    def get_line_type(self, line_idx):
+    def line_type_of(self, line_idx):
         """Get line type based on its index."""
         # Order of links in netCDF is:
         # - 2d links (x and y) (nr: part of ds.ds.nFlowLine2d)
@@ -285,17 +377,17 @@ class NetcdfDataSource(object):
             netcdf_id = object_id - 1
         else:
             # Mapping: spatialite id -> inp id -> netcdf id
-            inp_id = self.get_inp_id(object_id, normalized_object_type)
-            netcdf_id = self.get_netcdf_id(inp_id, normalized_object_type)
+            inp_id = self.inp_id_from(object_id, normalized_object_type)
+            netcdf_id = self.netcdf_id_from(inp_id, normalized_object_type)
         return netcdf_id
 
     def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
 
-        Note: if there are multiple parameters, all result values are just
-        lumped together and returned. If a parameter is unknown it will be
-        skipped.
+        Note: you can have multiple parameters, all result values are put
+        into a dict under the corresponding key of the parameter. If a
+        parameter is unknown it will be skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
@@ -303,39 +395,54 @@ class NetcdfDataSource(object):
             parameters: a list of params, e.g.: ['q', 'q_pump']
 
         Returns:
-            a list of 2-tuples (time, value)
+            a dict of timeseries (lists of 2-tuples (time, value))
         """
         # Normalize the name
-        n_object_type = get_object_type(object_type)
+        n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
 
-        # Get data from all variables and just put them in the same list:
-        result = []
+        # Get data from all variables and just put them in a dict:
+        result = dict()
         for v in variables:
+            # Get values
             try:
-                vals = self.ds.variables[v][:, netcdf_id]
+                if v in self.available_subgrid_map_vars:
+                    vals = self.ds.variables[v][:, netcdf_id]
+                elif v in self.available_aggregation_vars:
+                    vals = self.ds_aggregation.variables[v][:, netcdf_id]
+                else:
+                    continue
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
                 log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
-            timestamps = self.get_timestamps()
-            result += zip(timestamps, vals)
 
+            # Get timestamps
+            if v in self.available_subgrid_map_vars:
+                timestamps = self.timestamps
+            elif v in self.available_aggregation_vars:
+                timestamps = self.get_agg_var_timestamps(v)
+            else:
+                continue
+
+            # Zip timeseries together
+            result[v] = zip(timestamps, vals)
         return result
 
+    # TODO: doesn't work with agg vars yet?
     def get_timeseries_values(self, object_type, object_id, parameters,
                               source='default', caching=True):
         """Get a list of time series from netcdf; only the values.
 
-        Note: if there are multiple parameters, all result values are just
-        lumped together and returned. If a parameter is unknown it will be
-        skipped.
+        Note: you can have multiple parameters, all result values are put
+        into a dict under the corresponding key of the parameter. If a
+        parameter is unknown it will be skipped.
 
         Note 2: source defines the netcdf file source we should get our data
         from, because the NetcdfDataSource can contain the default netcdf
@@ -353,36 +460,26 @@ class NetcdfDataSource(object):
         'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
-            an array of values
+            a dict of arrays of values
         """
-        # TODO: remove the lumping together of arrays of multiple parameters
-        # feature, because that's probably really UNWANTED
-        # Just do one parameter!
-
         # Normalize the name
-        n_object_type = get_object_type(object_type)
+        n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         variables = get_variables(n_object_type, parameters)
-        if len(variables) > 1:
-            log("Warning! More than one variable used in getting the "
-                "time series! Not sure if you'd want this!", level='CRITICAL')
-            raise ValueError("More than one variable used, proceed with "
-                             "caution!")
 
-        # Select the source netcdf:
-        if source == 'default':
-            ds = self.ds
-        elif source == 'aggregation':
-            ds = self.ds_aggregation
-        else:
-            raise ValueError("Unexpected source type %s", source)
-
-        # Get data from all variables and just put them in the same list:
-        timeseries_vals = np.array([])
+        # Get data from all variables and put them in a dict:
+        timeseries_vals = dict()
         for v in variables:
+            # Select the source netcdf:
+            if v in self.available_subgrid_map_vars:
+                ds = self.ds
+            elif v in self.available_aggregation_vars:
+                ds = self.ds_aggregation
+            else:
+                continue
 
             # Keep the netCDF array in memory for performance
             if caching:
@@ -407,5 +504,5 @@ class NetcdfDataSource(object):
             except IndexError:
                 log("Id %s not found for %s" % (netcdf_id, v))
                 continue
-            timeseries_vals = np.hstack((timeseries_vals, vals))
+            timeseries_vals[v] = vals
         return timeseries_vals

@@ -105,7 +105,12 @@ class CustomCommand(CustomCommandBase):
                     result[fid][param_name] = \
                         ncstats.get_value_from_parameter(
                             layer_name, feature.id(), param_name)
-                except (ValueError, IndexError):
+                except (ValueError, IndexError, AttributeError):
+                    # AttributeError: is raised in NcStats because in case of
+                    # KeyErrors in get_value_from_parameter the method finding
+                    # is propagated to NcStats and when the method doesn't
+                    # exist AttributeError is raised. A better solution is to
+                    # filter AVAILABLE_STRUCTURE_PARAMETERS beforehand.
                     result[fid][param_name] = None
 
         # Write to csv file
