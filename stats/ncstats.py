@@ -5,8 +5,7 @@ it work with our own data sources.
 import numpy as np
 import inspect
 
-from ..datasource.netcdf import NetcdfDataSource
-from ..datasource.spatialite import normalized_object_type
+from ..datasource.netcdf import NetcdfDataSource, normalized_object_type
 
 
 def tailored_args(f, **kwargs):

@@ -9,11 +9,11 @@ from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
                        QgsCoordinateTransform, QgsCoordinateReferenceSystem)
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
-from ..datasource.spatialite import (
+from ..datasource.netcdf import (
     layer_qh_type_mapping, normalized_object_type)
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message, messagebar_message
-from ..datasource.spatialite import (
+from ..datasource.netcdf import (
     SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES, AGGREGATION_VARIABLES,
     )
 from ..datasource.netcdf import (
