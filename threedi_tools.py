@@ -37,6 +37,7 @@ from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
+from .views.map_animator import MapAnimator
 from .utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
@@ -86,7 +87,15 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
         self.toolbar.setObjectName(u'ThreeDiTools')
-        self.timeslider_widget = TimesliderWidget(self.toolbar,
+        self.toolbar_animation = self.iface.addToolBar(u'ThreeDiAnimation')
+        self.toolbar_animation.setObjectName(u'ThreeDiAnimation')
+
+
+        self.map_animator_widget = MapAnimator(self.toolbar_animation,
+                                        self.iface,
+                                        self)
+
+        self.timeslider_widget = TimesliderWidget(self.toolbar_animation,
                                                   self.iface,
                                                   self.ts_datasource)
         self.lcd = QLCDNumber()
@@ -225,8 +234,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 callback=tool.run,
                 parent=self.iface.mainWindow())
 
-        self.toolbar.addWidget(self.timeslider_widget)
-        self.toolbar.addWidget(self.lcd)
+        self.toolbar_animation.addWidget(self.map_animator_widget)
+        self.toolbar_animation.addWidget(self.timeslider_widget)
+        self.toolbar_animation.addWidget(self.lcd)
 
         self.ts_datasource.rowsRemoved.connect(
             self.check_status_model_and_results)
@@ -304,3 +314,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             del self.toolbar
         except AttributeError:
             log("Error, toolbar already removed?")
+
+        # remove the toolbar
+        try:
+            del self.toolbar_animation
+        except AttributeError:
+            log("Error, toolbar animation already removed?")
+

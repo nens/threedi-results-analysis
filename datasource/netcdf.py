@@ -391,3 +391,9 @@ class NetcdfDataSource(object):
                 continue
             timeseries_vals = np.hstack((timeseries_vals, vals))
         return timeseries_vals
+
+    def get_values_timestamp(self, parameter, timestamp,
+                              source='default'):
+
+        v = parameter
+        return self.ds.variables[v][timestamp, :]

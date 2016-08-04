@@ -60,9 +60,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
 
     fields = [
-        # This is the flowline index in Python (0-based indexing)
-        # Important: this differs from the feature id which is flowline idx+1!!
-        "flowline_idx INTEGER",
+        "idx INTEGER",
         "inp_id INTEGER",
         "spatialite_id INTEGER",
         "type STRING(25)",
@@ -70,7 +68,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         "end_node_idx INTEGER NOT NULL"
     ]
 
-    layer = spatialite.create_empty_layer('model_lines', QGis.WKBLineString, fields, 'flowline_idx' )
+    layer = spatialite.create_empty_layer('flowlines', QGis.WKBLineString, fields, 'idx' )
 
     pr = layer.dataProvider()
 
@@ -174,14 +172,14 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     fields = [
         # This is the node index in Python (0-based indexing)
         # Important: this differs from the feature id which is node idx+1!!
-        "node_idx INTEGER",
+        "idx INTEGER",
         "inp_id INTEGER",
         "spatialite_id INTEGER",
         "feature_type STRING(25)",
         "type STRING(25)"
     ]
 
-    layer = spatialite.create_empty_layer('model_nodes', QGis.WKBPoint, fields, 'node_idx' )
+    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'idx' )
 
     pr = layer.dataProvider()
 
@@ -275,12 +273,12 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
         # These are the pumpline index, and node indexes in Python (0-based
         # indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
-        "pumpline_idx INTEGER",
+        "idx INTEGER",
         "node_idx1 INTEGER",
         "node_idx2 INTEGER"
     ]
 
-    layer = spatialite.create_empty_layer('model_pumps', QGis.WKBPoint, fields, 'pumpline_idx' )
+    layer = spatialite.create_empty_layer('pumplines', QGis.WKBPoint, fields, 'idx' )
 
     pr = layer.dataProvider()
 
