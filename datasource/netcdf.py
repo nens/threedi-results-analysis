@@ -229,15 +229,15 @@ class NetcdfDataSource(object):
     @cached_property
     def available_aggregation_vars(self):
         try:
-            vars = self.get_available_variables(
+            _vars = self.get_available_variables(
                 only_aggregation=True)['aggregation']
         except IndexError:
             # If we're here it means no agg. netCDF was found. Fail without
             # error, but do log it.
             log("No aggregation netCDF was found, only the data from the "
                 "regular netCDF will be used.", level='WARNING')
-            vars = []
-        return vars
+            _vars = []
+        return _vars
 
     @property
     def metadata(self):
