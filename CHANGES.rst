@@ -5,6 +5,14 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Made the parameter config variable for the Graph tool.
+
+- Refactored NetcdfDataSource and included support for getting all variables
+  from both regular and aggregation netCDF including getting the timeseries.
+
+- Fixed a bug with the feature id for nodes layer in
+  calc_manhole_statistics.
+
 - Added ``water op straat`` statistic to manhole statistics; refactored NcStats
   a bit.
 
