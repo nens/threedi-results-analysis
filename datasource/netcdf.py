@@ -470,17 +470,16 @@ class NetcdfDataSource(object):
 
         variables = get_variables(n_object_type, parameters)
 
-        # Select the source netcdf:
-        if source == 'default':
-            ds = self.ds
-        elif source == 'aggregation':
-            ds = self.ds_aggregation
-        else:
-            raise ValueError("Unexpected source type %s", source)
-
         # Get data from all variables and put them in a dict:
         timeseries_vals = dict()
         for v in variables:
+            # Select the source netcdf:
+            if v in self.available_subgrid_map_vars:
+                ds = self.ds
+            elif v in self.available_aggregation_vars:
+                ds = self.ds_aggregation
+            else:
+                continue
 
             # Keep the netCDF array in memory for performance
             if caching:
