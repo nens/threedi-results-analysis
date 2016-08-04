@@ -17,7 +17,6 @@ from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 from collections import Counter
 
-from ..datasource.result_spatialite import get_object_type, layer_qh_type_mapping
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
@@ -31,7 +30,6 @@ import pyqtgraph as pg
 from qgis.core import QgsDataSourceURI
 
 # GraphDockWidget labels related parameters.
-# TODO: unorm is deprecated, now 'u1'
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']}],

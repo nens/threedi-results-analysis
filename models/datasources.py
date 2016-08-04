@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
+
 from PyQt4.QtCore import Qt, pyqtSignal
-from qgis.core import QgsVectorLayer
-from ..datasource.result_spatialite import TdiSpatialite
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
@@ -78,9 +77,6 @@ class TimeseriesDatasourceModel(BaseModel):
 
         def datasource(self):
             if hasattr(self, '_datasource'):
-                return self._datasource
-            elif self.type.value == 'spatialite':
-                self._datasource = TdiSpatialite(self.file_path.value)
                 return self._datasource
             elif self.type.value == 'netcdf':
                 self._datasource = NetcdfDataSource(self.file_path.value)
