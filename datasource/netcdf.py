@@ -10,7 +10,7 @@ from ..utils import cached_property
 from .result_spatialite import get_object_type, get_variables
 
 
-def get_id_mapping_file(netcdf_file_path):
+def find_id_mapping_file(netcdf_file_path):
     """An ad-hoc way to get the id_mapping file.
 
     We assume the id_mapping file is in on of the following locations (note:
@@ -42,7 +42,7 @@ def get_id_mapping_file(netcdf_file_path):
     return inpfiles[0]
 
 
-def get_aggregation_netcdf(netcdf_file_path):
+def find_aggregation_netcdf(netcdf_file_path):
     """An ad-hoc way to find the aggregation netcdf file.
 
     It is assumed that the file is called 'flow_aggregate.nc' and in the same
@@ -62,7 +62,10 @@ def get_aggregation_netcdf(netcdf_file_path):
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
-def get_channel_mapping(ds):
+# TODO: this function doesn't work correctly because multiple links can
+# belong to one inp id.
+# I.e.: dict(cm) is wrong, because len(dict(cm)) != len(cm)
+def construct_channel_mapping(ds):
     """Map inp ids to flowline ids.
 
     Note that you need to subtract 1 from the resulting flowline id because of
@@ -71,10 +74,12 @@ def get_channel_mapping(ds):
     """
     cm = np.copy(ds.variables['channel_mapping'])
     cm[:, 1] = cm[:, 1] - 1  # the index transformation
+    # TODO: not a dict anymore, needs changing other places
     return dict(cm)
+    # return cm
 
 
-def get_node_mapping(ds):
+def construct_node_mapping(ds):
     """Map inp ids to node ids.
 
     Note that you need to subtract 1 from the resulting node id because of
@@ -105,10 +110,10 @@ class NetcdfDataSource(object):
     will still want the parts of your program to work that DO NOT require the
     additional files. However, if you DO want to enforce these files to be
     required, you can do so by checking them using the helper functions
-    'get_id_mapping_file' and 'get_aggregation_netcdf'.
+    'find_id_mapping_file' and 'find_aggregation_netcdf'.
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, load_properties=True):
         """
         Args:
             file_path: path to result netcdf
@@ -117,12 +122,34 @@ class NetcdfDataSource(object):
         # Load netcdf
         self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
         log("Opened netcdf: %s" % self.file_path)
-
         self.cache = dict()
+
+        if load_properties:
+            self.load_properties()
+
+    def load_properties(self):
+        """Load and pre-calculate some properties.
+
+        Note: these properties are required for get_node_type and
+        get_line_type to work.
+        """
+        # Nodes
+        self.n2dtot = self.ds.nFlowElem2d
+        self.n1dtot = self.ds.nFlowElem1d
+        self.n2dobc = self.ds.nFlowElem2dBounds
+        self.end_n1dtot = self.n2dtot + self.n1dtot
+        self.end_n2dobc = self.n2dtot + self.n1dtot + self.n2dobc
+        self.nodall = self.ds.nFlowElem
+        # Links
+        self.nFlowLine2d = self.ds.nFlowLine2d
+        self.nFlowLine = self.ds.nFlowLine
+        self.end_2d_bound_line = self.nFlowLine - self.ds.nFlowLine1dBounds
+        self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
+                            self.ds.nFlowLine1dBounds)
 
     @property
     def id_mapping_file(self):
-        return get_id_mapping_file(self.file_path)
+        return find_id_mapping_file(self.file_path)
 
     @cached_property
     def id_mapping(self):
@@ -132,7 +159,7 @@ class NetcdfDataSource(object):
 
     @property
     def aggregation_netcdf_file(self):
-        return get_aggregation_netcdf(self.file_path)
+        return find_aggregation_netcdf(self.file_path)
 
     @cached_property
     def ds_aggregation(self):
@@ -144,11 +171,11 @@ class NetcdfDataSource(object):
 
     @cached_property
     def channel_mapping(self):
-        return get_channel_mapping(self.ds)
+        return construct_channel_mapping(self.ds)
 
     @cached_property
     def node_mapping(self):
-        return get_node_mapping(self.ds)
+        return construct_node_mapping(self.ds)
 
     @cached_property
     def timesteps(self):
@@ -215,22 +242,18 @@ class NetcdfDataSource(object):
         # 4. nFlowElem1dBounds
         #    ----------------- +
         #    nFlowElem
-        n2dtot = self.ds.nFlowElem2d
-        n1dtot = self.ds.nFlowElem1d
-        n2dobc = self.ds.nFlowElem2dBounds
-
-        if node_idx < n2dtot:
+        if node_idx < self.n2dtot:
             return '2d'
-        elif node_idx < n2dtot + n1dtot:
+        elif node_idx < self.end_n1dtot:
             return '1d'
-        elif node_idx < n2dtot + n1dtot + n2dobc:
+        elif node_idx < self.end_n2dobc:
             return '2d_bound'
-        elif node_idx < self.ds.nFlowElem:
+        elif node_idx < self.nodall:
             return '1d_bound'
         else:
             raise ValueError(
                 "Index %s is not smaller than the number of nodes (%s)" %
-                (node_idx, self.ds.nFlowElem))
+                (node_idx, self.nodall))
 
     def get_line_type(self, line_idx):
         """Get line type based on its index."""
@@ -240,23 +263,18 @@ class NetcdfDataSource(object):
         # - 1d-2d links (nr: part of ds.ds.nFlowLine2d)
         # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
         # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
-
-        end_2d_bound = self.ds.nFlowLine - self.ds.nFlowLine1dBounds
-        end_1d = (self.ds.nFlowLine - self.ds.nFlowLine2dBounds -
-                  self.ds.nFlowLine1dBounds)
-
-        if line_idx < self.ds.nFlowLine2d:
+        if line_idx < self.nFlowLine2d:
             return '2d'
-        elif line_idx < end_1d:
+        elif line_idx < self.end_1d_line:
             return '1d'
-        elif line_idx < end_2d_bound:
+        elif line_idx < self.end_2d_bound_line:
             return '2d_bound'
-        elif line_idx < self.ds.nFlowLine:
+        elif line_idx < self.nFlowLine:
             return '1d_bound'
         else:
             raise ValueError(
                 "Index %s is not smaller than the number of lines (%s)" %
-                (line_idx, self.ds.nFlowLine))
+                (line_idx, self.nFlowLine))
 
     def obj_to_netcdf_id(self, object_id, normalized_object_type):
         # Here we map the feature ids (== object ids) to internal netcdf ids.

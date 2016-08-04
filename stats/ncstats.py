@@ -3,9 +3,17 @@ This code was basically copied from python-flow with modifications to make
 it work with our own data sources.
 """
 import numpy as np
+import inspect
 
 from ..datasource.netcdf import NetcdfDataSource
 from ..datasource.result_spatialite import get_object_type
+
+
+def tailored_args(f, **kwargs):
+    """Filter and apply relevant kwargs to function."""
+    relevant_args = {k: v for (k, v) in kwargs.items() if k
+                     in inspect.getargspec(f).args}
+    return f(**relevant_args)
 
 
 class NcStats(object):
@@ -20,9 +28,9 @@ class NcStats(object):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = [
-        'tot_vol', 'q_max', 'cumulative_duration', 'q_end', 'tot_vol_positive',
-        'tot_vol_negative', 'time_q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
+        'tot_vol', 'q_max', 'q_cumulative_duration', 'q_end',
+        'tot_vol_positive', 'tot_vol_negative', 'time_q_max']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 'wos_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -115,7 +123,7 @@ class NcStats(object):
             structure_type, obj_id, ['s1'])
         return slice.max()
 
-    def cumulative_duration(self, structure_type, obj_id, threshold=None):
+    def q_cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.
         """
         if threshold:
@@ -131,6 +139,23 @@ class NcStats(object):
         cum_duration = self.timesteps * q_slice[0:-1]
         return cum_duration.sum()
 
+    def wos_duration(self, structure_type, obj_id, surface_level=None):
+        """Cumulative duration of s1 when there is 'water op straat'.
+
+        This means, count the timesteps where s1 - surface level > 0.
+        """
+        s1_slice = self.datasource.get_timeseries_values(
+            structure_type, obj_id, ['s1'])
+
+        water_op_straat = s1_slice - surface_level
+
+        # Normalize >0 to 1, and <0 to 0, so that we have a binary
+        # representation of values we can multiply with the time steps.
+        water_op_straat[water_op_straat > 0] = 1.
+        water_op_straat[water_op_straat < 0] = 0
+        cum_duration = self.timesteps * water_op_straat[0:-1]
+        return cum_duration.sum()
+
     def q_end(self, structure_type, obj_id):
         """q at last timeSTAMP (!= timestep)
         """
@@ -139,10 +164,16 @@ class NcStats(object):
         return q_slice[-1]
 
     def get_value_from_parameter(
-            self, structure_type, obj_id, parameter_name):
-        """Select the method from parameter name and call the method."""
+            self, structure_type, obj_id, parameter_name, **kwargs):
+        """Select the method from parameter name and call the method.
+
+        Additional kwargs can be passed on.
+        """
         method = getattr(self, parameter_name)
-        return method(structure_type, obj_id)
+        return tailored_args(method,
+                             structure_type=structure_type,
+                             obj_id=obj_id,
+                             **kwargs)
 
     def close(self):
         # TODO: is this used? also law of demeter
@@ -187,7 +218,7 @@ class NcStatsAgg(NcStats):
             self.variables[k] = calcd_array
 
     def get_value_from_parameter(self, structure_type, obj_id,
-                                 parameter_name):
+                                 parameter_name, **kwargs):
         """Select array and get the value.
 
         Args:
@@ -195,6 +226,7 @@ class NcStatsAgg(NcStats):
                 is delegated to the NetcdfDataSource
             obj_id: layer feature id?? -------------> TODO: needs checking!!!
             parameter_name: the netcdf variable name
+            kwargs: unused, but needed to be compatible with NcStats
         """
         if 'pump' in structure_type:
             # TODO: fix this
@@ -207,4 +239,10 @@ class NcStatsAgg(NcStats):
             variable = self.variables[parameter_name]
             return variable[netcdf_id]
         except KeyError:
-            raise ValueError("This aggregation variable has no stats")
+            print("This aggregation variable has no stats (%s), attempting "
+                  "lookup in regular NcStats." % parameter_name)
+            # The variable was not found in aggregation netCDF. We will look
+            # further down in the regular netCDF.
+            variable = super(NcStatsAgg, self).get_value_from_parameter(
+                structure_type, obj_id, parameter_name, **kwargs)
+            return variable
