@@ -113,15 +113,19 @@ class LocationTimeseriesModel(BaseModel):
             :param parameters:
             :param result_ds_nr:
             :return: numpy array with timestamp, values
+
+            NOTE: all timeseries of the different parameters will be lumped
+            together. However, at the moment, nowhere in the code is this
+            function called with more than 1 parameter.
             """
             float_data = []
-            for t, v in self.model.datasource.rows[result_ds_nr]\
-                    .datasource().get_timeseries(self.object_type.value,
-                                                 self.object_id.value,
-                                                 parameters):
-                # value data may come back as 'NULL' string; convert it to None
-                # or else convert it to float
-                v = None if v == 'NULL' else float(v)
-                float_data.append((float(t), v))
-
+            for param, timeseries in self.model.datasource.rows[result_ds_nr]\
+                    .datasource().get_timeseries(
+                        self.object_type.value, self.object_id.value,
+                        parameters).items():
+                for t, v in timeseries:
+                    # value data may come back as 'NULL' string; convert
+                    # it to None or else convert it to float
+                    v = None if v == 'NULL' else float(v)
+                    float_data.append((float(t), v))
             return np.array(float_data, dtype=float)
