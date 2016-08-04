@@ -1,28 +1,86 @@
 # -*- coding: utf-8 -*-
+import pyqtgraph as pg
 from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
-from PyQt4.QtGui import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
+from PyQt4.QtGui import (
+    QTableView, QWidget, QVBoxLayout, QHBoxLayout,
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
     QDockWidget, QComboBox, QMessageBox)
+from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
+                       QgsCoordinateTransform, QgsCoordinateReferenceSystem)
+from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
 from ..datasource.spatialite import (
     layer_qh_type_mapping, normalized_object_type)
 from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log, statusbar_message
+from ..utils.user_messages import log, statusbar_message, messagebar_message
+from ..datasource.spatialite import (
+    SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES, AGGREGATION_VARIABLES,
+    )
+from ..datasource.netcdf import (
+    CUMULATIVE_AGGREGATION_UNITS)
 
-import pyqtgraph as pg
-from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
-                       QgsCoordinateTransform, QgsCoordinateReferenceSystem)
-from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']},
           {'name': 'Debiet interflow', 'unit': 'm3/s', 'parameters': ['qp']},
-          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': ['up1']}],
+          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': ['up1']}
+          ],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
-          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
+          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}
+          ]
 }
+
+
+def generate_parameter_config(subgrid_map_vars, agg_vars):
+    """Dynamically create the parameter config.
+
+    Args:
+        subgrid_map_vars: available vars from subgrid_map.nc
+        agg_vars: available vars from aggregation netCDF
+    """
+    subgrid_map_vars_mapping = {
+        var: (lbl, unit) for (var, lbl, unit) in SUBGRID_MAP_VARIABLES}
+    agg_vars_mapping = {
+        var: (lbl, unit) for (var, lbl, unit) in AGGREGATION_VARIABLES}
+    config = {'q': [], 'h': []}
+
+    verbose_agg_method = {
+        'min': 'minimum',
+        'max': 'maximum',
+        'cum': 'cumulative',
+        'avg': 'average',
+        }
+
+    for varname in subgrid_map_vars:
+        varinfo = subgrid_map_vars_mapping[varname]
+        d = {'name': varinfo[0].capitalize(), 'unit': varinfo[1],
+             'parameters': [varname]}
+        if varname in Q_TYPES:
+            config['q'].append(d)
+        elif varname in H_TYPES:
+            config['h'].append(d)
+
+    for aggvarname in agg_vars:
+        _varname, _agg_method = aggvarname.rsplit('_', 1)  # maxsplit = 1
+        varinfo = agg_vars_mapping[_varname]
+        agg_method = verbose_agg_method[_agg_method]
+
+        # Adjust the unit for cumulative method
+        if _agg_method == 'cum':
+            unit = CUMULATIVE_AGGREGATION_UNITS[_varname]
+        else:
+            unit = varinfo[1]
+
+        d = {'name': '%s %s' % (agg_method.capitalize(), varinfo[0]),
+             'unit': unit, 'parameters': [aggvarname]}
+        if _varname in Q_TYPES:
+            config['q'].append(d)
+        elif _varname in H_TYPES:
+            config['h'].append(d)
+    return config
+
 
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
@@ -628,6 +686,18 @@ class GraphDockWidget(QDockWidget):
         # init current layer state and add listener
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
+
+        if self.ts_datasource.rowCount() > 0:
+            # TODO: just taking the first datasource, not sure if correct:
+            nc_datasource = self.ts_datasource.rows[0].datasource()
+            available_subgrid_vars = nc_datasource.available_subgrid_map_vars
+            available_agg_vars = nc_datasource.available_aggregation_vars
+            if not available_agg_vars:
+                messagebar_message(
+                    "Warning", "No aggregation netCDF was found.", level=1,
+                    duration=2)
+            parameter_config = generate_parameter_config(
+                available_subgrid_vars, available_agg_vars)
 
         # add graph widgets
         self.q_graph_widget = GraphWidget(self, self.ts_datasource,

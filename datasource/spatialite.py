@@ -1,5 +1,3 @@
-from functools import partial
-
 from pyspatialite import dbapi2 as sqlite
 
 from ..utils.user_messages import log
@@ -9,9 +7,12 @@ WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
 DISCHARGE = ('q', 'discharge', 'm3/s')
 VELOCITY = ('u1', 'velocity', 'm/s')
 VOLUME = ('vol', 'volume', 'm3')
-DISCHARGE_PUMP = ('q_pump', 'discharge', 'm3/s')
+DISCHARGE_PUMP = ('q_pump', 'discharge pump', 'm3/s')
 DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
 VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
+
+Q_TYPES = ['q', 'u1', 'q_pump', 'qp', 'up1']
+H_TYPES = ['s1', 'vol']
 
 SUBGRID_MAP_VARIABLES = [
     WATERLEVEL,
@@ -22,6 +23,9 @@ SUBGRID_MAP_VARIABLES = [
     DISCHARGE_INTERFLOW,
     VELOCITY_INTERFLOW,
 ]
+
+AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
+AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
 
 
 VARIABLE_LABELS = {
@@ -81,13 +85,11 @@ layer_information = [
 PARAMETER_TO_VARIABLE = {
     'pumpstation': {
         'q': 'q_pump',
-        # pumps have no velocity
-        'u1': 'dummy',
+        'q_pump': 'q_pump',
         },
     'pumpline': {
         'q': 'q_pump',
-        # pumps have no velocity
-        'u1': 'dummy',
+        'q_pump': 'q_pump',
         },
     }
 
@@ -98,14 +100,31 @@ PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
 
 
 def get_variables(object_type=None, parameters=[]):
-    """Get datasource variable names."""
+    """Get datasource variable names.
+
+    Note: basically returns the parameters unaltered, except for pumps.
+    For pumps it does additionaly checks if it's a agg var.
+    """
     # Don't mutate parameters, we need to clone the list:
     new_params = list(parameters)
     for i in range(len(new_params)):
         p = new_params[i]
         # See if there is a mapping, else use to the original parameter
         try:
-            new_params[i] = PARAMETER_TO_VARIABLE[object_type][p]
+            param_map = PARAMETER_TO_VARIABLE[object_type]
+            # We know there is a mapping, now test if it is a agg var.
+            splitted = p.rsplit('_', 1)
+            if splitted[0] in AGGREGATION_OPTIONS:
+                # It's an agg method, now check if the variable is supported.
+                # E.g. 'u1_avg' is not supported by pumps, so then we set a
+                # dummy var again.
+                if splitted[1] in param_map.keys():
+                    new_params[i] = p
+                else:
+                    new_params[i] = "DUMMYAGG$(*%&"
+            else:
+                # set to a dummy var which will be ignore by get_timeseries
+                new_params[i] = param_map.get(p, 'DUMMY%$#!')
         except KeyError:
             new_params[i] = p
     return new_params

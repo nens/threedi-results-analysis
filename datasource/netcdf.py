@@ -12,10 +12,21 @@ from .spatialite import (
     normalized_object_type,
     get_variables,
     SUBGRID_MAP_VARIABLES,
+    AGGREGATION_VARIABLES,
+    AGGREGATION_OPTIONS,
 )
 
-AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
-AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
+# Explanation: aggregation using the cumulative method integrates the variable
+# over time. Therefore the units must be multiplied by the time also.
+CUMULATIVE_AGGREGATION_UNITS = {
+    's1': 'm MSL s',
+    'q': 'm3',
+    'u1': 'm',
+    'vol': 'm3 s',
+    'q_pump': 'm3',
+    'qp': 'm3',
+    'up1': 'm',
+    }
 
 
 def find_id_mapping_file(netcdf_file_path):
@@ -159,8 +170,6 @@ class NetcdfDataSource(object):
         if load_properties:
             self.load_properties()
 
-        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
-
     def load_properties(self):
         """Load and pre-calculate some properties.
 
@@ -219,13 +228,15 @@ class NetcdfDataSource(object):
 
     @cached_property
     def available_aggregation_vars(self):
-        # TODO: aggregation netcdf isn't always available
         try:
             vars = self.get_available_variables(
                 only_aggregation=True)['aggregation']
-        except:  # TODO: handle custom exception
+        except IndexError:
+            # If we're here it means no agg. netCDF was found. Fail without
+            # error, but do log it.
+            log("No aggregation netCDF was found, only the data from the "
+                "regular netCDF will be used.", level='WARNING')
             vars = []
-            raise
         return vars
 
     @property
@@ -234,6 +245,14 @@ class NetcdfDataSource(object):
 
     def get_timestamps(self, object_type=None, parameter=None):
         return self.ds.variables['time'][:]
+
+    def get_agg_var_timestamps(self, aggregation_variable_name):
+        """Get timestamps for aggregation variables.
+
+        Example: for 's1_max' the time variable name is 'time_s1_max'.
+        """
+        time_var_name = 'time_%s' % aggregation_variable_name
+        return self.ds_aggregation.variables[time_var_name][:]
 
     def get_object_types(self, parameter=None):
         pass
@@ -389,18 +408,34 @@ class NetcdfDataSource(object):
         # Get data from all variables and just put them in a dict:
         result = dict()
         for v in variables:
+            # Get values
             try:
-                vals = self.ds.variables[v][:, netcdf_id]
+                if v in self.available_subgrid_map_vars:
+                    vals = self.ds.variables[v][:, netcdf_id]
+                elif v in self.available_aggregation_vars:
+                    vals = self.ds_aggregation.variables[v][:, netcdf_id]
+                else:
+                    continue
             except KeyError:
                 log("Variable not in netCDF: %s, skipping..." % v)
                 continue
             except IndexError:
                 log("Netcdf id %s not found for %s" % (netcdf_id, v))
                 continue
-            result[v] = zip(self.timestamps, vals)
 
+            # Get timestamps
+            if v in self.available_subgrid_map_vars:
+                timestamps = self.timestamps
+            elif v in self.available_aggregation_vars:
+                timestamps = self.get_agg_var_timestamps(v)
+            else:
+                continue
+
+            # Zip timeseries together
+            result[v] = zip(timestamps, vals)
         return result
 
+    # TODO: doesn't work with agg vars yet?
     def get_timeseries_values(self, object_type, object_id, parameters,
                               source='default', caching=True):
         """Get a list of time series from netcdf; only the values.
