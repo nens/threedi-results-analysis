@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Added ``water op straat`` statistic to manhole statistics; refactored NcStats
+  a bit.
+
 - Updated some method names.
 
 - Updated NetcdfDataSource so that it keeps some netCDF attributes in memory.
