@@ -7,6 +7,8 @@ threedi-qgis-plugin changelog
 
 - Made the parameter config variable for the Graph tool.
 
+- Optimizations in getting the time array from netCDF.
+
 - Refactored NetcdfDataSource and included support for getting all variables
   from both regular and aggregation netCDF including getting the timeseries.
 
