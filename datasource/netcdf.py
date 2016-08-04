@@ -264,7 +264,7 @@ class NetcdfDataSource(object):
         # netcdf, so they don't need an id mapping or netcdf mapping
         if normalized_object_type in ['flowline', 'node', 'pumpline']:
             # TODO: need to test this id to make sure (-1/+1??)!!
-            netcdf_id = object_id - 1
+            netcdf_id = object_id
         else:
             # Mapping: spatialite id -> inp id -> netcdf id
             inp_id = self.get_inp_id(object_id, normalized_object_type)

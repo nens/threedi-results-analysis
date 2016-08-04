@@ -94,22 +94,22 @@ class TimeseriesDatasourceModel(BaseModel):
             spl = Spatialite(file_name)
 
             if self._line_layer is None:
-                if 'model_lines' in [t[1] for t in spl.getTables()]:
+                if 'flowlines' in [t[1] for t in spl.getTables()]:
                     # todo check nr of attributes
-                    self._line_layer = spl.get_layer('model_lines', None, 'the_geom')
+                    self._line_layer = spl.get_layer('flowlines', None, 'the_geom')
                 else:
                     self._line_layer = make_flowline_layer(self.datasource(), spl)
 
             if self._node_layer is None:
-                if 'model_nodes' in [t[1] for t in spl.getTables()]:
-                    self._node_layer = spl.get_layer('model_nodes', None, 'the_geom')
+                if 'nodes' in [t[1] for t in spl.getTables()]:
+                    self._node_layer = spl.get_layer('nodes', None, 'the_geom')
                 else:
                     self._node_layer = make_node_layer(self.datasource(), spl)
 
             if self._pumpline_layer is None:
 
-                if 'model_pumps' in [t[1] for t in spl.getTables()]:
-                    self._pumpline_layer = spl.get_layer('model_pumps', None, 'the_geom')
+                if 'pumplines' in [t[1] for t in spl.getTables()]:
+                    self._pumpline_layer = spl.get_layer('pumplines', None, 'the_geom')
                 else:
                     try:
                         self._pumpline_layer = make_pumpline_layer(self.datasource(), spl)

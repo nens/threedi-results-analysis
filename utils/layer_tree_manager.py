@@ -1,9 +1,7 @@
 import os.path
 
 from qgis.core import (QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer,
-                       QgsRectangle, QgsLayerTreeLayer, QgsLayerTreeNode)
-from PyQt4.QtCore import QObject, QVariant, Qt
-
+                       QgsRectangle, QgsLayerTreeLayer, QgsLayerTreeNode, QgsCoordinateTransform)
 
 class LayerTreeManager(object):
 
@@ -150,8 +148,11 @@ class LayerTreeManager(object):
             extent.combineExtentWith(tree_layer.layer().extent())
 
         extent.scale(1.1)
-        canvas = self.iface.mapCanvas()
-        canvas.setExtent(extent)
+
+        transform = QgsCoordinateTransform(tree_layer.layer().crs(),
+                                           self.iface.mapCanvas().mapRenderer().destinationCrs())
+
+        self.iface.mapCanvas().setExtent(transform.transform(extent))
 
         return
 
@@ -233,15 +234,15 @@ class LayerTreeManager(object):
 
                 line, node, pumpline = result.get_memory_layers()
 
-                if self._find_marked_child(group, 'result_line') is None:
+                if self._find_marked_child(group, 'flowlines') is None:
                     QgsMapLayerRegistry.instance().addMapLayers([line, node, pumpline], False)
                     tree_layer = group.insertLayer(0, line)
-                    tree_layer.setCustomProperty('legend/3di_tracer', 'result_line')
+                    tree_layer.setCustomProperty('legend/3di_tracer', 'flowlines')
                     tree_layer2 = group.insertLayer(1, pumpline)
                     if tree_layer2 is not None:
-                        tree_layer2.setCustomProperty('legend/3di_tracer', 'result_pumpline')
+                        tree_layer2.setCustomProperty('legend/3di_tracer', 'pumplines')
                     tree_layer3 = group.insertLayer(2, node)
-                    tree_layer3.setCustomProperty('legend/3di_tracer', 'result_node')
+                    tree_layer3.setCustomProperty('legend/3di_tracer', 'nodes')
 
                     # # apply default styling on memory layers
                     # self.line_layer.loadNamedStyle(os.path.join(

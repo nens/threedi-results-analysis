@@ -389,9 +389,6 @@ class GraphWidget(QWidget):
             self.marker.setColor(Qt.red)
             self.marker.setWidth(2)
 
-        self.transform = QgsCoordinateTransform(
-                QgsCoordinateReferenceSystem(4326),
-                self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
 
     def on_close(self):
         """
@@ -416,6 +413,9 @@ class GraphWidget(QWidget):
         pass
         # todo: selection generated errors and crash of Qgis. Implement method
         # with QgsRubberband and/ or QgsVertexMarker
+        transform = QgsCoordinateTransform(
+            QgsCoordinateReferenceSystem(4326),
+            self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
 
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
@@ -429,7 +429,7 @@ class GraphWidget(QWidget):
                 for feature in features:
                     if self.geometry_type == QGis.WKBPoint:
                         geom = feature.geometry()
-                        geom.transform(self.transform)
+                        geom.transform(transform)
                         self.marker.setCenter(geom.asPoint())
                         self.marker.setVisible(True)
                     else:
@@ -550,7 +550,7 @@ class GraphWidget(QWidget):
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
-            fid = feature.id()
+            idx = feature['idx']
 
             try:
                 object_name = feature['display_name']
@@ -567,10 +567,10 @@ class GraphWidget(QWidget):
                     object_name = 'dummy'
 
             # check if object not already exist
-            if (layer.name() + '_' + str(fid)) not in existing_items:
+            if (layer.name() + '_' + str(idx)) not in existing_items:
                 item = {
                     'object_type': layer.name(),
-                    'object_id': fid,
+                    'object_id': idx,
                     'object_name': object_name,
                     'file_path': filename
                 }
@@ -699,12 +699,12 @@ class GraphDockWidget(QDockWidget):
 
         selected_features = current_layer.selectedFeatures()
 
-        if current_layer.name() ==  'flowlines':
+        if current_layer.name() == 'flowlines':
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                     self.graphTabWidget.indexOf(self.q_graph_widget))
             return
-        elif current_layer.name() ==  'nodes':
+        elif current_layer.name() == 'nodes':
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget))
