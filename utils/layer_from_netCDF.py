@@ -55,12 +55,12 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     x_p2 = flowelem_xcc[:][flowline_p2]
     y_p2 = flowelem_ycc[:][flowline_p2]
 
-    progress_bar.increase_progress(10, "create memory layer")
+    progress_bar.increase_progress(10, "create layer")
     # create layer
     # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
 
     fields = [
-        "idx INTEGER",
+        "id INTEGER",
         "inp_id INTEGER",
         "spatialite_id INTEGER",
         "type STRING(25)",
@@ -68,7 +68,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         "end_node_idx INTEGER NOT NULL"
     ]
 
-    layer = spatialite.create_empty_layer('flowlines', QGis.WKBLineString, fields, 'idx' )
+    layer = spatialite.create_empty_layer('flowlines', QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -167,19 +167,19 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     flowelem_xcc = ds.ds.variables['FlowElem_xcc']  # in meters
     flowelem_ycc = ds.ds.variables['FlowElem_ycc']  # in meters
 
-    progress_bar.increase_progress(10, "create memory layer")
+    progress_bar.increase_progress(10, "create layer")
     # create layer
     fields = [
         # This is the node index in Python (0-based indexing)
         # Important: this differs from the feature id which is node idx+1!!
-        "idx INTEGER",
+        "id INTEGER",
         "inp_id INTEGER",
         "spatialite_id INTEGER",
         "feature_type STRING(25)",
         "type STRING(25)"
     ]
 
-    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'idx' )
+    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'id' )
 
     pr = layer.dataProvider()
 
@@ -273,12 +273,12 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
         # These are the pumpline index, and node indexes in Python (0-based
         # indexing)
         # Important: this differs from the feature id which is flowline idx+1!!
-        "idx INTEGER",
+        "id INTEGER",
         "node_idx1 INTEGER",
         "node_idx2 INTEGER"
     ]
 
-    layer = spatialite.create_empty_layer('pumplines', QGis.WKBPoint, fields, 'idx' )
+    layer = spatialite.create_empty_layer('pumplines', QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 

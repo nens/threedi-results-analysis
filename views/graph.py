@@ -610,7 +610,10 @@ class GraphWidget(QWidget):
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
-            idx = feature['idx']
+            idx = feature.id()
+            if layer.dataProvider().description() == u'Memory provider':
+                idx = feature['id']
+
 
             try:
                 object_name = feature['display_name']
