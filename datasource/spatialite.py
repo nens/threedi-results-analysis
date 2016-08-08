@@ -9,6 +9,7 @@ from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
 from PyQt4.QtCore import QVariant
 import os
 import ogr
+import gdal
 
 from ..utils.user_messages import log
 
@@ -52,8 +53,17 @@ class Spatialite(SpatiaLiteDBConnector):
 
     def _create_empty_database(self):
         spatialite = ogr.GetDriverByName('SQLite')
-        return spatialite.CreateDataSource(self.path , ["SPATIALITE=True"])
-        spatialite = None
+
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
+
+        db = spatialite.CreateDataSource(self.path, ["SPATIALITE=True"])
+
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
+
+        return db
+
 
     def get_layer(self, table_name, display_name=None, geom_field='the_geom'):
 
