@@ -13,13 +13,15 @@ from ..utils import cached_property
 # Explanation: aggregation using the cumulative method integrates the variable
 # over time. Therefore the units must be multiplied by the time also.
 CUMULATIVE_AGGREGATION_UNITS = {
-    's1': 'm MSL s',
+    's1': 'm MSL',
     'q': 'm3',
     'u1': 'm',
-    'vol': 'm3 s',
+    'vol': 'm3',
     'q_pump': 'm3',
     'qp': 'm3',
     'up1': 'm',
+    'qlat': 'm3',
+    'vol1': 'm3'
     }
 
 
