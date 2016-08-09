@@ -102,6 +102,7 @@ class CustomCommand(CustomCommandBase):
                 try:
                     result[fid][param_name] = \
                         ncstats.get_value_from_parameter(
+                            layer_name, feature[layer_id_name], param_name)
                 except (ValueError, IndexError, AttributeError):
                     # AttributeError: is raised in NcStats because in case of
                     # KeyErrors in get_value_from_parameter the method finding
