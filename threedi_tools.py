@@ -102,7 +102,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         # Init the rest of the tools
-        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
 
         self.tools = []

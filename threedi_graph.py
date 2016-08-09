@@ -30,7 +30,7 @@ from views.graph import GraphDockWidget
 class ThreeDiGraph:
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasource, root_tool):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -41,6 +41,7 @@ class ThreeDiGraph:
         # Save reference to the QGIS interface
         self.iface = iface
         self.ts_datasource = ts_datasource
+        self.root_tool = root_tool
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -84,7 +85,11 @@ class ThreeDiGraph:
         """
         # create the dockwidget
         self.widget_nr += 1
-        new_widget = GraphDockWidget(self.iface, parent_class=self, nr=self.widget_nr, ts_datasource=self.ts_datasource)
+        new_widget = GraphDockWidget(self.iface,
+                                     parent_class=self,
+                                     nr=self.widget_nr,
+                                     ts_datasource=self.ts_datasource,
+                                     root_tool=self.root_tool)
         self.dock_widgets.append(new_widget)
 
         # connect cleanup on closing of dockwidget
