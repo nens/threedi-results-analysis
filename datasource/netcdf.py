@@ -29,7 +29,10 @@ NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
 WATERLEVEL = NcVar('s1', 'waterlevel', 'm MSL')
 DISCHARGE = NcVar('q', 'discharge', 'm3/s')
 VELOCITY = NcVar('u1', 'velocity', 'm/s')
+# Volume is called 'vol' in subgrid_map.nc but 'vol1' in the aggregation
+# netcdf
 VOLUME = NcVar('vol', 'volume', 'm3')
+VOLUME_AGG = NcVar('vol1', 'volume', 'm3')
 DISCHARGE_PUMP = NcVar('q_pump', 'discharge pump', 'm3/s')
 DISCHARGE_INTERFLOW = NcVar('qp', 'discharge interflow', 'm3/s')
 DISCHARGE_LATERAL = NcVar('qlat', 'discharge lateral', 'm3/s')
@@ -60,10 +63,21 @@ Q_TYPES = [v.name for v in _Q_TYPES]
 H_TYPES = [v.name for v in _H_TYPES]
 
 SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
+AGGREGATION_VARIABLES = [
+    DISCHARGE,
+    DISCHARGE_INTERFLOW,
+    DISCHARGE_PUMP,
+    VELOCITY,
+    VELOCITY_INTERFLOW,
+    WATERLEVEL,
+    VOLUME_AGG,  # this is the only difference with SUBGRID_MAP_VARIABLES
+    RAIN_INTENSITY,
+    WET_SURFACE_AREA,
+    INFILTRATION,
+    DISCHARGE_LATERAL,
+    ]
 
-AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
 AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
-
 
 VARIABLE_LABELS = {
     'v2_connection_nodes': (WATERLEVEL, ),
