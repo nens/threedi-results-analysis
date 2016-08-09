@@ -63,6 +63,10 @@ VARIABLE_LABELS = {
                   VELOCITY_INTERFLOW),
     'nodes': (WATERLEVEL, ),
     'pumplines': (DISCHARGE_PUMP, ),
+    'line_results': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
+                  VELOCITY_INTERFLOW),
+    'node_results': (WATERLEVEL,),
+
 }
 
 
@@ -94,6 +98,9 @@ layer_information = [
     ('flowlines', 'flowline', 'q'),
     ('nodes', 'node', 'h'),
     ('pumplines', 'pumpline', 'q'),
+    ('line_results', 'flowline', 'q'),
+    ('node_results', 'node', 'h'),
+
 ]
 
 # Map a generic parameter to the netCDF variable name. Because the parameters
@@ -640,4 +647,12 @@ class NetcdfDataSource(object):
                               source='default'):
 
         v = parameter
-        return self.ds.variables[v][timestamp, :]
+        if v in self.available_subgrid_map_vars:
+            ds = self.ds
+        elif v in self.available_aggregation_vars:
+            ds = self.ds_aggregation
+        else:
+            # todo: warning
+            return
+
+        return ds.variables[v][timestamp, :]
