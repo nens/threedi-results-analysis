@@ -626,13 +626,13 @@ class SideViewPlotWidget(pg.PlotWidget):
                 try:
                     if python_value(node['idx']) is not None:
                         ts = ds.get_timeseries('nodes',
-                                               int(node['id']),
+                                               int(node['nr']),
                                                ['s1'])
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
                                                node['id'],
                                                ['s1'])
-                    node['timeseries'] = ts
+                    node['timeseries'] = ts['s1']
                 except KeyError:
                     node['timeseries'] = None
 
@@ -911,8 +911,9 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        if self.tdi_root_tool.ts_datasource.rowCount() > 0:
-            line, node, pump = self.tdi_root_tool.ts_datasource.rows[0].get_memory_layers
+        if self.tdi_root_tool.timeslider_widget.active_datasource is not None:
+            line, node, pump = self.tdi_root_tool.timeslider_widget.\
+                    active_datasource.get_memory_layers()
         else:
             line = None
 
