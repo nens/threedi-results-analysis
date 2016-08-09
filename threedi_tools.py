@@ -90,16 +90,15 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.toolbar_animation = self.iface.addToolBar(u'ThreeDiAnimation')
         self.toolbar_animation.setObjectName(u'ThreeDiAnimation')
 
-
-        self.map_animator_widget = MapAnimator(self.toolbar_animation,
-                                        self.iface,
-                                        self)
-
         self.timeslider_widget = TimesliderWidget(self.toolbar_animation,
                                                   self.iface,
                                                   self.ts_datasource)
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
+
+        self.map_animator_widget = MapAnimator(self.toolbar_animation,
+                                               self.iface,
+                                               self)
 
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)

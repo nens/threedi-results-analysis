@@ -4,7 +4,9 @@ from PyQt4.QtCore import (QVariant, )
 from qgis.core import (QgsField, QgsMapLayerRegistry)
 import numpy as np
 
+from graph import generate_parameter_config
 from ..utils.geo_processing import copy_layer_into_memory_layer
+from ..utils.user_messages import messagebar_message
 
 try:
     _encoding = QApplication.UnicodeUTF8
@@ -44,12 +46,14 @@ class MapAnimator(QWidget):
         QWidget.__init__(self, parent)
         self.iface = iface
         self.root_tool = root_tool
-        self.node_parameters = []
-        self.line_parameters = []
+        self.node_parameters = {}
+        self.line_parameters = {}
         self.current_node_parameter = None
         self.current_line_parameter = None
         self.node_layer = None
         self.line_layer = None
+
+        self.state = False
 
         self.setup_ui()
 
@@ -57,24 +61,89 @@ class MapAnimator(QWidget):
         self.line_parameter_combo_box.setEnabled(False)
         self.node_parameter_combo_box.setEnabled(False)
 
-        self.set_line_parameter_config(set_parameter_config['q'])
-        self.set_node_parameter_config(set_parameter_config['h'])
-
         # connect to signals
         self.activateButton.clicked.connect(self.set_activation_state)
 
         self.state_connectiong_set = False
 
+        self.line_parameter_combo_box.currentIndexChanged.connect(
+                self.on_line_parameter_change)
+        self.node_parameter_combo_box.currentIndexChanged.connect(
+                self.on_node_parameter_change)
+
+        self.root_tool.timeslider_widget.datasource_changed.connect(
+                self.on_active_datasource_change)
+
+        self.on_active_datasource_change()
+
+    def on_line_parameter_change(self):
+        old_parameter = self.current_line_parameter
+
+        self.current_line_parameter = \
+            self.line_parameters[self.line_parameter_combo_box.currentText()]
+
+        if old_parameter != self.current_line_parameter:
+            self.update_results()
+
+    def on_node_parameter_change(self):
+        old_parameter = self.current_node_parameter
+        self.current_node_parameter = \
+            self.node_parameters[self.node_parameter_combo_box.currentText()]
+
+        if old_parameter != self.current_node_parameter:
+            self.update_results()
+
+    def on_active_datasource_change(self):
+        # reset
+        parameter_config = self._get_active_parameter_config()
+
+        for combo_box, parameters, pc in (
+                (self.line_parameter_combo_box, self.line_parameters, parameter_config['q']),
+                (self.node_parameter_combo_box, self.node_parameters, parameter_config['h'])):
+
+            nr_old_parameters = combo_box.count()
+
+            parameters.update(dict([(p['name'], p) for p in pc]))
+
+            combo_box.insertItems(0, parameters.keys())
+
+            # todo: find best matching parameter based on previous selection
+            if nr_old_parameters > 0:
+                combo_box.setCurrentIndex(0)
+
+            nr_parameters_tot = combo_box.count()
+            for i in reversed(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot)):
+                combo_box.removeItem(i)
+
+    def _get_active_parameter_config(self):
+
+        active_ds = self.root_tool.timeslider_widget.active_datasource
+
+        if active_ds is not None:
+            # TODO: just taking the first datasource, not sure if correct:
+            ds = active_ds.datasource()
+            available_subgrid_vars = ds.available_subgrid_map_vars
+            available_agg_vars = ds.available_aggregation_vars
+            if not available_agg_vars:
+                messagebar_message(
+                    "Warning", "No aggregation netCDF was found.", level=0,
+                    duration=5)
+            parameter_config = generate_parameter_config(
+                available_subgrid_vars, available_agg_vars)
+        else:
+            parameter_config = {'q': {}, 'h': {}}
+
+        return parameter_config
+
     def set_activation_state(self, state):
-        state = self.activateButton.isChecked()
+        self.state = self.activateButton.isChecked()
 
         if state:
             if self.root_tool.ts_datasource.rowCount() > 0:
                 self.line_parameter_combo_box.setEnabled(True)
                 self.node_parameter_combo_box.setEnabled(True)
-                self.prepare_annimation_layers()
+                self.prepare_animation_layers()
                 self.root_tool.timeslider_widget.sliderReleased.connect(self.update_results)
-
 
             # add listeners
             self.state_connection_set = True
@@ -86,18 +155,19 @@ class MapAnimator(QWidget):
                 # remove listeners
                 self.state_connection_set = False
 
-    def prepare_annimation_layers(self):
+    def prepare_animation_layers(self):
 
-        if self.root_tool.ts_datasource.rowCount() == 0:
+        result = self.root_tool.timeslider_widget.active_datasource
+
+        if result is None:
             # todo: log warning
             return
 
         if self.node_layer is not None:
+            #todo: react on datasource change
             return
 
-        result = self.root_tool.ts_datasource.rows[0]
         line, node, pump = result.get_memory_layers()
-
 
         self.line_layer = copy_layer_into_memory_layer(line, 'line_results')
         self.line_layer.dataProvider().addAttributes([
@@ -120,24 +190,28 @@ class MapAnimator(QWidget):
             os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
             'layer_styles', 'tools', 'node_waterlevel_diff.qml'))
 
-
         QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
         QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
 
     def update_results(self):
-        result = self.root_tool.ts_datasource.rows[0]
+        if not self.state:
+            return
+
+        result = self.root_tool.timeslider_widget.active_datasource
 
         timestamp_nr = self.root_tool.timeslider_widget.value()
 
         ds = result.datasource()
 
-        for layer, parameter, stat in ((self.node_layer, 's1', 'diff'), (self.line_layer, 'q', 'abs')):
+        for layer, parameter, stat in (
+                (self.node_layer, self.current_node_parameter['parameters'], 'diff'),
+                (self.line_layer, self.current_line_parameter['parameters'], 'abs')):
 
             provider = layer.dataProvider()
 
-            values = ds.get_values_timestamp(parameter, timestamp_nr)
+            values = ds.get_values_timestamp(parameter[0], timestamp_nr)
             if stat == 'diff':
-                values = values - ds.get_values_timestamp(parameter, 0)
+                values = values - ds.get_values_timestamp(parameter[0], 0)
             elif stat == 'abs':
                 values = np.fabs(values)
 
@@ -153,25 +227,6 @@ class MapAnimator(QWidget):
             provider.changeAttributeValues(update_dict)
             layer.setCacheImage(None)
             layer.triggerRepaint()
-
-    def set_line_parameter_config(self, parameter_config):
-
-        self.line_parameters = dict([(p['name'], p) for p in parameter_config])
-        self.line_parameter_combo_box.addItems(self.line_parameters.keys())
-        # for pc in self.line_parameters.keys():
-        #     self.line_parameter_combo_box.addItem(pc)
-        self.line_parameter_combo_box.setCurrentIndex(1)
-        self.current_line_parameter = \
-            self.line_parameters[self.line_parameter_combo_box.currentText()]
-
-    def set_node_parameter_config(self, parameter_config):
-        self.node_parameters = dict([(p['name'], p) for p in parameter_config])
-        self.node_parameter_combo_box.addItems(self.node_parameters.keys())
-        # for pc in self.line_parameters.keys():
-        #     self.line_parameter_combo_box.addItem(pc)
-        self.node_parameter_combo_box.setCurrentIndex(1)
-        self.current_node_parameter = \
-            self.node_parameters[self.node_parameter_combo_box.currentText()]
 
     def activate_animator(self):
         pass

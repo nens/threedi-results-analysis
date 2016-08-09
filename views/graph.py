@@ -760,7 +760,7 @@ class GraphDockWidget(QDockWidget):
             parameter_config = generate_parameter_config(
                 available_subgrid_vars, available_agg_vars)
         else:
-            parameter_config = {'q': [], 'h': []}
+            parameter_config = {'q': {}, 'h': {}}
 
         return parameter_config
 

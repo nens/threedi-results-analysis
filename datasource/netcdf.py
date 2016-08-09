@@ -29,7 +29,7 @@ DISCHARGE_PUMP = ('q_pump', 'discharge pump', 'm3/s')
 DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
 VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
 
-Q_TYPES = ['q', 'u1', 'q_pump', 'qp', 'up1']
+Q_TYPES = ['q', 'u1', 'qp', 'up1']
 H_TYPES = ['s1', 'vol']
 
 SUBGRID_MAP_VARIABLES = [
