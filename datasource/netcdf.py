@@ -38,12 +38,12 @@ WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration', 'infiltration rate', 'm3/s')
 
 _Q_TYPES = [
-    VELOCITY,
-    VELOCITY_INTERFLOW,
     DISCHARGE,
     DISCHARGE_INTERFLOW,
     DISCHARGE_PUMP,
-    ]
+    VELOCITY,
+    VELOCITY_INTERFLOW,
+]
 
 _H_TYPES = [
     WATERLEVEL,
@@ -52,7 +52,7 @@ _H_TYPES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
-    ]
+]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
 H_TYPES = [v.name for v in _H_TYPES]
