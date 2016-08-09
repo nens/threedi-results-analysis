@@ -32,7 +32,7 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.command = command
 
         # Populate combo boxes
-        self.layers = self.iface.mapCanvas().layers()
+        self.layers = self.iface.legendInterface().layers()
         # Note: the order in the combo box is the same as in the QGIS layer
         # selection box, so there should be no ambiguity even if layers have
         # the same name because you know the order.
