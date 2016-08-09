@@ -105,7 +105,7 @@ class MapAnimator(QWidget):
 
             parameters.update(dict([(p['name'], p) for p in pc]))
 
-            combo_box.insertItems(0, parameters.keys())
+            combo_box.insertItems(0, [p['name'] for p in pc])
 
             # todo: find best matching parameter based on previous selection
             if nr_old_parameters > 0:

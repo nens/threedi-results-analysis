@@ -451,7 +451,7 @@ class GraphWidget(QWidget):
 
         self.parameters = dict([(p['name'], p) for p in parameter_config])
 
-        self.parameter_combo_box.insertItems(0, self.parameters.keys())
+        self.parameter_combo_box.insertItems(0, [p['name'] for p in parameter_config])
 
         # todo: find best matching parameter based on previous selection
         if nr_old_parameters > 0:
