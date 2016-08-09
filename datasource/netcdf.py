@@ -23,7 +23,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     }
 
 # NetCDF variable information
-NcVar = namedtuple('NcVar', ['name', 'verbose name', 'unit'])
+NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
 
 WATERLEVEL = NcVar('s1', 'waterlevel', 'm MSL')
 DISCHARGE = NcVar('q', 'discharge', 'm3/s')
