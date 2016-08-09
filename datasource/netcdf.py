@@ -23,7 +23,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     }
 
 # NetCDF variable information
-NcVar = namedtuple('NcVar', ['name', 'verbose name', 'unit'])
+NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
 
 WATERLEVEL = NcVar('s1', 'waterlevel', 'm MSL')
 DISCHARGE = NcVar('q', 'discharge', 'm3/s')
@@ -38,34 +38,26 @@ WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration', 'infiltration rate', 'm3/s')
 
 _Q_TYPES = [
-    VELOCITY,
-    VELOCITY_INTERFLOW,
     DISCHARGE,
     DISCHARGE_INTERFLOW,
     DISCHARGE_PUMP,
-    DISCHARGE_LATERAL,
-    RAIN_INTENSITY,
-    WET_SURFACE_AREA,
-    INFILTRATION,
-    ]
+    VELOCITY,
+    VELOCITY_INTERFLOW,
+]
 
 _H_TYPES = [
     WATERLEVEL,
     VOLUME,
-    ]
+    RAIN_INTENSITY,
+    WET_SURFACE_AREA,
+    INFILTRATION,
+    DISCHARGE_LATERAL,
+]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
 H_TYPES = [v.name for v in _H_TYPES]
 
-SUBGRID_MAP_VARIABLES = [
-    WATERLEVEL,
-    DISCHARGE,
-    VELOCITY,
-    VOLUME,
-    DISCHARGE_PUMP,
-    DISCHARGE_INTERFLOW,
-    VELOCITY_INTERFLOW,
-]
+SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
 
 AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
 AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
