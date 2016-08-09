@@ -1,3 +1,4 @@
+from collections import namedtuple
 import glob
 from itertools import (starmap, product)
 import json
@@ -21,26 +22,44 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'up1': 'm',
     }
 
-WATERLEVEL = ('s1', 'waterlevel', 'm MSL')
-DISCHARGE = ('q', 'discharge', 'm3/s')
-VELOCITY = ('u1', 'velocity', 'm/s')
-VOLUME = ('vol', 'volume', 'm3')
-DISCHARGE_PUMP = ('q_pump', 'discharge pump', 'm3/s')
-DISCHARGE_INTERFLOW = ('qp', 'discharge interflow', 'm3/s')
-VELOCITY_INTERFLOW = ('up1', 'velocity interflow', 'm/s')
 
-Q_TYPES = ['q', 'u1', 'qp', 'up1']
-H_TYPES = ['s1', 'vol']
+# NetCDF variable information
+NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
 
-SUBGRID_MAP_VARIABLES = [
-    WATERLEVEL,
+WATERLEVEL = NcVar('s1', 'waterlevel', 'm MSL')
+DISCHARGE = NcVar('q', 'discharge', 'm3/s')
+VELOCITY = NcVar('u1', 'velocity', 'm/s')
+VOLUME = NcVar('vol', 'volume', 'm3')
+DISCHARGE_PUMP = NcVar('q_pump', 'discharge pump', 'm3/s')
+DISCHARGE_INTERFLOW = NcVar('qp', 'discharge interflow', 'm3/s')
+DISCHARGE_LATERAL = NcVar('qlat', 'discharge lateral', 'm3/s')
+VELOCITY_INTERFLOW = NcVar('up1', 'velocity interflow', 'm/s')
+RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
+WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
+INFILTRATION = NcVar('infiltration', 'infiltration rate', 'm3/s')
+
+# todo: add support of DISCHARGE_PUMP somewhere
+
+_Q_TYPES = [
     DISCHARGE,
-    VELOCITY,
-    VOLUME,
-    DISCHARGE_PUMP,
     DISCHARGE_INTERFLOW,
+    VELOCITY,
     VELOCITY_INTERFLOW,
 ]
+
+_H_TYPES = [
+    WATERLEVEL,
+    VOLUME,
+    RAIN_INTENSITY,
+    WET_SURFACE_AREA,
+    INFILTRATION,
+    DISCHARGE_LATERAL,
+]
+
+Q_TYPES = [v.name for v in _Q_TYPES]
+H_TYPES = [v.name for v in _H_TYPES]
+
+SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
 
 AGGREGATION_VARIABLES = SUBGRID_MAP_VARIABLES
 AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
@@ -66,7 +85,6 @@ VARIABLE_LABELS = {
     'line_results': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
                   VELOCITY_INTERFLOW),
     'node_results': (WATERLEVEL,),
-
 }
 
 
