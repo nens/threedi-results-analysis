@@ -235,6 +235,15 @@ class LayerTreeManager(object):
                 line, node, pumpline = result.get_memory_layers()
 
                 if self._find_marked_child(group, 'flowlines') is None:
+                    # apply default styling on memory layers
+                    line.loadNamedStyle(os.path.join(
+                        os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
+                        'layer_styles', 'tools', 'flowlines.qml'))
+
+                    node.loadNamedStyle(os.path.join(
+                        os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
+                        'layer_styles', 'tools', 'nodes.qml'))
+
                     QgsMapLayerRegistry.instance().addMapLayers([line, node, pumpline], False)
                     tree_layer = group.insertLayer(0, line)
                     tree_layer.setCustomProperty('legend/3di_tracer', 'flowlines')
@@ -244,14 +253,7 @@ class LayerTreeManager(object):
                     tree_layer3 = group.insertLayer(2, node)
                     tree_layer3.setCustomProperty('legend/3di_tracer', 'nodes')
 
-                    # # apply default styling on memory layers
-                    # self.line_layer.loadNamedStyle(os.path.join(
-                    #     os.path.dirname(os.path.realpath(__file__)),
-                    #     'layer_styles', 'tools', 'flowlines.qml'))
-                    #
-                    # self.node_layer.loadNamedStyle(os.path.join(
-                    #     os.path.dirname(os.path.realpath(__file__)),
-                    #     'layer_styles', 'tools', 'nodes.qml'))
+
 
     def add_statistic_layers(self, result_row_nr):
         result = self.model.row[result_row_nr]
