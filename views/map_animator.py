@@ -209,9 +209,9 @@ class MapAnimator(QWidget):
 
             provider = layer.dataProvider()
 
-            values = ds.get_values_timestamp(parameter[0], timestamp_nr)
+            values = ds.get_values_by_timestamp(parameter[0], timestamp_nr)
             if stat == 'diff':
-                values = values - ds.get_values_timestamp(parameter[0], 0)
+                values = values - ds.get_values_by_timestamp(parameter[0], 0)
             elif stat == 'abs':
                 values = np.fabs(values)
 

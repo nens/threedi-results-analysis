@@ -607,23 +607,17 @@ class NetcdfDataSource(object):
 
     # TODO: doesn't work with agg vars yet?
     def get_timeseries_values(self, object_type, object_id, parameters,
-                              source='default', caching=True):
+                              caching=True):
         """Get a list of time series from netcdf; only the values.
 
         Note: you can have multiple parameters, all result values are put
         into a dict under the corresponding key of the parameter. If a
         parameter is unknown it will be skipped.
 
-        Note 2: source defines the netcdf file source we should get our data
-        from, because the NetcdfDataSource can contain the default netcdf
-        but also an aggregation netcdf.
-
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
             parameters: a list of params, e.g.: ['q', 'q_pump']
-            source: the netcdf source type, i.e., 'default' (subgrid_map.nc)
-                or 'aggregation' (flow_aggregate.nc)
             caching: if True, keep netcdf array in memory
 
         Important note: using True instead of False as a default for the
@@ -677,16 +671,15 @@ class NetcdfDataSource(object):
             timeseries_vals[v] = vals
         return timeseries_vals
 
-    def get_values_timestamp(self, parameter, timestamp,
-                              source='default'):
-
-        v = parameter
-        if v in self.available_subgrid_map_vars:
+    def get_values_by_timestamp(self, parameter, timestamp):
+        """Horizontal slice over the element indices, i.e., get all values for
+        all nodes or flowlines for a specific timestamp.
+        """
+        if parameter in self.available_subgrid_map_vars:
             ds = self.ds
-        elif v in self.available_aggregation_vars:
+        elif parameter in self.available_aggregation_vars:
             ds = self.ds_aggregation
         else:
             # todo: warning
             return
-
-        return ds.variables[v][timestamp, :]
+        return ds.variables[parameter][timestamp, :]
