@@ -451,7 +451,7 @@ class NetcdfDataSource(object):
             possible_subgrid_map_vars = [v for v, _, _ in
                                          SUBGRID_MAP_VARIABLES]
             subgrid_map_vars = self.ds.variables.keys()
-            available_subgrid_map_vars = c = [v for v in possible_subgrid_map_vars
+            available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
                                               if v in set(subgrid_map_vars)]
             result['subgrid_map'] = list(available_subgrid_map_vars)
         if do_all or only_aggregation:
