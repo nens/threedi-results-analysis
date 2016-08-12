@@ -57,7 +57,6 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
 
     progress_bar.increase_progress(10, "create layer")
     # create layer
-    # "Point?crs=epsg:4326&field=id:integer&field=name:string(20)&index=yes"
 
     fields = [
         "id INTEGER",
@@ -170,8 +169,6 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     progress_bar.increase_progress(10, "create layer")
     # create layer
     fields = [
-        # This is the node index in Python (0-based indexing)
-        # Important: this differs from the feature id which is node idx+1!!
         "id INTEGER",
         "inp_id INTEGER",
         "spatialite_id INTEGER",
@@ -270,9 +267,6 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
     # create layer
 
     fields = [
-        # These are the pumpline index, and node indexes in Python (0-based
-        # indexing)
-        # Important: this differs from the feature id which is flowline idx+1!!
         "id INTEGER",
         "node_idx1 INTEGER",
         "node_idx2 INTEGER"
