@@ -2,6 +2,9 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 import unittest
+import tempfile
+import os.path
+
 from qgis.core import QgsProject
 from PyQt4.QtCore import QObject, pyqtSignal, QFileInfo
 
@@ -47,10 +50,11 @@ class TestProjectState(unittest.TestCase):
     """Test functions that convert parameters to variable names in the
     datasource."""
 
-    qgs_file_path = 'c:/tmp/test.qgs'
-
     def setUp(self):
         app, canvas, self.iface, parent = QGIS_APP
+
+        self.tmp_directory = tempfile.mkdtemp()
+        self.qgs_file_path = os.path.join(self.tmp_directory, 'test.qgs')
 
         self.tool = ExampleTool()
         self.prm = ExampleProjectManager(self.iface, [self.tool])
