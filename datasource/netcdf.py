@@ -572,17 +572,25 @@ class NetcdfDataSource(object):
 
         # Get values
         if variable in self.available_subgrid_map_vars:
-            vals = self.ds.variables[variable][:, netcdf_id]
+            ds = self.ds
             timestamps = self.timestamps
         elif variable in self.available_aggregation_vars:
-            vals = self.ds_aggregation.variables[variable][:, netcdf_id]
+            ds = self.ds_aggregation
             timestamps = self.get_agg_var_timestamps(variable)
         else:
             raise ValueError("Invalid variable: %s" % variable)
 
+        try:
+            vals = ds.variables[variable][:, netcdf_id]
+        except KeyError:
+            log("Variable not in netCDF: %s" % variable)
+            raise
+        except IndexError:
+            log("Id %s not found for %s" % (netcdf_id, variable))
+            raise
+
         # Zip timeseries together in (n,2) array
-        result = np.vstack((timestamps, vals)).T
-        return result
+        return np.vstack((timestamps, vals)).T
 
     def get_timeseries_values(self, object_type, object_id, parameter,
                               caching=True):

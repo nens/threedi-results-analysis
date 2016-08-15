@@ -33,6 +33,8 @@ COLOR_LIST = [
     (43, 61, 38)
 ]
 
+EMPTY_TIMESERIES = np.array([], dtype=float)
+
 
 def select_default_color(item_field):
     """
@@ -113,17 +115,14 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            float_data = []
-            timeseries = self.model.datasource.rows[result_ds_nr]\
-                .datasource().get_timeseries(
-                    self.object_type.value,
-                    self.object_id.value,
-                    parameters)
-
-            for t, v in timeseries:
-                # value data may come back as 'NULL' string; convert
-                # it to None or else convert it to float
-                v = None if v == 'NULL' else float(v)
-                float_data.append((float(t), v))
-
-            return np.array(float_data, dtype=float)
+            try:
+                timeseries = self.model.datasource.rows[
+                    result_ds_nr].datasource().get_timeseries(
+                        self.object_type.value,
+                        self.object_id.value,
+                        parameters)
+            except (KeyError, IndexError, ValueError):
+                # Return an empty array so that the graph won't crash.
+                # The exceptions are already logged by the nc datasource.
+                timeseries = EMPTY_TIMESERIES
+            return timeseries
