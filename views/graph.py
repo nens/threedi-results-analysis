@@ -6,7 +6,6 @@ from PyQt4.QtGui import (
     QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
     QDockWidget, QComboBox, QMessageBox)
 
-import pyqtgraph as pg
 from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
                        QgsCoordinateTransform, QgsCoordinateReferenceSystem)
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
@@ -24,13 +23,13 @@ from ..datasource.netcdf import (
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
-    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']},
-          {'name': 'Debiet interflow', 'unit': 'm3/s', 'parameters': ['qp']},
-          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': ['up1']}
+    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': 'q'},
+          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': 'u1'},
+          {'name': 'Debiet interflow', 'unit': 'm3/s', 'parameters': 'qp'},
+          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': 'up1'}
           ],
-    'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
-          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}
+    'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': 's1'},
+          {'name': 'Volume', 'unit': 'm3', 'parameters': 'vol'}
           ]
 }
 
@@ -58,7 +57,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     for varname in subgrid_map_vars:
         varinfo = subgrid_map_vars_mapping[varname]
         d = {'name': varinfo[0].capitalize(), 'unit': varinfo[1],
-             'parameters': [varname]}
+             'parameters': varname}
         if varname in Q_TYPES:
             config['q'].append(d)
         elif varname in H_TYPES:
@@ -76,7 +75,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
             unit = varinfo[1]
 
         d = {'name': '%s %s' % (agg_method.capitalize(), varinfo[0]),
-             'unit': unit, 'parameters': [aggvarname]}
+             'unit': unit, 'parameters': aggvarname}
         if _varname in Q_TYPES:
             config['q'].append(d)
         elif _varname in H_TYPES:

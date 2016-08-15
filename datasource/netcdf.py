@@ -158,35 +158,32 @@ layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
 
 
-def get_variables(object_type=None, parameters=[]):
+def get_variable(object_type=None, parameter=None):
     """Get datasource variable names.
 
     Note: basically returns the parameters unaltered, except for pumps.
     For pumps it does additionaly checks if it's a agg var.
     """
-    # Don't mutate parameters, we need to clone the list:
-    new_params = list(parameters)
-    for i in range(len(new_params)):
-        p = new_params[i]
-        # See if there is a mapping, else use to the original parameter
-        try:
-            param_map = PARAMETER_TO_VARIABLE[object_type]
-            # We know there is a mapping, now test if it is a agg var.
-            splitted = p.rsplit('_', 1)
-            if splitted[0] in AGGREGATION_OPTIONS:
-                # It's an agg method, now check if the variable is supported.
-                # E.g. 'u1_avg' is not supported by pumps, so then we set a
-                # dummy var again.
-                if splitted[1] in param_map.keys():
-                    new_params[i] = p
-                else:
-                    new_params[i] = "DUMMYAGG$(*%&"
+    # See if there is a mapping, else use to the original parameter
+    try:
+        param_map = PARAMETER_TO_VARIABLE[object_type]
+    except KeyError:
+        return parameter
+    else:
+        # We know there is a mapping, now test if it is a agg var.
+        splitted = parameter.rsplit('_', 1)
+        if splitted[0] in AGGREGATION_OPTIONS:
+            # It's an agg method, now check if the variable is supported.
+            # E.g. 'u1_avg' is not supported by pumps, so we then raise an
+            # exception.
+            if splitted[1] in param_map.keys():
+                return parameter
             else:
-                # set to a dummy var which will be ignore by get_timeseries
-                new_params[i] = param_map.get(p, 'DUMMY%$#!')
-        except KeyError:
-            new_params[i] = p
-    return new_params
+                raise ValueError("Unsupported combination %s - %s " % (
+                    object_type, parameter))
+        else:
+            raise ValueError("Unsupported combination %s - %s " % (
+                object_type, parameter))
 
 
 def normalized_object_type(current_layer_name):
@@ -551,73 +548,50 @@ class NetcdfDataSource(object):
             netcdf_id = self.netcdf_id_from(inp_id, normalized_object_type)
         return netcdf_id
 
-    def get_timeseries(self, object_type, object_id, parameters, start_ts=None,
+    def get_timeseries(self, object_type, object_id, parameter, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
 
-        Note: you can have multiple parameters, all result values are put
-        into a dict under the corresponding key of the parameter. If a
-        parameter is unknown it will be skipped.
-
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
-            parameters: a list of params, e.g.: ['q', 'q_pump']
+            parameter: variable name e.g.: 'q', 'q_pump', etc.
 
         Returns:
-            a dict of timeseries (lists of 2-tuples (time, value))
+            a (n,2) array; with in the first column the timestamps and second
+            column the values
         """
         # Normalize the name
         n_object_type = normalized_object_type(object_type)
-
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
-        variables = get_variables(n_object_type, parameters)
+        # TODO: check this (especially for pumps)
+        # variable = get_variable(n_object_type, parameter)
+        variable = parameter
 
-        # Get data from all variables and just put them in a dict:
-        result = dict()
-        for v in variables:
-            # Get values
-            try:
-                if v in self.available_subgrid_map_vars:
-                    vals = self.ds.variables[v][:, netcdf_id]
-                elif v in self.available_aggregation_vars:
-                    vals = self.ds_aggregation.variables[v][:, netcdf_id]
-                else:
-                    continue
-            except KeyError:
-                log("Variable not in netCDF: %s, skipping..." % v)
-                continue
-            except IndexError:
-                log("Netcdf id %s not found for %s" % (netcdf_id, v))
-                continue
+        # Get values
+        if variable in self.available_subgrid_map_vars:
+            vals = self.ds.variables[variable][:, netcdf_id]
+            timestamps = self.timestamps
+        elif variable in self.available_aggregation_vars:
+            vals = self.ds_aggregation.variables[variable][:, netcdf_id]
+            timestamps = self.get_agg_var_timestamps(v)
+        else:
+            raise ValueError("Invalid variable: %s" % variable)
 
-            # Get timestamps
-            if v in self.available_subgrid_map_vars:
-                timestamps = self.timestamps
-            elif v in self.available_aggregation_vars:
-                timestamps = self.get_agg_var_timestamps(v)
-            else:
-                continue
-
-            # Zip timeseries together
-            result[v] = zip(timestamps, vals)
+        # Zip timeseries together in (n,2) array
+        result = np.vstack((timestamps, vals)).T
         return result
 
-    # TODO: doesn't work with agg vars yet?
-    def get_timeseries_values(self, object_type, object_id, parameters,
+    def get_timeseries_values(self, object_type, object_id, parameter,
                               caching=True):
         """Get a list of time series from netcdf; only the values.
-
-        Note: you can have multiple parameters, all result values are put
-        into a dict under the corresponding key of the parameter. If a
-        parameter is unknown it will be skipped.
 
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
-            parameters: a list of params, e.g.: ['q', 'q_pump']
+            parameter: variable name, e.g.: 'q', 'q_pump'
             caching: if True, keep netcdf array in memory
 
         Important note: using True instead of False as a default for the
@@ -632,44 +606,38 @@ class NetcdfDataSource(object):
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
-        variables = get_variables(n_object_type, parameters)
+        # TODO: check this for pumps
+        # v = get_variable(n_object_type, parameter)
+        v = parameter
 
-        # Get data from all variables and put them in a dict:
-        timeseries_vals = dict()
-        for v in variables:
-            # Select the source netcdf:
-            if v in self.available_subgrid_map_vars:
-                ds = self.ds
-            elif v in self.available_aggregation_vars:
-                ds = self.ds_aggregation
-            else:
-                continue
+        # Select the source netcdf:
+        if v in self.available_subgrid_map_vars:
+            ds = self.ds
+        elif v in self.available_aggregation_vars:
+            ds = self.ds_aggregation
+        else:
+            raise ValueError("Invalid variable: %s" % v)
 
-            # Keep the netCDF array in memory for performance
-            if caching:
-                try:
-                    variable = self.cache[v]
-                except KeyError:
-                    try:
-                        variable = ds.variables[v][:]  # make copy
-                        self.cache[v] = variable
-                    except KeyError:
-                        log("Variable not in netCDF: %s, skipping..." % v)
-                        continue
-            else:
-                variable = ds.variables[v][:]
-
+        # Keep the netCDF array in memory for performance
+        if caching:
             try:
-                # shape ds.variables['q'] array = (t, number of ids)
-                vals = variable[:, netcdf_id]
+                variable = self.cache[v]
             except KeyError:
-                log("Variable not in netCDF: %s, skipping..." % v)
-                continue
-            except IndexError:
-                log("Id %s not found for %s" % (netcdf_id, v))
-                continue
-            timeseries_vals[v] = vals
-        return timeseries_vals
+                variable = ds.variables[v][:]  # make copy
+                self.cache[v] = variable
+        else:
+            variable = ds.variables[v][:]
+
+        try:
+            # shape ds.variables['q'] array = (t, number of ids)
+            vals = variable[:, netcdf_id]
+        except KeyError:
+            log("Variable not in netCDF: %s" % v)
+            raise
+        except IndexError:
+            log("Id %s not found for %s" % (netcdf_id, v))
+            raise
+        return vals
 
     def get_values_by_timestamp(self, parameter, timestamp):
         """Horizontal slice over the element indices, i.e., get all values for

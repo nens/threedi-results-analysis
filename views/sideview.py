@@ -627,12 +627,12 @@ class SideViewPlotWidget(pg.PlotWidget):
                     if python_value(node['idx']) is not None:
                         ts = ds.get_timeseries('nodes',
                                                int(node['nr']),
-                                               ['s1'])
+                                               's1')
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
                                                node['id'],
-                                               ['s1'])
-                    node['timeseries'] = ts['s1']
+                                               's1')
+                    node['timeseries'] = ts
                 except KeyError:
                     node['timeseries'] = None
 

@@ -52,7 +52,7 @@ def select_default_color(item_field):
         return colors.values()[0]
 
     # predefined colors are all used, return random color
-    return (randint(0,256), randint(0,256), randint(0,256))
+    return (randint(0, 256), randint(0, 256), randint(0, 256))
 
 
 class LocationTimeseriesModel(BaseModel):
@@ -92,17 +92,16 @@ class LocationTimeseriesModel(BaseModel):
             result_key = str(self.model.datasource.rows[result_ds_nr])
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
-            if not result_key in self._plots[str(parameters)]:
+            if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(parameters=parameters,
                                                  result_ds_nr=result_ds_nr)
-                pattern = self.model.datasource.rows[result_ds_nr].\
-                                                    pattern.value
+                pattern = self.model.datasource.rows[
+                    result_ds_nr].pattern.value
                 pen = pg.mkPen(color=self.color.qvalue,
                                width=2,
                                style=pattern)
-
                 self._plots[str(parameters)][result_key] = \
-                        pg.PlotDataItem(ts_table, pen=pen)
+                    pg.PlotDataItem(ts_table, pen=pen)
 
             return self._plots[str(parameters)][result_key]
 
@@ -113,19 +112,18 @@ class LocationTimeseriesModel(BaseModel):
             :param parameters:
             :param result_ds_nr:
             :return: numpy array with timestamp, values
-
-            NOTE: all timeseries of the different parameters will be lumped
-            together. However, at the moment, nowhere in the code is this
-            function called with more than 1 parameter.
             """
             float_data = []
-            for param, timeseries in self.model.datasource.rows[result_ds_nr]\
-                    .datasource().get_timeseries(
-                        self.object_type.value, self.object_id.value,
-                        parameters).items():
-                for t, v in timeseries:
-                    # value data may come back as 'NULL' string; convert
-                    # it to None or else convert it to float
-                    v = None if v == 'NULL' else float(v)
-                    float_data.append((float(t), v))
+            timeseries = self.model.datasource.rows[result_ds_nr]\
+                .datasource().get_timeseries(
+                    self.object_type.value,
+                    self.object_id.value,
+                    parameters)
+
+            for t, v in timeseries:
+                # value data may come back as 'NULL' string; convert
+                # it to None or else convert it to float
+                v = None if v == 'NULL' else float(v)
+                float_data.append((float(t), v))
+
             return np.array(float_data, dtype=float)
