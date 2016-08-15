@@ -13,14 +13,17 @@ from ..utils import cached_property
 # Explanation: aggregation using the cumulative method integrates the variable
 # over time. Therefore the units must be multiplied by the time also.
 CUMULATIVE_AGGREGATION_UNITS = {
-    's1': 'm MSL s',
+    's1': 'm MSL',
     'q': 'm3',
     'u1': 'm',
-    'vol': 'm3 s',
+    'vol': 'm3',
     'q_pump': 'm3',
     'qp': 'm3',
     'up1': 'm',
+    'qlat': 'm3',
+    'vol1': 'm3'
     }
+
 
 # NetCDF variable information
 NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
@@ -40,10 +43,11 @@ RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration', 'infiltration rate', 'm3/s')
 
+# todo: add support of DISCHARGE_PUMP somewhere
+
 _Q_TYPES = [
     DISCHARGE,
     DISCHARGE_INTERFLOW,
-    DISCHARGE_PUMP,
     VELOCITY,
     VELOCITY_INTERFLOW,
 ]
@@ -94,6 +98,9 @@ VARIABLE_LABELS = {
                   VELOCITY_INTERFLOW),
     'nodes': (WATERLEVEL, ),
     'pumplines': (DISCHARGE_PUMP, ),
+    'line_results': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
+                  VELOCITY_INTERFLOW),
+    'node_results': (WATERLEVEL,),
 }
 
 
@@ -125,6 +132,9 @@ layer_information = [
     ('flowlines', 'flowline', 'q'),
     ('nodes', 'node', 'h'),
     ('pumplines', 'pumpline', 'q'),
+    ('line_results', 'flowline', 'q'),
+    ('node_results', 'node', 'h'),
+
 ]
 
 # Map a generic parameter to the netCDF variable name. Because the parameters
@@ -441,8 +451,8 @@ class NetcdfDataSource(object):
             possible_subgrid_map_vars = [v for v, _, _ in
                                          SUBGRID_MAP_VARIABLES]
             subgrid_map_vars = self.ds.variables.keys()
-            available_subgrid_map_vars = set(
-                possible_subgrid_map_vars).intersection(set(subgrid_map_vars))
+            available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
+                                              if v in set(subgrid_map_vars)]
             result['subgrid_map'] = list(available_subgrid_map_vars)
         if do_all or only_aggregation:
             possible_agg_vars = [product_and_concat([v]) for v, _, _ in
@@ -534,7 +544,7 @@ class NetcdfDataSource(object):
         # netcdf, so they don't need an id mapping or netcdf mapping
         if normalized_object_type in ['flowline', 'node', 'pumpline']:
             # TODO: need to test this id to make sure (-1/+1??)!!
-            netcdf_id = object_id - 1
+            netcdf_id = object_id
         else:
             # Mapping: spatialite id -> inp id -> netcdf id
             inp_id = self.inp_id_from(object_id, normalized_object_type)
@@ -666,3 +676,17 @@ class NetcdfDataSource(object):
                 continue
             timeseries_vals[v] = vals
         return timeseries_vals
+
+    def get_values_timestamp(self, parameter, timestamp,
+                              source='default'):
+
+        v = parameter
+        if v in self.available_subgrid_map_vars:
+            ds = self.ds
+        elif v in self.available_aggregation_vars:
+            ds = self.ds_aggregation
+        else:
+            # todo: warning
+            return
+
+        return ds.variables[v][timestamp, :]

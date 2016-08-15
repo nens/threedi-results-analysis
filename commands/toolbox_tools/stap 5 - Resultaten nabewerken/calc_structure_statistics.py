@@ -74,7 +74,7 @@ class CustomCommand(CustomCommandBase):
 
         # Get the primary key of the layer, plus other specifics:
         if layer_name == 'flowlines':
-            layer_id_name = 'flowline_idx'
+            layer_id_name = 'id'
             # TODO: not sure if we want to make ncstats distinction based on
             # the layer type
             ncstats = NcStatsAgg(datasource=nds)
@@ -100,11 +100,9 @@ class CustomCommand(CustomCommandBase):
             result[fid]['id'] = fid  # normalize layer id name to 'id' in csv
             for param_name in ncstats.AVAILABLE_STRUCTURE_PARAMETERS:
                 try:
-                    # Important note: NcStats works with the feature id
-                    # and the layer name
                     result[fid][param_name] = \
                         ncstats.get_value_from_parameter(
-                            layer_name, feature.id(), param_name)
+                            layer_name, feature[layer_id_name], param_name)
                 except (ValueError, IndexError, AttributeError):
                     # AttributeError: is raised in NcStats because in case of
                     # KeyErrors in get_value_from_parameter the method finding

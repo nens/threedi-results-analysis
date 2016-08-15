@@ -2,16 +2,22 @@ import os
 import unittest
 import tempfile
 import shutil
+import sys
 
 from utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
 
-from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry
+from qgis.core import (
+    QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
 from PyQt4.QtCore import QVariant
 
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource, get_variables
-
-from ThreeDiToolbox.datasource.spatialite import Spatialite
+try:
+    from ThreeDiToolbox.datasource.spatialite import Spatialite
+except ImportError:
+    # Linux specific
+    sys.path.append('/usr/share/qgis/python/plugins/')
+    from ThreeDiToolbox.datasource.spatialite import Spatialite
 
 
 spatialite_datasource_path = os.path.join(
@@ -77,8 +83,8 @@ class TestSpatialiteDataSource(unittest.TestCase):
     def test_create_empty_table(self):
         spl = Spatialite(self.spatialite_path + '1')
 
-        layer = spl.create_empty_layer('table_one',
-                                       fields=['id INTEGER', 'name TEXT NULLABLE'])
+        layer = spl.create_empty_layer(
+            'table_one', fields=['id INTEGER', 'name TEXT NULLABLE'])
         # test table is created
         self.assertIsNotNone(layer)
         self.assertTrue('table_one' in [c[1] for c in spl.getTables()])

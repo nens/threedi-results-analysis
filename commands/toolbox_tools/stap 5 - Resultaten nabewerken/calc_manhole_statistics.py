@@ -158,7 +158,7 @@ class CustomCommand(CustomCommandBase):
         # the layer type
         if layer_name == 'nodes':
             # It's a memory layer
-            layer_id_name = 'node_idx'
+            layer_id_name = 'id'
             ncstats = NcStatsAgg(datasource=nds)
         elif 'v2' in layer_name:
             # It's a v2 spatialite layer
@@ -203,27 +203,10 @@ class CustomCommand(CustomCommandBase):
 
             # There are two hacks:
             # Hack for v2_manhole, see previous comment.
-            # Hack for the feature id of a node layer. The fid in this case
-            # is actually the *node_idx*, however, calc_results expects a
-            # feature id, which is node_idx + 1. This hack is also in
-            # calculate_structure_statistics
             if old_layer_name == 'v2_manhole':
                 hack_fid = feature['connection_node_id']
-            elif layer_name == 'nodes':
-                hack_fid = feature.id()
             else:
                 hack_fid = feature[layer_id_name]
-
-            # TODO: take a long hard look at the feature ids of the memory
-            # layers and find out how the discrepency is caused
-            if layer_name != 'nodes':
-                assert feature[layer_id_name] == feature.id(), (
-                    "Feature id (%s) and object id (%s) discrepancy. " % (
-                        feature.id(), feature[layer_id_name]))
-            if layer_name == 'nodes':
-                assert feature[layer_id_name] == feature.id() - 1, (
-                    "Feature id (%s) - 1 should equal object id (%s). " % (
-                        feature.id(), feature[layer_id_name]))
 
             results_from_params = self.calc_results(
                 ncstats,

@@ -5,15 +5,22 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
-- Made the parameter config variable for the Graph tool.
+- Add Layer Manager, which loads the model and result layers.
+
+- Add map animator for showing results on the map (first version, work in progress).
+
+- Made the parameter config variable for the Graph and Map animator tools. Add
+ parameters so almost all results from netCDF and result netCDF can be displayed.
 
 - Optimizations in getting the time array from netCDF.
 
 - Refactored NetcdfDataSource and included support for getting all variables
   from both regular and aggregation netCDF including getting the timeseries.
 
-- Fixed a bug with the feature id for nodes layer in
-  calc_manhole_statistics.
+- Removed support for spatialite datasource with results.
+
+- Changed id behavior for netcdf datasources and requesting tools. Now the
+  netcdf_id or spatialite id is used (so no magic with -1, etc.)
 
 - Added ``water op straat`` statistic to manhole statistics; refactored NcStats
   a bit.
@@ -22,13 +29,13 @@ threedi-qgis-plugin changelog
 
 - Updated NetcdfDataSource so that it keeps some netCDF attributes in memory.
 
-- Stores selected model and results in Qgs project file (*.qgs)
+- Stores selected model and results in Qgs project file (*.qgs).
 
-- Cache generated model layers in spatialite
+- Cache generated model layers in spatialite.
 
-- Add point markers to selected sideview points
+- Add point markers to selected sideview points.
 
-- Show marker of current location when hovering over graph
+- Show marker of current location when hovering over graph.
 
 
 0.7.1 (2016-07-25)

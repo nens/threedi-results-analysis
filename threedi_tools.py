@@ -37,10 +37,12 @@ from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
+from .views.map_animator import MapAnimator
 from .utils.user_messages import (
     pop_up_info, log, pop_up_question)
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
+from .utils.layer_tree_manager import LayerTreeManager
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
@@ -85,14 +87,21 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
         self.toolbar.setObjectName(u'ThreeDiTools')
-        self.timeslider_widget = TimesliderWidget(self.toolbar,
+        self.toolbar_animation = self.iface.addToolBar(u'ThreeDiAnimation')
+        self.toolbar_animation.setObjectName(u'ThreeDiAnimation')
+
+        self.timeslider_widget = TimesliderWidget(self.toolbar_animation,
                                                   self.iface,
                                                   self.ts_datasource)
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
+        self.map_animator_widget = MapAnimator(self.toolbar_animation,
+                                               self.iface,
+                                               self)
+
         # Init the rest of the tools
-        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource)
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
 
         self.tools = []
@@ -107,6 +116,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         self.line_layer = None
         self.point_layer = None
+
+        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasource)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -222,8 +233,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 callback=tool.run,
                 parent=self.iface.mainWindow())
 
-        self.toolbar.addWidget(self.timeslider_widget)
-        self.toolbar.addWidget(self.lcd)
+        self.toolbar_animation.addWidget(self.map_animator_widget)
+        self.toolbar_animation.addWidget(self.timeslider_widget)
+        self.toolbar_animation.addWidget(self.lcd)
 
         self.ts_datasource.rowsRemoved.connect(
             self.check_status_model_and_results)
@@ -260,47 +272,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         else:
             self.sideview_tool.action_icon.setEnabled(False)
 
-        # todo: for now always first netCDF is used. let the user select the
-        # active netCDF
-        if (self.ts_datasource.rowCount() > 0 and
-                self.ts_datasource.rows[0] != self.active_datasource):
 
-            ds_item = self.ts_datasource.rows[0]
-            self.active_datasource = ds_item
-
-            if not pop_up_question(msg="Add netCDF layers to map?",
-                                   title="netCDF layers"):
-                return
-
-            # get or create group in legend
-            legend = self.iface.legendInterface()
-            if self.group_layer is None:
-                self.group_layer = legend.addGroup(self.group_layer_name,
-                                                   True)
-
-            legend.setGroupVisible(self.group_layer, True)
-
-            # get memory layers
-            self.line_layer, self.node_layer, self.pumpline_layer = \
-                ds_item.get_memory_layers()
-
-            # apply default styling on memory layers
-            self.line_layer.loadNamedStyle(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'layer_styles', 'tools', 'flowlines.qml'))
-
-            self.node_layer.loadNamedStyle(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'layer_styles', 'tools', 'nodes.qml'))
-
-            # add layers to the map
-            QgsMapLayerRegistry.instance().addMapLayers(
-                [self.line_layer, self.node_layer, self.pumpline_layer])
-
-            # move the layers to the group
-            for lyr in [self.line_layer, self.node_layer, self.pumpline_layer]:
-                legend.setLayerExpanded(lyr, True)
-                legend.moveLayer(lyr, self.group_layer)
 
     def about(self):
         """
@@ -331,6 +303,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             for tool in self.tools:
                 tool.on_unload()
 
+        self.layer_manager.on_unload()
+
         self.timeslider_widget.valueChanged.disconnect(
             self.on_slider_change)
 
@@ -339,3 +313,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             del self.toolbar
         except AttributeError:
             log("Error, toolbar already removed?")
+
+        # remove the toolbar
+        try:
+            del self.toolbar_animation
+        except AttributeError:
+            log("Error, toolbar animation already removed?")
+

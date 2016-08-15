@@ -626,13 +626,13 @@ class SideViewPlotWidget(pg.PlotWidget):
                 try:
                     if python_value(node['idx']) is not None:
                         ts = ds.get_timeseries('nodes',
-                                               int(node['idx']+1),
+                                               int(node['nr']),
                                                ['s1'])
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
                                                node['id'],
                                                ['s1'])
-                    node['timeseries'] = ts
+                    node['timeseries'] = ts['s1']
                 except KeyError:
                     node['timeseries'] = None
 
@@ -911,10 +911,16 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
+        if self.tdi_root_tool.timeslider_widget.active_datasource is not None:
+            line, node, pump = self.tdi_root_tool.timeslider_widget.\
+                    active_datasource.get_memory_layers()
+        else:
+            line = None
+
         self.line_layer, self.point_dict, self.channel_profiles = \
             self.create_combined_layers(
                 self.tdi_root_tool.ts_datasource.model_spatialite_filepath,
-                tdi_root_tool.line_layer)
+                line)
 
         self.sideviews = []
         widget = SideViewPlotWidget(self, 0,
@@ -1040,8 +1046,6 @@ class SideViewDockWidget(QDockWidget):
                                             p['surface_level'])
             p['bottom_level'] = python_value(manhole['bottom_level'])
             p['length'] = python_value(manhole['width'], 0.0)
-
-        # todo: add calculation nodes
 
         for bound in boundary_layer.getFeatures():
             p = points[bound['connection_node_id']]

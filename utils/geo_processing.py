@@ -1,5 +1,7 @@
 
-from qgis.core import QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+from qgis.core import (QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
+                       QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
+                       QgsCoordinateReferenceSystem)
 import math
 
 def split_line_at_points(polyline_input, point_features,
@@ -129,3 +131,27 @@ def split_line_at_points(polyline_input, point_features,
     })
 
     return line_parts
+
+
+
+def copy_layer_into_memory_layer(source_layer, layer_name):
+
+    source_provider = source_layer.dataProvider()
+
+    uri = "{0}?crs=EPSG:{1}".format(
+            QGis.featureType(source_provider.geometryType()).lstrip('WKB'),
+            str(source_provider.crs().postgisSrid()))
+
+    dest_layer = QgsVectorLayer(uri, layer_name, "memory")
+    dest_provider = dest_layer.dataProvider()
+
+    dest_provider.addAttributes(source_provider.fields())
+    dest_layer.updateFields()
+
+    dest_provider.addFeatures([f for f in source_provider.getFeatures()])
+    dest_layer.updateExtents()
+
+    return dest_layer
+
+
+

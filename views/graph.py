@@ -417,7 +417,6 @@ class GraphWidget(QWidget):
         super(GraphWidget, self).__init__(parent)
 
         self.name = name
-        self.parameters = dict([(p['name'], p) for p in parameter_config])
         self.ts_datasource = ts_datasource
         self.parent = parent
         self.geometry_type = geometry_type
@@ -429,18 +428,13 @@ class GraphWidget(QWidget):
         self.graph_plot.set_ds_model(self.ts_datasource)
         self.location_timeseries_table.setModel(self.model)
 
-        # init parameter selection
-        for pc in self.parameters.keys():
-            self.parameter_combo_box.addItem(pc)
-        self.parameter_combo_box.setCurrentIndex(1)
-        self.current_parameter = \
-                self.parameters[self.parameter_combo_box.currentText()]
-        self.graph_plot.set_parameter(self.current_parameter)
-
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(
                 self.parameter_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+
+        # init parameter selection
+        self.set_parameter_list(parameter_config)
 
         if self.geometry_type == QGis.WKBPoint:
             self.marker = QgsVertexMarker(self.parent.iface.mapCanvas())
@@ -449,9 +443,27 @@ class GraphWidget(QWidget):
             self.marker.setColor(Qt.red)
             self.marker.setWidth(2)
 
-        self.transform = QgsCoordinateTransform(
-                QgsCoordinateReferenceSystem(4326),
-                self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
+
+    def set_parameter_list(self, parameter_config):
+
+        # reset
+        nr_old_parameters = self.parameter_combo_box.count()
+
+        self.parameters = dict([(p['name'], p) for p in parameter_config])
+
+        self.parameter_combo_box.insertItems(0, [p['name'] for p in parameter_config])
+
+        # todo: find best matching parameter based on previous selection
+        if nr_old_parameters > 0:
+            self.parameter_combo_box.setCurrentIndex(0)
+
+        nr_parameters_tot = self.parameter_combo_box.count()
+        for i in reversed(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot)):
+            self.parameter_combo_box.removeItem(i)
+
+        # self.graph_plot.set_parameter(self.current_parameter)
+
+
 
     def on_close(self):
         """
@@ -476,6 +488,9 @@ class GraphWidget(QWidget):
         pass
         # todo: selection generated errors and crash of Qgis. Implement method
         # with QgsRubberband and/ or QgsVertexMarker
+        transform = QgsCoordinateTransform(
+            QgsCoordinateReferenceSystem(4326),
+            self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
 
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
@@ -489,7 +504,7 @@ class GraphWidget(QWidget):
                 for feature in features:
                     if self.geometry_type == QGis.WKBPoint:
                         geom = feature.geometry()
-                        geom.transform(self.transform)
+                        geom.transform(transform)
                         self.marker.setCenter(geom.asPoint())
                         self.marker.setVisible(True)
                     else:
@@ -610,7 +625,10 @@ class GraphWidget(QWidget):
                                    str(item.object_id.value))
                 for item in self.model.rows]
         for feature in features:
-            fid = feature.id()
+            idx = feature.id()
+            if layer.dataProvider().description() == u'Memory provider':
+                idx = feature['id']
+
 
             try:
                 object_name = feature['display_name']
@@ -627,10 +645,10 @@ class GraphWidget(QWidget):
                     object_name = 'dummy'
 
             # check if object not already exist
-            if (layer.name() + '_' + str(fid)) not in existing_items:
+            if (layer.name() + '_' + str(idx)) not in existing_items:
                 item = {
                     'object_type': layer.name(),
-                    'object_id': fid,
+                    'object_id': idx,
                     'object_name': object_name,
                     'file_path': filename
                 }
@@ -672,7 +690,7 @@ class GraphDockWidget(QDockWidget):
     closingWidget = pyqtSignal(int)
 
     def __init__(self, iface, parent_widget=None,
-                 parent_class=None, nr=0, ts_datasource=None):
+                 parent_class=None, nr=0, ts_datasource=None, root_tool=None):
         """Constructor"""
         super(GraphDockWidget, self).__init__(parent_widget)
 
@@ -680,26 +698,11 @@ class GraphDockWidget(QDockWidget):
         self.parent_class = parent_class
         self.nr = nr
         self.ts_datasource = ts_datasource
+        self.root_tool = root_tool
 
         self.setup_ui(self)
 
-        # add listeners
-        self.addSelectedObjectButton.clicked.connect(self.add_objects)
-        # init current layer state and add listener
-        self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
-        self.iface.currentLayerChanged.connect(self.selected_layer_changed)
-
-        if self.ts_datasource.rowCount() > 0:
-            # TODO: just taking the first datasource, not sure if correct:
-            nc_datasource = self.ts_datasource.rows[0].datasource()
-            available_subgrid_vars = nc_datasource.available_subgrid_map_vars
-            available_agg_vars = nc_datasource.available_aggregation_vars
-            if not available_agg_vars:
-                messagebar_message(
-                    "Warning", "No aggregation netCDF was found.", level=1,
-                    duration=2)
-            parameter_config = generate_parameter_config(
-                available_subgrid_vars, available_agg_vars)
+        parameter_config = self._get_active_parameter_config()
 
         # add graph widgets
         self.q_graph_widget = GraphWidget(self, self.ts_datasource,
@@ -713,6 +716,13 @@ class GraphDockWidget(QDockWidget):
         self.graphTabWidget.addTab(self.h_graph_widget,
                                    self.h_graph_widget.name)
 
+        # add listeners
+        self.addSelectedObjectButton.clicked.connect(self.add_objects)
+        # init current layer state and add listener
+        self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
+        self.iface.currentLayerChanged.connect(self.selected_layer_changed)
+        self.root_tool.timeslider_widget.datasource_changed.connect(self.on_active_datasource_change)
+
     def on_close(self):
         """
         unloading widget and remove all required stuff
@@ -720,6 +730,7 @@ class GraphDockWidget(QDockWidget):
         """
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
+        self.root_tool.timeslider_widget.datasource_changed.disconnect(self.on_active_datasource_change)
 
         #self.q_graph_widget.close()
         #self.h_graph_widget.close()
@@ -732,6 +743,32 @@ class GraphDockWidget(QDockWidget):
         self.on_close()
         self.closingWidget.emit(self.nr)
         event.accept()
+
+    def _get_active_parameter_config(self):
+
+        active_ds = self.root_tool.timeslider_widget.active_datasource
+
+        if active_ds is not None:
+            # TODO: just taking the first datasource, not sure if correct:
+            ds = active_ds.datasource()
+            available_subgrid_vars = ds.available_subgrid_map_vars
+            available_agg_vars = ds.available_aggregation_vars
+            if not available_agg_vars:
+                messagebar_message(
+                    "Warning", "No aggregation netCDF was found.", level=1,
+                    duration=5)
+            parameter_config = generate_parameter_config(
+                available_subgrid_vars, available_agg_vars)
+        else:
+            parameter_config = {'q': {}, 'h': {}}
+
+        return parameter_config
+
+    def on_active_datasource_change(self):
+
+        parameter_config = self._get_active_parameter_config()
+        self.q_graph_widget.set_parameter_list(parameter_config['q'])
+        self.h_graph_widget.set_parameter_list(parameter_config['h'])
 
     def selected_layer_changed(self, active_layer):
 
@@ -771,12 +808,12 @@ class GraphDockWidget(QDockWidget):
 
         selected_features = current_layer.selectedFeatures()
 
-        if current_layer.name() ==  'flowlines':
+        if current_layer.name() == 'flowlines':
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                     self.graphTabWidget.indexOf(self.q_graph_widget))
             return
-        elif current_layer.name() ==  'nodes':
+        elif current_layer.name() == 'nodes':
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget))
