@@ -52,12 +52,12 @@ class Spatialite(SpatiaLiteDBConnector):
         return uri
 
     def _create_empty_database(self):
-        spatialite = ogr.GetDriverByName('SQLite')
+        drv = ogr.GetDriverByName('SQLite')
 
         if int(gdal.VersionInfo()) < 2000000:
             gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
 
-        db = spatialite.CreateDataSource(self.path, ["SPATIALITE=True"])
+        db = drv.CreateDataSource(self.path, ["SPATIALITE=YES"])
 
         if int(gdal.VersionInfo()) < 2000000:
             gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
