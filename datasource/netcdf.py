@@ -607,7 +607,7 @@ class NetcdfDataSource(object):
         'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
-            a dict of arrays of values
+            a 1d array
         """
         # Normalize the name
         n_object_type = normalized_object_type(object_type)
