@@ -158,6 +158,7 @@ layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
 
 
+# TODO: use this for pumps still? Currently unused.
 def get_variable(object_type=None, parameter=None):
     """Get datasource variable names.
 
