@@ -576,7 +576,7 @@ class NetcdfDataSource(object):
             timestamps = self.timestamps
         elif variable in self.available_aggregation_vars:
             vals = self.ds_aggregation.variables[variable][:, netcdf_id]
-            timestamps = self.get_agg_var_timestamps(v)
+            timestamps = self.get_agg_var_timestamps(variable)
         else:
             raise ValueError("Invalid variable: %s" % variable)
 
