@@ -656,15 +656,19 @@ class NetcdfDataSource(object):
         # Convert row array to regular array.
         return vals[:, 0]
 
-    def get_values_by_timestamp(self, parameter, timestamp):
+    def get_values_by_timestamp(self, variable, timestamp_idx):
         """Horizontal slice over the element indices, i.e., get all values for
         all nodes or flowlines for a specific timestamp.
+
+        Args:
+            variable: the netCDF variable name
+            timestamp_idx: timestamp index
         """
-        if parameter in self.available_subgrid_map_vars:
+        if variable in self.available_subgrid_map_vars:
             ds = self.ds
-        elif parameter in self.available_aggregation_vars:
+        elif variable in self.available_aggregation_vars:
             ds = self.ds_aggregation
         else:
             # todo: warning
             return
-        return ds.variables[parameter][timestamp, :]
+        return ds.variables[variable][timestamp_idx, :]
