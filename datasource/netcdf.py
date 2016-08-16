@@ -392,13 +392,13 @@ class NetcdfDataSource(object):
     @cached_property
     def available_subgrid_map_vars(self):
         return self.get_available_variables(
-            only_subgrid_map=True)['subgrid_map']
+            only_subgrid_map=True)
 
     @cached_property
     def available_aggregation_vars(self):
         try:
             _vars = self.get_available_variables(
-                only_aggregation=True)['aggregation']
+                only_aggregation=True)
         except IndexError:
             # If we're here it means no agg. netCDF was found. Fail without
             # error, but do log it.
@@ -443,15 +443,15 @@ class NetcdfDataSource(object):
             a dict with entries for subgrid_map and aggregation vars
         """
         do_all = not any([only_subgrid_map, only_aggregation])
-        result = dict()
+        available_vars = []
 
         if do_all or only_subgrid_map:
             possible_subgrid_map_vars = [v for v, _, _ in
                                          SUBGRID_MAP_VARIABLES]
             subgrid_map_vars = self.ds.variables.keys()
             available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
-                                              if v in set(subgrid_map_vars)]
-            result['subgrid_map'] = list(available_subgrid_map_vars)
+                                          if v in subgrid_map_vars]
+            available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
             possible_agg_vars = [product_and_concat([v]) for v, _, _ in
                                  AGGREGATION_VARIABLES]
@@ -459,10 +459,10 @@ class NetcdfDataSource(object):
             possible_agg_vars = [item for sublist in possible_agg_vars for
                                  item in sublist]
             agg_vars = self.ds_aggregation.variables.keys()
-            available_agg_vars = set(
-                possible_agg_vars).intersection(set(agg_vars))
-            result['aggregation'] = list(available_agg_vars)
-        return result
+            available_agg_vars = [v for v in possible_agg_vars if v in
+                                  agg_vars]
+            available_vars += available_agg_vars
+        return available_vars
 
     def get_object(self, object_type, object_id):
         pass
