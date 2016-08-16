@@ -612,7 +612,7 @@ class NetcdfDataSource(object):
         n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
-        netcdf_ids = range(len(object_ids))  # copy the list
+        netcdf_ids = range(len(object_ids))  # init a list
         for i, obj_id in enumerate(object_ids):
             netcdf_ids[i] = self.obj_to_netcdf_id(obj_id, n_object_type)
         # netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
