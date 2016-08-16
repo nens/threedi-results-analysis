@@ -5,7 +5,10 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
-- Refactored timeseries methods of NetcdfDataSource.
+- Refactored timeseries methods of NetcdfDataSource, more consistent
+  ``get_values_of`` methods.
+
+- Made ``get_timeseries`` only accept one netCDF variable name.
 
 - Add Layer Manager, which loads the model and result layers.
 
