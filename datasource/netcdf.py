@@ -646,8 +646,7 @@ class NetcdfDataSource(object):
             raise
         return vals
 
-    def get_values_by_id(self, variable, object_type, object_id,
-                         caching=True):
+    def get_values_by_id(self, variable, object_type, object_id, caching=True):
         """Convenience method to get a regular array if only one ID is needed.
         """
         vals = self.get_values_by_ids(variable=variable,
