@@ -549,14 +549,14 @@ class NetcdfDataSource(object):
             netcdf_id = self.netcdf_id_from(inp_id, normalized_object_type)
         return netcdf_id
 
-    def get_timeseries(self, object_type, object_id, parameter, start_ts=None,
+    def get_timeseries(self, object_type, object_id, variable, start_ts=None,
                        end_ts=None):
         """Get a list of time series from netcdf.
 
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
-            parameter: variable name e.g.: 'q', 'q_pump', etc.
+            variable: variable name e.g.: 'q', 'q_pump', etc.
 
         Returns:
             a (n,2) array; with in the first column the timestamps and second
@@ -566,10 +566,6 @@ class NetcdfDataSource(object):
         n_object_type = normalized_object_type(object_type)
         # Derive the netcdf id
         netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
-
-        # TODO: check this (especially for pumps)
-        # variable = get_variable(n_object_type, parameter)
-        variable = parameter
 
         # Get values
         if variable in self.available_subgrid_map_vars:
@@ -593,60 +589,73 @@ class NetcdfDataSource(object):
         # Zip timeseries together in (n,2) array
         return np.vstack((timestamps, vals)).T
 
-    def get_timeseries_values(self, object_type, object_id, parameter,
-                              caching=True):
-        """Get a list of time series from netcdf; only the values.
+    def get_values_by_ids(self, variable, object_type, object_ids,
+                          caching=True):
+        """Get timeseries values by one or more object ids.
 
         Args:
             object_type: e.g. 'v2_weir'
-            object_id: spatialite id
-            parameter: variable name, e.g.: 'q', 'q_pump'
+            object_ids: a list of spatialite ids
+            variable: variable name, e.g.: 'q', 'q_pump'
             caching: if True, keep netcdf array in memory
 
         Important note: using True instead of False as a default for the
         'caching' kwarg makes this method much faster. Branch prediction?
 
         Returns:
-            a 1d array
+            a (t, n) array, with t=number of timestamps, and n=number of
+            object ids. For just one object_id n=1. For multiple object
+            ids the array selection is in the same order as the order of
+            the object ids, i.e., no sorting takes place before slicing.
         """
         # Normalize the name
         n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
-        netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
-
-        # TODO: check this for pumps
-        # v = get_variable(n_object_type, parameter)
-        v = parameter
+        netcdf_ids = range(len(object_ids))  # copy the list
+        for i, obj_id in enumerate(object_ids):
+            netcdf_ids[i] = self.obj_to_netcdf_id(obj_id, n_object_type)
+        # netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)
 
         # Select the source netcdf:
-        if v in self.available_subgrid_map_vars:
+        if variable in self.available_subgrid_map_vars:
             ds = self.ds
-        elif v in self.available_aggregation_vars:
+        elif variable in self.available_aggregation_vars:
             ds = self.ds_aggregation
         else:
-            raise ValueError("Invalid variable: %s" % v)
+            raise ValueError("Invalid variable: %s" % variable)
 
         # Keep the netCDF array in memory for performance
         if caching:
             try:
-                variable = self.cache[v]
+                data = self.cache[variable]
             except KeyError:
-                variable = ds.variables[v][:]  # make copy
-                self.cache[v] = variable
+                data = ds.variables[variable][:]  # make copy
+                self.cache[variable] = data
         else:
-            variable = ds.variables[v][:]
+            data = ds.variables[variable][:]
 
         try:
             # shape ds.variables['q'] array = (t, number of ids)
-            vals = variable[:, netcdf_id]
+            vals = data[:, netcdf_ids]
         except KeyError:
-            log("Variable not in netCDF: %s" % v)
+            log("Variable not in netCDF: %s" % variable)
             raise
         except IndexError:
-            log("Id %s not found for %s" % (netcdf_id, v))
+            log("Id %s not found for %s" % (netcdf_ids, variable))
             raise
         return vals
+
+    def get_values_by_id(self, variable, object_type, object_id,
+                         caching=True):
+        """Convenience method to get a regular array if only one ID is needed.
+        """
+        vals = self.get_values_by_ids(variable=variable,
+                                      object_type=object_type,
+                                      object_ids=[object_id],
+                                      caching=caching)
+        # Convert row array to regular array.
+        return vals[:, 0]
 
     def get_values_by_timestamp(self, parameter, timestamp):
         """Horizontal slice over the element indices, i.e., get all values for
