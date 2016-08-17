@@ -76,16 +76,21 @@ class LayerTreeManager(object):
         self.model.rowsInserted.connect(self.add_results)
         self.model.rowsInserted.connect(self.add_statistic_layers)
 
-    def _mark(self, group_layer, marker):
-        """Mark the group or layer with a marker (= property value)."""
-        group_layer.setCustomProperty('legend/3di_tracer', marker)
+    def _mark(self, tree_node, marker):
+        """Mark the group or layer with a marker value.
 
-    def _find_marked_child(self, group_layer, marker):
+        Args:
+            tree_node: a QgsLayerTreeGroup or QgsLayerTreeLayer instance
+            marker: property value
+        """
+        tree_node.setCustomProperty('legend/3di_tracer', marker)
 
-        if group_layer is None:
+    def _find_marked_child(self, tree_node, marker):
+        """Find a marked node in the children of a tree node."""
+        if tree_node is None:
             return None
 
-        for node in group_layer.children():
+        for node in tree_node.children():
             if node.customProperty('legend/3di_tracer') == unicode(marker):
                 return node
         return None
