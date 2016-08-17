@@ -13,6 +13,7 @@ class LayerTreeManager(object):
     schematisation_twod_group_name = '2d'
     schematisation_inflow_group_name = 'inflow'
     result_layergroup_basename = 'result: '
+    statistic_layergroup_basename = 'statistics: '
 
     @property
     def model_layergroup(self):
@@ -75,6 +76,10 @@ class LayerTreeManager(object):
         self.model.rowsInserted.connect(self.add_results)
         self.model.rowsInserted.connect(self.add_statistic_layers)
 
+    def _mark(self, group_layer, marker):
+        """Mark the group or layer with a marker (= property value)."""
+        group_layer.setCustomProperty('legend/3di_tracer', marker)
+
     def _find_marked_child(self, group_layer, marker):
 
         if group_layer is None:
@@ -128,16 +133,15 @@ class LayerTreeManager(object):
             # group later on
             root = QgsProject.instance().layerTreeRoot()
             self.model_layergroup = root.insertGroup(2, name)
-            self.model_layergroup.setCustomProperty('legend/3di_tracer',
-                                                    tracer['model_layergroup'])
+            self._mark(self.model_layergroup, tracer['model_layergroup'])
         else:
             self.model_layergroup.setName(name)
 
         if self.schematisation_layergroup is None:
             self.schematisation_layergroup = self.model_layergroup.insertGroup(
                 0, self.schematisation_group_name)
-            self.schematisation_layergroup.setCustomProperty(
-                'legend/3di_tracer', tracer['schematisation_layergroup'])
+            self._mark(self.schematisation_layergroup,
+                       tracer['schematisation_layergroup'])
         else:
             self.schematisation_layergroup.removeAllChildren()
 
@@ -256,8 +260,7 @@ class LayerTreeManager(object):
 
                 if group is None:
                     group = self.model_layergroup.insertGroup(2, name)
-                    group.setCustomProperty('legend/3di_tracer',
-                                            'result_' + result.file_path.value)
+                    self._mark(group, 'result_' + result.file_path.value)
 
                 line, node, pumpline = result.get_memory_layers()
 
@@ -276,19 +279,30 @@ class LayerTreeManager(object):
                         [line, node, pumpline], False)
 
                     tree_layer = group.insertLayer(0, line)
-                    tree_layer.setCustomProperty(
-                        'legend/3di_tracer', 'flowlines')
+                    self._mark(tree_layer, 'flowlines')
+
                     tree_layer2 = group.insertLayer(1, pumpline)
                     if tree_layer2 is not None:
-                        tree_layer2.setCustomProperty(
-                            'legend/3di_tracer', 'pumplines')
+                        self._mark(tree_layer2, 'pumplines')
+
                     tree_layer3 = group.insertLayer(2, node)
-                    tree_layer3.setCustomProperty('legend/3di_tracer', 'nodes')
+                    self._mark(tree_layer3, 'nodes')
 
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
         # result = self.model.rows[result_row_nr]
-        result = self.model.rows[start_row]
-        #from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+        for row_nr in range(start_row, stop_row + 1):
+            result = self.model.rows[row_nr]
+            name = "%s%s" % (self.statistic_layergroup_basename,
+                             result.name.value)
+            marker = 'statistic_%s' % result.file_path.value
+
+            if self.model_layergroup is not None:
+                group = self._find_marked_child(self.model_layergroup, marker)
+
+                if group is None:
+                    group = self.model_layergroup.insertGroup(3, name)
+                    self._mark(group, marker)
+            # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
