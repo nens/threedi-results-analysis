@@ -7,55 +7,55 @@ from qgis.core import (
 
 class LayerTreeManager(object):
 
-    model_grouplayer_basename = '3di model: '
+    model_layergroup_basename = '3di model: '
     schematisation_group_name = 'schematisation'
     schematisation_oned_group_name = '1d'
     schematisation_twod_group_name = '2d'
     schematisation_inflow_group_name = 'inflow'
-    result_grouplayer_basename = 'result: '
-    schematisation_grouplayer = None
+    result_layergroup_basename = 'result: '
 
     @property
-    def model_grouplayer(self):
-        return self._modelgrouplayer
+    def model_layergroup(self):
+        return self._model_layergroup
 
-    @model_grouplayer.setter
-    def model_grouplayer(self, value):
-        if self._modelgrouplayer_connected:
-            self._modelgrouplayer.destroyed.disconnect(
-                self._on_delete_modelgrouplayer)
-            self._modelgrouplayer_connected = False
-        self._modelgrouplayer = value
+    @model_layergroup.setter
+    def model_layergroup(self, value):
+        if self._model_layergroup_connected:
+            self._model_layergroup.destroyed.disconnect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = False
+        self._model_layergroup = value
         if isinstance(value, QgsLayerTreeNode):
-            self._modelgrouplayer.destroyed.connect(
-                self._on_delete_modelgrouplayer)
-            self._modelgrouplayer_connected = True
+            self._model_layergroup.destroyed.connect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = True
 
-    def _on_delete_modelgrouplayer(self):
-        if self._modelgrouplayer_connected:
-            self._modelgrouplayer.destroyed.disconnect(
-                self._on_delete_modelgrouplayer)
-            self._modelgrouplayer_connected = False
-        self._modelgrouplayer = None
+    def _on_delete_model_layergroup(self):
+        if self._model_layergroup_connected:
+            self._model_layergroup.destroyed.disconnect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = False
+        self._model_layergroup = None
 
     def __init__(self, iface, model_results_model):
 
         self.iface = iface
         self.model = model_results_model
 
-        self._modelgrouplayer = None
-        self._modelgrouplayer_connected = False
+        self.schematisation_layergroup = None
+        self._model_layergroup = None
+        self._model_layergroup_connected = False
 
-        self.result_grouplayers = []
+        self.result_layergroups = []
         self.results_layers = []
 
-        self.tool_grouplayer = None
+        self.tool_layergroup = None
         self.tools_layers = None
 
         self.tracer_mapping = (
             # tracer, variable name
-            ('root', 'model_grouplayer'),
-            ('schematisation_root', 'schematisation_grouplayer')
+            ('root', 'model_layergroup'),
+            ('schematisation_root', 'schematisation_layergroup')
         )
 
         # add listeners
@@ -64,6 +64,7 @@ class LayerTreeManager(object):
         # self.model.dataChanged.connect(self.on_change)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
         self.model.rowsInserted.connect(self.add_results)
+        self.model.rowsInserted.connect(self.add_statistic_layers)
 
         self.init_references_from_layer_tree()
 
@@ -72,6 +73,7 @@ class LayerTreeManager(object):
             self._on_set_schematisation)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
         self.model.rowsInserted.connect(self.add_results)
+        self.model.rowsInserted.connect(self.add_statistic_layers)
 
     def _find_marked_child(self, group_layer, marker):
 
@@ -87,14 +89,14 @@ class LayerTreeManager(object):
         root = QgsProject.instance().layerTreeRoot()
         tracer = dict([(ref, ident) for ident, ref in self.tracer_mapping])
 
-        self.model_grouplayer = self._find_marked_child(
-            root, tracer['model_grouplayer'])
+        self.model_layergroup = self._find_marked_child(
+            root, tracer['model_layergroup'])
 
-        if self.model_grouplayer is not None:
-            self.schematisation_grouplayer = self._find_marked_child(
-                self.model_grouplayer, tracer['schematisation_grouplayer'])
+        if self.model_layergroup is not None:
+            self.schematisation_layergroup = self._find_marked_child(
+                self.model_layergroup, tracer['schematisation_layergroup'])
         else:
-            self.schematisation_grouplayer = None
+            self.schematisation_layergroup = None
 
     def _on_set_schematisation(self, something, filename=''):
         """Method is called when schematisation setting is changed in
@@ -111,39 +113,39 @@ class LayerTreeManager(object):
         tracer = dict([(ref, ident) for ident, ref in self.tracer_mapping])
 
         if filename == '':
-            if self.model_grouplayer is not None:
-                self.model_grouplayer.removeAllChildren()
+            if self.model_layergroup is not None:
+                self.model_layergroup.removeAllChildren()
             return
 
         split = os.path.split(filename)
         split_dir = os.path.split(split[0])
 
-        name = (self.model_grouplayer_basename +
+        name = (self.model_layergroup_basename +
                 '/'.join((split_dir[-1], split[-1])))
 
-        if self.model_grouplayer is None:
+        if self.model_layergroup is None:
             # todo: see if we can set 'tracer' as custom property to identify
             # group later on
             root = QgsProject.instance().layerTreeRoot()
-            self.model_grouplayer = root.insertGroup(2, name)
-            self.model_grouplayer.setCustomProperty('legend/3di_tracer',
-                                                    tracer['model_grouplayer'])
+            self.model_layergroup = root.insertGroup(2, name)
+            self.model_layergroup.setCustomProperty('legend/3di_tracer',
+                                                    tracer['model_layergroup'])
         else:
-            self.model_grouplayer.setName(name)
+            self.model_layergroup.setName(name)
 
-        if self.schematisation_grouplayer is None:
-            self.schematisation_grouplayer = self.model_grouplayer.insertGroup(
+        if self.schematisation_layergroup is None:
+            self.schematisation_layergroup = self.model_layergroup.insertGroup(
                 0, self.schematisation_group_name)
-            self.schematisation_grouplayer.setCustomProperty(
-                'legend/3di_tracer', tracer['schematisation_grouplayer'])
+            self.schematisation_layergroup.setCustomProperty(
+                'legend/3di_tracer', tracer['schematisation_layergroup'])
         else:
-            self.schematisation_grouplayer.removeAllChildren()
+            self.schematisation_layergroup.removeAllChildren()
 
-        self.schematisation_grouplayer.insertGroup(
+        self.schematisation_layergroup.insertGroup(
             0, self.schematisation_inflow_group_name)
-        self.schematisation_grouplayer.insertGroup(
+        self.schematisation_layergroup.insertGroup(
             0, self.schematisation_twod_group_name)
-        self.schematisation_grouplayer.insertGroup(
+        self.schematisation_layergroup.insertGroup(
             0, self.schematisation_oned_group_name)
 
         # add_schematisation layers
@@ -152,7 +154,7 @@ class LayerTreeManager(object):
         # zoom to model extent:
         extent = QgsRectangle()
         extent.setMinimal()
-        for tree_layer in self.schematisation_grouplayer.findLayers():
+        for tree_layer in self.schematisation_layergroup.findLayers():
             extent.combineExtentWith(tree_layer.layer().extent())
 
         extent.scale(1.1)
@@ -166,14 +168,12 @@ class LayerTreeManager(object):
         return
 
     def _add_model_schematisation_layers(self, threedi_spatialite):
-        """
-            Assumes that the group layers are available
+        """Assumes that the group layers are available
+
         Args:
             threedi_spatialite:
-
-        Returns:
-
         """
+
         oned_layers = ['v2_pumpstation_view',
                        'v2_weir_view',
                        'v2_culvert_view',
@@ -185,20 +185,30 @@ class LayerTreeManager(object):
                        'v2_pipe_view',
                        'v2_channel',
                        ]
-        twod_layers = ['v2_grid_refinement', 'v2_floodfill', 'v2_2d_lateral',
-                       'v2_levee', 'v2_obstacle', 'v2_2d_boundary_conditions']
+        twod_layers = ['v2_grid_refinement',
+                       'v2_floodfill',
+                       'v2_2d_lateral',
+                       'v2_levee',
+                       'v2_obstacle',
+                       'v2_2d_boundary_conditions',
+                       ]
         inflow_layers = ['v2_impervious_surface']
-
         # not added: v2_windshielding, v2_pumped_drainage_area,
         # v2_initial_waterlevel
 
-        for group, layers in [
-            (self.schematisation_grouplayer.findGroup(
-                self.schematisation_oned_group_name), oned_layers),
-            (self.schematisation_grouplayer.findGroup(
-                self.schematisation_twod_group_name), twod_layers),
-            (self.schematisation_grouplayer.findGroup(
-                self.schematisation_inflow_group_name), inflow_layers)]:
+        # little bit administration: get all the groups
+        oned_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_oned_group_name)
+        twod_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_twod_group_name)
+        inflow_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_inflow_group_name)
+
+        # now make the layers and add them to the groups
+        for group, layers in [(oned_group, oned_layers),
+                              (twod_group, twod_layers),
+                              (inflow_group, inflow_layers),
+                              ]:
 
             for layer_name in layers:
                 uri = QgsDataSourceURI()
@@ -213,14 +223,13 @@ class LayerTreeManager(object):
                                                                False)
                     group.insertLayer(100, vector_layer)
 
-        # add tables without geometry
-        tables = [(self.schematisation_grouplayer.findGroup(
-                   self.schematisation_oned_group_name),
-                   'v2_cross_section_definition'),
-                  (self.schematisation_grouplayer,
-                   'v2_global_settings')
+        # tables without geometry
+        tables = [(oned_group, 'v2_cross_section_definition'),
+                  (self.schematisation_layergroup, 'v2_global_settings'),
+                  (twod_group, 'v2_manhole'),
                   ]
 
+        # add tables without geometry
         for group, table_name in tables:
             uri = QgsDataSourceURI()
             uri.setDatabase(threedi_spatialite)
@@ -239,14 +248,14 @@ class LayerTreeManager(object):
 
         for row_nr in range(start_row, stop_row + 1):
             result = self.model.rows[row_nr]
-            name = self.result_grouplayer_basename + result.name.value
+            name = self.result_layergroup_basename + result.name.value
 
-            if self.model_grouplayer is not None:
+            if self.model_layergroup is not None:
                 group = self._find_marked_child(
-                    self.model_grouplayer, 'result_' + result.file_path.value)
+                    self.model_layergroup, 'result_' + result.file_path.value)
 
                 if group is None:
-                    group = self.model_grouplayer.insertGroup(2, name)
+                    group = self.model_layergroup.insertGroup(2, name)
                     group.setCustomProperty('legend/3di_tracer',
                                             'result_' + result.file_path.value)
 
@@ -276,14 +285,16 @@ class LayerTreeManager(object):
                     tree_layer3 = group.insertLayer(2, node)
                     tree_layer3.setCustomProperty('legend/3di_tracer', 'nodes')
 
-    def add_statistic_layers(self, result_row_nr):
-        result = self.model.row[result_row_nr]
+    def add_statistic_layers(self, result_row_nr, start_row, stop_row):
+        # result = self.model.rows[result_row_nr]
+        result = self.model.rows[start_row]
+        #from ..qdebug import pyqt_set_trace; pyqt_set_trace()
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
             result = self.model.rows[row_nr]
-            group = self._find_marked_child(self.model_grouplayer,
+            group = self._find_marked_child(self.model_layergroup,
                                             'result_' + result.file_path.value)
             if group is not None:
                 group.removeAllChildren()
-                self.model_grouplayer.removeChildNode(group)
+                self.model_layergroup.removeChildNode(group)
