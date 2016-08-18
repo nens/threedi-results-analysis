@@ -137,54 +137,8 @@ layer_information = [
 
 ]
 
-# Map a generic parameter to the netCDF variable name. Because the parameters
-# we've chosen are almost always analogous to the real netCDF variable names
-# (e.g. 's1', 'vol', 'q') only exceptional cases are listed here, which in
-# practise means only mapping q to q_pump for pumps.
-PARAMETER_TO_VARIABLE = {
-    'pumpstation': {
-        'q': 'q_pump',
-        'q_pump': 'q_pump',
-        },
-    'pumpline': {
-        'q': 'q_pump',
-        'q_pump': 'q_pump',
-        },
-    }
-
 layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
 layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
-
-PUMPLIKE_OBJECTS = ['pumpstation', 'pumpline']
-
-
-# TODO: use this for pumps still? Currently unused.
-def get_variable(object_type=None, parameter=None):
-    """Get datasource variable names.
-
-    Note: basically returns the parameters unaltered, except for pumps.
-    For pumps it does additionaly checks if it's a agg var.
-    """
-    # See if there is a mapping, else use to the original parameter
-    try:
-        param_map = PARAMETER_TO_VARIABLE[object_type]
-    except KeyError:
-        return parameter
-    else:
-        # We know there is a mapping, now test if it is a agg var.
-        splitted = parameter.rsplit('_', 1)
-        if splitted[0] in AGGREGATION_OPTIONS:
-            # It's an agg method, now check if the variable is supported.
-            # E.g. 'u1_avg' is not supported by pumps, so we then raise an
-            # exception.
-            if splitted[1] in param_map.keys():
-                return parameter
-            else:
-                raise ValueError("Unsupported combination %s - %s " % (
-                    object_type, parameter))
-        else:
-            raise ValueError("Unsupported combination %s - %s " % (
-                object_type, parameter))
 
 
 def normalized_object_type(current_layer_name):
@@ -656,13 +610,13 @@ class NetcdfDataSource(object):
         # Convert row array to regular array.
         return vals[:, 0]
 
-    def get_values_by_timestamp(self, variable, timestamp_idx):
+    def get_values_by_timestep_nr(self, variable, timestep_nr):
         """Horizontal slice over the element indices, i.e., get all values for
         all nodes or flowlines for a specific timestamp.
 
         Args:
             variable: the netCDF variable name
-            timestamp_idx: timestamp index
+            timestep_nr: the timestep index
         """
         if variable in self.available_subgrid_map_vars:
             ds = self.ds
@@ -671,4 +625,4 @@ class NetcdfDataSource(object):
         else:
             # todo: warning
             return
-        return ds.variables[variable][timestamp_idx, :]
+        return ds.variables[variable][timestep_nr, :]

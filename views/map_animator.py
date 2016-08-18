@@ -199,7 +199,7 @@ class MapAnimator(QWidget):
 
         result = self.root_tool.timeslider_widget.active_datasource
 
-        timestamp_nr = self.root_tool.timeslider_widget.value()
+        timestep_nr = self.root_tool.timeslider_widget.value()
 
         ds = result.datasource()
 
@@ -209,9 +209,9 @@ class MapAnimator(QWidget):
 
             provider = layer.dataProvider()
 
-            values = ds.get_values_by_timestamp(parameter[0], timestamp_nr)
+            values = ds.get_values_by_timestep_nr(parameter, timestep_nr)
             if stat == 'diff':
-                values = values - ds.get_values_by_timestamp(parameter[0], 0)
+                values = values - ds.get_values_by_timestep_nr(parameter, 0)
             elif stat == 'abs':
                 values = np.fabs(values)
 
