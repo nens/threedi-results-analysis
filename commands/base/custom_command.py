@@ -7,7 +7,7 @@ from ThreeDiToolbox.utils.user_messages import pop_up_info
 
 
 def join_stats(filepath, layer, view_layer_field, csv_field='id',
-               interactive=True):
+               add_to_legend=True, interactive=True):
     """Join the generated stats csv with the layer
 
     Args:
@@ -21,7 +21,8 @@ def join_stats(filepath, layer, view_layer_field, csv_field='id',
     csv_layer_name = os.path.splitext(filename)[0]
     csv_uri = "file:///" + filepath
     csv_layer = QgsVectorLayer(csv_uri, csv_layer_name, "delimitedtext")
-    QgsMapLayerRegistry.instance().addMapLayer(csv_layer)
+    QgsMapLayerRegistry.instance().addMapLayer(csv_layer,
+                                               addToLegend=add_to_legend)
     join_info = QgsVectorJoinInfo()
     join_info.joinLayerId = csv_layer.id()
     join_info.joinFieldName = csv_field
@@ -32,6 +33,7 @@ def join_stats(filepath, layer, view_layer_field, csv_field='id',
     if interactive:
         pop_up_info("Finished joining '%s' with '%s'." % (
             csv_layer_name, layer.name()), title='Join finished')
+    return csv_layer
 
 
 class CustomCommandBase(object):

@@ -299,6 +299,10 @@ class LayerTreeManager(object):
                              result.name.value)
             marker = 'statistic_%s' % result.file_path.value
 
+            node_layers = ['v2_manhole']
+            manhole_cmd = ['stap 5 - Resultaten nabewerken',
+                           'calc_manhole_statistics.py']
+
             if self.model_layergroup is not None:
                 group = self._find_marked_child(self.model_layergroup, marker)
 
@@ -306,30 +310,31 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(3, name)
                     self._mark(group, marker)
 
-                if self._find_marked_child(group, 'v2_manhole') is None:
-                    new_layer = self.create_layer(
-                        self.model.model_spatialite_filepath, 'v2_manhole')
+                for layername in node_layers:
+                    if self._find_marked_child(group, layername) is None:
+                        new_layer = self.create_layer(
+                            self.model.model_spatialite_filepath, layername)
 
-                    if new_layer.isValid():
-                        QgsMapLayerRegistry.instance().addMapLayer(
-                            new_layer, False)
-                        tree_layer = group.insertLayer(100, new_layer)
-                        self._mark(tree_layer, 'v2_manhole')
+                        if new_layer.isValid():
+                            QgsMapLayerRegistry.instance().addMapLayer(
+                                new_layer, False)
+                            tree_layer = group.insertLayer(100, new_layer)
+                            self._mark(tree_layer, layername)
 
-                        cmd_path = ['stap 5 - Resultaten nabewerken',
-                                    'calc_manhole_statistics.py']
-                        mod = self.load_command_module(cmd_path)
+                            mod = self.load_command_module(manhole_cmd)
 
-                        command = mod.CustomCommand()
-                        command.run_it(
-                            layer=new_layer,
-                            datasource=self.model.rows[row_nr],
-                            interactive=False)
+                            command = mod.CustomCommand()
+                            csv_layer = command.run_it(
+                                layer=new_layer,
+                                datasource=self.model.rows[row_nr],
+                                interactive=False,
+                                add_to_legend=False)
+                            # from ..qtdebug import set_trace; set_trace()
+                            csv_tree_layer = group.insertLayer(100, csv_layer)
 
     def load_command_module(self, path_array):
         """Dynamically import and run the selected script from the tree view.
         """
-        # from .qdebug import pyqt_set_trace; pyqt_set_trace()
         from ThreeDiToolbox.commands import toolbox_tools
         toolbox_dir = os.path.dirname(toolbox_tools.__file__)
         module_path = os.path.join(toolbox_dir, *path_array)

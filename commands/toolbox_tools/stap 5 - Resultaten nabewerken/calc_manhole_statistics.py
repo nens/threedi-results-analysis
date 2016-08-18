@@ -120,7 +120,8 @@ class CustomCommand(CustomCommandBase):
                     result[param_name] = None
         return result
 
-    def run_it(self, layer=None, datasource=None, interactive=True):
+    def run_it(self, layer=None, datasource=None, add_to_legend=True,
+               interactive=True):
         """
             Args:
                 layer: qgis vector layer
@@ -240,11 +241,15 @@ class CustomCommand(CustomCommandBase):
             for fid, val_dict in result.items():
                 writer.writerow(val_dict)
 
+        join_it = True
         if interactive:
             pop_up_info("Generated: %s" % filepath, title='Finished')
-            if pop_up_question(
-                    msg="Do you want to join the CSV with the view layer?",
-                    title="Join"):
-                join_stats(filepath, self.layer, layer_id_name)
-        else:
-            join_stats(filepath, self.layer, layer_id_name, interactive=False)
+            join_it = pop_up_question(
+                msg="Do you want to join the CSV with the view layer?",
+                title="Join")
+
+        if join_it:
+            csv_layer = join_stats(
+                filepath, self.layer, layer_id_name, interactive=interactive,
+                add_to_legend=add_to_legend)
+            return csv_layer
