@@ -329,8 +329,8 @@ class LayerTreeManager(object):
                                 datasource=self.model.rows[row_nr],
                                 interactive=False,
                                 add_to_legend=False)
-                            # from ..qtdebug import set_trace; set_trace()
                             csv_tree_layer = group.insertLayer(100, csv_layer)
+                            self._mark(csv_tree_layer, csv_layer.name())
 
     def load_command_module(self, path_array):
         """Dynamically import and run the selected script from the tree view.
