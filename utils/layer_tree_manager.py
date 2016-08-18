@@ -310,42 +310,35 @@ class LayerTreeManager(object):
                     new_layer = self.create_layer(
                         self.model.model_spatialite_filepath, 'v2_manhole')
 
-                    # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
                     if new_layer.isValid():
                         QgsMapLayerRegistry.instance().addMapLayer(
                             new_layer, False)
                         tree_layer = group.insertLayer(100, new_layer)
                         self._mark(tree_layer, 'v2_manhole')
-                        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
 
                         cmd_path = ['stap 5 - Resultaten nabewerken',
                                     'calc_manhole_statistics.py']
                         mod = self.load_command_module(cmd_path)
 
-                        self.command = mod.CustomCommand()
-                        self.command.run_it(
+                        command = mod.CustomCommand()
+                        command.run_it(
                             layer=new_layer,
                             datasource=self.model.rows[row_nr],
                             interactive=False)
-                        #from ..qdebug import pyqt_set_trace; pyqt_set_trace()
 
-    def load_command_module(self, path):
+    def load_command_module(self, path_array):
         """Dynamically import and run the selected script from the tree view.
         """
-        print(path)
         # from .qdebug import pyqt_set_trace; pyqt_set_trace()
         from ThreeDiToolbox.commands import toolbox_tools
         toolbox_dir = os.path.dirname(toolbox_tools.__file__)
-        module_path = os.path.join(toolbox_dir, *path)
-        name, ext = os.path.splitext(path[-1])
+        module_path = os.path.join(toolbox_dir, *path_array)
+        name, ext = os.path.splitext(path_array[-1])
         if ext != '.py':
             print("Not a Python script")
             return
-        print(module_path)
-        print(name)
         import imp
         mod = imp.load_source(name, module_path)
-        print(mod)
         return mod
 
     def remove_results(self, index, start_row, stop_row):
