@@ -120,7 +120,14 @@ class CustomCommand(CustomCommandBase):
                     result[param_name] = None
         return result
 
-    def run_it(self, layer=None, datasource=None):
+    def run_it(self, layer=None, datasource=None, interactive=True):
+        """
+            Args:
+                layer: qgis vector layer
+                datasource: BaseModelItem from TimeseriesDatasourceModel
+                interactive: if False, disable all prompts and assume the
+                most logical answer to all question prompts.
+        """
         if layer:
             self.layer = layer
         if datasource:
@@ -132,13 +139,17 @@ class CustomCommand(CustomCommandBase):
             pop_up_info("No datasource found, aborting.", title='Error')
             return
 
-        include_2d = pop_up_question("Include 2D?")
+        if interactive:
+            include_2d = pop_up_question("Include 2D?")
+        else:
+            include_2d = True
 
         layer_name = self.layer.name()
         if not any(s in layer_name for s in NODE_OBJECTS):
-            pop_up_info(
-                "%s is not a valid node layer" % layer_name,
-                title='Error')
+            if interactive:
+                pop_up_info(
+                    "%s is not a valid node layer" % layer_name,
+                    title='Error')
             return
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
@@ -229,9 +240,11 @@ class CustomCommand(CustomCommandBase):
             for fid, val_dict in result.items():
                 writer.writerow(val_dict)
 
-        pop_up_info("Generated: %s" % filepath, title='Finished')
-
-        if pop_up_question(
-                msg="Do you want to join the CSV with the view layer?",
-                title="Join"):
-            join_stats(filepath, self.layer, layer_id_name)
+        if interactive:
+            pop_up_info("Generated: %s" % filepath, title='Finished')
+            if pop_up_question(
+                    msg="Do you want to join the CSV with the view layer?",
+                    title="Join"):
+                join_stats(filepath, self.layer, layer_id_name)
+        else:
+            join_stats(filepath, self.layer, layer_id_name, interactive=False)

@@ -15,29 +15,6 @@ class LayerTreeManager(object):
     result_layergroup_basename = 'result: '
     statistic_layergroup_basename = 'statistics: '
 
-    @property
-    def model_layergroup(self):
-        return self._model_layergroup
-
-    @model_layergroup.setter
-    def model_layergroup(self, value):
-        if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
-            self._model_layergroup_connected = False
-        self._model_layergroup = value
-        if isinstance(value, QgsLayerTreeNode):
-            self._model_layergroup.destroyed.connect(
-                self._on_delete_model_layergroup)
-            self._model_layergroup_connected = True
-
-    def _on_delete_model_layergroup(self):
-        if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
-            self._model_layergroup_connected = False
-        self._model_layergroup = None
-
     def __init__(self, iface, model_results_model):
 
         self.iface = iface
@@ -69,6 +46,29 @@ class LayerTreeManager(object):
 
         self.init_references_from_layer_tree()
 
+    @property
+    def model_layergroup(self):
+        return self._model_layergroup
+
+    @model_layergroup.setter
+    def model_layergroup(self, value):
+        if self._model_layergroup_connected:
+            self._model_layergroup.destroyed.disconnect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = False
+        self._model_layergroup = value
+        if isinstance(value, QgsLayerTreeNode):
+            self._model_layergroup.destroyed.connect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = True
+
+    def _on_delete_model_layergroup(self):
+        if self._model_layergroup_connected:
+            self._model_layergroup.destroyed.disconnect(
+                self._on_delete_model_layergroup)
+            self._model_layergroup_connected = False
+        self._model_layergroup = None
+
     def on_unload(self):
         self.model.model_schematisation_change.disconnect(
             self._on_set_schematisation)
@@ -94,6 +94,14 @@ class LayerTreeManager(object):
             if node.customProperty('legend/3di_tracer') == unicode(marker):
                 return node
         return None
+
+    @staticmethod
+    def create_layer(db_path, layer_name, geometry_column='',
+                     provider_type='spatialite'):
+        uri = QgsDataSourceURI()
+        uri.setDatabase(db_path)
+        uri.setDataSource('', layer_name, geometry_column)
+        return QgsVectorLayer(uri.uri(), layer_name, provider_type)
 
     def init_references_from_layer_tree(self):
         root = QgsProject.instance().layerTreeRoot()
@@ -220,12 +228,9 @@ class LayerTreeManager(object):
                               ]:
 
             for layer_name in layers:
-                uri = QgsDataSourceURI()
-                uri.setDatabase(threedi_spatialite)
-                uri.setDataSource('', layer_name, 'the_geom')
-
-                vector_layer = QgsVectorLayer(
-                    uri.uri(), layer_name, 'spatialite')
+                vector_layer = self.create_layer(threedi_spatialite,
+                                                 layer_name,
+                                                 geometry_column='the_geom')
 
                 if vector_layer.isValid():
                     QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
@@ -240,13 +245,7 @@ class LayerTreeManager(object):
 
         # add tables without geometry
         for group, table_name in tables:
-            uri = QgsDataSourceURI()
-            uri.setDatabase(threedi_spatialite)
-            uri.setDataSource('', table_name, '')
-
-            table_layer = QgsVectorLayer(uri.uri(),
-                                         table_name,
-                                         'spatialite')
+            table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
                 QgsMapLayerRegistry.instance().addMapLayer(table_layer, False)
@@ -294,7 +293,6 @@ class LayerTreeManager(object):
                     self._mark(tree_layer3, 'nodes')
 
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
-        # result = self.model.rows[result_row_nr]
         for row_nr in range(start_row, stop_row + 1):
             result = self.model.rows[row_nr]
             name = "%s%s" % (self.statistic_layergroup_basename,
@@ -307,7 +305,48 @@ class LayerTreeManager(object):
                 if group is None:
                     group = self.model_layergroup.insertGroup(3, name)
                     self._mark(group, marker)
-            # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+
+                if self._find_marked_child(group, 'v2_manhole') is None:
+                    new_layer = self.create_layer(
+                        self.model.model_spatialite_filepath, 'v2_manhole')
+
+                    # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+                    if new_layer.isValid():
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            new_layer, False)
+                        tree_layer = group.insertLayer(100, new_layer)
+                        self._mark(tree_layer, 'v2_manhole')
+                        # from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+
+                        cmd_path = ['stap 5 - Resultaten nabewerken',
+                                    'calc_manhole_statistics.py']
+                        mod = self.load_command_module(cmd_path)
+
+                        self.command = mod.CustomCommand()
+                        self.command.run_it(
+                            layer=new_layer,
+                            datasource=self.model.rows[row_nr],
+                            interactive=False)
+                        #from ..qdebug import pyqt_set_trace; pyqt_set_trace()
+
+    def load_command_module(self, path):
+        """Dynamically import and run the selected script from the tree view.
+        """
+        print(path)
+        # from .qdebug import pyqt_set_trace; pyqt_set_trace()
+        from ThreeDiToolbox.commands import toolbox_tools
+        toolbox_dir = os.path.dirname(toolbox_tools.__file__)
+        module_path = os.path.join(toolbox_dir, *path)
+        name, ext = os.path.splitext(path[-1])
+        if ext != '.py':
+            print("Not a Python script")
+            return
+        print(module_path)
+        print(name)
+        import imp
+        mod = imp.load_source(name, module_path)
+        print(mod)
+        return mod
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):

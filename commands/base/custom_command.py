@@ -6,7 +6,8 @@ from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QgsVectorJoinInfo
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 
 
-def join_stats(filepath, layer, view_layer_field, csv_field='id'):
+def join_stats(filepath, layer, view_layer_field, csv_field='id',
+               interactive=True):
     """Join the generated stats csv with the layer
 
     Args:
@@ -28,8 +29,9 @@ def join_stats(filepath, layer, view_layer_field, csv_field='id'):
     join_info.memoryCache = True
     layer.addJoin(join_info)
 
-    pop_up_info("Finished joining '%s' with '%s'." % (
-        csv_layer_name, layer.name()), title='Join finished')
+    if interactive:
+        pop_up_info("Finished joining '%s' with '%s'." % (
+            csv_layer_name, layer.name()), title='Join finished')
 
 
 class CustomCommandBase(object):
