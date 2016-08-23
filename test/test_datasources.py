@@ -11,7 +11,7 @@ from qgis.core import (
     QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
 from PyQt4.QtCore import QVariant
 
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource, get_variables
+from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
@@ -27,24 +27,6 @@ spatialite_datasource_path = os.path.join(
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'testmodel', 'results', 'subgrid_map.nc')
-
-
-class TestParameters(unittest.TestCase):
-    """Test functions that convert parameters to variable names in the
-    datasource."""
-
-    def test_get_variables(self):
-        vars = get_variables(object_type='pipe', parameters=['q'])
-        self.assertEqual(vars, ['q'])
-
-    def test_get_variables2(self):
-        """Get both u variable names for backwards compatability."""
-        vars = get_variables('pipe', ['u1'])
-        self.assertEqual(vars, ['u1'])
-
-    def test_get_variables3(self):
-        vars = get_variables('pumpstation', ['q'])
-        self.assertEqual(vars, ['q_pump'])
 
 
 @unittest.skipIf(not os.path.exists(netcdf_datasource_path),

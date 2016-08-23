@@ -618,28 +618,24 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-
         ds_item = self.time_slider.get_current_ts_datasource_item()
         if ds_item:
             ds = ds_item.datasource()
             for node in self.sideview_nodes:
                 try:
                     if python_value(node['idx']) is not None:
-                        ts = ds.get_timeseries('nodes',
-                                               int(node['nr']),
-                                               ['s1'])
+                        ts = ds.get_timeseries('nodes', int(node['nr']), 's1')
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
-                                               node['id'],
-                                               ['s1'])
-                    node['timeseries'] = ts['s1']
+                                               node['id'], 's1')
+                    node['timeseries'] = ts
                 except KeyError:
                     node['timeseries'] = None
 
             self.draw_waterlevel_line()
 
         else:
-             # reset water level line
+            # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 

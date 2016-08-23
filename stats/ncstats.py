@@ -67,8 +67,8 @@ class NcStats(object):
         element is another option, but not implemented here). Also note that q
         can be negative, so the absolute values are used.
         """
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         q_slice = np.absolute(q_slice)
         # calc total vol thru structure
         vols = self.timesteps * q_slice[0:-1]
@@ -76,8 +76,8 @@ class NcStats(object):
 
     def tot_vol_positive(self, structure_type, obj_id):
         """Total volume through structure, counting only positive q's."""
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         # mask negative values
         ma_q_slice = np.ma.masked_where(q_slice < 0, q_slice)
         # calc total vol thru structure
@@ -86,8 +86,8 @@ class NcStats(object):
 
     def tot_vol_negative(self, structure_type, obj_id):
         """Total volume through structure, counting only negative q's."""
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         # mask positive values
         ma_q_slice = np.ma.masked_where(q_slice > 0, q_slice)
         # calc total vol thru structure
@@ -97,8 +97,8 @@ class NcStats(object):
     def q_max(self, structure_type, obj_id):
         """Maximum value of a q timeseries; can be negative.
         """
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         _min = q_slice.min()
         _max = q_slice.max()
         # return highest absolute value, while retaining the sign of the number
@@ -107,8 +107,8 @@ class NcStats(object):
     def time_q_max(self, structure_type, obj_id):
         """The time at maximum value of a q timeseries
         """
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         _min = q_slice.min()
         _max = q_slice.max()
         # return highest absolute value, while retaining the sign of the number
@@ -118,8 +118,8 @@ class NcStats(object):
 
     def s1_max(self, structure_type, obj_id):
         """Maximum value of a s1 timeseries."""
-        s1_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1'])['s1']
+        s1_slice = self.datasource.get_values_by_id(
+            's1', structure_type, object_id=obj_id)
         return s1_slice.max()
 
     def q_cumulative_duration(self, structure_type, obj_id, threshold=None):
@@ -128,8 +128,8 @@ class NcStats(object):
         if threshold:
             # TODO: q values can be vary small, maybe add a threshold??
             raise NotImplementedError()
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
 
         # normalize nonzero qs to 1, so it becomes a binary representation
         # of q, which we can simply multiply with the timesteps
@@ -143,8 +143,8 @@ class NcStats(object):
 
         This means, count the timesteps where s1 - surface level > 0.
         """
-        s1_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['s1'])['s1']
+        s1_slice = self.datasource.get_values_by_id(
+            's1', structure_type, object_id=obj_id)
 
         water_op_straat = s1_slice - surface_level
 
@@ -158,8 +158,8 @@ class NcStats(object):
     def q_end(self, structure_type, obj_id):
         """q at last timeSTAMP (!= timestep)
         """
-        q_slice = self.datasource.get_timeseries_values(
-            structure_type, obj_id, ['q'])['q']
+        q_slice = self.datasource.get_values_by_id(
+            'q', structure_type, object_id=obj_id)
         return q_slice[-1]
 
     def get_value_from_parameter(

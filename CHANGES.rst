@@ -5,12 +5,17 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Refactored timeseries methods of NetcdfDataSource, more consistent
+  ``get_values_of`` methods.
+
+- Made ``get_timeseries`` only accept one netCDF variable name.
+
 - Add Layer Manager, which loads the model and result layers.
 
 - Add map animator for showing results on the map (first version, work in progress).
 
 - Made the parameter config variable for the Graph and Map animator tools. Add
- parameters so almost all results from netCDF and result netCDF can be displayed.
+  parameters so almost all results from netCDF and result netCDF can be displayed.
 
 - Optimizations in getting the time array from netCDF.
 
@@ -29,7 +34,7 @@ threedi-qgis-plugin changelog
 
 - Updated NetcdfDataSource so that it keeps some netCDF attributes in memory.
 
-- Stores selected model and results in Qgs project file (*.qgs).
+- Stores selected model and results in Qgs project file (\*.qgs).
 
 - Cache generated model layers in spatialite.
 
