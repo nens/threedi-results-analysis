@@ -8,6 +8,7 @@ addons:
     packages:
       - libhdf5-serial-dev
       - libnetcdf-dev
+      - libqt4-dev
       - python-qt4
 
 install:
