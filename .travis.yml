@@ -11,4 +11,4 @@ addons:
 
 install:
     - pip install netCDF4 nose
-script: nosetests
+script: cd .. && nosetests
