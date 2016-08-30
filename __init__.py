@@ -74,8 +74,13 @@ except ImportError:
             os.path.dirname(os.path.realpath(__file__)),
             'external', 'pyqtgraph-0.9.10'))
         import pyqtgraph
-
-print os.path.dirname(pyqtgraph.__file__)
+except Exception:
+    # TODO: fix this error (which is the reason of this exception):
+    # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
+    # could be imported.
+    print("Probably couldn't import PyQt")
+else:
+    print os.path.dirname(pyqtgraph.__file__)
 
 
 # noinspection PyPep8Naming
