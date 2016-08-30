@@ -6,10 +6,11 @@ python:
 addons:
   apt:
     packages:
-      - python-qgis
       - libhdf5-serial-dev
       - libnetcdf-dev
 
 install:
     - pip install netCDF4 nose
-script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox && nosetests
+
+script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox && \
+    python -m unittest ThreeDiToolbox.test.test_stats
