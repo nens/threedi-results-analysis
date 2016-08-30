@@ -11,4 +11,4 @@ addons:
 
 install:
     - pip install netCDF4 nose
-script: cd .. && nosetests
+script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox && nosetests
