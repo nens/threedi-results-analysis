@@ -6,6 +6,7 @@ python:
 addons:
   apt:
     packages:
+      - python-qgis
       - libhdf5-serial-dev
       - libnetcdf-dev
 
