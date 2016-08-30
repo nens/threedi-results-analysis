@@ -12,5 +12,4 @@ addons:
 install:
     - pip install netCDF4 nose
 
-script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox && \
-    python -m unittest ThreeDiToolbox.test.test_stats
+script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox && python -m unittest ThreeDiToolbox.test.test_stats
