@@ -1,3 +1,10 @@
+# If you don't include this import the test 'test_set_and_load_list'
+# test_project will fail! WTF?
+try:
+    from qgis.gui import QgsMessageBar
+except ImportError:
+    pass
+
 from PyQt4.QtGui import QMessageBox, QProgressBar
 from PyQt4.QtCore import Qt
 
