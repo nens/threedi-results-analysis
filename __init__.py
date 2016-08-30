@@ -69,11 +69,17 @@ try:
     import pyqtgraph
     log('Use local installation of pyqtgraph ')
 except ImportError:
-        log('Use provided version of pyatgraph')
-        sys.path.append(os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'external', 'pyqtgraph-0.9.10'))
+    log('Use provided version of pyatgraph')
+    sys.path.append(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'external', 'pyqtgraph-0.9.10'))
+    try:
         import pyqtgraph
+    except:
+        # TODO: fix this error (which is the reason of this exception):
+        # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
+        # could be imported.
+        pass
 except Exception:
     # TODO: fix this error (which is the reason of this exception):
     # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
