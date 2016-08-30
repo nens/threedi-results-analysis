@@ -23,7 +23,10 @@
 """
 import sys
 import os
-from utils.user_messages import pop_up_info, log
+try:
+    from utils.user_messages import pop_up_info, log
+except:
+    pop_up_info = log = lambda x: x
 
 msg = ''
 try:
