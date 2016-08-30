@@ -25,7 +25,7 @@ import sys
 import os
 try:
     from utils.user_messages import pop_up_info, log
-except:
+except ImportError:
     pop_up_info = log = lambda x: x
 
 msg = ''

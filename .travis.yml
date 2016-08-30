@@ -8,6 +8,7 @@ addons:
     packages:
       - libhdf5-serial-dev
       - libnetcdf-dev
+      - python-qt4
 
 install:
     - pip install netCDF4 nose
