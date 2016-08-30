@@ -7,7 +7,6 @@ addons:
   apt:
     packages:
       - libhdf5-serial-dev
-      - netcdf-bin
       - libnetcdf-dev
 
 install:
