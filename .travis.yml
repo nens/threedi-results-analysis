@@ -2,9 +2,14 @@ language: python
 sudo: false
 python:
     - 2.7
-before_install:
-    - sudo apt-get -qq update
-    - sudo apt-get install -y libhdf5-serial-dev libnetcdf-dev
+
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev
+      - netcdf-bin
+      - libnetcdf-dev
+
 install:
     - pip install netCDF4 nose
 script: nosetests
