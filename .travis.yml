@@ -13,3 +13,6 @@ install:
     - pip install netCDF4 nose
 
 script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && python -m unittest ThreeDiToolbox.test.test_stats
+
+notifications:
+    email: false
