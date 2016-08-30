@@ -66,11 +66,11 @@ try:
     import pyqtgraph
     log('Use local installation of pyqtgraph ')
 except ImportError:
-        log('Use provided version of pyatgraph')
-        sys.path.append(os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'external', 'pyqtgraph-0.9.10'))
-        import pyqtgraph
+    log('Use provided version of pyatgraph')
+    sys.path.append(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'external', 'pyqtgraph-0.9.10'))
+    import pyqtgraph
 
 print os.path.dirname(pyqtgraph.__file__)
 
