@@ -27,8 +27,8 @@ class NcStats(object):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = [
-        'tot_vol', 'q_max', 'q_cumulative_duration', 'q_end',
-        'tot_vol_positive', 'tot_vol_negative', 'time_q_max']
+        'q_max', 'q_cumulative_duration', 'q_end', 'tot_vol_positive',
+        'tot_vol_negative', 'time_q_max']
     AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 'wos_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
@@ -57,22 +57,6 @@ class NcStats(object):
     @property
     def timestamps(self):
         return self.datasource.timestamps
-
-    def tot_vol(self, structure_type, obj_id):
-        """Total volume through a structure. Structures are: pipes, weirs,
-        orifices, pumps (pumps q's are in another netCDF array, but are
-        supported in the datasource using the usual 'q' name).
-
-        Note that the last element in q_slice is skipped (skipping the first
-        element is another option, but not implemented here). Also note that q
-        can be negative, so the absolute values are used.
-        """
-        q_slice = self.datasource.get_values_by_id(
-            'q', structure_type, object_id=obj_id)
-        q_slice = np.absolute(q_slice)
-        # calc total vol thru structure
-        vols = self.timesteps * q_slice[0:-1]
-        return vols.sum()
 
     def tot_vol_positive(self, structure_type, obj_id):
         """Total volume through structure, counting only positive q's."""

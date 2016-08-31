@@ -300,8 +300,15 @@ class LayerTreeManager(object):
             marker = 'statistic_%s' % result.file_path.value
 
             node_layers = ['v2_manhole']
+            line_layers = ['v2_weir_view',
+                           'v2_culvert_view',
+                           'v2_orifice_view',
+                           'v2_pipe_view',
+                           ]
             manhole_cmd = ['stap 5 - Resultaten nabewerken',
                            'calc_manhole_statistics.py']
+            structure_cmd = ['stap 5 - Resultaten nabewerken',
+                             'calc_structure_statistics.py']
 
             if self.model_layergroup is not None:
                 group = self._find_marked_child(self.model_layergroup, marker)
@@ -314,6 +321,30 @@ class LayerTreeManager(object):
                     if self._find_marked_child(group, layername) is None:
                         new_layer = self.create_layer(
                             self.model.model_spatialite_filepath, layername)
+                        if new_layer.isValid():
+                            # Add created layer to map and group
+                            QgsMapLayerRegistry.instance().addMapLayer(
+                                new_layer, False)
+                            tree_layer = group.insertLayer(100, new_layer)
+                            self._mark(tree_layer, layername)
+
+                            # Generate stats (side-effect: joins layer) and
+                            # insert the csv layer
+                            mod = self.load_command_module(manhole_cmd)
+                            command = mod.CustomCommand()
+                            csv_layer = command.run_it(
+                                layer=new_layer,
+                                datasource=self.model.rows[row_nr],
+                                interactive=False,
+                                add_to_legend=False)
+                            csv_tree_layer = group.insertLayer(100, csv_layer)
+                            self._mark(csv_tree_layer, csv_layer.name())
+
+                for layername in line_layers:
+                    if self._find_marked_child(group, layername) is None:
+                        new_layer = self.create_layer(
+                            self.model.model_spatialite_filepath, layername,
+                            geometry_column='the_geom')
 
                         if new_layer.isValid():
                             QgsMapLayerRegistry.instance().addMapLayer(
@@ -321,8 +352,9 @@ class LayerTreeManager(object):
                             tree_layer = group.insertLayer(100, new_layer)
                             self._mark(tree_layer, layername)
 
-                            mod = self.load_command_module(manhole_cmd)
-
+                            # Generate stats (side-effect: joins layer) and
+                            # insert the csv layer
+                            mod = self.load_command_module(structure_cmd)
                             command = mod.CustomCommand()
                             csv_layer = command.run_it(
                                 layer=new_layer,

@@ -48,7 +48,8 @@ class CustomCommand(CustomCommandBase):
             iface=self.iface, ts_datasource=self.ts_datasource, command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
-    def run_it(self, layer=None, datasource=None):
+    def run_it(self, layer=None, datasource=None, add_to_legend=True,
+               interactive=True):
         if layer:
             self.layer = layer
         if datasource:
@@ -67,7 +68,10 @@ class CustomCommand(CustomCommandBase):
                         "%s" % (layer_name, structures), title='Error')
             return
 
-        include_2d = pop_up_question("Include 2D?")
+        if interactive:
+            include_2d = pop_up_question("Include 2D?")
+        else:
+            include_2d = True
 
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
@@ -122,9 +126,17 @@ class CustomCommand(CustomCommandBase):
             for fid, val_dict in result.items():
                 writer.writerow(val_dict)
 
-        pop_up_info("Generated: %s" % filepath, title='Finished')
+        if interactive:
+            pop_up_info("Generated: %s" % filepath, title='Finished')
 
-        if pop_up_question(
+        join_it = True
+        if interactive:
+            join_it = pop_up_question(
                 msg="Do you want to join the CSV with the view layer?",
-                title="Join"):
-            join_stats(filepath, self.layer, layer_id_name)
+                title="Join")
+
+        if join_it:
+            csv_layer = join_stats(
+                filepath, self.layer, layer_id_name, interactive=interactive,
+                add_to_legend=add_to_legend)
+            return csv_layer

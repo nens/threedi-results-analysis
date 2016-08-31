@@ -118,7 +118,7 @@ layer_information = [
     ('v2_connection_nodes', 'connection_nodes', 'h'),
     ('v2_pipe_view', 'pipe', 'q'),
     ('v2_channel', 'channel', 'q'),
-    ('v2_culvert', 'culvert', 'q'),
+    ('v2_culvert_view', 'culvert', 'q'),
     ('v2_pumpstation', 'pumpstation', 'q'),
     ('v2_pumpstation_view', 'pumpstation', 'q'),
     ('v2_weir_view', 'weir', 'q'),
