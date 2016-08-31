@@ -31,6 +31,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.ts_datasource = ts_datasource
         self.command = command
 
+        self.db_path = ts_datasource.model_spatialite_filepath
         self.database_combo.addItems(
             [ts_datasource.model_spatialite_filepath])
 
@@ -39,6 +40,8 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
+
+        self.filename = None
 
     def select_sufhyd_file(self):
 
@@ -55,13 +58,19 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
                                             'Sufhyd (*.hyd)')
 
         if filename:
+            self.filename = filename
             self.file_combo.addItems([filename])
 
+            settings.setValue('last_used_import_path',
+                              os.path.dirname(filename))
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
         self.accept()
-        self.command.run_it()
+
+
+        self.command.run_it(self.filename, self.db_path)
+
 
     def on_reject(self):
         """Cancel"""

@@ -8,9 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, MetaData
-from ..external.spatialalchemy.types import Geometry
+from ThreeDiToolbox.external.spatialalchemy.types import Geometry
 
-from ..sql_models.model_schematisation import Base
+from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 
 class ThreediDatabase(object):
