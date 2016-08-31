@@ -1,15 +1,12 @@
 import os
-import ogr
 import copy
 
+import ogr
 from pyspatialite import dbapi2
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, MetaData
-from ThreeDiToolbox.external.spatialalchemy.types import Geometry
 
+from .sqlalchemy_add_columns import create_and_upgrade
 from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 
@@ -29,6 +26,9 @@ class ThreediDatabase(object):
         self._combined_base = None
         self._base = None
 
+    def create_and_check_fields(self):
+
+        create_and_upgrade(self.engine, self.get_base().metadata)
 
     def create_db(self, overwrite=False):
         if self.db_type == 'sqlite':
@@ -58,14 +58,13 @@ class ThreediDatabase(object):
         if including_existing_tables:
             if self._combined_base is None:
                 self._combined_base = copy.deepcopy(Base)
-                self._combined_base.bind = self.engine
-                self._combined_base.reflect(extend_existing=True)
+                self._combined_base.metadata.bind = self.engine
+                self._combined_base.metadata.reflect(extend_existing=True)
             return self._combined_base
         else:
             if self._base is None:
                 self._base = copy.deepcopy(Base)
             return self._base
-
 
     def get_session(self):
         return sessionmaker(bind=self.engine)()
