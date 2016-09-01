@@ -4,6 +4,10 @@ from qgis.core import (
     QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer,
     QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform)
 
+from .utils import csv_join
+from ..stats.utils import (
+    generate_structure_stats, generate_manhole_stats)
+
 
 class LayerTreeManager(object):
 
@@ -306,11 +310,10 @@ class LayerTreeManager(object):
                            'v2_culvert_view',
                            'v2_orifice_view',
                            'v2_pipe_view',
+                           'foo'
                            ]
-            manhole_cmd = ['stap 5 - Resultaten nabewerken',
-                           'calc_manhole_statistics.py']
-            structure_cmd = ['stap 5 - Resultaten nabewerken',
-                             'calc_structure_statistics.py']
+            # output dir of the csvs (= model result dir)
+            output_dir = os.path.dirname(result.file_path.value)
 
             if self.model_layergroup is not None:
                 group = self._find_marked_child(self.model_layergroup, marker)
@@ -323,6 +326,7 @@ class LayerTreeManager(object):
                     if self._find_marked_child(group, layername) is None:
                         new_layer = self.create_layer(
                             self.model.model_spatialite_filepath, layername)
+
                         if new_layer.isValid():
                             # Add created layer to map and group
                             QgsMapLayerRegistry.instance().addMapLayer(
@@ -330,15 +334,20 @@ class LayerTreeManager(object):
                             tree_layer = group.insertLayer(100, new_layer)
                             self._mark(tree_layer, layername)
 
-                            # Generate stats (side-effect: joins layer) and
-                            # insert the csv layer
-                            mod = self.load_command_module(manhole_cmd)
-                            command = mod.CustomCommand()
-                            csv_layer = command.run_it(
-                                layer=new_layer,
-                                datasource=self.model.rows[row_nr],
-                                interactive=False,
+                            # Generate stats, join the csv with layer, and
+                            # insert the csv as layer
+                            try:
+                                filepath, layer_id_name = \
+                                    generate_manhole_stats(
+                                        result.datasource(), output_dir,
+                                        new_layer, include_2d=True)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                            csv_layer = csv_join(
+                                filepath, new_layer, layer_id_name,
                                 add_to_legend=False)
+
                             csv_tree_layer = group.insertLayer(100, csv_layer)
                             self._mark(csv_tree_layer, csv_layer.name())
 
@@ -354,31 +363,22 @@ class LayerTreeManager(object):
                             tree_layer = group.insertLayer(100, new_layer)
                             self._mark(tree_layer, layername)
 
-                            # Generate stats (side-effect: joins layer) and
-                            # insert the csv layer
-                            mod = self.load_command_module(structure_cmd)
-                            command = mod.CustomCommand()
-                            csv_layer = command.run_it(
-                                layer=new_layer,
-                                datasource=self.model.rows[row_nr],
-                                interactive=False,
+                            # Generate stats, join the csv with layer, and
+                            # insert the csv as layer
+                            try:
+                                filepath, layer_id_name = \
+                                    generate_structure_stats(
+                                        result.datasource(), output_dir,
+                                        new_layer, include_2d=True)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                            csv_layer = csv_join(
+                                filepath, new_layer, layer_id_name,
                                 add_to_legend=False)
+
                             csv_tree_layer = group.insertLayer(100, csv_layer)
                             self._mark(csv_tree_layer, csv_layer.name())
-
-    def load_command_module(self, path_array):
-        """Dynamically import and run the selected script from the tree view.
-        """
-        from ThreeDiToolbox.commands import toolbox_tools
-        toolbox_dir = os.path.dirname(toolbox_tools.__file__)
-        module_path = os.path.join(toolbox_dir, *path_array)
-        name, ext = os.path.splitext(path_array[-1])
-        if ext != '.py':
-            print("Not a Python script")
-            return
-        import imp
-        mod = imp.load_source(name, module_path)
-        return mod
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
