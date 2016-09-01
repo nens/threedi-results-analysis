@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Import of sufhyd files
+
 - Refactored timeseries methods of NetcdfDataSource, more consistent
   ``get_values_of`` methods.
 
