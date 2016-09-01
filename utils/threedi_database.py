@@ -51,6 +51,12 @@ class ThreediDatabase(object):
                                                 self.settings['db_file']),
                                              module=dbapi2,
                                              echo=self.echo)
+            elif self.db_type == 'postgres':
+                con = "postgresql://{username}:{password}@{host}:{port}/{database}".format(**self.settings)
+
+                self._engine = create_engine(con,
+                                             echo=self.echo)
+
         return self._engine
 
     def get_base(self, including_existing_tables=True):

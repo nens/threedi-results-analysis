@@ -9,6 +9,8 @@ import cPickle
 from ThreeDiToolbox.utils.import_sufhyd import Importer, transform
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
+from ThreeDiToolbox.external.spatialalchemy import types
+from sqlalchemy import select
 
 
 class TestImportNewDB(unittest.TestCase):
@@ -57,6 +59,44 @@ class TestImportExistingDB(unittest.TestCase):
         # session.add(a)
         # session.commit()
 
+        data = []
+
+        importer = Importer(self.sufhyd_file, self.db)
+
+        # data = importer.load_sufhyd_data()
+
+        # importer.check_import_data(data)
+
+        # importer.transform_import_data(data)
+
+        importer.write_data_to_db(data)
+
+
+
+class TestPostgresConnection(unittest.TestCase):
+
+    def test_setup(self):
+        self.db = ThreediDatabase({'host': 'localhost',
+                                   'port': '5432',
+                                   'database': 'test_gis',
+                                   'username': 'postgres',
+                                   'password': 'postgres'},
+                                  'postgres')
+
+class TestImportPostgres(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp_directory = tempfile.mkdtemp()
+        self.sufhyd_file = os.path.join('c://tmp', 'test.hyd')
+        self.db = ThreediDatabase({'host': 'localhost',
+                                   'port': '5432',
+                                   'database': 'test_gis',
+                                   'username': 'postgres',
+                                   'password': 'postgres'},
+                                  'postgres')
+
+    def test_setup(self):
+
         importer = Importer(self.sufhyd_file, self.db)
 
         data = importer.load_sufhyd_data()
@@ -68,6 +108,14 @@ class TestImportExistingDB(unittest.TestCase):
         importer.write_data_to_db(data)
 
 
+class TestSelectGeometry(unittest.TestCase):
 
 
+    def test_setup(self):
+        from sqlalchemy.dialects import postgresql
+
+
+        statement = select([types.ST_GeomFromEWKT('POINT')])
+
+        print statement.compile(dialect=postgresql.dialect())
 

@@ -21,18 +21,25 @@ from .elements import WKBElement, WKTElement, RasterElement, CompositeElement
 
 
 class ST_GeomFromEWKT(functions.Function):
-    name = "ST_GeomFromEWKT" # EWKT"
+    name = "ST_GeomFromEWKT"
     identifier = "ST_GeomFromEWKT"
 
     def __init__(self, bind_parameters, *args, **kwargs):
         functions.Function.__init__(self, self.name, bind_parameters, *args, **kwargs)
 
 
+@compiles(ST_GeomFromEWKT, 'default')
+def visit_ST_GeomFromEWKT(element, compiler, **kwargs):
+
+    compiler.visit_function(element, **kwargs)
+    return "ST_GeomFromEWKT(?)"
+
+
 @compiles(ST_GeomFromEWKT, 'sqlite')
 def visit_ST_GeomFromEWKT(element, compiler, **kwargs):
 
     compiler.visit_function(element, **kwargs)
-    return "GeomFromEWKT(?)" #EWKT(?)"
+    return "GeomFromEWKT(?)"
 
 
 class ST_AsEWKB(functions.Function):
@@ -41,6 +48,13 @@ class ST_AsEWKB(functions.Function):
 
     def __init__(self, bind_parameters, *args, **kwargs):
         functions.Function.__init__(self, self.name, bind_parameters, *args, **kwargs)
+
+
+@compiles(ST_AsEWKB, 'default')
+def visit_ST_AsEWKB_def(element, compiler, **kwargs):
+
+    # compiler.visit_function(element, **kwargs)
+    return "ST_AsEWKB(%s)" % compiler.process(element.clauses)
 
 
 @compiles(ST_AsEWKB, 'sqlite')

@@ -4,6 +4,8 @@
 import logging
 import inspect
 
+from PyQt4.QtCore import QSettings
+
 from ThreeDiToolbox.views.import_sufhyd_dialog import (
     ImportSufhydDialogWidget)
 from ThreeDiToolbox.commands.base.custom_command import (
@@ -50,11 +52,11 @@ class CustomCommand(CustomCommandBase):
             iface=self.iface, ts_datasource=self.ts_datasource, command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
-    def run_it(self, sufhyd_file, db_file):
+    def run_it(self, sufhyd_file, db_set, db_type):
 
         # todo: check if database is empty, otherwise popup
 
-        db = ThreediDatabase({'db_file': db_file})
+        db = ThreediDatabase(db_set, db_type)
         importer = Importer(sufhyd_file, db)
         importer.run_import()
 

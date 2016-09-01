@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt4.QtCore import pyqtSignal, QSettings
-from PyQt4.QtGui import QDialog, QFileDialog, QMessageBox
+from PyQt4.QtGui import QDialog, QFileDialog
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
+from qgis.gui import QgsCredentialDialog
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -32,8 +33,9 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.command = command
 
         self.db_path = ts_datasource.model_spatialite_filepath
+        self.databases = self.get_databases()
         self.database_combo.addItems(
-            [ts_datasource.model_spatialite_filepath])
+            self.databases.keys())
 
         self.file_button.clicked.connect(self.select_sufhyd_file)
 
@@ -66,11 +68,64 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
+
+
+        db_key = self.database_combo.currentText()
+
+        settings = self.databases[db_key]
+        db_set = settings['db_settings']
+
+        if settings['db_type'] == 'sqlite':
+            pass
+        else:  # postgres
+
+            successful_connection = False
+
+            uname = db_set['username']
+            passwd = db_set['password']
+            msg = 'Log in'
+
+            while not successful_connection:
+
+                uri = QgsDataSourceURI()
+                uri.setConnection(db_set['host'],
+                                  db_set['port'],
+                                  db_set['database'],
+                                  db_set['username'],
+                                  db_set['password'])
+
+                # try to connect
+                # create a PostgreSQL connection using QSqlDatabase
+                db = QSqlDatabase.addDatabase('QPSQL')
+                # check to see if it is valid
+
+                db.setHostName(uri.host())
+                db.setDatabaseName(uri.database())
+                db.setPort(int(uri.port()))
+                db.setUserName(uri.username())
+                db.setPassword(uri.password())
+
+                # open (create) the connection
+                if db.open():
+                    successful_connection = True
+                    break
+                else:
+                    # todo - provide feedback what is wrong
+                    pass
+
+                connInfo = uri.connectionInfo()
+                (success, uname, passwd) = \
+                    QgsCredentialDialog.instance().get(connInfo, uname, passwd, msg)
+
+                if success:
+                    db_set['username'] = passwd
+                    db_set['password'] = uname
+                else:
+                    return
+
+        self.command.run_it(self.filename, db_set, settings['db_type'])
+
         self.accept()
-
-
-        self.command.run_it(self.filename, self.db_path)
-
 
     def on_reject(self):
         """Cancel"""
@@ -88,3 +143,57 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.file_button.clicked.disconnect(self.select_sufhyd_file)
 
         event.accept()
+
+    def get_databases(self):
+        available_dbs = {}
+        qs = QSettings()
+
+        spatialite_keys = (k for k in qs.allKeys() if
+                           k.startswith('SpatiaLite') and k.endswith('sqlitepath'))
+        for k in spatialite_keys:
+            db_name = k[23:-11]
+            settings = {
+                'key': k,
+                'db_name': db_name,
+                'combo_key': 'spatialite: {0}'.format(db_name),
+                'db_type': 'sqlite',
+                'db_settings': {
+                    'db_path': qs.value(k)
+                }
+            }
+
+            available_dbs[settings['combo_key']] = settings
+
+        postgres_keys = (k for k in qs.allKeys() if k.startswith('PostgreSQL') and k.endswith('host'))
+        for k in postgres_keys:
+            db_name = k[23:-5]
+            prefix = k[:-5]
+            settings = {
+                'key': k,
+                'db_name': db_name,
+                'combo_key': 'postgres: {0}'.format(db_name),
+                'db_type': 'postgres',
+                'db_settings': {
+                    'host': qs.value(prefix + '/host'),
+                    'port': qs.value(prefix + '/port'),
+                    'database': qs.value(prefix + '/database'),
+                    'username': qs.value(prefix + '/username'),
+                    'password': qs.value(prefix + '/password'),
+                }
+            }
+
+            if qs.value(prefix + '/saveUsername') == u'true':
+                settings['saveUsername'] = True
+                settings['db_settings']['username'] = qs.value(prefix + '/username')
+            else:
+                settings['saveUsername'] = False
+
+            if qs.value(prefix + '/savePassword') == u'true':
+                settings['savePassword'] = True
+                settings['db_settings']['password'] = qs.value(prefix + '/password')
+            else:
+                settings['savePassword'] = False
+
+            available_dbs[settings['combo_key']] = settings
+
+        return available_dbs
