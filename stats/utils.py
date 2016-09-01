@@ -64,18 +64,43 @@ def _calc_results(
     return result
 
 
-def generate_manhole_stats(nds, result_dir, layer, include_2d=True):
+def get_manhole_layer_id_name(layer_name):
+    """Get the primary key name of the layer (only node layers!)"""
+    if layer_name == 'nodes':
+        # It's a memory layer
+        layer_id_name = 'id'
+    elif 'v2' in layer_name:
+        # It's a v2 spatialite layer
+        layer_id_name = 'id'
+    else:
+        # It's sewerage spatialite (no agg. netcdf)
+        layer_id_name = 'id'
+    return layer_id_name
+
+
+def get_structure_layer_id_name(layer_name):
+    """Get the primary key name of the layer (only line/structure layers!)"""
+    if layer_name == 'flowlines':
+        layer_id_name = 'id'
+    else:
+        # It's a view
+        layer_id_name = 'ROWID'
+    return layer_id_name
+
+
+def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
+                           include_2d=True):
     """Generate stats for manhole like objects and write to csv.
 
     Args:
         nds: NetcdfDataSource
         result_dir: output directory
         layer: qgis layer
+        layer_id_name: the pk of the layer
         include_2d: include 2d features (only applicable for lines)
 
     Returns:
-        tuple: (filepath generated csv,
-                primary key of the layer that's been used)
+        filepath generated csv
     """
 
     # node-like layers for which this script works (without the 'v2_' or
@@ -95,20 +120,15 @@ def generate_manhole_stats(nds, result_dir, layer, include_2d=True):
     if layer_name == 'v2_manhole':
         layer_name = 'v2_connection_nodes'
 
-    # Get the primary key of the layer, plus other specifics:
     # TODO: not sure if we want to make ncstats distinction based on
     # the layer type
     if layer_name == 'nodes':
-        # It's a memory layer
-        layer_id_name = 'id'
         ncstats = NcStatsAgg(datasource=nds)
     elif 'v2' in layer_name:
         # It's a v2 spatialite layer
-        layer_id_name = 'id'
         ncstats = NcStatsAgg(datasource=nds)
     else:
         # It's sewerage spatialite (no agg. netcdf)
-        layer_id_name = 'id'
         ncstats = NcStats(datasource=nds)
 
     # All the NcStats parameters we want to calculate (can differ per
@@ -177,21 +197,22 @@ def generate_manhole_stats(nds, result_dir, layer, include_2d=True):
         writer.writeheader()
         for fid, val_dict in result.items():
             writer.writerow(val_dict)
-    return filepath, layer_id_name
+    return filepath
 
 
-def generate_structure_stats(nds, result_dir, layer, include_2d=True):
+def generate_structure_stats(nds, result_dir, layer, layer_id_name,
+                             include_2d=True):
     """Generate stats for structure objects and write to csv.
 
     Args:
         nds: NetcdfDataSource
         result_dir: output directory
         layer: qgis layer
+        layer_id_name: the pk of the layer
         include_2d: include 2d features (only applicable for lines)
 
     Returns:
-        tuple: (filepath generated csv,
-                primary key of the layer that's been used)
+        filepath generated csv
     """
     layer_name = layer.name()
     structures = ['weir', 'pumpstation', 'pipe', 'orifice', 'culvert',
@@ -201,15 +222,12 @@ def generate_structure_stats(nds, result_dir, layer, include_2d=True):
             "%s is not a valid structure layer. Valid layers are: %s" %
             (layer_name, structures))
 
-    # Get the primary key of the layer, plus other specifics:
     if layer_name == 'flowlines':
-        layer_id_name = 'id'
         # TODO: not sure if we want to make ncstats distinction based on
         # the layer type
         ncstats = NcStatsAgg(datasource=nds)
     else:
         # It's a view
-        layer_id_name = 'ROWID'
         ncstats = NcStats(datasource=nds)
 
     # Generate data
@@ -249,4 +267,4 @@ def generate_structure_stats(nds, result_dir, layer, include_2d=True):
         writer.writeheader()
         for fid, val_dict in result.items():
             writer.writerow(val_dict)
-    return filepath, layer_id_name
+    return filepath

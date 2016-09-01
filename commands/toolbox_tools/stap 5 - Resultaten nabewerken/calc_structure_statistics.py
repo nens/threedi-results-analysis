@@ -6,7 +6,8 @@ import os
 
 from ThreeDiToolbox.utils import csv_join
 from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
-from ThreeDiToolbox.stats.utils import generate_structure_stats
+from ThreeDiToolbox.stats.utils import (
+    generate_structure_stats, get_structure_layer_id_name)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import (
     CustomCommandBase)
@@ -68,9 +69,11 @@ class CustomCommand(CustomCommandBase):
         result_dir = os.path.dirname(self.datasource.file_path.value)
         nds = self.datasource.datasource()  # the netcdf datasource
 
+        layer_id_name = get_structure_layer_id_name(self.layer.name())
         try:
-            filepath, layer_id_name = generate_structure_stats(
-                nds, result_dir, self.layer, include_2d=include_2d)
+            filepath = generate_structure_stats(
+                nds, result_dir, self.layer, layer_id_name,
+                include_2d=include_2d)
         except ValueError as e:
             if interactive:
                 pop_up_info(e.message, title='Error')

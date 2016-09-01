@@ -6,7 +6,11 @@ from qgis.core import (
 
 from .utils import csv_join
 from ..stats.utils import (
-    generate_structure_stats, generate_manhole_stats)
+    generate_structure_stats,
+    generate_manhole_stats,
+    get_structure_layer_id_name,
+    get_manhole_layer_id_name,
+    )
 
 
 class LayerTreeManager(object):
@@ -336,11 +340,12 @@ class LayerTreeManager(object):
 
                             # Generate stats, join the csv with layer, and
                             # insert the csv as layer
+                            layer_id_name = get_manhole_layer_id_name(
+                                new_layer.name())
                             try:
-                                filepath, layer_id_name = \
-                                    generate_manhole_stats(
-                                        result.datasource(), output_dir,
-                                        new_layer, include_2d=True)
+                                filepath = generate_manhole_stats(
+                                    result.datasource(), output_dir,
+                                    new_layer, layer_id_name, include_2d=True)
                             except ValueError as e:
                                 print(e.message)
                                 continue
@@ -365,11 +370,12 @@ class LayerTreeManager(object):
 
                             # Generate stats, join the csv with layer, and
                             # insert the csv as layer
+                            layer_id_name = get_structure_layer_id_name(
+                                new_layer.name())
                             try:
-                                filepath, layer_id_name = \
-                                    generate_structure_stats(
-                                        result.datasource(), output_dir,
-                                        new_layer, include_2d=True)
+                                filepath = generate_structure_stats(
+                                    result.datasource(), output_dir,
+                                    new_layer, layer_id_name, include_2d=True)
                             except ValueError as e:
                                 print(e.message)
                                 continue
