@@ -41,6 +41,7 @@ class LayerTreeManager(object):
             self._on_set_schematisation)
         # self.model.dataChanged.connect(self.on_change)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
+        self.model.rowsAboutToBeRemoved.connect(self.remove_statistics)
         self.model.rowsInserted.connect(self.add_results)
         self.model.rowsInserted.connect(self.add_statistic_layers)
 
@@ -73,6 +74,7 @@ class LayerTreeManager(object):
         self.model.model_schematisation_change.disconnect(
             self._on_set_schematisation)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
+        self.model.rowsAboutToBeRemoved.connect(self.remove_statistics)
         self.model.rowsInserted.connect(self.add_results)
         self.model.rowsInserted.connect(self.add_statistic_layers)
 
@@ -266,7 +268,7 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(2, name)
                     self._mark(group, 'result_' + result.file_path.value)
 
-                line, node, pumpline = result.get_memory_layers()
+                line, node, pumpline = result.get_result_layers()
 
                 if self._find_marked_child(group, 'flowlines') is None:
                     # apply default styling on memory layers
@@ -383,6 +385,15 @@ class LayerTreeManager(object):
             result = self.model.rows[row_nr]
             group = self._find_marked_child(self.model_layergroup,
                                             'result_' + result.file_path.value)
+            if group is not None:
+                group.removeAllChildren()
+                self.model_layergroup.removeChildNode(group)
+
+    def remove_statistics(self, index, start_row, stop_row):
+        for row_nr in range(start_row, stop_row + 1):
+            result = self.model.rows[row_nr]
+            group = self._find_marked_child(
+                self.model_layergroup, 'statistic_' + result.file_path.value)
             if group is not None:
                 group.removeAllChildren()
                 self.model_layergroup.removeChildNode(group)

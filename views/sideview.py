@@ -909,7 +909,7 @@ class SideViewDockWidget(QDockWidget):
         # create point and line layer out of spatialite layers
         if self.tdi_root_tool.timeslider_widget.active_datasource is not None:
             line, node, pump = self.tdi_root_tool.timeslider_widget.\
-                    active_datasource.get_memory_layers()
+                active_datasource.get_result_layers()
         else:
             line = None
 
