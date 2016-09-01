@@ -3,6 +3,13 @@ import csv
 from .ncstats import NcStats, NcStatsAgg
 
 
+def get_default_csv_path(layer_name, result_dir):
+    """The default file path the stats generating functions in this module
+    write to."""
+    filename = layer_name + '_stats.csv'
+    return os.path.join(result_dir, filename)
+
+
 def _calc_results(
         ncstats, parameters, layer_name, feature_id,
         surface_level=None, bottom_level=None):
@@ -187,8 +194,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         result[fid].update(results_from_params)
 
     # Write to csv file
-    filename = old_layer_name + '_stats.csv'
-    filepath = os.path.join(result_dir, filename)
+    filepath = get_default_csv_path(old_layer_name, result_dir)
     with open(filepath, 'wb') as csvfile:
         fieldnames = ['id'] + parameters
 
@@ -258,8 +264,7 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
                 result[fid][param_name] = None
 
     # Write to csv file
-    filename = layer_name + '_stats.csv'
-    filepath = os.path.join(result_dir, filename)
+    filepath = get_default_csv_path(layer_name, result_dir)
     with open(filepath, 'wb') as csvfile:
         fieldnames = ['id'] + ncstats.AVAILABLE_STRUCTURE_PARAMETERS
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,

@@ -10,6 +10,7 @@ from ..stats.utils import (
     generate_manhole_stats,
     get_structure_layer_id_name,
     get_manhole_layer_id_name,
+    get_default_csv_path,
     )
 
 
@@ -342,13 +343,24 @@ class LayerTreeManager(object):
                             # insert the csv as layer
                             layer_id_name = get_manhole_layer_id_name(
                                 new_layer.name())
-                            try:
-                                filepath = generate_manhole_stats(
-                                    result.datasource(), output_dir,
-                                    new_layer, layer_id_name, include_2d=True)
-                            except ValueError as e:
-                                print(e.message)
-                                continue
+                            _filepath = get_default_csv_path(
+                                new_layer.name(), output_dir)
+                            if os.path.exists(_filepath):
+                                # The csv was already generated, reuse it
+                                print("Reusing existing statistics csv: %s" %
+                                      _filepath)
+                                filepath = _filepath
+                            else:
+                                # No stats; generate it
+                                try:
+                                    filepath = generate_manhole_stats(
+                                        result.datasource(), output_dir,
+                                        new_layer, layer_id_name,
+                                        include_2d=True)
+                                    print("Generated %s" % filepath)
+                                except ValueError as e:
+                                    print(e.message)
+                                    continue
                             csv_layer = csv_join(
                                 filepath, new_layer, layer_id_name,
                                 add_to_legend=False)
@@ -372,13 +384,24 @@ class LayerTreeManager(object):
                             # insert the csv as layer
                             layer_id_name = get_structure_layer_id_name(
                                 new_layer.name())
-                            try:
-                                filepath = generate_structure_stats(
-                                    result.datasource(), output_dir,
-                                    new_layer, layer_id_name, include_2d=True)
-                            except ValueError as e:
-                                print(e.message)
-                                continue
+                            _filepath = get_default_csv_path(
+                                new_layer.name(), output_dir)
+                            if os.path.exists(_filepath):
+                                # The csv was already generated, reuse it
+                                print("Reusing existing statistics csv: %s" %
+                                      _filepath)
+                                filepath = _filepath
+                            else:
+                                # No stats; generate it
+                                try:
+                                    filepath = generate_structure_stats(
+                                        result.datasource(), output_dir,
+                                        new_layer, layer_id_name,
+                                        include_2d=True)
+                                    print("Generated %s" % filepath)
+                                except ValueError as e:
+                                    print(e.message)
+                                    continue
                             csv_layer = csv_join(
                                 filepath, new_layer, layer_id_name,
                                 add_to_legend=False)
