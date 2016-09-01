@@ -303,6 +303,16 @@ class LayerTreeManager(object):
                     tree_layer3 = group.insertLayer(2, node)
                     self._mark(tree_layer3, 'nodes')
 
+    # TODO: make static or just function
+    def _create_layers(self, db_path, group, layernames, geometry_column=''):
+        layers = []
+        for layername in layernames:
+            if self._find_marked_child(group, layername) is None:
+                new_layer = self.create_layer(
+                    db_path, layername, geometry_column=geometry_column)
+                layers.append(new_layer)
+        return layers
+
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
             result = self.model.rows[row_nr]
@@ -310,13 +320,19 @@ class LayerTreeManager(object):
                              result.name.value)
             marker = 'statistic_%s' % result.file_path.value
 
-            node_layers = ['v2_manhole']
-            line_layers = ['v2_weir_view',
-                           'v2_culvert_view',
-                           'v2_orifice_view',
-                           'v2_pipe_view',
-                           'foo'
-                           ]
+            # TODO: not sure if I am doing things twice by calling this
+            # function again... Layers are cached in sqlite right, so it
+            # should be okay?
+            line, node, pumpline = result.get_result_layers()
+
+            node_layer_names = ['v2_manhole',
+                                ]
+            line_layer_names = ['v2_weir_view',
+                                'v2_culvert_view',
+                                'v2_orifice_view',
+                                'v2_pipe_view',
+                                ]
+
             # output dir of the csvs (= model result dir)
             output_dir = os.path.dirname(result.file_path.value)
 
@@ -327,87 +343,85 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(3, name)
                     self._mark(group, marker)
 
-                for layername in node_layers:
-                    if self._find_marked_child(group, layername) is None:
-                        new_layer = self.create_layer(
-                            self.model.model_spatialite_filepath, layername)
+                node_layers = self._create_layers(
+                    self.model.model_spatialite_filepath,
+                    group, node_layer_names, geometry_column='')
+                line_layers = self._create_layers(
+                    self.model.model_spatialite_filepath,
+                    group, line_layer_names, geometry_column='the_geom')
 
-                        if new_layer.isValid():
-                            # Add created layer to map and group
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                new_layer, False)
-                            tree_layer = group.insertLayer(100, new_layer)
-                            self._mark(tree_layer, layername)
+                for new_layer in node_layers + [node]:  # note the +
+                    if new_layer.isValid():
+                        # Add created layer to map and group
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            new_layer, False)
+                        tree_layer = group.insertLayer(100, new_layer)
+                        self._mark(tree_layer, new_layer.name())
 
-                            # Generate stats, join the csv with layer, and
-                            # insert the csv as layer
-                            layer_id_name = get_manhole_layer_id_name(
-                                new_layer.name())
-                            _filepath = get_default_csv_path(
-                                new_layer.name(), output_dir)
-                            if os.path.exists(_filepath):
-                                # The csv was already generated, reuse it
-                                print("Reusing existing statistics csv: %s" %
-                                      _filepath)
-                                filepath = _filepath
-                            else:
-                                # No stats; generate it
-                                try:
-                                    filepath = generate_manhole_stats(
-                                        result.datasource(), output_dir,
-                                        new_layer, layer_id_name,
-                                        include_2d=True)
-                                    print("Generated %s" % filepath)
-                                except ValueError as e:
-                                    print(e.message)
-                                    continue
-                            csv_layer = csv_join(
-                                filepath, new_layer, layer_id_name,
-                                add_to_legend=False)
+                        # Generate stats, join the csv with layer, and
+                        # insert the csv as layer
+                        layer_id_name = get_manhole_layer_id_name(
+                            new_layer.name())
+                        _filepath = get_default_csv_path(
+                            new_layer.name(), output_dir)
+                        if os.path.exists(_filepath):
+                            # The csv was already generated, reuse it
+                            print("Reusing existing statistics csv: %s" %
+                                  _filepath)
+                            filepath = _filepath
+                        else:
+                            # No stats; generate it
+                            try:
+                                filepath = generate_manhole_stats(
+                                    result.datasource(), output_dir,
+                                    new_layer, layer_id_name,
+                                    include_2d=True)
+                                print("Generated %s" % filepath)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                        csv_layer = csv_join(
+                            filepath, new_layer, layer_id_name,
+                            add_to_legend=False)
 
-                            csv_tree_layer = group.insertLayer(100, csv_layer)
-                            self._mark(csv_tree_layer, csv_layer.name())
+                        csv_tree_layer = group.insertLayer(100, csv_layer)
+                        self._mark(csv_tree_layer, csv_layer.name())
 
-                for layername in line_layers:
-                    if self._find_marked_child(group, layername) is None:
-                        new_layer = self.create_layer(
-                            self.model.model_spatialite_filepath, layername,
-                            geometry_column='the_geom')
+                for new_layer in line_layers + [line]:  # note the +
+                    if new_layer.isValid():
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            new_layer, False)
+                        tree_layer = group.insertLayer(100, new_layer)
+                        self._mark(tree_layer, new_layer.name())
 
-                        if new_layer.isValid():
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                new_layer, False)
-                            tree_layer = group.insertLayer(100, new_layer)
-                            self._mark(tree_layer, layername)
+                        # Generate stats, join the csv with layer, and
+                        # insert the csv as layer
+                        layer_id_name = get_structure_layer_id_name(
+                            new_layer.name())
+                        _filepath = get_default_csv_path(
+                            new_layer.name(), output_dir)
+                        if os.path.exists(_filepath):
+                            # The csv was already generated, reuse it
+                            print("Reusing existing statistics csv: %s" %
+                                  _filepath)
+                            filepath = _filepath
+                        else:
+                            # No stats; generate it
+                            try:
+                                filepath = generate_structure_stats(
+                                    result.datasource(), output_dir,
+                                    new_layer, layer_id_name,
+                                    include_2d=True)
+                                print("Generated %s" % filepath)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                        csv_layer = csv_join(
+                            filepath, new_layer, layer_id_name,
+                            add_to_legend=False)
 
-                            # Generate stats, join the csv with layer, and
-                            # insert the csv as layer
-                            layer_id_name = get_structure_layer_id_name(
-                                new_layer.name())
-                            _filepath = get_default_csv_path(
-                                new_layer.name(), output_dir)
-                            if os.path.exists(_filepath):
-                                # The csv was already generated, reuse it
-                                print("Reusing existing statistics csv: %s" %
-                                      _filepath)
-                                filepath = _filepath
-                            else:
-                                # No stats; generate it
-                                try:
-                                    filepath = generate_structure_stats(
-                                        result.datasource(), output_dir,
-                                        new_layer, layer_id_name,
-                                        include_2d=True)
-                                    print("Generated %s" % filepath)
-                                except ValueError as e:
-                                    print(e.message)
-                                    continue
-                            csv_layer = csv_join(
-                                filepath, new_layer, layer_id_name,
-                                add_to_legend=False)
-
-                            csv_tree_layer = group.insertLayer(100, csv_layer)
-                            self._mark(csv_tree_layer, csv_layer.name())
+                        csv_tree_layer = group.insertLayer(100, csv_layer)
+                        self._mark(csv_tree_layer, csv_layer.name())
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):

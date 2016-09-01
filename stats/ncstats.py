@@ -29,7 +29,7 @@ class NcStats(object):
     AVAILABLE_STRUCTURE_PARAMETERS = [
         'q_max', 'q_cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 'wos_duration']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end', 'wos_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -106,6 +106,12 @@ class NcStats(object):
             's1', structure_type, object_id=obj_id)
         return s1_slice.max()
 
+    def s1_end(self, structure_type, obj_id):
+        """Last value of a s1 timeseries."""
+        s1_slice = self.datasource.get_values_by_id(
+            's1', structure_type, object_id=obj_id)
+        return s1_slice[-1]
+
     def q_cumulative_duration(self, structure_type, obj_id, threshold=None):
         """Cumulative duration of all nonzero occurences of q.
         """
@@ -169,7 +175,7 @@ class NcStatsAgg(NcStats):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end']
 
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
