@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Added auto statistic generation via layer tree manager.
+
+- Refactored statistic generation (put logic in separate modules).
+
 - Refactored timeseries methods of NetcdfDataSource, more consistent
   ``get_values_of`` methods.
 
