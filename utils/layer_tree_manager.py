@@ -343,14 +343,14 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(3, name)
                     self._mark(group, marker)
 
-                node_layers = self._create_layers(
+                node_layers = [node] + self._create_layers(
                     self.model.model_spatialite_filepath,
                     group, node_layer_names, geometry_column='')
-                line_layers = self._create_layers(
+                line_layers = [line] + self._create_layers(
                     self.model.model_spatialite_filepath,
                     group, line_layer_names, geometry_column='the_geom')
 
-                for new_layer in node_layers + [node]:  # note the +
+                for new_layer in node_layers:
                     if new_layer.isValid():
                         # Add created layer to map and group
                         QgsMapLayerRegistry.instance().addMapLayer(
@@ -387,7 +387,7 @@ class LayerTreeManager(object):
                         csv_tree_layer = group.insertLayer(100, csv_layer)
                         self._mark(csv_tree_layer, csv_layer.name())
 
-                for new_layer in line_layers + [line]:  # note the +
+                for new_layer in line_layers:
                     if new_layer.isValid():
                         QgsMapLayerRegistry.instance().addMapLayer(
                             new_layer, False)
