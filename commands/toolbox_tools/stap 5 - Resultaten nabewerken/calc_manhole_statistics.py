@@ -8,9 +8,10 @@ import os
 from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info, log, pop_up_question)
+from ThreeDiToolbox.utils import csv_join
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import (
-    CustomCommandBase, join_stats)
+    CustomCommandBase)
 
 # node-like layers for which this script works (without the 'v2_' or
 # 'sewerage_' prefix)
@@ -249,7 +250,11 @@ class CustomCommand(CustomCommandBase):
                 title="Join")
 
         if join_it:
-            csv_layer = join_stats(
-                filepath, self.layer, layer_id_name, interactive=interactive,
+            csv_layer = csv_join(
+                filepath, self.layer, layer_id_name,
                 add_to_legend=add_to_legend)
+            if interactive:
+                pop_up_info("Finished joining '%s' with '%s'." % (
+                    csv_layer.name(), self.layer.name()),
+                    title='Join finished')
             return csv_layer

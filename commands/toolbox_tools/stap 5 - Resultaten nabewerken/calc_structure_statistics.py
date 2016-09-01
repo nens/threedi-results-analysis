@@ -6,10 +6,11 @@ import inspect
 import os
 
 from ThreeDiToolbox.stats.ncstats import NcStats, NcStatsAgg
+from ThreeDiToolbox.utils import csv_join
 from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import (
-    CustomCommandBase, join_stats)
+    CustomCommandBase)
 
 
 class CustomCommand(CustomCommandBase):
@@ -136,7 +137,11 @@ class CustomCommand(CustomCommandBase):
                 title="Join")
 
         if join_it:
-            csv_layer = join_stats(
-                filepath, self.layer, layer_id_name, interactive=interactive,
+            csv_layer = csv_join(
+                filepath, self.layer, layer_id_name,
                 add_to_legend=add_to_legend)
+            if interactive:
+                pop_up_info("Finished joining '%s' with '%s'." % (
+                    csv_layer.name(), self.layer.name()),
+                    title='Join finished')
             return csv_layer
