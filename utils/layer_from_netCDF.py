@@ -1,17 +1,9 @@
-"""
-    functions for creation of QgsVectorLayers from 3di netCDF files
-"""
+"""Functions for creation of QgsVectorLayers from 3di netCDF files"""
+from qgis.core import (
+    QgsFeature, QgsGeometry, QgsPoint, QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem, QGis)
 
-from qgis.core import QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
-    QgsPoint, QgsCoordinateTransform, QgsCoordinateReferenceSystem, \
-    QgsVectorFileWriter, QGis
-
-from qgis.gui import QgsMessageBar
-
-from PyQt4.QtCore import QVariant
-
-from .user_messages import StatusProgressBar, messagebar_message
-from ..datasource.spatialite import Spatialite
+from .user_messages import StatusProgressBar
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):
