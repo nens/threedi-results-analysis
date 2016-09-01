@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Reuse previously generated csv stats files.
+
 - Added auto statistic generation via layer tree manager.
 
 - Refactored statistic generation (put logic in separate modules).
