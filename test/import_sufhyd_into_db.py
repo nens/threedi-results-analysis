@@ -11,7 +11,7 @@ from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
 from ThreeDiToolbox.external.spatialalchemy import types
 from sqlalchemy import select
-
+from ThreeDiToolbox.utils.guess_indicators import Guesser
 
 class TestImportNewDB(unittest.TestCase):
 
@@ -118,4 +118,20 @@ class TestSelectGeometry(unittest.TestCase):
         statement = select([types.ST_GeomFromEWKT('POINT')])
 
         print statement.compile(dialect=postgresql.dialect())
+
+
+class TestGuessIndicators(unittest.TestCase):
+
+
+    def test_read(self):
+        self.db = ThreediDatabase({'host': 'localhost',
+                                   'port': '5432',
+                                   'database': 'test_gis',
+                                   'username': 'postgres',
+                                   'password': 'postgres'},
+                                  'postgres')
+
+        guesser = Guesser(self.db)
+
+        data = guesser.run(['manhole_indicator', 'pipe_friction'], True)
 
