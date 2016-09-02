@@ -72,6 +72,7 @@ class Guesser(object):
 
         if 'manhole_area' in checks:
 
+            # todo: differentiate on the shape
             up = update(ConnectionNode). \
                 where(ConnectionNode.id == Manhole.connection_node_id). \
                 where(ConnectionNode.storage_area == None). \
