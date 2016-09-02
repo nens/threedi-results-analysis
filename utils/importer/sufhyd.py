@@ -425,13 +425,19 @@ class SufhydReader(object):
 
         code = (prettify(uitlaat.ide_gb1) + prettify(uitlaat.ide_kn1))
 
+        value = getattr(uitlaat, 'bws_gem',
+                        getattr(uitlaat, 'bws_zom',
+                                getattr(uitlaat, 'bws_win', None)))
+
         outlet = {
             'node.code': code,
             'boundary_type': Constants.BOUNDARY_TYPE_WATERLEVEL,
-            'value': getattr(uitlaat, 'bws_gem',
-                             getattr(uitlaat, 'bws_zom',
-                                     getattr(uitlaat, 'bws_win', None)))
+            'timeseries': None
         }
+
+        if value is not None:
+            outlet['timeseries'] = "0 {0}".format(value)
+
         self.output['outlets'].append(outlet)
 
         check_unsupported_fields(outlet, 'ide_gb2', 'ide_kn2')

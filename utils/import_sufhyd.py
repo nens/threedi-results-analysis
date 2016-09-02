@@ -237,8 +237,8 @@ class Importer(object):
         for outlet in data['outlets']:
             outlet['connection_node_id'] = con_dict[outlet['node.code']]
 
-            del outlet['connection_node_id']
-            outlet_list.append(BoundaryCondition1D())
+            del outlet['node.code']
+            outlet_list.append(BoundaryCondition1D(**outlet))
 
         pipe_list = []
         for pipe in data['pipes']:
