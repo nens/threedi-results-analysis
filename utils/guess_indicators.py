@@ -69,3 +69,24 @@ class Guesser(object):
                 session.execute(up)
 
             session.commit()
+
+        if 'manhole_area' in checks:
+
+            up = update(ConnectionNode). \
+                where(ConnectionNode.id == Manhole.connection_node_id). \
+                where(ConnectionNode.storage_area == None). \
+                where(Manhole.length == None). \
+                where(Manhole.width != None). \
+                values(storage_area=Manhole.width * Manhole.width)
+            session.execute(up)
+
+            up = update(ConnectionNode). \
+                where(ConnectionNode.id == Manhole.connection_node_id). \
+                where(ConnectionNode.storage_area == None). \
+                where(Manhole.length != None). \
+                where(Manhole.width != None). \
+                values(storage_area=Manhole.width * Manhole.length)
+            session.execute(up)
+
+            session.commit()
+

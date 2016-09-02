@@ -240,6 +240,10 @@ class Importer(object):
             del outlet['node.code']
             outlet_list.append(BoundaryCondition1D(**outlet))
 
+        session.bulk_save_objects(outlet_list)
+        session.commit()
+        del outlet_list
+
         pipe_list = []
         for pipe in data['pipes']:
             pipe['connection_node_start_id'] = con_dict[pipe['start_node.code']]

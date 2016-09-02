@@ -117,6 +117,9 @@ class GuessIndicatorDialogWidget(QDialog):
         if self.check_pipe_friction.isChecked():
             checks.append('pipe_friction')
 
+        if self.check_manhole_area.isChecked():
+            checks.append('manhole_area')
+
         self.command.run_it(checks,
                             self.check_only_empty_fields.isChecked(),
                             db_set,
@@ -195,7 +198,6 @@ class GuessIndicatorDialogWidget(QDialog):
         return available_dbs
 
 
-
     def setupUi(self, checks):
 
 
@@ -231,9 +233,6 @@ class GuessIndicatorDialogWidget(QDialog):
         self.groupBox = QGroupBox(self)
         self.verticalLayoutBox = QVBoxLayout(self.groupBox)
 
-
-
-
         self.check_pipe_friction = QCheckBox(self.groupBox)
         #self.check_pipe_friction.setGeometry(QRect(10, 20, 171, 17))
         self.check_pipe_friction.setChecked(True)
@@ -243,6 +242,11 @@ class GuessIndicatorDialogWidget(QDialog):
         # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
         self.check_manhole_indicator.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_manhole_indicator)
+
+        self.check_manhole_area = QCheckBox(self.groupBox)
+        # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
+        self.check_manhole_area.setChecked(True)
+        self.verticalLayoutBox.addWidget(self.check_manhole_area)
 
         self.verticalLayout.addWidget(self.groupBox)
 
@@ -273,3 +277,4 @@ class GuessIndicatorDialogWidget(QDialog):
         self.check_pipe_friction.setText(_translate("Import_dialog", "Pipe friction", None))
         self.check_manhole_indicator.setText(_translate("Import_dialog", "Manhole indicator", None))
         self.check_only_empty_fields.setText(_translate("Import_dialog", "Only empty fields", None))
+        self.check_manhole_area.setText(_translate("Import_dialog", "Manhole area", None))

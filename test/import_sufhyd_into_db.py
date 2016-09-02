@@ -133,5 +133,5 @@ class TestGuessIndicators(unittest.TestCase):
 
         guesser = Guesser(self.db)
 
-        data = guesser.run(['manhole_indicator', 'pipe_friction'], True)
+        data = guesser.run(['manhole_indicator', 'pipe_friction', 'manhole_area'], True)
 
