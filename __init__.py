@@ -97,4 +97,8 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
 
     from .threedi_tools import ThreeDiTools
+    from .utils.qlogging import setup_logging
+
+    setup_logging(iface)
+
     return ThreeDiTools(iface)

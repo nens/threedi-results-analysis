@@ -4,6 +4,7 @@
 import ogr
 import osr
 import logging
+from collections import OrderedDict
 from sqlalchemy.orm import load_only
 
 from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
@@ -13,7 +14,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import (
     Pumpstation, ImperviousSurface, ImperviousSurfaceMap)
 from ThreeDiToolbox.sql_models.constants import Constants
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def transform(wkt, srid_source, srid_dest):
@@ -34,6 +35,12 @@ class Importer(object):
         self.import_file = import_file
         self.file_type = 'sufhyd'
         self.db = threedi_database
+
+        self.logging_tree = OrderedDict
+
+    def setup_logging(self):
+
+        import_logger = logging.getLogger('')
 
     def run_import(self):
 
@@ -64,7 +71,7 @@ class Importer(object):
         for i in reversed(range(0, len(records))):
             record = records[i]
             if record[unique_field] in value_set:
-                logger.log(log_level,
+                log.log(log_level,
                            'double value in {0}: {1}'.format(
                                 object_name_for_logging,
                                 record[unique_field]))
@@ -317,7 +324,7 @@ class Importer(object):
             try:
                 imp_map['connection_node_id'] = con_dict[imp_map['node.code']]
             except KeyError:
-                logger.log(logging.ERROR, 'node {0} not found for connecting '
+                log.log(logging.ERROR, 'node {0} not found for connecting '
                            'impervious service'.format(imp_map['node.code']))
 
             imp_map['impervious_surface_id'] = imp_dict[imp_map['imp_surface.code']]
