@@ -64,14 +64,26 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
 
     def test_load_properties(self):
         """Test getting attributes from netCDF."""
+        self.ncds.ds.nFlowElem = 41
+        self.ncds.ds.nFlowElem2d = 3
+        self.ncds.ds.nFlowElem1d = 7
         self.ncds.ds.nFlowLine = 42
         self.ncds.load_properties()
         self.assertEqual(self.ncds.nFlowLine, 42)
+        self.assertEqual(self.ncds.nodall, 41)
+        self.assertEqual(self.ncds.end_n1dtot, 3+7)
 
     def test_load_properties_default_values(self):
         """Test the default value when attribute isn't present."""
+        # just cherry-picked a few attributes in this test
         self.ncds.load_properties()
+        self.assertEqual(self.ncds.nodall, 0)
+        self.assertEqual(self.ncds.n2dtot, 0)
+        self.assertEqual(self.ncds.n1dtot, 0)
         self.assertEqual(self.ncds.nFlowLine, 0)
+        self.assertEqual(self.ncds.nFlowLine2d, 0)
+        self.assertEqual(self.ncds.nFlowLine1dBounds, 0)
+        self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
 
 class TestSpatialiteDataSource(unittest.TestCase):
