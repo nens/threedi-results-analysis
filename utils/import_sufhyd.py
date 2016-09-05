@@ -48,7 +48,7 @@ class DataImportLogger(object):
         if base_msg not in self.log_tree:
             self.log_tree[base_msg] = OrderedDict()
 
-        msg = logging.getLevelName(level) + ' ' + base_msg.format(**base_params)
+        msg = logging.getLevelName(level) + ': ' + base_msg.format(**base_params)
 
         if msg not in self.log_tree[base_msg]:
             self.log_tree[base_msg][msg] = list()
@@ -63,7 +63,7 @@ class DataImportLogger(object):
         txt = ''
         for main_key, main_item in self.log_tree.items():
             for key, list_issues in main_item.items():
-                txt += key + ' ({0} times)\n '.format(len(list_issues))
+                txt += key + ' ({0} times)\n'.format(len(list_issues))
                 if not only_main_items:
                     for issue in list_issues:
                         txt += '    %s\n' % issue
@@ -92,7 +92,7 @@ class Importer(object):
             self.transform_import_data(data)
             self.write_data_to_db(data)
 
-            logger.warning('summary of import:/n' + self.log.get_summary())
+            logger.warning('Summary of import:\n' + self.log.get_summary())
 
             dir_name = os.path.dirname(self.import_file)
             log_file = open(os.path.join(dir_name, 'import_sufhyd.log'), 'w')
@@ -118,8 +118,10 @@ class Importer(object):
 
         for ide_rec, unused_list in unused_fields.items():
             for field, count in unused_list.items():
+
                 self.log.add(logging.WARNING,
-                             "Provided data in sufhyd for object '{ide_rec}' not used.",
+                             "Some fields provided in the sufhyd for object "
+                             "'{ide_rec}' are not used.",
                              {'ide_rec': ide_rec},
                              "Data of '{ide_rec}' field '{field}' {count} times ignored.",
                              {'ide_rec': ide_rec, 'field': field, 'count': count})
@@ -323,7 +325,7 @@ class Importer(object):
             try:
                 pipe['connection_node_start_id'] = con_dict[pipe['start_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'Start node of pipe not found in nodes',
                     {},
@@ -334,7 +336,7 @@ class Importer(object):
             try:
                 pipe['connection_node_end_id'] = con_dict[pipe['end_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'End node of pipe not found in nodes',
                     {},
@@ -360,7 +362,7 @@ class Importer(object):
             try:
                 pump['connection_node_start_id'] = con_dict[pump['start_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'Start node of pump not found in nodes',
                     {},
@@ -371,7 +373,7 @@ class Importer(object):
             try:
                 pump['connection_node_end_id'] = con_dict[pump['end_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'End node of pump not found in nodes',
                     {},
@@ -389,7 +391,7 @@ class Importer(object):
             try:
                 weir['connection_node_start_id'] = con_dict[weir['start_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'Start node of weir not found in nodes',
                     {},
@@ -400,7 +402,7 @@ class Importer(object):
             try:
                 weir['connection_node_end_id'] = con_dict[weir['end_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'End node of weir not found in nodes',
                     {},
@@ -422,7 +424,7 @@ class Importer(object):
             try:
                 orif['connection_node_start_id'] = con_dict[orif['start_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'Start node of orifice not found in nodes',
                     {},
@@ -433,7 +435,7 @@ class Importer(object):
             try:
                 orif['connection_node_end_id'] = con_dict[orif['end_node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'End node of orifice not found in nodes',
                     {},
@@ -471,7 +473,7 @@ class Importer(object):
             try:
                 imp_map['connection_node_id'] = con_dict[imp_map['node.code']]
             except KeyError:
-                self.log(
+                self.log.add(
                     logging.ERROR,
                     'Manhole connected to impervious services not found',
                     {},
