@@ -8,6 +8,13 @@ threedi-qgis-plugin changelog
 - Connected python logging handler to qgis logging
 
 - Import of sufhyd files with logging
+- Made reading netCDF properties more robust.
+
+- Reuse previously generated csv stats files.
+
+- Added auto statistic generation via layer tree manager.
+
+- Refactored statistic generation (put logic in separate modules).
 
 - Refactored timeseries methods of NetcdfDataSource, more consistent
   ``get_values_of`` methods.

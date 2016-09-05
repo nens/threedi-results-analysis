@@ -3,18 +3,28 @@ sudo: false
 python:
     - 2.7
 
+virtualenv:
+    # Make apt installed Python packages work (i.e. PyQt) because Travis runs
+    # tests in a virtualenv for Python 2.7.
+    system_site_packages: true
+
 addons:
   apt:
     packages:
       - libhdf5-serial-dev
       - libnetcdf-dev
-      - libqt4-dev
       - python-qt4
+
+before_install:
+    - python -c 'import PyQt4'
 
 install:
     - pip install netCDF4 nose
 
-script: cd .. && mv threedi-qgis-plugin ThreeDiToolbox && python -m unittest ThreeDiToolbox.test.test_stats
+script:
+    - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
+    - nosetests ThreeDiToolbox.test.test_stats
+    - nosetests ThreeDiToolbox.test.test_models
 
 notifications:
     email: false

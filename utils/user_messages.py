@@ -1,5 +1,9 @@
-from qgis.core import QgsMessageLog
-from qgis.gui import QgsMessageBar
+# If you don't include this import the test 'test_set_and_load_list'
+# test_project will fail! WTF?
+try:
+    from qgis.gui import QgsMessageBar
+except ImportError:
+    pass
 
 from PyQt4.QtGui import QMessageBox, QProgressBar
 from PyQt4.QtCore import Qt
@@ -14,6 +18,13 @@ def log(msg, level='INFO'):
     """Shortcut for QgsMessageLog.logMessage function."""
     if level not in ['INFO', 'CRITICAL', 'WARNING']:
         level = 'INFO'
+
+    try:
+        from qgis.core import QgsMessageLog
+    except ImportError:
+        print(msg)
+        return
+
     loglevel = getattr(QgsMessageLog, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
     if iface is None:
@@ -31,7 +42,7 @@ def statusbar_message(msg=''):
         iface.mainWindow().statusBar().showMessage(msg)
 
 
-def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
+def messagebar_message(title, msg, level=None, duration=0):
     """ Show message in the message bar (just above the map)
     args:
         title: (str) title of messages, showed bold in the start of the message
@@ -40,6 +51,13 @@ def messagebar_message(title, msg, level=QgsMessageBar.INFO, duration=0):
             possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
+    try:
+        from qgis.gui import QgsMessageBar
+        if not level:
+            level = QgsMessageBar.INFO
+    except ImportError:
+        print("%s: %s" % (title, msg))
+
     if iface is not None:
         iface.messageBar().pushMessage(title, msg, level, duration)
 

@@ -82,7 +82,7 @@ class TimeseriesDatasourceModel(BaseModel):
                 self._datasource = NetcdfDataSource(self.file_path.value)
                 return self._datasource
 
-        def get_memory_layers(self):
+        def get_result_layers(self):
             """Note: lines and nodes are always in the netCDF, pumps are not
             always in the netCDF."""
 

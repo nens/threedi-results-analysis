@@ -167,7 +167,7 @@ class MapAnimator(QWidget):
             #todo: react on datasource change
             return
 
-        line, node, pump = result.get_memory_layers()
+        line, node, pump = result.get_result_layers()
 
         self.line_layer = copy_layer_into_memory_layer(line, 'line_results')
         self.line_layer.dataProvider().addAttributes([
