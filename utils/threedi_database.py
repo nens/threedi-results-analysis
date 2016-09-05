@@ -25,6 +25,7 @@ class ThreediDatabase(object):
         self._engine = None
         self._combined_base = None
         self._base = None
+        self._base_metadata = None
 
     def create_and_check_fields(self):
 
@@ -43,7 +44,7 @@ class ThreediDatabase(object):
                                       ["SPATIALITE=YES"])
             Base.metadata.create_all(self.engine)
 
-            #todo: add settings to improve database creation speed for older versions of gdal
+            # todo: add settings to improve database creation speed for older versions of gdal
 
     @property
     def engine(self):
@@ -55,18 +56,19 @@ class ThreediDatabase(object):
             if self.db_type == 'sqlite':
                 engine = create_engine('sqlite:///{0}'.format(
                                                 self.settings['db_path']),
-                                             module=dbapi2,
-                                             echo=self.echo)
+                                       module=dbapi2,
+                                       echo=self.echo)
                 if get_seperate_engine:
                     return engine
                 else:
                     self._engine = engine
 
             elif self.db_type == 'postgres':
-                con = "postgresql://{username}:{password}@{host}:{port}/{database}".format(**self.settings)
+                con = "postgresql://{username}:{password}@{host}:" \
+                      "{port}/{database}".format(**self.settings)
 
                 engine = create_engine(con,
-                                             echo=self.echo)
+                                       echo=self.echo)
                 if get_seperate_engine:
                     return engine
                 else:
@@ -74,7 +76,7 @@ class ThreediDatabase(object):
 
         return self._engine
 
-    def get_metadata(self, including_existing_tables=True, engine=None, force_refresh=False):
+    def get_metadata(self, including_existing_tables=True, engine=None):
 
         if including_existing_tables:
             metadata = copy.deepcopy(Base.metadata)

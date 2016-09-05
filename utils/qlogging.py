@@ -1,11 +1,6 @@
 import logging
 from qgis.core import QgsMessageLog
 
-try:
-    from qgis.utils import iface
-except:
-    iface = None
-
 
 class QGisHandler(logging.Handler):
 

@@ -83,7 +83,6 @@ class Importer(object):
 
     def run_import(self):
 
-
         self.db.create_and_check_fields()
 
         if self.file_type == 'sufhyd':
@@ -110,7 +109,6 @@ class Importer(object):
                                duration=20)
 
             logger.info('sufhyd import ready = ' + msg)
-
 
     def load_sufhyd_data(self):
         reader = SufhydReader(open(self.import_file, 'r').read(), data_log=self.log)
@@ -380,7 +378,6 @@ class Importer(object):
                     'End node {end_node} of pump with code {code} not found',
                     {'end_node': pump['end_node.code'], 'code': pump['code']}
                 )
-
 
             del pump['start_node.code']
             del pump['end_node.code']

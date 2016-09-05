@@ -4,8 +4,6 @@
 import logging
 import inspect
 
-from PyQt4.QtCore import QSettings
-
 from ThreeDiToolbox.views.import_sufhyd_dialog import (
     ImportSufhydDialogWidget)
 from ThreeDiToolbox.commands.base.custom_command import (
@@ -28,7 +26,7 @@ class CustomCommand(CustomCommandBase):
     """
 
     class Fields(object):
-        name = "Test script"
+        name = "Import sufhyd"
         value = 1
 
     def __init__(self, *args, **kwargs):
@@ -41,7 +39,7 @@ class CustomCommand(CustomCommandBase):
              if not name.startswith('__') and not name.startswith('_')])
         self.iface = kwargs.get('iface')
         self.ts_datasource = kwargs.get('ts_datasource')
-
+        self.tool_dialog_widget = None
 
     def run(self):
         self.show_gui()
@@ -58,7 +56,6 @@ class CustomCommand(CustomCommandBase):
 
         db = ThreediDatabase(db_set, db_type)
         importer = Importer(sufhyd_file, db)
-        logging_tree = importer.run_import()
+        importer.run_import()
 
         # todo: show logging
-

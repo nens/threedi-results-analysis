@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """ function for adding fields ot tables based on sqlalchmy orm definitions. Copied from
-stackoverflow: https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-and-create-corresponding-column-in-table"""
+stackoverflow: https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-
+and-create-corresponding-column-in-table"""
 
 import logging
 import re
 
 import sqlalchemy
 from sqlalchemy import MetaData, Table, exc
-# import sqlalchemy.engine.ddl
 
 _new_sa_ddl = sqlalchemy.__version__.startswith('0.7')
 
@@ -30,7 +30,8 @@ def create_and_upgrade(engine, metadata):
         else:
             ddl_c = engine.dialect.ddl_compiler(engine.dialect, None)
 
-            logging.debug('Table %s already exists. Checking for missing columns' % model_table.name)
+            logging.debug('Table %s already exists. Checking for '
+                          'missing columns' % model_table.name)
 
             model_columns = _column_names(model_table)
             db_columns = _column_names(db_table)
@@ -43,7 +44,7 @@ def create_and_upgrade(engine, metadata):
                 model_column = getattr(model_table.c, c)
                 logging.info('Adding column %s.%s' % (model_table.name, model_column.name))
                 assert not model_column.constraints, \
-                    'Arrrgh! I cannot automatically add columns with constraints to the database'\
+                    'I cannot automatically add columns with constraints to the database'\
                         'Please consider fixing me if you care!'
                 model_col_spec = ddl_c.get_column_specification(model_column)
                 sql = 'ALTER TABLE %s ADD %s' % (model_table.name, model_col_spec)
@@ -73,8 +74,10 @@ def create_and_upgrade(engine, metadata):
                 db_col_spec = db_col_spec.replace('TINYINT', 'BOOL')
 
                 if model_col_spec != db_col_spec:
-                    logging.warning('Column %s.%s has specification %r in the model but %r in the database' %
-                                       (model_table.name, model_column.name, model_col_spec, db_col_spec))
+                    logging.warning('Column %s.%s has specification %r in the model '
+                                    'but %r in the database' %
+                                    (model_table.name, model_column.name,
+                                     model_col_spec, db_col_spec))
 
                 if model_column.constraints or db_column.constraints:
                     # TODO, check constraints
@@ -82,7 +85,8 @@ def create_and_upgrade(engine, metadata):
 
             for c in to_remove:
                 model_column = getattr(db_table.c, c)
-                logging.warning('Column %s.%s in the database is not in the model' % (model_table.name, model_column.name))
+                logging.warning('Column %s.%s in the database is not in '
+                                'the model' % (model_table.name, model_column.name))
 
 
 def _column_names(table):

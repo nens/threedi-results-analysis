@@ -165,13 +165,12 @@ class Channel(Base):
         nullable=True)
     connection_node_start = relationship(
         ConnectionNode, foreign_keys=connection_node_start_id)
-        # primaryjoin=(lambda: ConnectionNode.id == Channel.connection_node_start_id))
+
     connection_node_end_id = Column(
         ForeignKey(ConnectionNode.__tablename__ + ".id"),
         nullable=True)
     connection_node_end = relationship(
         ConnectionNode, foreign_keys=connection_node_end_id)
-        # primaryjoin=(lambda: ConnectionNode.id == Channel.connection_node_end_id))
 
     cross_section_locations = relationship("CrossSectionLocation",
                                            back_populates="channel")
@@ -218,13 +217,12 @@ class Pipe(Base):
             nullable=True)
     connection_node_start = relationship(
             ConnectionNode, foreign_keys=connection_node_start_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Pipe.connection_node_start_id))
+
     connection_node_end_id = Column(
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_end = relationship(
             ConnectionNode, foreign_keys=connection_node_end_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Pipe.connection_node_end_id))
 
     original_length = Column(Float)
 
@@ -270,14 +268,13 @@ class Culvert(Base):
             nullable=False)
     connection_node_start = relationship(
             ConnectionNode, foreign_keys=connection_node_start_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Culvert.connection_node_start_id))
+
     connection_node_end_id = Column(
             'connection_node_end_id',
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=False)
     connection_node_end = relationship(
             ConnectionNode, foreign_keys=connection_node_end_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Culvert.connection_node_end_id))
 
     # cross section and level
     cross_section_definition_id = Column(
@@ -322,14 +319,13 @@ class Weir(Base):
             nullable=True)
     connection_node_start = relationship(
             ConnectionNode, foreign_keys=connection_node_start_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_start_id))
+
     connection_node_end_id = Column(
             'connection_node_end_id',
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_end = relationship(
             ConnectionNode, foreign_keys=connection_node_end_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_end_id))
 
     # crest level and cross section
     crest_type = Column(Integer)  # CREST_TYPE
@@ -369,14 +365,13 @@ class Orifice(Base):
             nullable=True)
     connection_node_start = relationship(
             ConnectionNode, foreign_keys=connection_node_start_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Orifice.connection_node_start_id))
+
     connection_node_end_id = Column(
             'connection_node_end_id',
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_end = relationship(
             ConnectionNode, foreign_keys=connection_node_end_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Orifice.connection_node_end_id))
 
     # crest and cross section
     crest_type = Column(Integer)  # CREST_TYPES
@@ -424,14 +419,13 @@ class Pumpstation(Base):
             nullable=True)
     connection_node_start = relationship(
             ConnectionNode, foreign_keys=connection_node_start_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Pumpstation.connection_node_start_id))
+
     connection_node_end_id = Column(
             'connection_node_end_id',
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_end = relationship(
             ConnectionNode, foreign_keys=connection_node_end_id)
-            # primaryjoin=(lambda: ConnectionNode.id == Pumpstation.connection_node_end_id))
 
     # pump details
     start_level_delivery_side = Column(Float)
