@@ -31,15 +31,21 @@ class ST_GeomFromEWKT(functions.Function):
 @compiles(ST_GeomFromEWKT, 'default')
 def visit_ST_GeomFromEWKT(element, compiler, **kwargs):
 
-    compiler.visit_function(element, **kwargs)
-    return "ST_GeomFromEWKT(?)"
+    name = "ST_GeomFromEWKT%(expr)s"
+
+    expression = ".".join(list(element.packagenames) + [name]) % \
+            {'expr': compiler.function_argspec(element, **kwargs)}
+    return expression
 
 
 @compiles(ST_GeomFromEWKT, 'sqlite')
 def visit_ST_GeomFromEWKT(element, compiler, **kwargs):
 
-    compiler.visit_function(element, **kwargs)
-    return "GeomFromEWKT(?)"
+    name = "GeomFromEWKT%(expr)s"
+
+    expression = ".".join(list(element.packagenames) + [name]) % \
+            {'expr': compiler.function_argspec(element, **kwargs)}
+    return expression
 
 
 class ST_AsEWKB(functions.Function):
