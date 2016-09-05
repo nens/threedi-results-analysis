@@ -278,15 +278,20 @@ class NetcdfDataSource(object):
     'find_id_mapping_file' and 'find_aggregation_netcdf'.
     """
 
-    def __init__(self, file_path, load_properties=True):
+    def __init__(self, file_path, load_properties=True, ds=None):
         """
         Args:
             file_path: path to result netcdf
+            load_properties: call load_properties
+            ds: netCDF4.Dataset, optional (useful for tests)
         """
         self.file_path = file_path
         # Load netcdf
-        self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
-        log("Opened netcdf: %s" % self.file_path)
+        if not ds:
+            self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
+            log("Opened netcdf: %s" % self.file_path)
+        else:
+            self.ds = ds
         self.cache = dict()
 
         if load_properties:

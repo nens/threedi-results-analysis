@@ -53,6 +53,27 @@ class TestNetcdfDatasource(unittest.TestCase):
         self.assertNotEqual(ts[1], 0.0)
 
 
+class TestNetcdfDatasourceBasic(unittest.TestCase):
+    """Some basic tests without needing an actual netCDF file."""
+
+    def setUp(self):
+        mock = lambda x: 'mock'  # Mock the netCDF Dataset
+        self.ncds = NetcdfDataSource(netcdf_datasource_path,
+                                     load_properties=False,
+                                     ds=mock)
+
+    def test_load_properties(self):
+        """Test getting attributes from netCDF."""
+        self.ncds.ds.nFlowLine = 42
+        self.ncds.load_properties()
+        self.assertEqual(self.ncds.nFlowLine, 42)
+
+    def test_load_properties_default_values(self):
+        """Test the default value when attribute isn't present."""
+        self.ncds.load_properties()
+        self.assertEqual(self.ncds.nFlowLine, 0)
+
+
 class TestSpatialiteDataSource(unittest.TestCase):
 
     def setUp(self):
