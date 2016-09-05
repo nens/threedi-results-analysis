@@ -23,8 +23,8 @@ def setup_logging(iface=None):
 
     log = logging.getLogger('')
 
-    ql = QGisHandler(iface)
-    ql.setLevel(logging.INFO)
+    # ql = QGisHandler(iface)
+    # ql.setLevel(logging.INFO)
 
     fh = logging.FileHandler('plugin_log.log')
     fh.setLevel(logging.WARNING)
@@ -36,6 +36,6 @@ def setup_logging(iface=None):
     fh.setFormatter(format)
     st.setFormatter(format)
 
-    log.addHandler(ql)
+    # log.addHandler(ql)
     # log.addHandler(fh)
     log.addHandler(st)

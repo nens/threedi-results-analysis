@@ -7,7 +7,7 @@ from sqlalchemy import (
     Boolean, Column, Integer, String, Float, ForeignKey)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from ThreeDiModelCreator.external.spatialalchemy.types import Geometry
+from spatialalchemy.types import Geometry
 
 from .constants import Constants
 

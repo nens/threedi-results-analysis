@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, MetaData
-from ThreeDiModelCreator.external.spatialalchemy.types import Geometry
+from spatialalchemy.types import Geometry
 
 Base = declarative_base()
 

@@ -37,8 +37,9 @@ sys.path.insert(0, os.path.join(
 try:
     import sqlalchemy
     import spatialalchemy
-except ImportError:
-    pop_up_info("Error loading sqlalchemy or spatialalchemy from 'external' subdirectory.")
+except ImportError, e:
+    pop_up_info("Error loading sqlalchemy or spatialalchemy from "
+                "'external' subdirectory. error %s"% e.message)
 
 try:
     import netCDF4

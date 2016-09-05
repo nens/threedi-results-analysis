@@ -9,7 +9,7 @@ import cPickle
 from ThreeDiToolbox.utils.import_sufhyd import Importer, transform
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
-from ThreeDiToolbox.external.spatialalchemy import types
+from spatialalchemy import types
 from sqlalchemy import select
 from ThreeDiToolbox.utils.guess_indicators import Guesser
 
