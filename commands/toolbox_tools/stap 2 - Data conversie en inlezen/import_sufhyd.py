@@ -58,7 +58,7 @@ class CustomCommand(CustomCommandBase):
 
         db = ThreediDatabase(db_set, db_type)
         importer = Importer(sufhyd_file, db)
-        importer.run_import()
+        logging_tree = importer.run_import()
 
         # todo: show logging
 
