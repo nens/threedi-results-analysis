@@ -29,6 +29,17 @@ except ImportError:
     pop_up_info = log = lambda x: x
 
 msg = ''
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'external'))
+
+try:
+    import sqlalchemy
+    import spatialalchemy
+except ImportError:
+    pop_up_info("Error loading sqlalchemy or spatialalchemy from 'external' subdirectory.")
+
 try:
     import netCDF4
     msg += 'Use local installation of python netCDF4 library'
