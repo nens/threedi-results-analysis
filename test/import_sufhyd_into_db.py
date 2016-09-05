@@ -51,7 +51,7 @@ class TestImportExistingDB(unittest.TestCase):
         self.tmp_directory = tempfile.mkdtemp()
         self.sufhyd_file = os.path.join('c://tmp', 'test.hyd')
         self.db_file = os.path.join('c://tmp', 'v2_bergermeer.sqlite')
-        self.db = ThreediDatabase({'db_file': self.db_file})
+        self.db = ThreediDatabase({'db_path': self.db_file})
 
     def test_transform(self):
         a = transform('POINT(150000 250000)', 28992, 4326)
@@ -60,7 +60,6 @@ class TestImportExistingDB(unittest.TestCase):
     def test_import(self):
         # self.db.create_and_check_fields()
 
-        data = []
         importer = Importer(self.sufhyd_file, self.db)
 
         importer.run_import()
