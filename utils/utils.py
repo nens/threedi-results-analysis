@@ -1,7 +1,14 @@
 """Imported in __init__.py"""
 import math
 import os
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QgsVectorJoinInfo
+
+# Workaround for Travis which doesn't have qgis
+try:
+    from qgis.core import (
+        QgsVectorLayer, QgsMapLayerRegistry, QgsVectorJoinInfo)
+except ImportError as e:
+    print("Can't import one or more QGIS functions, some functions will "
+          "fail: %s" % e.message)
 
 
 class cached_property(object):

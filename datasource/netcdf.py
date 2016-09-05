@@ -278,15 +278,20 @@ class NetcdfDataSource(object):
     'find_id_mapping_file' and 'find_aggregation_netcdf'.
     """
 
-    def __init__(self, file_path, load_properties=True):
+    def __init__(self, file_path, load_properties=True, ds=None):
         """
         Args:
             file_path: path to result netcdf
+            load_properties: call load_properties
+            ds: netCDF4.Dataset, optional (useful for tests)
         """
         self.file_path = file_path
         # Load netcdf
-        self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
-        log("Opened netcdf: %s" % self.file_path)
+        if not ds:
+            self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
+            log("Opened netcdf: %s" % self.file_path)
+        else:
+            self.ds = ds
         self.cache = dict()
 
         if load_properties:
@@ -299,18 +304,20 @@ class NetcdfDataSource(object):
         line_type_of to work.
         """
         # Nodes
-        self.n2dtot = self.ds.nFlowElem2d
-        self.n1dtot = self.ds.nFlowElem1d
-        self.n2dobc = self.ds.nFlowElem2dBounds
+        self.n2dtot = getattr(self.ds, 'nFlowElem2d', 0)
+        self.n1dtot = getattr(self.ds, 'nFlowElem1d', 0)
+        self.n2dobc = getattr(self.ds, 'nFlowElem2dBounds', 0)
         self.end_n1dtot = self.n2dtot + self.n1dtot
         self.end_n2dobc = self.n2dtot + self.n1dtot + self.n2dobc
-        self.nodall = self.ds.nFlowElem
+        self.nodall = getattr(self.ds, 'nFlowElem', 0)
         # Links
-        self.nFlowLine2d = self.ds.nFlowLine2d
-        self.nFlowLine = self.ds.nFlowLine
-        self.end_2d_bound_line = self.nFlowLine - self.ds.nFlowLine1dBounds
-        self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
-                            self.ds.nFlowLine1dBounds)
+        self.nFlowLine2d = getattr(self.ds, 'nFlowLine2d', 0)
+        self.nFlowLine = getattr(self.ds, 'nFlowLine', 0)
+        self.nFlowLine1dBounds = getattr(self.ds, 'nFlowLine1dBounds', 0)
+        self.nFlowLine2dBounds = getattr(self.ds, 'nFlowLine2dBounds', 0)
+        self.end_2d_bound_line = self.nFlowLine - self.nFlowLine1dBounds
+        self.end_1d_line = (self.nFlowLine - self.nFlowLine2dBounds -
+                            self.nFlowLine1dBounds)
 
     @cached_property
     def id_mapping(self):

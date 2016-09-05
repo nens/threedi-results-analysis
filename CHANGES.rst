@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Made reading netCDF properties more robust.
+
 - Reuse previously generated csv stats files.
 
 - Added auto statistic generation via layer tree manager.
