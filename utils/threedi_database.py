@@ -54,7 +54,7 @@ class ThreediDatabase(object):
         if self._engine is None or get_seperate_engine:
             if self.db_type == 'sqlite':
                 engine = create_engine('sqlite:///{0}'.format(
-                                                self.settings['db_file']),
+                                                self.settings['db_path']),
                                              module=dbapi2,
                                              echo=self.echo)
                 if get_seperate_engine:
