@@ -1,23 +1,16 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import ogr
-import osr
 import logging
-from sqlalchemy.orm import load_only
-from sqlalchemy import update, select
+from sqlalchemy import update
 
-
-
-from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
 from ThreeDiToolbox.sql_models.model_schematisation import (
     ConnectionNode, Manhole,
-    BoundaryCondition1D, Pipe, CrossSectionDefinition, Orifice, Weir,
-    Pumpstation, ImperviousSurface, ImperviousSurfaceMap)
+    BoundaryCondition1D, Pipe, Pumpstation, )
 from ThreeDiToolbox.sql_models.constants import Constants
 
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class Guesser(object):
@@ -30,24 +23,39 @@ class Guesser(object):
         self.db.create_and_check_fields()
         session = self.db.get_session()
 
+        msg = ''
         if 'manhole_indicator' in checks:
+            manhole_update_count = 0
 
             up = update(Manhole).\
                 where(Manhole.connection_node_id ==
                       Pumpstation.connection_node_start_id).\
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
-            session.execute(up)
+            if only_empty_fields:
+                up = up.where(Manhole.manhole_indicator == None)
+            ret = session.execute(up)
+            manhole_update_count += ret.rowcount
+
             up = update(Manhole).\
                 where(Manhole.connection_node_id == BoundaryCondition1D.connection_node_id).\
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_OUTLET)
-            session.execute(up)
+            if only_empty_fields:
+                up = up.where(Manhole.manhole_indicator == None)
+            ret = session.execute(up)
+            manhole_update_count += ret.rowcount
+
             up = update(Manhole). \
                 where(Manhole.manhole_indicator == None). \
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_MANHOLE)
-            session.execute(up)
-            session.commit()
+            if only_empty_fields:
+                up = up.where(Manhole.manhole_indicator == None)
+            ret = session.execute(up)
+            manhole_update_count += ret.rowcount
+
+            msg += 'Manhole indicator updated {0} manholes. '.format(manhole_update_count)
 
         if 'pipe_friction' in checks:
+            pipe_friction_count = 0
 
             table_manning = {
                 (Constants.MATERIAL_TYPE_CONCRETE, 0.0145),
@@ -66,11 +74,16 @@ class Guesser(object):
                     where(Pipe.material == material_code). \
                     values(friction_value=friction,
                            friction_type=Constants.FRICTION_TYPE_MANNING)
-                session.execute(up)
+                if only_empty_fields:
+                    up = up.where(Pipe.friction_value == None)
 
-            session.commit()
+                ret = session.execute(up)
+                pipe_friction_count += ret.rowcount
+
+            msg += 'Pipe friction updated {0} pipes. '.format(pipe_friction_count)
 
         if 'manhole_area' in checks:
+            manhole_area_count = 0
 
             # todo: differentiate on the shape
             up = update(ConnectionNode). \
@@ -79,7 +92,8 @@ class Guesser(object):
                 where(Manhole.length == None). \
                 where(Manhole.width != None). \
                 values(storage_area=Manhole.width * Manhole.width)
-            session.execute(up)
+            ret = session.execute(up)
+            manhole_area_count += ret.rowcount
 
             up = update(ConnectionNode). \
                 where(ConnectionNode.id == Manhole.connection_node_id). \
@@ -87,7 +101,9 @@ class Guesser(object):
                 where(Manhole.length != None). \
                 where(Manhole.width != None). \
                 values(storage_area=Manhole.width * Manhole.length)
-            session.execute(up)
+            ret = session.execute(up)
+            manhole_area_count += ret.rowcount
 
-            session.commit()
+            msg += 'Manhole area updated {0} manholes. '.format(manhole_area_count)
 
+        return msg
