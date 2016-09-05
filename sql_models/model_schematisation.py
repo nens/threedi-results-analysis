@@ -321,15 +321,15 @@ class Weir(Base):
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id,
-            primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_start_id))
+            ConnectionNode, foreign_keys=connection_node_start_id)
+            # primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_start_id))
     connection_node_end_id = Column(
             'connection_node_end_id',
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=True)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id,
-            primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_end_id))
+            ConnectionNode, foreign_keys=connection_node_end_id)
+            # primaryjoin=(lambda: ConnectionNode.id == Weir.connection_node_end_id))
 
     # crest level and cross section
     crest_type = Column(Integer)  # CREST_TYPE
