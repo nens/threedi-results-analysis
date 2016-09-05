@@ -4,9 +4,11 @@
 import ogr
 import osr
 import logging
+import os.path
 from collections import OrderedDict
 from sqlalchemy.orm import load_only
 
+from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
 from ThreeDiToolbox.sql_models.model_schematisation import (
     ConnectionNode, Manhole,
@@ -14,7 +16,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import (
     Pumpstation, ImperviousSurface, ImperviousSurfaceMap)
 from ThreeDiToolbox.sql_models.constants import Constants
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def transform(wkt, srid_source, srid_dest):
@@ -29,6 +31,46 @@ def transform(wkt, srid_source, srid_dest):
     return point.ExportToWkt()
 
 
+class DataImportLogger(object):
+
+    def __init__(self):
+        pass
+        self.log_tree = OrderedDict()
+
+        self.level_count = dict()
+
+    def add(self, level, base_msg, base_params, specific_msg, specific_params):
+
+        if level not in self.level_count:
+            self.level_count[level] = 0
+        self.level_count[level] += 1
+
+        if base_msg not in self.log_tree:
+            self.log_tree[base_msg] = OrderedDict()
+
+        msg = logging.getLevelName(level) + ' ' + base_msg.format(**base_params)
+
+        if msg not in self.log_tree[base_msg]:
+            self.log_tree[base_msg][msg] = list()
+
+        self.log_tree[base_msg][msg].append(specific_msg.format(**specific_params))
+
+    def get_summary(self):
+        return self.get_full_log(True)
+
+    def get_full_log(self, only_main_items=False):
+
+        txt = ''
+        for main_key, main_item in self.log_tree.items():
+            for key, list_issues in main_item.items():
+                txt += key + ' ({0} times)\n '.format(len(list_issues))
+                if not only_main_items:
+                    for issue in list_issues:
+                        txt += '    %s\n' % issue
+
+        return txt
+
+
 class Importer(object):
 
     def __init__(self, import_file, threedi_database):
@@ -36,13 +78,11 @@ class Importer(object):
         self.file_type = 'sufhyd'
         self.db = threedi_database
 
-        self.logging_tree = OrderedDict
-
-    def setup_logging(self):
-
-        import_logger = logging.getLogger('')
+        self.logging_tree = OrderedDict()
+        self.log = DataImportLogger()
 
     def run_import(self):
+
 
         self.db.create_and_check_fields()
 
@@ -52,14 +92,42 @@ class Importer(object):
             self.transform_import_data(data)
             self.write_data_to_db(data)
 
+            logger.warning('summary of import:/n' + self.log.get_summary())
+
+            dir_name = os.path.dirname(self.import_file)
+            log_file = open(os.path.join(dir_name, 'import_sufhyd.log'), 'w')
+            log_file.write(self.log.get_full_log())
+            log_file.close()
+
+            msg = "{errors} errors and {warnings} warnings, see qgis log for " \
+                  "the summary and {log_file} for the full log".format(
+                    errors=self.log.level_count.get(logging.ERROR, 0),
+                    warnings=self.log.level_count.get(logging.WARNING, 0),
+                    log_file=log_file)
+
+            messagebar_message('sufhyd import ready',
+                               msg,
+                               duration=20)
+
+            logger.info('sufhyd import ready = ' + msg)
+
+
     def load_sufhyd_data(self):
-        reader = SufhydReader(open(self.import_file, 'r').read())
-        reader.parse_input()
+        reader = SufhydReader(open(self.import_file, 'r').read(), data_log=self.log)
+        unused_fields = reader.parse_input()
+
+        for ide_rec, unused_list in unused_fields.items():
+            for field, count in unused_list.items():
+                self.log.add(logging.WARNING,
+                             "Provided data in sufhyd for object '{ide_rec}' not used.",
+                             {'ide_rec': ide_rec},
+                             "Data of '{ide_rec}' field '{field}' {count} times ignored.",
+                             {'ide_rec': ide_rec, 'field': field, 'count': count})
+
         return reader.get_data()
 
-    @staticmethod
-    def _check_on_unique(records, unique_field, remove_doubles=False,
-                         object_name_for_logging='', log_level=logging.WARNING):
+    def _check_on_unique(self, records, unique_field, remove_doubles=False,
+                         item_name_for_logging='', log_level=logging.WARNING):
 
         values = [m[unique_field] for m in records]
 
@@ -71,11 +139,15 @@ class Importer(object):
         for i in reversed(range(0, len(records))):
             record = records[i]
             if record[unique_field] in value_set:
-                log.log(log_level,
-                           'double value in {0}: {1}'.format(
-                                object_name_for_logging,
-                                record[unique_field]))
                 doubles.append(record)
+                self.log.add(
+                    log_level,
+                    'double values in {unique_field} of {item_name_for_logging}',
+                    {'unique_field': unique_field,
+                        'item_name_for_logging': item_name_for_logging},
+                    'for records with {unique_field}: {code}',
+                    {'unique_field': unique_field, 'code': record[unique_field]})
+
                 if remove_doubles:
                     records.remove(record)
             else:
@@ -85,7 +157,7 @@ class Importer(object):
 
     def check_import_data(self, data):
 
-        self._check_on_unique(data['manholes'], 'code', True, 'knoop codes')
+        self._check_on_unique(data['manholes'], 'code', True, 'knoop')
         self._check_on_unique(data['storage'], 'node.code', True, 'bergend oppervlak knoop')
         self._check_on_unique(data['outlets'], 'node.code', True, 'uitlaat knoop')
 
@@ -169,7 +241,7 @@ class Importer(object):
 
         for manhole in data['manholes']:
             if manhole['code'] in link_dict:
-                print "delete node %s" % manhole['code']
+                logger.info("delete manhole %s as part of a linkage." % manhole['code'])
                 del manhole
                 continue
 
@@ -177,11 +249,6 @@ class Importer(object):
             manh = manhole
             if manh['code'] in storage_dict:
                 manh['storage_area'] = storage_dict[manh['code']]['storage_area']
-            elif manh['width'] is not None:
-                if manh['length'] is not None:
-                    manh['storage_area'] = manh['width'] * manh['length']
-                else:
-                    manh['storage_area'] = manh['width'] * manh['width']
             else:
                 manh['storage_area'] = None
 
@@ -253,8 +320,28 @@ class Importer(object):
 
         pipe_list = []
         for pipe in data['pipes']:
-            pipe['connection_node_start_id'] = con_dict[pipe['start_node.code']]
-            pipe['connection_node_end_id'] = con_dict[pipe['end_node.code']]
+            try:
+                pipe['connection_node_start_id'] = con_dict[pipe['start_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'Start node of pipe not found in nodes',
+                    {},
+                    'Start node {start_node} of pipe with code {code} not found',
+                    {'start_node': pipe['start_node.code'], 'code': pipe['code']}
+                )
+
+            try:
+                pipe['connection_node_end_id'] = con_dict[pipe['end_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'End node of pipe not found in nodes',
+                    {},
+                    'End node {end_node} of pipe with code {code} not found',
+                    {'end_node': pipe['end_node.code'], 'code': pipe['code']}
+                )
+
             pipe['cross_section_definition_id'] = crs_dict[pipe['crs_code']]
 
             del pipe['start_node.code']
@@ -270,8 +357,28 @@ class Importer(object):
 
         obj_list = []
         for pump in data['pumpstations']:
-            pump['connection_node_start_id'] = con_dict[pump['start_node.code']]
-            pump['connection_node_end_id'] = con_dict[pump['end_node.code']]
+            try:
+                pump['connection_node_start_id'] = con_dict[pump['start_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'Start node of pump not found in nodes',
+                    {},
+                    'Start node {start_node} of pump with code {code} not found',
+                    {'start_node': pump['start_node.code'], 'code': pump['code']}
+                )
+
+            try:
+                pump['connection_node_end_id'] = con_dict[pump['end_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'End node of pump not found in nodes',
+                    {},
+                    'End node {end_node} of pump with code {code} not found',
+                    {'end_node': pump['end_node.code'], 'code': pump['code']}
+                )
+
 
             del pump['start_node.code']
             del pump['end_node.code']
@@ -279,8 +386,28 @@ class Importer(object):
             obj_list.append(Pumpstation(**pump))
 
         for weir in data['weirs']:
-            weir['connection_node_start_id'] = con_dict[weir['start_node.code']]
-            weir['connection_node_end_id'] = con_dict[weir['end_node.code']]
+            try:
+                weir['connection_node_start_id'] = con_dict[weir['start_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'Start node of weir not found in nodes',
+                    {},
+                    'Start node {start_node} of weir with code {code} not found',
+                    {'start_node': weir['start_node.code'], 'code': weir['code']}
+                )
+
+            try:
+                weir['connection_node_end_id'] = con_dict[weir['end_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'End node of weir not found in nodes',
+                    {},
+                    'End node {end_node} of weir with code {code} not found',
+                    {'end_node': weir['end_node.code'], 'code': weir['code']}
+                )
+
             weir['cross_section_definition_id'] = crs_dict[weir['crs_code']]
 
             del weir['start_node.code']
@@ -292,8 +419,28 @@ class Importer(object):
             obj_list.append(Weir(**weir))
 
         for orif in data['orifices']:
-            orif['connection_node_start_id'] = con_dict[orif['start_node.code']]
-            orif['connection_node_end_id'] = con_dict[orif['end_node.code']]
+            try:
+                orif['connection_node_start_id'] = con_dict[orif['start_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'Start node of orifice not found in nodes',
+                    {},
+                    'Start node {start_node} of orifice with code {code} not found',
+                    {'start_node': orif['start_node.code'], 'code': orif['code']}
+                )
+
+            try:
+                orif['connection_node_end_id'] = con_dict[orif['end_node.code']]
+            except KeyError:
+                self.log(
+                    logging.ERROR,
+                    'End node of orifice not found in nodes',
+                    {},
+                    'End node {end_node} of orifice with code {code} not found',
+                    {'end_node': orif['end_node.code'], 'code': orif['code']}
+                )
+
             orif['cross_section_definition_id'] = crs_dict[orif['crs_code']]
 
             del orif['start_node.code']
@@ -324,8 +471,14 @@ class Importer(object):
             try:
                 imp_map['connection_node_id'] = con_dict[imp_map['node.code']]
             except KeyError:
-                log.log(logging.ERROR, 'node {0} not found for connecting '
-                           'impervious service'.format(imp_map['node.code']))
+                self.log(
+                    logging.ERROR,
+                    'Manhole connected to impervious services not found',
+                    {},
+                    'Node {node} of impervious service map connected to '
+                    'impervious service with code {code} not found',
+                    {'node': imp_map['node.code'], 'code': imp_map['imp_surface.code']}
+                )
 
             imp_map['impervious_surface_id'] = imp_dict[imp_map['imp_surface.code']]
             del imp_map['node.code']

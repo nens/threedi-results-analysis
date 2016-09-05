@@ -13,6 +13,10 @@ from ThreeDiToolbox.external.spatialalchemy import types
 from sqlalchemy import select
 from ThreeDiToolbox.utils.guess_indicators import Guesser
 
+test_file = os.path.join('c://tmp', 'test.hyd')
+
+@unittest.skipIf(not os.path.exists(test_file),
+                 "Path to test sufhyd doesn't exist.")
 class TestImportNewDB(unittest.TestCase):
 
     def setUp(self):
@@ -39,6 +43,8 @@ class TestImportNewDB(unittest.TestCase):
         importer.write_data_to_db(data)
 
 
+@unittest.skipIf(not os.path.exists(test_file),
+                 "Path to test sufhyd doesn't exist.")
 class TestImportExistingDB(unittest.TestCase):
 
     def setUp(self):
@@ -54,25 +60,14 @@ class TestImportExistingDB(unittest.TestCase):
     def test_import(self):
         # self.db.create_and_check_fields()
 
-        # a = ConnectionNode()
-        # session = self.db.get_session()
-        # session.add(a)
-        # session.commit()
-
         data = []
-
         importer = Importer(self.sufhyd_file, self.db)
 
-        # data = importer.load_sufhyd_data()
-
-        # importer.check_import_data(data)
-
-        # importer.transform_import_data(data)
-
-        importer.write_data_to_db(data)
+        importer.run_import()
 
 
-
+@unittest.skipIf(not os.path.exists(test_file),
+                 "Path to test sufhyd doesn't exist.")
 class TestPostgresConnection(unittest.TestCase):
 
     def test_setup(self):
@@ -83,6 +78,9 @@ class TestPostgresConnection(unittest.TestCase):
                                    'password': 'postgres'},
                                   'postgres')
 
+
+@unittest.skipIf(not os.path.exists(test_file),
+                 "Path to test sufhyd doesn't exist.")
 class TestImportPostgres(unittest.TestCase):
 
     def setUp(self):
@@ -99,29 +97,22 @@ class TestImportPostgres(unittest.TestCase):
 
         importer = Importer(self.sufhyd_file, self.db)
 
-        data = importer.load_sufhyd_data()
-
-        importer.check_import_data(data)
-
-        importer.transform_import_data(data)
-
-        importer.write_data_to_db(data)
+        importer.run_import()
 
 
 class TestSelectGeometry(unittest.TestCase):
 
-
     def test_setup(self):
         from sqlalchemy.dialects import postgresql
-
 
         statement = select([types.ST_GeomFromEWKT('POINT')])
 
         print statement.compile(dialect=postgresql.dialect())
 
 
+@unittest.skipIf(not os.path.exists(test_file),
+                 "Path to test sufhyd doesn't exist.")
 class TestGuessIndicators(unittest.TestCase):
-
 
     def test_read(self):
         self.db = ThreediDatabase({'host': 'localhost',

@@ -137,6 +137,7 @@ class BoundaryCondition1D(Base):
             nullable=False,
             unique=True)
     connection_node = relationship(ConnectionNode,
+                                   foreign_keys=connection_node_id,
                                    back_populates="boundary_condition")
 
 

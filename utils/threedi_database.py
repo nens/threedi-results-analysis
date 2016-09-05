@@ -28,7 +28,9 @@ class ThreediDatabase(object):
 
     def create_and_check_fields(self):
 
-        create_and_upgrade(self.engine, self.get_base().metadata)
+        # engine = self.get_engine()
+        create_and_upgrade(self.engine, self.get_metadata())
+        # self.metadata(engine=engine, force_refresh=True)
 
     def create_db(self, overwrite=False):
         if self.db_type == 'sqlite':
@@ -45,32 +47,47 @@ class ThreediDatabase(object):
 
     @property
     def engine(self):
-        if self._engine is None:
+        return self.get_engine()
+
+    def get_engine(self, get_seperate_engine=False):
+
+        if self._engine is None or get_seperate_engine:
             if self.db_type == 'sqlite':
-                self._engine = create_engine('sqlite:///{0}'.format(
+                engine = create_engine('sqlite:///{0}'.format(
                                                 self.settings['db_file']),
                                              module=dbapi2,
                                              echo=self.echo)
+                if get_seperate_engine:
+                    return engine
+                else:
+                    self._engine = engine
+
             elif self.db_type == 'postgres':
                 con = "postgresql://{username}:{password}@{host}:{port}/{database}".format(**self.settings)
 
-                self._engine = create_engine(con,
+                engine = create_engine(con,
                                              echo=self.echo)
+                if get_seperate_engine:
+                    return engine
+                else:
+                    self._engine = engine
 
         return self._engine
 
-    def get_base(self, including_existing_tables=True):
+    def get_metadata(self, including_existing_tables=True, engine=None, force_refresh=False):
 
         if including_existing_tables:
-            if self._combined_base is None:
-                self._combined_base = copy.deepcopy(Base)
-                self._combined_base.metadata.bind = self.engine
-                self._combined_base.metadata.reflect(extend_existing=True)
-            return self._combined_base
+            metadata = copy.deepcopy(Base.metadata)
+            if engine is None:
+                engine = self.engine
+
+            metadata.bind = engine
+            metadata.reflect(extend_existing=True)
+            return metadata
         else:
-            if self._base is None:
-                self._base = copy.deepcopy(Base)
-            return self._base
+            if self._base_metadata is None:
+                self._base_metadata = copy.deepcopy(Base.metadata)
+            return self._base_metadata
 
     def get_session(self):
         return sessionmaker(bind=self.engine)()

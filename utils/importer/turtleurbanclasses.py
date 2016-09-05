@@ -679,7 +679,7 @@ class AlgemeneInformatie(HydroObject):
     pass
 
 
-class HydroObjectFactory:
+class HydroObjectFactory(object):
     WhichHydroObject = {
         '*KNP': (Knoop,),
         '*LEI': (GeslotenLeiding, ),
@@ -866,8 +866,7 @@ class HydroObjectFactory:
             return
         print '\n'.join(that_class.greenBookDef()[:trim_at])
 
-    @classmethod
-    def hydroObjectFromSUFHYD(cls, persid, strict=True):
+    def hydroObjectFromSUFHYD(self, persid, strict=True):
         '''create object from string.
 
         if persid is not parseable:
@@ -877,7 +876,7 @@ class HydroObjectFactory:
         tryingClass = None
         try:
             ide_rec = persid[:4]
-            for resultClass in cls.WhichHydroObject[ide_rec]:
+            for resultClass in self.WhichHydroObject[ide_rec]:
                 try:
                     tryingClass = resultClass
                     return resultClass(persid)
@@ -887,14 +886,21 @@ class HydroObjectFactory:
             pass
 
         if not tryingClass:
-            log.warn('%s' % persid)
+            self.log.add(logging.WARNING,
+                     'Object {ide_rec} is not used',
+                     {'ide_rec': ide_rec},
+                     'Line: {line}',
+                     {'line': persid})
         else:
-            log.warn('%s' % fieldwise(tryingClass(), persid))
+            self.log.add(logging.ERROR,
+                     'Error in parsing object of type {ide_rec}',
+                     {'ide_rec': ide_rec},
+                     'Object with fields: {line}',
+                     {'line': fieldwise(tryingClass, persid)})
         if strict is True:
             raise RuntimeError('SUFHYD data does not match any pattern ("%s")' % persid)
 
-    @classmethod
-    def hydroObjectListFromSUFHYD(cls, input, strict=False):
+    def hydroObjectListFromSUFHYD(self, input, data_log=None, strict=False):
         '''
 
         if input contains non parseable parts:
@@ -902,15 +908,16 @@ class HydroObjectFactory:
           else: ignore those parts.
         '''
 
-        log.info('logging non parsed input as WARNING')
-        result = [cls.hydroObjectFromSUFHYD(i, strict) for i in re.split('[\n\r]+', input) if i]
+        self.log = data_log
+        # log.info('logging non parsed input as WARNING')
+        result = [self.hydroObjectFromSUFHYD(i, strict) for i in re.split('[\n\r]+', input) if i]
         result = [i for i in result if i]
-        log.info('end of non parsed input')
+        # log.info('end of non parsed input')
 
         ai_list = [i for i in result if i.__class__ == AlgemeneInformatie]
         if ai_list:
-            log.info('collapsing AlgemeneInformatie to one object')
-            ai = cls.hydroObjectFromSUFHYD("*AL1")
+            # log.info('collapsing AlgemeneInformatie to one object')
+            ai = self.hydroObjectFromSUFHYD("*AL1")
             for key in AlgemeneInformatie.field_names:
                 if not isSufHydKey(key):
                     continue

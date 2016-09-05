@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+import logging
+
 from ...sql_models.constants import Constants
 from turtleurbanclasses import HydroObjectFactory
+
+
+logger = logging.getLogger(__name__)
 
 
 def check_unsupported_fields(obj, *fields):
@@ -103,15 +108,17 @@ def point(x, y, srid_input=28992):
 class SufhydReader(object):
     """class loading sufhydfile"""
 
-    def __init__(self, content_string):
+    def __init__(self, content_string, data_log):
         self.content_string = content_string
         self.active_object = None
         self.output = None
         self.errors = []
+        self.log = data_log
 
     def get_hydro_objects(self):
 
-        return HydroObjectFactory.hydroObjectListFromSUFHYD(self.content_string)
+        hydrofact = HydroObjectFactory()
+        return hydrofact.hydroObjectListFromSUFHYD(self.content_string, self.log)
 
     def parse_input(self):
         """
@@ -145,41 +152,68 @@ class SufhydReader(object):
             'impervious_surface_maps': [],
         }
 
+        unused_fields = {key: dict() for key in function_mapping.keys()}
+
         for obj in self.get_hydro_objects():
             if hasattr(obj, 'ide_rec'):
-                function_mapping.get(obj.ide_rec, str)(obj)
+                # parse object
+                unused_fields_obj = function_mapping.get(obj.ide_rec, str)(obj)
+
+                # process nuused fields for feedback to user
+                for field in unused_fields_obj:
+                    if field not in unused_fields[obj.ide_rec]:
+                        unused_fields[obj.ide_rec][field] = 0
+
+                    unused_fields[obj.ide_rec][field] += 1
+
+            return unused_fields
 
     def get_data(self):
         return self.output
 
-    def get_shape(self, shape_code):
+    def get_shape(self, shape_code, record_code):
         try:
             return shape_mapping[shape_code]
         except KeyError:
-            self.add_object_error('shape', "Unknown shape code '{0}'".format(shape_code))
+            self.log.add(logging.WARNING,
+                          'Unknown profile shape in sufhyd record',
+                          {},
+                          "shape code '{shape}' for record with code {record_id}",
+                          {'shape': shape_code, 'record_id': record_code})
             return None
 
-    def get_manhole_shape(self, shape_code):
+    def get_manhole_shape(self, shape_code, record_code):
         try:
             return manhole_shape_mapping[shape_code]
         except KeyError:
-            self.add_object_error('shape', "Unknown manhole shape code '{0}'".format(shape_code))
+            self.log.add(logging.WARNING,
+                          'Unknown manhole shape in sufhyd record',
+                          {},
+                          "shape code '{shape}' for record with code {record_id}",
+                          {'shape': shape_code, 'record_id': record_code})
             return None
 
-    def get_material_type(self, material_code):
+    def get_material_type(self, material_code, record_code):
         try:
             return material_mapping[material_code]
         except KeyError:
-            self.add_object_error('material', "Unknown material code '{0}'".format(material_code))
+            self.log.add(logging.WARNING,
+                          'Unknown material type in sufhyd record',
+                          {},
+                          "Material code '{material_code}' for record with code {record_id}",
+                          {'material_code': material_code, 'record_id': record_code})
+
             return None
 
-    def get_sewerage_type(self, leiding_type_code):
+    def get_sewerage_type(self, pipe_type_code, record_code):
         try:
-            return pipe_type_mapping[leiding_type_code]
+            return pipe_type_mapping[pipe_type_code]
         except KeyError:
-            self.add_object_error('pipe_type',
-                                  "Unknown pipe type code "
-                                  "'{0}'".format(leiding_type_code))
+            self.log.add(logging.WARNING,
+                          'Unknown sewerage type in sufhyd record',
+                          {},
+                          "Sewarege type code '{pipe_type_code}' for record with code {record_id}",
+                          {'pipe_type_code': pipe_type_code, 'record_id': record_code})
             return None
 
     def get_surface_class(self, surface_field_code):
@@ -187,9 +221,7 @@ class SufhydReader(object):
 
             return surface_class_mapping[surface_field_code]
         except KeyError:
-            self.add_object_error('surface_class',
-                                  "Unknown surface_class code "
-                                  "'{0}'".format(surface_field_code))
+            logger.error('unknown surface_class %s', surface_field_code)
             return None
 
     def get_surface_inclination(self, surface_field_code):
@@ -197,9 +229,7 @@ class SufhydReader(object):
 
             return surface_inclination_mapping[surface_field_code]
         except KeyError:
-            self.add_object_error('surface_inclination',
-                                  "Unknown surface inclination "
-                                  "type code '{0}'".format(surface_field_code))
+            logger.error('unknown surface_class %s', surface_field_code)
             return None
 
     @staticmethod
@@ -231,7 +261,7 @@ class SufhydReader(object):
             'surface_level': knp.mvd_niv,
             'width': knp.knp_bre,
             'length': knp.knp_len,
-            'shape': self.get_manhole_shape(knp.knp_vrm),
+            'shape': self.get_manhole_shape(knp.knp_vrm, code),
             'bottom_level': knp.knp_bok,
             # 'material': self.get_material_type(knp.pro_mat),
         }
@@ -271,14 +301,14 @@ class SufhydReader(object):
             'end_node.code': prettify(leiding.ide_geb) + prettify(leiding.ide_kn2),
             'original_length': leiding.lei_len,
             'cross_section_details': {
-                'shape': self.get_shape(leiding.pro_vrm),
+                'shape': self.get_shape(leiding.pro_vrm, code),
                 'width': leiding.pro_bre,
                 'height': leiding.pro_hgt,
             },
             'invert_level_start_point': leiding.bob_kn1,
             'invert_level_end_point': leiding.bob_kn2,
-            'sewerage_type': self.get_sewerage_type(leiding.lei_typ),
-            'material': self.get_material_type(leiding.lei_typ),
+            'sewerage_type': self.get_sewerage_type(leiding.lei_typ, code),
+            'material': self.get_material_type(leiding.lei_typ, code),
             'pipe_quality': leiding.mat_sdr,
         }  # not supported:
 
@@ -305,14 +335,14 @@ class SufhydReader(object):
             }
             self.output['impervious_surface_maps'].append(imp_map)
 
-        check_unsupported_fields(pipe, 'pro_num', 'afv_een', 'afv_hel',
-                                 'afv_vla', 'afv_vlu', 'pro_knw',
-                                 'str_rch', 'inv_kn1', 'uit_kn1',
-                                 'inv_kn2', 'uit_kn2', 'qdh_num',
-                                 'qdh_niv', 'nsh_frt', 'nsh_frv',
-                                 'dwa_def', 'nsh_upt', 'nsh_upn')
-
         self.output['pipes'].append(pipe)
+
+        return check_unsupported_fields(pipe, 'pro_num', 'afv_een', 'afv_hel',
+                                         'afv_vla', 'afv_vlu', 'pro_knw',
+                                         'str_rch', 'inv_kn1', 'uit_kn1',
+                                         'inv_kn2', 'uit_kn2', 'qdh_num',
+                                         'qdh_niv', 'nsh_frt', 'nsh_frv',
+                                         'dwa_def', 'nsh_upt', 'nsh_upn')
 
     def parse_gemaal(self, gemaal):
 
@@ -352,7 +382,7 @@ class SufhydReader(object):
             'end_node.code': (prettify(doorlaat.ide_gb2) +
                               prettify(doorlaat.ide_kn2)),
             'cross_section_details': {
-                'shape': self.get_shape(doorlaat.pro_vrm),
+                'shape': self.get_shape(doorlaat.pro_vrm, code),
                 'width': get_value(doorlaat.pro_bre, float),
                 'height': get_value(doorlaat.pro_hgt, float),
             },
@@ -419,7 +449,7 @@ class SufhydReader(object):
 
         self.output['weirs'].append(weir)
 
-        check_unsupported_fields(weir, 'qdh_num', 'qdh_niv')
+        return check_unsupported_fields(weir, 'qdh_num', 'qdh_niv')
 
     def parse_uitlaat(self, uitlaat):
 
@@ -440,7 +470,7 @@ class SufhydReader(object):
 
         self.output['outlets'].append(outlet)
 
-        check_unsupported_fields(outlet, 'ide_gb2', 'ide_kn2')
+        return check_unsupported_fields(outlet, 'ide_gb2', 'ide_kn2')
 
     def parse_bergend_oppervlak(self, berging):
 
@@ -453,7 +483,7 @@ class SufhydReader(object):
         }
         self.output['storage'].append(storage)
 
-        check_unsupported_fields(storage, 'niv_002', 'bop_002',
+        return check_unsupported_fields(storage, 'niv_002', 'bop_002',
                                  'niv_003', 'bop_003', 'niv_004', 'bop_004')
 
     def parse_koppeling(self, koppeling):
@@ -474,7 +504,7 @@ class SufhydReader(object):
             }
             self.output['links'].append(link)
 
-        return None
+        return []
 
     def parse_afvoerend_oppervlak(self, afvopp):
 
@@ -494,7 +524,7 @@ class SufhydReader(object):
             unit = getattr(afvopp, "{0}_een".format(class_type))
 
             if unit == '01':
-                print "warning, unit type 01 not supported"
+                logger.error("Unit type 01 for *AFV is not supported")
 
             for inclination_type in ['hel', 'vla', 'vlu']:
 
