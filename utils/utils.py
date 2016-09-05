@@ -6,8 +6,9 @@ import os
 try:
     from qgis.core import (
         QgsVectorLayer, QgsMapLayerRegistry, QgsVectorJoinInfo)
-except ImportError:
-    pass
+except ImportError as e:
+    print("Can't import one or more QGIS functions, some functions will "
+          "fail: %s" % e.message)
 
 
 class cached_property(object):
