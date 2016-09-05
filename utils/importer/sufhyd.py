@@ -159,14 +159,16 @@ class SufhydReader(object):
                 # parse object
                 unused_fields_obj = function_mapping.get(obj.ide_rec, str)(obj)
 
-                # process nuused fields for feedback to user
-                for field in unused_fields_obj:
-                    if field not in unused_fields[obj.ide_rec]:
-                        unused_fields[obj.ide_rec][field] = 0
+                # process unused fields for feedback to user
 
-                    unused_fields[obj.ide_rec][field] += 1
+                if unused_fields_obj is not None:
+                    for field in unused_fields_obj:
+                        if field not in unused_fields[obj.ide_rec]:
+                            unused_fields[obj.ide_rec][field] = 0
 
-            return unused_fields
+                        unused_fields[obj.ide_rec][field] += 1
+
+        return unused_fields
 
     def get_data(self):
         return self.output
