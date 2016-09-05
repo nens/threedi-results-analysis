@@ -299,18 +299,20 @@ class NetcdfDataSource(object):
         line_type_of to work.
         """
         # Nodes
-        self.n2dtot = self.ds.nFlowElem2d
-        self.n1dtot = self.ds.nFlowElem1d
-        self.n2dobc = self.ds.nFlowElem2dBounds
+        self.n2dtot = getattr(self.ds, 'nFlowElem2d', 0)
+        self.n1dtot = getattr(self.ds, 'nFlowElem1d', 0)
+        self.n2dobc = getattr(self.ds, 'nFlowElem2dBounds', 0)
         self.end_n1dtot = self.n2dtot + self.n1dtot
         self.end_n2dobc = self.n2dtot + self.n1dtot + self.n2dobc
-        self.nodall = self.ds.nFlowElem
+        self.nodall = getattr(self.ds, 'nFlowElem', 0)
         # Links
-        self.nFlowLine2d = self.ds.nFlowLine2d
-        self.nFlowLine = self.ds.nFlowLine
-        self.end_2d_bound_line = self.nFlowLine - self.ds.nFlowLine1dBounds
-        self.end_1d_line = (self.nFlowLine - self.ds.nFlowLine2dBounds -
-                            self.ds.nFlowLine1dBounds)
+        self.nFlowLine2d = getattr(self.ds, 'nFlowLine2d', 0)
+        self.nFlowLine = getattr(self.ds, 'nFlowLine', 0)
+        self.nFlowLine1dBounds = getattr(self.ds, 'nFlowLine1dBounds', 0)
+        self.nFlowLine2dBounds = getattr(self.ds, 'nFlowLine2dBounds', 0)
+        self.end_2d_bound_line = self.nFlowLine - self.nFlowLine1dBounds
+        self.end_1d_line = (self.nFlowLine - self.nFlowLine2dBounds -
+                            self.nFlowLine1dBounds)
 
     @cached_property
     def id_mapping(self):
