@@ -43,11 +43,10 @@ RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration', 'infiltration rate', 'm3/s')
 
-# todo: add support of DISCHARGE_PUMP somewhere
-
 _Q_TYPES = [
     DISCHARGE,
     DISCHARGE_INTERFLOW,
+    DISCHARGE_PUMP,
     VELOCITY,
     VELOCITY_INTERFLOW,
 ]

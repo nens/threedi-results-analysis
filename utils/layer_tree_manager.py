@@ -9,6 +9,7 @@ from ..utils.user_messages import pop_up_question
 from ..stats.utils import (
     generate_structure_stats,
     generate_manhole_stats,
+    generate_pump_stats,
     get_structure_layer_id_name,
     get_manhole_layer_id_name,
     get_default_csv_path,
@@ -345,6 +346,7 @@ class LayerTreeManager(object):
                                 'v2_orifice_view',
                                 'v2_pipe_view',
                                 ]
+            pump_layer_names = ['v2_pumpstation_view']
 
             styled_layers = {
                 'v2_manhole': [ # name, style, field
@@ -386,6 +388,9 @@ class LayerTreeManager(object):
                 line_layers = [line] + self._create_layers(
                     self.model.model_spatialite_filepath,
                     group, line_layer_names, geometry_column='the_geom')
+                pump_layers = [pumpline] + self._create_layers(
+                    self.model.model_spatialite_filepath,
+                    group, pump_layer_names, geometry_column='the_geom')
 
                 for new_layer in node_layers:
                     if new_layer.isValid():
@@ -471,6 +476,44 @@ class LayerTreeManager(object):
 
                             tree_layer = group.insertLayer(100, layer)
                             self._mark(tree_layer, new_layer.name())
+
+                for lyr in pump_layers:
+                    if not lyr:
+                        continue
+                    if lyr.isValid():
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            lyr, False)
+                        tree_layer = group.insertLayer(100, lyr)
+                        self._mark(tree_layer, lyr.name())
+
+                        # Generate stats, join the csv with layer, and
+                        # insert the csv as layer
+                        layer_id_name = get_structure_layer_id_name(
+                            lyr.name())
+                        _filepath = get_default_csv_path(
+                            lyr.name(), output_dir)
+                        if os.path.exists(_filepath):
+                            # The csv was already generated, reuse it
+                            print("Reusing existing statistics csv: %s" %
+                                  _filepath)
+                            filepath = _filepath
+                        else:
+                            # No stats; generate it
+                            try:
+                                filepath = generate_pump_stats(
+                                    result.datasource(), output_dir,
+                                    lyr, layer_id_name,
+                                    include_2d=True)
+                                print("Generated %s" % filepath)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                        csv_layer = csv_join(
+                            filepath, lyr, layer_id_name,
+                            add_to_legend=False)
+
+                        csv_tree_layer = group.insertLayer(100, csv_layer)
+                        self._mark(csv_tree_layer, csv_layer.name())
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):

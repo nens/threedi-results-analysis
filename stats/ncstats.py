@@ -30,6 +30,7 @@ class NcStats(object):
         'q_max', 'q_cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
     AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end', 'wos_duration']
+    AVAILABLE_PUMP_PARAMETERS = ['tot_vol_pump', 'pump_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -77,6 +78,21 @@ class NcStats(object):
         # calc total vol thru structure
         vols = self.timesteps * ma_q_slice[0:-1]
         return vols.sum()
+
+    def tot_vol_pump(self, structure_type, obj_id):
+        """Total volume through a pump calculated using integration.
+
+        Note: for pumps we know that q_pump is always positive.
+        """
+        q_slice = self.datasource.get_values_by_id(
+            'q_pump', structure_type, object_id=obj_id)
+        # calc total vol thru structure
+        vols = self.timesteps * q_slice[0:-1]
+        return vols.sum()
+
+    def pump_duration(self, structure_type, obj_id, capacity=None):
+        vol_pump = self.tot_vol_pump(structure_type, obj_id)
+        return vol_pump / capacity
 
     def q_max(self, structure_type, obj_id):
         """Maximum value of a q timeseries; can be negative.
@@ -143,6 +159,7 @@ class NcStats(object):
         water_op_straat[water_op_straat > 0] = 1.
         water_op_straat[water_op_straat < 0] = 0
         cum_duration = self.timesteps * water_op_straat[0:-1]
+        #from ..qtdebug import set_trace; set_trace()
         return cum_duration.sum()
 
     def q_end(self, structure_type, obj_id):
@@ -175,7 +192,9 @@ class NcStatsAgg(NcStats):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end']
+    AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS
+    AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
+        + NcStats.AVAILABLE_PUMP_PARAMETERS
 
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
@@ -185,7 +204,8 @@ class NcStatsAgg(NcStats):
         # and store netcdf arrays in memory.
         self.variables = dict()
         for p in (self.AVAILABLE_MANHOLE_PARAMETERS +
-                  self.AVAILABLE_STRUCTURE_PARAMETERS):
+                  self.AVAILABLE_STRUCTURE_PARAMETERS +
+                  self.AVAILABLE_PUMP_PARAMETERS):
             try:
                 copied_array = self.ds_agg.variables[p][:]
                 self.variables[p] = copied_array
