@@ -12,6 +12,7 @@ from ..stats.utils import (
     get_manhole_layer_id_name,
     get_default_csv_path,
     )
+from .styler import Styler
 
 
 class LayerTreeManager(object):
@@ -244,6 +245,7 @@ class LayerTreeManager(object):
                                                  geometry_column='the_geom')
 
                 if vector_layer.isValid():
+                    Styler.apply_style(vector_layer, layer_name, 'schematisation')
                     QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
                                                                False)
                     group.insertLayer(100, vector_layer)
@@ -322,12 +324,12 @@ class LayerTreeManager(object):
 
             # TODO: not sure if I am doing things twice by calling this
             # function again... Layers are cached in sqlite right, so it
-            # should be okay?
+            # should be okay? --> yes, they are cached
             line, node, pumpline = result.get_result_layers()
 
             node_layer_names = ['v2_manhole',
                                 ]
-            line_layer_names = ['v2_weir_view',
+            line_layer_names = ['v2_weir_view',  # ['overstort volume',]
                                 'v2_culvert_view',
                                 'v2_orifice_view',
                                 'v2_pipe_view',
