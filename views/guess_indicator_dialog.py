@@ -276,5 +276,5 @@ class GuessIndicatorDialogWidget(QDialog):
         self.groupBox.setTitle(_translate("Import_dialog", "Guess", None))
         self.check_pipe_friction.setText(_translate("Import_dialog", "Pipe friction", None))
         self.check_manhole_indicator.setText(_translate("Import_dialog", "Manhole indicator", None))
-        self.check_only_empty_fields.setText(_translate("Import_dialog", "Only empty fields", None))
-        self.check_manhole_area.setText(_translate("Import_dialog", "Manhole area", None))
+        self.check_only_empty_fields.setText(_translate("Import_dialog", "Only null fields", None))
+        self.check_manhole_area.setText(_translate("Import_dialog", "Manhole area (only null fields)", None))
