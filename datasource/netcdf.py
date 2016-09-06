@@ -614,7 +614,7 @@ class NetcdfDataSource(object):
         # Convert row array to regular array.
         return vals[:, 0]
 
-    def get_values_by_timestamp(self, variable, timestamp_idx, index=None):
+    def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
         """Horizontal slice over the element indices, i.e., get all values for
         all nodes or flowlines for a specific timestamp.
 
