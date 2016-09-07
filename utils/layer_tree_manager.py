@@ -12,6 +12,7 @@ from ..stats.utils import (
     generate_pump_stats,
     get_structure_layer_id_name,
     get_manhole_layer_id_name,
+    get_pump_layer_id_name,
     get_default_csv_path,
     )
 from .styler import Styler
@@ -488,7 +489,7 @@ class LayerTreeManager(object):
 
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
-                        layer_id_name = get_structure_layer_id_name(
+                        layer_id_name = get_pump_layer_id_name(
                             lyr.name())
                         _filepath = get_default_csv_path(
                             lyr.name(), output_dir)

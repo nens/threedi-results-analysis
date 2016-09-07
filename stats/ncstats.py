@@ -237,11 +237,11 @@ class NcStatsAgg(NcStats):
             parameter_name: the netcdf variable name
             kwargs: unused, but needed to be compatible with NcStats
         """
-        if 'pump' in structure_type:
-            # TODO: fix this
-            raise NotImplementedError(
-                "Some things don't work for pumps yet using the "
-                "aggregated netCDF")
+        # if 'pump' in structure_type:
+        #     # TODO: fix this
+        #     raise NotImplementedError(
+        #         "Some things don't work for pumps yet using the "
+        #         "aggregated netCDF")
         norm_object_type = normalized_object_type(structure_type)
         netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
         try:

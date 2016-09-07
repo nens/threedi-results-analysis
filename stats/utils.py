@@ -99,6 +99,16 @@ def get_structure_layer_id_name(layer_name):
     return layer_id_name
 
 
+def get_pump_layer_id_name(layer_name):
+    """Get the primary key name of the layer (only pump layers!)"""
+    if layer_name == 'pumplines':
+        layer_id_name = 'id'
+    else:
+        # It's a view
+        layer_id_name = 'ROWID'
+    return layer_id_name
+
+
 def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
                            include_2d=True):
     """Generate stats for manhole like objects and write to csv.
@@ -317,7 +327,10 @@ def generate_pump_stats(nds, result_dir, layer, layer_id_name,
     if layer_name == 'pumplines':
         # TODO: not sure if we want to make ncstats distinction based on
         # the layer type
-        ncstats = NcStatsAgg(datasource=nds)
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            ncstats = NcStats(datasource=nds)
     else:
         # It's a view
         ncstats = NcStats(datasource=nds)
