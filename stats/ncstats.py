@@ -170,7 +170,7 @@ class NcStats(object):
             'q', structure_type, object_id=obj_id)
         return q_slice[-1]
 
-    def get_value_from_parameter(
+    def _get_value_from_parameter(
             self, structure_type, obj_id, parameter_name, **kwargs):
         """Select the method from parameter name and call the method.
 
@@ -181,6 +181,9 @@ class NcStats(object):
                              structure_type=structure_type,
                              obj_id=obj_id,
                              **kwargs)
+
+    # Make NcStats have the same interface as NcStatsAgg
+    get_value_from_parameter = _get_value_from_parameter
 
     def close(self):
         # TODO: is this used? also law of demeter
@@ -194,7 +197,8 @@ class NcStatsAgg(NcStats):
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
         NcStats.AVAILABLE_STRUCTURE_PARAMETERS
-    AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS
+    AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
+        ['wos_height', 'water_depth']
     AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
         + NcStats.AVAILABLE_PUMP_PARAMETERS
 
@@ -250,6 +254,16 @@ class NcStatsAgg(NcStats):
                 "lookup in regular NcStats." % parameter_name)
             # The variable was not found in aggregation netCDF. We will look
             # further down in the regular netCDF.
-            variable = super(NcStatsAgg, self).get_value_from_parameter(
+            variable = self._get_value_from_parameter(
                 structure_type, obj_id, parameter_name, **kwargs)
             return variable
+
+    def wos_height(self, structure_type, obj_id, surface_level=None):
+        s1_max = self.get_value_from_parameter(
+            structure_type, obj_id, 's1_max')
+        return s1_max - surface_level
+
+    def water_depth(self, structure_type, obj_id, bottom_level=None):
+        s1_max = self.get_value_from_parameter(
+            structure_type, obj_id, 's1_max')
+        return s1_max - bottom_level

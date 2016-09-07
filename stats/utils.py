@@ -39,40 +39,20 @@ def _calc_results(
     """
     result = dict()
     for param_name in parameters:
-        # Water op straat berekening (wos_height):
-        if param_name == 'wos_height':
-            if surface_level is None:
-                result[param_name] = None
-            try:
-                s1_max = ncstats.get_value_from_parameter(
-                    layer_name, feature_id, 's1_max')
-                result[param_name] = s1_max - surface_level
-            except (ValueError, TypeError, AttributeError):
-                result[param_name] = None
-        # Waterdiepte berekening:
-        elif param_name == 'water_depth':
-            if bottom_level is None:
-                result[param_name] = None
-            try:
-                s1_max = ncstats.get_value_from_parameter(
-                    layer_name, feature_id, 's1_max')
-                result[param_name] = s1_max - bottom_level
-            except (ValueError, TypeError, AttributeError):
-                result[param_name] = None
         # Business as usual (NcStats method)
-        else:
-            try:
-                result[param_name] = \
-                    ncstats.get_value_from_parameter(
-                        layer_name, feature_id, param_name,
-                        surface_level=surface_level)
-            except (ValueError, IndexError):
-                result[param_name] = None
-            except TypeError:
-                # Probably an error with wos_duration, which
-                # will ONLY work for structures with a surface_level (
-                # i.e. manholes).
-                result[param_name] = None
+        try:
+            result[param_name] = \
+                ncstats.get_value_from_parameter(
+                    layer_name, feature_id, param_name,
+                    surface_level=surface_level,
+                    bottom_level=bottom_level)
+        except (ValueError, IndexError, AttributeError):
+            result[param_name] = None
+        except TypeError:
+            # Probably an error with wos_duration, which
+            # will ONLY work for structures with a surface_level (
+            # i.e. manholes).
+            result[param_name] = None
     return result
 
 
@@ -162,14 +142,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         # It's sewerage spatialite (no agg. netcdf)
         ncstats = NcStats(datasource=nds)
 
-    # All the NcStats parameters we want to calculate (can differ per
-    # NcStats version)
-    derived_parameters = [
-        'wos_height',
-        'water_depth',
-        ]
-    parameters = ncstats.AVAILABLE_MANHOLE_PARAMETERS + \
-        derived_parameters
+    parameters = ncstats.AVAILABLE_MANHOLE_PARAMETERS
 
     # Generate data
     result = dict()
