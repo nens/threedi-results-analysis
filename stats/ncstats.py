@@ -6,6 +6,7 @@ import numpy as np
 import inspect
 
 from ..datasource.netcdf import NetcdfDataSource, normalized_object_type
+from ..utils.user_messages import log
 
 
 def tailored_args(f, **kwargs):
@@ -27,9 +28,9 @@ class NcStats(object):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = [
-        'q_max', 'q_cumulative_duration', 'q_end', 'tot_vol_positive',
+        'q_cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end', 'wos_duration']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_end', 'wos_duration']
     AVAILABLE_PUMP_PARAMETERS = ['tot_vol_pump', 'pump_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
@@ -191,7 +192,8 @@ class NcStatsAgg(NcStats):
     version of the 3Di netCDF files."""
 
     # Update these lists if you add a new method
-    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
+    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
+        NcStats.AVAILABLE_STRUCTURE_PARAMETERS
     AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS
     AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
         + NcStats.AVAILABLE_PUMP_PARAMETERS
@@ -225,6 +227,7 @@ class NcStatsAgg(NcStats):
             else:
                 raise ValueError("Unknown variable")
             self.variables[k] = calcd_array
+        self.variable_keys = self.variables.keys()
 
     def get_value_from_parameter(self, structure_type, obj_id,
                                  parameter_name, **kwargs):
@@ -237,19 +240,14 @@ class NcStatsAgg(NcStats):
             parameter_name: the netcdf variable name
             kwargs: unused, but needed to be compatible with NcStats
         """
-        # if 'pump' in structure_type:
-        #     # TODO: fix this
-        #     raise NotImplementedError(
-        #         "Some things don't work for pumps yet using the "
-        #         "aggregated netCDF")
         norm_object_type = normalized_object_type(structure_type)
         netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
-        try:
+        if parameter_name in self.variable_keys:
             variable = self.variables[parameter_name]
             return variable[netcdf_id]
-        except KeyError:
-            print("This aggregation variable has no stats (%s), attempting "
-                  "lookup in regular NcStats." % parameter_name)
+        else:
+            log("This aggregation variable has no stats (%s), attempting "
+                "lookup in regular NcStats." % parameter_name)
             # The variable was not found in aggregation netCDF. We will look
             # further down in the regular netCDF.
             variable = super(NcStatsAgg, self).get_value_from_parameter(

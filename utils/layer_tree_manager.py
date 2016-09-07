@@ -412,7 +412,7 @@ class LayerTreeManager(object):
                                 filepath = generate_manhole_stats(
                                     result.datasource(), output_dir,
                                     new_layer, layer_id_name,
-                                    include_2d=True)
+                                    include_2d=False)
                                 print("Generated %s" % filepath)
                             except ValueError as e:
                                 print(e.message)
@@ -455,7 +455,7 @@ class LayerTreeManager(object):
                                 filepath = generate_structure_stats(
                                     result.datasource(), output_dir,
                                     new_layer, layer_id_name,
-                                    include_2d=True)
+                                    include_2d=False)
                                 print("Generated %s" % filepath)
                             except ValueError as e:
                                 print(e.message)
@@ -504,7 +504,7 @@ class LayerTreeManager(object):
                                 filepath = generate_pump_stats(
                                     result.datasource(), output_dir,
                                     lyr, layer_id_name,
-                                    include_2d=True)
+                                    include_2d=False)
                                 print("Generated %s" % filepath)
                             except ValueError as e:
                                 print(e.message)

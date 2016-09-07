@@ -432,15 +432,12 @@ class NetcdfDataSource(object):
         """Get the id mapping dict correctly and then return the mapped id,
         aka: the inp_id"""
         try:
+            # This is the v2 situation
+            v2_object_type = 'v2_%s' % normalized_object_type
+            obj_id_mapping = self.id_mapping[v2_object_type]
+        except KeyError:
             # This is the sewerage situation
             obj_id_mapping = self.id_mapping[normalized_object_type]
-        except KeyError:
-            # This is the v2 situation
-            # TODO: another v2 <-> sewerage difference...
-            log("id_mapping json v2 <-> sewerage naming discrepancy",
-                level='WARNING')
-            v2_object_type = 'v2_' + normalized_object_type
-            obj_id_mapping = self.id_mapping[v2_object_type]
         return obj_id_mapping[str(object_id)]  # strings because JSON
 
     def netcdf_id_from(self, inp_id, object_type):
