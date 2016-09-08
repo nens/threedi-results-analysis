@@ -4,20 +4,28 @@ import tempfile
 import shutil
 import sys
 
-from utilities import get_qgis_app
-QGIS_APP = get_qgis_app()
+try:
+    from qgis.core import (
+        QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
+except ImportError:
+    pass
 
-from qgis.core import (
-    QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
 from PyQt4.QtCore import QVariant
 
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
     # Linux specific
     sys.path.append('/usr/share/qgis/python/plugins/')
-    from ThreeDiToolbox.datasource.spatialite import Spatialite
+    try:
+        from ThreeDiToolbox.datasource.spatialite import Spatialite
+    except ImportError:
+        print("Can't import Spatialite.")
+        Spatialite = None
+from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from .utilities import get_qgis_app
+
+QGIS_APP = get_qgis_app()
 
 
 spatialite_datasource_path = os.path.join(
@@ -86,6 +94,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
 
+@unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
 class TestSpatialiteDataSource(unittest.TestCase):
 
     def setUp(self):
@@ -144,5 +153,3 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertIsNotNone(spl_layer)
         self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
         self.assertEqual(layer.featureCount(), 1)
-
-

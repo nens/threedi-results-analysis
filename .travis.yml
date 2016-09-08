@@ -24,6 +24,7 @@ install:
 script:
     - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
     - nosetests ThreeDiToolbox.test.test_stats
+    - nosetests ThreeDiToolbox.test.test_datasources
     - nosetests ThreeDiToolbox.test.test_models
 
 notifications:
