@@ -1,6 +1,9 @@
 threedi-qgis-plugin
 ===================
 
+.. image:: https://travis-ci.org/nens/threedi-qgis-plugin.svg?branch=master
+    :target: https://travis-ci.org/nens/threedi-qgis-plugin
+
 A QGIS plugin for working with 3Di models and netCDF results. Features include:
 
 - Importing spatialite and netCDF datasources
