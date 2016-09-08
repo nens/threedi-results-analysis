@@ -26,7 +26,6 @@ script:
     - nosetests ThreeDiToolbox.test.test_stats
     - nosetests ThreeDiToolbox.test.test_datasources
     - nosetests ThreeDiToolbox.test.test_models
-    - nosetests ThreeDiToolbox.test.test_henk
 
 notifications:
     email: false

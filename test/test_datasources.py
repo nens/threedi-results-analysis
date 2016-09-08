@@ -17,7 +17,10 @@ try:
 except ImportError:
     # Linux specific
     sys.path.append('/usr/share/qgis/python/plugins/')
-    from ThreeDiToolbox.datasource.spatialite import Spatialite
+    try:
+        from ThreeDiToolbox.datasource.spatialite import Spatialite
+    except ImportError:
+        print("Can't import Spatialite.")
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 from .utilities import get_qgis_app
 
@@ -90,7 +93,6 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
 
-@unittest.skip
 class TestSpatialiteDataSource(unittest.TestCase):
 
     def setUp(self):
