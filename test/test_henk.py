@@ -12,12 +12,6 @@ except ImportError:
 
 from PyQt4.QtCore import QVariant
 
-try:
-    from ThreeDiToolbox.datasource.spatialite import Spatialite
-except ImportError:
-    # Linux specific
-    sys.path.append('/usr/share/qgis/python/plugins/')
-    from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 
 
