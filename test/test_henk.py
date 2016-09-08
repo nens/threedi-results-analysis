@@ -10,12 +10,51 @@ try:
 except ImportError:
     pass
 
+from PyQt4.QtCore import QVariant
 
+try:
+    from ThreeDiToolbox.datasource.spatialite import Spatialite
+except ImportError:
+    # Linux specific
+    sys.path.append('/usr/share/qgis/python/plugins/')
+    from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from .utilities import get_qgis_app
+
+QGIS_APP = get_qgis_app()
+
+
+spatialite_datasource_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'data', 'test_spatialite.sqlite')
 
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'testmodel', 'results', 'subgrid_map.nc')
+
+
+@unittest.skipIf(not os.path.exists(netcdf_datasource_path),
+                 "Path to test netcdf doesn't exist.")
+class TestNetcdfDatasource(unittest.TestCase):
+
+    def setUp(self):
+        self.ncds = NetcdfDataSource(netcdf_datasource_path,
+                                     load_properties=False)
+
+    def test_netcdf_loaded(self):
+        """We can open the Netcdf file"""
+        self.assertTrue(self.ncds.ds is not None)
+
+    def test_id_mapping_loaded(self):
+        """The datasource correctly finds the id_mapping.json."""
+        self.assertTrue(self.ncds.id_mapping is not None)
+
+    def test_timestamps(self):
+        """We'll asume there are always some time steps"""
+        ts = self.ncds.get_timestamps(object_type="doesn't matter")
+        self.assertTrue(len(ts) > 0)
+        self.assertEqual(ts[0], 0.0)
+        self.assertNotEqual(ts[1], 0.0)
 
 
 class TestNetcdfDatasourceBasic(unittest.TestCase):
