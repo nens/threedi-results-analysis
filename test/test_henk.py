@@ -19,9 +19,6 @@ except ImportError:
     sys.path.append('/usr/share/qgis/python/plugins/')
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
-from .utilities import get_qgis_app
-
-QGIS_APP = get_qgis_app()
 
 
 spatialite_datasource_path = os.path.join(
