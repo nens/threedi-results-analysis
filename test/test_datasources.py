@@ -4,20 +4,24 @@ import tempfile
 import shutil
 import sys
 
-from utilities import get_qgis_app
-QGIS_APP = get_qgis_app()
+try:
+    from qgis.core import (
+        QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
+except ImportError:
+    pass
 
-from qgis.core import (
-    QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
 from PyQt4.QtCore import QVariant
 
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
     # Linux specific
     sys.path.append('/usr/share/qgis/python/plugins/')
     from ThreeDiToolbox.datasource.spatialite import Spatialite
+from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from .utilities import get_qgis_app
+
+QGIS_APP = get_qgis_app()
 
 
 spatialite_datasource_path = os.path.join(

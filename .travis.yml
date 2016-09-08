@@ -25,6 +25,7 @@ script:
     - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
     - nosetests ThreeDiToolbox.test.test_stats
     - nosetests ThreeDiToolbox.test.test_models
+    - nosetests ThreeDiToolbox.test.test_datasources
 
 notifications:
     email: false
