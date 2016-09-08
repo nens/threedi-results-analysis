@@ -90,6 +90,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
 
+@unittest.skip
 class TestSpatialiteDataSource(unittest.TestCase):
 
     def setUp(self):
