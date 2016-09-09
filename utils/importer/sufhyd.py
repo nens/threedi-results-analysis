@@ -136,7 +136,7 @@ class SufhydReader(object):
             '*BOP': self.parse_bergend_oppervlak,
             '*KOP': self.parse_koppeling,
             '*AFV': self.parse_afvoerend_oppervlak,
-
+            '*KPG': self.parse_koppeling,
         }
 
         self.output = {
@@ -157,16 +157,17 @@ class SufhydReader(object):
         for obj in self.get_hydro_objects():
             if hasattr(obj, 'ide_rec'):
                 # parse object
-                unused_fields_obj = function_mapping.get(obj.ide_rec, str)(obj)
+                if obj.ide_rec in function_mapping:
+                    unused_fields_obj = function_mapping.get(obj.ide_rec, str)(obj)
 
-                # process unused fields for feedback to user
+                    # process unused fields for feedback to user
 
-                if unused_fields_obj is not None:
-                    for field in unused_fields_obj:
-                        if field not in unused_fields[obj.ide_rec]:
-                            unused_fields[obj.ide_rec][field] = 0
+                    if unused_fields_obj is not None:
+                        for field in unused_fields_obj:
+                            if field not in unused_fields[obj.ide_rec]:
+                                unused_fields[obj.ide_rec][field] = 0
 
-                        unused_fields[obj.ide_rec][field] += 1
+                            unused_fields[obj.ide_rec][field] += 1
 
         return unused_fields
 

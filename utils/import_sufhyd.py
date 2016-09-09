@@ -239,18 +239,22 @@ class Importer(object):
 
         storage_dict = {k['node.code']: k for k in data['storage']}
 
-        for manhole in data['manholes']:
-            if manhole['code'] in link_dict:
-                logger.info("delete manhole %s as part of a linkage." % manhole['code'])
-                del manhole
-                continue
 
+        # remove manholes which are part of a link
+        data['manholes'] = [m for m in data['manholes'] if m['code'] not in link_dict]
+
+        for manhole in data['manholes']:
             # add storage area
-            manh = manhole
-            if manh['code'] in storage_dict:
-                manh['storage_area'] = storage_dict[manh['code']]['storage_area']
+            if manhole['code'] in storage_dict:
+                manhole['storage_area'] = storage_dict[manhole['code']]['storage_area']
             else:
-                manh['storage_area'] = None
+                manhole['storage_area'] = None
+
+            # if manhole['code'] in link_dict:
+            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])
+            #     del manhole
+            #     continue
+
 
         data['profiles'] = profiles
 
@@ -478,6 +482,7 @@ class Importer(object):
                     'impervious service with code {code} not found',
                     {'node': imp_map['node.code'], 'code': imp_map['imp_surface.code']}
                 )
+                continue
 
             imp_map['impervious_surface_id'] = imp_dict[imp_map['imp_surface.code']]
             del imp_map['node.code']
