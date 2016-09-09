@@ -11,6 +11,7 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 - Visualization of datasource time series
 - Sideviews
 - An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
+- import of sufhyd files
 
 `Take a look at the Wiki for information`_.
 
@@ -23,6 +24,7 @@ Requirements
 - QGIS 2.8 or 2.14 (64 bit is recommended)
 - pyqtgraph (included)
 - netCDF4 (included only for Windows using 64 bit QGIS)
+- sqlalchemy version 1.1.0 or higher (not yet included)
 
 Windows
   The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64 bit installations of QGIS under

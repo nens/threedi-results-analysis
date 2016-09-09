@@ -121,10 +121,10 @@ class ThreeDiToolbox:
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            if not pop_up_question(
-                    msg="Are you sure you want to run this script?",
-                    title="Warning"):
-                return
+            # if not pop_up_question(
+            #         msg="Are you sure you want to run this script?",
+            #         title="Warning"):
+            #     return
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
