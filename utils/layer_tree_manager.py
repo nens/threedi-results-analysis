@@ -9,8 +9,10 @@ from ..utils.user_messages import pop_up_question
 from ..stats.utils import (
     generate_structure_stats,
     generate_manhole_stats,
+    generate_pump_stats,
     get_structure_layer_id_name,
     get_manhole_layer_id_name,
+    get_pump_layer_id_name,
     get_default_csv_path,
     )
 from .styler import Styler
@@ -249,7 +251,8 @@ class LayerTreeManager(object):
                                                  geometry_column='the_geom')
 
                 if vector_layer.isValid():
-                    Styler.apply_style(vector_layer, layer_name, 'schematisation')
+                    Styler.apply_style(vector_layer, layer_name,
+                                       'schematisation')
                     QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
                                                                False)
                     group.insertLayer(100, vector_layer)
@@ -345,15 +348,19 @@ class LayerTreeManager(object):
                                 'v2_orifice_view',
                                 'v2_pipe_view',
                                 ]
+            pump_layer_names = ['v2_pumpstation_view']
 
             styled_layers = {
-                'v2_manhole': [ # name, style, field
+                'v2_manhole': [  # name, style, field
                     ('Manhole statistieken', '', None),
                 ],
                 'v2_weir_view': [
-                    ('Totaal overstort volume positief [q_cum]', 'totaal overstort volume positief', None),
-                    ('Totaal overstort volume negatief [q_cum]', 'totaal overstort volume negatief', None),
-                    ('Overstort max positief debiet [q]', 'overstort max positief debiet', None),
+                    ('Totaal overstort volume positief [q_cum]',
+                     'totaal overstort volume positief', None),
+                    ('Totaal overstort volume negatief [q_cum]',
+                     'totaal overstort volume negatief', None),
+                    ('Overstort max positief debiet [q]',
+                     'overstort max positief debiet', None),
                 ],
                 'v2_orifice_view': [
                     ('orifice statistieken', '', None),
@@ -386,6 +393,9 @@ class LayerTreeManager(object):
                 line_layers = [line] + self._create_layers(
                     self.model.model_spatialite_filepath,
                     group, line_layer_names, geometry_column='the_geom')
+                pump_layers = [pumpline] + self._create_layers(
+                    self.model.model_spatialite_filepath,
+                    group, pump_layer_names, geometry_column='the_geom')
 
                 for new_layer in node_layers:
                     if new_layer.isValid():
@@ -406,15 +416,17 @@ class LayerTreeManager(object):
                                 filepath = generate_manhole_stats(
                                     result.datasource(), output_dir,
                                     new_layer, layer_id_name,
-                                    include_2d=True)
+                                    include_2d=False)
                                 print("Generated %s" % filepath)
                             except ValueError as e:
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[new_layer.name()]:
-                            
-                            layer = QgsVectorLayer(new_layer.source(), name, new_layer.providerType())
+                        for name, style, field in styled_layers[
+                                new_layer.name()]:
+                            layer = QgsVectorLayer(
+                                new_layer.source(), name,
+                                new_layer.providerType())
 
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
@@ -428,10 +440,8 @@ class LayerTreeManager(object):
                             tree_layer = group.insertLayer(100, layer)
                             self._mark(tree_layer, new_layer.name())
 
-
                 for new_layer in line_layers:
                     if new_layer.isValid():
-
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
                         layer_id_name = get_structure_layer_id_name(
@@ -449,16 +459,19 @@ class LayerTreeManager(object):
                                 filepath = generate_structure_stats(
                                     result.datasource(), output_dir,
                                     new_layer, layer_id_name,
-                                    include_2d=True)
+                                    include_2d=False)
                                 print("Generated %s" % filepath)
                             except ValueError as e:
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[new_layer.name()]:
-                            # this could be a way, but not work correctly: s = new_layer.source()
+                        for name, style, field in styled_layers[
+                                new_layer.name()]:
+                            # this could be a way, but not work correctly:
+                            # s = new_layer.source()
 
-                            layer = QgsVectorLayer(new_layer.source(), name, new_layer.providerType())
+                            layer = QgsVectorLayer(new_layer.source(), name,
+                                                   new_layer.providerType())
 
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
@@ -471,6 +484,44 @@ class LayerTreeManager(object):
 
                             tree_layer = group.insertLayer(100, layer)
                             self._mark(tree_layer, new_layer.name())
+
+                for lyr in pump_layers:
+                    if not lyr:
+                        continue
+                    if lyr.isValid():
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            lyr, False)
+                        tree_layer = group.insertLayer(100, lyr)
+                        self._mark(tree_layer, lyr.name())
+
+                        # Generate stats, join the csv with layer, and
+                        # insert the csv as layer
+                        layer_id_name = get_pump_layer_id_name(
+                            lyr.name())
+                        _filepath = get_default_csv_path(
+                            lyr.name(), output_dir)
+                        if os.path.exists(_filepath):
+                            # The csv was already generated, reuse it
+                            print("Reusing existing statistics csv: %s" %
+                                  _filepath)
+                            filepath = _filepath
+                        else:
+                            # No stats; generate it
+                            try:
+                                filepath = generate_pump_stats(
+                                    result.datasource(), output_dir,
+                                    lyr, layer_id_name,
+                                    include_2d=False)
+                                print("Generated %s" % filepath)
+                            except ValueError as e:
+                                print(e.message)
+                                continue
+                        csv_layer = csv_join(
+                            filepath, lyr, layer_id_name,
+                            add_to_legend=False)
+
+                        csv_tree_layer = group.insertLayer(100, csv_layer)
+                        self._mark(csv_tree_layer, csv_layer.name())
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):

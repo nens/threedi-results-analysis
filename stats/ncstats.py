@@ -6,6 +6,7 @@ import numpy as np
 import inspect
 
 from ..datasource.netcdf import NetcdfDataSource, normalized_object_type
+from ..utils.user_messages import log
 
 
 def tailored_args(f, **kwargs):
@@ -27,9 +28,10 @@ class NcStats(object):
 
     # Update these lists if you add a new method
     AVAILABLE_STRUCTURE_PARAMETERS = [
-        'q_max', 'q_cumulative_duration', 'q_end', 'tot_vol_positive',
+        'q_cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end', 'wos_duration']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_end', 'wos_duration']
+    AVAILABLE_PUMP_PARAMETERS = ['tot_vol_pump', 'pump_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
         """
@@ -77,6 +79,21 @@ class NcStats(object):
         # calc total vol thru structure
         vols = self.timesteps * ma_q_slice[0:-1]
         return vols.sum()
+
+    def tot_vol_pump(self, structure_type, obj_id):
+        """Total volume through a pump calculated using integration.
+
+        Note: for pumps we know that q_pump is always positive.
+        """
+        q_slice = self.datasource.get_values_by_id(
+            'q_pump', structure_type, object_id=obj_id)
+        # calc total vol thru structure
+        vols = self.timesteps * q_slice[0:-1]
+        return vols.sum()
+
+    def pump_duration(self, structure_type, obj_id, capacity=None):
+        vol_pump = self.tot_vol_pump(structure_type, obj_id)
+        return vol_pump / capacity
 
     def q_max(self, structure_type, obj_id):
         """Maximum value of a q timeseries; can be negative.
@@ -143,6 +160,7 @@ class NcStats(object):
         water_op_straat[water_op_straat > 0] = 1.
         water_op_straat[water_op_straat < 0] = 0
         cum_duration = self.timesteps * water_op_straat[0:-1]
+        #from ..qtdebug import set_trace; set_trace()
         return cum_duration.sum()
 
     def q_end(self, structure_type, obj_id):
@@ -152,7 +170,7 @@ class NcStats(object):
             'q', structure_type, object_id=obj_id)
         return q_slice[-1]
 
-    def get_value_from_parameter(
+    def _get_value_from_parameter(
             self, structure_type, obj_id, parameter_name, **kwargs):
         """Select the method from parameter name and call the method.
 
@@ -164,6 +182,9 @@ class NcStats(object):
                              obj_id=obj_id,
                              **kwargs)
 
+    # Make NcStats have the same interface as NcStatsAgg
+    get_value_from_parameter = _get_value_from_parameter
+
     def close(self):
         # TODO: is this used? also law of demeter
         self.datasource.ds.close()
@@ -174,8 +195,12 @@ class NcStatsAgg(NcStats):
     version of the 3Di netCDF files."""
 
     # Update these lists if you add a new method
-    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_max', 's1_end']
+    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
+        NcStats.AVAILABLE_STRUCTURE_PARAMETERS
+    AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
+        ['wos_height', 'water_depth']
+    AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
+        + NcStats.AVAILABLE_PUMP_PARAMETERS
 
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
@@ -185,7 +210,8 @@ class NcStatsAgg(NcStats):
         # and store netcdf arrays in memory.
         self.variables = dict()
         for p in (self.AVAILABLE_MANHOLE_PARAMETERS +
-                  self.AVAILABLE_STRUCTURE_PARAMETERS):
+                  self.AVAILABLE_STRUCTURE_PARAMETERS +
+                  self.AVAILABLE_PUMP_PARAMETERS):
             try:
                 copied_array = self.ds_agg.variables[p][:]
                 self.variables[p] = copied_array
@@ -205,6 +231,7 @@ class NcStatsAgg(NcStats):
             else:
                 raise ValueError("Unknown variable")
             self.variables[k] = calcd_array
+        self.variable_keys = self.variables.keys()
 
     def get_value_from_parameter(self, structure_type, obj_id,
                                  parameter_name, **kwargs):
@@ -217,21 +244,26 @@ class NcStatsAgg(NcStats):
             parameter_name: the netcdf variable name
             kwargs: unused, but needed to be compatible with NcStats
         """
-        if 'pump' in structure_type:
-            # TODO: fix this
-            raise NotImplementedError(
-                "Some things don't work for pumps yet using the "
-                "aggregated netCDF")
         norm_object_type = normalized_object_type(structure_type)
         netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
-        try:
+        if parameter_name in self.variable_keys:
             variable = self.variables[parameter_name]
             return variable[netcdf_id]
-        except KeyError:
-            print("This aggregation variable has no stats (%s), attempting "
-                  "lookup in regular NcStats." % parameter_name)
+        else:
+            log("This aggregation variable has no stats (%s), attempting "
+                "lookup in regular NcStats." % parameter_name)
             # The variable was not found in aggregation netCDF. We will look
             # further down in the regular netCDF.
-            variable = super(NcStatsAgg, self).get_value_from_parameter(
+            variable = self._get_value_from_parameter(
                 structure_type, obj_id, parameter_name, **kwargs)
             return variable
+
+    def wos_height(self, structure_type, obj_id, surface_level=None):
+        s1_max = self.get_value_from_parameter(
+            structure_type, obj_id, 's1_max')
+        return s1_max - surface_level
+
+    def water_depth(self, structure_type, obj_id, bottom_level=None):
+        s1_max = self.get_value_from_parameter(
+            structure_type, obj_id, 's1_max')
+        return s1_max - bottom_level

@@ -2,7 +2,7 @@ import os
 import csv
 import logging
 from .ncstats import NcStats, NcStatsAgg
-
+from ..utils.user_messages import log
 
 log = logging.getLogger(__name__)
 
@@ -38,40 +38,20 @@ def _calc_results(
     """
     result = dict()
     for param_name in parameters:
-        # Water op straat berekening (wos_height):
-        if param_name == 'wos_height':
-            if surface_level is None:
-                result[param_name] = None
-            try:
-                s1_max = ncstats.get_value_from_parameter(
-                    layer_name, feature_id, 's1_max')
-                result[param_name] = s1_max - surface_level
-            except (ValueError, TypeError, AttributeError):
-                result[param_name] = None
-        # Waterdiepte berekening:
-        elif param_name == 'water_depth':
-            if bottom_level is None:
-                result[param_name] = None
-            try:
-                s1_max = ncstats.get_value_from_parameter(
-                    layer_name, feature_id, 's1_max')
-                result[param_name] = s1_max - bottom_level
-            except (ValueError, TypeError, AttributeError):
-                result[param_name] = None
         # Business as usual (NcStats method)
-        else:
-            try:
-                result[param_name] = \
-                    ncstats.get_value_from_parameter(
-                        layer_name, feature_id, param_name,
-                        surface_level=surface_level)
-            except (ValueError, IndexError):
-                result[param_name] = None
-            except TypeError:
-                # Probably an error with wos_duration, which
-                # will ONLY work for structures with a surface_level (
-                # i.e. manholes).
-                result[param_name] = None
+        try:
+            result[param_name] = \
+                ncstats.get_value_from_parameter(
+                    layer_name, feature_id, param_name,
+                    surface_level=surface_level,
+                    bottom_level=bottom_level)
+        except (ValueError, IndexError, AttributeError):
+            result[param_name] = None
+        except TypeError:
+            # Probably an error with wos_duration, which
+            # will ONLY work for structures with a surface_level (
+            # i.e. manholes).
+            result[param_name] = None
     return result
 
 
@@ -92,6 +72,16 @@ def get_manhole_layer_id_name(layer_name):
 def get_structure_layer_id_name(layer_name):
     """Get the primary key name of the layer (only line/structure layers!)"""
     if layer_name == 'flowlines':
+        layer_id_name = 'id'
+    else:
+        # It's a view
+        layer_id_name = 'ROWID'
+    return layer_id_name
+
+
+def get_pump_layer_id_name(layer_name):
+    """Get the primary key name of the layer (only pump layers!)"""
+    if layer_name == 'pumplines':
         layer_id_name = 'id'
     else:
         # It's a view
@@ -151,17 +141,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         # It's sewerage spatialite (no agg. netcdf)
         ncstats = NcStats(datasource=nds)
 
-    # All the NcStats parameters we want to calculate (can differ per
-    # NcStats version)
-    derived_parameters = [
-        'wos_height',
-        'water_depth',
-        # This one isn't really derived (which means, it is calculated
-        # in this script as opposed to NcStats), but this makes things
-        # easier when using NcStatsAgg
-        'wos_duration']
-    parameters = ncstats.AVAILABLE_MANHOLE_PARAMETERS + \
-        derived_parameters
+    parameters = ncstats.AVAILABLE_MANHOLE_PARAMETERS
 
     # Generate data
     result = dict()
@@ -182,12 +162,12 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         try:
             surface_level = feature['surface_level']
         except KeyError:
-            print("Feature doesn't have surface level")
+            log.error("Feature doesn't have surface level")
             surface_level = None
         try:
             bottom_level = feature['bottom_level']
         except KeyError:
-            print("Feature doesn't have bottom level")
+            log.error("Feature doesn't have bottom level")
             bottom_level = None
 
         # There are two hacks:
@@ -288,6 +268,88 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
     filepath = get_default_csv_path(layer_name, result_dir)
     with open(filepath, 'wb') as csvfile:
         fieldnames = ['id'] + ncstats.AVAILABLE_STRUCTURE_PARAMETERS
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
+                                delimiter=',')
+        writer.writeheader()
+        for fid, val_dict in result.items():
+            writer.writerow(val_dict)
+    return filepath
+
+
+def generate_pump_stats(nds, result_dir, layer, layer_id_name,
+                        include_2d=True):
+    """Generate stats for structure objects and write to csv.
+
+    Args:
+        nds: NetcdfDataSource
+        result_dir: output directory
+        layer: qgis layer
+        layer_id_name: the pk of the layer
+        include_2d: include 2d features (only applicable for lines)
+
+    Returns:
+        filepath generated csv
+    """
+    layer_name = layer.name()
+    structures = ['pumpstation', 'pumplines']
+    if not any(s in layer_name for s in structures):
+        raise ValueError(
+            "%s is not a valid structure layer. Valid layers are: %s" %
+            (layer_name, structures))
+
+    if layer_name == 'pumplines':
+        # TODO: not sure if we want to make ncstats distinction based on
+        # the layer type
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            ncstats = NcStats(datasource=nds)
+    else:
+        # It's a view
+        ncstats = NcStats(datasource=nds)
+
+    # Generate data
+    result = dict()
+    for feature in layer.getFeatures():
+        # skip 2d stuff
+        if not include_2d:
+            try:
+                if feature['type'] == '2d':
+                    continue
+            except KeyError:
+                pass
+
+        fid = feature[layer_id_name]
+        result[fid] = dict()
+        result[fid]['id'] = fid  # normalize layer id name to 'id' in csv
+
+        try:
+            capacity = feature['pump_capacity']
+        except KeyError:
+            log.error("Feature doesn't have pump_capacity")
+            capacity = None
+
+        for param_name in ncstats.AVAILABLE_PUMP_PARAMETERS:
+            try:
+                result[fid][param_name] = \
+                    ncstats.get_value_from_parameter(
+                        layer_name, feature[layer_id_name], param_name,
+                        capacity=capacity)
+            except (ValueError, IndexError, AttributeError):
+                # AttributeError: is raised in NcStats because in case of
+                # KeyErrors in get_value_from_parameter the method finding
+                # is propagated to NcStats and when the method doesn't
+                # exist AttributeError is raised. A better solution is to
+                # filter AVAILABLE_STRUCTURE_PARAMETERS beforehand.
+                result[fid][param_name] = None
+            except TypeError:
+                # Error with pump_duration, likely an invalid capacity
+                result[fid][param_name] = None
+
+    # Write to csv file
+    filepath = get_default_csv_path(layer_name, result_dir)
+    with open(filepath, 'wb') as csvfile:
+        fieldnames = ['id'] + ncstats.AVAILABLE_PUMP_PARAMETERS
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')
         writer.writeheader()

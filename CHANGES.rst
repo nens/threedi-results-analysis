@@ -5,9 +5,12 @@ threedi-qgis-plugin changelog
 0.7.2 (unreleased)
 ------------------
 
+- Added pump statistics.
+
 - Connected python logging handler to qgis logging
 
 - Import of sufhyd files with logging
+
 - Made reading netCDF properties more robust.
 
 - Reuse previously generated csv stats files.
