@@ -377,7 +377,13 @@ class NetcdfDataSource(object):
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
-        return self.ds.variables['time'][:]
+        # todo: object_type can be removed
+        if parameter is None:
+            return self.ds.variables['time'][:]
+        elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
+            return self.ds.variables['time'][:]
+        else:
+            return self.get_agg_var_timestamps(parameter)
 
     def get_agg_var_timestamps(self, aggregation_variable_name):
         """Get timestamps for aggregation variables.
@@ -386,18 +392,6 @@ class NetcdfDataSource(object):
         """
         time_var_name = 'time_%s' % aggregation_variable_name
         return self.ds_aggregation.variables[time_var_name][:]
-
-    def get_object_types(self, parameter=None):
-        pass
-
-    def get_objects(self, object_type):
-        pass
-
-    def get_object_count(self, object_type):
-        pass
-
-    def get_parameters(self, object_type=None):
-        pass
 
     def get_available_variables(self, only_subgrid_map=False,
                                 only_aggregation=False):
@@ -423,10 +417,13 @@ class NetcdfDataSource(object):
             # This flattens the list of lists
             possible_agg_vars = [item for sublist in possible_agg_vars for
                                  item in sublist]
-            agg_vars = self.ds_aggregation.variables.keys()
-            available_agg_vars = [v for v in possible_agg_vars if v in
+            try:
+                agg_vars = self.ds_aggregation.variables.keys()
+                available_agg_vars = [v for v in possible_agg_vars if v in
                                   agg_vars]
-            available_vars += available_agg_vars
+                available_vars += available_agg_vars
+            except IndexError:
+                pass
         return available_vars
 
     def get_object(self, object_type, object_id):
@@ -621,13 +618,14 @@ class NetcdfDataSource(object):
         # Convert row array to regular array.
         return vals[:, 0]
 
-    def get_values_by_timestep_nr(self, variable, timestep_nr):
+    def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
         """Horizontal slice over the element indices, i.e., get all values for
         all nodes or flowlines for a specific timestamp.
 
         Args:
             variable: the netCDF variable name
-            timestep_nr: the timestep index
+            timestamp_idx: timestamp index
+            index: array of elements to be read
         """
         if variable in self.available_subgrid_map_vars:
             ds = self.ds
@@ -636,4 +634,7 @@ class NetcdfDataSource(object):
         else:
             # todo: warning
             return
-        return ds.variables[variable][timestep_nr, :]
+        if index:
+            return ds.variables[variable][timestamp_idx, index]
+        else:
+            return ds.variables[variable][timestamp_idx, :]

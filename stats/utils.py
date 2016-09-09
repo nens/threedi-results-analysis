@@ -1,6 +1,10 @@
 import os
 import csv
+import logging
 from .ncstats import NcStats, NcStatsAgg
+
+
+log = logging.getLogger(__name__)
 
 
 def get_default_csv_path(layer_name, result_dir):
@@ -130,10 +134,19 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
     # TODO: not sure if we want to make ncstats distinction based on
     # the layer type
     if layer_name == 'nodes':
-        ncstats = NcStatsAgg(datasource=nds)
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            log.error('No aggregation netcdf available for statistics')
+            ncstats = NcStats(datasource=nds)
+
     elif 'v2' in layer_name:
         # It's a v2 spatialite layer
-        ncstats = NcStatsAgg(datasource=nds)
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            log.error('No aggregation netcdf available for statistics')
+            ncstats = NcStats(datasource=nds)
     else:
         # It's sewerage spatialite (no agg. netcdf)
         ncstats = NcStats(datasource=nds)
@@ -231,10 +244,18 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
     if layer_name == 'flowlines':
         # TODO: not sure if we want to make ncstats distinction based on
         # the layer type
-        ncstats = NcStatsAgg(datasource=nds)
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            log.error('No aggregation netcdf available for statistics')
+            ncstats = NcStats(datasource=nds)
     else:
         # It's a view
-        ncstats = NcStats(datasource=nds)
+        try:
+            ncstats = NcStatsAgg(datasource=nds)
+        except IndexError:
+            log.error('No aggregation netcdf available for statistics')
+            ncstats = NcStats(datasource=nds)
 
     # Generate data
     result = dict()
