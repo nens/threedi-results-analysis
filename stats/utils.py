@@ -4,7 +4,6 @@ import logging
 from .ncstats import NcStats, NcStatsAgg
 from ..utils.user_messages import log
 
-
 log = logging.getLogger(__name__)
 
 
@@ -163,12 +162,12 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         try:
             surface_level = feature['surface_level']
         except KeyError:
-            log("Feature doesn't have surface level")
+            log.error("Feature doesn't have surface level")
             surface_level = None
         try:
             bottom_level = feature['bottom_level']
         except KeyError:
-            log("Feature doesn't have bottom level")
+            log.error("Feature doesn't have bottom level")
             bottom_level = None
 
         # There are two hacks:
@@ -327,7 +326,7 @@ def generate_pump_stats(nds, result_dir, layer, layer_id_name,
         try:
             capacity = feature['pump_capacity']
         except KeyError:
-            log("Feature doesn't have pump_capacity")
+            log.error("Feature doesn't have pump_capacity")
             capacity = None
 
         for param_name in ncstats.AVAILABLE_PUMP_PARAMETERS:

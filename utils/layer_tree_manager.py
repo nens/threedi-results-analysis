@@ -251,7 +251,8 @@ class LayerTreeManager(object):
                                                  geometry_column='the_geom')
 
                 if vector_layer.isValid():
-                    Styler.apply_style(vector_layer, layer_name, 'schematisation')
+                    Styler.apply_style(vector_layer, layer_name,
+                                       'schematisation')
                     QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
                                                                False)
                     group.insertLayer(100, vector_layer)
@@ -350,13 +351,16 @@ class LayerTreeManager(object):
             pump_layer_names = ['v2_pumpstation_view']
 
             styled_layers = {
-                'v2_manhole': [ # name, style, field
+                'v2_manhole': [  # name, style, field
                     ('Manhole statistieken', '', None),
                 ],
                 'v2_weir_view': [
-                    ('Totaal overstort volume positief [q_cum]', 'totaal overstort volume positief', None),
-                    ('Totaal overstort volume negatief [q_cum]', 'totaal overstort volume negatief', None),
-                    ('Overstort max positief debiet [q]', 'overstort max positief debiet', None),
+                    ('Totaal overstort volume positief [q_cum]',
+                     'totaal overstort volume positief', None),
+                    ('Totaal overstort volume negatief [q_cum]',
+                     'totaal overstort volume negatief', None),
+                    ('Overstort max positief debiet [q]',
+                     'overstort max positief debiet', None),
                 ],
                 'v2_orifice_view': [
                     ('orifice statistieken', '', None),
@@ -418,9 +422,11 @@ class LayerTreeManager(object):
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[new_layer.name()]:
-                            
-                            layer = QgsVectorLayer(new_layer.source(), name, new_layer.providerType())
+                        for name, style, field in styled_layers[
+                                new_layer.name()]:
+                            layer = QgsVectorLayer(
+                                new_layer.source(), name,
+                                new_layer.providerType())
 
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
@@ -434,10 +440,8 @@ class LayerTreeManager(object):
                             tree_layer = group.insertLayer(100, layer)
                             self._mark(tree_layer, new_layer.name())
 
-
                 for new_layer in line_layers:
                     if new_layer.isValid():
-
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
                         layer_id_name = get_structure_layer_id_name(
@@ -461,10 +465,13 @@ class LayerTreeManager(object):
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[new_layer.name()]:
-                            # this could be a way, but not work correctly: s = new_layer.source()
+                        for name, style, field in styled_layers[
+                                new_layer.name()]:
+                            # this could be a way, but not work correctly:
+                            # s = new_layer.source()
 
-                            layer = QgsVectorLayer(new_layer.source(), name, new_layer.providerType())
+                            layer = QgsVectorLayer(new_layer.source(), name,
+                                                   new_layer.providerType())
 
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
