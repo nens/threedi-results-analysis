@@ -482,6 +482,7 @@ class Importer(object):
                     'impervious service with code {code} not found',
                     {'node': imp_map['node.code'], 'code': imp_map['imp_surface.code']}
                 )
+                continue
 
             imp_map['impervious_surface_id'] = imp_dict[imp_map['imp_surface.code']]
             del imp_map['node.code']

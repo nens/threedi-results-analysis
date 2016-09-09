@@ -502,14 +502,14 @@ class ImperviousSurfaceMap(Base):
     impervious_surface_id = Column(
             Integer,
             ForeignKey(ImperviousSurface.__tablename__ + ".id"),
-            nullable=False)
+            nullable=True)
     impervious_surface = relationship(ImperviousSurface,
                                       back_populates="impervious_surface_maps")
 
     connection_node_id = Column(
             Integer,
             ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+            nullable=False)
     connection_node = relationship(ConnectionNode,
                                    back_populates="impervious_surface_map")
 
