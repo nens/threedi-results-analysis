@@ -252,7 +252,7 @@ class SufhydReader(object):
         :param knp:
         :return:
         """
-        code = prettify(knp.ide_geb) + prettify(knp.ide_knp)
+        code = prettify(knp.ide_geb) + '_' + prettify(knp.ide_knp)
 
         # get manhole attributes
         manhole = {
@@ -293,14 +293,14 @@ class SufhydReader(object):
 
     def parse_leiding(self, leiding):
 
-        code = (prettify(leiding.ide_geb) + prettify(leiding.ide_kn1) + '_' +
-                prettify(leiding.ide_geb) + prettify(leiding.ide_kn2))
+        code = (prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn1) + '-' +
+                prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn2))
 
         pipe = {
             'code': code,
             '_basin': get_value(leiding.ide_geb),
-            'start_node.code': prettify(leiding.ide_geb) + prettify(leiding.ide_kn1),
-            'end_node.code': prettify(leiding.ide_geb) + prettify(leiding.ide_kn2),
+            'start_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn1),
+            'end_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn2),
             'original_length': leiding.lei_len,
             'cross_section_details': {
                 'shape': self.get_shape(leiding.pro_vrm, code),
@@ -316,7 +316,7 @@ class SufhydReader(object):
 
         if leiding.aan_inw is not None:
             drainage_area = {
-                'code': code + '_inw',
+                'code': code + '-inw',
                 'surface_class': '',
                 'surface_inclination': '',
                 'nr_of_inhabitants': leiding.aan_inw
@@ -325,14 +325,14 @@ class SufhydReader(object):
 
             imp_map = {
                 'node.code': pipe['start_node.code'],
-                'imp_surface.code': code + '_inw',
+                'imp_surface.code': code + '-inw',
                 'percentage': 50
             }
             self.output['impervious_surface_maps'].append(imp_map)
 
             imp_map = {
                 'node.code': pipe['end_node.code'],
-                'imp_surface.code': code + '_inw',
+                'imp_surface.code': code + '-inw',
                 'percentage': 50
             }
             self.output['impervious_surface_maps'].append(imp_map)
@@ -350,15 +350,15 @@ class SufhydReader(object):
 
         for i in range(1, 10):
             if type(getattr(gemaal, 'pmp_af%i' % i, '')) is float:
-                code = (prettify(gemaal.ide_gb1) + prettify(gemaal.ide_kn1) + '_' +
-                        prettify(gemaal.ide_gb2) + prettify(gemaal.ide_kn2) + '_' +
+                code = (prettify(gemaal.ide_gb1) + '_' + prettify(gemaal.ide_kn1) + '-' +
+                        prettify(gemaal.ide_gb2) + '_' + prettify(gemaal.ide_kn2) + '-' +
                         str(i))
 
                 pumpstation = {
                     'code': code,
-                    'start_node.code': (prettify(gemaal.ide_gb1) +
+                    'start_node.code': (prettify(gemaal.ide_gb1) + '_' +
                                         prettify(gemaal.ide_kn1)),
-                    'end_node.code': (prettify(gemaal.ide_gb2) +
+                    'end_node.code': (prettify(gemaal.ide_gb2) + '_' +
                                       prettify(gemaal.ide_kn2)),
                     'start_level_suction_side': getattr(
                             gemaal, 'pmp_an%i' % i, None),
@@ -374,14 +374,14 @@ class SufhydReader(object):
                 self.output['pumpstations'].append(pumpstation)
 
     def parse_doorlaat(self, doorlaat):
-        code = (prettify(doorlaat.ide_gb1) + prettify(doorlaat.ide_kn1) + '_' +
-                prettify(doorlaat.ide_gb2) + prettify(doorlaat.ide_kn2))
+        code = (prettify(doorlaat.ide_gb1) + '_' + prettify(doorlaat.ide_kn1) + '-' +
+                prettify(doorlaat.ide_gb2) + '_' + prettify(doorlaat.ide_kn2))
 
         orifice = {
             'code': code,
-            'start_node.code': (prettify(doorlaat.ide_gb1) +
+            'start_node.code': (prettify(doorlaat.ide_gb1) + '_' +
                                 prettify(doorlaat.ide_kn1)),
-            'end_node.code': (prettify(doorlaat.ide_gb2) +
+            'end_node.code': (prettify(doorlaat.ide_gb2) + '_' +
                               prettify(doorlaat.ide_kn2)),
             'cross_section_details': {
                 'shape': self.get_shape(doorlaat.pro_vrm, code),
@@ -412,14 +412,14 @@ class SufhydReader(object):
 
     def parse_overstort(self, overstort):
 
-        code = (prettify(overstort.ide_gb1) + prettify(overstort.ide_kn1) + '_' +
-                prettify(overstort.ide_gb2) + prettify(overstort.ide_kn2))
+        code = (prettify(overstort.ide_gb1) + '_' + prettify(overstort.ide_kn1) + '-' +
+                prettify(overstort.ide_gb2) + '_' + prettify(overstort.ide_kn2))
 
         weir = {
             'code': code,
-            'start_node.code': (prettify(overstort.ide_gb1) +
+            'start_node.code': (prettify(overstort.ide_gb1) + '_' +
                                 prettify(overstort.ide_kn1)),
-            'end_node.code': (prettify(overstort.ide_gb2) +
+            'end_node.code': (prettify(overstort.ide_gb2) + '_' +
                               prettify(overstort.ide_kn2)),
             'cross_section_details': {
                 'shape': Constants.SHAPE_RECTANGLE,
@@ -455,7 +455,7 @@ class SufhydReader(object):
 
     def parse_uitlaat(self, uitlaat):
 
-        code = (prettify(uitlaat.ide_gb1) + prettify(uitlaat.ide_kn1))
+        code = (prettify(uitlaat.ide_gb1) + '_' + prettify(uitlaat.ide_kn1))
 
         value = getattr(uitlaat, 'bws_gem',
                         getattr(uitlaat, 'bws_zom',
@@ -476,7 +476,7 @@ class SufhydReader(object):
 
     def parse_bergend_oppervlak(self, berging):
 
-        code = (prettify(berging.ide_geb) + prettify(berging.ide_knp))
+        code = (prettify(berging.ide_geb) + '_' + prettify(berging.ide_knp))
 
         storage = {
             'node.code': code,
@@ -490,8 +490,8 @@ class SufhydReader(object):
 
     def parse_koppeling(self, koppeling):
 
-        code = (prettify(koppeling.ide_gb1) + prettify(koppeling.ide_kn1) + '_' +
-                prettify(koppeling.ide_gb2) + prettify(koppeling.ide_kn2))
+        code = (prettify(koppeling.ide_gb1) + '_' + prettify(koppeling.ide_kn1) + '-' +
+                prettify(koppeling.ide_gb2) + '_' + prettify(koppeling.ide_kn2))
 
         if koppeling.typ_gkn != '01':
             # only combine of first is real. Definition is not clear,
@@ -499,9 +499,9 @@ class SufhydReader(object):
             # '01' is fictive
             link = {
                 'code': code,
-                'start_node.code': (prettify(koppeling.ide_gb1) +
+                'start_node.code': (prettify(koppeling.ide_gb1) + '_' +
                                     prettify(koppeling.ide_kn1)),
-                'end_node.code': (prettify(koppeling.ide_gb2) +
+                'end_node.code': (prettify(koppeling.ide_gb2) + '_' +
                                   prettify(koppeling.ide_kn2)),
             }
             self.output['links'].append(link)
@@ -510,14 +510,14 @@ class SufhydReader(object):
 
     def parse_afvoerend_oppervlak(self, afvopp):
 
-        connection_nodes = [prettify(afvopp.ide_gb1) + prettify(afvopp.ide_kn1)]
+        connection_nodes = [prettify(afvopp.ide_gb1) + '_' + prettify(afvopp.ide_kn1)]
 
         if afvopp.ide_kn2 != '':
             # special treatment required for some files from kikker
             if afvopp.ide_gb2 == '':
                 afvopp.ide_gb2 = afvopp.ide_gb1
 
-            connection_nodes.append(prettify(afvopp.ide_gb2) + prettify(afvopp.ide_kn2))
+            connection_nodes.append(prettify(afvopp.ide_gb2) + '_' + prettify(afvopp.ide_kn2))
 
         base_code = '_'.join(connection_nodes)
 
@@ -535,7 +535,7 @@ class SufhydReader(object):
                 if (getattr(afvopp, drainage_area_type) is not None and
                         getattr(afvopp, drainage_area_type) > 0.001):
 
-                    code = "{0}_{1}".format(base_code, drainage_area_type)
+                    code = "{0}-{1}".format(base_code, drainage_area_type)
 
                     drainage_area = {
                         'code': code,
