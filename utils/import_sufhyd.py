@@ -274,10 +274,17 @@ class Importer(object):
         del crs_list
 
         con_list = []
+        srid = 4326
+        if self.db.db_type == 'postgresql':
+            geom_col = session.execute("SELECT srid FROM geometry_columns "
+                            "WHERE f_table_name == 'v2_connection_nodes' AND "
+                            "f_geometry_column == 'the_geom'")
+            srid = geom_col.fetchone()[0]
+
         for manhole in data['manholes']:
             wkt = transform("POINT({0} {1})".format(*manhole['geom']),
                             manhole['geom'][2],
-                            4326)
+                            srid)
             con_list.append(ConnectionNode(_code=manhole['code'],
                             storage_area=manhole['storage_area'],
                             the_geom="srid=4326;" + wkt,
