@@ -91,9 +91,10 @@ class NcStats(object):
         vols = self.timesteps * q_slice[0:-1]
         return vols.sum()
 
-    def pump_duration(self, structure_type, obj_id, capacity=None):
+    def pump_duration(self, structure_type, obj_id, capacity_L_per_sec=None):
         vol_pump = self.tot_vol_pump(structure_type, obj_id)
-        return vol_pump / capacity
+        duration_secs = 1000 * vol_pump / capacity_L_per_sec
+        return duration_secs
 
     def q_max(self, structure_type, obj_id):
         """Maximum value of a q timeseries; can be negative.
