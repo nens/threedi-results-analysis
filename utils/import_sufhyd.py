@@ -292,9 +292,14 @@ class Importer(object):
         del con_list
 
         # add extra references for link nodes (one node, multiple linked codes
-        con_dict.update(
-            {k['end_node.code']: con_dict[k['start_node.code']]
-             for k in data['links']})
+        for link in data['links']:
+            if link['end_node.code'] in con_dict:
+                con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+            else:
+                con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+        # con_dict.update(
+        #     {k['end_node.code']: con_dict[k['start_node.code']]
+        #      for k in data['links']})
         con_dict[None] = None
         con_dict[''] = None
 
