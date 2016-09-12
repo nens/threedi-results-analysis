@@ -134,7 +134,7 @@ class SufhydReader(object):
             '*DRL': self.parse_doorlaat,
             '*UIT': self.parse_uitlaat,
             '*BOP': self.parse_bergend_oppervlak,
-            '*KOP': self.parse_koppeling,
+            # '*KOP': self.parse_koppeling,
             '*AFV': self.parse_afvoerend_oppervlak,
             '*KPG': self.parse_koppeling,
         }
@@ -276,8 +276,7 @@ class SufhydReader(object):
                 'code': code + '_inw',
                 'surface_class': '',
                 'surface_inclination': '',
-                'nr_of_inhabitants': knp.aan_inw,
-                'dry_weather_flow': knp.loz_con
+                'nr_of_inhabitants': knp.aan_inw
             }
             self.output['impervious_surfaces'].append(drainage_area)
 
@@ -290,7 +289,7 @@ class SufhydReader(object):
 
         return check_unsupported_fields(knp, 'afv_vla', 'afv_hel',
                                         'afv_vlu', 'loz_con', 'aan_won',
-                                        'aan_inw', 'dwa_def')
+                                        'dwa_def')
 
     def parse_leiding(self, leiding):
 
@@ -494,7 +493,7 @@ class SufhydReader(object):
         code = (prettify(koppeling.ide_gb1) + prettify(koppeling.ide_kn1) + '_' +
                 prettify(koppeling.ide_gb2) + prettify(koppeling.ide_kn2))
 
-        if 'typ_gkn' != '01':
+        if koppeling.typ_gkn != '01':
             # only combine of first is real. Definition is not clear,
             # but assumed is that '00' is real (also the default) and
             # '01' is fictive
