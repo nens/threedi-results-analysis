@@ -275,10 +275,10 @@ class Importer(object):
 
         con_list = []
         srid = 4326
-        if self.db.db_type == 'postgresql':
+        if self.db.db_type == 'postgres':
             geom_col = session.execute("SELECT srid FROM geometry_columns "
-                            "WHERE f_table_name == 'v2_connection_nodes' AND "
-                            "f_geometry_column == 'the_geom'")
+                            "WHERE f_table_name = 'v2_connection_nodes' AND "
+                            "f_geometry_column = 'the_geom'")
             srid = geom_col.fetchone()[0]
 
         for manhole in data['manholes']:
@@ -287,7 +287,7 @@ class Importer(object):
                             srid)
             con_list.append(ConnectionNode(_code=manhole['code'],
                             storage_area=manhole['storage_area'],
-                            the_geom="srid=4326;" + wkt,
+                            the_geom="srid={0};{1}".format(srid, wkt),
                             _basin_code=manhole['_basin_code']))
 
         session.bulk_save_objects(con_list)
