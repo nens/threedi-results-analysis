@@ -720,12 +720,10 @@ class RouteTool(QgsMapTool):
 
     def activate(self):
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
-        print("Route tool activated")
 
     def deactivate(self):
         self.deactivated.emit()
         self.canvas.setCursor(QCursor(Qt.ArrowCursor))
-        print("Route tool deactivated")
 
     def isZoomTool(self):
         return False

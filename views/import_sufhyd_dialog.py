@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
+import logging
 from PyQt4.QtCore import pyqtSignal, QSettings
 from PyQt4.QtGui import QDialog, QFileDialog
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 from qgis.gui import QgsCredentialDialog
+
+log = logging.getLogger(__name__)
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -130,7 +133,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        print("Reject")
+        log.debug("Reject")
 
     def closeEvent(self, event):
         """

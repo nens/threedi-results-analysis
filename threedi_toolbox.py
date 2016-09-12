@@ -21,6 +21,7 @@
  ***************************************************************************/
 """
 import os.path
+import logging
 
 from PyQt4.QtCore import Qt
 from PyQt4 import QtGui
@@ -29,6 +30,8 @@ from PyQt4 import QtGui
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from .models.toolbox import ToolboxModel
 from .utils.user_messages import pop_up_question
+
+log = logging.getLogger(__name__)
 
 
 class ThreeDiToolbox:
@@ -128,22 +131,22 @@ class ThreeDiToolbox:
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
-            print(filename)
-            print(item)
-            print(path)
+            log.debug(filename)
+            log.debug(item)
+            log.debug(path)
             # from .qdebug import pyqt_set_trace; pyqt_set_trace()
 
             curr_dir = os.path.dirname(__file__)
             module_path = os.path.join(curr_dir, 'commands', *path)
             name, ext = os.path.splitext(path[-1])
             if ext != '.py':
-                print("Not a Python script")
+                log.error("Not a Python script")
                 return
-            print(module_path)
-            print(name)
+            log.debug(module_path)
+            log.debug(name)
             import imp
             mod = imp.load_source(name, module_path)
-            print(mod)
+            log.debug(str(mod))
 
             self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource)
