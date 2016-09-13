@@ -31,7 +31,8 @@ class Guesser(object):
             # note: sqlite can not use a join with another table in an update statement,
             # so use 'in'
             up = update(Manhole).\
-                where(Manhole.connection_node_id.in_(select([Pumpstation.id]).correlate())).\
+                where(Manhole.connection_node_id.in_(
+                    select([Pumpstation.connection_node_start_id]).correlate())).\
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
             if only_empty_fields:
                 up = up.where(Manhole.manhole_indicator == None)
