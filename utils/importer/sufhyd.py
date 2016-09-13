@@ -257,6 +257,7 @@ class SufhydReader(object):
         # get manhole attributes
         manhole = {
             'code': code,
+            'display_name': code,
             '_basin_code': get_value(knp.ide_geb),
             'geom': point(multiply(knp.knp_xco, 0.001),
                           multiply(knp.knp_yco, 0.001),
@@ -298,6 +299,7 @@ class SufhydReader(object):
 
         pipe = {
             'code': code,
+            'display_name': code,
             '_basin': get_value(leiding.ide_geb),
             'start_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn1),
             'end_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn2),
@@ -356,6 +358,7 @@ class SufhydReader(object):
 
                 pumpstation = {
                     'code': code,
+                    'display_name': code,
                     'start_node.code': (prettify(gemaal.ide_gb1) + '_' +
                                         prettify(gemaal.ide_kn1)),
                     'end_node.code': (prettify(gemaal.ide_gb2) + '_' +
@@ -369,6 +372,7 @@ class SufhydReader(object):
                     'stop_level_delivery_side': getattr(
                             gemaal, 'rel_af%i' % i, None),
                     'capacity': getattr(gemaal, 'pmp_pc%i' % i, None),
+                    'sewerage': True
                 }
 
                 self.output['pumpstations'].append(pumpstation)
@@ -379,6 +383,7 @@ class SufhydReader(object):
 
         orifice = {
             'code': code,
+            'display_name': code,
             'start_node.code': (prettify(doorlaat.ide_gb1) + '_' +
                                 prettify(doorlaat.ide_kn1)),
             'end_node.code': (prettify(doorlaat.ide_gb2) + '_' +
@@ -426,6 +431,7 @@ class SufhydReader(object):
 
         weir = {
             'code': code,
+            'display_name': code,
             'start_node.code': (prettify(overstort.ide_gb1) + '_' +
                                 prettify(overstort.ide_kn1)),
             'end_node.code': (prettify(overstort.ide_gb2) + '_' +
