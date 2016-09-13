@@ -37,9 +37,9 @@ class Constants(object):
     FRICTION_TYPES = dict(FRICTION_TYPE_CHOICES)
 
     # SHAPES FOR MANHOLES
-    MANHOLE_SHAPE_SQUARE = 'square'
-    MANHOLE_SHAPE_RECTANGLE = 'rectangle'
-    MANHOLE_SHAPE_ROUND = 'round'
+    MANHOLE_SHAPE_SQUARE = 'sqr'
+    MANHOLE_SHAPE_RECTANGLE = 'rect'
+    MANHOLE_SHAPE_ROUND = 'rnd'
 
     # SHAPES FOR PIPES
     SHAPE_RECTANGLE = 1
@@ -62,9 +62,9 @@ class Constants(object):
     PROFILE_SHAPES_LOOKUP = reversed_dict(PROFILE_SHAPE_CHOICES)
 
     MANHOLE_SHAPE_CHOICES = (
-        (SHAPE_ROUND, 'round'),
-        (SHAPE_SQUARE, 'square'),
-        (SHAPE_RECTANGLE, 'rectangle'),
+        (MANHOLE_SHAPE_ROUND, 'round'),
+        (MANHOLE_SHAPE_SQUARE, 'square'),
+        (MANHOLE_SHAPE_RECTANGLE, 'rectangle'),
     )
 
     MANHOLE_SHAPES = dict(MANHOLE_SHAPE_CHOICES)
