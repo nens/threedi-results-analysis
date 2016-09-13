@@ -94,11 +94,12 @@ class Guesser(object):
 
             manhole_list = session.query(Manhole).join(Manhole.connection_node).filter(ConnectionNode.storage_area == None)
 
+            # '01' and '02' are the old identifiers, based on the sufhyd standard
             for manhole in manhole_list:
-                if (manhole.shape in [Constants.SHAPE_ROUND, '2', '02'] and
+                if (manhole.shape in [Constants.MANHOLE_SHAPE_ROUND, '01'] and
                         manhole.width is not None):
                     storage_area = 0.5 * 3.14 * manhole.width * manhole.width
-                elif (manhole.shape in [Constants.SHAPE_RECTANGLE, '1', '01'] and
+                elif (manhole.shape in [Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
                       manhole.width is not None and manhole.length is not None):
                     storage_area = manhole.width * manhole.length
                 elif manhole.width is not None:

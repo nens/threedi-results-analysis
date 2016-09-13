@@ -30,9 +30,9 @@ shape_mapping = {
 
 
 manhole_shape_mapping = {
-    '00': Constants.SHAPE_SQUARE,
-    '01': Constants.SHAPE_ROUND,
-    '02': Constants.SHAPE_RECTANGLE,
+    '00': Constants.MANHOLE_SHAPE_SQUARE,
+    '01': Constants.MANHOLE_SHAPE_ROUND,
+    '02': Constants.MANHOLE_SHAPE_RECTANGLE,
 }
 
 material_mapping = {
@@ -415,6 +415,15 @@ class SufhydReader(object):
         code = (prettify(overstort.ide_gb1) + '_' + prettify(overstort.ide_kn1) + '-' +
                 prettify(overstort.ide_gb2) + '_' + prettify(overstort.ide_kn2))
 
+        value = getattr(overstort, 'bws_gem',
+                        getattr(overstort, 'bws_zom',
+                                getattr(overstort, 'bws_win', None)))
+
+        if value is not None:
+            timeseries = "0,{0}\n9999,{0} ".format(value)
+        else:
+            timeseries = None
+
         weir = {
             'code': code,
             'start_node.code': (prettify(overstort.ide_gb1) + '_' +
@@ -432,9 +441,7 @@ class SufhydReader(object):
             'discharge_coefficient_negative': overstort.ovs_coe,
             'sewerage': True,
             'boundary_details': {
-                'value': getattr(overstort, 'bws_gem',
-                                 getattr(overstort, 'bws_zom',
-                                         getattr(overstort, 'bws_win', None))),
+                'timeseries': timeseries,
                 'boundary_type': Constants.BOUNDARY_TYPE_WATERLEVEL
             },
         }
@@ -468,7 +475,7 @@ class SufhydReader(object):
         }
 
         if value is not None:
-            outlet['timeseries'] = "0 {0}".format(value)
+            outlet['timeseries'] = "0,{0}\n9999,{0} ".format(value)
 
         self.output['outlets'].append(outlet)
 
