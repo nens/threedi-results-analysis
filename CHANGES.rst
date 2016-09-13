@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.9 (unreleased)
+0.8.1 (unreleased)
 ----------------
 
 - Fixes sufhyd import.
