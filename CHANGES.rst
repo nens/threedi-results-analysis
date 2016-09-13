@@ -2,8 +2,8 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.7.2 (unreleased)
-------------------
+0.8 (2016-09-13)
+----------------
 
 - Added pump statistics.
 
