@@ -221,13 +221,14 @@ class Importer(object):
                             waterlevel = obj['crest_level'] - 0.5
                         else:
                             waterlevel = -999.0
+                        timeseries = '0,{0}/n9999,{0}'.format(waterlevel)
                     else:
-                        waterlevel = obj['boundary_details']['value']
+                        timeseries = obj['boundary_details']['timeseries']
 
                     data['outlets'].append({
                         'node.code': bound_code,
                         'boundary_type': Constants.BOUNDARY_TYPE_WATERLEVEL,
-                        'timeseries': '0 %.2f' % waterlevel
+                        'timeseries': timeseries
                     })
 
                     if 'boundary_details' in obj:
