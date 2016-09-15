@@ -440,11 +440,14 @@ class LayerTreeManager(object):
                                 styler.apply_style(layer, style, 'stats')
                                 layer.setLayerName(name)
 
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                layer, False)
+                            layernames = [
+                                tl.layer().name() for tl in group.children()]
+                            if layer.name() not in layernames:
+                                QgsMapLayerRegistry.instance().addMapLayer(
+                                    layer, False)
 
-                            tree_layer = group.insertLayer(100, layer)
-                            self._mark(tree_layer, lyr.name())
+                                tree_layer = group.insertLayer(100, layer)
+                                self._mark(tree_layer, lyr.name())
 
                 for lyr in line_layers:
                     if lyr.isValid():
@@ -484,11 +487,14 @@ class LayerTreeManager(object):
                                 styler.apply_style(layer, style, 'stats')
                                 layer.setLayerName(name)
 
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                layer, False)
+                            layernames = [
+                                tl.layer().name() for tl in group.children()]
+                            if layer.name() not in layernames:
+                                QgsMapLayerRegistry.instance().addMapLayer(
+                                    layer, False)
 
-                            tree_layer = group.insertLayer(100, layer)
-                            self._mark(tree_layer, lyr.name())
+                                tree_layer = group.insertLayer(100, layer)
+                                self._mark(tree_layer, lyr.name())
 
                 for lyr in pump_layers:
                     if not lyr:
