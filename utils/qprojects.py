@@ -149,7 +149,7 @@ class ProjectStateMixin(object):
     def _get_relative_path(self, file_path):
         proj = QgsProject.instance()
         home = proj.homePath()
-        if len(str(home)) > 0:
+        if len(str(home)) > 0 and len(str(file_path)) > 0:
             rel_path = os.path.relpath(file_path, home)
         else:
             rel_path = file_path
