@@ -250,9 +250,9 @@ class ProjectStateMixin(object):
                     # relative path under original key
                     QgsProject.instance().writeEntry(name, 'abs_' + key, value)
                     try:
-                        _value = self._get_relative_path(value)
+                        value = self._get_relative_path(value)
                     except ValueError:
                         # Empty file path, not sure about this solution...
-                        _value = value
+                        value = value
 
-            QgsProject.instance().writeEntry(name, key, _value)
+            QgsProject.instance().writeEntry(name, key, value)
