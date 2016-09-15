@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Don't apply styles to layers without the right statistics fields.
 
 
 0.8.1 (2016-09-13)
