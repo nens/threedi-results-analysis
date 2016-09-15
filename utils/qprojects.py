@@ -149,7 +149,7 @@ class ProjectStateMixin(object):
     def _get_relative_path(self, file_path):
         proj = QgsProject.instance()
         home = proj.homePath()
-        if len(str(home)) > 0 and len(str(file_path)) > 0:
+        if len(str(home)) > 0:
             rel_path = os.path.relpath(file_path, home)
         else:
             rel_path = file_path
@@ -239,9 +239,7 @@ class ProjectStateMixin(object):
         else:
             value = value_list[0]
 
-
         name = self.get_tool_state_name(tool_name)
-
 
         if type(value) == float:
             QgsProject.instance().writeEntryDouble(name, key, value)
@@ -251,6 +249,10 @@ class ProjectStateMixin(object):
                     # type is file, store absolute path under extra key and
                     # relative path under original key
                     QgsProject.instance().writeEntry(name, 'abs_' + key, value)
-                    value = self._get_relative_path(value)
+                    try:
+                        _value = self._get_relative_path(value)
+                    except ValueError:
+                        # Empty file path, not sure about this solution...
+                        _value = value
 
-            QgsProject.instance().writeEntry(name, key, value)
+            QgsProject.instance().writeEntry(name, key, _value)
