@@ -5,7 +5,9 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
-- Don't apply styles to layers without the right statistics fields.
+- Updated the styler so that it doesn't apply styles to layers without the
+  right statistic fields. If the layer doesn't have the right statistics, just
+  show the layer without any styling.
 
 
 0.8.1 (2016-09-13)
