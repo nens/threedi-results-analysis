@@ -253,6 +253,6 @@ class ProjectStateMixin(object):
                         value = self._get_relative_path(value)
                     except ValueError:
                         # Empty file path, not sure about this solution...
-                        value = value
+                        pass
 
             QgsProject.instance().writeEntry(name, key, value)
