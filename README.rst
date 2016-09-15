@@ -24,7 +24,8 @@ Requirements
 - QGIS 2.8 or 2.14 (64 bit is recommended)
 - pyqtgraph (included)
 - netCDF4 (included only for Windows using 64 bit QGIS)
-- sqlalchemy version 1.1.0 or higher (not yet included)
+- sqlalchemy version 1.1.0 or higher (included)
+- spatialalchemy with custom modifications (included)
 
 Windows
   The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64 bit installations of QGIS under
@@ -32,7 +33,9 @@ Windows
   it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
 Linux
-  Install the python netCDF4 package using ``pip install netCDF4``.
+  Install the netCDF4 libs:``sudo apt-get install libhdf5-serial-dev libnetcdf-dev``.
+  Install the python netCDF4 package using ``pip install netCDF4``
+  You might need to install the Qt4 PostgreSQL driver for loading sufhyd: ``sudo apt-get install libqt4-sql-psql``.
 
 
 Installation
