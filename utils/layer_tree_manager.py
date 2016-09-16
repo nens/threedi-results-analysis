@@ -374,7 +374,9 @@ class LayerTreeManager(object):
                 'nodes': [
                     ('node statistieken', '', None),
                 ],
-                'flowlines': [],
+                'flowlines': [
+                    ('line statistieken', '', None),
+                    ],
                 'v2_culvert_view': [
                     ('culvert statistieken', '', None),
                 ]
