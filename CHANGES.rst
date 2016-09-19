@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
+- Slight improvement to the previous bugfix. The exact problem was with the
+  pump layers which were not cloned. Now we clone them explicitly, so the
+  previous bugfix isn't necessary anymore.
+
 - Bugfix for segmentation fault when deleting the root layer group. The
   possible reason for the segfault is adding the same layer from the
   TimeseriesDatasourceModel to the QGIS map registry multiple times. The fix

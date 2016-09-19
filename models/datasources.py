@@ -89,7 +89,7 @@ class TimeseriesDatasourceModel(BaseModel):
                 return QgsVectorLayer(
                     layer.source(), layer.name(), layer.providerType())
 
-        def get_result_layers(self, clone=True):
+        def get_result_layers(self, clone=False):
             """Note: lines and nodes are always in the netCDF, pumps are not
             always in the netCDF.
 

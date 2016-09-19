@@ -322,6 +322,12 @@ class LayerTreeManager(object):
                 layers.append(new_layer)
         return layers
 
+    @staticmethod
+    def _clone_vector_layer(layer):
+        if layer:
+            return QgsVectorLayer(
+                layer.source(), layer.name(), layer.providerType())
+
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
 
         if not pop_up_question('Do you want to calculate statistics (in this '
@@ -379,7 +385,7 @@ class LayerTreeManager(object):
                     ],
                 'v2_culvert_view': [
                     ('culvert statistieken', '', None),
-                ]
+                ],
             }
 
             # output dir of the csvs (= model result dir)
@@ -429,10 +435,16 @@ class LayerTreeManager(object):
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[lyr.name()]:
-                            layer = QgsVectorLayer(lyr.source(), lyr.name(),
-                                                   lyr.providerType())
+                        if lyr.name() not in styled_layers:
+                            layer = self._clone_vector_layer(lyr)
+                            QgsMapLayerRegistry.instance().addMapLayer(
+                                layer, False)
+                            tree_layer = group.insertLayer(100, layer)
+                            self._mark(tree_layer, lyr.name())
+                            continue
 
+                        for name, style, field in styled_layers[lyr.name()]:
+                            layer = self._clone_vector_layer(lyr)
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
                                 add_to_legend=False)
@@ -480,10 +492,16 @@ class LayerTreeManager(object):
                                 print(e.message)
                                 continue
 
-                        for name, style, field in styled_layers[lyr.name()]:
-                            layer = QgsVectorLayer(lyr.source(), lyr.name(),
-                                                   lyr.providerType())
+                        if lyr.name() not in styled_layers:
+                            layer = self._clone_vector_layer(lyr)
+                            QgsMapLayerRegistry.instance().addMapLayer(
+                                layer, False)
+                            tree_layer = group.insertLayer(100, layer)
+                            self._mark(tree_layer, lyr.name())
+                            continue
 
+                        for name, style, field in styled_layers[lyr.name()]:
+                            layer = self._clone_vector_layer(lyr)
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
                                 add_to_legend=False)
@@ -506,11 +524,6 @@ class LayerTreeManager(object):
                     if not lyr:
                         continue
                     if lyr.isValid():
-                        QgsMapLayerRegistry.instance().addMapLayer(
-                            lyr, False)
-                        tree_layer = group.insertLayer(100, lyr)
-                        self._mark(tree_layer, lyr.name())
-
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
                         layer_id_name = get_pump_layer_id_name(
@@ -533,12 +546,34 @@ class LayerTreeManager(object):
                             except ValueError as e:
                                 print(e.message)
                                 continue
-                        csv_layer = csv_join(
-                            filepath, lyr, layer_id_name,
-                            add_to_legend=False)
 
-                        csv_tree_layer = group.insertLayer(100, csv_layer)
-                        self._mark(csv_tree_layer, csv_layer.name())
+                        if lyr.name() not in styled_layers:
+                            layer = self._clone_vector_layer(lyr)
+                            QgsMapLayerRegistry.instance().addMapLayer(
+                                layer, False)
+                            tree_layer = group.insertLayer(100, layer)
+                            self._mark(tree_layer, lyr.name())
+                            continue
+
+                        for name, style, field in styled_layers[lyr.name()]:
+                            layer = self._clone_vector_layer(lyr)
+                            csv_layer = csv_join(
+                                filepath, layer, layer_id_name,
+                                add_to_legend=False)
+
+                            fieldnames = [f.name() for f in csv_layer.fields()]
+                            if field in fieldnames:
+                                styler.apply_style(layer, style, 'stats')
+                                layer.setLayerName(name)
+
+                            layernames = [
+                                tl.layer().name() for tl in group.children()]
+                            if layer.name() not in layernames:
+                                QgsMapLayerRegistry.instance().addMapLayer(
+                                    layer, False)
+
+                                tree_layer = group.insertLayer(100, layer)
+                                self._mark(tree_layer, lyr.name())
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
