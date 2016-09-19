@@ -18,6 +18,12 @@ from ..stats.utils import (
 from . import styler
 
 
+def _clone_vector_layer(layer):
+    if layer:
+        return QgsVectorLayer(
+            layer.source(), layer.name(), layer.providerType())
+
+
 class LayerTreeManager(object):
 
     model_layergroup_basename = '3di model: '
@@ -322,12 +328,6 @@ class LayerTreeManager(object):
                 layers.append(new_layer)
         return layers
 
-    @staticmethod
-    def _clone_vector_layer(layer):
-        if layer:
-            return QgsVectorLayer(
-                layer.source(), layer.name(), layer.providerType())
-
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
 
         if not pop_up_question('Do you want to calculate statistics (in this '
@@ -436,7 +436,7 @@ class LayerTreeManager(object):
                                 continue
 
                         if lyr.name() not in styled_layers:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             QgsMapLayerRegistry.instance().addMapLayer(
                                 layer, False)
                             tree_layer = group.insertLayer(100, layer)
@@ -444,7 +444,7 @@ class LayerTreeManager(object):
                             continue
 
                         for name, style, field in styled_layers[lyr.name()]:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
                                 add_to_legend=False)
@@ -493,7 +493,7 @@ class LayerTreeManager(object):
                                 continue
 
                         if lyr.name() not in styled_layers:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             QgsMapLayerRegistry.instance().addMapLayer(
                                 layer, False)
                             tree_layer = group.insertLayer(100, layer)
@@ -501,7 +501,7 @@ class LayerTreeManager(object):
                             continue
 
                         for name, style, field in styled_layers[lyr.name()]:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
                                 add_to_legend=False)
@@ -548,7 +548,7 @@ class LayerTreeManager(object):
                                 continue
 
                         if lyr.name() not in styled_layers:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             QgsMapLayerRegistry.instance().addMapLayer(
                                 layer, False)
                             tree_layer = group.insertLayer(100, layer)
@@ -556,7 +556,7 @@ class LayerTreeManager(object):
                             continue
 
                         for name, style, field in styled_layers[lyr.name()]:
-                            layer = self._clone_vector_layer(lyr)
+                            layer = _clone_vector_layer(lyr)
                             csv_layer = csv_join(
                                 filepath, layer, layer_id_name,
                                 add_to_legend=False)
