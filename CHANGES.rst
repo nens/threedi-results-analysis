@@ -5,6 +5,11 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
+- Bugfix for segmentation fault when deleting the root layer group. The
+  possible reason for the segfault is adding the same layer from the
+  TimeseriesDatasourceModel to the QGIS map registry multiple times. The fix
+  is to clone the layers so we don't get the same layers added multiple times.
+
 - Updated the styler so that it doesn't apply styles to layers without the
   right statistic fields. If the layer doesn't have the right statistics, just
   show the layer without any styling.

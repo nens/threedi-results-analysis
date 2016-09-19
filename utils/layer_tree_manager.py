@@ -403,6 +403,8 @@ class LayerTreeManager(object):
                     group, pump_layer_names, geometry_column='the_geom')
 
                 for lyr in node_layers:
+                    if not lyr:
+                        continue
                     if lyr.isValid():
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
@@ -452,6 +454,8 @@ class LayerTreeManager(object):
                                 self._mark(tree_layer, lyr.name())
 
                 for lyr in line_layers:
+                    if not lyr:
+                        continue
                     if lyr.isValid():
                         # Generate stats, join the csv with layer, and
                         # insert the csv as layer
