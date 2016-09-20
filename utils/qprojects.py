@@ -239,9 +239,7 @@ class ProjectStateMixin(object):
         else:
             value = value_list[0]
 
-
         name = self.get_tool_state_name(tool_name)
-
 
         if type(value) == float:
             QgsProject.instance().writeEntryDouble(name, key, value)
@@ -251,6 +249,10 @@ class ProjectStateMixin(object):
                     # type is file, store absolute path under extra key and
                     # relative path under original key
                     QgsProject.instance().writeEntry(name, 'abs_' + key, value)
-                    value = self._get_relative_path(value)
+                    try:
+                        value = self._get_relative_path(value)
+                    except ValueError:
+                        # Empty file path, not sure about this solution...
+                        pass
 
             QgsProject.instance().writeEntry(name, key, value)

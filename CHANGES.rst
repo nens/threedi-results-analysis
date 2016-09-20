@@ -17,6 +17,7 @@ threedi-qgis-plugin changelog
 - Updated the styler so that it doesn't apply styles to layers without the
   right statistic fields. If the layer doesn't have the right statistics, just
   show the layer without any styling.
+- Bugfix relative path exception.
 
 
 0.8.1 (2016-09-13)
