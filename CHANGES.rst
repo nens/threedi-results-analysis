@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix for outlet constraints.
 
 
 0.8.1 (2016-09-13)

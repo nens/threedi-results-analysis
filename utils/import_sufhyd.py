@@ -206,7 +206,8 @@ class Importer(object):
                         else:
                             used_outlets[code] = 1
         # 0
-        not_connected_outlets = [outl for code, outl in outlet_dict.items() if code not in used_outlets]
+        not_connected_outlets = [outl for cod, outl in outlet_dict.items() if
+                                 cod not in used_outlets]
 
         if len(not_connected_outlets) > 0:
             data['outlets'] = [outlet for outlet in data['outlets'] if
@@ -399,26 +400,6 @@ class Importer(object):
         session.commit()
         del man_list
 
-        outlet_list = []
-        for outlet in data['outlets']:
-            try:
-                outlet['connection_node_id'] = con_dict[outlet['node.code']]
-
-                del outlet['node.code']
-                outlet_list.append(BoundaryCondition1D(**outlet))
-            except KeyError:
-                self.log.add(
-                    logging.ERROR,
-                    'node of outlet not found in nodes',
-                    {},
-                    'node {node} of outlet definition not found',
-                    {'node': outlet['node.code']}
-                )
-
-        session.bulk_save_objects(outlet_list)
-        session.commit()
-        del outlet_list
-
         pipe_list = []
         for pipe in data['pipes']:
             try:
@@ -554,6 +535,29 @@ class Importer(object):
         session.commit()
         del obj_list
 
+        # Outlets (must be saved after weirs, orifice, pumpstation, etc.
+        # because of constraints)
+        outlet_list = []
+        for outlet in data['outlets']:
+            try:
+                outlet['connection_node_id'] = con_dict[outlet['node.code']]
+
+                del outlet['node.code']
+                outlet_list.append(BoundaryCondition1D(**outlet))
+            except KeyError:
+                self.log.add(
+                    logging.ERROR,
+                    'node of outlet not found in nodes',
+                    {},
+                    'node {node} of outlet definition not found',
+                    {'node': outlet['node.code']}
+                )
+
+        session.bulk_save_objects(outlet_list)
+        session.commit()
+        del outlet_list
+
+        # Impervious surfaces
         imp_list = []
         for imp in data['impervious_surfaces']:
             imp_list.append(ImperviousSurface(**imp))
