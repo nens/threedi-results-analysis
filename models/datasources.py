@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from qgis.core import QgsVectorLayer
 from PyQt4.QtCore import Qt, pyqtSignal
+
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
     make_flowline_layer, make_node_layer, make_pumpline_layer)
 from ..utils.user_messages import log
-import os
 from ..datasource.spatialite import Spatialite
 
 
@@ -82,9 +83,25 @@ class TimeseriesDatasourceModel(BaseModel):
                 self._datasource = NetcdfDataSource(self.file_path.value)
                 return self._datasource
 
-        def get_result_layers(self):
+        @staticmethod
+        def _clone_vector_layer(layer):
+            if layer:
+                return QgsVectorLayer(
+                    layer.source(), layer.name(), layer.providerType())
+
+        def get_result_layers(self, clone=False):
             """Note: lines and nodes are always in the netCDF, pumps are not
-            always in the netCDF."""
+            always in the netCDF.
+
+            Args:
+                clone: always return a new layer (i.e., the 'cloning') instead
+                    of using the ones that belong to the
+                    TimeseriesDatasourceModel. This method does still utilize
+                    the caching mechanism of the Spatialite, but just creates
+                    a new layer everytime when possible. This also isn't a
+                    real copy, since layers are just views on the underlying
+                    data source.
+            """
 
             file_name = self.datasource().file_path[:-3] + '.sqlite1'
             spl = Spatialite(file_name)
@@ -112,7 +129,11 @@ class TimeseriesDatasourceModel(BaseModel):
                     except KeyError:
                         log("No pumps in netCDF", level='WARNING')
 
-            return self._line_layer, self._node_layer, self._pumpline_layer
+            result_layers = [self._line_layer, self._node_layer,
+                             self._pumpline_layer]
+            if clone:
+                return map(self._clone_vector_layer, result_layers)
+            return result_layers
 
     def reset(self):
 
