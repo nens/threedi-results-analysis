@@ -9,6 +9,19 @@ threedi-qgis-plugin changelog
 
 - Sufhyd import: Set autoincrement to max id number to prevent id errors
   (when id's are manually set)
+- Slight improvement to the previous bugfix. The exact problem was with the
+  pump layers which were not cloned. Now we clone them explicitly, so the
+  previous bugfix isn't necessary anymore.
+
+- Bugfix for segmentation fault when deleting the root layer group. The
+  possible reason for the segfault is adding the same layer from the
+  TimeseriesDatasourceModel to the QGIS map registry multiple times. The fix
+  is to clone the layers so we don't get the same layers added multiple times.
+
+- Updated the styler so that it doesn't apply styles to layers without the
+  right statistic fields. If the layer doesn't have the right statistics, just
+  show the layer without any styling.
+- Bugfix relative path exception.
 
 
 0.8.1 (2016-09-13)

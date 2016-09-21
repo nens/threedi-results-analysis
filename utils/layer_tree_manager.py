@@ -15,7 +15,13 @@ from ..stats.utils import (
     get_pump_layer_id_name,
     get_default_csv_path,
     )
-from .styler import Styler
+from . import styler
+
+
+def _clone_vector_layer(layer):
+    if layer:
+        return QgsVectorLayer(
+            layer.source(), layer.name(), layer.providerType())
 
 
 class LayerTreeManager(object):
@@ -91,7 +97,8 @@ class LayerTreeManager(object):
         self.model.rowsInserted.connect(self.add_results)
         self.model.rowsInserted.connect(self.add_statistic_layers)
 
-    def _mark(self, tree_node, marker):
+    @staticmethod
+    def _mark(tree_node, marker):
         """Mark the group or layer with a marker value.
 
         Args:
@@ -100,7 +107,8 @@ class LayerTreeManager(object):
         """
         tree_node.setCustomProperty('legend/3di_tracer', marker)
 
-    def _find_marked_child(self, tree_node, marker):
+    @staticmethod
+    def _find_marked_child(tree_node, marker):
         """Find a marked node in the children of a tree node."""
         if tree_node is None:
             return None
@@ -251,7 +259,7 @@ class LayerTreeManager(object):
                                                  geometry_column='the_geom')
 
                 if vector_layer.isValid():
-                    Styler.apply_style(vector_layer, layer_name,
+                    styler.apply_style(vector_layer, layer_name,
                                        'schematisation')
                     QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
                                                                False)
@@ -341,8 +349,7 @@ class LayerTreeManager(object):
             # should be okay? --> yes, they are cached
             line, node, pumpline = result.get_result_layers()
 
-            node_layer_names = ['v2_manhole',
-                                ]
+            node_layer_names = ['v2_manhole']
             line_layer_names = ['v2_weir_view',
                                 'v2_culvert_view',
                                 'v2_orifice_view',
@@ -351,30 +358,36 @@ class LayerTreeManager(object):
             pump_layer_names = ['v2_pumpstation_view']
 
             styled_layers = {
-                'v2_manhole': [  # name, style, field
+                # {layer_name: [(name, style, field), ...], ... }
+                'v2_manhole': [
                     ('Manhole statistieken', '', None),
                 ],
                 'v2_weir_view': [
-                    ('Totaal overstort volume positief [q_cum]',
-                     'totaal overstort volume positief', None),
-                    ('Totaal overstort volume negatief [q_cum]',
-                     'totaal overstort volume negatief', None),
-                    ('Overstort max positief debiet [q]',
-                     'overstort max positief debiet', None),
+                    ('Totaal overstort volume positief [tot_vol_positive]',
+                     'totaal overstort volume positief',
+                     'tot_vol_positive'),
+                    ('Totaal overstort volume negatief [tot_vol_negative]',
+                     'totaal overstort volume negatief',
+                     'tot_vol_negative'),
+                    ('Overstort max positief debiet [q_max]',
+                     'overstort max positief debiet',
+                     'q_max'),
                 ],
                 'v2_orifice_view': [
                     ('orifice statistieken', '', None),
                 ],
                 'v2_pipe_view': [
-                    ('pipe max debiet [q_max]', 'pipe max debiet', None),
+                    ('pipe max debiet [q_max]', 'pipe max debiet', 'q_max'),
                 ],
                 'nodes': [
                     ('node statistieken', '', None),
                 ],
-                'flowlines': [],
+                'flowlines': [
+                    ('line statistieken', '', None),
+                    ],
                 'v2_culvert_view': [
                     ('culvert statistieken', '', None),
-                ]
+                ],
             }
 
             # output dir of the csvs (= model result dir)
@@ -397,131 +410,17 @@ class LayerTreeManager(object):
                     self.model.model_spatialite_filepath,
                     group, pump_layer_names, geometry_column='the_geom')
 
-                for new_layer in node_layers:
-                    if new_layer.isValid():
-                        # Generate stats, join the csv with layer, and
-                        # insert the csv as layer
-                        layer_id_name = get_manhole_layer_id_name(
-                            new_layer.name())
-                        _filepath = get_default_csv_path(
-                            new_layer.name(), output_dir)
-                        if os.path.exists(_filepath):
-                            # The csv was already generated, reuse it
-                            print("Reusing existing statistics csv: %s" %
-                                  _filepath)
-                            filepath = _filepath
-                        else:
-                            # No stats; generate it
-                            try:
-                                filepath = generate_manhole_stats(
-                                    result.datasource(), output_dir,
-                                    new_layer, layer_id_name,
-                                    include_2d=False)
-                                print("Generated %s" % filepath)
-                            except ValueError as e:
-                                print(e.message)
-                                continue
-
-                        for name, style, field in styled_layers[
-                                new_layer.name()]:
-                            layer = QgsVectorLayer(
-                                new_layer.source(), name,
-                                new_layer.providerType())
-
-                            csv_layer = csv_join(
-                                filepath, layer, layer_id_name,
-                                add_to_legend=False)
-
-                            Styler.apply_style(layer, style, 'stats')
-
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                layer, False)
-
-                            tree_layer = group.insertLayer(100, layer)
-                            self._mark(tree_layer, new_layer.name())
-
-                for new_layer in line_layers:
-                    if new_layer.isValid():
-                        # Generate stats, join the csv with layer, and
-                        # insert the csv as layer
-                        layer_id_name = get_structure_layer_id_name(
-                            new_layer.name())
-                        _filepath = get_default_csv_path(
-                            new_layer.name(), output_dir)
-                        if os.path.exists(_filepath):
-                            # The csv was already generated, reuse it
-                            print("Reusing existing statistics csv: %s" %
-                                  _filepath)
-                            filepath = _filepath
-                        else:
-                            # No stats; generate it
-                            try:
-                                filepath = generate_structure_stats(
-                                    result.datasource(), output_dir,
-                                    new_layer, layer_id_name,
-                                    include_2d=False)
-                                print("Generated %s" % filepath)
-                            except ValueError as e:
-                                print(e.message)
-                                continue
-
-                        for name, style, field in styled_layers[
-                                new_layer.name()]:
-                            # this could be a way, but not work correctly:
-                            # s = new_layer.source()
-
-                            layer = QgsVectorLayer(new_layer.source(), name,
-                                                   new_layer.providerType())
-
-                            csv_layer = csv_join(
-                                filepath, layer, layer_id_name,
-                                add_to_legend=False)
-
-                            Styler.apply_style(layer, style, 'stats')
-
-                            QgsMapLayerRegistry.instance().addMapLayer(
-                                layer, False)
-
-                            tree_layer = group.insertLayer(100, layer)
-                            self._mark(tree_layer, new_layer.name())
-
-                for lyr in pump_layers:
-                    if not lyr:
-                        continue
-                    if lyr.isValid():
-                        QgsMapLayerRegistry.instance().addMapLayer(
-                            lyr, False)
-                        tree_layer = group.insertLayer(100, lyr)
-                        self._mark(tree_layer, lyr.name())
-
-                        # Generate stats, join the csv with layer, and
-                        # insert the csv as layer
-                        layer_id_name = get_pump_layer_id_name(
-                            lyr.name())
-                        _filepath = get_default_csv_path(
-                            lyr.name(), output_dir)
-                        if os.path.exists(_filepath):
-                            # The csv was already generated, reuse it
-                            print("Reusing existing statistics csv: %s" %
-                                  _filepath)
-                            filepath = _filepath
-                        else:
-                            # No stats; generate it
-                            try:
-                                filepath = generate_pump_stats(
-                                    result.datasource(), output_dir,
-                                    lyr, layer_id_name,
-                                    include_2d=False)
-                                print("Generated %s" % filepath)
-                            except ValueError as e:
-                                print(e.message)
-                                continue
-                        csv_layer = csv_join(
-                            filepath, lyr, layer_id_name,
-                            add_to_legend=False)
-
-                        csv_tree_layer = group.insertLayer(100, csv_layer)
-                        self._mark(csv_tree_layer, csv_layer.name())
+                sli1 = StatsLayerInfo(node_layers,
+                                      get_manhole_layer_id_name,
+                                      generate_manhole_stats)
+                sli2 = StatsLayerInfo(line_layers,
+                                      get_structure_layer_id_name,
+                                      generate_structure_stats)
+                sli3 = StatsLayerInfo(pump_layers,
+                                      get_pump_layer_id_name,
+                                      generate_pump_stats)
+                for s in [sli1, sli2, sli3]:
+                    s.generate_layers(output_dir, result, group, styled_layers)
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
@@ -540,3 +439,68 @@ class LayerTreeManager(object):
             if group is not None:
                 group.removeAllChildren()
                 self.model_layergroup.removeChildNode(group)
+
+
+class StatsLayerInfo(object):
+    """Small wrapper for grouping functions used to generate statistics
+    for some types of layers (node-like, line-like, pump-like)."""
+    def __init__(self, layers, layer_id_name_func, generate_stats_func):
+        self.layers = layers
+        self.layer_id_name_func = layer_id_name_func
+        self.generate_stats_func = generate_stats_func
+
+    def generate_layers(self, output_dir, result, group, styled_layers):
+        for lyr in self.layers:
+            if not lyr:
+                continue
+            if lyr.isValid():
+                # Generate stats, join the csv with layer, and
+                # insert the csv as layer
+                layer_id_name = self.layer_id_name_func(
+                    lyr.name())
+                _filepath = get_default_csv_path(
+                    lyr.name(), output_dir)
+                if os.path.exists(_filepath):
+                    # The csv was already generated, reuse it
+                    print("Reusing existing statistics csv: %s" %
+                          _filepath)
+                    filepath = _filepath
+                else:
+                    # No stats; generate it
+                    try:
+                        filepath = self.generate_stats_func(
+                            result.datasource(), output_dir,
+                            lyr, layer_id_name,
+                            include_2d=False)
+                        print("Generated %s" % filepath)
+                    except ValueError as e:
+                        print(e.message)
+                        continue
+
+                if lyr.name() not in styled_layers:
+                    layer = _clone_vector_layer(lyr)
+                    QgsMapLayerRegistry.instance().addMapLayer(
+                        layer, False)
+                    tree_layer = group.insertLayer(100, layer)
+                    LayerTreeManager._mark(tree_layer, lyr.name())
+                    continue
+
+                for name, style, field in styled_layers[lyr.name()]:
+                    layer = _clone_vector_layer(lyr)
+                    csv_layer = csv_join(
+                        filepath, layer, layer_id_name,
+                        add_to_legend=False)
+
+                    fieldnames = [f.name() for f in csv_layer.fields()]
+                    if field in fieldnames:
+                        styler.apply_style(layer, style, 'stats')
+                        layer.setLayerName(name)
+
+                    layernames = [
+                        tl.layer().name() for tl in group.children()]
+                    if layer.name() not in layernames:
+                        QgsMapLayerRegistry.instance().addMapLayer(
+                            layer, False)
+
+                        tree_layer = group.insertLayer(100, layer)
+                        LayerTreeManager._mark(tree_layer, lyr.name())
