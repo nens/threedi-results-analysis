@@ -5,7 +5,10 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
-- Fix for outlet constraints.
+- Sufhyd import: Fix for outlet constraints.
+
+- Sufhyd import: Set autoincrement to max id number to prevent id errors
+  (when id's are manually set)
 
 
 0.8.1 (2016-09-13)
