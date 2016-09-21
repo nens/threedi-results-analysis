@@ -7,6 +7,7 @@ import logging
 import os.path
 from collections import OrderedDict
 from sqlalchemy.orm import load_only
+from copy import copy
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
@@ -165,8 +166,63 @@ class Importer(object):
         self._check_on_unique(data['pumpstations'], 'code', False, 'gemaal')
         self._check_on_unique(data['orifices'], 'code', False, 'doorlaat')
 
-    @staticmethod
-    def transform_import_data(data):
+    def check_on_outlet_connections(self, data):
+
+        outlet_dict = {c['node.code']: c for c in data['outlets']}
+        manhole_dict = {m['code']: m for m in data['manholes']}
+        used_outlets = {}
+
+        # check on multiple connections
+        for objects in (data['pipes'], data['pumpstations'], data['weirs'], data['orifices']):
+            for obj in objects:
+                for node in ('start_node.code', 'end_node.code'):
+                    code = obj[node]
+                    if code in outlet_dict:
+                        if code in used_outlets:
+                            used_outlets[code] += 1
+
+                            # add extra manhole
+                            new_manhole = copy(manhole_dict[code])
+                            new_manhole['code'] = new_manhole['code'] + \
+                                                  '_' + str(used_outlets[code])
+                            data['manholes'].append(new_manhole)
+
+                            # redirect object to new manhole
+                            obj[node] = new_manhole['code']
+
+                            # add extra outlet
+                            new_outlet = copy(outlet_dict[code])
+                            new_outlet['node.code'] = new_manhole['code']
+                            data['outlets'].append(new_outlet)
+
+                            self.log.add(logging.INFO,
+                                         'multiple connection to outlet',
+                                         {},
+                                         'multiple connection to outlet {orig_code}, '
+                                         'added extra manhole and outlet {new_code}',
+                                         {'orig_code': code,
+                                          'new_code': new_manhole['code']})
+
+                        else:
+                            used_outlets[code] = 1
+        # 0
+        not_connected_outlets = [outl for cod, outl in outlet_dict.items() if
+                                 cod not in used_outlets]
+
+        if len(not_connected_outlets) > 0:
+            data['outlets'] = [outlet for outlet in data['outlets'] if
+                               outlet not in not_connected_outlets]
+            for outlet in not_connected_outlets:
+                self.log.add(logging.WARNING,
+                             'no connection to outlet',
+                             {},
+                             'no connection to outlet {code}, outlet removed',
+                             {'code': outlet['node.code']})
+
+    def transform_import_data(self, data):
+
+        self.check_on_outlet_connections(data)
+
         profiles = dict()
         profiles['default'] = {
             'width': 1,
@@ -262,6 +318,17 @@ class Importer(object):
     def write_data_to_db(self, data):
         session = self.db.get_session()
 
+        # set all autoincrement counters to max ids
+        if self.db.db_type == 'postgres':
+            for table in (ConnectionNode, Manhole, BoundaryCondition1D, Pipe,
+                          CrossSectionDefinition, Orifice, Weir, Pumpstation,
+                          ImperviousSurface, ImperviousSurfaceMap):
+
+
+                session.execute("SELECT setval('{table}_id_seq', max(id)) "
+                                "FROM {table}".format(table=table.__tablename__))
+
+            session.commit()
         crs_list = []
         for crs in data['profiles'].values():
             crs_list.append(CrossSectionDefinition(**crs))
@@ -269,6 +336,7 @@ class Importer(object):
         session.bulk_save_objects(crs_list)
         session.commit()
 
+        # todo: add order by to ensure the latest added nodes are used
         crs_list = session.query(CrossSectionDefinition).options(
                 load_only("id", "_code")).all()
         crs_dict = {m._code: m.id for m in crs_list}
@@ -301,13 +369,21 @@ class Importer(object):
 
         # add extra references for link nodes (one node, multiple linked codes
         for link in data['links']:
-            if link['end_node.code'] in con_dict:
-                con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
-            else:
-                con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
-        # con_dict.update(
-        #     {k['end_node.code']: con_dict[k['start_node.code']]
-        #      for k in data['links']})
+            try:
+                if link['end_node.code'] in con_dict:
+                    con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+                else:
+                    con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+            except KeyError:
+                self.log.add(
+                    logging.ERROR,
+                    'node of link not found in nodes',
+                    {},
+                    'start node {start_node} or end_node {end_node} of link definition not found',
+                    {'start_node': link['start_node.code'],
+                     'end_node': link['end_node.code']}
+                )
+
         con_dict[None] = None
         con_dict[''] = None
 
@@ -323,17 +399,6 @@ class Importer(object):
         session.bulk_save_objects(man_list)
         session.commit()
         del man_list
-
-        outlet_list = []
-        for outlet in data['outlets']:
-            outlet['connection_node_id'] = con_dict[outlet['node.code']]
-
-            del outlet['node.code']
-            outlet_list.append(BoundaryCondition1D(**outlet))
-
-        session.bulk_save_objects(outlet_list)
-        session.commit()
-        del outlet_list
 
         pipe_list = []
         for pipe in data['pipes']:
@@ -470,6 +535,29 @@ class Importer(object):
         session.commit()
         del obj_list
 
+        # Outlets (must be saved after weirs, orifice, pumpstation, etc.
+        # because of constraints)
+        outlet_list = []
+        for outlet in data['outlets']:
+            try:
+                outlet['connection_node_id'] = con_dict[outlet['node.code']]
+
+                del outlet['node.code']
+                outlet_list.append(BoundaryCondition1D(**outlet))
+            except KeyError:
+                self.log.add(
+                    logging.ERROR,
+                    'node of outlet not found in nodes',
+                    {},
+                    'node {node} of outlet definition not found',
+                    {'node': outlet['node.code']}
+                )
+
+        session.bulk_save_objects(outlet_list)
+        session.commit()
+        del outlet_list
+
+        # Impervious surfaces
         imp_list = []
         for imp in data['impervious_surfaces']:
             imp_list.append(ImperviousSurface(**imp))

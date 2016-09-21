@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
+- Sufhyd import: Fix for outlet constraints.
+
+- Sufhyd import: Set autoincrement to max id number to prevent id errors
+  (when id's are manually set)
 - Slight improvement to the previous bugfix. The exact problem was with the
   pump layers which were not cloned. Now we clone them explicitly, so the
   previous bugfix isn't necessary anymore.
