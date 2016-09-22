@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.2 (unreleased)
 ------------------
 
+- Bugfix: layers not present in the ``styled_layers`` dict were added without
+  stats, but should be added with stats.
+
 - Sufhyd import: Fix for outlet constraints.
 
 - Sufhyd import: Set autoincrement to max id number to prevent id errors

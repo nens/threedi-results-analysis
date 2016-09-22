@@ -477,20 +477,31 @@ class StatsLayerInfo(object):
                         print(e.message)
                         continue
 
+                # There *are* stats, but there is no entry in the
+                # styled_layers dict, either because there is no styling, or
+                # because it hasn't been added yet. Either way, We still want
+                # to show the layer.
                 if lyr.name() not in styled_layers:
                     layer = _clone_vector_layer(lyr)
+                    csv_join(filepath, layer, layer_id_name,
+                             add_to_legend=False)
                     QgsMapLayerRegistry.instance().addMapLayer(
                         layer, False)
                     tree_layer = group.insertLayer(100, layer)
                     LayerTreeManager._mark(tree_layer, lyr.name())
                     continue
 
+                # There is an entry in the styled_layers dict, so apply the
+                # corresponding style if possible. If not possible, just
+                # add the joined layer.
                 for name, style, field in styled_layers[lyr.name()]:
                     layer = _clone_vector_layer(lyr)
                     csv_layer = csv_join(
                         filepath, layer, layer_id_name,
                         add_to_legend=False)
 
+                    # IMPORTANT: the style will only be applied if the field
+                    # name is present in the layer:
                     fieldnames = [f.name() for f in csv_layer.fields()]
                     if field in fieldnames:
                         styler.apply_style(layer, style, 'stats')
