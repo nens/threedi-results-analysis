@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.8.2 (unreleased)
+0.8.2 (2016-09-22)
 ------------------
 
 - Bugfix: layers not present in the ``styled_layers`` dict were added without
