@@ -1,7 +1,13 @@
 from PyQt4.QtCore import QVariant
-from qgis.core import (QgsFeature, QgsGeometry,
+from qgis.core import (QgsFeature, QgsPoint,
                        QgsVectorLayer, QgsMapLayerRegistry,
                        QgsField)
+
+EPSILON = 0.000001
+
+def float_equals(f1, f2):
+    return abs(f1 - f2) < EPSILON
+
 
 class PointsAlongLine(object):
     def __init__(self, lyr_name="", fields=None):
@@ -12,6 +18,7 @@ class PointsAlongLine(object):
         self.data_provider = None
         self.mem_layer = None
         self._create_mem_layer()
+        self.known_pnts = set()
     @staticmethod
     def get_postgis_layer(**kwargs):
         uri = QgsDataSourceURI()
@@ -50,23 +57,49 @@ class PointsAlongLine(object):
         self.mem_layer.updateFields() # tell the vector layer to fetch changes from the provider
     def create_pnts_at(self, geom, distance, attributes=None):
         # TODO incorperate Attributes
-        steps = geom.length() / distance
-        _distance = 0
-        for step in xrange(int(steps)):
+        line_length = geom.length()
+        dists = self.get_cnt_for_line(distance, line_length)
+        # start_point = QgsPoint(geom[0])
+        # end_point = QgsPoint(geom[-1])
+        # self.known_pnts.add(start_point)
+        # self.known_pnts.add(end_point)
+        for i, dist in enumerate(dists, start=1):
             # Get a point along the line at the current distance
-            point = geom.interpolate(_distance)
-            print 'step ', step, 'point ', point
+            point = geom.interpolate(dist)
+            # add start and endpoint
+            if i == 1 or i == len(dists):
+                print "start or endpoint [{}]".format(i)
+                # print "seen point {} before ".format(point.exportToWkt())
+                xy = (point.asPoint().x(), point.asPoint().y())
+                print "xy ", xy
+                if xy in self.known_pnts:
+                    print "seen point {} before ".format(xy)
+                    continue
+                self.known_pnts.add(xy)
+            print 'step ', i, 'point ', point
             # Create a new QgsFeature and assign it the new geometry
             # add a feature
             f = QgsFeature()
             f.setGeometry(point)
-            f.setAttributes([step])
+            f.setAttributes([i])
             self.data_provider.addFeatures([f])
             # update layer's extent when new features have been added
             # because change of extent in provider is not propagated to the layer
             self.mem_layer.updateExtents()
-            _distance += distance
+    def remove_mem_layer(self):
+        QgsMapLayerRegistry.instance().removeMapLayers( [self.mem_layer.id()] )
+    def add_mem_layer(self):
         QgsMapLayerRegistry.instance().addMapLayer(self.mem_layer)
+    def get_cnt_for_line(self, distance, line_length):
+        segs = line_length/distance
+        dists = [0]
+        current_dist = 0
+        for seg in xrange(int(segs)):
+            current_dist += distance
+            dists.append(current_dist)
+        return dists
+
+
 
 
 
@@ -79,16 +112,19 @@ test_kwargs = {
     'schema': 'public',
     'table_name': 'v2_channel',
     'geom_column': 'the_geom',
-    'layer_name': 'channel',
+    'layer_name': 'channel_new',
 }
 
 pal = PointsAlongLine()
 channel_layer = pal.get_postgis_layer(**test_kwargs)
-for channel in channel_layer.getFeatures():
+features = channel_layer.getFeatures()
+for channel in features:
     pal.create_pnts_at(channel.geometry(), channel['dist_calc_points'])
+pal.add_mem_layer()
 
 
-
+for channel in features4:
+    pal.create_pnts_at(channel.geometry(), channel['dist_calc_points'])
 
 features = vlayer.getFeatures()
 for f in features:
@@ -132,4 +168,6 @@ for f in features:
     pr.addFeatures(fet)
     vl.updateExtents()
 QgsMapLayerRegistry.instance().addMapLayer(vl)
+
+
 
