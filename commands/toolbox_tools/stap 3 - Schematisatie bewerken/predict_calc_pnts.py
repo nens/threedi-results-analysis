@@ -1,5 +1,5 @@
 from PyQt4.QtCore import QVariant
-from qgis.core import (QgsFeature, QgsPoint,
+from qgis.core import (QgsFeature, QgsGeometry,
                        QgsVectorLayer, QgsMapLayerRegistry,
                        QgsField)
 
@@ -20,7 +20,7 @@ class PointsAlongLine(object):
         self._create_mem_layer()
         self.known_pnts = set()
     @staticmethod
-    def get_postgis_layer(**kwargs):
+    def get_postgis_uri(**kwargs):
         uri = QgsDataSourceURI()
         address = kwargs['address']
         port = kwargs['port']
@@ -30,12 +30,29 @@ class PointsAlongLine(object):
         schema = kwargs['schema']
         table_name = kwargs['table_name']
         geom_column = kwargs['geom_column']
-        layer_name = kwargs['layer_name']
         uri.setConnection(address, port, name, user_name, password)
         uri.setDataSource(schema, table_name, geom_column)
+        return uri
+    def get_layer_from_uri(self, uri, layer_name):
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
         QgsMapLayerRegistry.instance().addMapLayer(vlayer)
         return vlayer
+    def create_query_obj_from_uri(self, uri, db_type='QPSQL'):
+        db = QtSql.QSqlDatabase.addDatabase(db_type)
+        db.setHostName(uri.host())
+        db.setPort(int(uri.port()))
+        db.setDatabaseName(uri.database())
+        db.setUserName(uri.username())
+        db.setPassword(uri.password())
+        ok = db.open()
+        if ok:
+            self.query = QtSql.QSqlQuery(db)
+        else:
+            raise RuntimeError('Failed to open database connection: {}'.format(db.lastError().driverText()))
+    def get_epsg_code(self):
+        self.query.exec_('''SELECT epsg_code FROM v2_global_settings;''')
+        self.query.next()
+        return query.value(0)
     def _create_mem_layer(self, lyr_type="Point"):
         _type_map = {
             'str': QVariant.String,
@@ -116,32 +133,26 @@ test_kwargs = {
 }
 
 pal = PointsAlongLine()
-channel_layer = pal.get_postgis_layer(**test_kwargs)
+uri = pal.get_postgis_uri(**test_kwargs)
+channel_layer = pal.get_layer_from_uri(uri, layer_name=test_kwargs['layer_name'])
 features = channel_layer.getFeatures()
+pal.create_query_obj_from_uri(uri)
+epsg_code = pal.get_epsg_code()
+pal.query.exec_('''SELECT id, dist_calc_points, ST_AsText(ST_Transform(the_geom, {epsg_code}}) as the_geom FROM {table_name};'''.format(epsg_code=epsg_code, table_name=test_kwargs['table_name']))
+while pal.query.next():
+    geom_txt = pal.query.value(2)
+    dist_calc_pnts= pal.query.value(1)
+    geom = QgsGeometry.fromWkt(geom_txt)
+    pal.create_pnts_at(geom, dist_calc_pnts)
+
+
+start = timeit.timeit()
 for channel in features:
     pal.create_pnts_at(channel.geometry(), channel['dist_calc_points'])
+end = timeit.timeit()
+print end - start
+
 pal.add_mem_layer()
-
-
-for channel in features4:
-    pal.create_pnts_at(channel.geometry(), channel['dist_calc_points'])
-
-features = vlayer.getFeatures()
-for f in features:
-    geom = f.geometry()
-    l = geom.length()
-    idx = f.fieldNameIndex('dist_calc_points')
-    dist_calc_pnt = f['dist_calc_points']
-    dest = [l/dist_calc_pnt]
-    # example with geometry
-    wkt = geom.exportToWkt()
-    print wkt
-
-
-
-
-
-
 
 
 
@@ -171,3 +182,88 @@ QgsMapLayerRegistry.instance().addMapLayer(vl)
 
 
 
+
+
+spatilite_dialect = "ST_Line_Interpolate_Point"
+postgres_dialect = "ST_LineInterpolatePoint"
+
+
+
+from qgis.core import *
+
+from PyQt4 import QtSql
+
+database = 'yourdatabase'
+username = 'youruser'
+table = 'testing'
+srid = 4326
+dimension = 2
+typmod = 'POINT'
+
+
+sec = PointsAlongLine()
+uri = sec.get_postgis_uri(**test_kwargs)
+
+db = QtSql.QSqlDatabase.addDatabase('QPSQL')
+
+db.setHostName(uri.host())
+db.setPort(int(uri.port()))
+db.setDatabaseName(uri.database())
+db.setUserName(uri.username())
+db.setPassword(uri.password())
+
+ok = db.open()
+if ok:
+    query = QtSql.QSqlQuery(db)
+    if not query.exec_('''SELECT id, ST_AsText(the_geom) as the_geom FROM {};'''.format(test_kwargs['table_name'])):
+
+        raise RuntimeError('Failed to create table')
+    if not query.exec_('''SELECT AddGeometryColumn('public', '{table}', 'the_geom', {srid}, '{typmod}', {dimension})'''.format(table=table, srid=srid, typmod=typmod, dimension=dimension)):
+        raise RuntimeError('Failed to add geometry column to table')
+    layer = QgsVectorLayer(uri.uri(), table, 'postgres')
+    if layer.isValid():
+        QgsMapLayerRegistry().instance().addMapLayer(layer)
+else:
+    raise RuntimeError('Failed to open database connection: {}'.format(db.lastError().driverText()))
+
+
+
+query.exec_('''SELECT id, ST_AsText(the_geom) as the_geom FROM {};'''.format(test_kwargs['table_name']))
+while query.next():
+    geom_txt = query.value(1)
+    geom = QgsGeometry.fromWkt(query.value(1))
+    point = geom.interpolate(2)
+
+
+query.next()
+query.value(0)
+130
+
+	while query.next():
+		table = query.value(0).toString()
+
+
+QSQLITE 	SQLite version 3 or above
+QSQLITE2 	SQLite version 2
+
+
+
+CREATE TABLE recur AS
+WITH RECURSIVE dist(id, x, the_geom, d) AS (
+    SELECT
+       id,
+       1::double precision,
+       the_geom,
+       0::double precision
+    FROM v2_channel
+       UNION ALL
+    SELECT
+      dist.id,
+      x+1,
+      v2_channel.the_geom AS gm,
+      d+(1/round(ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points)) AS dist_calc_pnts
+    FROM v2_channel JOIN dist
+        ON  dist.x  < ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points
+        AND dist.id = v2_channel.id
+)
+SELECT *, ST_LineInterpolatePoint(the_geom, d) FROM dist;
