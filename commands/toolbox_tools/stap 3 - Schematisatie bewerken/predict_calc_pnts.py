@@ -62,6 +62,7 @@ class PointsAlongLine(object):
         self._schema = None  # will passed to get_uri()
         self.query = None
         self.calc_type_dict = {}
+        self.object_data = {'node_id': None, 'calc_type': None, 'the_geom': None, 'line_length': None}
     def get_uri(self, **kwargs):
         self._uri = QgsDataSourceURI()
         address = kwargs['address']
@@ -145,15 +146,14 @@ class PointsAlongLine(object):
             },
         }
 
-        self.calc_type_dict
-
         for name, d in query_objects.iteritems():
             print "processing {}".format(name)
             self.run_query(d['query'])
             while self.query.next():
+                the_geom = None
                 connection_node_start = self.query.value(d['node_id_start'])
                 calc_type = self.query.value(d['calc_type'])
-                self._add_to_calc_type_dict(connection_node_start, calc_type)
+                added_start_node = self._add_to_calc_type_dict(connection_node_start, calc_type)
                 if d['node_id_end'] is not None:
                     connection_node_end = self.query.value(d['node_id_end'])
                     self._add_to_calc_type_dict(connection_node_end, calc_type)
@@ -161,12 +161,15 @@ class PointsAlongLine(object):
                     the_geom = self.query.value(d['the_geom'])
                 if d['line_length'] is not None:
                     line_length = self.query.value(d['line_length'])
+                if added_start_node and the_geom:
+                    d = self.calc_type_dict.get(connection_node_start)
+                    d['the_geom'] = the_geom
+                    d['line_length'] = line_length
+                    self.calc_type_dict[connection_node_start] = d
 
     def _add_to_calc_type_dict(self, node_id, calc_type):
         # TODO check which attributes we really need here
-        ConnectionNode = namedtuple(
-            "ConnectionNode", 'node_id, calc_type', 'the_geom', 'line_length'
-        )
+        #{'node_id': None, 'calc_type': None, 'the_geom': None, 'line_length': None}
         current_entry = self.calc_type_dict.get(node_id)
         if not current_entry:
             return False
@@ -176,7 +179,7 @@ class PointsAlongLine(object):
         if ranked_calc_type != calc_type:
             return False
         else:
-            self.calc_type_dict[node_id] = ConnectionNode(node_id, calc_type)
+            self.calc_type_dict[node_id] = {'node_id': node_id, 'calc_type': calc_type}
             return True
 
 
