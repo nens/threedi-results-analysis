@@ -505,3 +505,33 @@ WITH RECURSIVE dist(id, x, the_geom, d) AS (
         AND dist.id = v2_channel.id
 )
 SELECT *, ST_LineInterpolatePoint(the_geom, d) FROM dist;
+
+
+
+
+WITH RECURSIVE dist(id, calculation_type, x, the_geom, d) AS (
+    SELECT
+       id,
+       calculation_type,
+       1::double precision,
+       the_geom,
+       0::double precision
+    FROM v2_channel
+       UNION ALL
+    SELECT
+      dist.id,
+      dist.calculation_type,
+      x+1,
+      v2_channel.the_geom AS gm,
+      d+(1/round(ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points)) AS dist_calc_pnts
+    FROM v2_channel JOIN dist
+        ON  dist.x  < ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points
+        AND dist.id = v2_channel.id
+)
+INSERT INTO v2_calculation_point (content_type_id, user_ref, calc_type, the_geom)
+SELECT 
+  id, 
+  concat_ws('-',id::char,'v2_channel',x::text), 
+  calculation_type, 
+  ST_LineInterpolatePoint(the_geom, d) AS the_geom 
+FROM dist ORDER BY id, x ASC;
