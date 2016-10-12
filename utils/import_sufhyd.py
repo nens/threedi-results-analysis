@@ -323,7 +323,6 @@ class Importer(object):
 
         storage_dict = {k['node.code']: k for k in data['storage']}
 
-
         # remove manholes which are part of a link
         data['manholes'] = [m for m in data['manholes'] if m['code'] not in link_dict]
 
@@ -338,7 +337,6 @@ class Importer(object):
             #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])
             #     del manhole
             #     continue
-
 
         data['profiles'] = profiles
 
@@ -362,7 +360,6 @@ class Importer(object):
                           CrossSectionDefinition, Orifice, Weir, Pumpstation,
                           ImperviousSurface, ImperviousSurfaceMap):
 
-
                 session.execute("SELECT setval('{table}_id_seq', max(id)) "
                                 "FROM {table}".format(table=table.__tablename__))
 
@@ -375,9 +372,8 @@ class Importer(object):
         session.bulk_save_objects(crs_list)
         session.commit()
 
-        # todo: add order by to ensure the latest added nodes are used
         crs_list = session.query(CrossSectionDefinition).options(
-                load_only("id", "_code")).all()
+                load_only("id", "_code")).order_by(CrossSectionDefinition.id).all()
         crs_dict = {m._code: m.id for m in crs_list}
         del crs_list
 
@@ -402,7 +398,7 @@ class Importer(object):
         session.commit()
 
         con_list = session.query(ConnectionNode).options(
-                load_only("id", "_code")).all()
+                load_only("id", "_code")).order_by(ConnectionNode.id).all()
         con_dict = {m._code: m.id for m in con_list}
         del con_list
 
@@ -610,7 +606,7 @@ class Importer(object):
         session.commit()
 
         imp_list = session.query(ImperviousSurface).options(
-                load_only("id", "code")).all()
+                load_only("id", "code")).order_by(ImperviousSurface.id).all()
         imp_dict = {m.code: m.id for m in imp_list}
         del imp_list
 
