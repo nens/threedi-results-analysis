@@ -5,6 +5,7 @@ import ogr
 import osr
 import logging
 import os.path
+import datetime
 from collections import OrderedDict
 from sqlalchemy.orm import load_only
 from copy import copy
@@ -83,6 +84,9 @@ class Importer(object):
         self.log = DataImportLogger()
 
     def run_import(self):
+        """
+            main function for performing all import tasks
+        """
 
         self.db.create_and_check_fields()
 
@@ -90,12 +94,35 @@ class Importer(object):
             data = self.load_sufhyd_data()
             self.check_import_data(data)
             self.transform_import_data(data)
-            self.write_data_to_db(data)
+            commit_counts = self.write_data_to_db(data)
 
             logger.warning('Summary of import:\n' + self.log.get_summary())
 
-            dir_name = os.path.dirname(self.import_file)
-            log_file = open(os.path.join(dir_name, 'import_sufhyd.log'), 'w')
+            # write logging to file
+            log_file = open(self.import_file + '.log', 'w')
+            log_file.write('Import on {0} of file: {1}.\n'.format(
+                datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'),
+                self.import_file
+            ))
+
+            db_set = copy(self.db.connection_settings)
+            if 'password' in db_set:
+                del db_set['password']
+            if 'username' in db_set:
+                del db_set['username']
+
+            log_file.write('Added to the {0} database with connection settings {1} :\n'.format(
+                self.db.db_type,
+                str(db_set)
+            ))
+            log_file.write('{profiles} profiles\n'
+                           '{manholes} manholes\n'
+                           '{pipes} pipes\n'
+                           '{structures} structures'
+                           '{outlets} outlets\n'
+                           '{impervious_surfaces} impervious surfaces\n'
+                           ''.format(**commit_counts))
+
             log_file.write(self.log.get_full_log())
             log_file.close()
 
@@ -316,6 +343,17 @@ class Importer(object):
         data['profiles'] = profiles
 
     def write_data_to_db(self, data):
+        """
+        writes data to model database
+
+        data (dict): dictionary with for each object type a list of objects
+
+        returns: (dict) with number of objects committed to the database of each object type
+
+        """
+
+        commit_counts = {}
+
         session = self.db.get_session()
 
         # set all autoincrement counters to max ids
@@ -333,6 +371,7 @@ class Importer(object):
         for crs in data['profiles'].values():
             crs_list.append(CrossSectionDefinition(**crs))
 
+        commit_counts['profiles'] = len(crs_list)
         session.bulk_save_objects(crs_list)
         session.commit()
 
@@ -396,6 +435,7 @@ class Importer(object):
             manhole['connection_node_id'] = con_dict[manhole['code']]
             man_list.append(Manhole(**manhole))
 
+        commit_counts['manholes'] = len(man_list)
         session.bulk_save_objects(man_list)
         session.commit()
         del man_list
@@ -433,6 +473,7 @@ class Importer(object):
 
             pipe_list.append(Pipe(**pipe))
 
+        commit_counts['pipes'] = len(pipe_list)
         session.bulk_save_objects(pipe_list)
         session.commit()
         del pipe_list
@@ -531,6 +572,7 @@ class Importer(object):
 
             obj_list.append(Orifice(**orif))
 
+        commit_counts['structures'] = len(obj_list)
         session.bulk_save_objects(obj_list)
         session.commit()
         del obj_list
@@ -553,6 +595,7 @@ class Importer(object):
                     {'node': outlet['node.code']}
                 )
 
+        commit_counts['outlets'] = len(outlet_list)
         session.bulk_save_objects(outlet_list)
         session.commit()
         del outlet_list
@@ -562,6 +605,7 @@ class Importer(object):
         for imp in data['impervious_surfaces']:
             imp_list.append(ImperviousSurface(**imp))
 
+        commit_counts['impervious_surfaces'] = len(imp_list)
         session.bulk_save_objects(imp_list)
         session.commit()
 
@@ -593,3 +637,5 @@ class Importer(object):
 
         session.bulk_save_objects(map_list)
         session.commit()
+
+        return commit_counts
