@@ -4,41 +4,8 @@ from qgis.core import (QgsFeature, QgsGeometry,
                        QgsVectorLayer, QgsMapLayerRegistry,
                        QgsField, QgsExpression, QgsFeatureRequest)
 
-from ThreeDiToolbox.utils.raw_sql import (
-    boundary_query_str,
-    manhole_query_str,
-    pipe_query_str,
-    culvert_query_str,
-    channel_query_str
-)
-
-
-from collections import namedtuple
-EPSILON = 0.000001
-
-def float_equals(f1, f2):
-    return abs(f1 - f2) < EPSILON
-
-
-# connection node constants
-NODE_CALC_TYPE_BOUNDARY = -1
-NODE_CALC_TYPE_ISOLATED = 1
-NODE_CALC_TYPE_CONNECTED = 2
-NODE_CALC_TYPE_EMBEDDED = 0
-NODE_CALC_TYPE_BROAD_CRESTED = 3
-NODE_CALC_TYPE_SHORT_CRESTED = 4
-NODE_CALC_TYPE_DOUBLE_CONNECTED = 5
-
-custom_order = (
-    NODE_CALC_TYPE_BOUNDARY,          # -1
-    NODE_CALC_TYPE_EMBEDDED,          # 0
-    NODE_CALC_TYPE_ISOLATED,          # 1
-    NODE_CALC_TYPE_DOUBLE_CONNECTED,  # 5
-    NODE_CALC_TYPE_CONNECTED,         # 2
-    NODE_CALC_TYPE_BROAD_CRESTED,     # 3
-    NODE_CALC_TYPE_SHORT_CRESTED      # 4
-)
-
+from ThreeDiToolbox.utils.raw_sql import get_query_strings
+from ThreeDiToolbox.utils import constants
 
 
 
@@ -110,77 +77,25 @@ class PointsAlongLine(object):
         self.query.exec_(query_str)
     def build_calc_type_dict(self):
         """
-        populate the network_dict. the following rules apply:
-        1. ...
-        2. ...
+        The network dict contains all connection nodes as keys.
+        The node itself has attributes that define its calculation type
+        and the source of the calculation type definition. That is the
+        object it has been derived from.
+        While building the network dictionary the calculation type of every object
+        (boundary point, manhole, channel, culvert, pipe) are tested against the defined
+        ranking (-1 --> 0 --> 1 --> 5 --> 2). Whenever a object is ranked higher, the
+        calculation type attributes will be overwritten.
+        Furthermore all 1D objects that have their own geometry
+        with their starting point on the connection node are
+        attached in a list (pipes, culverts, channels).  Like this the calculation points
+        can later be computed per dictionary entry. The last point of the line
+        geometry, however,  should not be computed when
+        predicting the calculation points because end points are listed separately
+        to make sure they can be tested against the calculation
+        type ranking, as well.
         """
-        # TODO move this to constants
-        # channel/culvert cal type map
-        calc_type_map = {
-            101: 1,
-            105: 5,
-            102: 2,
-            100: 0,
-        }
-        # TODO move this to e.g. config
-        query_objects = {
-            'v2_1d_boundary_conditions': {
-                'query': boundary_query_str,
-                'node_id_start': 0,
-                'node_id_end': None,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': None,
-                },
-            'v2_manhole': {
-                'query': manhole_query_str,
-                'node_id_start': 0,
-                'node_id_end': None,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': None,
-                },
-            'v2_pipe': {
-                'query': pipe_query_str,
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom_end': 4,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                },
-            'v2_culvert': {
-                'query': culvert_query_str,
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 3,
-                'line_length': 4,
-                'id': 5,
-                'dist_calc_points': 6,
-                'the_geom_end': 7,
-            },
-            'v2_channel': {
-                'query': channel_query_str,
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                'the_geom_end': 4,
-            },
-        }
-        for name, d in query_objects.iteritems():
+        query_data = self._get_query_data()
+        for name, d in query_data.iteritems():
             print "processing {}".format(name)
             self.run_query(d['query'])
             # loop through every database table row
@@ -211,7 +126,7 @@ class PointsAlongLine(object):
                 # If the database field is empty the query will return NULL
                 # N.B the operator has to be ``==``!
                 _calc_type = self.query.value(d['calc_type'])
-                calc_type = calc_type_map.get(_calc_type) or _calc_type
+                calc_type = constants.CALC_TYPE_MAP.get(_calc_type) or _calc_type
                 print "calc_type is ", calc_type, "type ", type(calc_type)
                 if calc_type == NULL:
                     print "WARNING: no calc_type for {name} {id}".format(
@@ -243,8 +158,11 @@ class PointsAlongLine(object):
                         'end_point': '',
                     }
                 else:
+                    # already entry for this connection node, we need to
+                    # check if the current calculation type is ranked higher
                     self._elect_new_leader(entry_start, calc_type, object_id, name)
-                # boundary and manhole are just points.
+                # there should never be a start point entry for boundaries and
+                # manholes as they don't have geometries.
                 if start_point:
                     self.network_dict[connection_node_start]['start_points'].append(start_point)
                 if connection_node_end is not None:
@@ -270,15 +188,79 @@ class PointsAlongLine(object):
         current_leader = entry.get('calc_type')
         _current_content_type = entry.get('content_type')
         unranked_calc_types = [current_leader, calc_type]
-        ranked_calc_type = min(unranked_calc_types, key=custom_order.index)
+        ranked_calc_type = min(
+            unranked_calc_types, key=constants.CALC_TYPE_RANKING.index
+        )
         # we have a new leader
         if ranked_calc_type != current_leader:
-            print "we have a new leader: calc_type was {} ({}) is now {} ({})".format(current_leader, _current_content_type, ranked_calc_type, name)
+            print "we have a new leader: calc_type was {} ({}) is now {} ({})".format(
+                current_leader, _current_content_type, ranked_calc_type, name)
             entry['calc_type'] = ranked_calc_type
             entry['object_id'] = object_id
             entry['content_type'] = name
             return True
         return False
+    def _get_query_data(self):
+
+        query_strings_dict = get_query_strings(flavor=self.flavor)
+        query_data = {
+            'v2_1d_boundary_conditions': {
+                'query': query_strings_dict['v2_1d_boundary_conditions'],
+                'node_id_start': 0,
+                'node_id_end': None,
+                'calc_type': 1,
+                'the_geom': None,
+                'line_length': None,
+                'id': 2,
+                'dist_calc_points': None,
+                'the_geom_end': None,
+                },
+            'v2_manhole': {
+                'query': query_strings_dict['v2_manhole'],
+                'node_id_start': 0,
+                'node_id_end': None,
+                'calc_type': 1,
+                'the_geom': None,
+                'line_length': None,
+                'id': 2,
+                'dist_calc_points': None,
+                'the_geom_end': None,
+                },
+            'v2_pipe': {
+                'query': query_strings_dict['v2_pipe'],
+                'node_id_start': 0,
+                'node_id_end': 1,
+                'calc_type': 2,
+                'the_geom_end': 4,
+                'the_geom': 5,
+                'line_length': 6,
+                'id': 7,
+                'dist_calc_points': 8,
+                },
+            'v2_culvert': {
+                'query': query_strings_dict['v2_culvert'],
+                'node_id_start': 0,
+                'node_id_end': 1,
+                'calc_type': 2,
+                'the_geom': 3,
+                'line_length': 4,
+                'id': 5,
+                'dist_calc_points': 6,
+                'the_geom_end': 7,
+            },
+            'v2_channel': {
+                'query': query_strings_dict['v2_channel'],
+                'node_id_start': 0,
+                'node_id_end': 1,
+                'calc_type': 2,
+                'the_geom': 5,
+                'line_length': 6,
+                'id': 7,
+                'dist_calc_points': 8,
+                'the_geom_end': 4,
+            },
+        }
+        return query_data
     def get_epsg_code(self):
         try:
             self.query.exec_('''SELECT epsg_code FROM v2_global_settings;''')
@@ -403,6 +385,33 @@ class PointsAlongLine(object):
                 return True
         return False
     def predict_points(self):
+        """
+        Case connection node entry knows an endpoint
+        --------------------------------------------
+        Whenever an endpoint entry is present the current connection
+        node is either a network endpoint or the endpoint belongs to the
+        highest ranking calculation type. Either way, it has to be added to
+        feature collection.
+
+        Once it is known that the starting point has been added, the objects with their own geometry
+        (culverts, channels, pipes) for which the calculation points have to
+        be predicted, do not need to add their starting point to the collection anymore.
+
+        Case connection node entry doesn't know of an endpoint
+        ------------------------------------------------------
+        The starting point will be calculated based on start point of the first
+        line geometry in combination with the calculation type attributes for
+        the connection node of the current iteration. The object, that belongs to the
+        line geometry will be matched against the calculation type information of the
+        connection node. The outcome of the match is important to be able to produce
+        correct ``user_ref_ids`` because they contain a substring based on the count of
+        the calculation points belonging to the same object.
+
+          
+
+
+        :return:
+        """
         for node_id, node_info in self.network_dict.iteritems():
             print "processing node_id {}".format(node_id)
             # for the first point we need the network calc_type
@@ -419,7 +428,7 @@ class PointsAlongLine(object):
                 )
                 last_seq_id = end_point['cnt_segments']
                 # if the same objects will used elsewhere as starting point
-                # the sequence of calculation points be longer (by one)
+                # the sequence of calculation points will be longer (by one)
                 if self._obj_leads(node_id, content_type, content_type_id):
                     last_seq_id += 1
                 self._add_feature(
@@ -428,11 +437,11 @@ class PointsAlongLine(object):
                     id=last_seq_id
                 )
                 node_has_been_added = True
-            start_points  = node_info.get('start_points')
+            start_points = node_info.get('start_points')
             for i, start_point in enumerate(start_points):
                 content_type = start_point['content_type']
                 content_type_id = start_point['content_type_id']
-                # the caluclation type for the interpolated points
+                # the calculation type for the interpolated points
                 calc_type = start_point['calc_type']
                 distances = self.get_distances_on_line(
                     start_point['dist_calc_pnts'],
@@ -462,6 +471,7 @@ class PointsAlongLine(object):
                     distances = distances[1:]
                 print('distances   ', distances)
                 start_id = 1
+                #
                 if all([node_info['content_type'] == content_type,
                         node_info['content_type_id'] == content_type_id]):
                     start_id = 2

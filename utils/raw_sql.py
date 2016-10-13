@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_model_data_queries(flavor):
+def get_query_strings(flavor):
     """
     get sql query strings for all 1D objects that are needed
     to predict the 1D threedicore calculation points. Those are:
@@ -26,7 +26,7 @@ def get_model_data_queries(flavor):
            'sqlite': 'MakeLine'
         },
     }
-    queries = []
+    queries = {}
     boundary_query_str = """
         -- boundaries
         SELECT
@@ -37,7 +37,7 @@ def get_model_data_queries(flavor):
           v2_1d_boundary_conditions
         ;
     """
-    queries.append(boundary_query_str)
+    queries['v2_1d_boundary_conditions'] = boundary_query_str
     manhole_query_str = """
     -- manholes
     SELECT
@@ -48,6 +48,8 @@ def get_model_data_queries(flavor):
       v2_manhole
     ;
     """
+    queries['v2_manhole'] = manhole_query_str
+
     pipe_query_str = """
     -- pipes
     SELECT
@@ -70,7 +72,7 @@ def get_model_data_queries(flavor):
       connection_node_end_id = cn_end.id
     ;
     """.format(makeline=sql_functions_map['makeline'][flavor])
-    queries.append(pipe_query_str)
+    queries['v2_pipe'] = pipe_query_str
     culvert_query_str = """
     -- culverts
     SELECT
@@ -92,7 +94,7 @@ def get_model_data_queries(flavor):
       connection_node_end_id = cn_end.id
     ;
     """
-    queries.append(culvert_query_str)
+    queries['v2_culvert'] = culvert_query_str
     channel_query_str = """
     -- channels
     SELECT
@@ -115,5 +117,5 @@ def get_model_data_queries(flavor):
       connection_node_end_id = cn_end.id
     ;
     """
-    queries.append(channel_query_str)
+    queries['v2_channel'] = channel_query_str
     return queries
