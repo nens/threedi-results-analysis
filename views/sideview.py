@@ -38,11 +38,12 @@ parameter_config = {
 }
 
 
-def python_value(value, default_value=None):
+def python_value(value, default_value=None, func=None):
     """
     help function for translating QVariant Null values into None
-    :param value: QVariant value or python value
-    :param default_value: value in case provided value is None
+    value: QVariant value or python value
+    default_value: value in case provided value is None
+    func (function): function for transforming value
     :return: python value
     """
 
@@ -56,7 +57,10 @@ def python_value(value, default_value=None):
         if default_value is not None and value is None:
             return default_value
         else:
-            return value
+            if func is not None:
+                func(value)
+            else:
+                return value
 
 
 try:
@@ -1031,19 +1035,21 @@ class SideViewDockWidget(QDockWidget):
             rel_bottom_level = 0.0
             open = False
             height_was_none = False
-            if profile['shape'] == 1:
-                # rectangle
-                if profile['height'] is not None:
-                    height = float(profile['height'])
-                else:
-                    # square
-                    height_was_none = True
-                    height = float(profile['width'])
 
-            elif profile['shape'] == 2:
-                # round
-                height = float(profile['width'])
-            elif profile['shape'] in [5, 6]:
+            if profile['shape'] in (1, 2):
+                height = python_value(profile['height'], func=float)
+                width = python_value(profile['width'], func=float)
+                if profile['shape'] == 1:
+                    # rectangle
+                    if height is None:
+                        # square
+                        height_was_none = True
+                        if width is not None:
+                            height = width
+                elif profile['shape'] == 2:
+                    # round
+                    height = width
+            elif profile['shape'] in (5, 6):
                 # tabulated and tabulated interpolated
                 height_list = profile['height'].split(' ')
                 # The calculation core automagically move the lowest point of a profile
@@ -1052,6 +1058,7 @@ class SideViewDockWidget(QDockWidget):
                 # height = float(height_list[-1]) - rel_bottom_level
                 # but this:
                 rel_bottom_level = 0.0
+                # todo: catch and warn of values are incorrect
                 height = float(height_list[-1]) - float(height_list[0])
 
                 if float(profile['width'].split(' ')[-1]) > 0.01:
