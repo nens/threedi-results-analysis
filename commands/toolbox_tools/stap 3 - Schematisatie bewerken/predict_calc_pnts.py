@@ -109,6 +109,12 @@ class PointsAlongLine(object):
             self.create_query_obj_from_uri(self._uri)
         self.query.exec_(query_str)
     def build_calc_type_dict(self):
+        """
+        populate the network_dict. the following rules apply:
+        1. ...
+        2. ...
+        """
+        # TODO move this to constants
         # channel/culvert cal type map
         calc_type_map = {
             101: 1,
@@ -116,6 +122,7 @@ class PointsAlongLine(object):
             102: 2,
             100: 0,
         }
+        # TODO move this to e.g. config
         query_objects = {
             'v2_1d_boundary_conditions': {
                 'query': boundary_query_str,
@@ -176,9 +183,13 @@ class PointsAlongLine(object):
         for name, d in query_objects.iteritems():
             print "processing {}".format(name)
             self.run_query(d['query'])
+            # loop through every database table row
             while self.query.next():
+                # distinguish between start- and endpoints
                 start_point = {}
                 end_point = {}
+                # geometries can only be present for objects with a
+                # start- and endpoint (culverts, pipes and channels)
                 the_geom = None
                 if d['the_geom'] is not None:
                     the_geom = self.query.value(d['the_geom'])
@@ -196,11 +207,15 @@ class PointsAlongLine(object):
                     connection_node_end = self.query.value(d['node_id_end'])
                 object_id = self.query.value(d['id'])
                 connection_node_start = self.query.value(d['node_id_start'])
+                # not all objects must have a calculation type defined.
+                # If the database field is empty the query will return NULL
+                # N.B the operator has to be ``==``!
                 _calc_type = self.query.value(d['calc_type'])
                 calc_type = calc_type_map.get(_calc_type) or _calc_type
                 print "calc_type is ", calc_type, "type ", type(calc_type)
                 if calc_type == NULL:
-                    print "WARNING: no calc_type for {name} {id}".format(name=name, id=object_id)
+                    print "WARNING: no calc_type for {name} {id}".format(
+                        name=name, id=object_id)
                     continue
                 if the_geom is not None:
                     cnt_segments = max(
@@ -243,7 +258,9 @@ class PointsAlongLine(object):
                             'end_point': end_point,
                         }
                     else:
-                        elected = self._elect_new_leader(entry_end, calc_type, object_id, name)
+                        elected = self._elect_new_leader(
+                            entry_end, calc_type, object_id, name
+                        )
                         if elected:
                             self.network_dict[connection_node_end]['end_point'] = end_point
     def _elect_new_leader(self, entry, calc_type, object_id, name):
