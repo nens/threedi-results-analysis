@@ -7,6 +7,10 @@ from qgis.core import (QgsFeature, QgsGeometry,
 from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils import constants
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 class PointsAlongLine(object):
@@ -15,8 +19,7 @@ class PointsAlongLine(object):
         'spatialite': 'QSQLITE',
         'spatialite2': 'QSQLITE2'
     }
-    def __init__(self, flavor, lyr_name="", fields=None, epsg_code=None):
-        self.epsg_code = epsg_code
+    def __init__(self, flavor, lyr_name="", fields=None):
         self.flavor = flavor
         self.lyr_name = lyr_name
         if not self.lyr_name:
@@ -24,7 +27,6 @@ class PointsAlongLine(object):
         self.fields = fields
         self.data_provider = None
         self.mem_layer = None
-        self._create_mem_layer(self.epsg_code)
         # xy as key, bound as value
         # self.known_pnts = defaultdict(list)
         self.known_pnts = set()
@@ -32,7 +34,23 @@ class PointsAlongLine(object):
         self.query = None
         self.network_dict = {}
         self._features = []
+        self._trans = None
     def get_uri(self, **kwargs):
+        """
+        :returns an QgsDataSourceURI() instance
+
+        kwargs :
+            'address' --> network address (postgres) or
+                file path location (spatialite)
+            'port' --> port for the network address. Can
+                be omitted for spatialite
+            'user_name' --> database credential. Can
+                be omitted for spatialite
+            'password' --> database credential. Can
+                be omitted for spatialite
+            'schema' --> database schema name
+
+         """
         self._uri = QgsDataSourceURI()
         address = kwargs['address']
         port = kwargs['port']
@@ -59,10 +77,17 @@ class PointsAlongLine(object):
         vlayer = QgsVectorLayer(uri.uri(), display_name, self.flavor)
         return vlayer
     def create_query_obj_from_uri(self, uri):
+        """
+        creates an QtSql.QSqlQuery(db) instance with the database
+        information stored in uri-object
+        """
         db_type_identifier = self._QUERY_TYPE_DICT[self.flavor]
         db = QtSql.QSqlDatabase.addDatabase(db_type_identifier)
         db.setHostName(uri.host())
-        db.setPort(int(uri.port()))
+        try:
+            db.setPort(int(uri.port()))
+        except ValueError:
+            pass
         db.setDatabaseName(uri.database())
         db.setUserName(uri.username())
         db.setPassword(uri.password())
@@ -75,10 +100,17 @@ class PointsAlongLine(object):
                     db.lastError().driverText())
             )
     def run_query(self, query_str):
+        """
+        execute a sql query. If the execution was successful the
+        result rows can retrieved by ``query.next()``
+        """
         if self.query is None:
             self.create_query_obj_from_uri(self._uri)
-        self.query.exec_(query_str)
-    def build_calc_type_dict(self):
+        if not self.query.exec_(query_str):
+            raise RuntimeError(
+                'Could not execute the query {}'.format(query_str)
+            )
+    def build_calc_type_dict(self, epsg_code):
         """
         The network dict contains all connection nodes as keys.
         The node itself has attributes that define its calculation type
@@ -98,8 +130,6 @@ class PointsAlongLine(object):
         the calculation points because end points are listed
         separately to make sure they can be tested against the
         calculation type ranking, as well.
-
-
         <instance>.network_dict will look something like this::
 
             {1: {'calc_type': -1,
@@ -131,9 +161,9 @@ class PointsAlongLine(object):
                                    'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
         }
         """
-        query_data = self._get_query_data()
+        query_data = self._get_query_data(epsg_code)
         for name, d in query_data.iteritems():
-            print "processing {}".format(name)
+            logger.info("processing {}".format(name))
             self.run_query(d['query'])
             # loop through every database table row
             while self.query.next():
@@ -164,10 +194,10 @@ class PointsAlongLine(object):
                 # N.B the operator has to be ``==``!
                 _calc_type = self.query.value(d['calc_type'])
                 calc_type = constants.CALC_TYPE_MAP.get(_calc_type) or _calc_type
-                print "calc_type is ", calc_type, "type ", type(calc_type)
+                logger.debug("calc_type is ", calc_type, "type ", type(calc_type))
                 if calc_type == NULL:
-                    print "WARNING: no calc_type for {name} {id}".format(
-                        name=name, id=object_id)
+                    logger.warning("WARNING: no calc_type for {name} {id}".format(
+                        name=name, id=object_id))
                     continue
                 # objects with a geometry have both a start- and endpoint
                 if the_geom is not None:
@@ -251,9 +281,11 @@ class PointsAlongLine(object):
             entry['content_type'] = name
             return True
         return False
-    def _get_query_data(self):
-
-        query_strings_dict = get_query_strings(flavor=self.flavor)
+    def _get_query_data(self, with_epsg_code):
+        """
+        :param with_epsg_code: the epsg_code to load the data with
+        """
+        query_strings_dict = get_query_strings(flavor=self.flavor, epsg_code=with_epsg_code)
         # keys are the database table names.
         # query value --> database query string as plain text
         # all other values --> index of the attribute in the result collection
@@ -328,7 +360,7 @@ class PointsAlongLine(object):
             vlayer = QgsVectorLayer(uri.uri(), '__none__', self.flavor)
             f = vlayer.getFeatures().next()
             return f['epsg_code']
-    def _create_mem_layer(self, epsg_code, lyr_type="Point"):
+    def create_memory_layer(self, epsg_code, lyr_type="Point"):
         """
         create a QgsVectorLayer in memory
         """
@@ -424,7 +456,7 @@ class PointsAlongLine(object):
         dists = [0]
         current_dist = 0
         corrected_distance = float(line_length) / float(cnt_segs)
-        print "corrected_distance ", corrected_distance
+        logger.debug("corrected_distance ", corrected_distance)
         if not include_dest:
             cnt_segs -= 1
         for seg in xrange(int(cnt_segs)):
@@ -444,7 +476,7 @@ class PointsAlongLine(object):
                     node_id != current_node_id]):
                 return True
         return False
-    def predict_points(self):
+    def predict_points(self, output_layer, transform=''):
         """
         Case connection node entry knows an endpoint
         --------------------------------------------
@@ -469,8 +501,11 @@ class PointsAlongLine(object):
         correct ``user_ref_ids`` because they contain a substring based
         on the count of the calculation points belonging to the same object.
         """
+        self._feat_id = 1
+        data_provider = output_layer.dataProvider()
+        self._set_coord_transformation(transform)
         for node_id, node_info in self.network_dict.iteritems():
-            print "processing node_id {}".format(node_id)
+            logger.debug("processing node_id {}".format(node_id))
             # for the first point we need the network calc_type
             node_calc_type = node_info['calc_type']
             # an entry for end_point means we have to use this his information
@@ -504,7 +539,7 @@ class PointsAlongLine(object):
                     start_point['dist_calc_pnts'],
                     start_point['line_length']
                 )
-                print "processing start point {}".format(i)
+                logger.debug("processing start point {}".format(i))
                 line_geom = QgsGeometry.fromWkt(
                     start_point['the_geom']
                 )
@@ -523,22 +558,20 @@ class PointsAlongLine(object):
                         id=1
                     )
                     node_has_been_added = True
-                    print "node has been added {} {}".format(content_type, content_type_id)
+                    logger.debug(
+                        "node has been added {} {}".format(
+                            content_type, content_type_id)
+                    )
                 else:
                     distances = distances[1:]
-                print('distances   ', distances)
                 start_id = 1
-                #
                 if all([node_info['content_type'] == content_type,
                         node_info['content_type_id'] == content_type_id]):
                     start_id = 2
                 for i, dist in enumerate(distances, start=start_id):
-
-
                     # Get a point along the line at the current distance
                     point_on_line = line_geom.interpolate(dist)
                     # add start and endpoint
-                    print 'step ', i
                     self._add_feature(
                          calc_type=calc_type,
                          pnt_geom=point_on_line,
@@ -546,12 +579,20 @@ class PointsAlongLine(object):
                          content_type=content_type,
                          id=i
                     )
-        self.data_provider.addFeatures(self._features)
-        self.mem_layer.updateExtents()
+        succces, features = data_provider.addFeatures(self._features)
+        cnt_feat = len(features)
+        if not succces:
+            raise RuntimeError(
+                'Error while saving {} feaures to database.'.format(cnt_feat)
+            )
+        print "[*] Successfully saved {} features to the database".format(cnt_feat)
+        output_layer.updateExtents()
     def _add_feature(self, calc_type, pnt_geom, content_type_id, content_type, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         f = QgsFeature()
+        if self._trans:
+            pnt_geom.transform(self._trans)
         f.setGeometry(pnt_geom)
         ref_id = '{obj_id}-{table_name}-{seq_id}'.format(
             obj_id=content_type_id,
@@ -559,11 +600,17 @@ class PointsAlongLine(object):
             seq_id=id
         )
         f.setAttributes(
-            [ref_id, content_type_id, calc_type]
+            [self._feat_id, content_type_id, ref_id, calc_type]
         )
         self._features.append(f)
-
-
+        self._feat_id += 1
+    def _set_coord_transformation(self, transform):
+        if not transform:
+            return
+        src_epsg, dest_epsg = transform.split(':')
+        src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
+        dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
+        self._trans = QgsCoordinateTransform(src_crs, dest_crs)
 
 
 martijn_kwargs = {
@@ -587,134 +634,6 @@ viewtest_kwargs = {
     'password': 'buildout',
     'schema': 'public',
 }
-
-
-calc_pnts_fields = (('ref_id', 'str'), ('content_type_id', 'int'), ('calc_type', 'int'))
-ranks = [100, 101, 105, 102]
-
-where_clauses = [
-    u'"calculation_type" = {}'.format(rank) for rank in ranks
-]
-
-pal = PointsAlongLine(flavor='postgres', fields=calc_pnts_fields, epsg_code=28992)
-uri = pal.get_uri(**viewtest_kwargs)
-pal.create_query_obj_from_uri(uri)
-pal.build_calc_type_dict()
-pal.predict_points()
-# def _obj_leads(network, content_type, content_type_id):
-#     for leader in network.itervalues():
-#         if all([leader['content_type'] == content_type,
-#                 leader['object_id'] == content_type_id]):
-#             return True
-#     return False
-
-
-
-
-
-
-
-
-
-
-            f.setGeometry(point)
-            ref_id = '{obj_id}-{table_name}-{calc_pnt}'.format(obj_id=channel['id'], table_name=table_name, calc_pnt=i)
-            f.setAttributes([ref_id, channel['id'], current_calc_type])
-
-
-        geom = channel.geometry()
-        # d = QgsDistanceArea()
-        # d.setEllipsoidalMode(True)
-        # geom_length = d.measureLine(geom.asPolyline())
-        # # 2=degrees; 0=meters; False=isArea
-        # line_length = d.convertMeasurement(geom_length, 2, 0, False)[0]
-        if metric_epsg is not None:
-            source_crs = QgsCoordinateReferenceSystem(4326)
-            dest_crs = QgsCoordinateReferenceSystem(28992)
-            trans = QgsCoordinateTransform(source_crs, dest_crs)
-            trans_back = QgsCoordinateTransform(dest_crs, source_crs)
-            geom.transform(trans)
-        current_calc_type = channel['calculation_type']
-        distance = channel['dist_calc_points']
-        line_length = geom.length()
-        print("line length   ", line_length)
-        # TODO incorperate Attributes
-        # line_length = geom.length()
-        dists = self.get_cnt_for_line(distance, line_length)
-        # start_point = QgsPoint(geom[0])
-        # end_point = QgsPoint(geom[-1])
-        # self.known_pnts.add(start_point)
-        # self.known_pnts.add(end_point)
-        print('dists   ', dists)
-        for i, dist in enumerate(dists, start=1):
-            # Get a point along the line at the current distance
-            point = geom.interpolate(dist)
-            # add start and endpoint
-            if i == 1 or i == len(dists):
-                print "start or endpoint [{}]".format(i)
-                # print "seen point {} before ".format(point.exportToWkt())
-                xy = (point.asPoint().x(), point.asPoint().y())
-                print "xy ", xy
-                # known_calc_types = self.known_pnts.get(xy)
-                # _known_calc_types = known_calc_types + [current_calc_type]
-                # ranked_calc_type = min(_known_calc_types, key=custom_order.index)
-                # if known_calc_types is not None and ranked_calc_type != current_calc_type:
-                if xy in self.known_pnts:
-                    print "seen point {} before ".format(xy)
-                    continue
-                # self.known_pnts[xy] = _known_calc_types
-                self.known_pnts.add(xy)
-            print 'step ', i, 'point ', point
-            # Create a new QgsFeature and assign it the new geometry
-            # add a feature
-            f = QgsFeature()
-            if metric_epsg is not None:
-                point.transform(trans_back)
-            f.setGeometry(point)
-            ref_id = '{obj_id}-{table_name}-{calc_pnt}'.format(obj_id=channel['id'], table_name=table_name, calc_pnt=i)
-            f.setAttributes([ref_id, channel['id'], current_calc_type])
-            self.data_provider.addFeatures([f])
-
-
-
-# postgres testing
-# ----------------
-pal = PointsAlongLine(
-    flavor='postgres', lyr_name="test_pnts",
-    fields=calc_pnts_fields
-)
-pal.create_query_obj_from_uri(uri)
-pal.build_calc_type_dict()
-
-uri = pal.get_uri(**martijn_kwargs)
-channel_layer = pal.get_layer_from_uri(
-    uri, table_name=martijn_kwargs['table_name'],
-    display_name=martijn_kwargs['layer_name'],
-    geom_column=martijn_kwargs['geom_column'],
-)
-for expr in where_clauses:
-    request = QgsFeatureRequest().setFilterExpression(expr)
-    features = channel_layer.getFeatures(request)
-    for channel in features:
-        pal.create_pnts_at(channel, martijn_kwargs['table_name'])
-
-
-features = channel_layer.getFeatures()
-pal.create_query_obj_from_uri(uri)
-epsg_code = pal.get_epsg_code()
-pal.query.exec_('''SELECT id, dist_calc_points, ST_AsText(ST_Transform(the_geom, {epsg_code}}) as the_geom FROM {table_name};'''.format(epsg_code=epsg_code, table_name=test_kwargs['table_name']))
-while pal.query.next():
-    geom_txt = pal.query.value(2)
-    dist_calc_pnts= pal.query.value(1)
-    geom = QgsGeometry.fromWkt(geom_txt)
-    pal.create_pnts_at(geom, dist_calc_pnts)
-
-
-pal.add_mem_layer()
-
-
-
-
 sqlite_kwargs = {
     'address': '/home/lars_claussen/Development/model_data/v2_bergermeer/4c8a2e214a954a0f3a870888ac9e368233fc00b9/v2_bergermeer.sqlite',
     'port': '',
@@ -728,174 +647,22 @@ sqlite_kwargs = {
 }
 
 
-# sqlite testing
-# --------------
-pal = PointsAlongLine(
-    flavor='spatialite', lyr_name="test_pnts",
-    fields=calc_pnts_fields, epsg_code=4326
-)
-channel_layer = pal.get_layer_from_uri(
-    uri, table_name=sqlite_kwargs['table_name'],
-    geom_column=sqlite_kwargs['geom_column'],
-    display_name=sqlite_kwargs['layer_name']
-)
+# memory layer
+calc_pnts_fields = (('user_ref', 'str'), ('content_type_id', 'int'), ('calc_type', 'int'))
+
+# postgres
+pal = PointsAlongLine(flavor='postgres')
+uri = pal.get_uri(**viewtest_kwargs)
+calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
+pal.create_query_obj_from_uri(uri)
+pal.build_calc_type_dict(epsg_code=28992)
+pal.predict_points(output_layer=calc_pnts_lyr)
+
+# spatialite
+pal = PointsAlongLine(flavor='spatialite')
 uri = pal.get_uri(**sqlite_kwargs)
-metric_epsg = pal.get_epsg_code() or 28992
-for expr in where_clauses:
-    request = QgsFeatureRequest().setFilterExpression(expr)
-    features = channel_layer.getFeatures(request)
-    for channel in features:
-        pal.create_pnts_at(channel, sqlite_kwargs['table_name'], metric_epsg)
-
-
-for expr in where_clauses:
-    request = QgsFeatureRequest().setFilterExpression(expr)
-    features = channel_layer.getFeatures(request)
-    for channel in features:
-        rrr.create_pnts_at(channel, sqlite_kwargs['table_name'])
-
-pal.add_mem_layer()
-
-
-
-
-
-
-
-
-vl = QgsVectorLayer("Point", "distance nodes", "memory")
-pr = vl.dataProvider()
-pr.addAttributes( [ QgsField("distance", QVariant.Int) ] )
-
-_l = 0
-features = vlayer.getFeatures()
-for f in features:
-    geom = f.geometry()
-    l = geom.length()
-    if not _l:
-        _l += l
-    point = geom.interpolate(_l)
-    wkt = point.exportToWkt()
-    print wkt
-    fet = QgsFeature()
-    fet.setGeometry(point)
-    pr.addFeatures(fet)
-    vl.updateExtents()
-QgsMapLayerRegistry.instance().addMapLayer(vl)
-
-
-
-
-
-spatilite_dialect = "ST_Line_Interpolate_Point"
-postgres_dialect = "ST_LineInterpolatePoint"
-
-
-
-from qgis.core import *
-
-from PyQt4 import QtSql
-
-database = 'yourdatabase'
-username = 'youruser'
-table = 'testing'
-srid = 4326
-dimension = 2
-typmod = 'POINT'
-
-
-sec = PointsAlongLine()
-uri = sec.get_postgis_uri(**test_kwargs)
-
-db = QtSql.QSqlDatabase.addDatabase('QPSQL')
-
-db.setHostName(uri.host())
-db.setPort(int(uri.port()))
-db.setDatabaseName(uri.database())
-db.setUserName(uri.username())
-db.setPassword(uri.password())
-
-ok = db.open()
-if ok:
-    query = QtSql.QSqlQuery(db)
-    if not query.exec_('''SELECT id, ST_AsText(the_geom) as the_geom FROM {};'''.format(test_kwargs['table_name'])):
-
-        raise RuntimeError('Failed to create table')
-    if not query.exec_('''SELECT AddGeometryColumn('public', '{table}', 'the_geom', {srid}, '{typmod}', {dimension})'''.format(table=table, srid=srid, typmod=typmod, dimension=dimension)):
-        raise RuntimeError('Failed to add geometry column to table')
-    layer = QgsVectorLayer(uri.uri(), table, 'postgres')
-    if layer.isValid():
-        QgsMapLayerRegistry().instance().addMapLayer(layer)
-else:
-    raise RuntimeError('Failed to open database connection: {}'.format(db.lastError().driverText()))
-
-
-
-query.exec_('''SELECT id, ST_AsText(the_geom) as the_geom FROM {};'''.format(test_kwargs['table_name']))
-while query.next():
-    geom_txt = query.value(1)
-    geom = QgsGeometry.fromWkt(query.value(1))
-    point = geom.interpolate(2)
-
-
-query.next()
-query.value(0)
-130
-
-	while query.next():
-		table = query.value(0).toString()
-
-
-
-
-
-
-CREATE TABLE recur AS
-WITH RECURSIVE dist(id, x, the_geom, d) AS (
-    SELECT
-       id,
-       1::double precision,
-       the_geom,
-       0::double precision
-    FROM v2_channel
-       UNION ALL
-    SELECT
-      dist.id,
-      x+1,
-      v2_channel.the_geom AS gm,
-      d+(1/round(ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points)) AS dist_calc_pnts
-    FROM v2_channel JOIN dist
-        ON  dist.x  < ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points
-        AND dist.id = v2_channel.id
-)
-SELECT *, ST_LineInterpolatePoint(the_geom, d) FROM dist;
-
-
-
-
-WITH RECURSIVE dist(id, calculation_type, x, the_geom, d) AS (
-    SELECT
-       id,
-       calculation_type,
-       1::double precision,
-       the_geom,
-       0::double precision
-    FROM v2_channel
-       UNION ALL
-    SELECT
-      dist.id,
-      dist.calculation_type,
-      x+1,
-      v2_channel.the_geom AS gm,
-      d+(1/round(ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points)) AS dist_calc_pnts
-    FROM v2_channel JOIN dist
-        ON  dist.x  < ST_Length(v2_channel.the_geom)/v2_channel.dist_calc_points
-        AND dist.id = v2_channel.id
-)
-INSERT INTO v2_calculation_point (content_type_id, user_ref, calc_type, the_geom)
-SELECT 
-  id, 
-  concat_ws('-',id::char,'v2_channel',x::text), 
-  calculation_type, 
-  ST_LineInterpolatePoint(the_geom, d) AS the_geom 
-FROM dist ORDER BY id, x ASC;
+calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
+pal.create_query_obj_from_uri(uri)
+pal.build_calc_type_dict(epsg_code=28992)
+pal.predict_points(output_layer=calc_pnts_lyr, transform='28992:4326')
+QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
