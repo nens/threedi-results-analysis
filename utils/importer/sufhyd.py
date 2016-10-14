@@ -70,7 +70,7 @@ surface_inclination_mapping = {
 
 surface_class_mapping = {
     'gvh': Constants.SURFACE_CLASS_GESLOTEN_VERHARDING,
-    'ovh': Constants.SURFACE_CLASS_HALF_VERHARD,
+    'ovh': Constants.SURFACE_CLASS_OPEN_VERHARDING,
     'dak': Constants.SURFACE_CLASS_PAND,
     'onv': Constants.SURFACE_CLASS_ONVERHARD,
 }
