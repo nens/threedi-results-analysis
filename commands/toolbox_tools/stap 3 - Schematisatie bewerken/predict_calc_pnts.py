@@ -1,668 +1,105 @@
-from PyQt4.QtCore import QVariant
-from PyQt4 import QtSql
-from qgis.core import (QgsFeature, QgsGeometry,
-                       QgsVectorLayer, QgsMapLayerRegistry,
-                       QgsField, QgsExpression, QgsFeatureRequest)
-
-from ThreeDiToolbox.utils.raw_sql import get_query_strings
-from ThreeDiToolbox.utils import constants
+# -*- coding: utf-8 -*-
+# (c) Nelen & Schuurmans, see LICENSE.rst.
 
 import logging
 
-logger = logging.getLogger(__name__)
+from qgis.core import QgsMapLayerRegistry
+
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.views.predict_calc_points_dialog import (
+    PredictCalcPointsDialogWidget)
+from ThreeDiToolbox.commands.base.custom_command import (
+    CustomCommandBase)
+from ThreeDiToolbox.utils.threedi_database import (
+    ThreediDatabase)
+from ThreeDiToolbox.utils.predict_calc_points import Predictor
 
 
-
-class PointsAlongLine(object):
-    _QUERY_TYPE_DICT = {
-        'postgres': 'QPSQL',
-        'spatialite': 'QSQLITE',
-        'spatialite2': 'QSQLITE2'
-    }
-    def __init__(self, flavor, lyr_name="", fields=None):
-        self.flavor = flavor
-        self.lyr_name = lyr_name
-        if not self.lyr_name:
-            self.lyr_name = "temporary_lyr"
-        self.fields = fields
-        self.data_provider = None
-        self.mem_layer = None
-        # xy as key, bound as value
-        # self.known_pnts = defaultdict(list)
-        self.known_pnts = set()
-        self._schema = None  # will passed to get_uri()
-        self.query = None
-        self.network_dict = {}
-        self._features = []
-        self._trans = None
-    def get_uri(self, **kwargs):
-        """
-        :returns an QgsDataSourceURI() instance
-
-        kwargs :
-            'address' --> network address (postgres) or
-                file path location (spatialite)
-            'port' --> port for the network address. Can
-                be omitted for spatialite
-            'user_name' --> database credential. Can
-                be omitted for spatialite
-            'password' --> database credential. Can
-                be omitted for spatialite
-            'schema' --> database schema name
-
-         """
-        self._uri = QgsDataSourceURI()
-        address = kwargs['address']
-        port = kwargs['port']
-        name = kwargs['name']
-        user_name = kwargs['user_name']
-        password = kwargs['password']
-        self._schema = kwargs['schema']
-        if self.flavor == 'spatialite':
-            self._uri.setDatabase(address)
-        elif self.flavor == 'postgres':
-            self._uri.setConnection(address, port, name, user_name, password)
-        return self._uri
-    def get_layer_from_uri(self, uri, table_name, geom_column='', display_name=''):
-        """
-        :returns a vector layer instance of the given
-        :param table_name in combination with the
-        :param geom_column
-        :param uri: QgsDataSourceURI() instance
-        :param display_name: defaults to ``table_name``
-        """
-        if not display_name:
-            display_name = table_name
-        uri.setDataSource(self._schema, table_name, geom_column)
-        vlayer = QgsVectorLayer(uri.uri(), display_name, self.flavor)
-        return vlayer
-    def create_query_obj_from_uri(self, uri):
-        """
-        creates an QtSql.QSqlQuery(db) instance with the database
-        information stored in uri-object
-        """
-        db_type_identifier = self._QUERY_TYPE_DICT[self.flavor]
-        db = QtSql.QSqlDatabase.addDatabase(db_type_identifier)
-        db.setHostName(uri.host())
-        try:
-            db.setPort(int(uri.port()))
-        except ValueError:
-            pass
-        db.setDatabaseName(uri.database())
-        db.setUserName(uri.username())
-        db.setPassword(uri.password())
-        ok = db.open()
-        if ok:
-            self.query = QtSql.QSqlQuery(db)
-        else:
-            raise RuntimeError(
-                'Failed to open database connection: {}'.format(
-                    db.lastError().driverText())
-            )
-    def run_query(self, query_str):
-        """
-        execute a sql query. If the execution was successful the
-        result rows can retrieved by ``query.next()``
-        """
-        if self.query is None:
-            self.create_query_obj_from_uri(self._uri)
-        if not self.query.exec_(query_str):
-            raise RuntimeError(
-                'Could not execute the query {}'.format(query_str)
-            )
-    def build_calc_type_dict(self, epsg_code):
-        """
-        The network dict contains all connection nodes as keys.
-        The node itself has attributes that define its calculation type
-        and the source of the calculation type definition. That is the
-        object it has been derived from.
-        While building the network dictionary the calculation type
-        of every object (boundary point, manhole, channel,
-        culvert, pipe) are tested against the defined
-        ranking (-1 --> 0 --> 1 --> 5 --> 2). Whenever a object
-        is ranked higher, the calculation type attributes
-        will be overwritten. Furthermore all 1D objects that
-        have their own geometry with their starting point on
-        the connection node are attached in a list (pipes, culverts,
-        channels).  Like this the calculation points can later be
-        computed per dictionary entry. The last point of the line
-        geometry, however,  should not be computed when predicting
-        the calculation points because end points are listed
-        separately to make sure they can be tested against the
-        calculation type ranking, as well.
-        <instance>.network_dict will look something like this::
-
-            {1: {'calc_type': -1,
-                 'content_type': 'v2_1d_boundary_conditions',
-                 'content_type_id': 1,
-                 'end_point': '',
-                 'object_id': 1,
-                 'start_points': [{'calc_type': 1,
-                                   'cnt_segments': 8,
-                                   'content_type': 'v2_pipe',
-                                   'content_type_id': 1,
-                                   'dist_calc_pnts': 5.0,
-                                   'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(5 5,45 5)'}]},
-             2: {'calc_type': 1,
-                 'content_type': 'v2_pipe',
-                 'content_type_id': 1,
-                 'end_point': {'cnt_segments': 8,
-                               'content_type': 'v2_pipe',
-                               'content_type_id': 1,
-                               'dist_calc_pnts': 5.0,
-                               'the_geom_end': u'POINT(45 5)'},
-                 'start_points': [{'calc_type': 1,
-                                   'cnt_segments': 8,
-                                   'content_type': 'v2_channel',
-                                   'content_type_id': 1,
-                                   'dist_calc_pnts': 5.0,
-                                   'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
-        }
-        """
-        query_data = self._get_query_data(epsg_code)
-        for name, d in query_data.iteritems():
-            logger.info("processing {}".format(name))
-            self.run_query(d['query'])
-            # loop through every database table row
-            while self.query.next():
-                # distinguish between start- and endpoints
-                start_point = {}
-                end_point = {}
-                # geometries can only be present for objects that have
-                # both a start- and endpoint (culverts, pipes and channels)
-                the_geom = None
-                if d['the_geom'] is not None:
-                    the_geom = self.query.value(d['the_geom'])
-                the_geom_end = None
-                if d['the_geom_end'] is not None:
-                    the_geom_end =  self.query.value(d['the_geom_end'])
-                line_length = None
-                if d['line_length'] is not None:
-                    line_length = self.query.value(d['line_length'])
-                dist_calc_points = None
-                if d['dist_calc_points'] is not None:
-                    dist_calc_points =  self.query.value(d['dist_calc_points'])
-                connection_node_end = None
-                if d['node_id_end'] is not None:
-                    connection_node_end = self.query.value(d['node_id_end'])
-                object_id = self.query.value(d['id'])
-                connection_node_start = self.query.value(d['node_id_start'])
-                # not all objects must have a calculation type defined.
-                # If the database field is empty the query will return NULL
-                # N.B the operator has to be ``==``!
-                _calc_type = self.query.value(d['calc_type'])
-                calc_type = constants.CALC_TYPE_MAP.get(_calc_type) or _calc_type
-                logger.debug("calc_type is ", calc_type, "type ", type(calc_type))
-                if calc_type == NULL:
-                    logger.warning("WARNING: no calc_type for {name} {id}".format(
-                        name=name, id=object_id))
-                    continue
-                # objects with a geometry have both a start- and endpoint
-                if the_geom is not None:
-                    # define in how many segments the line geometry will
-                    # be divided my the threedicore
-                    cnt_segments = max(
-                        int(round(line_length / (dist_calc_points * 1.0))), 1
-                    )
-                    start_point['calc_type'] = calc_type
-                    start_point['content_type'] = name
-                    start_point['content_type_id'] = object_id
-                    start_point['dist_calc_pnts'] = dist_calc_points
-                    start_point['line_length'] = line_length
-                    start_point['the_geom'] = the_geom
-                    start_point['cnt_segments'] = cnt_segments
-                    end_point['content_type'] = name
-                    end_point['content_type_id'] = object_id
-                    end_point['dist_calc_pnts'] = dist_calc_points
-                    end_point['the_geom_end'] = the_geom_end
-                    end_point['cnt_segments'] = cnt_segments
-                entry_start = self.network_dict.get(connection_node_start)
-                if entry_start is None:
-                    # a brand new entry
-                    self.network_dict[connection_node_start] = {
-                        'calc_type': calc_type,
-                        'content_type_id': object_id,
-                        'content_type': name,
-                        'start_points': [],
-                        'end_point': '',
-                    }
-                else:
-                    # already entry for this connection node, we need to
-                    # check if the current calculation type is ranked higher
-                    self._elect_new_leader(
-                        entry_start, calc_type, object_id, name
-                    )
-                # there should never be a start point entry for boundaries and
-                # manholes as they don't have geometries.
-                if start_point:
-                    self.network_dict[
-                        connection_node_start]['start_points'].append(start_point)
-                if connection_node_end is not None:
-                    entry_end = self.network_dict.get(connection_node_end)
-                    if entry_end is None:
-                        # a brand new entry
-                        self.network_dict[connection_node_end] = {
-                            'calc_type': calc_type,
-                            'content_type_id': object_id,
-                            'content_type': name,
-                            'start_points': [],
-                            'end_point': end_point,
-                        }
-                    else:
-                        # already entry for this connection node, we
-                        # need to check if the current calculation type
-                        # is ranked higher
-                        elected = self._elect_new_leader(
-                            entry_end, calc_type, object_id, name
-                        )
-                        if elected:
-                            self.network_dict[connection_node_end]['end_point'] = end_point
-    def _elect_new_leader(self, entry, calc_type, object_id, name):
-        """
-        compares the stored calculation type information with the current
-        :param calc_type and updates the information whenever the calcualtion
-        type is ranked higher
-        :returns True if a new leader has been elected, False otherwise
-        """
-        current_leader = entry.get('calc_type')
-        _current_content_type = entry.get('content_type')
-        unranked_calc_types = [current_leader, calc_type]
-        ranked_calc_type = min(
-            unranked_calc_types, key=constants.CALC_TYPE_RANKING.index
-        )
-        # we have a new leader
-        if ranked_calc_type != current_leader:
-            print "we have a new leader: calc_type was {} ({}) is now {} ({})".format(
-                current_leader, _current_content_type, ranked_calc_type, name)
-            entry['calc_type'] = ranked_calc_type
-            entry['object_id'] = object_id
-            entry['content_type'] = name
-            return True
-        return False
-    def _get_query_data(self, with_epsg_code):
-        """
-        :param with_epsg_code: the epsg_code to load the data with
-        """
-        query_strings_dict = get_query_strings(flavor=self.flavor, epsg_code=with_epsg_code)
-        # keys are the database table names.
-        # query value --> database query string as plain text
-        # all other values --> index of the attribute in the result collection
-        query_data = {
-            'v2_1d_boundary_conditions': {
-                'query': query_strings_dict['v2_1d_boundary_conditions'],
-                'node_id_start': 0,
-                'node_id_end': None,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': None,
-                },
-            'v2_manhole': {
-                'query': query_strings_dict['v2_manhole'],
-                'node_id_start': 0,
-                'node_id_end': None,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': None,
-                },
-            'v2_pipe': {
-                'query': query_strings_dict['v2_pipe'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom_end': 4,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                },
-            'v2_culvert': {
-                'query': query_strings_dict['v2_culvert'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 3,
-                'line_length': 4,
-                'id': 5,
-                'dist_calc_points': 6,
-                'the_geom_end': 7,
-            },
-            'v2_channel': {
-                'query': query_strings_dict['v2_channel'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                'the_geom_end': 4,
-            },
-        }
-        return query_data
-    def get_epsg_code(self):
-        """
-        get the epsg_code entry from v2_global_settings table (first row)
-        """
-        try:
-            self.query.exec_('''SELECT epsg_code FROM v2_global_settings;''')
-            self.query.next()
-            return query.value(0)
-        except AttributeError:
-            self._uri.setDataSource(self._schema, 'v2_global_settings', '')
-            vlayer = QgsVectorLayer(uri.uri(), '__none__', self.flavor)
-            f = vlayer.getFeatures().next()
-            return f['epsg_code']
-    def create_memory_layer(self, epsg_code, lyr_type="Point"):
-        """
-        create a QgsVectorLayer in memory
-        """
-        _type_map = {
-            'str': QVariant.String,
-            'int': QVariant.Int,
-            'float': QVariant.Double
-        }
-        # create layer
-        lyr_def_str = lyr_type
-        if epsg_code:
-            lyr_def_str = "{lyr_type}?crs=EPSG:{epsg_code}".format(
-                lyr_type=lyr_type, epsg_code=epsg_code
-            )
-        self.mem_layer = QgsVectorLayer(lyr_def_str, self.lyr_name, "memory")
-        # crs = self.mem_layer.crs()
-        # if not crs.createFromId(int(epsg_code)):
-        #     raise RuntimeError("Could not create crs from EPSG code {}".format(epsg_code))
-        # self.mem_layer.setCrs(crs)
-        self.data_provider = self.mem_layer.dataProvider()
-        # add fields
-        if self.fields is None:
-            _fields = [QgsField("id", QVariant.Int)]
-        else:
-            _fields = [
-                (QgsField(field_name, _type_map[field_type]))
-                for field_name, field_type in self.fields
-            ]
-        self.data_provider.addAttributes(_fields)
-        self.mem_layer.updateFields() # tell the vector layer to fetch changes from the provider
-    def create_pnts_at(self, channel, table_name="", metric_epsg=None):
-        geom = channel.geometry()
-        # d = QgsDistanceArea()
-        # d.setEllipsoidalMode(True)
-        # geom_length = d.measureLine(geom.asPolyline())
-        # # 2=degrees; 0=meters; False=isArea
-        # line_length = d.convertMeasurement(geom_length, 2, 0, False)[0]
-        if metric_epsg is not None:
-            source_crs = QgsCoordinateReferenceSystem(4326)
-            dest_crs = QgsCoordinateReferenceSystem(28992)
-            trans = QgsCoordinateTransform(source_crs, dest_crs)
-            trans_back = QgsCoordinateTransform(dest_crs, source_crs)
-            geom.transform(trans)
-        current_calc_type = channel['calculation_type']
-        distance = channel['dist_calc_points']
-        line_length = geom.length()
-        print("line length   ", line_length)
-        # TODO incorperate Attributes
-        # line_length = geom.length()
-        dists = self.get_distances_on_line(distance, line_length)
-        # start_point = QgsPoint(geom[0])
-        # end_point = QgsPoint(geom[-1])
-        # self.known_pnts.add(start_point)
-        # self.known_pnts.add(end_point)
-        print('dists   ', dists)
-        for i, dist in enumerate(dists, start=1):
-            # Get a point along the line at the current distance
-            point = geom.interpolate(dist)
-            # add start and endpoint
-            if i == 1 or i == len(dists):
-                print "start or endpoint [{}]".format(i)
-                # print "seen point {} before ".format(point.exportToWkt())
-                xy = (point.asPoint().x(), point.asPoint().y())
-                print "xy ", xy
-                # known_calc_types = self.known_pnts.get(xy)
-                # _known_calc_types = known_calc_types + [current_calc_type]
-                # ranked_calc_type = min(_known_calc_types, key=custom_order.index)
-                # if known_calc_types is not None and ranked_calc_type != current_calc_type:
-                if xy in self.known_pnts:
-                    print "seen point {} before ".format(xy)
-                    continue
-                # self.known_pnts[xy] = _known_calc_types
-                self.known_pnts.add(xy)
-            print 'step ', i, 'point ', point
-            # Create a new QgsFeature and assign it the new geometry
-            # add a feature
-            f = QgsFeature()
-            if metric_epsg is not None:
-                point.transform(trans_back)
-            f.setGeometry(point)
-            ref_id = '{obj_id}-{table_name}-{calc_pnt}'.format(obj_id=channel['id'], table_name=table_name, calc_pnt=i)
-            f.setAttributes([ref_id, channel['id'], current_calc_type])
-            self.data_provider.addFeatures([f])
-            # update layer's extent when new features have been added
-            # because change of extent in provider is not propagated to the layer
-        self.mem_layer.updateExtents()
-    def remove_mem_layer(self):
-        QgsMapLayerRegistry.instance().removeMapLayers( [self.mem_layer.id()] )
-    def add_mem_layer(self):
-        QgsMapLayerRegistry.instance().addMapLayer(self.mem_layer)
-    def get_distances_on_line(self, distance, line_length, include_dest=False):
-        cnt_segs = max(int(round(line_length / (distance * 1.0))), 1)
-        dists = [0]
-        current_dist = 0
-        corrected_distance = float(line_length) / float(cnt_segs)
-        logger.debug("corrected_distance ", corrected_distance)
-        if not include_dest:
-            cnt_segs -= 1
-        for seg in xrange(int(cnt_segs)):
-            current_dist += corrected_distance
-            dists.append(current_dist)
-        return dists
-    def _obj_leads(self, current_node_id, content_type, content_type_id):
-        """
-        :returns True if the the given object with
-        :param content_type_id of
-        :param content_type somewhere in the network has the lead
-        False otherwise
-        """
-        for node_id, leader in self.network_dict.iteritems():
-            if all([leader['content_type'] == content_type,
-                    leader['content_type_id'] == content_type_id,
-                    node_id != current_node_id]):
-                return True
-        return False
-    def predict_points(self, output_layer, transform=''):
-        """
-        Case connection node entry knows an endpoint
-        --------------------------------------------
-        Whenever an endpoint entry is present the current connection
-        node is either a network endpoint or the endpoint belongs to the
-        highest ranking calculation type. Either way, it has to be added to
-        feature collection.
-
-        Once it is known that the starting point has been added, the objects
-        with their own geometry (culverts, channels, pipes) for which
-        the calculation points have to be predicted, do not need to add
-        their starting point to the collection anymore.
-
-        Case connection node entry doesn't know of an endpoint
-        ------------------------------------------------------
-        The starting point will be calculated based on start point
-        of the first line geometry in combination with the calculation
-        type attributes for the connection node of the current iteration.
-        The object, that belongs to the line geometry will be matched
-        against the calculation type information of the connection node.
-        The outcome of the match is important to be able to produce
-        correct ``user_ref_ids`` because they contain a substring based
-        on the count of the calculation points belonging to the same object.
-        """
-        self._feat_id = 1
-        data_provider = output_layer.dataProvider()
-        self._set_coord_transformation(transform)
-        for node_id, node_info in self.network_dict.iteritems():
-            logger.debug("processing node_id {}".format(node_id))
-            # for the first point we need the network calc_type
-            node_calc_type = node_info['calc_type']
-            # an entry for end_point means we have to use this his information
-            # over other information for the node
-            end_point  = node_info.get('end_point')
-            node_has_been_added = False
-            if end_point:
-                content_type = end_point['content_type']
-                content_type_id = end_point['content_type_id']
-                pnt_geom = QgsGeometry.fromWkt(
-                    end_point['the_geom_end']
-                )
-                last_seq_id = end_point['cnt_segments']
-                # if the same objects will used elsewhere as starting point
-                # the sequence of calculation points will be longer (by one)
-                if self._obj_leads(node_id, content_type, content_type_id):
-                    last_seq_id += 1
-                self._add_feature(
-                    calc_type=node_calc_type, pnt_geom=pnt_geom,
-                    content_type_id=content_type_id, content_type=content_type,
-                    id=last_seq_id
-                )
-                node_has_been_added = True
-            start_points = node_info.get('start_points')
-            for i, start_point in enumerate(start_points):
-                content_type = start_point['content_type']
-                content_type_id = start_point['content_type_id']
-                # the calculation type for the interpolated points
-                calc_type = start_point['calc_type']
-                distances = self.get_distances_on_line(
-                    start_point['dist_calc_pnts'],
-                    start_point['line_length']
-                )
-                logger.debug("processing start point {}".format(i))
-                line_geom = QgsGeometry.fromWkt(
-                    start_point['the_geom']
-                )
-                if not node_has_been_added:
-                    # find out if the node info has been derived
-                    # from the object we are looking at right now
-                    # so we can produce the corect meta data like
-                    # calc_type, user-ref-id,...
-                    distance = distances.pop(0)
-                    start_pnt = line_geom.interpolate(distance)
-                    self._add_feature(
-                        calc_type=node_calc_type,
-                        pnt_geom=start_pnt,
-                        content_type_id=node_info['content_type_id'],
-                        content_type=node_info['content_type'],
-                        id=1
-                    )
-                    node_has_been_added = True
-                    logger.debug(
-                        "node has been added {} {}".format(
-                            content_type, content_type_id)
-                    )
-                else:
-                    distances = distances[1:]
-                start_id = 1
-                if all([node_info['content_type'] == content_type,
-                        node_info['content_type_id'] == content_type_id]):
-                    start_id = 2
-                for i, dist in enumerate(distances, start=start_id):
-                    # Get a point along the line at the current distance
-                    point_on_line = line_geom.interpolate(dist)
-                    # add start and endpoint
-                    self._add_feature(
-                         calc_type=calc_type,
-                         pnt_geom=point_on_line,
-                         content_type_id=content_type_id,
-                         content_type=content_type,
-                         id=i
-                    )
-        succces, features = data_provider.addFeatures(self._features)
-        cnt_feat = len(features)
-        if not succces:
-            raise RuntimeError(
-                'Error while saving {} feaures to database.'.format(cnt_feat)
-            )
-        print "[*] Successfully saved {} features to the database".format(cnt_feat)
-        output_layer.updateExtents()
-    def _add_feature(self, calc_type, pnt_geom, content_type_id, content_type, id):
-        # Create a new QgsFeature and assign it the new geometry
-        # add a feature
-        f = QgsFeature()
-        if self._trans:
-            pnt_geom.transform(self._trans)
-        f.setGeometry(pnt_geom)
-        ref_id = '{obj_id}-{table_name}-{seq_id}'.format(
-            obj_id=content_type_id,
-            table_name=content_type,
-            seq_id=id
-        )
-        f.setAttributes(
-            [self._feat_id, content_type_id, ref_id, calc_type]
-        )
-        self._features.append(f)
-        self._feat_id += 1
-    def _set_coord_transformation(self, transform):
-        if not transform:
-            return
-        src_epsg, dest_epsg = transform.split(':')
-        src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
-        dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
-        self._trans = QgsCoordinateTransform(src_crs, dest_crs)
+log = logging.getLogger(__name__)
 
 
-martijn_kwargs = {
-    'flavor': 'postgres',
-    'address': '10.0.3.111',
-    'port': '5432',
-    'name': 'work_martijn',
-    'user_name':'buildout',
-    'password': 'buildout',
-    'schema': 'public',
-    'table_name': 'v2_channel',
-    'geom_column': 'the_geom',
-    'layer_name': 'channel_new',
-}
-viewtest_kwargs = {
-    'flavor': 'postgres',
-    'address': '10.0.3.111',
-    'port': '5432',
-    'name': 'work_viewtest',
-    'user_name':'buildout',
-    'password': 'buildout',
-    'schema': 'public',
-}
-sqlite_kwargs = {
-    'address': '/home/lars_claussen/Development/model_data/v2_bergermeer/4c8a2e214a954a0f3a870888ac9e368233fc00b9/v2_bergermeer.sqlite',
-    'port': '',
-    'name': '',
-    'user_name':'',
-    'password': '',
-    'schema': '',
-    'table_name': 'v2_channel',
-    'geom_column': 'the_geom',
-    'layer_name': 'channel_sqlite',
-}
+class CustomCommand(CustomCommandBase):
+    """
+    """
 
 
-# memory layer
-calc_pnts_fields = (('user_ref', 'str'), ('content_type_id', 'int'), ('calc_type', 'int'))
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.iface = kwargs.get('iface')
+        self.ts_datasource = kwargs.get('ts_datasource')
+        self.tool_dialog_widget = None
 
-# postgres
-pal = PointsAlongLine(flavor='postgres')
-uri = pal.get_uri(**viewtest_kwargs)
-calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
-pal.create_query_obj_from_uri(uri)
-pal.build_calc_type_dict(epsg_code=28992)
-pal.predict_points(output_layer=calc_pnts_lyr)
+    def run(self):
+        self.show_gui()
 
-# spatialite
-pal = PointsAlongLine(flavor='spatialite')
-uri = pal.get_uri(**sqlite_kwargs)
-calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
-pal.create_query_obj_from_uri(uri)
-pal.build_calc_type_dict(epsg_code=28992)
-pal.predict_points(output_layer=calc_pnts_lyr, transform='28992:4326')
-QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
+    def show_gui(self):
+
+        self.tool_dialog_widget = PredictCalcPointsDialogWidget(command=self)
+        self.tool_dialog_widget.exec_()  # block execution
+
+    def run_it(self, db_set, db_type):
+
+        # postgres
+        pal = Predictor(flavor=db_type)
+        print db_set
+        uri = pal.get_uri(**db_set)
+        calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
+        pal.create_query_obj_from_uri(uri)
+        pal.build_calc_type_dict(epsg_code=28992)
+        pal.predict_points(output_layer=calc_pnts_lyr)
+        QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
+
+        # # spatialite
+        # pal = PointsAlongLine(flavor='spatialite')
+        # uri = pal.get_uri(**sqlite_kwargs)
+        # calc_pnts_lyr = pal.get_layer_from_uri(uri, 'v2_calculation_point', 'the_geom')
+        # pal.create_query_obj_from_uri(uri)
+        # pal.build_calc_type_dict(epsg_code=28992)
+        # pal.predict_points(output_layer=calc_pnts_lyr, transform='28992:4326')
+        #
+        #
+        # db = ThreediDatabase(db_set, db_type)
+        # guesser = Guesser(db)
+        # msg = guesser.run(action_list, only_empty_fields)
+        msg = 'here goes custom message'
+        messagebar_message('Guess indicators ready',
+                           msg,
+                           duration=20)
+        log.info('Guess indicators ready.\n' + msg)
+
+
+        # martijn_kwargs = {
+        #     'flavor': 'postgres',
+        #     'address': '10.0.3.111',
+        #     'port': '5432',
+        #     'name': 'work_martijn',
+        #     'user_name':'buildout',
+        #     'password': 'buildout',
+        #     'schema': 'public',
+        #     'table_name': 'v2_channel',
+        #     'geom_column': 'the_geom',
+        #     'layer_name': 'channel_new',
+        # }
+        # viewtest_kwargs = {
+        #     'flavor': 'postgres',
+        #     'address': '10.0.3.111',
+        #     'port': '5432',
+        #     'name': 'work_viewtest',
+        #     'user_name':'buildout',
+        #     'password': 'buildout',
+        #     'schema': 'public',
+        # }
+        # sqlite_kwargs = {
+        #     'address': '/home/lars_claussen/Development/model_data/v2_bergermeer/4c8a2e214a954a0f3a870888ac9e368233fc00b9/v2_bergermeer.sqlite',
+        #     'port': '',
+        #     'name': '',
+        #     'user_name':'',
+        #     'password': '',
+        #     'schema': '',
+        #     'table_name': 'v2_channel',
+        #     'geom_column': 'the_geom',
+        #     'layer_name': 'channel_sqlite',
+        # }
+
+
