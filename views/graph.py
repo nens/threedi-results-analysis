@@ -484,8 +484,8 @@ class GraphWidget(QWidget):
             # lyr.removeSelection()
             if lyr.name() == obj_type:
                 # query layer for object
-                request = QgsFeatureRequest()
-                request.setFilterFid(obj_id)
+                filt = u'"id" = {0}'.format(obj_id)
+                request = QgsFeatureRequest().setFilterExpression(filt)
                 features = lyr.getFeatures(request)
                 for feature in features:
                     if self.geometry_type == QGis.WKBPoint:
