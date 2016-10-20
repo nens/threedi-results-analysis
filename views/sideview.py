@@ -49,16 +49,13 @@ def python_value(value, default_value=None, func=None):
 
     # check on QVariantNull... type
     if hasattr(value, 'isNull') and value.isNull():
-        if default_value is not None:
-            return default_value
-        else:
-            return None
+        return default_value
     else:
         if default_value is not None and value is None:
             return default_value
         else:
             if func is not None:
-                func(value)
+                return func(value)
             else:
                 return value
 
@@ -340,7 +337,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                             if sub_end_node['height'] is not None:
                                 begin_upper_level = sub_end_node['height'] + begin_level
                             else:
-                                begin_upper_level = np.nan
+                                begin_upper_level = begin_level
                             begin_surface = sub_end_node['surface_level']
                             begin_drain = sub_end_node['drain_level']
                         elif sub_first and sub_end_node['type'] == SideViewDockWidget.CROSS_SECTION:
@@ -358,7 +355,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                     end_weight * sub_end_node['height'] +
                                     begin_level)
                             else:
-                                begin_upper_level = np.nan
+                                begin_upper_level = begin_level
                             if (sub_begin_node['surface_level'] is not None and
                                 sub_end_node['surface_level'] is not None):
                                 begin_surface = (
@@ -374,7 +371,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                             if sub_begin_node['height'] is not None:
                                 begin_upper_level = sub_begin_node['height'] + begin_level
                             else:
-                                begin_upper_level = np.nan
+                                begin_upper_level = begin_level
                             begin_surface = sub_begin_node['surface_level']
                             begin_drain = sub_begin_node['drain_level']
 
@@ -383,7 +380,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                             if sub_begin_node['height'] is not None:
                                 end_upper_level = sub_begin_node['height'] + end_level
                             else:
-                                end_upper_level = np.nan
+                                end_upper_level = end_level
                             end_surface = sub_begin_node['surface_level']
                             end_drain = sub_begin_node['drain_level']
                         elif i == len(profile_links) - 1 and sub_begin_node['type'] == SideViewDockWidget.CROSS_SECTION:
@@ -402,7 +399,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                     end_weight * sub_end_node['height'] +
                                     end_level)
                             else:
-                                end_upper_level = np.nan
+                                end_upper_level = end_level
 
                             if (sub_begin_node['surface_level'] is not None and
                                 sub_end_node['surface_level'] is not None):
@@ -467,15 +464,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                         begin_height = feature['end_height']
                         end_height = feature['start_height']
 
-                    if begin_height is not None:
+                    if python_value(begin_height) is not None:
                         begin_upper_level = begin_level + begin_height
                     else:
-                        begin_upper_level = np.nan
+                        begin_upper_level = begin_level
 
-                    if end_height is not None:
+                    if python_value(end_height) is not None:
                         end_upper_level = end_level + end_height
                     else:
-                        end_upper_level = np.nan
+                        end_upper_level = end_level
 
                     bottom_line.append(
                         (begin_dist + 0.5 * float(begin_node['length']),
