@@ -32,9 +32,6 @@ class Predictor(object):
         self.fields = fields
         self.data_provider = None
         self.mem_layer = None
-        # xy as key, bound as value
-        # self.known_pnts = defaultdict(list)
-        self.known_pnts = set()
         self._schema = None  # will passed to get_uri()
         self.query = None
         self.network_dict = {}
@@ -234,11 +231,11 @@ class Predictor(object):
                     start_point['line_length'] = line_length
                     start_point['the_geom'] = the_geom
                     start_point['cnt_segments'] = cnt_segments
-                    end_point['content_type'] = name
-                    end_point['content_type_id'] = object_id
-                    end_point['dist_calc_pnts'] = dist_calc_points
-                    end_point['the_geom_end'] = the_geom_end
-                    end_point['cnt_segments'] = cnt_segments
+                    end_point = self._fill_end_pnt_dict(
+                        end_point, name, object_id, the_geom_end,
+                        dist_calc_points, cnt_segments
+                    )
+
                 entry_start = self.network_dict.get(connection_node_start)
                 if entry_start is None:
                     try:
@@ -271,7 +268,7 @@ class Predictor(object):
                         start_point
                     )
                 if connection_node_end is not None:
-                    end_point = self._get_manhole_info(
+                    end_point = self._fill_end_pnt_dict(
                         end_point, name, object_id, the_geom_end)
 
                     entry_end = self.network_dict.get(connection_node_end)
@@ -296,13 +293,20 @@ class Predictor(object):
                                 connection_node_end]['end_point'] = end_point
 
     @staticmethod
-    def _get_manhole_info(end_pnt_dict, name, object_id, the_geom_end):
+    def _fill_end_pnt_dict(end_pnt_dict, name, object_id, the_geom_end,
+                           dist_calc_points=None, cnt_segments=1):
+        """
+        All object with a line geometry have a complete set of end point
+        attributes. This is the default. Because manholes have to be treated in a
+        special manner this functions provides defaults for the attributes
+        dist_calc_points and cnt_segments.   
+        """
         if not end_pnt_dict:
             end_pnt_dict['content_type'] = name
             end_pnt_dict['content_type_id'] = object_id
-            end_pnt_dict['dist_calc_pnts'] = None
+            end_pnt_dict['dist_calc_pnts'] = dist_calc_points
             end_pnt_dict['the_geom_end'] = the_geom_end
-            end_pnt_dict['cnt_segments'] = 1
+            end_pnt_dict['cnt_segments'] = cnt_segments
         return end_pnt_dict
 
     def _elect_new_leader(self, entry, calc_type, object_id, name):
