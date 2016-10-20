@@ -5,7 +5,8 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added the tool ``predict_calc_points``. It computes the threedicore
+  calcualtion points and their calculation type.
 
 
 0.8.2 (2016-09-22)

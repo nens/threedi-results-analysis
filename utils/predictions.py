@@ -299,7 +299,7 @@ class Predictor(object):
         All object with a line geometry have a complete set of end point
         attributes. This is the default. Because manholes have to be treated in a
         special manner this functions provides defaults for the attributes
-        dist_calc_points and cnt_segments.   
+        dist_calc_points and cnt_segments.
         """
         if not end_pnt_dict:
             end_pnt_dict['content_type'] = name
