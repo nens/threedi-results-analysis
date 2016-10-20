@@ -39,16 +39,25 @@ def get_query_strings(flavor, epsg_code):
         ;
     """
     queries['v2_1d_boundary_conditions'] = boundary_query_str
+
     manhole_query_str = """
     -- manholes
     SELECT
       connection_node_id
       , calculation_type
-      , id
+      , m.id AS mid
+      , ST_AsText(
+          ST_Transform(
+            cn_end.the_geom, {epsg_code}
+          )
+        ) AS the_geom_end
     FROM
-      v2_manhole
+      v2_manhole AS m
+      ,v2_connection_nodes AS cn_end
+    WHERE
+     connection_node_id = cn_end.id
     ;
-    """
+    """.format(epsg_code=epsg_code)
     queries['v2_manhole'] = manhole_query_str
 
     pipe_query_str = """
@@ -80,7 +89,7 @@ def get_query_strings(flavor, epsg_code):
                 cn_start.the_geom, cn_end.the_geom
                 ), {epsg_code}
             )
-        ) AS length
+        ) as length
       , p.id
       , dist_calc_points
     FROM
@@ -111,7 +120,7 @@ def get_query_strings(flavor, epsg_code):
           ST_Transform(
             c.the_geom, {epsg_code}
           )
-        ) AS length
+        ) as length
       , c.id
       , dist_calc_points
       , ST_AsText(
@@ -155,7 +164,7 @@ def get_query_strings(flavor, epsg_code):
           ST_Transform(
             c.the_geom, {epsg_code}
           )
-        ) AS length
+        ) as length
       , c.id
       , dist_calc_points
     FROM

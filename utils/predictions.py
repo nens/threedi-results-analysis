@@ -181,6 +181,7 @@ class Predictor(object):
                 # distinguish between start- and endpoints
                 start_point = {}
                 end_point = {}
+                object_id = self.query.value(d['id'])
                 # geometries can only be present for objects that have
                 # both a start- and endpoint (culverts, pipes and channels)
                 the_geom = None
@@ -198,8 +199,11 @@ class Predictor(object):
                 connection_node_end = None
                 if d['node_id_end'] is not None:
                     connection_node_end = self.query.value(d['node_id_end'])
-                object_id = self.query.value(d['id'])
-                connection_node_start = self.query.value(d['node_id_start'])
+                connection_node_start = None
+                if d['node_id_start'] is not None:
+                    connection_node_start = self.query.value(
+                        d['node_id_start']
+                    )
                 # not all objects must have a calculation type defined.
                 # If the database field is empty the query will return NULL
                 # N.B the operator has to be ``==``!
@@ -237,14 +241,22 @@ class Predictor(object):
                     end_point['cnt_segments'] = cnt_segments
                 entry_start = self.network_dict.get(connection_node_start)
                 if entry_start is None:
-                    # a brand new entry
-                    self.network_dict[connection_node_start] = {
-                        'calc_type': calc_type,
-                        'content_type_id': object_id,
-                        'content_type': name,
-                        'start_points': [],
-                        'end_point': '',
-                    }
+                    try:
+                        # a brand new entry
+                        self.network_dict[connection_node_start] = {
+                            'calc_type': calc_type,
+                            'content_type_id': object_id,
+                            'content_type': name,
+                            'start_points': [],
+                            'end_point': '',
+                        }
+                    except KeyError:
+                        logger.debug(
+                            "KeyError, connection_node_start is None."
+                            "This is fine for manholes, the current "
+                            "content type is {}".format(name)
+                        )
+                        pass
                 else:
                     # already entry for this connection node, we need to
                     # check if the current calculation type is ranked higher
@@ -259,6 +271,9 @@ class Predictor(object):
                         start_point
                     )
                 if connection_node_end is not None:
+                    end_point = self._get_manhole_info(
+                        end_point, name, object_id, the_geom_end)
+
                     entry_end = self.network_dict.get(connection_node_end)
                     if entry_end is None:
                         # a brand new entry
@@ -280,6 +295,16 @@ class Predictor(object):
                             self.network_dict[
                                 connection_node_end]['end_point'] = end_point
 
+    @staticmethod
+    def _get_manhole_info(end_pnt_dict, name, object_id, the_geom_end):
+        if not end_pnt_dict:
+            end_pnt_dict['content_type'] = name
+            end_pnt_dict['content_type_id'] = object_id
+            end_pnt_dict['dist_calc_pnts'] = None
+            end_pnt_dict['the_geom_end'] = the_geom_end
+            end_pnt_dict['cnt_segments'] = 1
+        return end_pnt_dict
+
     def _elect_new_leader(self, entry, calc_type, object_id, name):
         """
         compares the stored calculation type information with the current
@@ -287,8 +312,22 @@ class Predictor(object):
         type is ranked higher
         :returns True if a new leader has been elected, False otherwise
         """
-        current_leader = entry.get('calc_type')
         _current_content_type = entry.get('content_type')
+        # manhole is already the lead
+        if _current_content_type == 'v2_manhole':
+            return False
+
+        # make manhole the leader in case a boundary isn't
+        # leading at the moment
+        if all([name == 'v2_manhole',
+                _current_content_type != 'v2_1d_boundary_conditions']):
+            entry['calc_type'] = calc_type
+            entry['content_type_id'] = object_id
+            entry['content_type'] = name
+            print "manhole entry: ", entry
+            return True
+
+        current_leader = entry.get('calc_type')
         unranked_calc_types = [current_leader, calc_type]
         ranked_calc_type = min(
             unranked_calc_types, key=constants.CALC_TYPE_RANKING.index
@@ -302,7 +341,7 @@ class Predictor(object):
                     ranked_calc_type, name)
             )
             entry['calc_type'] = ranked_calc_type
-            entry['object_id'] = object_id
+            entry['content_type_id'] = object_id
             entry['content_type'] = name
             return True
         return False
@@ -331,14 +370,14 @@ class Predictor(object):
                 },
             'v2_manhole': {
                 'query': query_strings_dict['v2_manhole'],
-                'node_id_start': 0,
-                'node_id_end': None,
+                'node_id_start': None,
+                'node_id_end': 0,
                 'calc_type': 1,
                 'the_geom': None,
                 'line_length': None,
                 'id': 2,
                 'dist_calc_points': None,
-                'the_geom_end': None,
+                'the_geom_end': 3,
                 },
             'v2_pipe': {
                 'query': query_strings_dict['v2_pipe'],
@@ -488,6 +527,7 @@ class Predictor(object):
             # over other information for the node
             end_point = node_info.get('end_point')
             node_has_been_added = False
+            start_id = 1
             if end_point:
                 content_type = end_point['content_type']
                 content_type_id = end_point['content_type_id']
@@ -505,6 +545,7 @@ class Predictor(object):
                     id=last_seq_id
                 )
                 node_has_been_added = True
+                start_id = 2
             start_points = node_info.get('start_points')
             for i, start_point in enumerate(start_points):
                 content_type = start_point['content_type']
@@ -534,16 +575,17 @@ class Predictor(object):
                         id=1
                     )
                     node_has_been_added = True
+                    start_id = 2
                     logger.debug(
                         "node has been added {} {}".format(
                             content_type, content_type_id)
                     )
                 else:
                     distances = distances[1:]
-                start_id = 1
-                if all([node_info['content_type'] == content_type,
-                        node_info['content_type_id'] == content_type_id]):
-                    start_id = 2
+
+                # if all([node_info['content_type'] == content_type,
+                #         node_info['content_type_id'] == content_type_id]):
+                #     start_id = 2
                 for i, dist in enumerate(distances, start=start_id):
                     # Get a point along the line at the current distance
                     point_on_line = line_geom.interpolate(dist)
@@ -557,15 +599,17 @@ class Predictor(object):
                     )
         succces, features = data_provider.addFeatures(self._features)
         cnt_feat = len(features)
-        if not succces:
-            raise RuntimeError(
+        if succces:
+            logger.info(
+                "[*] Successfully saved {} features to the database".format(
+                    cnt_feat)
+            )
+            output_layer.updateExtents()
+        else:
+            logger.error(
                 'Error while saving {} feaures to database.'.format(cnt_feat)
             )
-        logger.info(
-            "[*] Successfully saved {} features to the database".format(
-                cnt_feat)
-        )
-        output_layer.updateExtents()
+        return succces, features
 
     def _add_feature(self, calc_type, pnt_geom, content_type_id,
                      content_type, id):

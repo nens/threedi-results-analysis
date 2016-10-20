@@ -77,6 +77,7 @@ class PredictCalcPointsDialogWidget(QDialog):
         else:
             db_type = _db_type
             db_settings = _db_settings
+            db_settings['schema'] = 'public'
         self.command.run_it(db_settings, db_type)
 
         self.accept()
