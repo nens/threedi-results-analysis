@@ -502,7 +502,7 @@ class Predictor(object):
         Whenever an endpoint entry is present the current connection
         node is either a network endpoint or the endpoint belongs to the
         highest ranking calculation type. Either way, it has to be added to
-        feature collection.
+        the feature collection.
 
         Once it is known that the starting point has been added, the objects
         with their own geometry (culverts, channels, pipes) for which
