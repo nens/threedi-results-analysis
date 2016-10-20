@@ -26,7 +26,7 @@ def get_query_strings(flavor, epsg_code):
            'spatialite': 'MakeLine'
         },
     }
-
+    # ---------- boundary table ------------------
     queries = {}
     boundary_query_str = """
         -- boundaries
@@ -40,6 +40,7 @@ def get_query_strings(flavor, epsg_code):
     """
     queries['v2_1d_boundary_conditions'] = boundary_query_str
 
+    # ---------- manhole table ------------------
     manhole_query_str = """
     -- manholes
     SELECT
@@ -60,6 +61,7 @@ def get_query_strings(flavor, epsg_code):
     """.format(epsg_code=epsg_code)
     queries['v2_manhole'] = manhole_query_str
 
+    # ---------- pipe table ------------------
     pipe_query_str = """
     -- pipes
     SELECT
@@ -105,6 +107,8 @@ def get_query_strings(flavor, epsg_code):
                epsg_code=epsg_code
     )
     queries['v2_pipe'] = pipe_query_str
+
+    # ---------- culvert table ------------------
     culvert_query_str = """
     -- culverts
     SELECT
@@ -139,6 +143,8 @@ def get_query_strings(flavor, epsg_code):
     ;
     """.format(epsg_code=epsg_code)
     queries['v2_culvert'] = culvert_query_str
+
+    # ---------- channel table ------------------
     channel_query_str = """
     -- channels
     SELECT

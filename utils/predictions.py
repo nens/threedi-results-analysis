@@ -587,9 +587,6 @@ class Predictor(object):
                 else:
                     distances = distances[1:]
 
-                # if all([node_info['content_type'] == content_type,
-                #         node_info['content_type_id'] == content_type_id]):
-                #     start_id = 2
                 for i, dist in enumerate(distances, start=start_id):
                     # Get a point along the line at the current distance
                     point_on_line = line_geom.interpolate(dist)
