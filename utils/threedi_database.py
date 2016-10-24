@@ -2,11 +2,13 @@ import os
 import copy
 
 import ogr
+import collections
 from pyspatialite import dbapi2
+from PyQt4.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-
 from .sqlalchemy_add_columns import create_and_upgrade
+
 from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 
@@ -93,3 +95,62 @@ class ThreediDatabase(object):
 
     def get_session(self):
         return sessionmaker(bind=self.engine)()
+
+def get_databases():
+    d = {}
+    qs = QSettings()
+
+    # spatialite
+    qs.beginGroup("SpatiaLite/connections")
+
+    for db_entry in qs.allKeys():
+        db_name, _ = os.path.split(db_entry)
+        settings = {
+            'key': os.path.basename(db_entry),
+            'db_name': db_name,
+            'combo_key': 'spatialite: {0}'.format(
+                os.path.splitext(db_name)[0]),
+            'db_type': 'sqlite',
+            'db_settings': {
+                'db_path': qs.value(db_entry)
+            }
+        }
+
+        d[settings['combo_key']] = settings
+    qs.endGroup()
+
+    qs.beginGroup("PostgreSQL/connections")
+    for db_entry in qs.allKeys():
+        prefix, attribute = os.path.split(db_entry)
+        db_name = qs.value(os.path.join(prefix, 'database'))
+        settings = {
+            'key': db_entry,
+            'db_name': db_name,
+            'combo_key': 'postgres: {0}'.format(db_name),
+            'db_type': 'postgres',
+            'db_settings': {
+                'host': qs.value(prefix + '/host'),
+                'port': qs.value(prefix + '/port'),
+                'database': qs.value(prefix + '/database'),
+                'username': qs.value(prefix + '/username'),
+                'password': qs.value(prefix + '/password'),
+            }
+        }
+
+        if qs.value(prefix + '/saveUsername') == u'true':
+            settings['saveUsername'] = True
+            settings['db_settings']['username'] = qs.value(prefix + '/username')
+        else:
+            settings['saveUsername'] = False
+
+        if qs.value(prefix + '/savePassword') == u'true':
+            settings['savePassword'] = True
+            settings['db_settings']['password'] = qs.value(prefix + '/password')
+        else:
+            settings['savePassword'] = False
+
+        d[settings['combo_key']] = settings
+    qs.endGroup()
+    available_dbs = collections.OrderedDict(sorted(d.items()))
+
+    return available_dbs
