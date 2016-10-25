@@ -12,6 +12,8 @@ from qgis.core import (
 from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils import constants
 
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -67,6 +69,12 @@ class Predictor(object):
             self._uri.setConnection(host, port, database, username, password)
         return self._uri
 
+    def create_sqalchemy_session(self, kwargs):
+        print "kwargs ", kwargs
+        # TODO right flavor
+        threedi_db = ThreediDatabase(kwargs)
+        self.engine = threedi_db.get_engine()
+
     def get_layer_from_uri(self, uri, table_name, geom_column='',
                            display_name=''):
         """
@@ -111,14 +119,16 @@ class Predictor(object):
         execute a sql query. If the execution was successful the
         result rows can retrieved by ``query.next()``
         """
-        if self.query is None:
-            self.create_query_obj_from_uri(self._uri)
-        if not self.query.exec_(query_str):
-            raise RuntimeError(
-                'Could not execute the query {}. '
-                'Error message {}'.format(
-                    query_str, self.query.lastError().text())
-            )
+        # if self.query is None:
+        #     self.create_query_obj_from_uri(self._uri)
+        # if not self.query.exec_(query_str):
+        #     raise RuntimeError(
+        #         'Could not execute the query {}. '
+        #         'Error message {}'.format(
+        #             query_str, self.query.lastError().text())
+        #     )
+
+        self.query = self.engine.execute(query_str)
 
     def build_calc_type_dict(self, epsg_code):
         """
@@ -174,125 +184,127 @@ class Predictor(object):
         query_data = self._get_query_data(epsg_code)
         for name, d in query_data.iteritems():
             logger.info("processing {}".format(name))
-            self.run_query(d['query'])
-            # loop through every database table row
-            while self.query.next():
-                # distinguish between start- and endpoints
-                start_point = {}
-                end_point = {}
-                object_id = self.query.value(d['id'])
-                # geometries can only be present for objects that have
-                # both a start- and endpoint (culverts, pipes and channels)
-                the_geom = None
-                if d['the_geom'] is not None:
-                    the_geom = self.query.value(d['the_geom'])
-                the_geom_end = None
-                if d['the_geom_end'] is not None:
-                    the_geom_end = self.query.value(d['the_geom_end'])
-                line_length = None
-                if d['line_length'] is not None:
-                    line_length = self.query.value(d['line_length'])
-                dist_calc_points = None
-                if d['dist_calc_points'] is not None:
-                    dist_calc_points = self.query.value(d['dist_calc_points'])
-                connection_node_end = None
-                if d['node_id_end'] is not None:
-                    connection_node_end = self.query.value(d['node_id_end'])
-                connection_node_start = None
-                if d['node_id_start'] is not None:
-                    connection_node_start = self.query.value(
-                        d['node_id_start']
+            with self.engine.connect() as con:
+                query = con.execute(d['query'])
+                # self.run_query(d['query'])
+                # loop through every database table row
+                for row in query:
+                    # distinguish between start- and endpoints
+                    start_point = {}
+                    end_point = {}
+                    object_id = row[d['id']]
+                    # geometries can only be present for objects that have
+                    # both a start- and endpoint (culverts, pipes and channels)
+                    the_geom = None
+                    if d['the_geom'] is not None:
+                        the_geom = row[d['the_geom']]
+                    the_geom_end = None
+                    if d['the_geom_end'] is not None:
+                        the_geom_end = row[d['the_geom_end']]
+                    line_length = None
+                    if d['line_length'] is not None:
+                        line_length = row[d['line_length']]
+                    dist_calc_points = None
+                    if d['dist_calc_points'] is not None:
+                        dist_calc_points = row[d['dist_calc_points']]
+                    connection_node_end = None
+                    if d['node_id_end'] is not None:
+                        connection_node_end = row[d['node_id_end']]
+                    connection_node_start = None
+                    if d['node_id_start'] is not None:
+                        connection_node_start = row[
+                            d['node_id_start']
+                        ]
+                    # not all objects must have a calculation type defined.
+                    # If the database field is empty the query will return NULL
+                    # N.B the operator has to be ``==``!
+                    _calc_type = row[d['calc_type']]
+                    calc_type = constants.CALC_TYPE_MAP.get(
+                        _calc_type) or _calc_type
+                    logger.debug(
+                        "calc_type is ", calc_type, "type ", type(calc_type)
                     )
-                # not all objects must have a calculation type defined.
-                # If the database field is empty the query will return NULL
-                # N.B the operator has to be ``==``!
-                _calc_type = self.query.value(d['calc_type'])
-                calc_type = constants.CALC_TYPE_MAP.get(
-                    _calc_type) or _calc_type
-                logger.debug(
-                    "calc_type is ", calc_type, "type ", type(calc_type)
-                )
-                # if calc_type == NULL:
-                if isinstance(calc_type, QPyNullVariant):
-                    logger.warning(
-                        "WARNING: no calc_type for {name} {id}".format(
-                            name=name, id=object_id)
-                    )
-                    continue
-                # objects with a geometry have both a start- and endpoint
-                if the_geom is not None:
-                    # define in how many segments the line geometry will
-                    # be divided my the threedicore
-                    cnt_segments = max(
-                        int(round(line_length / (dist_calc_points * 1.0))), 1
-                    )
-                    start_point['calc_type'] = calc_type
-                    start_point['content_type'] = name
-                    start_point['content_type_id'] = object_id
-                    start_point['dist_calc_pnts'] = dist_calc_points
-                    start_point['line_length'] = line_length
-                    start_point['the_geom'] = the_geom
-                    start_point['cnt_segments'] = cnt_segments
-                    end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, the_geom_end,
-                        dist_calc_points, cnt_segments
-                    )
-
-                entry_start = self.network_dict.get(connection_node_start)
-                if entry_start is None:
-                    try:
-                        # a brand new entry
-                        self.network_dict[connection_node_start] = {
-                            'calc_type': calc_type,
-                            'content_type_id': object_id,
-                            'content_type': name,
-                            'start_points': [],
-                            'end_point': '',
-                        }
-                    except KeyError:
-                        logger.debug(
-                            "KeyError, connection_node_start is None."
-                            "This is fine for manholes, the current "
-                            "content type is {}".format(name)
+                    # if calc_type == NULL:
+                    if isinstance(calc_type, QPyNullVariant):
+                        logger.warning(
+                            "WARNING: no calc_type for {name} {id}".format(
+                                name=name, id=object_id)
                         )
-                        pass
-                else:
-                    # already entry for this connection node, we need to
-                    # check if the current calculation type is ranked higher
-                    self._elect_new_leader(
-                        entry_start, calc_type, object_id, name
-                    )
-                # there should never be a start point entry for boundaries and
-                # manholes as they don't have geometries.
-                if start_point:
-                    self.network_dict[
-                        connection_node_start]['start_points'].append(
-                        start_point
-                    )
-                if connection_node_end is not None:
-                    end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, the_geom_end)
+                        continue
+                    # objects with a geometry have both a start- and endpoint
+                    if the_geom is not None:
+                        # define in how many segments the line geometry will
+                        # be divided my the threedicore
+                        cnt_segments = max(
+                            int(round(line_length / (dist_calc_points * 1.0))), 1
+                        )
+                        start_point['calc_type'] = calc_type
+                        start_point['content_type'] = name
+                        start_point['content_type_id'] = object_id
+                        start_point['dist_calc_pnts'] = dist_calc_points
+                        start_point['line_length'] = line_length
+                        start_point['the_geom'] = the_geom
+                        start_point['cnt_segments'] = cnt_segments
+                        end_point = self._fill_end_pnt_dict(
+                            end_point, name, object_id, the_geom_end,
+                            dist_calc_points, cnt_segments
+                        )
 
-                    entry_end = self.network_dict.get(connection_node_end)
-                    if entry_end is None:
-                        # a brand new entry
-                        self.network_dict[connection_node_end] = {
-                            'calc_type': calc_type,
-                            'content_type_id': object_id,
-                            'content_type': name,
-                            'start_points': [],
-                            'end_point': end_point,
-                        }
+                    entry_start = self.network_dict.get(connection_node_start)
+                    if entry_start is None:
+                        try:
+                            # a brand new entry
+                            self.network_dict[connection_node_start] = {
+                                'calc_type': calc_type,
+                                'content_type_id': object_id,
+                                'content_type': name,
+                                'start_points': [],
+                                'end_point': '',
+                            }
+                        except KeyError:
+                            logger.debug(
+                                "KeyError, connection_node_start is None."
+                                "This is fine for manholes, the current "
+                                "content type is {}".format(name)
+                            )
+                            pass
                     else:
-                        # already entry for this connection node, we
-                        # need to check if the current calculation type
-                        # is ranked higher
-                        elected = self._elect_new_leader(
-                            entry_end, calc_type, object_id, name
+                        # already entry for this connection node, we need to
+                        # check if the current calculation type is ranked higher
+                        self._elect_new_leader(
+                            entry_start, calc_type, object_id, name
                         )
-                        if elected:
-                            self.network_dict[
-                                connection_node_end]['end_point'] = end_point
+                    # there should never be a start point entry for boundaries and
+                    # manholes as they don't have geometries.
+                    if start_point:
+                        self.network_dict[
+                            connection_node_start]['start_points'].append(
+                            start_point
+                        )
+                    if connection_node_end is not None:
+                        end_point = self._fill_end_pnt_dict(
+                            end_point, name, object_id, the_geom_end)
+
+                        entry_end = self.network_dict.get(connection_node_end)
+                        if entry_end is None:
+                            # a brand new entry
+                            self.network_dict[connection_node_end] = {
+                                'calc_type': calc_type,
+                                'content_type_id': object_id,
+                                'content_type': name,
+                                'start_points': [],
+                                'end_point': end_point,
+                            }
+                        else:
+                            # already entry for this connection node, we
+                            # need to check if the current calculation type
+                            # is ranked higher
+                            elected = self._elect_new_leader(
+                                entry_end, calc_type, object_id, name
+                            )
+                            if elected:
+                                self.network_dict[
+                                    connection_node_end]['end_point'] = end_point
 
     @staticmethod
     def _fill_end_pnt_dict(end_pnt_dict, name, object_id, the_geom_end,

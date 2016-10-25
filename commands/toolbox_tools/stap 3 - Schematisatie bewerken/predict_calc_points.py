@@ -40,11 +40,13 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
-        pal = Predictor(flavor=db_type)
+
+        pal = Predictor(db_type)
+        pal.create_sqalchemy_session(db_set)
         uri = pal.get_uri(**db_set)
         calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
-        pal.create_query_obj_from_uri(uri)
+        # pal.create_query_obj_from_uri(uri)
         default_epsg_code = 28992
         epsg_code = pal.get_epsg_code() or default_epsg_code
         log.info(
