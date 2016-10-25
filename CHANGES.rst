@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Bugfix: Removed ``os.path.join`` to generate the ``db_name`` variable because
+  this produced a '/' instead of a '\' for windows OS.
+
 - Added the tool ``predict_calc_points``. It computes the threedicore
   calcualtion points and their calculation type.
 

@@ -105,6 +105,7 @@ def get_databases():
 
     for db_entry in qs.allKeys():
         db_name, _ = os.path.split(db_entry)
+
         settings = {
             'key': os.path.basename(db_entry),
             'db_name': db_name,
@@ -122,7 +123,7 @@ def get_databases():
     qs.beginGroup("PostgreSQL/connections")
     for db_entry in qs.allKeys():
         prefix, attribute = os.path.split(db_entry)
-        db_name = qs.value(os.path.join(prefix, 'database'))
+        db_name = qs.value(prefix + '/database')
         settings = {
             'key': db_entry,
             'db_name': db_name,

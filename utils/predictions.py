@@ -115,7 +115,9 @@ class Predictor(object):
             self.create_query_obj_from_uri(self._uri)
         if not self.query.exec_(query_str):
             raise RuntimeError(
-                'Could not execute the query {}'.format(query_str)
+                'Could not execute the query {}. '
+                'Error message {}'.format(
+                    query_str, self.query.lastError().text())
             )
 
     def build_calc_type_dict(self, epsg_code):
