@@ -5,6 +5,12 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Executing a select statement on an empty table using sqalchemy causes
+  problems becasue it does not allow to cosume the active cursor.
+  The cursor explictly has to be closed, or references to it dropped.
+  Otherwise the cursor and thus the connection will be alive, and
+  the database will be locked.
+
 - Using the sqalchemy engine instead of the ``QtSql.QSqlQuery`` object
   to retrieve data from postgres or spatialite databases to make sure
   the geos extension is available (this doesn't always seem to be
