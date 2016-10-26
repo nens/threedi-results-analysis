@@ -452,7 +452,9 @@ class Predictor(object):
         """
         with self.engine.connect() as con:
             rs = con.execute('''SELECT epsg_code FROM v2_global_settings;''')
-            return rs.fetchone()
+            row = rs.fetchone()
+            if row:
+                return row[0]
 
     def create_memory_layer(self, epsg_code, lyr_type="Point"):
         """
