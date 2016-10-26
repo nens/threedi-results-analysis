@@ -197,6 +197,9 @@ class Predictor(object):
                 query = con.execute(d['query'])
                 # self.run_query(d['query'])
                 # loop through every database table row
+
+                if query.rowcount < 1:
+                    continue
                 for row in query:
                     # distinguish between start- and endpoints
                     start_point = {}
