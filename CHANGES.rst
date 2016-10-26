@@ -5,6 +5,11 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Using the sqalchemy engine instead of the ``QtSql.QSqlQuery`` object
+  to retrieve data from postgres or spatialite databases to make sure
+  the geos extension is available (this doesn't always seem to be
+  the case for windows installtions).
+
 - Bugfix: Removed ``os.path.join`` to generate the ``db_name`` variable because
   this produced a '/' instead of a '\' for windows OS.
 
