@@ -195,9 +195,7 @@ class Predictor(object):
             for name, d in query_data.iteritems():
                 logger.info("processing {}".format(name))
                 query = con.execute(d['query'])
-                # self.run_query(d['query'])
-                # loop through every database table row
-
+                # skip empty tables
                 if query.rowcount < 1:
                     continue
                 for row in query:
