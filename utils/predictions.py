@@ -208,6 +208,7 @@ class Predictor(object):
         query_data = self._get_query_data(epsg_code)
         for name, d in query_data.iteritems():
             logger.info("processing {}".format(name))
+            print("processing {}".format(name))
             rows = self.run_sqalchemy_query(d['query'])
             if rows is None:
                 continue
@@ -243,8 +244,13 @@ class Predictor(object):
                 # N.B the operator has to be ``==``!
                 _calc_type = row[d['calc_type']]
                 calc_type = constants.CALC_TYPE_MAP.get(
-                    _calc_type) or _calc_type
+                    _calc_type)
+                if calc_type is None:
+                    calc_type = _calc_type
                 logger.debug(
+                    "calc_type is ", calc_type, "type ", type(calc_type)
+                )
+                print(
                     "calc_type is ", calc_type, "type ", type(calc_type)
                 )
                 if calc_type is None:
@@ -253,8 +259,14 @@ class Predictor(object):
                             name=name, id=object_id)
                     )
                     continue
+
                 # objects with a geometry have both a start- and endpoint
                 if the_geom is not None:
+                    # embedded channels usually do not have a
+                    # dist_calc_points attribute
+                    if dist_calc_points is None:
+                        dist_calc_points = line_length
+
                     # define in how many segments the line geometry will
                     # be divided my the threedicore
                     cnt_segments = max(
