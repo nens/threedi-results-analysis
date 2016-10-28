@@ -4,6 +4,7 @@
 import logging
 
 from qgis.core import QgsMapLayerRegistry, QgsFeatureRequest
+from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
@@ -93,14 +94,10 @@ class CustomCommand(CustomCommandBase):
 
     def updateFeatureAttrs(self, feature_id, geom=None):
 
-
-        fid_request = QgsFeatureRequest().setFilterFids(feature_id)
-        feat = self.connected_pnts_lyr.getFeatures(
-            fid_request).next()
+        feat = self.connected_pnts_lyr.getFeatures(QgsFeatureRequest(feature_id)).next()
         if not geom:
             geom = feat.geometry()
         connected_pnt = dict(zip(self.field_names, feat.attributes()))
-        calc_type_connected_pnt = connected_pnt['calc_type']
 
         calculation_pnt_id = connected_pnt['calculation_pnt_id']
         request = QgsFeatureRequest().setFilterExpression(
@@ -109,14 +106,24 @@ class CustomCommand(CustomCommandBase):
         # QgsFeatureRequest has no count so we have to loop through the
         # feature set to get a count
         cnt = 0
+        calc_type = None
         for item in selected_features:
-           cnt += 1
-           print item.attributes()
+            cnt += 1
+            print item.attributes()
+            _item = dict(zip(self.field_names, item.attributes()))
+            print _item
+            if calc_type is None or isinstance(calc_type, QPyNullVariant):
+                calc_type = _item['calc_type']
+            print "calc_type I ", calc_type
 
+
+        print "calc_type II ", calc_type
         print "count ", cnt
-        thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type_connected_pnt]
+        thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type]
         if cnt > thresh:
             msg = "Calculation type {} allows only for {} connected points! " \
-                  "Deleting point...".format(calc_type_connected_pnt, thresh)
+                  "Deleting point...".format(calc_type, thresh)
             messagebar_message("Error",  msg, level=2, duration=3)
             self.connected_pnts_lyr.deleteFeature(feature_id)
+        feat.setAttribute('calc_type', calc_type)
+        self.connected_pnts_lyr.updateFeature(feat)
