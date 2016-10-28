@@ -5,6 +5,11 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Bug fix: Explicitly check for ``None`` on the return value of the
+  ``calc_type_dict`` because a return value of 0 is also falsy.
+  Also make sure the ``dist_calc_points`` attribute is always
+  available for objects with a geometry
+
 - Executing a select statement on an empty table using sqalchemy causes
   problems becasue it does not allow to cosume the active cursor.
   The cursor explictly has to be closed, or references to it dropped.

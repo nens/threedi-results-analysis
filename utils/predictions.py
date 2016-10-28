@@ -208,7 +208,6 @@ class Predictor(object):
         query_data = self._get_query_data(epsg_code)
         for name, d in query_data.iteritems():
             logger.info("processing {}".format(name))
-            print("processing {}".format(name))
             rows = self.run_sqalchemy_query(d['query'])
             if rows is None:
                 continue
@@ -248,9 +247,6 @@ class Predictor(object):
                 if calc_type is None:
                     calc_type = _calc_type
                 logger.debug(
-                    "calc_type is ", calc_type, "type ", type(calc_type)
-                )
-                print(
                     "calc_type is ", calc_type, "type ", type(calc_type)
                 )
                 if calc_type is None:
