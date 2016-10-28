@@ -28,18 +28,18 @@ class Predictor(object):
         'spatialite2': 'QSQLITE2'
     }
 
-    def __init__(self, flavor, lyr_name="", fields=None):
+    def __init__(self, flavor, lyr_name=""):
         self.flavor = flavor
         self.lyr_name = lyr_name
         if not self.lyr_name:
             self.lyr_name = "temporary_lyr"
-        self.fields = fields
         self.data_provider = None
         self.mem_layer = None
         self._schema = None  # will passed to get_uri()
         self.query = None
         self.network_dict = {}
-        self._features = []
+        self._calc_pnt_features = []
+        self._connected_pnt_features = []
         self._trans = None
 
     def get_uri(self, **kwargs):
@@ -479,7 +479,7 @@ class Predictor(object):
                 return row[0]
         con.close()
 
-    def create_memory_layer(self, epsg_code, lyr_type="Point"):
+    def create_memory_layer(self, epsg_code, lyr_type="Point", fields=None):
         """
         create a QgsVectorLayer in memory
         """
@@ -497,12 +497,12 @@ class Predictor(object):
         self.mem_layer = QgsVectorLayer(lyr_def_str, self.lyr_name, "memory")
         self.data_provider = self.mem_layer.dataProvider()
         # add fields
-        if self.fields is None:
+        if fields is None:
             _fields = [QgsField("id", QVariant.Int)]
         else:
             _fields = [
                 (QgsField(field_name, _type_map[field_type]))
-                for field_name, field_type in self.fields
+                for field_name, field_type in fields
             ]
         self.data_provider.addAttributes(_fields)
         # tell the vector layer to fetch changes from the provider
@@ -589,7 +589,7 @@ class Predictor(object):
                 # the sequence of calculation points will be longer (by one)
                 if self._obj_leads(node_id, content_type, content_type_id):
                     last_seq_id += 1
-                self._add_feature(
+                self._add_calc_pnt_feature(
                     calc_type=node_calc_type, pnt_geom=pnt_geom,
                     content_type_id=content_type_id, content_type=content_type,
                     id=last_seq_id
@@ -617,7 +617,7 @@ class Predictor(object):
                     # calc_type, user-ref-id,...
                     distance = distances.pop(0)
                     start_pnt = line_geom.interpolate(distance)
-                    self._add_feature(
+                    self._add_calc_pnt_feature(
                         calc_type=node_calc_type,
                         pnt_geom=start_pnt,
                         content_type_id=node_info['content_type_id'],
@@ -637,14 +637,14 @@ class Predictor(object):
                     # Get a point along the line at the current distance
                     point_on_line = line_geom.interpolate(dist)
                     # add start and endpoint
-                    self._add_feature(
+                    self._add_calc_pnt_feature(
                         calc_type=calc_type,
                         pnt_geom=point_on_line,
                         content_type_id=content_type_id,
                         content_type=content_type,
                         id=i
                     )
-        succces, features = data_provider.addFeatures(self._features)
+        succces, features = data_provider.addFeatures(self._calc_pnt_features)
         cnt_feat = len(features)
         if succces:
             logger.info(
@@ -658,7 +658,7 @@ class Predictor(object):
             )
         return succces, features
 
-    def _add_feature(self, calc_type, pnt_geom, content_type_id,
+    def _add_calc_pnt_feature(self, calc_type, pnt_geom, content_type_id,
                      content_type, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
@@ -677,8 +677,19 @@ class Predictor(object):
         f.setAttributes(
             [self._feat_id, content_type_id, ref_id, calc_type]
         )
-        self._features.append(f)
+        self._calc_pnt_features.append(f)
         self._feat_id += 1
+
+    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id, calc_type):
+        # Create a new QgsFeature and assign it the new geometry
+        # add a feature
+        f = QgsFeature()
+        f.setGeometry(the_geom)
+        f.setAttributes(
+            [self._connect_pnt_id, -9999, calc_pnt_id, None, calc_type]
+        )
+        self._connected_pnt_features.append(f)
+        self._connect_pnt_id += 1
 
     def _set_coord_transformation(self, transform):
         if not transform:
@@ -687,3 +698,39 @@ class Predictor(object):
         src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
         dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
         self._trans = QgsCoordinateTransform(src_crs, dest_crs)
+
+    def fill_connected_pnts_table(self, calc_pnts_lyr, output_layer):
+        data_provider = output_layer.dataProvider()
+
+        field_names = [field.name() for field in calc_pnts_lyr.pendingFields()]
+        self._connect_pnt_id = 1
+        for feat in calc_pnts_lyr.getFeatures():
+           calc_pnt = dict(zip(field_names, feat.attributes()))
+           calc_type = calc_pnt['calc_type']
+           if calc_type < 2:
+               continue
+           self._add_connected_pnt_feature(
+               feat.geometry(), calc_pnt_id=calc_pnt['id'],
+               calc_type=calc_type
+           )
+
+        succces, features = data_provider.addFeatures(self._connected_pnt_features)
+        cnt_feat = len(features)
+        if succces:
+            logger.info(
+                "[*] Successfully saved {} features to the database".format(
+                    cnt_feat)
+            )
+            output_layer.updateExtents()
+        else:
+            logger.error(
+                'Error while saving {} feaures to database.'.format(cnt_feat)
+            )
+        return succces, features
+
+
+
+
+
+
+
