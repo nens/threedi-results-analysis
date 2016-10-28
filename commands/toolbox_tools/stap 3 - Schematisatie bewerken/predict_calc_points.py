@@ -3,7 +3,7 @@
 
 import logging
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsMapLayerRegistry, QgsFeatureRequest
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
@@ -12,7 +12,7 @@ from ThreeDiToolbox.commands.base.custom_command import (
     CustomCommandBase)
 from ThreeDiToolbox.utils.predictions import Predictor
 
-
+from ThreeDiToolbox.utils import constants
 log = logging.getLogger(__name__)
 
 
@@ -41,9 +41,12 @@ class CustomCommand(CustomCommandBase):
 
     def run_it(self, db_set, db_type):
         pal = Predictor(db_type)
+        print db_set
         uri = pal.get_uri(**db_set)
         calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
+        self.connected_pnts_lyr = pal.get_layer_from_uri(
+            uri, 'v2_connected_pnt', 'the_geom')
         pal.start_sqalchemy_engine(db_set)
         default_epsg_code = 28992
         epsg_code = pal.get_epsg_code() or default_epsg_code
@@ -58,14 +61,62 @@ class CustomCommand(CustomCommandBase):
             transform='{epsg_code}:4326'.format(epsg_code=epsg_code)
         succces, features = pal.predict_points(
             output_layer=calc_pnts_lyr, transform=transform)
-        QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
         if succces:
             msg = 'Predicted {} calculation points'.format(len(features))
             level = 3
+            QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
         else:
             msg = 'Predicted calculation points failed! ' \
                   'Are you sure the table "v2_calculation_point" ' \
                   'is empty?'.format(len(features))
             level = 1
         messagebar_message("Finished",  msg, level=level, duration=12)
+
+        cp_succces, cp_features = pal.fill_connected_pnts_table(
+            calc_pnts_lyr=calc_pnts_lyr,
+            output_layer=self.connected_pnts_lyr)
+        if cp_succces:
+            cp_msg = 'Created {} connected points template'.format(len(cp_features))
+            cp_level = 3
+            QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnts_lyr)
+        else:
+            cp_msg = 'Creating connected points failed!'
+            cp_level = 1
+        messagebar_message("Finished",  cp_msg, level=cp_level, duration=12)
         log.info('Done predicting calcualtion points.\n' + msg)
+
+        self.connected_pnts_lyr.featureAdded.connect(self.updateFeatureAttrs)
+        self.field_names = [field.name() for field in self.connected_pnts_lyr.pendingFields()]
+
+
+        # db_set = {'username': u'threedi', 'database': u'work_r0008_bresmodel', 'host': u'nens-3di-db-02', 'password': u'klsdhadkjw', 'port': u'5432', 'schema': 'public'}
+
+    def updateFeatureAttrs(self, feature_id, geom=None):
+
+
+        fid_request = QgsFeatureRequest().setFilterFids(feature_id)
+        feat = self.connected_pnts_lyr.getFeatures(
+            fid_request).next()
+        if not geom:
+            geom = feat.geometry()
+        connected_pnt = dict(zip(self.field_names, feat.attributes()))
+        calc_type_connected_pnt = connected_pnt['calc_type']
+
+        calculation_pnt_id = connected_pnt['calculation_pnt_id']
+        request = QgsFeatureRequest().setFilterExpression(
+            u'"calculation_pnt_id" = {}'.format(calculation_pnt_id))
+        selected_features = self.connected_pnts_lyr.getFeatures(request)
+        # QgsFeatureRequest has no count so we have to loop through the
+        # feature set to get a count
+        cnt = 0
+        for item in selected_features:
+           cnt += 1
+           print item.attributes()
+
+        print "count ", cnt
+        thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type_connected_pnt]
+        if cnt > thresh:
+            msg = "Calculation type {} allows only for {} connected points! " \
+                  "Deleting point...".format(calc_type_connected_pnt, thresh)
+            messagebar_message("Error",  msg, level=2, duration=3)
+            self.connected_pnts_lyr.deleteFeature(feature_id)
