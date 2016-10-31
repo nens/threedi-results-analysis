@@ -41,26 +41,26 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
-        pal = Predictor(db_type)
+        self.pal = Predictor(db_type)
         print db_set
-        uri = pal.get_uri(**db_set)
-        calc_pnts_lyr = pal.get_layer_from_uri(
+        uri = self.pal.get_uri(**db_set)
+        calc_pnts_lyr = self.pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
-        self.connected_pnts_lyr = pal.get_layer_from_uri(
+        self.connected_pnts_lyr = self.pal.get_layer_from_uri(
             uri, 'v2_connected_pnt', 'the_geom')
-        pal.start_sqalchemy_engine(db_set)
+        self.pal.start_sqalchemy_engine(db_set)
         default_epsg_code = 28992
-        epsg_code = pal.get_epsg_code() or default_epsg_code
+        epsg_code = self.pal.get_epsg_code() or default_epsg_code
         log.info(
             "[*] Using epsg code {} to build the calc_type_dict".format(
                 epsg_code)
         )
-        pal.build_calc_type_dict(epsg_code=epsg_code)
+        self.pal.build_calc_type_dict(epsg_code=epsg_code)
         transform = None
         # spatialites are in WGS84 so we need a tranformation
         if db_type == 'spatialite':
             transform='{epsg_code}:4326'.format(epsg_code=epsg_code)
-        succces, features = pal.predict_points(
+        succces, features = self.pal.predict_points(
             output_layer=calc_pnts_lyr, transform=transform)
         if succces:
             msg = 'Predicted {} calculation points'.format(len(features))
@@ -73,7 +73,7 @@ class CustomCommand(CustomCommandBase):
             level = 1
         messagebar_message("Finished",  msg, level=level, duration=12)
 
-        cp_succces, cp_features = pal.fill_connected_pnts_table(
+        cp_succces, cp_features = self.pal.fill_connected_pnts_table(
             calc_pnts_lyr=calc_pnts_lyr,
             output_layer=self.connected_pnts_lyr)
         if cp_succces:
@@ -85,45 +85,3 @@ class CustomCommand(CustomCommandBase):
             cp_level = 1
         messagebar_message("Finished",  cp_msg, level=cp_level, duration=12)
         log.info('Done predicting calcualtion points.\n' + msg)
-
-        self.connected_pnts_lyr.featureAdded.connect(self.updateFeatureAttrs)
-        self.field_names = [field.name() for field in self.connected_pnts_lyr.pendingFields()]
-
-
-        # db_set = {'username': u'threedi', 'database': u'work_r0008_bresmodel', 'host': u'nens-3di-db-02', 'password': u'klsdhadkjw', 'port': u'5432', 'schema': 'public'}
-
-    def updateFeatureAttrs(self, feature_id, geom=None):
-
-        feat = self.connected_pnts_lyr.getFeatures(QgsFeatureRequest(feature_id)).next()
-        if not geom:
-            geom = feat.geometry()
-        connected_pnt = dict(zip(self.field_names, feat.attributes()))
-
-        calculation_pnt_id = connected_pnt['calculation_pnt_id']
-        request = QgsFeatureRequest().setFilterExpression(
-            u'"calculation_pnt_id" = {}'.format(calculation_pnt_id))
-        selected_features = self.connected_pnts_lyr.getFeatures(request)
-        # QgsFeatureRequest has no count so we have to loop through the
-        # feature set to get a count
-        cnt = 0
-        calc_type = None
-        for item in selected_features:
-            cnt += 1
-            print item.attributes()
-            _item = dict(zip(self.field_names, item.attributes()))
-            print _item
-            if calc_type is None or isinstance(calc_type, QPyNullVariant):
-                calc_type = _item['calc_type']
-            print "calc_type I ", calc_type
-
-
-        print "calc_type II ", calc_type
-        print "count ", cnt
-        thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type]
-        if cnt > thresh:
-            msg = "Calculation type {} allows only for {} connected points! " \
-                  "Deleting point...".format(calc_type, thresh)
-            messagebar_message("Error",  msg, level=2, duration=3)
-            self.connected_pnts_lyr.deleteFeature(feature_id)
-        feat.setAttribute('calc_type', calc_type)
-        self.connected_pnts_lyr.updateFeature(feat)
