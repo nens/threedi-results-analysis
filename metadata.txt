@@ -14,7 +14,7 @@ version=0.8.3
 author=Nelen&Schuurmans
 email=bastiaan.roos@nelen-schuurmans.nl
 
-about=Toolbox for working with hydraulic 3di models. This includes tools for data validation, model creation and working with results.
+about=Toolbox for working with hydraulic 3di models. This includes tools for data validation, model creation and working with results. Use the QGIS 64-bit version on Windows.
 
 tracker=https://github.com/nens/threedi-qgis-plugin
 repository=https://github.com/nens/threedi-qgis-plugin
