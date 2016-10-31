@@ -211,8 +211,8 @@ class Importer(object):
                             # add extra manhole
                             new_manhole = copy(manhole_dict[code])
                             new_manhole['code'] = new_manhole['code'] + \
-                                                  '_' + str(used_outlets[code])
-                            # todo: move manhole
+                                                  '-' + str(used_outlets[code])
+
                             new_manhole['geom'][1] += 1
                             data['manholes'].append(new_manhole)
 
@@ -284,15 +284,17 @@ class Importer(object):
                 obj['crs_code'] = code
 
         # generate extra boundary nodes if needed
+        manhole_geom = {m['code']: m['geom'] for m in data['manhole']}
         for obj_type in ['orifices', 'weirs']:
             objects = data[obj_type]
             for obj in objects:
-                if obj['end_node.code'] == '_':
+                if obj['end_node.code'] is None:
                     # add extra node with boundary conditions
+                    bound_code = obj['code'] + '-bound'
 
-                    bound_code = obj['code'] + '_bound'
+                    geom = copy(manhole_geom[obj['start_node.code']])
+                    geom[1] += 1.0
 
-                    # todo: move manhole
                     data['manholes'].append({
                         'code': bound_code,
                         'display_name': bound_code,
@@ -302,7 +304,7 @@ class Importer(object):
                         'shape': Constants.MANHOLE_SHAPE_SQUARE,
                         'bottom_level': obj['crest_level'] - 1.0,
                         'surface_level': obj['crest_level'] + 1.0,
-                        # todo: 'geom':
+                        'geom': geom
                     })
                     obj['end_node.code'] = bound_code
 
