@@ -41,26 +41,25 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
-        self.pal = Predictor(db_type)
-        print db_set
-        uri = self.pal.get_uri(**db_set)
-        calc_pnts_lyr = self.pal.get_layer_from_uri(
+        pal = Predictor(db_type)
+        uri = pal.get_uri(**db_set)
+        calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
-        self.connected_pnts_lyr = self.pal.get_layer_from_uri(
+        self.connected_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_connected_pnt', 'the_geom')
-        self.pal.start_sqalchemy_engine(db_set)
+        pal.start_sqalchemy_engine(db_set)
         default_epsg_code = 28992
-        epsg_code = self.pal.get_epsg_code() or default_epsg_code
+        epsg_code = pal.get_epsg_code() or default_epsg_code
         log.info(
             "[*] Using epsg code {} to build the calc_type_dict".format(
                 epsg_code)
         )
-        self.pal.build_calc_type_dict(epsg_code=epsg_code)
+        pal.build_calc_type_dict(epsg_code=epsg_code)
         transform = None
         # spatialites are in WGS84 so we need a tranformation
         if db_type == 'spatialite':
             transform='{epsg_code}:4326'.format(epsg_code=epsg_code)
-        succces, features = self.pal.predict_points(
+        succces, features = pal.predict_points(
             output_layer=calc_pnts_lyr, transform=transform)
         if succces:
             msg = 'Predicted {} calculation points'.format(len(features))
@@ -73,7 +72,7 @@ class CustomCommand(CustomCommandBase):
             level = 1
         messagebar_message("Finished",  msg, level=level, duration=12)
 
-        cp_succces, cp_features = self.pal.fill_connected_pnts_table(
+        cp_succces, cp_features = pal.fill_connected_pnts_table(
             calc_pnts_lyr=calc_pnts_lyr,
             output_layer=self.connected_pnts_lyr)
         if cp_succces:
