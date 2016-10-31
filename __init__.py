@@ -57,7 +57,7 @@ except ImportError:
             msg += 'Used netCDF4 library, provided with plugin. '
         else:
             pop_up_info('Error: could not find netCDF4 installation. Change '
-                        'to the 64-bit vresion of QGIS or try to install the '
+                        'to the 64-bit version of QGIS or try to install the '
                         'netCDF4 python libary yourself.')
             netCDF4 = None
     else:
