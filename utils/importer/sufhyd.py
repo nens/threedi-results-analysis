@@ -117,9 +117,9 @@ def get_code(geb_id1, id1, geb_id2=None, id2=None, post_fix=None, default_code=N
     if id1 is None or id1 == '':
         return default_code
 
-    code = prettify(geb_id1) + '_' + prettify(geb_id1)
+    code = prettify(geb_id1) + '_' + prettify(id1)
     if id2 is not None and id2 != '':
-        code += '-' + prettify(geb_id2) + '_' + prettify(geb_id2)
+        code += '-' + prettify(geb_id2) + '_' + prettify(id2)
     if post_fix is not None and post_fix != '':
         code += '-' + prettify(post_fix)
     return code

@@ -105,7 +105,7 @@ class Importer(object):
                 self.import_file
             ))
 
-            db_set = copy(self.db.connection_settings)
+            db_set = copy(self.db.settings)
             if 'password' in db_set:
                 del db_set['password']
             if 'username' in db_set:
@@ -213,7 +213,8 @@ class Importer(object):
                             new_manhole['code'] = new_manhole['code'] + \
                                                   '-' + str(used_outlets[code])
 
-                            new_manhole['geom'][1] += 1
+                            geom = new_manhole['geom']
+                            new_manhole['geom'] = (geom[0], geom[1] + 1.0, geom[2])
                             data['manholes'].append(new_manhole)
 
                             # redirect object to new manhole
@@ -284,7 +285,7 @@ class Importer(object):
                 obj['crs_code'] = code
 
         # generate extra boundary nodes if needed
-        manhole_geom = {m['code']: m['geom'] for m in data['manhole']}
+        manhole_geom = {m['code']: m['geom'] for m in data['manholes']}
         for obj_type in ['orifices', 'weirs']:
             objects = data[obj_type]
             for obj in objects:
@@ -292,8 +293,8 @@ class Importer(object):
                     # add extra node with boundary conditions
                     bound_code = obj['code'] + '-bound'
 
-                    geom = copy(manhole_geom[obj['start_node.code']])
-                    geom[1] += 1.0
+                    geom = manhole_geom.get(obj['start_node.code'], (0., 0., 28992))
+                    new_geom = (geom[0], geom[1] + 1.0, geom[2])
 
                     data['manholes'].append({
                         'code': bound_code,
@@ -304,12 +305,12 @@ class Importer(object):
                         'shape': Constants.MANHOLE_SHAPE_SQUARE,
                         'bottom_level': obj['crest_level'] - 1.0,
                         'surface_level': obj['crest_level'] + 1.0,
-                        'geom': geom
+                        'geom': new_geom
                     })
                     obj['end_node.code'] = bound_code
 
-                    if (obj_type == 'orifice' or
-                            obj['boundary_details']['value'] is None):
+                    if (obj_type == 'orifice' or 'boundary_details' not in obj or
+                            obj['boundary_details']['timeseries'] is None):
                         if obj['crest_level'] is not None:
                             waterlevel = obj['crest_level'] - 0.5
                         else:
@@ -323,9 +324,6 @@ class Importer(object):
                         'boundary_type': Constants.BOUNDARY_TYPE_WATERLEVEL,
                         'timeseries': timeseries
                     })
-
-                    if 'boundary_details' in obj:
-                        del obj['boundary_details']
 
         # link_node_conversion
         link_dict = {k['end_node.code']: k['start_node.code'] for
