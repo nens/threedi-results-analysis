@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Auto populate the ``connected_pnt`` table from the computed calculation
+  points that have a calculation type greater than 1.
+
 - Bug fix: Explicitly check for ``None`` on the return value of the
   ``calc_type_dict`` because a return value of 0 is also falsy.
   Also make sure the ``dist_calc_points`` attribute is always
