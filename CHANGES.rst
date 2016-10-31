@@ -22,6 +22,7 @@ threedi-qgis-plugin changelog
 
 - Bugfix: graph legend hover shows correct location when using 'result' layers
 
+- support 'dry' cell values (without showing -9999 in graph)
 
 0.8.2 (2016-09-22)
 ------------------

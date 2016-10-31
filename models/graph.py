@@ -120,7 +120,8 @@ class LocationTimeseriesModel(BaseModel):
                     result_ds_nr].datasource().get_timeseries(
                         self.object_type.value,
                         self.object_id.value,
-                        parameters)
+                        parameters,
+                        fill_value=np.NaN)
             except (KeyError, IndexError, ValueError):
                 # Return an empty array so that the graph won't crash.
                 # The exceptions are already logged by the nc datasource.

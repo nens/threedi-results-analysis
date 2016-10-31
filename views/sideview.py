@@ -658,10 +658,15 @@ class SideViewPlotWidget(pg.PlotWidget):
             for node in self.sideview_nodes:
                 try:
                     if python_value(node['idx']) is not None:
-                        ts = ds.get_timeseries('nodes', int(node['nr']), 's1')
+                        ts = ds.get_timeseries('nodes',
+                                               int(node['nr']),
+                                               's1',
+                                               fill_value=np.NaN)
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
-                                               node['id'], 's1')
+                                               node['id'],
+                                               's1',
+                                               fill_value=np.NaN)
                     node['timeseries'] = ts
                 except KeyError:
                     node['timeseries'] = None

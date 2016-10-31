@@ -327,6 +327,7 @@ class LocationTimeseriesTable(QTableView):
         unloading widget and remove all required stuff
         :return:
         """
+        self.setMouseTracking(False)
         self.viewport().removeEventFilter(self)
 
     def closeEvent(self, event):

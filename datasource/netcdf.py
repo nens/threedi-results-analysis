@@ -508,13 +508,14 @@ class NetcdfDataSource(object):
         return netcdf_id
 
     def get_timeseries(self, object_type, object_id, variable, start_ts=None,
-                       end_ts=None):
+                       end_ts=None, fill_value=None):
         """Get a list of time series from netcdf.
 
         Args:
             object_type: e.g. 'v2_weir'
             object_id: spatialite id
             variable: variable name e.g.: 'q', 'q_pump', etc.
+            fill_value: value returned for masked values
 
         Returns:
             a (n,2) array; with in the first column the timestamps and second
@@ -545,6 +546,9 @@ class NetcdfDataSource(object):
             raise
 
         # Zip timeseries together in (n,2) array
+        t = type(vals)
+        if fill_value is not None and type(vals) == np.ma.core.MaskedArray:
+            vals = vals.filled(fill_value)
         return np.vstack((timestamps, vals)).T
 
     def get_values_by_ids(self, variable, object_type, object_ids,
