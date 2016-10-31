@@ -11,6 +11,8 @@ threedi-qgis-plugin changelog
   - the multiple connection number (mvb_num) is added to connection codes
   - automatically add boundary when structures are not connected to end node
   - moved automatically added boundaries 1 meter
+- Added the tool ``predict_calc_points``. It computes the threedicore
+  calcualtion points and their calculation type.
 
 - Set required qgis version to 2.14
 

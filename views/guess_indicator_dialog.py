@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
 import logging
+
 from PyQt4.QtCore import pyqtSignal, QSettings
 from PyQt4.QtGui import QDialog
 from PyQt4.QtSql import QSqlDatabase
-from PyQt4 import uic
-
 from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
 from PyQt4.QtGui import (
     QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout,
@@ -13,6 +11,8 @@ from PyQt4.QtGui import (
 
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 from qgis.gui import QgsCredentialDialog
+
+from ThreeDiToolbox.utils.threedi_database import get_databases
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class GuessIndicatorDialogWidget(QDialog):
 
         self.command = command
 
-        self.databases = self.get_databases()
+        self.databases = get_databases()
         self.database_combo.addItems(self.databases.keys())
 
         # Connect signals
