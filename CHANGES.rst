@@ -5,7 +5,22 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Sufhyd import:
+  - logfile has same name and location as sufhyd, whith '.log' extended
+  - added extra logging about used file, date adn number of objects
+  - the multiple connection number (mvb_num) is added to connection codes
+  - automatically add boundary when structures are not connected to end node
+  - moved automatically added boundaries 1 meter
+
+- Set required qgis version to 2.14
+
+- Sideview:
+  - bugfix: support of profiles without height (used for weirs)
+  - correct relative heights for profiles which does not start at 0 height
+
+- Bugfix: impervious surface, changed 'half_open' to 'open_paved'
+
+- Bugfix: graph legend hover shows correct location when using 'result' layers
 
 
 0.8.2 (2016-09-22)
