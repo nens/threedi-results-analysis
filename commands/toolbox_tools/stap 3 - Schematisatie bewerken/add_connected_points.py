@@ -62,13 +62,11 @@ class CustomCommand(CustomCommandBase):
     def here_we_go(self, msg):
         messagebar_message("Ready",  msg, level=0, duration=4)
         iter = self.connected_pnt_lyr.getFeatures()
-        _feat = max(iter, key=lambda f: f['id'])
-        if _feat:
-            self._feat_id = _feat['id']
-        else:
-            raise ValueError(
-                "[-] Could not get the max ID from connected_pnt layer"
-            )
+        try:
+            _feat = max(iter, key=lambda f: f['id'])
+            self._feat_id = _feat['id'] + 1
+        except ValueError:
+            self._feat_id = 1
         self.connected_pnt_lyr.startEditing()
 
         self._added_features = []
@@ -101,6 +99,8 @@ class CustomCommand(CustomCommandBase):
         while self._added_features:
             fid = self._added_features.pop()
             self._handle_added(fid)
+            self._feat_id += 1
+
 
     def _handle_added(self, feature_id):
         """
@@ -136,7 +136,6 @@ class CustomCommand(CustomCommandBase):
                 messagebar_message("Error",  msg, level=2, duration=3)
                 self.connected_pnt_lyr.deleteFeature(feature_id)
             feat.setAttribute('calc_type', calc_type)
-            self._feat_id += 1
             feat.setAttribute('id', self._feat_id)
             exchange_depth = connected_pnt['exchange_depth']
             if isinstance(exchange_depth, QPyNullVariant):
