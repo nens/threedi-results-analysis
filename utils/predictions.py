@@ -680,13 +680,13 @@ class Predictor(object):
         self._calc_pnt_features.append(f)
         self._feat_id += 1
 
-    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id, calc_type):
+    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         f = QgsFeature()
         f.setGeometry(the_geom)
         f.setAttributes(
-            [self._connect_pnt_id, -9999, calc_pnt_id, None, calc_type]
+            [self._connect_pnt_id, -9999, calc_pnt_id, None]
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
@@ -711,7 +711,6 @@ class Predictor(object):
                continue
            self._add_connected_pnt_feature(
                feat.geometry(), calc_pnt_id=calc_pnt['id'],
-               calc_type=calc_type
            )
 
         succces, features = data_provider.addFeatures(self._connected_pnt_features)

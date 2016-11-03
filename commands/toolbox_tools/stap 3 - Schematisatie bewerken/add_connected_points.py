@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 class CustomCommand(CustomCommandBase):
     """
     command to that will load and start an edit session for the connected
-    point layer and verify the data added to that layer 
+    point layer and verify the data added to that layer
     """
 
     def __init__(self, *args, **kwargs):
@@ -29,19 +29,34 @@ class CustomCommand(CustomCommandBase):
         self.iface = kwargs.get('iface')
         self.ts_datasource = kwargs.get('ts_datasource')
         self.tool_dialog_widget = None
+        self.connected_pnt_lyr = None
+        self.calc_pnt_lyr = None
 
     def run(self):
-        self.table_name = "v2_connected_pnt"
+        self.table_name_connected = "v2_connected_pnt"
+        self.table_name_calc_pnt = "v2_calculation_point"
         connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
-            self.table_name
+            self.table_name_connected
+        )
+        calc_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+            self.table_name_calc_pnt
         )
         if connected_pnt_lyr:
             self.connected_pnt_lyr = connected_pnt_lyr[0]
+        if calc_pnt_lyr:
+            self.calc_pnt_lyr = calc_pnt_lyr[0]
+
+        if all([self.connected_pnt_lyr, self.calc_pnt_lyr]):
             msg = 'Auto detected loaded connected_pnt layer!'
             self.supervising_user_input(msg)
         else:
+            rm_list = [
+                lyr.id() for lyr in (
+                    self.calc_pnt_lyr, self.connected_pnt_lyr
+                ) if lyr is not None
+            ]
+            QgsMapLayerRegistry.instance().removeMapLayers(rm_list)
             self.show_gui()
-
 
     def show_gui(self):
         self.tool_dialog_widget = AddCoonnectedPointsDialogWidget(command=self)
@@ -51,8 +66,11 @@ class CustomCommand(CustomCommandBase):
         pal = Predictor(flavor=db_type)
         uri = pal.get_uri(**db_set)
         self.connected_pnt_lyr = pal.get_layer_from_uri(
-            uri, self.table_name, 'the_geom')
+            uri, self.table_name_connected, 'the_geom')
+        self.calc_pnt_lyr = pal.get_layer_from_uri(
+            uri, self.table_name_calc_pnt, 'the_geom')
         QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnt_lyr)
+        QgsMapLayerRegistry.instance().addMapLayer(self.calc_pnt_lyr)
         msg = 'Loaded connected_pnt layer from {}!'.format(db_set['database'])
         self.supervising_user_input(msg)
 
@@ -72,8 +90,11 @@ class CustomCommand(CustomCommandBase):
             self.on_edit_command_ended
         )
 
-        self.field_names = [
+        self.fnames_connected_pnt = [
             field.name() for field in self.connected_pnt_lyr.pendingFields()
+        ]
+        self.fnames_calc_pnt = [
+            field.name() for field in self.calc_pnt_lyr.pendingFields()
         ]
 
     def add_feature(self, feature_id):
@@ -112,30 +133,40 @@ class CustomCommand(CustomCommandBase):
             feat = self.connected_pnt_lyr.getFeatures(
                 QgsFeatureRequest(feature_id)
             ).next()
-            connected_pnt = dict(zip(self.field_names, feat.attributes()))
-
+            connected_pnt = dict(
+                zip(
+                    self.fnames_connected_pnt, feat.attributes()
+                )
+            )
             calculation_pnt_id = connected_pnt['calculation_pnt_id']
+            calc_pnt_request = QgsFeatureRequest().setFilterExpression(
+                u'"id" = {}'.format(calculation_pnt_id))
+            calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
+                calc_pnt_request).next()
+            calc_pnt = dict(
+                zip(
+                    self.fnames_calc_pnt, calc_pnt_feat.attributes()
+                )
+            )
+            current_calc_type = calc_pnt['calc_type']
             request = QgsFeatureRequest().setFilterExpression(
                 u'"calculation_pnt_id" = {}'.format(calculation_pnt_id))
             selected_features = self.connected_pnt_lyr.getFeatures(request)
+
             # QgsFeatureRequest has no count so we have to loop through the
             # feature set to get a count
             unique_ids = set()
-            calc_type = None
             for item in selected_features:
-                _item = dict(zip(self.field_names, item.attributes()))
+                _item = dict(zip(self.fnames_connected_pnt, item.attributes()))
                 unique_ids.add(_item['id'])
-                if calc_type is None or isinstance(calc_type, QPyNullVariant):
-                    calc_type = _item['calc_type']
-            thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type]
+            thresh = constants.CONNECTED_PNTS_THRESHOLD[current_calc_type]
             if len(unique_ids) > thresh:
                 msg = \
                     "Calculation type {} allows only for {} " \
                     "connected points! " \
-                    "Deleting point...".format(calc_type, thresh)
+                    "Deleting point...".format(current_calc_type, thresh)
                 messagebar_message("Error",  msg, level=2, duration=3)
                 self.connected_pnt_lyr.deleteFeature(feature_id)
-            feat.setAttribute('calc_type', calc_type)
             feat.setAttribute('id', self._feat_id)
             exchange_depth = connected_pnt['exchange_depth']
             if isinstance(exchange_depth, QPyNullVariant):
