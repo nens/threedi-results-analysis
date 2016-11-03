@@ -8,7 +8,7 @@ from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
-    PredictCalcPointsDialogWidget)
+    AddCoonnectedPointsDialogWidget)
 from ThreeDiToolbox.commands.base.custom_command import (
     CustomCommandBase)
 from ThreeDiToolbox.utils.predictions import Predictor
@@ -19,11 +19,8 @@ log = logging.getLogger(__name__)
 
 class CustomCommand(CustomCommandBase):
     """
-    command to predict the threedicore calculation points based on
-    calculation type, geometry and the attribute dist_calc_points
-
-    The results will be written to the database table v2_calculation_point.
-    When running the command, the table must be empty!
+    command to that will load and start an edit session for the connected
+    point layer and verify the data added to that layer 
     """
 
     def __init__(self, *args, **kwargs):
@@ -41,13 +38,13 @@ class CustomCommand(CustomCommandBase):
         if connected_pnt_lyr:
             self.connected_pnt_lyr = connected_pnt_lyr[0]
             msg = 'Auto detected loaded connected_pnt layer!'
-            self.here_we_go(msg)
+            self.supervising_user_input(msg)
         else:
             self.show_gui()
 
 
     def show_gui(self):
-        self.tool_dialog_widget = PredictCalcPointsDialogWidget(command=self)
+        self.tool_dialog_widget = AddCoonnectedPointsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
@@ -57,9 +54,9 @@ class CustomCommand(CustomCommandBase):
             uri, self.table_name, 'the_geom')
         QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnt_lyr)
         msg = 'Loaded connected_pnt layer from {}!'.format(db_set['database'])
-        self.here_we_go(msg)
+        self.supervising_user_input(msg)
 
-    def here_we_go(self, msg):
+    def supervising_user_input(self, msg):
         messagebar_message("Ready",  msg, level=0, duration=4)
         iter = self.connected_pnt_lyr.getFeatures()
         try:
@@ -71,7 +68,9 @@ class CustomCommand(CustomCommandBase):
 
         self._added_features = []
         self.connected_pnt_lyr.featureAdded.connect(self.add_feature)
-        self.connected_pnt_lyr.editCommandEnded.connect(self.on_edit_command_ended)
+        self.connected_pnt_lyr.editCommandEnded.connect(
+            self.on_edit_command_ended
+        )
 
         self.field_names = [
             field.name() for field in self.connected_pnt_lyr.pendingFields()
@@ -124,15 +123,16 @@ class CustomCommand(CustomCommandBase):
             unique_ids = set()
             calc_type = None
             for item in selected_features:
-                print item.attributes()
                 _item = dict(zip(self.field_names, item.attributes()))
                 unique_ids.add(_item['id'])
                 if calc_type is None or isinstance(calc_type, QPyNullVariant):
                     calc_type = _item['calc_type']
             thresh = constants.CONNECTED_PNTS_THRESHOLD[calc_type]
             if len(unique_ids) > thresh:
-                msg = "Calculation type {} allows only for {} connected points! " \
-                      "Deleting point...".format(calc_type, thresh)
+                msg = \
+                    "Calculation type {} allows only for {} " \
+                    "connected points! " \
+                    "Deleting point...".format(calc_type, thresh)
                 messagebar_message("Error",  msg, level=2, duration=3)
                 self.connected_pnt_lyr.deleteFeature(feature_id)
             feat.setAttribute('calc_type', calc_type)
