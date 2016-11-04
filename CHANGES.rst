@@ -26,6 +26,8 @@ threedi-qgis-plugin changelog
 
 - support 'dry' cell values (without showing -9999 in graph)
 
+- improved 1d modellayer styling
+
 0.8.2 (2016-09-22)
 ------------------
 
