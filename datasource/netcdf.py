@@ -21,7 +21,11 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'qp': 'm3',
     'up1': 'm',
     'qlat': 'm3',
-    'vol1': 'm3'
+    'vol1': 'm3',
+    'rain': 'm3',
+    'infiltration_rate': 'm3',
+    'su': '',
+    'au': '',
     }
 
 
