@@ -9,8 +9,12 @@ from qgis.core import (
     QgsCoordinateTransform
 )
 
+from sqlalchemy.exc import ResourceClosedError
+
 from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils import constants
+
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
 import logging
 
@@ -43,7 +47,7 @@ class Predictor(object):
         :returns an QgsDataSourceURI() instance
 
         kwargs :
-            'address' --> network address (postgres) or
+            'host' --> network address (postgres) or
                 file path location (spatialite)
             'port' --> port for the network address. Can
                 be omitted for spatialite
@@ -54,6 +58,7 @@ class Predictor(object):
             'schema' --> database schema name
 
          """
+
         self._uri = QgsDataSourceURI()
         host = kwargs['host']
         port = kwargs['port']
@@ -66,6 +71,22 @@ class Predictor(object):
         elif self.flavor == 'postgres':
             self._uri.setConnection(host, port, database, username, password)
         return self._uri
+
+    def start_sqalchemy_engine(self, kwargs):
+        """
+        kwargs :
+            'host' --> network address (postgres) or
+                file path location (spatialite)
+            'port' --> port for the network address. Can
+                be omitted for spatialite
+            'user_name' --> database credential. Can
+                be omitted for spatialite
+            'password' --> database credential. Can
+                be omitted for spatialite
+            'schema' --> database schema name
+        """
+        threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
+        self.engine = threedi_db.get_engine()
 
     def get_layer_from_uri(self, uri, table_name, geom_column='',
                            display_name=''):
@@ -106,7 +127,7 @@ class Predictor(object):
                     db.lastError().driverText())
             )
 
-    def run_query(self, query_str):
+    def run_qtsql_query(self, query_str):
         """
         execute a sql query. If the execution was successful the
         result rows can retrieved by ``query.next()``
@@ -115,8 +136,23 @@ class Predictor(object):
             self.create_query_obj_from_uri(self._uri)
         if not self.query.exec_(query_str):
             raise RuntimeError(
-                'Could not execute the query {}'.format(query_str)
+                'Could not execute the query {}. '
+                'Error message {}'.format(
+                    query_str, self.query.lastError().text())
             )
+
+    def run_sqalchemy_query(self, query_str):
+        with self.engine.connect() as con:
+            res = con.execute(query_str)
+            try:
+                rows = res.fetchall()
+            except ResourceClosedError:
+                logger.warning(
+                    '[!] The proxy object has been consumed because the '
+                    'query has returned no results.')
+                rows = None
+        con.close()
+        return rows
 
     def build_calc_type_dict(self, epsg_code):
         """
@@ -172,57 +208,67 @@ class Predictor(object):
         query_data = self._get_query_data(epsg_code)
         for name, d in query_data.iteritems():
             logger.info("processing {}".format(name))
-            self.run_query(d['query'])
-            # loop through every database table row
-            while self.query.next():
+            rows = self.run_sqalchemy_query(d['query'])
+            if rows is None:
+                continue
+            for row in rows:
                 # distinguish between start- and endpoints
                 start_point = {}
                 end_point = {}
-                object_id = self.query.value(d['id'])
+                object_id = row[d['id']]
                 # geometries can only be present for objects that have
                 # both a start- and endpoint (culverts, pipes and channels)
                 the_geom = None
                 if d['the_geom'] is not None:
-                    the_geom = self.query.value(d['the_geom'])
+                    the_geom = row[d['the_geom']]
                 the_geom_end = None
                 if d['the_geom_end'] is not None:
-                    the_geom_end = self.query.value(d['the_geom_end'])
+                    the_geom_end = row[d['the_geom_end']]
                 line_length = None
                 if d['line_length'] is not None:
-                    line_length = self.query.value(d['line_length'])
+                    line_length = row[d['line_length']]
                 dist_calc_points = None
                 if d['dist_calc_points'] is not None:
-                    dist_calc_points = self.query.value(d['dist_calc_points'])
+                    dist_calc_points = row[d['dist_calc_points']]
                 connection_node_end = None
                 if d['node_id_end'] is not None:
-                    connection_node_end = self.query.value(d['node_id_end'])
+                    connection_node_end = row[d['node_id_end']]
                 connection_node_start = None
                 if d['node_id_start'] is not None:
-                    connection_node_start = self.query.value(
+                    connection_node_start = row[
                         d['node_id_start']
-                    )
+                    ]
                 # not all objects must have a calculation type defined.
                 # If the database field is empty the query will return NULL
                 # N.B the operator has to be ``==``!
-                _calc_type = self.query.value(d['calc_type'])
+                _calc_type = row[d['calc_type']]
                 calc_type = constants.CALC_TYPE_MAP.get(
-                    _calc_type) or _calc_type
+                    _calc_type)
+                if calc_type is None:
+                    calc_type = _calc_type
                 logger.debug(
                     "calc_type is ", calc_type, "type ", type(calc_type)
                 )
-                # if calc_type == NULL:
-                if isinstance(calc_type, QPyNullVariant):
+                if calc_type is None:
                     logger.warning(
                         "WARNING: no calc_type for {name} {id}".format(
                             name=name, id=object_id)
                     )
                     continue
+
                 # objects with a geometry have both a start- and endpoint
                 if the_geom is not None:
+                    # embedded channels usually do not have a
+                    # dist_calc_points attribute
+                    if dist_calc_points is None:
+                        dist_calc_points = line_length
+
                     # define in how many segments the line geometry will
                     # be divided my the threedicore
                     cnt_segments = max(
-                        int(round(line_length / (dist_calc_points * 1.0))), 1
+                        int(round(
+                            line_length / (dist_calc_points * 1.0))
+                        ), 1
                     )
                     start_point['calc_type'] = calc_type
                     start_point['content_type'] = name
@@ -256,12 +302,13 @@ class Predictor(object):
                         pass
                 else:
                     # already entry for this connection node, we need to
-                    # check if the current calculation type is ranked higher
+                    # check if the current calculation type is
+                    # ranked higher
                     self._elect_new_leader(
                         entry_start, calc_type, object_id, name
                     )
-                # there should never be a start point entry for boundaries and
-                # manholes as they don't have geometries.
+                # there should never be a start point entry for
+                # boundaries and manholes as they don't have geometries.
                 if start_point:
                     self.network_dict[
                         connection_node_start]['start_points'].append(
@@ -290,7 +337,8 @@ class Predictor(object):
                         )
                         if elected:
                             self.network_dict[
-                                connection_node_end]['end_point'] = end_point
+                                connection_node_end]['end_point'
+                            ] = end_point
 
     @staticmethod
     def _fill_end_pnt_dict(end_pnt_dict, name, object_id, the_geom_end,
@@ -317,18 +365,19 @@ class Predictor(object):
         :returns True if a new leader has been elected, False otherwise
         """
         _current_content_type = entry.get('content_type')
-        # manhole is already the lead
-        if _current_content_type == 'v2_manhole':
+        # manhole is already the lead. Only a boundary can surpass him
+        if all([_current_content_type == 'v2_manhole',
+                name != 'v2_1d_boundary_conditions']):
             return False
 
         # make manhole the leader in case a boundary isn't
         # leading at the moment
         if all([name == 'v2_manhole',
-                _current_content_type != 'v2_1d_boundary_conditions']):
+                _current_content_type != 'v2_1d_boundary_conditions',
+                calc_type is not None]):
             entry['calc_type'] = calc_type
             entry['content_type_id'] = object_id
             entry['content_type'] = name
-            print "manhole entry: ", entry
             return True
 
         current_leader = entry.get('calc_type')
@@ -423,15 +472,12 @@ class Predictor(object):
         """
         get the epsg_code entry from v2_global_settings table (first row)
         """
-        try:
-            self.query.exec_('''SELECT epsg_code FROM v2_global_settings;''')
-            self.query.next()
-            return self.query.value(0)
-        except AttributeError:
-            self._uri.setDataSource(self._schema, 'v2_global_settings', '')
-            vlayer = QgsVectorLayer(self._uri.uri(), '__none__', self.flavor)
-            f = vlayer.getFeatures().next()
-            return f['epsg_code']
+        with self.engine.connect() as con:
+            rs = con.execute('''SELECT epsg_code FROM v2_global_settings;''')
+            row = rs.fetchone()
+            if row:
+                return row[0]
+        con.close()
 
     def create_memory_layer(self, epsg_code, lyr_type="Point"):
         """
@@ -541,7 +587,8 @@ class Predictor(object):
                 last_seq_id = end_point['cnt_segments']
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
-                if self._obj_leads(node_id, content_type, content_type_id):
+                if any([self._obj_leads(node_id, content_type, content_type_id),
+                        last_seq_id == 1]):
                     last_seq_id += 1
                 self._add_feature(
                     calc_type=node_calc_type, pnt_geom=pnt_geom,
@@ -620,6 +667,9 @@ class Predictor(object):
         if self._trans:
             pnt_geom.transform(self._trans)
         f.setGeometry(pnt_geom)
+        if calc_type < 0:
+            content_type = 'v2_1d_boundary_conditions'
+            id = 1
         ref_id = '{obj_id}-{table_name}-{seq_id}'.format(
             obj_id=content_type_id,
             table_name=content_type,

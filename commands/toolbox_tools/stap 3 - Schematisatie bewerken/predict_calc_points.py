@@ -40,19 +40,17 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
-        pal = Predictor(flavor=db_type)
+        pal = Predictor(db_type)
         uri = pal.get_uri(**db_set)
         calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
-        pal.create_query_obj_from_uri(uri)
+        pal.start_sqalchemy_engine(db_set)
         default_epsg_code = 28992
         epsg_code = pal.get_epsg_code() or default_epsg_code
         log.info(
             "[*] Using epsg code {} to build the calc_type_dict".format(
                 epsg_code)
         )
-        print "[*] Using epsg code {} to build the calc_type_dict".format(
-                epsg_code)
         pal.build_calc_type_dict(epsg_code=epsg_code)
         transform = None
         # spatialites are in WGS84 so we need a tranformation

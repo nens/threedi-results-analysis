@@ -73,6 +73,7 @@ class PredictCalcPointsDialogWidget(QDialog):
                 'password': '',
                 'schema': '',
                 'database': '',
+                'db_path': host,
             }
         else:
             db_type = _db_type
