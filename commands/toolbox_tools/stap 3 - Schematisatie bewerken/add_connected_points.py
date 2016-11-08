@@ -93,9 +93,15 @@ class CustomCommand(CustomCommandBase):
         self.fnames_connected_pnt = [
             field.name() for field in self.connected_pnt_lyr.pendingFields()
         ]
+
         self.fnames_calc_pnt = [
             field.name() for field in self.calc_pnt_lyr.pendingFields()
         ]
+
+        # disable the id field for editing
+        self.connected_pnt_lyr.setFieldEditable(0, False)
+        # hide the levee_id field from editor widget
+        self.connected_pnt_lyr.setEditorWidgetV2(3, 'Hidden')
 
     def add_feature(self, feature_id):
         """
@@ -141,8 +147,15 @@ class CustomCommand(CustomCommandBase):
             calculation_pnt_id = connected_pnt['calculation_pnt_id']
             calc_pnt_request = QgsFeatureRequest().setFilterExpression(
                 u'"id" = {}'.format(calculation_pnt_id))
-            calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
-                calc_pnt_request).next()
+            try:
+                calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
+                    calc_pnt_request).next()
+            except StopIteration:
+                msg = 'The calculation point ID you provided does not exist.'
+                messagebar_message("Error", msg, level=2, duration=4)
+                self.connected_pnt_lyr.deleteFeature(feature_id)
+                return
+
             calc_pnt = dict(
                 zip(
                     self.fnames_calc_pnt, calc_pnt_feat.attributes()
