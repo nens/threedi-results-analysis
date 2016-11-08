@@ -174,9 +174,16 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
 
+<<<<<<< HEAD
         _db_settings = db_entry['db_settings']
 
         if db_entry['db_type'] == 'sqlite':
+=======
+        _db_type = db_entry['db_type']
+        _db_settings = db_entry['db_settings']
+
+        if _db_type == 'sqlite':
+>>>>>>> 3aedf0142b206cb567f30cdece155a5da13243fc
             # usage of db_type 'spatialite' instead of 'sqlite'
             # makes much more sense because it also used internally
             # by qgis, for example when by the ``QgsVectorLayer()``-object
@@ -193,7 +200,11 @@ class AddCoonnectedPointsDialogWidget(QDialog):
                 'db_path': host,
             }
         else:
+<<<<<<< HEAD
             db_type = db_entry['db_type']
+=======
+            db_type = _db_type
+>>>>>>> 3aedf0142b206cb567f30cdece155a5da13243fc
             db_settings = _db_settings
             db_settings['schema'] = 'public'
         self.command.run_it(db_settings, db_type)

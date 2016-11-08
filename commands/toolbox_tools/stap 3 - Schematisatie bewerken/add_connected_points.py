@@ -93,7 +93,6 @@ class CustomCommand(CustomCommandBase):
         self.fnames_connected_pnt = [
             field.name() for field in self.connected_pnt_lyr.pendingFields()
         ]
-
         self.fnames_calc_pnt = [
             field.name() for field in self.calc_pnt_lyr.pendingFields()
         ]
