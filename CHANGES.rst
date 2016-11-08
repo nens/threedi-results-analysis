@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Auto populate the ``levee_id`` column of the ``v2_connected_pnt`` table
+  when a new point is being added or the location of an existing point is
+  being changed.
+
 - Auto populate the ``connected_pnt`` table from the computed calculation
   points that have a calculation type greater than 1.
 
