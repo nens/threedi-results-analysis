@@ -587,7 +587,8 @@ class Predictor(object):
                 last_seq_id = end_point['cnt_segments']
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
-                if self._obj_leads(node_id, content_type, content_type_id):
+                if any([self._obj_leads(node_id, content_type, content_type_id),
+                        last_seq_id == 1]):
                     last_seq_id += 1
                 self._add_calc_pnt_feature(
                     calc_type=node_calc_type, pnt_geom=pnt_geom,

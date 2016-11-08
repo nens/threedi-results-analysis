@@ -199,7 +199,7 @@ class NcStatsAgg(NcStats):
     AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
         NcStats.AVAILABLE_STRUCTURE_PARAMETERS
     AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
-        ['wos_height', 'water_depth']
+        ['wos_height', 's1_max', 'water_depth']
     AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
         + NcStats.AVAILABLE_PUMP_PARAMETERS
 
