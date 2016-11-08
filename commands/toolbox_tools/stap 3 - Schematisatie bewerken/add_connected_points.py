@@ -103,7 +103,7 @@ class CustomCommand(CustomCommandBase):
         self._added_features = []
         self._moved_features = []
         self.connected_pnt_lyr.featureAdded.connect(self.add_feature)
-        self.connected_pnt_lyr.geometryChanged.connect(self.add_feature)
+        self.connected_pnt_lyr.geometryChanged.connect(self.move_feature)
         self.connected_pnt_lyr.editCommandEnded.connect(
             self.on_edit_command_ended
         )
@@ -134,6 +134,9 @@ class CustomCommand(CustomCommandBase):
             self._added_features.append(feature_id)
 
     def move_feature(self, feature_id):
+        """
+        geometry change, e.g. moving a connected point
+        """
         if feature_id > 0:
             self._added_features.append(feature_id)
 
@@ -146,7 +149,10 @@ class CustomCommand(CustomCommandBase):
         while self._added_features:
             fid = self._added_features.pop()
             self._handle_added(fid)
-            self._feat_id += 1
+            # new feature, we need an fresh ID
+            if fid < 0:
+                self._feat_id += 1
+
 
     def _handle_added(self, feature_id):
         """
@@ -157,7 +163,6 @@ class CustomCommand(CustomCommandBase):
                 u"Add to connected_pnt_lyr"
             )
             connected_pnt, feat = self._get_connected_pnt_feature(feature_id)
-            print connected_pnt, feat
             calculation_pnt_id = connected_pnt['calculation_pnt_id']
             calc_pnt, calc_pnt_feat = self._get_calculation_pnt_feature(calculation_pnt_id)
             if calc_pnt is None:
@@ -182,7 +187,8 @@ class CustomCommand(CustomCommandBase):
                     "Deleting point...".format(current_calc_type, thresh)
                 messagebar_message("Error",  msg, level=2, duration=3)
                 self.connected_pnt_lyr.deleteFeature(feature_id)
-            feat.setAttribute('id', self._feat_id)
+            if feature_id < 0:
+                feat.setAttribute('id', self._feat_id)
             exchange_depth = connected_pnt['exchange_depth']
             if isinstance(exchange_depth, QPyNullVariant):
                 exchange_depth = -9999
@@ -204,6 +210,12 @@ class CustomCommand(CustomCommandBase):
             raise
 
     def _get_calculation_pnt_feature(self, calculation_pnt_id):
+        """
+        :param calculation_pnt_id: id of the calculation point
+        :returns if the feature does not exist a tuple of None,
+        otherwise a tuple of an dict of {<column_name>: <attribute>, ...}
+        and an pyqgis feature instance
+        """
 
         calc_pnt_request = QgsFeatureRequest().setFilterExpression(
             u'"id" = {}'.format(calculation_pnt_id))
@@ -227,6 +239,11 @@ class CustomCommand(CustomCommandBase):
 
     def _get_connected_pnt_feature(self, feature_id):
         """
+        :param feature_id: id of the connected point feature
+        :returns if the feature does not exist a tuple of None,
+        otherwise a tuple of an dict of {<column_name>: <attribute>, ...}
+        and an pyqgis feature instance
+
         """
         try:
             feat = self.connected_pnt_lyr.getFeatures(
@@ -245,6 +262,18 @@ class CustomCommand(CustomCommandBase):
         return connected_pnt, feat
 
     def find_levee_intersection(self, calc_pnt_feat, connected_pnt_feat):
+        """
+        :param calc_pnt_feat: pyqgis feature instance of a calculation point
+        :param connected_pnt_feat: pyqgis feature instance of a
+            connected point
+
+        draws a virtal line between the point of ``calc_pnt_feat`` and
+        ``connected_pnt_feat`` and looks for an instersection with a levee \
+        feature.
+
+        :returns levee id if an intersection could be detected,
+             None otherwise
+        """
 
         calc_pnt_geom = calc_pnt_feat.geometry()
         connected_pnt_geom = connected_pnt_feat.geometry()
