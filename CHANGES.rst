@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Uniform usage of ``spatialite`` instead of ``sqlite`` as ``db_type``
+  variable string throughout the ThreediToolBox.
+
 - Auto populate the ``connected_pnt`` table from the computed calculation
   points that have a calculation type greater than 1.
 
