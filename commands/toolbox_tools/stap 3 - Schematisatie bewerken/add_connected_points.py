@@ -3,7 +3,12 @@
 
 import logging
 
-from qgis.core import QgsMapLayerRegistry, QgsFeatureRequest
+from qgis.core import (
+    QgsMapLayerRegistry,
+    QgsFeatureRequest,
+    QgsFeature,
+    QgsGeometry
+)
 from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -32,21 +37,28 @@ class CustomCommand(CustomCommandBase):
         self.connected_pnt_lyr = None
         self.calc_pnt_lyr = None
 
+
     def run(self):
         self.table_name_connected = "v2_connected_pnt"
         self.table_name_calc_pnt = "v2_calculation_point"
+        self.table_name_levees = "v2_levee"
         connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
             self.table_name_connected
         )
         calc_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
             self.table_name_calc_pnt
         )
+        levee_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+            self.table_name_levees
+        )
         if connected_pnt_lyr:
             self.connected_pnt_lyr = connected_pnt_lyr[0]
         if calc_pnt_lyr:
             self.calc_pnt_lyr = calc_pnt_lyr[0]
+        if levee_lyr:
+            self.levee_lyr = levee_lyr[0]
 
-        if all([self.connected_pnt_lyr, self.calc_pnt_lyr]):
+        if all([self.connected_pnt_lyr, self.calc_pnt_lyr, self.levee_lyr]):
             msg = 'Auto detected loaded connected_pnt layer!'
             self.supervising_user_input(msg)
         else:
@@ -63,12 +75,14 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
-        pal = Predictor(flavor=db_type)
-        uri = pal.get_uri(**db_set)
-        self.connected_pnt_lyr = pal.get_layer_from_uri(
+        predictor = Predictor(flavor=db_type)
+        uri = predictor.get_uri(**db_set)
+        self.connected_pnt_lyr = predictor.get_layer_from_uri(
             uri, self.table_name_connected, 'the_geom')
-        self.calc_pnt_lyr = pal.get_layer_from_uri(
+        self.calc_pnt_lyr = predictor.get_layer_from_uri(
             uri, self.table_name_calc_pnt, 'the_geom')
+        self.levee_lyr = predictor.get_layer_from_uri(
+            uri, self.table_name_levees, 'the_geom')
         QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnt_lyr)
         QgsMapLayerRegistry.instance().addMapLayer(self.calc_pnt_lyr)
         msg = 'Loaded connected_pnt layer from {}!'.format(db_set['database'])
@@ -76,6 +90,8 @@ class CustomCommand(CustomCommandBase):
 
     def supervising_user_input(self, msg):
         messagebar_message("Ready",  msg, level=0, duration=4)
+
+        # load the levee layer so we can check for intersections with it
         iter = self.connected_pnt_lyr.getFeatures()
         try:
             _feat = max(iter, key=lambda f: f['id'])
@@ -85,7 +101,9 @@ class CustomCommand(CustomCommandBase):
         self.connected_pnt_lyr.startEditing()
 
         self._added_features = []
+        self._moved_features = []
         self.connected_pnt_lyr.featureAdded.connect(self.add_feature)
+        self.connected_pnt_lyr.geometryChanged.connect(self.add_feature)
         self.connected_pnt_lyr.editCommandEnded.connect(
             self.on_edit_command_ended
         )
@@ -99,8 +117,8 @@ class CustomCommand(CustomCommandBase):
 
         # disable the id field for editing
         self.connected_pnt_lyr.setFieldEditable(0, False)
-        # hide the levee_id field from editor widget
-        self.connected_pnt_lyr.setEditorWidgetV2(3, 'Hidden')
+        # disable the levee_id field
+        self.connected_pnt_lyr.setFieldEditable(3, False)
 
     def add_feature(self, feature_id):
         """
@@ -115,6 +133,10 @@ class CustomCommand(CustomCommandBase):
         if feature_id < 0:
             self._added_features.append(feature_id)
 
+    def move_feature(self, feature_id):
+        if feature_id > 0:
+            self._added_features.append(feature_id)
+
     def on_edit_command_ended(self):
         """
         Send all added features in the stack to _handle_added(). Really, this
@@ -126,7 +148,6 @@ class CustomCommand(CustomCommandBase):
             self._handle_added(fid)
             self._feat_id += 1
 
-
     def _handle_added(self, feature_id):
         """
         Actually add the feature to the layer.
@@ -135,31 +156,13 @@ class CustomCommand(CustomCommandBase):
             self.connected_pnt_lyr.beginEditCommand(
                 u"Add to connected_pnt_lyr"
             )
-            feat = self.connected_pnt_lyr.getFeatures(
-                QgsFeatureRequest(feature_id)
-            ).next()
-            connected_pnt = dict(
-                zip(
-                    self.fnames_connected_pnt, feat.attributes()
-                )
-            )
+            connected_pnt, feat = self._get_connected_pnt_feature(feature_id)
+            print connected_pnt, feat
             calculation_pnt_id = connected_pnt['calculation_pnt_id']
-            calc_pnt_request = QgsFeatureRequest().setFilterExpression(
-                u'"id" = {}'.format(calculation_pnt_id))
-            try:
-                calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
-                    calc_pnt_request).next()
-            except StopIteration:
-                msg = 'The calculation point ID you provided does not exist.'
-                messagebar_message("Error", msg, level=2, duration=4)
+            calc_pnt, calc_pnt_feat = self._get_calculation_pnt_feature(calculation_pnt_id)
+            if calc_pnt is None:
                 self.connected_pnt_lyr.deleteFeature(feature_id)
-                return
 
-            calc_pnt = dict(
-                zip(
-                    self.fnames_calc_pnt, calc_pnt_feat.attributes()
-                )
-            )
             current_calc_type = calc_pnt['calc_type']
             request = QgsFeatureRequest().setFilterExpression(
                 u'"calculation_pnt_id" = {}'.format(calculation_pnt_id))
@@ -184,9 +187,80 @@ class CustomCommand(CustomCommandBase):
             if isinstance(exchange_depth, QPyNullVariant):
                 exchange_depth = -9999
             feat.setAttribute('exchange_depth', exchange_depth)
-            self.connected_pnt_lyr.updateFeature(feat)
+            levee_id = self.find_levee_intersection(calc_pnt_feat, feat)
+            if levee_id:
+                feat.setAttribute('levee_id', levee_id)
+                intersect_msg = \
+                    'Created a new crevasse location at levee {}.'.format(
+                        levee_id)
+                messagebar_message(
+                    "Info", intersect_msg, level=0, duration=5
+                )
 
+            self.connected_pnt_lyr.updateFeature(feat)
             self.connected_pnt_lyr.endEditCommand()
         except:
             self.connected_pnt_lyr.destroyEditCommand()
             raise
+
+    def _get_calculation_pnt_feature(self, calculation_pnt_id):
+
+        calc_pnt_request = QgsFeatureRequest().setFilterExpression(
+            u'"id" = {}'.format(calculation_pnt_id))
+        try:
+            calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
+                calc_pnt_request).next()
+        except StopIteration:
+            msg = 'The calculation point ID you provided does not exist.'
+            messagebar_message(
+                "Error", msg, level=2, duration=4
+            )
+            return None, None
+
+        calc_pnt = dict(
+            zip(
+                self.fnames_calc_pnt, calc_pnt_feat.attributes()
+            )
+        )
+        return calc_pnt, calc_pnt_feat
+
+
+    def _get_connected_pnt_feature(self, feature_id):
+        """
+        """
+        try:
+            feat = self.connected_pnt_lyr.getFeatures(
+                QgsFeatureRequest(feature_id)
+            ).next()
+        except StopIteration:
+            msg = 'The connected point... does not exist.'
+            messagebar_message("Error", msg, level=2, duration=4)
+            return None, None
+
+        connected_pnt = dict(
+            zip(
+                self.fnames_connected_pnt, feat.attributes()
+            )
+        )
+        return connected_pnt, feat
+
+    def find_levee_intersection(self, calc_pnt_feat, connected_pnt_feat):
+
+        calc_pnt_geom = calc_pnt_feat.geometry()
+        connected_pnt_geom = connected_pnt_feat.geometry()
+
+        virtual_line = QgsGeometry.fromPolyline(
+            [connected_pnt_geom.asPoint(),
+             calc_pnt_geom.asPoint()]
+        )
+        virtual_line_bbox = virtual_line.boundingBox()
+        levee_features = self.levee_lyr.getFeatures(
+            QgsFeatureRequest().setFilterRect(virtual_line_bbox)
+        )
+
+        levee_id = None
+        for levee in levee_features:
+            if levee.geometry().intersects(virtual_line):
+                levee_id = levee.attributes()[0]
+                break
+        return levee_id
