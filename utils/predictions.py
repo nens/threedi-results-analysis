@@ -282,7 +282,7 @@ class Predictor(object):
                     start_point['the_geom'] = the_geom
                     start_point['cnt_segments'] = cnt_segments
                     end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, the_geom_end,
+                        end_point, name, object_id, code, the_geom_end,
                         dist_calc_points, cnt_segments
                     )
 
@@ -310,7 +310,7 @@ class Predictor(object):
                     # check if the current calculation type is
                     # ranked higher
                     self._elect_new_leader(
-                        entry_start, calc_type, object_id, name
+                        entry_start, calc_type, object_id, name, code
                     )
                 # there should never be a start point entry for
                 # boundaries and manholes as they don't have geometries.
