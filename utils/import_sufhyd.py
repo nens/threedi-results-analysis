@@ -286,12 +286,14 @@ class Importer(object):
 
         # generate extra boundary nodes if needed
         manhole_geom = {m['code']: m['geom'] for m in data['manholes']}
+        inc_nr = 1
         for obj_type in ['orifices', 'weirs']:
             objects = data[obj_type]
             for obj in objects:
                 if obj['end_node.code'] is None:
                     # add extra node with boundary conditions
-                    bound_code = obj['code'] + '-bound'
+                    bound_code = obj['code'] + '-bound' + str(inc_nr)
+                    inc_nr += 1
 
                     geom = manhole_geom.get(obj['start_node.code'], (0., 0., 28992))
                     new_geom = (geom[0], geom[1] + 1.0, geom[2])
