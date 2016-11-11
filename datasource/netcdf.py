@@ -552,7 +552,6 @@ class NetcdfDataSource(object):
             raise
 
         # Zip timeseries together in (n,2) array
-        t = type(vals)
         if fill_value is not None and type(vals) == np.ma.core.MaskedArray:
             vals = vals.filled(fill_value)
         return np.vstack((timestamps, vals)).T
