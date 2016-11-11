@@ -8,7 +8,7 @@ threedi-qgis-plugin changelog
 - Sufhyd import:
   - logfile has same name and location as sufhyd, whith '.log' extended
   - added extra logging about used file, date adn number of objects
-  - the multiple connection number (mvb_num) is added to connection codes
+  - the multiple connection number (num_mvb) is added to connection codes
   - automatically add boundary when structures are not connected to end node
   - moved automatically added boundaries 1 meter
 - Added the tool ``predict_calc_points``. It computes the threedicore
