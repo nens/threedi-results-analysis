@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- The user_ref field now has the following format:
+  ``<content>.code#<content>.id#<table_name>#calc_pnt_nr``
+
 - Auto populate the ``connected_pnt`` table from the computed calculation
   points that have a calculation type greater than 1.
 
