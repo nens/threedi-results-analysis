@@ -11,6 +11,28 @@ threedi-qgis-plugin changelog
   - the multiple connection number (num_mvb) is added to connection codes
   - automatically add boundary when structures are not connected to end node
   - moved automatically added boundaries 1 meter
+- Auto populate the ``connected_pnt`` table from the computed calculation
+  points that have a calculation type greater than 1.
+
+- Bug fix: Explicitly check for ``None`` on the return value of the
+  ``calc_type_dict`` because a return value of 0 is also falsy.
+  Also make sure the ``dist_calc_points`` attribute is always
+  available for objects with a geometry
+
+- Executing a select statement on an empty table using sqalchemy causes
+  problems becasue it does not allow to cosume the active cursor.
+  The cursor explictly has to be closed, or references to it dropped.
+  Otherwise the cursor and thus the connection will be alive, and
+  the database will be locked.
+
+- Using the sqalchemy engine instead of the ``QtSql.QSqlQuery`` object
+  to retrieve data from postgres or spatialite databases to make sure
+  the geos extension is available (this doesn't always seem to be
+  the case for windows installtions).
+
+- Bugfix: Removed ``os.path.join`` to generate the ``db_name`` variable because
+  this produced a '/' instead of a '\' for windows OS.
+
 - Added the tool ``predict_calc_points``. It computes the threedicore
   calcualtion points and their calculation type.
 

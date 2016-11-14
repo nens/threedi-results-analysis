@@ -14,6 +14,13 @@ from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 class ThreediDatabase(object):
 
+    DB_TYPE_SYNONYMS = {
+        'sqlite': 'sqlite',
+        'spatialite': 'sqlite',
+        'postgres': 'postgres',
+        'postgis': 'postgres',
+    }
+
     def __init__(self, connection_settings, db_type='sqlite', echo=False):
         """
 
@@ -21,7 +28,9 @@ class ThreediDatabase(object):
         db_type (str choice): database type. 'sqlite' and 'postgresql' are supported
         """
         self.settings = connection_settings
-        self.db_type = db_type
+        # make sure within the ThreediDatabase object we always use 'sqlite'
+        # as the db_type identifier
+        self.db_type = self.DB_TYPE_SYNONYMS[db_type]
         self.echo = echo
 
         self._engine = None
@@ -105,6 +114,7 @@ def get_databases():
 
     for db_entry in qs.allKeys():
         db_name, _ = os.path.split(db_entry)
+
         settings = {
             'key': os.path.basename(db_entry),
             'db_name': db_name,
@@ -122,7 +132,7 @@ def get_databases():
     qs.beginGroup("PostgreSQL/connections")
     for db_entry in qs.allKeys():
         prefix, attribute = os.path.split(db_entry)
-        db_name = qs.value(os.path.join(prefix, 'database'))
+        db_name = qs.value(prefix + '/database')
         settings = {
             'key': db_entry,
             'db_name': db_name,
