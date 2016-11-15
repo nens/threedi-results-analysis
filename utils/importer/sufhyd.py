@@ -299,7 +299,7 @@ class SufhydReader(object):
 
         if knp.aan_inw is not None:
             drainage_area = {
-                'code': code + '_inw',
+                'code': code + '-inw',
                 'surface_class': Constants.SURFACE_CLASS_PAND,
                 'surface_inclination': Constants.SURFACE_INCLINATION_VLAK,
                 'nr_of_inhabitants': knp.aan_inw,
@@ -309,7 +309,7 @@ class SufhydReader(object):
 
             imp_map = {
                 'node.code': code,
-                'imp_surface.code': code + '_inw',
+                'imp_surface.code': code + '-inw',
                 'percentage': 100
             }
             self.output['impervious_surface_maps'].append(imp_map)
