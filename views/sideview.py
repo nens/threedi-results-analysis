@@ -38,25 +38,26 @@ parameter_config = {
 }
 
 
-def python_value(value, default_value=None):
+def python_value(value, default_value=None, func=None):
     """
     help function for translating QVariant Null values into None
-    :param value: QVariant value or python value
-    :param default_value: value in case provided value is None
+    value: QVariant value or python value
+    default_value: value in case provided value is None
+    func (function): function for transforming value
     :return: python value
     """
 
     # check on QVariantNull... type
     if hasattr(value, 'isNull') and value.isNull():
-        if default_value is not None:
-            return default_value
-        else:
-            return None
+        return default_value
     else:
         if default_value is not None and value is None:
             return default_value
         else:
-            return value
+            if func is not None:
+                return func(value)
+            else:
+                return value
 
 
 try:
@@ -331,9 +332,12 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                         if sub_begin_node['type'] != SideViewDockWidget.CROSS_SECTION:
                             # only level is known at cross_section. For other nodes, the
-                            # profile is the same as ther nearest cross-section on the link
+                            # profile is the same as their nearest cross-section on the link
                             begin_level = sub_end_node['bottom_level']
-                            begin_height = sub_end_node['height']
+                            if sub_end_node['height'] is not None:
+                                begin_upper_level = sub_end_node['height'] + begin_level
+                            else:
+                                begin_upper_level = begin_level
                             begin_surface = sub_end_node['surface_level']
                             begin_drain = sub_end_node['drain_level']
                         elif sub_first and sub_end_node['type'] == SideViewDockWidget.CROSS_SECTION:
@@ -344,9 +348,14 @@ class SideViewPlotWidget(pg.PlotWidget):
                             begin_level = (
                                 begin_weight * sub_begin_node['bottom_level'] +
                                 end_weight * sub_end_node['bottom_level'])
-                            begin_height = (
-                                begin_weight * sub_begin_node['height'] +
-                                end_weight * sub_end_node['height'])
+                            if (sub_begin_node['height'] is not None and
+                                sub_end_node['height'] is not None):
+                                begin_upper_level = (
+                                    begin_weight * sub_begin_node['height'] +
+                                    end_weight * sub_end_node['height'] +
+                                    begin_level)
+                            else:
+                                begin_upper_level = begin_level
                             if (sub_begin_node['surface_level'] is not None and
                                 sub_end_node['surface_level'] is not None):
                                 begin_surface = (
@@ -359,13 +368,19 @@ class SideViewPlotWidget(pg.PlotWidget):
                                     end_weight * sub_end_node['drain_level'])
                         else:
                             begin_level = sub_begin_node['bottom_level']
-                            begin_height = sub_begin_node['height']
+                            if sub_begin_node['height'] is not None:
+                                begin_upper_level = sub_begin_node['height'] + begin_level
+                            else:
+                                begin_upper_level = begin_level
                             begin_surface = sub_begin_node['surface_level']
                             begin_drain = sub_begin_node['drain_level']
 
                         if sub_end_node['type'] != SideViewDockWidget.CROSS_SECTION:
                             end_level = sub_begin_node['bottom_level']
-                            end_height = sub_begin_node['height']
+                            if sub_begin_node['height'] is not None:
+                                end_upper_level = sub_begin_node['height'] + end_level
+                            else:
+                                end_upper_level = end_level
                             end_surface = sub_begin_node['surface_level']
                             end_drain = sub_begin_node['drain_level']
                         elif i == len(profile_links) - 1 and sub_begin_node['type'] == SideViewDockWidget.CROSS_SECTION:
@@ -376,9 +391,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                             end_level = (
                                 begin_weight * sub_begin_node['bottom_level'] +
                                 end_weight * sub_end_node['bottom_level'])
-                            end_height = (
-                                begin_weight * sub_begin_node['height'] +
-                                end_weight * sub_end_node['height'])
+
+                            if (sub_begin_node['height'] is not None and
+                                sub_end_node['height'] is not None):
+                                end_upper_level = (
+                                    begin_weight * sub_begin_node['height'] +
+                                    end_weight * sub_end_node['height'] +
+                                    end_level)
+                            else:
+                                end_upper_level = end_level
 
                             if (sub_begin_node['surface_level'] is not None and
                                 sub_end_node['surface_level'] is not None):
@@ -398,7 +419,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                         else:
                             end_level = sub_end_node['bottom_level']
-                            end_height = sub_end_node['height']
+                            if sub_end_node['height'] is not None:
+                                end_upper_level = sub_end_node['height'] + end_level
+                            else:
+                                end_upper_level = np.nan
                             end_surface = sub_end_node['surface_level']
                             end_drain = sub_end_node['drain_level']
 
@@ -412,11 +436,11 @@ class SideViewPlotWidget(pg.PlotWidget):
                              ltype))
                         upper_line.append(
                             (sub_begin_dist + 0.5 * float(sub_begin_node['length']),
-                             begin_level + begin_height,
+                             begin_upper_level,
                              ltype))
                         upper_line.append(
                             (sub_end_dist - 0.5 * float(sub_end_node['length']),
-                             end_level + end_height,
+                             end_upper_level,
                              ltype))
 
                         if (sub_first or sub_begin_node['type'] != SideViewDockWidget.CALCULATION_NODE):
@@ -432,13 +456,23 @@ class SideViewPlotWidget(pg.PlotWidget):
                     if direction == 1:
                         begin_level = float(feature['start_level'])
                         end_level = float(feature['end_level'])
-                        begin_height = float(feature['start_height'])
-                        end_height = float(feature['end_height'])
+                        begin_height = feature['start_height']
+                        end_height = feature['end_height']
                     else:
                         begin_level = float(feature['end_level'])
                         end_level = float(feature['start_level'])
-                        begin_height = float(feature['end_height'])
-                        end_height = float(feature['start_height'])
+                        begin_height = feature['end_height']
+                        end_height = feature['start_height']
+
+                    if python_value(begin_height) is not None:
+                        begin_upper_level = begin_level + begin_height
+                    else:
+                        begin_upper_level = begin_level
+
+                    if python_value(end_height) is not None:
+                        end_upper_level = end_level + end_height
+                    else:
+                        end_upper_level = end_level
 
                     bottom_line.append(
                         (begin_dist + 0.5 * float(begin_node['length']),
@@ -452,11 +486,11 @@ class SideViewPlotWidget(pg.PlotWidget):
                     # upper line
                     upper_line.append(
                         (begin_dist + 0.5 * float(begin_node['length']),
-                        begin_level + begin_height,
+                        begin_upper_level,
                         ltype))
                     upper_line.append(
                         (end_dist - 0.5 * float(end_node['length']),
-                        end_level + end_height,
+                        end_upper_level,
                         ltype))
 
                     if first:
@@ -624,10 +658,15 @@ class SideViewPlotWidget(pg.PlotWidget):
             for node in self.sideview_nodes:
                 try:
                     if python_value(node['idx']) is not None:
-                        ts = ds.get_timeseries('nodes', int(node['nr']), 's1')
+                        ts = ds.get_timeseries('nodes',
+                                               int(node['nr']),
+                                               's1',
+                                               fill_value=np.NaN)
                     else:
                         ts = ds.get_timeseries('v2_connection_nodes',
-                                               node['id'], 's1')
+                                               node['id'],
+                                               's1',
+                                               fill_value=np.NaN)
                     node['timeseries'] = ts
                 except KeyError:
                     node['timeseries'] = None
@@ -995,33 +1034,44 @@ class SideViewDockWidget(QDockWidget):
         profiles = {}
         for profile in profile_layer.getFeatures():
             # todo: add support for other definitions
-            rel_bottom_level = 0
+            rel_bottom_level = 0.0
             open = False
-            if profile['shape'] == 1:
-                # rectangle
-                if profile['height'] is not None:
-                    height = float(profile['height'])
-                else:
-                    # square
-                    height = float(profile['width'])
+            height_was_none = False
 
-            elif profile['shape'] == 2:
-                # round
-                height = float(profile['width'])
-            elif profile['shape'] in [5, 6]:
+            if profile['shape'] in (1, 2):
+                height = python_value(profile['height'], func=float)
+                width = python_value(profile['width'], func=float)
+                if profile['shape'] == 1:
+                    # rectangle
+                    if height is None:
+                        # square
+                        height_was_none = True
+                        if width is not None:
+                            height = width
+                elif profile['shape'] == 2:
+                    # round
+                    height = width
+            elif profile['shape'] in (5, 6):
                 # tabulated and tabulated interpolated
                 height_list = profile['height'].split(' ')
-                rel_bottom_level = float(height_list[0])
-                height = float(height_list[-1]) - rel_bottom_level
+                # The calculation core automagically move the lowest point of a profile
+                # to 0, so this is not correct:
+                # rel_bottom_level = float(height_list[0])
+                # height = float(height_list[-1]) - rel_bottom_level
+                # but this:
+                rel_bottom_level = 0.0
+                # todo: catch and warn of values are incorrect
+                height = float(height_list[-1]) - float(height_list[0])
+
                 if float(profile['width'].split(' ')[-1]) > 0.01:
                     open = True
 
             profiles[profile['id']] = {
                 'height': height,
                 'rel_bottom_level': rel_bottom_level,
-                'open': open
+                'open': open,
+                'height_was_none': height_was_none
             }
-
 
         for cn in connection_node_layer.getFeatures():
             points[cn['id']] = {
@@ -1084,6 +1134,12 @@ class SideViewDockWidget(QDockWidget):
         for weir in weir_layer.getFeatures():
             profile = profiles[weir['cross_section_definition_id']]
 
+            # weirs without height are not square, but open
+            if profile['height_was_none']:
+                height = None
+            else:
+                height = profile['height']
+
             weir_def = {
                 'id': 'weir_' + str(weir['id']),
                 'type': self.WEIR,
@@ -1091,8 +1147,8 @@ class SideViewDockWidget(QDockWidget):
                 'end_node': weir['connection_node_end_id'],
                 'start_level': weir['crest_level'],
                 'end_level': weir['crest_level'],
-                'start_height': profile['height'],
-                'end_height': profile['height']
+                'start_height': height,
+                'end_height': height
             }
             lines.append(weir_def)
 

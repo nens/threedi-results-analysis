@@ -21,7 +21,7 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 Requirements
 ------------
 
-- QGIS 2.8 or 2.14 (64 bit is recommended)
+- QGIS 2.14 or 2.16 (64 bit is recommended)
 - pyqtgraph (included)
 - netCDF4 (included only for Windows using 64 bit QGIS)
 - sqlalchemy version 1.1.0 or higher (included)
