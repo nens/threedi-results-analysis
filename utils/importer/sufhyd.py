@@ -297,12 +297,13 @@ class SufhydReader(object):
 
         self.output['manholes'].append(manhole)
 
-        if knp.aan_inw is not None or knp.loz_con is not None:
+        if knp.aan_inw is not None:
             drainage_area = {
                 'code': code + '_inw',
-                'surface_class': '',
-                'surface_inclination': '',
-                'nr_of_inhabitants': knp.aan_inw
+                'surface_class': Constants.SURFACE_CLASS_PAND,
+                'surface_inclination': Constants.SURFACE_INCLINATION_VLAK,
+                'nr_of_inhabitants': knp.aan_inw,
+                'area': 0
             }
             self.output['impervious_surfaces'].append(drainage_area)
 
@@ -344,9 +345,10 @@ class SufhydReader(object):
         if leiding.aan_inw is not None:
             drainage_area = {
                 'code': code + '-inw',
-                'surface_class': '',
-                'surface_inclination': '',
-                'nr_of_inhabitants': leiding.aan_inw
+                'surface_class': Constants.SURFACE_CLASS_PAND,
+                'surface_inclination': Constants.SURFACE_INCLINATION_VLAK,
+                'nr_of_inhabitants': leiding.aan_inw,
+                'area': 0
             }
             self.output['impervious_surfaces'].append(drainage_area)
 
