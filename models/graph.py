@@ -120,7 +120,8 @@ class LocationTimeseriesModel(BaseModel):
                     result_ds_nr].datasource().get_timeseries(
                         self.object_type.value,
                         self.object_id.value,
-                        parameters)
+                        parameters,
+                        fill_value=np.NaN)
                 if 'cum' in parameters:
                     # 'Cumulative' variables are not yet cumulatively summed
                     timeseries[:, 1] = np.cumsum(timeseries[:, 1])

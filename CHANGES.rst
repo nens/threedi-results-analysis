@@ -7,9 +7,36 @@ threedi-qgis-plugin changelog
 
 - The user_ref field now has the following format:
   ``<content>.code#<content>.id#<table_name>#calc_pnt_nr``
+- Uniform usage of ``spatialite`` instead of ``sqlite`` as ``db_type``
+  variable string throughout the ThreediToolBox.
+
+- Auto populate the ``levee_id`` column of the ``v2_connected_pnt`` table
+  when a new point is being added or the location of an existing point is
+  being changed.
 
 - Auto populate the ``connected_pnt`` table from the computed calculation
   points that have a calculation type greater than 1.
+
+- Sufhyd import:
+  - logfile has same name and location as sufhyd, whith '.log' extended
+  - added extra logging about used file, date adn number of objects
+  - the multiple connection number (num_mvb) is added to connection codes
+  - automatically add boundary when structures are not connected to end node
+  - moved automatically added boundaries 1 meter
+
+- Set required qgis version to 2.14
+
+- Sideview:
+  - bugfix: support of profiles without height (used for weirs)
+  - correct relative heights for profiles which does not start at 0 height
+
+- Bugfix: impervious surface, changed 'half_open' to 'open_paved'
+
+- Bugfix: graph legend hover shows correct location when using 'result' layers
+
+- support 'dry' cell values (without showing -9999 in graph)
+
+- improved 1d modellayer styling
 
 - Bug fix: Explicitly check for ``None`` on the return value of the
   ``calc_type_dict`` because a return value of 0 is also falsy.
@@ -30,9 +57,12 @@ threedi-qgis-plugin changelog
 - Bugfix: Removed ``os.path.join`` to generate the ``db_name`` variable because
   this produced a '/' instead of a '\' for windows OS.
 
+
+- Auto populate the ``connected_pnt`` table from the computed calculation
+  points that have a calculation type greater than 1.
+
 - Added the tool ``predict_calc_points``. It computes the threedicore
   calcualtion points and their calculation type.
-
 
 0.8.2 (2016-09-22)
 ------------------

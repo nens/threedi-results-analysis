@@ -70,7 +70,7 @@ surface_inclination_mapping = {
 
 surface_class_mapping = {
     'gvh': Constants.SURFACE_CLASS_GESLOTEN_VERHARDING,
-    'ovh': Constants.SURFACE_CLASS_HALF_VERHARD,
+    'ovh': Constants.SURFACE_CLASS_OPEN_VERHARDING,
     'dak': Constants.SURFACE_CLASS_PAND,
     'onv': Constants.SURFACE_CLASS_ONVERHARD,
 }
@@ -98,6 +98,31 @@ def prettify(string):
         return ''
     else:
         return str(string)
+
+
+def get_code(geb_id1, id1, geb_id2=None, id2=None, post_fix=None, default_code=None):
+    """
+    Args:
+        geb_id1 (string): area code
+        id1(string): object id
+        geb_id2(string): area code object 2
+        id2(string): object id 2
+        post_fix: addition at end of code
+        default_code: returned value when id1 is None or ''
+
+    Returns:
+        (string): combined area code
+
+    """
+    if id1 is None or id1 == '':
+        return default_code
+
+    code = prettify(geb_id1) + '_' + prettify(id1)
+    if id2 is not None and id2 != '':
+        code += '-' + prettify(geb_id2) + '_' + prettify(id2)
+    if post_fix is not None and post_fix != '':
+        code += '-' + prettify(post_fix)
+    return code
 
 
 def point(x, y, srid_input=28992):
@@ -252,7 +277,7 @@ class SufhydReader(object):
         :param knp:
         :return:
         """
-        code = prettify(knp.ide_geb) + '_' + prettify(knp.ide_knp)
+        code = get_code(knp.ide_geb,  knp.ide_knp)
 
         # get manhole attributes
         manhole = {
@@ -294,15 +319,15 @@ class SufhydReader(object):
 
     def parse_leiding(self, leiding):
 
-        code = (prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn1) + '-' +
-                prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn2))
+        code = get_code(leiding.ide_geb, leiding.ide_kn1,
+                        leiding.ide_geb, leiding.ide_kn2, leiding.num_mvb)
 
         pipe = {
             'code': code,
             'display_name': code,
             '_basin': get_value(leiding.ide_geb),
-            'start_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn1),
-            'end_node.code': prettify(leiding.ide_geb) + '_' + prettify(leiding.ide_kn2),
+            'start_node.code': get_code(leiding.ide_geb, leiding.ide_kn1),
+            'end_node.code': get_code(leiding.ide_geb, leiding.ide_kn2),
             'original_length': leiding.lei_len,
             'cross_section_details': {
                 'shape': self.get_shape(leiding.pro_vrm, code),
@@ -352,17 +377,14 @@ class SufhydReader(object):
 
         for i in range(1, 10):
             if type(getattr(gemaal, 'pmp_af%i' % i, '')) is float:
-                code = (prettify(gemaal.ide_gb1) + '_' + prettify(gemaal.ide_kn1) + '-' +
-                        prettify(gemaal.ide_gb2) + '_' + prettify(gemaal.ide_kn2) + '-' +
-                        str(i))
+                code = get_code(gemaal.ide_gb1, gemaal.ide_kn1,
+                                gemaal.ide_gb2, gemaal.ide_kn2, str(i))
 
                 pumpstation = {
                     'code': code,
                     'display_name': code,
-                    'start_node.code': (prettify(gemaal.ide_gb1) + '_' +
-                                        prettify(gemaal.ide_kn1)),
-                    'end_node.code': (prettify(gemaal.ide_gb2) + '_' +
-                                      prettify(gemaal.ide_kn2)),
+                    'start_node.code': get_code(gemaal.ide_gb1, gemaal.ide_kn1),
+                    'end_node.code': get_code(gemaal.ide_gb2, gemaal.ide_kn2),
                     'start_level_suction_side': getattr(
                             gemaal, 'pmp_an%i' % i, None),
                     'stop_level_suction_side': getattr(
@@ -378,16 +400,14 @@ class SufhydReader(object):
                 self.output['pumpstations'].append(pumpstation)
 
     def parse_doorlaat(self, doorlaat):
-        code = (prettify(doorlaat.ide_gb1) + '_' + prettify(doorlaat.ide_kn1) + '-' +
-                prettify(doorlaat.ide_gb2) + '_' + prettify(doorlaat.ide_kn2))
+        code = get_code(doorlaat.ide_gb1, doorlaat.ide_kn1,
+                        doorlaat.ide_gb2, doorlaat.ide_kn2, doorlaat.num_mvb)
 
         orifice = {
             'code': code,
             'display_name': code,
-            'start_node.code': (prettify(doorlaat.ide_gb1) + '_' +
-                                prettify(doorlaat.ide_kn1)),
-            'end_node.code': (prettify(doorlaat.ide_gb2) + '_' +
-                              prettify(doorlaat.ide_kn2)),
+            'start_node.code': get_code(doorlaat.ide_gb1, doorlaat.ide_kn1),
+            'end_node.code': get_code(doorlaat.ide_gb2, doorlaat.ide_kn2),
             'cross_section_details': {
                 'shape': self.get_shape(doorlaat.pro_vrm, code),
                 'width': get_value(doorlaat.pro_bre, float),
@@ -417,8 +437,8 @@ class SufhydReader(object):
 
     def parse_overstort(self, overstort):
 
-        code = (prettify(overstort.ide_gb1) + '_' + prettify(overstort.ide_kn1) + '-' +
-                prettify(overstort.ide_gb2) + '_' + prettify(overstort.ide_kn2))
+        code = get_code(overstort.ide_gb1, overstort.ide_kn1,
+                        overstort.ide_gb2, overstort.ide_kn2, overstort.num_mvb)
 
         value = getattr(overstort, 'bws_gem',
                         getattr(overstort, 'bws_zom',
@@ -432,10 +452,8 @@ class SufhydReader(object):
         weir = {
             'code': code,
             'display_name': code,
-            'start_node.code': (prettify(overstort.ide_gb1) + '_' +
-                                prettify(overstort.ide_kn1)),
-            'end_node.code': (prettify(overstort.ide_gb2) + '_' +
-                              prettify(overstort.ide_kn2)),
+            'start_node.code': get_code(overstort.ide_gb1, overstort.ide_kn1),
+            'end_node.code': get_code(overstort.ide_gb2, overstort.ide_kn2),
             'cross_section_details': {
                 'shape': Constants.SHAPE_RECTANGLE,
                 'width': overstort.ovs_bre,
@@ -468,7 +486,7 @@ class SufhydReader(object):
 
     def parse_uitlaat(self, uitlaat):
 
-        code = (prettify(uitlaat.ide_gb1) + '_' + prettify(uitlaat.ide_kn1))
+        code = get_code(uitlaat.ide_gb1, uitlaat.ide_kn1)
 
         value = getattr(uitlaat, 'bws_gem',
                         getattr(uitlaat, 'bws_zom',
@@ -489,7 +507,7 @@ class SufhydReader(object):
 
     def parse_bergend_oppervlak(self, berging):
 
-        code = (prettify(berging.ide_geb) + '_' + prettify(berging.ide_knp))
+        code = get_code(berging.ide_geb, berging.ide_knp)
 
         storage = {
             'node.code': code,
@@ -503,8 +521,8 @@ class SufhydReader(object):
 
     def parse_koppeling(self, koppeling):
 
-        code = (prettify(koppeling.ide_gb1) + '_' + prettify(koppeling.ide_kn1) + '-' +
-                prettify(koppeling.ide_gb2) + '_' + prettify(koppeling.ide_kn2))
+        code = get_code(koppeling.ide_gb1, koppeling.ide_kn1,
+                        koppeling.ide_gb2, koppeling.ide_kn2, koppeling.num_mvb)
 
         if koppeling.typ_gkn != '01':
             # only combine of first is real. Definition is not clear,
@@ -512,10 +530,8 @@ class SufhydReader(object):
             # '01' is fictive
             link = {
                 'code': code,
-                'start_node.code': (prettify(koppeling.ide_gb1) + '_' +
-                                    prettify(koppeling.ide_kn1)),
-                'end_node.code': (prettify(koppeling.ide_gb2) + '_' +
-                                  prettify(koppeling.ide_kn2)),
+                'start_node.code': get_code(koppeling.ide_gb1, koppeling.ide_kn1),
+                'end_node.code': get_code(koppeling.ide_gb2, koppeling.ide_kn2),
             }
             self.output['links'].append(link)
 
@@ -523,16 +539,19 @@ class SufhydReader(object):
 
     def parse_afvoerend_oppervlak(self, afvopp):
 
-        connection_nodes = [prettify(afvopp.ide_gb1) + '_' + prettify(afvopp.ide_kn1)]
+        connection_nodes = [get_code(afvopp.ide_gb1, afvopp.ide_kn1)]
 
         if afvopp.ide_kn2 != '':
             # special treatment required for some files from kikker
             if afvopp.ide_gb2 == '':
                 afvopp.ide_gb2 = afvopp.ide_gb1
 
-            connection_nodes.append(prettify(afvopp.ide_gb2) + '_' + prettify(afvopp.ide_kn2))
+            connection_nodes.append(get_code(afvopp.ide_gb2, afvopp.ide_kn2))
 
-        base_code = '_'.join(connection_nodes)
+        if afvopp.num_mvb is not None and afvopp.num_mvb != '':
+            connection_nodes.append(str(afvopp.num_mvb))
+
+        base_code = '-'.join(connection_nodes)
 
         for class_type in ['gvh', 'ovh', 'dak', 'onv']:
 

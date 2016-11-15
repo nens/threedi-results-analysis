@@ -14,14 +14,8 @@ from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 class ThreediDatabase(object):
 
-    DB_TYPE_SYNONYMS = {
-        'sqlite': 'sqlite',
-        'spatialite': 'sqlite',
-        'postgres': 'postgres',
-        'postgis': 'postgres',
-    }
 
-    def __init__(self, connection_settings, db_type='sqlite', echo=False):
+    def __init__(self, connection_settings, db_type='spatialite', echo=False):
         """
 
         :param connection_settings:
@@ -30,7 +24,7 @@ class ThreediDatabase(object):
         self.settings = connection_settings
         # make sure within the ThreediDatabase object we always use 'sqlite'
         # as the db_type identifier
-        self.db_type = self.DB_TYPE_SYNONYMS[db_type]
+        self.db_type = db_type
         self.echo = echo
 
         self._engine = None
@@ -45,7 +39,7 @@ class ThreediDatabase(object):
         # self.metadata(engine=engine, force_refresh=True)
 
     def create_db(self, overwrite=False):
-        if self.db_type == 'sqlite':
+        if self.db_type == 'spatialite':
 
             if overwrite and os.path.isfile(self.settings['db_file']):
                 os.remove(self.settings['db_file'])
@@ -64,7 +58,7 @@ class ThreediDatabase(object):
     def get_engine(self, get_seperate_engine=False):
 
         if self._engine is None or get_seperate_engine:
-            if self.db_type == 'sqlite':
+            if self.db_type == 'spatialite':
                 engine = create_engine('sqlite:///{0}'.format(
                                                 self.settings['db_path']),
                                        module=dbapi2,
@@ -120,7 +114,7 @@ def get_databases():
             'db_name': db_name,
             'combo_key': 'spatialite: {0}'.format(
                 os.path.splitext(db_name)[0]),
-            'db_type': 'sqlite',
+            'db_type': 'spatialite',
             'db_settings': {
                 'db_path': qs.value(db_entry)
             }

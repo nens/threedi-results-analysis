@@ -5,6 +5,7 @@ import ogr
 import osr
 import logging
 import os.path
+import datetime
 from collections import OrderedDict
 from sqlalchemy.orm import load_only
 from copy import copy
@@ -83,6 +84,9 @@ class Importer(object):
         self.log = DataImportLogger()
 
     def run_import(self):
+        """
+            main function for performing all import tasks
+        """
 
         self.db.create_and_check_fields()
 
@@ -90,12 +94,35 @@ class Importer(object):
             data = self.load_sufhyd_data()
             self.check_import_data(data)
             self.transform_import_data(data)
-            self.write_data_to_db(data)
+            commit_counts = self.write_data_to_db(data)
 
             logger.warning('Summary of import:\n' + self.log.get_summary())
 
-            dir_name = os.path.dirname(self.import_file)
-            log_file = open(os.path.join(dir_name, 'import_sufhyd.log'), 'w')
+            # write logging to file
+            log_file = open(self.import_file + '.log', 'w')
+            log_file.write('Import on {0} of file: {1}.\n'.format(
+                datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'),
+                self.import_file
+            ))
+
+            db_set = copy(self.db.settings)
+            if 'password' in db_set:
+                del db_set['password']
+            if 'username' in db_set:
+                del db_set['username']
+
+            log_file.write('Added to the {0} database with connection settings {1} :\n'.format(
+                self.db.db_type,
+                str(db_set)
+            ))
+            log_file.write('{profiles} profiles\n'
+                           '{manholes} manholes\n'
+                           '{pipes} pipes\n'
+                           '{structures} structures'
+                           '{outlets} outlets\n'
+                           '{impervious_surfaces} impervious surfaces\n'
+                           ''.format(**commit_counts))
+
             log_file.write(self.log.get_full_log())
             log_file.close()
 
@@ -184,7 +211,10 @@ class Importer(object):
                             # add extra manhole
                             new_manhole = copy(manhole_dict[code])
                             new_manhole['code'] = new_manhole['code'] + \
-                                                  '_' + str(used_outlets[code])
+                                                  '-' + str(used_outlets[code])
+
+                            geom = new_manhole['geom']
+                            new_manhole['geom'] = (geom[0], geom[1] + 1.0, geom[2])
                             data['manholes'].append(new_manhole)
 
                             # redirect object to new manhole
@@ -255,24 +285,34 @@ class Importer(object):
                 obj['crs_code'] = code
 
         # generate extra boundary nodes if needed
+        manhole_geom = {m['code']: m['geom'] for m in data['manholes']}
+        inc_nr = 1
         for obj_type in ['orifices', 'weirs']:
             objects = data[obj_type]
             for obj in objects:
                 if obj['end_node.code'] is None:
                     # add extra node with boundary conditions
+                    bound_code = obj['code'] + '-bound' + str(inc_nr)
+                    inc_nr += 1
 
-                    bound_code = obj['code'] + '_bound'
+                    geom = manhole_geom.get(obj['start_node.code'], (0., 0., 28992))
+                    new_geom = (geom[0], geom[1] + 1.0, geom[2])
+
                     data['manholes'].append({
                         'code': bound_code,
+                        'display_name': bound_code,
+                        '_basin_code': '',
                         'width': 1.0,
                         'length': 1.0,
+                        'shape': Constants.MANHOLE_SHAPE_SQUARE,
                         'bottom_level': obj['crest_level'] - 1.0,
                         'surface_level': obj['crest_level'] + 1.0,
+                        'geom': new_geom
                     })
                     obj['end_node.code'] = bound_code
 
-                    if (obj_type == 'orifice' or
-                            obj['boundary_details']['value'] is None):
+                    if (obj_type == 'orifice' or 'boundary_details' not in obj or
+                            obj['boundary_details']['timeseries'] is None):
                         if obj['crest_level'] is not None:
                             waterlevel = obj['crest_level'] - 0.5
                         else:
@@ -287,15 +327,11 @@ class Importer(object):
                         'timeseries': timeseries
                     })
 
-                    if 'boundary_details' in obj:
-                        del obj['boundary_details']
-
         # link_node_conversion
         link_dict = {k['end_node.code']: k['start_node.code'] for
                      k in data['links']}
 
         storage_dict = {k['node.code']: k for k in data['storage']}
-
 
         # remove manholes which are part of a link
         data['manholes'] = [m for m in data['manholes'] if m['code'] not in link_dict]
@@ -312,10 +348,20 @@ class Importer(object):
             #     del manhole
             #     continue
 
-
         data['profiles'] = profiles
 
     def write_data_to_db(self, data):
+        """
+        writes data to model database
+
+        data (dict): dictionary with for each object type a list of objects
+
+        returns: (dict) with number of objects committed to the database of each object type
+
+        """
+
+        commit_counts = {}
+
         session = self.db.get_session()
 
         # set all autoincrement counters to max ids
@@ -323,7 +369,6 @@ class Importer(object):
             for table in (ConnectionNode, Manhole, BoundaryCondition1D, Pipe,
                           CrossSectionDefinition, Orifice, Weir, Pumpstation,
                           ImperviousSurface, ImperviousSurfaceMap):
-
 
                 session.execute("SELECT setval('{table}_id_seq', max(id)) "
                                 "FROM {table}".format(table=table.__tablename__))
@@ -333,12 +378,12 @@ class Importer(object):
         for crs in data['profiles'].values():
             crs_list.append(CrossSectionDefinition(**crs))
 
+        commit_counts['profiles'] = len(crs_list)
         session.bulk_save_objects(crs_list)
         session.commit()
 
-        # todo: add order by to ensure the latest added nodes are used
         crs_list = session.query(CrossSectionDefinition).options(
-                load_only("id", "_code")).all()
+                load_only("id", "_code")).order_by(CrossSectionDefinition.id).all()
         crs_dict = {m._code: m.id for m in crs_list}
         del crs_list
 
@@ -363,7 +408,7 @@ class Importer(object):
         session.commit()
 
         con_list = session.query(ConnectionNode).options(
-                load_only("id", "_code")).all()
+                load_only("id", "_code")).order_by(ConnectionNode.id).all()
         con_dict = {m._code: m.id for m in con_list}
         del con_list
 
@@ -396,6 +441,7 @@ class Importer(object):
             manhole['connection_node_id'] = con_dict[manhole['code']]
             man_list.append(Manhole(**manhole))
 
+        commit_counts['manholes'] = len(man_list)
         session.bulk_save_objects(man_list)
         session.commit()
         del man_list
@@ -433,6 +479,7 @@ class Importer(object):
 
             pipe_list.append(Pipe(**pipe))
 
+        commit_counts['pipes'] = len(pipe_list)
         session.bulk_save_objects(pipe_list)
         session.commit()
         del pipe_list
@@ -531,6 +578,7 @@ class Importer(object):
 
             obj_list.append(Orifice(**orif))
 
+        commit_counts['structures'] = len(obj_list)
         session.bulk_save_objects(obj_list)
         session.commit()
         del obj_list
@@ -553,6 +601,7 @@ class Importer(object):
                     {'node': outlet['node.code']}
                 )
 
+        commit_counts['outlets'] = len(outlet_list)
         session.bulk_save_objects(outlet_list)
         session.commit()
         del outlet_list
@@ -562,11 +611,12 @@ class Importer(object):
         for imp in data['impervious_surfaces']:
             imp_list.append(ImperviousSurface(**imp))
 
+        commit_counts['impervious_surfaces'] = len(imp_list)
         session.bulk_save_objects(imp_list)
         session.commit()
 
         imp_list = session.query(ImperviousSurface).options(
-                load_only("id", "code")).all()
+                load_only("id", "code")).order_by(ImperviousSurface.id).all()
         imp_dict = {m.code: m.id for m in imp_list}
         del imp_list
 
@@ -593,3 +643,5 @@ class Importer(object):
 
         session.bulk_save_objects(map_list)
         session.commit()
+
+        return commit_counts
