@@ -7,12 +7,14 @@ threedi-qgis-plugin changelog
 
 - Uniform usage of ``spatialite`` instead of ``sqlite`` as ``db_type``
   variable string throughout the ThreediToolBox.
+
 - Auto populate the ``levee_id`` column of the ``v2_connected_pnt`` table
   when a new point is being added or the location of an existing point is
   being changed.
 
 - Auto populate the ``connected_pnt`` table from the computed calculation
   points that have a calculation type greater than 1.
+
 - Sufhyd import:
   - logfile has same name and location as sufhyd, whith '.log' extended
   - added extra logging about used file, date adn number of objects
