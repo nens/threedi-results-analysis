@@ -64,7 +64,7 @@ class GuessIndicatorDialogWidget(QDialog):
         settings = self.databases[db_key]
         db_set = settings['db_settings']
 
-        if settings['db_type'] == 'sqlite':
+        if settings['db_type'] == 'spatialite':
             pass
         else:  # postgres
 
@@ -145,61 +145,6 @@ class GuessIndicatorDialogWidget(QDialog):
         self.buttonBox.rejected.disconnect(self.on_reject)
 
         event.accept()
-
-    def get_databases(self):
-        available_dbs = {}
-        qs = QSettings()
-
-        spatialite_keys = (k for k in qs.allKeys() if
-                           k.startswith('SpatiaLite') and k.endswith('sqlitepath'))
-        for k in spatialite_keys:
-            db_name = k[23:-11]
-            settings = {
-                'key': k,
-                'db_name': db_name,
-                'combo_key': 'spatialite: {0}'.format(db_name),
-                'db_type': 'sqlite',
-                'db_settings': {
-                    'db_path': qs.value(k)
-                }
-            }
-
-            available_dbs[settings['combo_key']] = settings
-
-        postgres_keys = (k for k in qs.allKeys() if k.startswith('PostgreSQL') and k.endswith('host'))
-        for k in postgres_keys:
-            db_name = k[23:-5]
-            prefix = k[:-5]
-            settings = {
-                'key': k,
-                'db_name': db_name,
-                'combo_key': 'postgres: {0}'.format(db_name),
-                'db_type': 'postgres',
-                'db_settings': {
-                    'host': qs.value(prefix + '/host'),
-                    'port': qs.value(prefix + '/port'),
-                    'database': qs.value(prefix + '/database'),
-                    'username': qs.value(prefix + '/username'),
-                    'password': qs.value(prefix + '/password'),
-                }
-            }
-
-            if qs.value(prefix + '/saveUsername') == u'true':
-                settings['saveUsername'] = True
-                settings['db_settings']['username'] = qs.value(prefix + '/username')
-            else:
-                settings['saveUsername'] = False
-
-            if qs.value(prefix + '/savePassword') == u'true':
-                settings['savePassword'] = True
-                settings['db_settings']['password'] = qs.value(prefix + '/password')
-            else:
-                settings['savePassword'] = False
-
-            available_dbs[settings['combo_key']] = settings
-
-        return available_dbs
-
 
     def setupUi(self, checks):
 
