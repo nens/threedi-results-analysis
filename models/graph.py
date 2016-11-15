@@ -122,9 +122,6 @@ class LocationTimeseriesModel(BaseModel):
                         self.object_id.value,
                         parameters,
                         fill_value=np.NaN)
-                if 'cum' in parameters:
-                    # 'Cumulative' variables are not yet cumulatively summed
-                    timeseries[:, 1] = np.cumsum(timeseries[:, 1])
             except (KeyError, IndexError, ValueError):
                 # Return an empty array so that the graph won't crash.
                 # The exceptions are already logged by the nc datasource.
