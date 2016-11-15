@@ -36,7 +36,7 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget = None
         self.connected_pnt_lyr = None
         self.calc_pnt_lyr = None
-
+        self.levee_lyr = None
 
     def run(self):
         self.table_name_connected = "v2_connected_pnt"
