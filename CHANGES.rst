@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- The user_ref field now has the following format:
+  ``<content>.code#<content>.id#<table_name>#calc_pnt_nr``
+
 - Uniform usage of ``spatialite`` instead of ``sqlite`` as ``db_type``
   variable string throughout the ThreediToolBox.
 

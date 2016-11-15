@@ -230,6 +230,9 @@ class Predictor(object):
                 dist_calc_points = None
                 if d['dist_calc_points'] is not None:
                     dist_calc_points = row[d['dist_calc_points']]
+                code = ''
+                if d['code'] is not None:
+                    code = row[d['code']] or ''
                 connection_node_end = None
                 if d['node_id_end'] is not None:
                     connection_node_end = row[d['node_id_end']]
@@ -273,12 +276,13 @@ class Predictor(object):
                     start_point['calc_type'] = calc_type
                     start_point['content_type'] = name
                     start_point['content_type_id'] = object_id
+                    start_point['code'] = code
                     start_point['dist_calc_pnts'] = dist_calc_points
                     start_point['line_length'] = line_length
                     start_point['the_geom'] = the_geom
                     start_point['cnt_segments'] = cnt_segments
                     end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, the_geom_end,
+                        end_point, name, object_id, code, the_geom_end,
                         dist_calc_points, cnt_segments
                     )
 
@@ -289,6 +293,7 @@ class Predictor(object):
                         self.network_dict[connection_node_start] = {
                             'calc_type': calc_type,
                             'content_type_id': object_id,
+                            'code': code,
                             'content_type': name,
                             'start_points': [],
                             'end_point': '',
@@ -305,7 +310,7 @@ class Predictor(object):
                     # check if the current calculation type is
                     # ranked higher
                     self._elect_new_leader(
-                        entry_start, calc_type, object_id, name
+                        entry_start, calc_type, object_id, name, code
                     )
                 # there should never be a start point entry for
                 # boundaries and manholes as they don't have geometries.
@@ -316,7 +321,7 @@ class Predictor(object):
                     )
                 if connection_node_end is not None:
                     end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, the_geom_end)
+                        end_point, name, object_id, code, the_geom_end)
 
                     entry_end = self.network_dict.get(connection_node_end)
                     if entry_end is None:
@@ -324,6 +329,7 @@ class Predictor(object):
                         self.network_dict[connection_node_end] = {
                             'calc_type': calc_type,
                             'content_type_id': object_id,
+                            'code': code,
                             'content_type': name,
                             'start_points': [],
                             'end_point': end_point,
@@ -333,7 +339,7 @@ class Predictor(object):
                         # need to check if the current calculation type
                         # is ranked higher
                         elected = self._elect_new_leader(
-                            entry_end, calc_type, object_id, name
+                            entry_end, calc_type, object_id, name, code
                         )
                         if elected:
                             self.network_dict[
@@ -341,7 +347,7 @@ class Predictor(object):
                             ] = end_point
 
     @staticmethod
-    def _fill_end_pnt_dict(end_pnt_dict, name, object_id, the_geom_end,
+    def _fill_end_pnt_dict(end_pnt_dict, name, object_id, code, the_geom_end,
                            dist_calc_points=None, cnt_segments=1):
         """
         All object with a line geometry have a complete set of end point
@@ -351,13 +357,14 @@ class Predictor(object):
         """
         if not end_pnt_dict:
             end_pnt_dict['content_type'] = name
+            end_pnt_dict['code'] = code
             end_pnt_dict['content_type_id'] = object_id
             end_pnt_dict['dist_calc_pnts'] = dist_calc_points
             end_pnt_dict['the_geom_end'] = the_geom_end
             end_pnt_dict['cnt_segments'] = cnt_segments
         return end_pnt_dict
 
-    def _elect_new_leader(self, entry, calc_type, object_id, name):
+    def _elect_new_leader(self, entry, calc_type, object_id, name, code):
         """
         compares the stored calculation type information with the current
         :param calc_type and updates the information whenever the calcualtion
@@ -377,6 +384,7 @@ class Predictor(object):
                 calc_type is not None]):
             entry['calc_type'] = calc_type
             entry['content_type_id'] = object_id
+            entry['code'] = code
             entry['content_type'] = name
             return True
 
@@ -395,6 +403,7 @@ class Predictor(object):
             )
             entry['calc_type'] = ranked_calc_type
             entry['content_type_id'] = object_id
+            entry['code'] = code
             entry['content_type'] = name
             return True
         return False
@@ -420,6 +429,7 @@ class Predictor(object):
                 'id': 2,
                 'dist_calc_points': None,
                 'the_geom_end': None,
+                'code': None,
                 },
             'v2_manhole': {
                 'query': query_strings_dict['v2_manhole'],
@@ -431,6 +441,7 @@ class Predictor(object):
                 'id': 2,
                 'dist_calc_points': None,
                 'the_geom_end': 3,
+                'code': 4,
                 },
             'v2_pipe': {
                 'query': query_strings_dict['v2_pipe'],
@@ -442,6 +453,7 @@ class Predictor(object):
                 'line_length': 6,
                 'id': 7,
                 'dist_calc_points': 8,
+                'code': 9,
                 },
             'v2_culvert': {
                 'query': query_strings_dict['v2_culvert'],
@@ -453,6 +465,7 @@ class Predictor(object):
                 'id': 5,
                 'dist_calc_points': 6,
                 'the_geom_end': 7,
+                'code': 8,
             },
             'v2_channel': {
                 'query': query_strings_dict['v2_channel'],
@@ -464,6 +477,7 @@ class Predictor(object):
                 'id': 7,
                 'dist_calc_points': 8,
                 'the_geom_end': 4,
+                'code': 9,
             },
         }
         return query_data
@@ -581,6 +595,7 @@ class Predictor(object):
             if end_point:
                 content_type = end_point['content_type']
                 content_type_id = end_point['content_type_id']
+                code = end_point['code']
                 pnt_geom = QgsGeometry.fromWkt(
                     end_point['the_geom_end']
                 )
@@ -593,7 +608,7 @@ class Predictor(object):
                 self._add_calc_pnt_feature(
                     calc_type=node_calc_type, pnt_geom=pnt_geom,
                     content_type_id=content_type_id, content_type=content_type,
-                    id=last_seq_id
+                    code=code, id=last_seq_id
                 )
                 node_has_been_added = True
                 start_id = 2
@@ -601,6 +616,7 @@ class Predictor(object):
             for i, start_point in enumerate(start_points):
                 content_type = start_point['content_type']
                 content_type_id = start_point['content_type_id']
+                code = start_point['code']
                 # the calculation type for the interpolated points
                 calc_type = start_point['calc_type']
                 distances = self.get_distances_on_line(
@@ -623,6 +639,7 @@ class Predictor(object):
                         pnt_geom=start_pnt,
                         content_type_id=node_info['content_type_id'],
                         content_type=node_info['content_type'],
+                        code=node_info['code'],
                         id=1
                     )
                     node_has_been_added = True
@@ -643,6 +660,7 @@ class Predictor(object):
                         pnt_geom=point_on_line,
                         content_type_id=content_type_id,
                         content_type=content_type,
+                        code=code,
                         id=i
                     )
         succces, features = data_provider.addFeatures(self._calc_pnt_features)
@@ -660,7 +678,7 @@ class Predictor(object):
         return succces, features
 
     def _add_calc_pnt_feature(self, calc_type, pnt_geom, content_type_id,
-                     content_type, id):
+                     content_type, code, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         f = QgsFeature()
@@ -670,7 +688,8 @@ class Predictor(object):
         if calc_type < 0:
             content_type = 'v2_1d_boundary_conditions'
             id = 1
-        ref_id = '{obj_id}-{table_name}-{seq_id}'.format(
+        ref_id = '{code}#{obj_id}#{table_name}#{seq_id}'.format(
+            code=code,
             obj_id=content_type_id,
             table_name=content_type,
             seq_id=id
