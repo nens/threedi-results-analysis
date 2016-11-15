@@ -144,6 +144,7 @@ zip: compile doc transcompile
 	@echo "---------------------------"
 	rm -rf /tmp/$(PLUGINNAME)
 	cd /tmp; cp -r $(CURDIR) $(PLUGINNAME)
+	rm -rf /tmp/$(PLUGINNAME)/test
 	rm -rf /tmp/$(PLUGINNAME)/.git
 	rm -rf /tmp/$(PLUGINNAME)/*.zip
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
