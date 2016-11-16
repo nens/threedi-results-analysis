@@ -46,7 +46,7 @@ VELOCITY_INTERFLOW = NcVar('up1', 'velocity interflow', 'm/s')
 RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
-WET_CROSS_SECTION_AREA = NcVar('au', 'wet surface area', 'm2')
+WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 
 _Q_TYPES = [
     DISCHARGE,
