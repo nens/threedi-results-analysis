@@ -84,7 +84,8 @@ AGGREGATION_VARIABLES = [
     DISCHARGE_LATERAL,
     ]
 
-AGGREGATION_OPTIONS = ['max', 'min', 'cum', 'avg']
+AGGREGATION_OPTIONS = {
+    'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative'}
 
 VARIABLE_LABELS = {
     'v2_connection_nodes': (WATERLEVEL, ),
@@ -259,7 +260,8 @@ def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
     >>> sorted(product_and_concat(['a', 'b'], ['c', 'd']))
     ['a_c', 'a_d', 'b_c', 'b_d']
     >>> sorted(product_and_concat('q'))
-    ['q_avg', 'q_cum', 'q_max', 'q_min']
+    ['q_avg', 'q_cum', 'q_cum_negative', 'q_cum_positive', 'q_max', 'q_med',\
+ 'q_min']
     """
     prods = product(variables, aggregation_options)
     nc_vars = starmap(lambda x, y: '%s_%s' % (x, y), prods)
