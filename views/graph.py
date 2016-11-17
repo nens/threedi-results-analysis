@@ -21,6 +21,20 @@ from ..datasource.netcdf import (
     CUMULATIVE_AGGREGATION_UNITS)
 
 
+def parse_aggvarname(aggvarname):
+    """Parse a combined agg var name."""
+    # Aggregation methods unfortunately can contain underscores; for now only
+    # these two cases are known.
+    if (aggvarname.endswith('cum_positive') or
+            aggvarname.endswith('cum_negative')):
+        varname, agg_method, sign = aggvarname.rsplit('_', 2)
+        return varname, "_".join([agg_method, sign])
+
+    # Works only for aggregation methods without underscores
+    varname, agg_method = aggvarname.rsplit('_', 1)  # maxsplit = 1
+    return varname, agg_method
+
+
 def generate_parameter_config(subgrid_map_vars, agg_vars):
     """Dynamically create the parameter config.
 
@@ -37,8 +51,11 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     verbose_agg_method = {
         'min': 'minimum',
         'max': 'maximum',
-        'cum': 'cumulative',
+        'cum': 'net cumulative',
         'avg': 'average',
+        'med': 'median',
+        'cum_positive': 'positive cumulative',
+        'cum_negative': 'negative cumulative',
         }
 
     for varname in subgrid_map_vars:
@@ -51,12 +68,12 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
             config['h'].append(d)
 
     for aggvarname in agg_vars:
-        _varname, _agg_method = aggvarname.rsplit('_', 1)  # maxsplit = 1
+        _varname, _agg_method = parse_aggvarname(aggvarname)
         varinfo = agg_vars_mapping[_varname]
         agg_method = verbose_agg_method[_agg_method]
 
         # Adjust the unit for cumulative method
-        if _agg_method == 'cum':
+        if _agg_method.startswith('cum'):
             unit = CUMULATIVE_AGGREGATION_UNITS[_varname]
         else:
             unit = varinfo[1]
