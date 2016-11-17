@@ -22,7 +22,15 @@ from ..datasource.netcdf import (
 
 
 def parse_aggvarname(aggvarname):
-    """Parse a combined agg var name."""
+    """Parse a combined agg var name.
+
+    >>> parse_aggvarname('s1_max')
+    ('s1', 'max')
+    >>> parse_aggvarname('s1_cum_negative')
+    ('s1', 'cum_negative')
+    >>> parse_aggvarname('infiltration_rate_cum_positive')
+    ('infiltration_rate', 'cum_positive')
+    """
     # Aggregation methods unfortunately can contain underscores; for now only
     # these two cases are known.
     if (aggvarname.endswith('cum_positive') or
