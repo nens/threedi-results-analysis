@@ -33,6 +33,8 @@ def parse_aggvarname(aggvarname):
     """
     # Aggregation methods unfortunately can contain underscores; for now only
     # these two cases are known.
+    # TODO: improve this, e.g., make more generic, because extra cases will
+    # need to be added later
     if (aggvarname.endswith('cum_positive') or
             aggvarname.endswith('cum_negative')):
         varname, agg_method, sign = aggvarname.rsplit('_', 2)
@@ -78,7 +80,11 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)
         varinfo = agg_vars_mapping[_varname]
-        agg_method = verbose_agg_method[_agg_method]
+        try:
+            agg_method_display_name = verbose_agg_method[_agg_method]
+        except KeyError:
+            log("Unknown agg method: %s" % _agg_method, level='CRITICAL')
+            agg_method_display_name = _agg_method
 
         # Adjust the unit for cumulative method
         if _agg_method.startswith('cum'):
@@ -86,7 +92,8 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         else:
             unit = varinfo[1]
 
-        d = {'name': '%s %s' % (agg_method.capitalize(), varinfo[0]),
+        d = {'name': '%s %s' % (agg_method_display_name.capitalize(),
+                                varinfo[0]),
              'unit': unit, 'parameters': aggvarname}
         if _varname in Q_TYPES:
             config['q'].append(d)
