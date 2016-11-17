@@ -1038,7 +1038,7 @@ class SideViewDockWidget(QDockWidget):
             open = False
             height_was_none = False
 
-            if profile['shape'] in (1, 2):
+            if profile['shape'] in (1, 2, 3):
                 height = python_value(profile['height'], func=float)
                 width = python_value(profile['width'], func=float)
                 if profile['shape'] == 1:
