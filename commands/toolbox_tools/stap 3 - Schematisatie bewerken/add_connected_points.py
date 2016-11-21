@@ -193,7 +193,6 @@ class CustomCommand(CustomCommandBase):
             if isinstance(exchange_depth, QPyNullVariant):
                 exchange_depth = -9999
             feat.setAttribute('exchange_depth', exchange_depth)
-            feat.setAttribute('calc_type', current_calc_type)
             levee_id = self.find_levee_intersection(calc_pnt_feat, feat)
             if levee_id:
                 feat.setAttribute('levee_id', levee_id)
