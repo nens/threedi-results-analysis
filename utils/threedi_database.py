@@ -108,6 +108,10 @@ class ThreediDatabase(object):
 
             session.execute("""SELECT DisableSpatialIndex('v2_connection_nodes',
                                                           'the_geom_linestring');""")
+
+            session.execute("""SELECT RecoverSpatialIndex('v2_impervious_surface',
+                                                          'the_geom');""")
+
             session.commit()
 
 
