@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.4-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.6-Essen" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="ROWID">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
@@ -73,12 +73,12 @@
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
     <rules key="{1c4a4e03-d442-4bb0-8ffc-82b9a703e08f}">
-      <rule filter="sewerage_type = 0" key="{844e5e28-ad8f-43dc-ae9b-2eedeecde873}" symbol="0" label="Gemengd"/>
-      <rule filter="sewerage_type = 1" key="{3b41f70d-2dfe-4438-8b1a-3722a52ff82b}" symbol="1" label="RWA"/>
-      <rule filter="sewerage_type = 2" key="{c8833167-878e-49b2-bd37-5019aeea2451}" symbol="2" label="DWA"/>
-      <rule filter="sewerage_type = 3" key="{d62bccfa-4138-43ba-ab6d-51eae9f5b079}" symbol="3" label="Transport"/>
-      <rule filter="sewerage_type = 7" key="{8eb66a66-0335-4672-a78d-1aac6c4702ff}" symbol="4" label="Bergbezinkvoorziening"/>
-      <rule filter="sewerage_type = 4 OR sewerage_type = 5 OR sewerage_type = 6 OR sewerage_type > 10" key="{aa320dac-96a8-41e4-af30-3e9153ceaeae}" symbol="5" label="Overig"/>
+      <rule filter="pipe_sewerage_type = 0" key="{844e5e28-ad8f-43dc-ae9b-2eedeecde873}" symbol="0" label="Gemengd"/>
+      <rule filter="pipe_sewerage_type = 1" key="{3b41f70d-2dfe-4438-8b1a-3722a52ff82b}" symbol="1" label="RWA"/>
+      <rule filter="pipe_sewerage_type = 2" key="{c8833167-878e-49b2-bd37-5019aeea2451}" symbol="2" label="DWA"/>
+      <rule filter="pipe_sewerage_type = 3" key="{d62bccfa-4138-43ba-ab6d-51eae9f5b079}" symbol="3" label="Transport"/>
+      <rule filter="pipe_sewerage_type = 7" key="{8eb66a66-0335-4672-a78d-1aac6c4702ff}" symbol="4" label="Bergbezinkvoorziening"/>
+      <rule filter="pipe_sewerage_type = 4 OR pipe_sewerage_type = 5 OR pipe_sewerage_type = 6 OR pipe_sewerage_type > 10" key="{aa320dac-96a8-41e4-af30-3e9153ceaeae}" symbol="5" label="Overig"/>
     </rules>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="line" name="0">
@@ -387,7 +387,7 @@
     <selectedonly on=""/>
   </labelattributes>
   <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
+    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="0">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
       <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
