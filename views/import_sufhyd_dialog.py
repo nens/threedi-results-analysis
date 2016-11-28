@@ -7,7 +7,7 @@ from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
 from qgis.core import QgsDataSourceURI
 from qgis.gui import QgsCredentialDialog
-from utils.threedi_database import get_databases
+from ThreeDiToolbox.utils.threedi_database import get_databases
 log = logging.getLogger(__name__)
 
 
