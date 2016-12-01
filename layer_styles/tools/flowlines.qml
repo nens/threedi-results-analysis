@@ -1,50 +1,38 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.1-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.9-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="flowline_idx">
+    <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="inp_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="splt_id">
+    <edittype widgetv2type="TextEdit" name="spatialite_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="type">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
+    <edittype widgetv2type="TextEdit" name="start_node_idx">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="end_node_idx">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
   </edittypes>
   <renderer-v2 attr="type" forceraster="0" symbollevels="0" type="categorizedSymbol" enableorderby="0">
     <categories>
-      <category render="true" symbol="0" value="" label=""/>
-      <category render="true" symbol="1" value="1d_2d" label="1d_2d"/>
-      <category render="true" symbol="2" value="2d" label="2d"/>
-      <category render="true" symbol="3" value="v2_channel" label="v2_channel"/>
-      <category render="true" symbol="4" value="v2_culvert" label="v2_culvert"/>
-      <category render="true" symbol="5" value="v2_pipe" label="v2_pipe"/>
-      <category render="true" symbol="6" value="v2_weir" label="v2_weir"/>
+      <category render="true" symbol="0" value="1d_2d" label="1d_2d"/>
+      <category render="true" symbol="1" value="2d" label="2d"/>
+      <category render="true" symbol="2" value="2d_bound" label="2d_bound"/>
+      <category render="true" symbol="3" value="1d_bound" label="1d_bound"/>
+      <category render="true" symbol="4" value="v2_channel" label="v2_channel"/>
+      <category render="true" symbol="5" value="v2_culvert" label="v2_culvert"/>
+      <category render="true" symbol="6" value="v2_pipe" label="v2_pipe"/>
+      <category render="true" symbol="7" value="v2_weir" label="v2_weir"/>
     </categories>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="line" name="0">
-        <layer pass="0" class="SimpleLine" locked="0">
-          <prop k="capstyle" v="square"/>
-          <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
-          <prop k="draw_inside_polygon" v="0"/>
-          <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="251,154,153,255"/>
-          <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
-          <prop k="line_width_unit" v="MM"/>
-          <prop k="offset" v="0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="1">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -63,7 +51,7 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="2">
+      <symbol alpha="1" clip_to_extent="1" type="line" name="1">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -82,7 +70,45 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="2">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="251,154,153,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.26"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
       <symbol alpha="1" clip_to_extent="1" type="line" name="3">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="152,47,96,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.46"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="4">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -101,7 +127,7 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="4">
+      <symbol alpha="1" clip_to_extent="1" type="line" name="5">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -120,7 +146,7 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="5">
+      <symbol alpha="1" clip_to_extent="1" type="line" name="6">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -139,7 +165,7 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="6">
+      <symbol alpha="1" clip_to_extent="1" type="line" name="7">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -180,8 +206,6 @@
         </layer>
       </symbol>
     </source-symbol>
-    <colorramp type="randomcolors" name="[source]"/>
-    <invertedcolorramp value="0"/>
     <rotation/>
     <sizescale scalemethod="diameter"/>
   </renderer-v2>
@@ -203,6 +227,7 @@
     <property key="labeling/bufferSizeInMapUnits" value="false"/>
     <property key="labeling/bufferSizeMapUnitMaxScale" value="0"/>
     <property key="labeling/bufferSizeMapUnitMinScale" value="0"/>
+    <property key="labeling/bufferSizeMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/bufferTransp" value="0"/>
     <property key="labeling/centroidInside" value="false"/>
     <property key="labeling/centroidWhole" value="false"/>
@@ -212,12 +237,13 @@
     <property key="labeling/distInMapUnits" value="false"/>
     <property key="labeling/distMapUnitMaxScale" value="0"/>
     <property key="labeling/distMapUnitMinScale" value="0"/>
+    <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/drawLabels" value="false"/>
     <property key="labeling/enabled" value="false"/>
     <property key="labeling/fieldName" value=""/>
     <property key="labeling/fitInPolygonOnly" value="false"/>
     <property key="labeling/fontCapitals" value="0"/>
-    <property key="labeling/fontFamily" value="MS Shell Dlg 2"/>
+    <property key="labeling/fontFamily" value="Ubuntu"/>
     <property key="labeling/fontItalic" value="false"/>
     <property key="labeling/fontLetterSpacing" value="0"/>
     <property key="labeling/fontLimitPixelSize" value="false"/>
@@ -227,15 +253,17 @@
     <property key="labeling/fontSizeInMapUnits" value="false"/>
     <property key="labeling/fontSizeMapUnitMaxScale" value="0"/>
     <property key="labeling/fontSizeMapUnitMinScale" value="0"/>
+    <property key="labeling/fontSizeMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/fontStrikeout" value="false"/>
     <property key="labeling/fontUnderline" value="false"/>
-    <property key="labeling/fontWeight" value="50"/>
+    <property key="labeling/fontWeight" value="63"/>
     <property key="labeling/fontWordSpacing" value="0"/>
     <property key="labeling/formatNumbers" value="false"/>
     <property key="labeling/isExpression" value="true"/>
     <property key="labeling/labelOffsetInMapUnits" value="true"/>
     <property key="labeling/labelOffsetMapUnitMaxScale" value="0"/>
     <property key="labeling/labelOffsetMapUnitMinScale" value="0"/>
+    <property key="labeling/labelOffsetMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/labelPerPart" value="false"/>
     <property key="labeling/leftDirectionSymbol" value="&lt;"/>
     <property key="labeling/limitNumLabels" value="false"/>
@@ -246,7 +274,7 @@
     <property key="labeling/minFeatureSize" value="0"/>
     <property key="labeling/multilineAlign" value="0"/>
     <property key="labeling/multilineHeight" value="1"/>
-    <property key="labeling/namedStyle" value="Normal"/>
+    <property key="labeling/namedStyle" value="Medium"/>
     <property key="labeling/obstacle" value="true"/>
     <property key="labeling/obstacleFactor" value="1"/>
     <property key="labeling/obstacleType" value="0"/>
@@ -263,6 +291,7 @@
     <property key="labeling/repeatDistance" value="0"/>
     <property key="labeling/repeatDistanceMapUnitMaxScale" value="0"/>
     <property key="labeling/repeatDistanceMapUnitMinScale" value="0"/>
+    <property key="labeling/repeatDistanceMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/repeatDistanceUnit" value="1"/>
     <property key="labeling/reverseDirectionSymbol" value="false"/>
     <property key="labeling/rightDirectionSymbol" value=">"/>
@@ -279,11 +308,13 @@
     <property key="labeling/shadowOffsetGlobal" value="true"/>
     <property key="labeling/shadowOffsetMapUnitMaxScale" value="0"/>
     <property key="labeling/shadowOffsetMapUnitMinScale" value="0"/>
+    <property key="labeling/shadowOffsetMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shadowOffsetUnits" value="1"/>
     <property key="labeling/shadowRadius" value="1.5"/>
     <property key="labeling/shadowRadiusAlphaOnly" value="false"/>
     <property key="labeling/shadowRadiusMapUnitMaxScale" value="0"/>
     <property key="labeling/shadowRadiusMapUnitMinScale" value="0"/>
+    <property key="labeling/shadowRadiusMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shadowRadiusUnits" value="1"/>
     <property key="labeling/shadowScale" value="100"/>
     <property key="labeling/shadowTransparency" value="30"/>
@@ -296,6 +327,7 @@
     <property key="labeling/shapeBorderWidth" value="0"/>
     <property key="labeling/shapeBorderWidthMapUnitMaxScale" value="0"/>
     <property key="labeling/shapeBorderWidthMapUnitMinScale" value="0"/>
+    <property key="labeling/shapeBorderWidthMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shapeBorderWidthUnits" value="1"/>
     <property key="labeling/shapeDraw" value="false"/>
     <property key="labeling/shapeFillColorA" value="255"/>
@@ -305,11 +337,13 @@
     <property key="labeling/shapeJoinStyle" value="64"/>
     <property key="labeling/shapeOffsetMapUnitMaxScale" value="0"/>
     <property key="labeling/shapeOffsetMapUnitMinScale" value="0"/>
+    <property key="labeling/shapeOffsetMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shapeOffsetUnits" value="1"/>
     <property key="labeling/shapeOffsetX" value="0"/>
     <property key="labeling/shapeOffsetY" value="0"/>
     <property key="labeling/shapeRadiiMapUnitMaxScale" value="0"/>
     <property key="labeling/shapeRadiiMapUnitMinScale" value="0"/>
+    <property key="labeling/shapeRadiiMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shapeRadiiUnits" value="1"/>
     <property key="labeling/shapeRadiiX" value="0"/>
     <property key="labeling/shapeRadiiY" value="0"/>
@@ -318,6 +352,7 @@
     <property key="labeling/shapeSVGFile" value=""/>
     <property key="labeling/shapeSizeMapUnitMaxScale" value="0"/>
     <property key="labeling/shapeSizeMapUnitMinScale" value="0"/>
+    <property key="labeling/shapeSizeMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/shapeSizeType" value="0"/>
     <property key="labeling/shapeSizeUnits" value="1"/>
     <property key="labeling/shapeSizeX" value="0"/>
@@ -334,8 +369,8 @@
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property key="variableNames"/>
+    <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
@@ -365,6 +400,7 @@
   <SingleCategoryDiagramRenderer diagramType="Pie">
     <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
   <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
