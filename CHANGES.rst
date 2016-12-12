@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.9.1 (unreleased)
+0.9.1 (2016-12-12)
 ------------------
 
 - Fix Travis build.
