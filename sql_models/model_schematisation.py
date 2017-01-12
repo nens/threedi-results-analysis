@@ -54,7 +54,6 @@ class CrossSectionDefinition(Base):
     width = Column(Float)
     height = Column(Float)
     shape = Column(Integer)  # PROFILE_SHAPES
-    _code = Column(String(100))  # nullable=False
 
 
 class ConnectionNode(Base):
@@ -76,7 +75,6 @@ class ConnectionNode(Base):
                                  nullable=True)
 
     # extra fields:
-    _code = Column(String(100), nullable=True)
     _basin_code = Column(String(4), nullable=True)
 
     manhole = relationship("Manhole",
@@ -115,7 +113,7 @@ class Manhole(Base):
     connection_node_id = Column(
             Integer, ForeignKey(ConnectionNode.__tablename__ + ".id"),
             nullable=False,
-            unique=True)  # extra compared to original
+            unique=True)
     connection_node = relationship(ConnectionNode,
                                    back_populates="manhole")
 
@@ -411,6 +409,8 @@ class Pumpstation(Base):
 
     sewerage = Column(Boolean, default=False)
     classification = Column(Integer)  # in use?
+    _type = Column(Integer, nullable=True, default=1, key='type')
+
 
     # relation ships
     connection_node_start_id = Column(
@@ -428,18 +428,16 @@ class Pumpstation(Base):
             ConnectionNode, foreign_keys=connection_node_end_id)
 
     # pump details
-    start_level_delivery_side = Column(Float)
-    stop_level_delivery_side = Column(Float)
-    start_level_suction_side = Column(Float)
-    stop_level_suction_side = Column(Float)
+    start_level = Column(Float)
+    lower_stop_level = Column(Float)
+    upper_stop_level = Column(Float)
     capacity = Column(Float)
 
 
 class Obstacle(Base):
-    __tablename__ = 'v2_levee'
+    __tablename__ = 'v2_obstacle'
 
     id = Column(Integer, primary_key=True)
-    _code = Column(String(100), nullable=True)  # extra
 
     crest_level = Column(Float)
     the_geom = Column(Geometry(geometry_type='LINESTRING',
@@ -449,12 +447,11 @@ class Obstacle(Base):
 
 
 class Levee(Base):
-    __tablename__ = 'v2_obstacle'
+    __tablename__ = 'v2_levee'
 
     LEVEE_MATERIALS = Constants.LEVEE_MATERIALS
 
     id = Column(Integer, primary_key=True)
-    _code = Column(String(100), nullable=True)  # extra
 
     crest_level = Column(Float)
     the_geom = Column(Geometry(geometry_type='LINESTRING',

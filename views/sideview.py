@@ -1171,10 +1171,14 @@ class SideViewDockWidget(QDockWidget):
 
         for pump in pump_layer.getFeatures():
 
-            start_upper_level = pump['start_level_suction_side']
-            end_upper_level = pump['start_level_delivery_side']
-            start_lower_level = pump['stop_level_suction_side']
-            end_lower_level = pump['stop_level_delivery_side']
+            start_upper_level = pump.get('start_level_suction_side',
+                                         pump.get('start_level', None))
+            end_upper_level = pump.get('start_level_delivery_side',
+                                       pump.get('upper_stop_level', None))
+            start_lower_level = pump.get('stop_level_suction_side',
+                                         pump.get('lower_stop_level', None))
+            end_lower_level = pump.get('stop_level_delivery_side',
+                                       pump.get('upper_stop_level', None))
             start_height = None
             end_height = None
 
