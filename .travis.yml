@@ -19,7 +19,8 @@ before_install:
     - python -c 'import PyQt4'
 
 install:
-    - pip install netCDF4 nose
+    # numpy and cython maybe needed for building netCDF4 (see netcdf4-python)
+    - pip install netCDF4 nose numpy==1.7.0 cython==0.19
 
 script:
     - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
