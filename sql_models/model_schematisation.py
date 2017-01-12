@@ -54,6 +54,7 @@ class CrossSectionDefinition(Base):
     width = Column(Float)
     height = Column(Float)
     shape = Column(Integer)  # PROFILE_SHAPES
+    code = Column(String(100), default='', nullable=False)
 
 
 class ConnectionNode(Base):
@@ -75,6 +76,7 @@ class ConnectionNode(Base):
                                  nullable=True)
 
     # extra fields:
+    code = Column(String(100), default='', nullable=False)
     _basin_code = Column(String(4), nullable=True)
 
     manhole = relationship("Manhole",
@@ -180,6 +182,7 @@ class CrossSectionLocation(Base):
     FRICTION_TYPE = Constants.FRICTION_TYPES
 
     id = Column(Integer, primary_key=True)
+    code = Column(String(100), default='', nullable=False)
     channel_id = Column(
         Integer, ForeignKey("v2_channel.id"),
         nullable=False)
@@ -438,6 +441,7 @@ class Obstacle(Base):
     __tablename__ = 'v2_obstacle'
 
     id = Column(Integer, primary_key=True)
+    code = Column(String(100), default='', nullable=False)
 
     crest_level = Column(Float)
     the_geom = Column(Geometry(geometry_type='LINESTRING',
@@ -452,6 +456,7 @@ class Levee(Base):
     LEVEE_MATERIALS = Constants.LEVEE_MATERIALS
 
     id = Column(Integer, primary_key=True)
+    code = Column(String(100), default='', nullable=False)
 
     crest_level = Column(Float)
     the_geom = Column(Geometry(geometry_type='LINESTRING',
