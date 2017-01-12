@@ -1176,16 +1176,14 @@ class SideViewDockWidget(QDockWidget):
                 end_upper_level = pump['start_level_delivery_side']
                 start_lower_level = pump['stop_level_suction_side']
                 end_lower_level = pump['stop_level_delivery_side']
+
             except KeyError:
-                pass
-            
-            try:
+
                 start_upper_level = pump['start_level']
                 end_upper_level = start_upper_level
                 start_lower_level = pump['lower_stop_level']
                 end_lower_level = start_lower_level
-            except KeyError:
-                pass
+
             start_height = None
             end_height = None
 

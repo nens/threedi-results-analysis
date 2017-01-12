@@ -387,13 +387,11 @@ class SufhydReader(object):
                     'display_name': code,
                     'start_node.code': get_code(gemaal.ide_gb1, gemaal.ide_kn1),
                     'end_node.code': get_code(gemaal.ide_gb2, gemaal.ide_kn2),
-                    'start_level_suction_side': getattr(
+                    'start_level': getattr(
                             gemaal, 'pmp_an%i' % i, None),
-                    'stop_level_suction_side': getattr(
+                    'lower_stop_level': getattr(
                             gemaal, 'pmp_af%i' % i, None),
-                    'start_level_delivery_side': getattr(
-                            gemaal, 'rel_an%i' % i, None),
-                    'stop_level_delivery_side': getattr(
+                    'upper_stop_level': getattr(
                             gemaal, 'rel_af%i' % i, None),
                     'capacity': getattr(gemaal, 'pmp_pc%i' % i, None),
                     'sewerage': True
