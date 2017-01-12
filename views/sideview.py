@@ -1169,16 +1169,21 @@ class SideViewDockWidget(QDockWidget):
             }
             lines.append(culvert_def)
 
+        field_names = [field.name() for field in pump_layer.pendingFields()]
         for pump in pump_layer.getFeatures():
 
-            start_upper_level = pump.get('start_level_suction_side',
-                                         pump.get('start_level', None))
-            end_upper_level = pump.get('start_level_delivery_side',
-                                       pump.get('upper_stop_level', None))
-            start_lower_level = pump.get('stop_level_suction_side',
-                                         pump.get('lower_stop_level', None))
-            end_lower_level = pump.get('stop_level_delivery_side',
-                                       pump.get('upper_stop_level', None))
+            if 'start_level_suction_side' in field_names:
+                start_upper_level = pump['start_level_suction_side']
+                end_upper_level = pump['start_level_delivery_side']
+                start_lower_level = pump['stop_level_suction_side']
+                end_lower_level = pump['stop_level_delivery_side']
+
+            else:
+                start_upper_level = pump['start_level']
+                end_upper_level = pump['upper_stop_level']
+                start_lower_level = pump['lower_stop_level']
+                end_lower_level = pump['upper_stop_level']
+
             start_height = None
             end_height = None
 

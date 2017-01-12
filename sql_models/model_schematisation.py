@@ -412,7 +412,7 @@ class Pumpstation(Base):
 
     sewerage = Column(Boolean, default=False)
     classification = Column(Integer)  # in use?
-    _type = Column(Integer, nullable=True, default=1, key='type')
+    type_ = Column(Integer, nullable=True, default=1, name='type')
 
 
     # relation ships
