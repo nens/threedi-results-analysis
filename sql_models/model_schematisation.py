@@ -76,8 +76,7 @@ class ConnectionNode(Base):
                                  nullable=True)
 
     # extra fields:
-    code = Column(String(100), default='', nullable=False)
-    _basin_code = Column(String(4), nullable=True)
+    code = Column(String(100), default='', nullable=True)
 
     manhole = relationship("Manhole",
                            uselist=False,

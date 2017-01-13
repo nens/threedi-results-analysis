@@ -283,7 +283,6 @@ class SufhydReader(object):
         manhole = {
             'code': code,
             'display_name': code,
-            '_basin_code': get_value(knp.ide_geb),
             'geom': point(multiply(knp.knp_xco, 0.001),
                           multiply(knp.knp_yco, 0.001),
                           28992),
