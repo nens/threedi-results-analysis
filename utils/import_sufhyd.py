@@ -88,7 +88,7 @@ class Importer(object):
             main function for performing all import tasks
         """
 
-        self.db.create_and_check_fields()
+        # self.db.create_and_check_fields()
 
         if self.file_type == 'sufhyd':
             data = self.load_sufhyd_data()
@@ -301,7 +301,6 @@ class Importer(object):
                     data['manholes'].append({
                         'code': bound_code,
                         'display_name': bound_code,
-                        '_basin_code': '',
                         'width': 1.0,
                         'length': 1.0,
                         'shape': Constants.MANHOLE_SHAPE_SQUARE,
@@ -401,8 +400,7 @@ class Importer(object):
                             srid)
             con_list.append(ConnectionNode(code=manhole['code'],
                             storage_area=manhole['storage_area'],
-                            the_geom="srid={0};{1}".format(srid, wkt),
-                            _basin_code=manhole['_basin_code']))
+                            the_geom="srid={0};{1}".format(srid, wkt)))
 
         session.bulk_save_objects(con_list)
         session.commit()
@@ -435,7 +433,6 @@ class Importer(object):
         man_list = []
         for manhole in data['manholes']:
             del manhole['geom']
-            del manhole['_basin_code']
             del manhole['storage_area']
 
             manhole['connection_node_id'] = con_dict[manhole['code']]
