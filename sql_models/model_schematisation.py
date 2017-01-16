@@ -247,8 +247,6 @@ class Pipe(Base):
     material = Column(Integer)  # MATERIALS
     pipe_quality = Column(Float)
 
-    _basin = Column(String(4), nullable=True)
-
 
 class Culvert(Base):
     # todo: check this definition with original

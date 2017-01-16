@@ -325,7 +325,6 @@ class SufhydReader(object):
         pipe = {
             'code': code,
             'display_name': code,
-            '_basin': get_value(leiding.ide_geb),
             'start_node.code': get_code(leiding.ide_geb, leiding.ide_kn1),
             'end_node.code': get_code(leiding.ide_geb, leiding.ide_kn2),
             'original_length': leiding.lei_len,
