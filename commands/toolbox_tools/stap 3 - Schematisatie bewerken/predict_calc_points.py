@@ -71,7 +71,6 @@ class CustomCommand(CustomCommandBase):
                   'is empty?'.format(len(features))
             level = 1
         messagebar_message("Finished",  msg, level=level, duration=12)
-
         cp_succces, cp_features = pal.fill_connected_pnts_table(
             calc_pnts_lyr=calc_pnts_lyr,
             output_layer=self.connected_pnts_lyr)

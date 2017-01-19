@@ -52,7 +52,7 @@ def get_query_strings(flavor, epsg_code):
             cn_end.the_geom, {epsg_code}
           )
         ) AS the_geom_end
-      , code
+      , m.code AS code
     FROM
       v2_manhole AS m
       ,v2_connection_nodes AS cn_end
@@ -95,7 +95,7 @@ def get_query_strings(flavor, epsg_code):
         ) as length
       , p.id
       , dist_calc_points
-      , code
+      , p.code
     FROM
       v2_pipe AS p
       ,v2_connection_nodes AS cn_start
@@ -134,7 +134,7 @@ def get_query_strings(flavor, epsg_code):
             cn_end.the_geom, {epsg_code}
           )
         ) AS the_geom_end
-      , code
+      , c.code
     FROM
       v2_culvert AS c
       ,v2_connection_nodes AS cn_start
@@ -176,7 +176,7 @@ def get_query_strings(flavor, epsg_code):
         ) as length
       , c.id
       , dist_calc_points
-      , code
+      , c.code
     FROM
       v2_channel AS c
       ,v2_connection_nodes AS cn_start

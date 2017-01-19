@@ -704,9 +704,10 @@ class Predictor(object):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         f = QgsFeature()
+        print "the_geom   ", the_geom
         f.setGeometry(the_geom)
         f.setAttributes(
-            [self._connect_pnt_id, -9999, calc_pnt_id, None]
+            [-9999, self._connect_pnt_id, calc_pnt_id, None]
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
@@ -723,16 +724,20 @@ class Predictor(object):
         data_provider = output_layer.dataProvider()
 
         field_names = [field.name() for field in calc_pnts_lyr.pendingFields()]
+        print "field_names   ", field_names
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
            calc_pnt = dict(zip(field_names, feat.attributes()))
+           print "calc_pnt  ", calc_pnt
            calc_type = calc_pnt['calc_type']
            if calc_type < 2:
                continue
+           print 'feat.geometry() ----', feat.geometry()
            self._add_connected_pnt_feature(
                feat.geometry(), calc_pnt_id=calc_pnt['id'],
            )
 
+        print "self._connected_pnt_features  ", self._connected_pnt_features
         succces, features = data_provider.addFeatures(self._connected_pnt_features)
         cnt_feat = len(features)
         if succces:
