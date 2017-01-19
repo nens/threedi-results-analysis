@@ -189,10 +189,10 @@ class CustomCommand(CustomCommandBase):
                 self.connected_pnt_lyr.deleteFeature(feature_id)
             if feature_id < 0:
                 feat.setAttribute('id', self._feat_id)
-            exchange_depth = connected_pnt['exchange_depth']
+            exchange_depth = connected_pnt['exchange_level']
             if isinstance(exchange_depth, QPyNullVariant):
                 exchange_depth = -9999
-            feat.setAttribute('exchange_depth', exchange_depth)
+            feat.setAttribute('exchange_level', exchange_depth)
             levee_id = self.find_levee_intersection(calc_pnt_feat, feat)
             if levee_id:
                 feat.setAttribute('levee_id', levee_id)

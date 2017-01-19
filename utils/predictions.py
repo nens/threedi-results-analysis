@@ -60,6 +60,7 @@ class Predictor(object):
          """
 
         self._uri = QgsDataSourceURI()
+        print(self._uri)
         host = kwargs['host']
         port = kwargs['port']
         database = kwargs['database']

@@ -41,8 +41,11 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
+
+        # db_set = {'username': '', 'host': u'/home/lars_claussen/Development/model_data/r0008_ba_test/r0008_ba_test.sqlite', 'name': '', 'database': '', 'db_path': u'/home/lars_claussen/Development/model_data/r0008_ba_test/r0008_ba_test.sqlite', 'password': '', 'port': '', 'schema': ''}
         pal = Predictor(db_type)
         uri = pal.get_uri(**db_set)
+        print(db_set)
         calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
         self.connected_pnts_lyr = pal.get_layer_from_uri(
