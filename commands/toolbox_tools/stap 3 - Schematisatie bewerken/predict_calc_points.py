@@ -43,6 +43,7 @@ class CustomCommand(CustomCommandBase):
     def run_it(self, db_set, db_type):
         pal = Predictor(db_type)
         uri = pal.get_uri(**db_set)
+        print db_set
         calc_pnts_lyr = pal.get_layer_from_uri(
             uri, 'v2_calculation_point', 'the_geom')
         self.connected_pnts_lyr = pal.get_layer_from_uri(
@@ -61,6 +62,7 @@ class CustomCommand(CustomCommandBase):
             transform='{epsg_code}:4326'.format(epsg_code=epsg_code)
         succces, features = pal.predict_points(
             output_layer=calc_pnts_lyr, transform=transform)
+
         if succces:
             msg = 'Predicted {} calculation points'.format(len(features))
             level = 3
@@ -73,7 +75,7 @@ class CustomCommand(CustomCommandBase):
         messagebar_message("Finished",  msg, level=level, duration=12)
         cp_succces, cp_features = pal.fill_connected_pnts_table(
             calc_pnts_lyr=calc_pnts_lyr,
-            output_layer=self.connected_pnts_lyr)
+            connected_pnts_lyr=self.connected_pnts_lyr)
         if cp_succces:
             cp_msg = 'Created {} connected points template'.format(len(cp_features))
             cp_level = 3

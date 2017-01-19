@@ -258,7 +258,6 @@ class Predictor(object):
                             name=name, id=object_id)
                     )
                     continue
-
                 # objects with a geometry have both a start- and endpoint
                 if the_geom is not None:
                     # embedded channels usually do not have a
@@ -585,6 +584,7 @@ class Predictor(object):
         self._set_coord_transformation(transform)
         for node_id, node_info in self.network_dict.iteritems():
             logger.debug("processing node_id {}".format(node_id))
+
             # for the first point we need the network calc_type
             node_calc_type = node_info['calc_type']
             # an entry for end_point means we have to use this his information
@@ -694,20 +694,28 @@ class Predictor(object):
             table_name=content_type,
             seq_id=id
         )
+
         f.setAttributes(
             [self._feat_id, content_type_id, ref_id, calc_type]
         )
         self._calc_pnt_features.append(f)
         self._feat_id += 1
 
-    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id):
+    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id, field_names):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
+        connected_pnt_data = {
+            'id': self._connect_pnt_id,
+            'exchange_level': -9999,
+            'calculation_pnt_id': calc_pnt_id,
+            'levee_id': None
+        }
         f = QgsFeature()
-        print "the_geom   ", the_geom
         f.setGeometry(the_geom)
+        fn_sorted = sorted(field_names, key=field_names.__getitem__)
+        attributes = [connected_pnt_data[fn] for fn in fn_sorted]
         f.setAttributes(
-            [-9999, self._connect_pnt_id, calc_pnt_id, None]
+            attributes
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
@@ -720,24 +728,31 @@ class Predictor(object):
         dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
         self._trans = QgsCoordinateTransform(src_crs, dest_crs)
 
-    def fill_connected_pnts_table(self, calc_pnts_lyr, output_layer):
-        data_provider = output_layer.dataProvider()
+    def fill_connected_pnts_table(self, calc_pnts_lyr, connected_pnts_lyr):
+        data_provider = connected_pnts_lyr.dataProvider()
+        connected_pnts_lyr_fields = connected_pnts_lyr.pendingFields()
+        field_names_connected_pnts_lyr = [
+            field.name() for field in connected_pnts_lyr_fields
+        ]
+        fn_dict_connected_pnts_lyr = {
+            fn:connected_pnts_lyr_fields.indexFromName(fn)
+            for fn in  field_names_connected_pnts_lyr
+        }
 
-        field_names = [field.name() for field in calc_pnts_lyr.pendingFields()]
-        print "field_names   ", field_names
+        field_names_calc_pnts = [
+            field.name() for field in calc_pnts_lyr.pendingFields()
+        ]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-           calc_pnt = dict(zip(field_names, feat.attributes()))
-           print "calc_pnt  ", calc_pnt
+           calc_pnt = dict(zip(field_names_calc_pnts, feat.attributes()))
            calc_type = calc_pnt['calc_type']
            if calc_type < 2:
                continue
-           print 'feat.geometry() ----', feat.geometry()
            self._add_connected_pnt_feature(
                feat.geometry(), calc_pnt_id=calc_pnt['id'],
+               field_names=fn_dict_connected_pnts_lyr,
            )
 
-        print "self._connected_pnt_features  ", self._connected_pnt_features
         succces, features = data_provider.addFeatures(self._connected_pnt_features)
         cnt_feat = len(features)
         if succces:
@@ -745,7 +760,7 @@ class Predictor(object):
                 "[*] Successfully saved {} features to the database".format(
                     cnt_feat)
             )
-            output_layer.updateExtents()
+            connected_pnts_lyr.updateExtents()
         else:
             logger.error(
                 'Error while saving {} feaures to database.'.format(cnt_feat)
