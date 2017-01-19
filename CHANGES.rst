@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.8.3 (unreleased)
 ------------------
 
+- Adopted the column names for the ``predict_calc_points`` command to the
+  newest 3Di migrations.
+    
 - Update cumulative aggregation methods.
 
 - The user_ref field now has the following format:
