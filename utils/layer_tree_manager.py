@@ -16,6 +16,7 @@ from ..stats.utils import (
     get_default_csv_path,
     )
 from . import styler
+from .threedi_database import ThreediDatabase
 
 
 def _clone_vector_layer(layer):
@@ -166,6 +167,10 @@ class LayerTreeManager(object):
 
         name = (self.model_layergroup_basename +
                 '/'.join((split_dir[-1], split[-1])))
+
+        # adjust spatialite for correct visualization of layers
+        threedi_db = ThreediDatabase({'db_path': filename})
+        threedi_db.fix_views()
 
         if self.model_layergroup is None:
             # todo: see if we can set 'tracer' as custom property to identify

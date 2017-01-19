@@ -22,7 +22,8 @@
       <category render="true" symbol="0" value="1d" label="1d"/>
       <category render="true" symbol="1" value="1d_bound" label="1d_bound"/>
       <category render="true" symbol="2" value="2d" label="2d"/>
-      <category render="true" symbol="3" value="" label=""/>
+      <category render="true" symbol="3" value="2d_bound" label="2d_bound"/>
+      <category render="true" symbol="4" value="" label=""/>
     </categories>
     <symbols>
       <symbol alpha="1" type="marker" name="0">

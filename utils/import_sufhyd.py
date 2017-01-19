@@ -88,7 +88,7 @@ class Importer(object):
             main function for performing all import tasks
         """
 
-        self.db.create_and_check_fields()
+        # self.db.create_and_check_fields()
 
         if self.file_type == 'sufhyd':
             data = self.load_sufhyd_data()
@@ -258,7 +258,7 @@ class Importer(object):
             'width': 1,
             'height': 1,
             'shape': Constants.SHAPE_ROUND,
-            '_code': 'default'
+            'code': 'default'
         }
 
         for obj_type in ['pipes', 'orifices', 'weirs']:
@@ -280,7 +280,7 @@ class Importer(object):
                 # add unique profiles to profile definition
                 if code not in profiles:
                     profiles[code] = crs
-                    profiles[code]['_code'] = code
+                    profiles[code]['code'] = code
 
                 obj['crs_code'] = code
 
@@ -301,7 +301,6 @@ class Importer(object):
                     data['manholes'].append({
                         'code': bound_code,
                         'display_name': bound_code,
-                        '_basin_code': '',
                         'width': 1.0,
                         'length': 1.0,
                         'shape': Constants.MANHOLE_SHAPE_SQUARE,
@@ -383,8 +382,8 @@ class Importer(object):
         session.commit()
 
         crs_list = session.query(CrossSectionDefinition).options(
-                load_only("id", "_code")).order_by(CrossSectionDefinition.id).all()
-        crs_dict = {m._code: m.id for m in crs_list}
+                load_only("id", "code")).order_by(CrossSectionDefinition.id).all()
+        crs_dict = {m.code: m.id for m in crs_list}
         del crs_list
 
         con_list = []
@@ -399,17 +398,16 @@ class Importer(object):
             wkt = transform("POINT({0} {1})".format(*manhole['geom']),
                             manhole['geom'][2],
                             srid)
-            con_list.append(ConnectionNode(_code=manhole['code'],
+            con_list.append(ConnectionNode(code=manhole['code'],
                             storage_area=manhole['storage_area'],
-                            the_geom="srid={0};{1}".format(srid, wkt),
-                            _basin_code=manhole['_basin_code']))
+                            the_geom="srid={0};{1}".format(srid, wkt)))
 
         session.bulk_save_objects(con_list)
         session.commit()
 
         con_list = session.query(ConnectionNode).options(
-                load_only("id", "_code")).order_by(ConnectionNode.id).all()
-        con_dict = {m._code: m.id for m in con_list}
+                load_only("id", "code")).order_by(ConnectionNode.id).all()
+        con_dict = {m.code: m.id for m in con_list}
         del con_list
 
         # add extra references for link nodes (one node, multiple linked codes
@@ -435,7 +433,6 @@ class Importer(object):
         man_list = []
         for manhole in data['manholes']:
             del manhole['geom']
-            del manhole['_basin_code']
             del manhole['storage_area']
 
             manhole['connection_node_id'] = con_dict[manhole['code']]

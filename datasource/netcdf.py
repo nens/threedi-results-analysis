@@ -326,9 +326,11 @@ class NetcdfDataSource(object):
         self.end_1d_line = (self.nFlowLine - self.nFlowLine2dBounds -
                             self.nFlowLine1dBounds)
         assert (
-            self.end_n1dtot <= self.end_n2dobc <= self.nodall and
-            self.end_2d_bound_line <= self.end_1d_line <= self.nFlowLine
-            ), "Inconsistent attribute values in netCDF"
+            self.end_n1dtot <= self.end_n2dobc <= self.nodall
+            ), "Inconsistent node attribute values in netCDF"
+        assert (
+            self.end_1d_line <= self.end_2d_bound_line <= self.nFlowLine
+            ), "Inconsistent line attribute values in netCDF"
 
     @cached_property
     def id_mapping(self):

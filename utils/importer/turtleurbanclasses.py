@@ -238,12 +238,11 @@ class HydroObject:
 
     @classmethod
     def getType(cls, key):
-        # todo: create short keys at class creation to improve speed
         shortKey = cls.shortSufHydKey(key)
-        # if shortKey is not None:
-        return cls.types[shortKey]
-        # else:
-        #    return (str, len(key))
+        if shortKey is not None:
+            return cls.types[shortKey]
+        else:
+            return str, len(key)
 
     def translateFields(self):
         for key in self.fields:

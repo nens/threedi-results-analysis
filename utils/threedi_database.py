@@ -99,6 +99,22 @@ class ThreediDatabase(object):
     def get_session(self):
         return sessionmaker(bind=self.engine)()
 
+    def fix_views(self):
+        """fixes views in spatialite by disabeling indexes for views
+
+        """
+        if self.db_type == 'spatialite':
+            session = self.get_session()
+
+            session.execute("""SELECT DisableSpatialIndex('v2_connection_nodes',
+                                                          'the_geom_linestring');""")
+
+            session.execute("""SELECT RecoverSpatialIndex('v2_impervious_surface',
+                                                          'the_geom');""")
+
+            session.commit()
+
+
 def get_databases():
     d = {}
     qs = QSettings()
@@ -158,3 +174,4 @@ def get_databases():
     available_dbs = collections.OrderedDict(sorted(d.items()))
 
     return available_dbs
+

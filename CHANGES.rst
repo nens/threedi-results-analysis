@@ -2,12 +2,29 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.8.3 (unreleased)
+0.9.2 (unreleased)
 ------------------
+
 
 - Adopted the column names for the ``predict_calc_points`` command to the
   newest 3Di migrations.
-    
+ 
+
+
+0.9.1 (2016-12-12)
+------------------
+
+- Fix Travis build.
+
+- Bugfix import sufhyd.
+
+- Fix assertion in netCDF datasource and update QML styling.
+
+
+0.9 (2016-11-28)
+----------------
+
+
 - Update cumulative aggregation methods.
 
 - The user_ref field now has the following format:

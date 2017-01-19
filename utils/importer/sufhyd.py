@@ -283,7 +283,6 @@ class SufhydReader(object):
         manhole = {
             'code': code,
             'display_name': code,
-            '_basin_code': get_value(knp.ide_geb),
             'geom': point(multiply(knp.knp_xco, 0.001),
                           multiply(knp.knp_yco, 0.001),
                           28992),
@@ -326,7 +325,6 @@ class SufhydReader(object):
         pipe = {
             'code': code,
             'display_name': code,
-            '_basin': get_value(leiding.ide_geb),
             'start_node.code': get_code(leiding.ide_geb, leiding.ide_kn1),
             'end_node.code': get_code(leiding.ide_geb, leiding.ide_kn2),
             'original_length': leiding.lei_len,
@@ -387,13 +385,11 @@ class SufhydReader(object):
                     'display_name': code,
                     'start_node.code': get_code(gemaal.ide_gb1, gemaal.ide_kn1),
                     'end_node.code': get_code(gemaal.ide_gb2, gemaal.ide_kn2),
-                    'start_level_suction_side': getattr(
+                    'start_level': getattr(
                             gemaal, 'pmp_an%i' % i, None),
-                    'stop_level_suction_side': getattr(
+                    'lower_stop_level': getattr(
                             gemaal, 'pmp_af%i' % i, None),
-                    'start_level_delivery_side': getattr(
-                            gemaal, 'rel_an%i' % i, None),
-                    'stop_level_delivery_side': getattr(
+                    'upper_stop_level': getattr(
                             gemaal, 'rel_af%i' % i, None),
                     'capacity': getattr(gemaal, 'pmp_pc%i' % i, None),
                     'sewerage': True

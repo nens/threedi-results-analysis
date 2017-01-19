@@ -66,10 +66,9 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['connection_node_start.basin'], None)
         self.assertEqual(obj.data['connection_node_start.code'], '00000IILST')
         self.assertEqual(obj.data['connection_node_end.code'], '0000GEMAAL')
-        self.assertEqual(obj.data['start_level_suction_side'], 12.66)
-        self.assertEqual(obj.data['stop_level_suction_side'], 12.61)
-        self.assertEqual(obj.data['start_level_delivery_side'], None)
-        self.assertEqual(obj.data['stop_level_delivery_side'], None)
+        self.assertEqual(obj.data['start_level'], 12.66)
+        self.assertEqual(obj.data['lower_stop_level'], 12.61)
+        self.assertEqual(obj.data['upper_stop_level'], None)
         self.assertEqual(obj.data['capacity'], 625.83)
 
     def test_overstort(self):
