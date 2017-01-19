@@ -707,7 +707,8 @@ class Predictor(object):
         f = QgsFeature()
         f.setGeometry(the_geom)
         f.setAttributes(
-            [self._connect_pnt_id, -9999, calc_pnt_id, None]
+            # [-9999, self._connect_pnt_id, calc_pnt_id, None]
+            [self._connect_pnt_id, -9999 , calc_pnt_id, None]
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
