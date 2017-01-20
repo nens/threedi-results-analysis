@@ -258,7 +258,6 @@ class Predictor(object):
                             name=name, id=object_id)
                     )
                     continue
-
                 # objects with a geometry have both a start- and endpoint
                 if the_geom is not None:
                     # embedded channels usually do not have a
@@ -270,8 +269,7 @@ class Predictor(object):
                     # be divided my the threedicore
                     cnt_segments = max(
                         int(round(
-                            line_length / (dist_calc_points * 1.0))
-                        ), 1
+                            line_length / (dist_calc_points * 1.0))), 1
                     )
                     start_point['calc_type'] = calc_type
                     start_point['content_type'] = name
@@ -343,17 +341,16 @@ class Predictor(object):
                         )
                         if elected:
                             self.network_dict[
-                                connection_node_end]['end_point'
-                            ] = end_point
+                                connection_node_end]['end_point'] = end_point
 
     @staticmethod
     def _fill_end_pnt_dict(end_pnt_dict, name, object_id, code, the_geom_end,
                            dist_calc_points=None, cnt_segments=1):
         """
         All object with a line geometry have a complete set of end point
-        attributes. This is the default. Because manholes have to be treated in a
-        special manner this functions provides defaults for the attributes
-        dist_calc_points and cnt_segments.
+        attributes. This is the default. Because manholes have to be
+        treated in a special manner this functions provides defaults
+        for the attributes dist_calc_points and cnt_segments.
         """
         if not end_pnt_dict:
             end_pnt_dict['content_type'] = name
@@ -585,6 +582,7 @@ class Predictor(object):
         self._set_coord_transformation(transform)
         for node_id, node_info in self.network_dict.iteritems():
             logger.debug("processing node_id {}".format(node_id))
+
             # for the first point we need the network calc_type
             node_calc_type = node_info['calc_type']
             # an entry for end_point means we have to use this his information
@@ -602,7 +600,8 @@ class Predictor(object):
                 last_seq_id = end_point['cnt_segments']
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
-                if any([self._obj_leads(node_id, content_type, content_type_id),
+                if any([
+                    self._obj_leads(node_id, content_type, content_type_id),
                         last_seq_id == 1]):
                     last_seq_id += 1
                 self._add_calc_pnt_feature(
@@ -677,8 +676,9 @@ class Predictor(object):
             )
         return succces, features
 
-    def _add_calc_pnt_feature(self, calc_type, pnt_geom, content_type_id,
-                     content_type, code, id):
+    def _add_calc_pnt_feature(
+            self, calc_type, pnt_geom, content_type_id,
+            content_type, code, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         f = QgsFeature()
@@ -694,19 +694,28 @@ class Predictor(object):
             table_name=content_type,
             seq_id=id
         )
+
         f.setAttributes(
             [self._feat_id, content_type_id, ref_id, calc_type]
         )
         self._calc_pnt_features.append(f)
         self._feat_id += 1
 
-    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id):
+    def _add_connected_pnt_feature(self, the_geom, calc_pnt_id, field_names):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
+        connected_pnt_data = {
+            'id': self._connect_pnt_id,
+            'exchange_level': -9999,
+            'calculation_pnt_id': calc_pnt_id,
+            'levee_id': None
+        }
         f = QgsFeature()
         f.setGeometry(the_geom)
+        fn_sorted = sorted(field_names, key=field_names.__getitem__)
+        attributes = [connected_pnt_data[fn] for fn in fn_sorted]
         f.setAttributes(
-            [self._connect_pnt_id, -9999, calc_pnt_id, None]
+            attributes
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
@@ -719,37 +728,43 @@ class Predictor(object):
         dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
         self._trans = QgsCoordinateTransform(src_crs, dest_crs)
 
-    def fill_connected_pnts_table(self, calc_pnts_lyr, output_layer):
-        data_provider = output_layer.dataProvider()
+    def fill_connected_pnts_table(self, calc_pnts_lyr, connected_pnts_lyr):
+        data_provider = connected_pnts_lyr.dataProvider()
+        connected_pnts_lyr_fields = connected_pnts_lyr.pendingFields()
+        field_names_connected_pnts_lyr = [
+            field.name() for field in connected_pnts_lyr_fields
+        ]
+        fn_dict_connected_pnts_lyr = {
+            fn: connected_pnts_lyr_fields.indexFromName(fn)
+            for fn in field_names_connected_pnts_lyr
+        }
 
-        field_names = [field.name() for field in calc_pnts_lyr.pendingFields()]
+        field_names_calc_pnts = [
+            field.name() for field in calc_pnts_lyr.pendingFields()
+        ]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-           calc_pnt = dict(zip(field_names, feat.attributes()))
-           calc_type = calc_pnt['calc_type']
-           if calc_type < 2:
-               continue
-           self._add_connected_pnt_feature(
-               feat.geometry(), calc_pnt_id=calc_pnt['id'],
-           )
+            calc_pnt = dict(zip(field_names_calc_pnts, feat.attributes()))
+            calc_type = calc_pnt['calc_type']
+            if calc_type < 2:
+                continue
+            self._add_connected_pnt_feature(
+                feat.geometry(), calc_pnt_id=calc_pnt['id'],
+                field_names=fn_dict_connected_pnts_lyr,
+            )
 
-        succces, features = data_provider.addFeatures(self._connected_pnt_features)
+        succces, features = data_provider.addFeatures(
+            self._connected_pnt_features
+        )
         cnt_feat = len(features)
         if succces:
             logger.info(
                 "[*] Successfully saved {} features to the database".format(
                     cnt_feat)
             )
-            output_layer.updateExtents()
+            connected_pnts_lyr.updateExtents()
         else:
             logger.error(
                 'Error while saving {} feaures to database.'.format(cnt_feat)
             )
         return succces, features
-
-
-
-
-
-
-
