@@ -624,10 +624,10 @@ class Importer(object):
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Manhole connected to impervious services not found',
+                    'Manhole connected to impervious surface not found',
                     {},
-                    'Node {node} of impervious service map connected to '
-                    'impervious service with code {code} not found',
+                    'Node {node} of impervious surface map connected to '
+                    'impervious surface with code {code} not found',
                     {'node': imp_map['node.code'], 'code': imp_map['imp_surface.code']}
                 )
                 continue
