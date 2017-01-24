@@ -546,10 +546,10 @@ class SufhydReader(object):
 
             connection_nodes.append(get_code(afvopp.ide_gb2, afvopp.ide_kn2))
 
-        if afvopp.num_mvb is not None and afvopp.num_mvb != '':
-            connection_nodes.append(str(afvopp.num_mvb))
-
         base_code = '-'.join(connection_nodes)
+
+        if afvopp.num_mvb is not None and afvopp.num_mvb != '':
+            base_code += '-' + str(afvopp.num_mvb)
 
         for class_type in ['gvh', 'ovh', 'dak', 'onv']:
 
