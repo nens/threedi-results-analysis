@@ -52,8 +52,8 @@ from turtleurbanclasses import isSufHydKey
 import logging
 import re
 import mock
-# handler = mock.Handler(level=logging.DEBUG)
-# logging.getLogger('').addHandler(handler)
+handler = logging.Handler(level=logging.DEBUG)
+logging.getLogger('').addHandler(handler)
 
 
 class MockWriter(file):
