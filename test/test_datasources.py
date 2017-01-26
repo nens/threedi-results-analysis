@@ -125,9 +125,6 @@ class TestSpatialiteDataSource(unittest.TestCase):
         pr.addFeatures([feat])
         self.assertEqual(layer.featureCount(), 1)
 
-    def test_import_layer(self):
-        spl = Spatialite(self.spatialite_path + '3')
-
         # create memory layer
         uri = "Point?crs=epsg:4326&index=yes"
         layer = QgsVectorLayer(uri, "test_layer", "memory")
@@ -148,8 +145,8 @@ class TestSpatialiteDataSource(unittest.TestCase):
         feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(1.0, 2.0)))
         pr.addFeatures([feat])
 
-        spl_layer = spl.import_layer(layer, 'table_one', 'id')
+        spl_layer = spl.import_layer(layer, 'table_two', 'id')
 
         self.assertIsNotNone(spl_layer)
-        self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
+        self.assertTrue('table_two' in [c[1] for c in spl.getTables()])
         self.assertEqual(layer.featureCount(), 1)
