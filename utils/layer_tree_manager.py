@@ -27,7 +27,7 @@ def _clone_vector_layer(layer):
 
 class LayerTreeManager(object):
 
-    model_layergroup_basename = '3di model: '
+    model_layergroup_basename = '3Di model: '
     schematisation_group_name = 'schematisation'
     schematisation_oned_group_name = '1d'
     schematisation_twod_group_name = '2d'
@@ -106,7 +106,7 @@ class LayerTreeManager(object):
             tree_node: a QgsLayerTreeGroup or QgsLayerTreeLayer instance
             marker: property value
         """
-        tree_node.setCustomProperty('legend/3di_tracer', marker)
+        tree_node.setCustomProperty('legend/3Di_tracer', marker)
 
     @staticmethod
     def _find_marked_child(tree_node, marker):
@@ -115,7 +115,7 @@ class LayerTreeManager(object):
             return None
 
         for node in tree_node.children():
-            if node.customProperty('legend/3di_tracer') == unicode(marker):
+            if node.customProperty('legend/3Di_tracer') == unicode(marker):
                 return node
         return None
 

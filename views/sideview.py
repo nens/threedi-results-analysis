@@ -71,7 +71,7 @@ except AttributeError:
 
 
 INTERPOLATION_PHYSICAL = 0 # interpolation based on all profiles
-INTERPOLATION_CALCULATION = 1 # interpolation as the 3di calculation core is
+INTERPOLATION_CALCULATION = 1 # interpolation as the 3Di calculation core is
                               # performing the interpolation. for bottom
                               # and surface level use profiles close to
                               # calculation points. For height (profile) first
@@ -900,7 +900,7 @@ class SideViewMapVisualisation(object):
 
 
 class SideViewDockWidget(QDockWidget):
-    """Main Dock Widget for showing 3di results in Graphs"""
+    """Main Dock Widget for showing 3Di results in Graphs"""
 
     # todo:
     # punten verplaatsen
@@ -1581,7 +1581,7 @@ class SideViewDockWidget(QDockWidget):
 
     def retranslate_ui(self, dock_widget):
         dock_widget.setWindowTitle(_translate(
-            "DockWidget", "3di sideview %i" % self.nr, None))
+            "DockWidget", "3Di sideview %i" % self.nr, None))
         self.select_sideview_button.setText(_translate(
             "DockWidget", "Kies sideview traject", None))
 

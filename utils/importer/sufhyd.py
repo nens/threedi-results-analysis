@@ -26,7 +26,7 @@ shape_mapping = {
     '01': Constants.SHAPE_EGG,
     '02': Constants.SHAPE_RECTANGLE,
     '99': None
-}  # not supported in 3di or in import: 03 - U-vorm, 04 - heul, 05 - muil en 06 - trapezium
+}  # not supported in 3Di or in import: 03 - U-vorm, 04 - heul, 05 - muil en 06 - trapezium
 
 
 manhole_shape_mapping = {

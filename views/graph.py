@@ -704,7 +704,7 @@ class GraphWidget(QWidget):
 
 
 class GraphDockWidget(QDockWidget):
-    """Main Dock Widget for showing 3di results in Graphs"""
+    """Main Dock Widget for showing 3Di results in Graphs"""
 
     closingWidget = pyqtSignal(int)
 
@@ -806,7 +806,7 @@ class GraphDockWidget(QDockWidget):
             elif current_layer.name() in ('flowlines', 'nodes'):
                 tdi_layer = True
 
-        #activate button if 3di layers found
+        #activate button if 3Di layers found
         self.addSelectedObjectButton.setEnabled(tdi_layer)
 
     def add_objects(self):
@@ -890,6 +890,6 @@ class GraphDockWidget(QDockWidget):
 
     def retranslate_ui(self, DockWidget):
         DockWidget.setWindowTitle(_translate(
-            "DockWidget", "3di resultaat grafieken %i" % self.nr, None))
+            "DockWidget", "3Di resultaat grafieken %i" % self.nr, None))
         self.addSelectedObjectButton.setText(_translate(
             "DockWidget", "Voeg toe", None))

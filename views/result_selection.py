@@ -50,7 +50,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 self.select_model_spatialite_file)
 
         # set combobox list
-        combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
+        combo_list = [ds for ds in self.get_3Di_spatialites_legendlist()]
 
         if self.ts_datasource.model_spatialite_filepath and \
                 self.ts_datasource.model_spatialite_filepath not in combo_list:
@@ -103,7 +103,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :return: boolean, if file is selected
         """
 
-        settings = QSettings('3di', 'qgisplugin')
+        settings = QSettings('3Di', 'qgisplugin')
 
         try:
             init_path = settings.value('last_used_datasource_path', type=str)
@@ -152,7 +152,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         for row in reversed(sorted(rows)):
             self.ts_datasource.removeRows(row,1)
 
-    def get_3di_spatialites_legendlist(self):
+    def get_3Di_spatialites_legendlist(self):
         """
         Get list of spatialite data sources currently active in canvas
         :return: list of strings, unique spatialite paths
@@ -188,7 +188,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :return: Boolean, if file is selected
         """
 
-        settings = QSettings('3di', 'qgisplugin')
+        settings = QSettings('3Di', 'qgisplugin')
 
         try:
             init_path = settings.value('last_used_spatialite_path', type=str)
@@ -196,7 +196,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             init_path = os.path.expanduser("~")
 
         filename = QFileDialog.getOpenFileName(self,
-                                               'Open 3di model spatialite file',
+                                               'Open 3Di model spatialite file',
                                                init_path ,
                                                'Spatialite (*.sqlite)')
 

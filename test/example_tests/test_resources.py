@@ -8,7 +8,7 @@
 
 """
 
-__author__ = 'bastiaan.roos@nelen-schuurmans.nl'
+__author__ = 'servicedesk@nelen-schuurmans.nl'
 __date__ = '2016-03-04'
 __copyright__ = 'Copyright 2016, Nelen&Schuurmans'
 
