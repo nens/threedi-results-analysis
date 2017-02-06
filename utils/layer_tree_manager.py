@@ -106,7 +106,7 @@ class LayerTreeManager(object):
             tree_node: a QgsLayerTreeGroup or QgsLayerTreeLayer instance
             marker: property value
         """
-        tree_node.setCustomProperty('legend/3Di_tracer', marker)
+        tree_node.setCustomProperty('legend/3di_tracer', marker)
 
     @staticmethod
     def _find_marked_child(tree_node, marker):
@@ -115,7 +115,7 @@ class LayerTreeManager(object):
             return None
 
         for node in tree_node.children():
-            if node.customProperty('legend/3Di_tracer') == unicode(marker):
+            if node.customProperty('legend/3di_tracer') == unicode(marker):
                 return node
         return None
 
