@@ -50,7 +50,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
     def select_sufhyd_file(self):
 
-        settings = QSettings('3Di', 'qgisplugin')
+        settings = QSettings('3di', 'qgisplugin')
 
         try:
             init_path = settings.value('last_used_import_path', type=str)
