@@ -2,13 +2,13 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin for working with 3di
+                                 A QGIS plugin for working with 3Di
                                  hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
         copyright            : (C) 2016 by Nelen&Schuurmans
-        email                : bastiaan.roos@nelen-schuurmans.nl
+        email                : servicedesk@nelen-schuurmans.nl
  ***************************************************************************/
 
 /***************************************************************************
@@ -80,7 +80,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&3di toolbox')
+        self.menu = self.tr(u'&3Di toolbox')
 
         self.ts_datasource = TimeseriesDatasourceModel()
 
@@ -218,9 +218,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         except ImportError:
             pass
 
-        # add 3di logo and about info (doing nothing right now)
+        # add 3Di logo and about info (doing nothing right now)
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
-        action = QAction(icon, "3di about", self.iface.mainWindow())
+        action = QAction(icon, "3Di about", self.iface.mainWindow())
         action.triggered.connect(self.about)
         action.setEnabled(True)
         self.toolbar.addAction(action)
@@ -284,7 +284,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 os.path.dirname(__file__),
                 'version.rst')).readline().rstrip()
 
-        pop_up_info("3di Tools versie %s"%version,
+        pop_up_info("3Di Tools versie %s"%version,
                     "About", self.iface.mainWindow())
 
     def unload(self):
@@ -296,7 +296,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&3di toolbox'),
+                self.tr(u'&3Di toolbox'),
                 action)
             self.iface.removeToolBarIcon(action)
 

@@ -7,11 +7,6 @@
      (at your option) any later version.
 
 """
-
-__author__ = 'bastiaan.roos@nelen-schuurmans.nl'
-__date__ = '2016-03-04'
-__copyright__ = 'Copyright 2016, Nelen&Schuurmans'
-
 import unittest
 
 from PyQt4.QtGui import QIcon

@@ -2,13 +2,13 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin for working with 3di
+                                 A QGIS plugin for working with 3Di
                                  hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
         copyright            : (C) 2016 by Nelen&Schuurmans
-        email                : bastiaan.roos@nelen-schuurmans.nl
+        email                : servicedesk@nelen-schuurmans.nl
  ***************************************************************************/
 
 /***************************************************************************
@@ -47,7 +47,7 @@ class ThreeDiGraph:
         self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ':/plugins/ThreeDiToolbox/icon_graph.png'
-        self.menu_text = u'Show 3di results in Graph'
+        self.menu_text = u'Show 3Di results in Graph'
 
         self.dock_widgets = []
         self.widget_nr = 0

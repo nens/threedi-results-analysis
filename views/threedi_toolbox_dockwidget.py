@@ -2,13 +2,13 @@
 """
 /***************************************************************************
  ThreeDiToolboxDockWidget
-                                 A QGIS plugin for working with 3di
+                                 A QGIS plugin for working with 3Di
                                  hydraulic models
                              -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
         copyright            : (C) 2016 by Nelen&Schuurmans
-        email                : bastiaan.roos@nelen-schuurmans.nl
+        email                : servicedesk@nelen-schuurmans.nl
  ***************************************************************************/
 
 /***************************************************************************

@@ -1,10 +1,10 @@
 Plugin Builder Results
 
 Your plugin ThreeDiToolbox was created in:
-    C:\Users\bastiaan.roos\.qgis2\python\plugins\threediToolbox\ThreeDiToolbox
+    C:\Users\<username>\.qgis2\python\plugins\threediToolbox\ThreeDiToolbox
 
 Your QGIS plugin directory is located at:
-    C:/Users/bastiaan.roos/.qgis2/python/plugins
+    C:/Users/<username>/.qgis2/python/plugins
 
 What's Next:
 

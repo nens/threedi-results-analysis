@@ -7,14 +7,14 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=3di toolbox
+name=3Di toolbox
 qgisMinimumVersion=2.14
-description=Toolbox for working with 3di hydraulic models
+description=Toolbox for working with 3Di hydraulic models
 version=0.9.2
 author=Nelen&Schuurmans
-email=bastiaan.roos@nelen-schuurmans.nl
+email=servicedesk@nelen-schuurmans.nl
 
-about=Toolbox for working with hydraulic 3di models. This includes tools for data validation, model creation and working with results. Use the QGIS 64-bit version on Windows.
+about=Toolbox for working with hydraulic 3Di models. This includes tools for data validation, model creation and working with results. Use the QGIS 64-bit version on Windows. Version conflicts between 3Di calculation results and this plugin might occur as this plugin is a béta product. We expressly disclaim any guarantee or warranty of compatibility between the two.
 
 tracker=https://github.com/nens/threedi-qgis-plugin
 repository=https://github.com/nens/threedi-qgis-plugin

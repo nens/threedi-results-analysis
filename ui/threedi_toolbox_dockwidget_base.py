@@ -84,7 +84,7 @@ class Ui_Form(object):
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle(_translate("Form", "3di toolbox", None))
+        Form.setWindowTitle(_translate("Form", "3Di toolbox", None))
         self.checkBox.setText(_translate("Form", "auto update logboek", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Form", "Toolbox", None))
         self.pushButton.setText(_translate("Form", "PushButton", None))

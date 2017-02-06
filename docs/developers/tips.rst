@@ -19,7 +19,7 @@ For debugging under pycharm (under Windows):
     path %PATH%;%OSGEO4W_ROOT%\apps\qgis\bin;
 
     set PYTHONPATH=%PYTHONPATH%;%OSGEO4W_ROOT%\apps\qgis\python;
-    set PYTHONPATH=%PYTHONPATH%;C:\Users\bastiaan.roos\.qgis2\python\plugins
+    set PYTHONPATH=%PYTHONPATH%;C:\Users\servicedesk\.qgis2\python\plugins
     set PYTHONPATH=%PYTHONPATH%;%OSGEO4W_ROOT%\apps\Python27\Lib\site-packages
     set QGIS_PREFIX_PATH=%OSGEO4W_ROOT%\apps\qgis
     cd %HOMEPATH%\development

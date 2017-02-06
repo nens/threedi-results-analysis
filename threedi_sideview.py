@@ -2,13 +2,13 @@
 """
 /***************************************************************************
  ThreeDiToolbox
-                                 A QGIS plugin for working with 3di
+                                 A QGIS plugin for working with 3Di
                                  hydraulic models
                               -------------------
         begin                : 2016-03-04
         git sha              : $Format:%H$
         copyright            : (C) 2016 by Nelen&Schuurmans
-        email                : bastiaan.roos@nelen-schuurmans.nl
+        email                : servicedesk@nelen-schuurmans.nl
  ***************************************************************************/
 
 /***************************************************************************
@@ -37,7 +37,7 @@ class ThreeDiSideView:
             which provides the hook by which you can manipulate the QGIS
             application at run time.
         :type iface: QgsInterface
-        :param tdi_root_tool: 3di root tool instance
+        :param tdi_root_tool: 3Di root tool instance
         :type tdi_root_tool: ThreeDiTools
         """
         # Save reference to the QGIS interface
@@ -48,7 +48,7 @@ class ThreeDiSideView:
         self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ':/plugins/ThreeDiToolbox/icon_route.png'
-        self.menu_text = u'Show sideview of 3di model with results'
+        self.menu_text = u'Show sideview of 3Di model with results'
 
         self.dock_widgets = []
         self.widget_nr = 0

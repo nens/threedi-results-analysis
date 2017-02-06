@@ -27,7 +27,7 @@ def _clone_vector_layer(layer):
 
 class LayerTreeManager(object):
 
-    model_layergroup_basename = '3di model: '
+    model_layergroup_basename = '3Di model: '
     schematisation_group_name = 'schematisation'
     schematisation_oned_group_name = '1d'
     schematisation_twod_group_name = '2d'

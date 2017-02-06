@@ -196,7 +196,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             init_path = os.path.expanduser("~")
 
         filename = QFileDialog.getOpenFileName(self,
-                                               'Open 3di model spatialite file',
+                                               'Open 3Di model spatialite file',
                                                init_path ,
                                                'Spatialite (*.sqlite)')
 
