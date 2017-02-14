@@ -137,7 +137,7 @@ zip_old_unused: deploy dclean
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
-zip: compile doc transcompile
+zip: compile transcompile
 	@echo
 	@echo "---------------------------"
 	@echo "Creating plugin zip bundle."
