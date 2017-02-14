@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.9.4 (unreleased)
+0.9.4 (2017-02-14)
 ------------------
 
 - Nothing changed yet.
