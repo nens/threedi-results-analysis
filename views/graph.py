@@ -139,6 +139,7 @@ class GraphPlot(pg.PlotWidget):
         self.parent = parent
 
     def enable_absolute(self):
+        # TODO: don't do this, use signals instead to enable communication between widgets
         return self.parent.parent.checkbox.isChecked()
 
     def on_close(self):
