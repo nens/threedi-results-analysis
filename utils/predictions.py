@@ -598,12 +598,12 @@ class Predictor(object):
                     end_point['the_geom_end']
                 )
                 last_seq_id = end_point['cnt_segments']
+                if code == '195':
+                    print("last_seq_id ", last_seq_id)
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
-                if any([
-                    self._obj_leads(node_id, content_type, content_type_id),
-                        last_seq_id == 1]):
-                    last_seq_id += 1
+                last_seq_id += 1
+
                 self._add_calc_pnt_feature(
                     calc_type=node_calc_type, pnt_geom=pnt_geom,
                     content_type_id=content_type_id, content_type=content_type,
@@ -612,7 +612,7 @@ class Predictor(object):
                 node_has_been_added = True
                 start_id = 2
             start_points = node_info.get('start_points')
-            for i, start_point in enumerate(start_points):
+            for start_pnt_cnt, start_point in enumerate(start_points):
                 content_type = start_point['content_type']
                 content_type_id = start_point['content_type_id']
                 code = start_point['code']
@@ -622,7 +622,7 @@ class Predictor(object):
                     start_point['dist_calc_pnts'],
                     start_point['line_length']
                 )
-                logger.debug("processing start point {}".format(i))
+                logger.debug("processing start point {}".format(start_pnt_cnt))
                 line_geom = QgsGeometry.fromWkt(
                     start_point['the_geom']
                 )
