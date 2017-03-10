@@ -5,7 +5,8 @@ threedi-qgis-plugin changelog
 0.9.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Bugfix predict calcualtion points: For endpoints always enumerate the
+  ``last_seq_id`` by one.
 
 
 0.9.2 (2017-02-14)
