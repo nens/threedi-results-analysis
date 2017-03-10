@@ -598,8 +598,6 @@ class Predictor(object):
                     end_point['the_geom_end']
                 )
                 last_seq_id = end_point['cnt_segments']
-                if code == '195':
-                    print("last_seq_id ", last_seq_id)
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
                 last_seq_id += 1
