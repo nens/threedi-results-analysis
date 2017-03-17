@@ -14,6 +14,7 @@ threedi-qgis-plugin changelog
 0.9.2 (2017-02-14)
 ------------------
 
+- Fixed unittests.
 
 - Adopted the column names for the ``predict_calc_points`` command to the
   newest 3Di migrations.

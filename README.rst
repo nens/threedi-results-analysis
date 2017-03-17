@@ -74,11 +74,12 @@ outside of the repository directory and then run test modules independently like
     $ python -m unittest threedi-qgis-plugin.test.test_datasources
     etc.
 
-**New method** with ``nose`` test runner. Make sure you have ``nose`` installed (``pip install nose``).
+**New method** with ``nose`` test runner. Make sure you have ``nose`` (``pip install nose``)
+and the ``nose-exclude`` (``pip install nose-exclude``) plugin installed.
 First you have to rename the plugin dir to the right package name, which is ``ThreeDiToolbox`` or
 else the relative imports won't work correctly (see [1]_). Then run ``nosetests`` inside the plugin directory::
 
-    $ nosetests --with-doctest
+    $ nosetests --exclude-dir external --exclude-dir utils/importer/
 
 
 Notes

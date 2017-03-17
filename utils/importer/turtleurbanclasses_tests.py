@@ -35,33 +35,24 @@ import unittest
 
 from turtleurbanclasses import Knoop
 from turtleurbanclasses import GeslotenLeiding
-from turtleurbanclasses import Gemaal
 from turtleurbanclasses import AlgemeneInformatie
 from turtleurbanclasses import DWALozingMetDagcyclus
 from turtleurbanclasses import DWAVerloopPerInwoner
-from turtleurbanclasses import Overstort
-from turtleurbanclasses import UitlaatMetKeerklep
 from turtleurbanclasses import Doorlaat
 from turtleurbanclasses import BergendOppervlakKnoop
-from turtleurbanclasses import AfvoerendOppervlak
 from turtleurbanclasses import InitieleLeidingWaarden
 from turtleurbanclasses import End
 from turtleurbanclasses import HydroObjectFactory
-from turtleurbanclasses import Gemaal_Knoop
 from turtleurbanclasses import Gemaal_Tak
-from turtleurbanclasses import Overstort_Knoop
 from turtleurbanclasses import Overstort_Tak
-from turtleurbanclasses import UitlaatMetKeerklep_Knoop
 from turtleurbanclasses import UitlaatMetKeerklep_Tak
-from turtleurbanclasses import AfvoerendOppervlak_Knoop
 from turtleurbanclasses import AfvoerendOppervlak_Tak
 from turtleurbanclasses import isSufHydKey
-from turtleurbanclasses import GmlElement
 
 import logging
 import re
 import mock
-handler = mock.Handler(level=logging.DEBUG)
+handler = logging.Handler(level=logging.DEBUG)
 logging.getLogger('').addHandler(handler)
 
 
