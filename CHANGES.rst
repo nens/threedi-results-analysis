@@ -8,6 +8,8 @@ threedi-qgis-plugin changelog
 - Bugfix predict calcualtion points: For endpoints always enumerate the
   ``last_seq_id`` by one.
 
+- Added QML styling for 2d schematisation.
+
 
 0.9.2 (2017-02-14)
 ------------------
