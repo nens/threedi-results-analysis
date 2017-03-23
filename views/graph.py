@@ -857,6 +857,7 @@ class GraphDockWidget(QDockWidget):
                     self.graphTabWidget.indexOf(self.h_graph_widget))
 
     def btnstate(self, state):
+        """Toggle ``absolute`` state of the GraphPlots"""
         checked = (state == Qt.Checked)
         self.q_graph_widget.graph_plot.absolute = \
             self.h_graph_widget.graph_plot.absolute = checked
