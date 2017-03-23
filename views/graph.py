@@ -852,7 +852,7 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                     self.graphTabWidget.indexOf(self.h_graph_widget))
 
-    def btnstate(self, state):
+    def on_btnstate(self, state):
         """Toggle ``absolute`` state of the GraphPlots"""
         checked = (state == Qt.Checked)
         self.q_graph_widget.graph_plot.absolute = \
@@ -879,7 +879,7 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
         self.checkbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
         self.checkbox.setChecked(False)
-        self.checkbox.stateChanged.connect(self.btnstate)
+        self.checkbox.stateChanged.connect(self.on_btnstate)
         self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)
         self.buttonBarHLayout.addWidget(self.checkbox)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding,
