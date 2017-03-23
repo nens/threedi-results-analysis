@@ -137,6 +137,7 @@ class GraphPlot(pg.PlotWidget):
         self.location_model = None
         self.datasource_model = None
         self.parent = parent
+        self.absolute = False
 
     def enable_absolute(self):
         # TODO: don't do this, use signals instead to enable communication between widgets
@@ -198,7 +199,8 @@ class GraphPlot(pg.PlotWidget):
                 for item in self.location_model.rows:
                     if item.active.value:
                         self.addItem(item.plots(
-                                self.current_parameter['parameters'], i, absolute=self.enable_absolute()))
+                            self.current_parameter['parameters'], i,
+                            absolute=self.absolute))
 
     def on_remove_ds(self, index, start, end):
         """
@@ -238,14 +240,14 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        a = self.enable_absolute()
         for i in range(start, end+1):
             item = self.location_model.rows[i]
             for ds in self.ds_model.rows:
                 if ds.active.value:
                     index = self.ds_model.rows.index(ds)
                     self.addItem(item.plots(
-                            self.current_parameter['parameters'], index, absolute=a))
+                        self.current_parameter['parameters'], index,
+                        absolute=self.absolute))
 
     def on_remove_locations(self, index, start, end):
         """
@@ -434,6 +436,7 @@ class LocationTimeseriesTable(QTableView):
                 self.setColumnWidth(col_nr, width)
             if not model.columns[col_nr].show:
                 self.setColumnHidden(col_nr, True)
+
 
 class GraphWidget(QWidget):
 
@@ -718,7 +721,6 @@ class GraphDockWidget(QDockWidget):
                  parent_class=None, nr=0, ts_datasource=None, root_tool=None):
         """Constructor"""
         super(GraphDockWidget, self).__init__(parent_widget)
-        self.absolute = True
 
         self.iface = iface
         self.parent_class = parent_class
@@ -854,9 +856,10 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                     self.graphTabWidget.indexOf(self.h_graph_widget))
 
-    def btnstate(self, b):
-        self.absolute = b.isChecked()
-        print "absolute = %s " % self.absolute
+    def btnstate(self, state):
+        checked = (state == Qt.Checked)
+        self.q_graph_widget.graph_plot.absolute = \
+            self.h_graph_widget.graph_plot.absolute = checked
 
     def setup_ui(self, dock_widget):
         """
@@ -878,8 +881,8 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
         self.checkbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
-        self.checkbox.setChecked(True)
-        self.checkbox.stateChanged.connect(lambda: self.btnstate(self.checkbox))
+        self.checkbox.setChecked(False)
+        self.checkbox.stateChanged.connect(self.btnstate)
         self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)
         self.buttonBarHLayout.addWidget(self.checkbox)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding,
