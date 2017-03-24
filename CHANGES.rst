@@ -9,15 +9,14 @@ threedi-qgis-plugin changelog
   ``last_seq_id`` by one.
 
 - Added QML styling for 2d schematisation.
+- Add option to make graphs  ``absolute`` to the graph tool.
 
 
 0.9.2 (2017-02-14)
 ------------------
 
-
 - Adopted the column names for the ``predict_calc_points`` command to the
   newest 3Di migrations.
- 
 
 
 0.9.1 (2016-12-12)
@@ -32,7 +31,6 @@ threedi-qgis-plugin changelog
 
 0.9 (2016-11-28)
 ----------------
-
 
 - Update cumulative aggregation methods.
 
