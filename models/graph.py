@@ -84,7 +84,7 @@ class LocationTimeseriesModel(BaseModel):
 
         _plots = {}
 
-        def plots(self, parameters=None, result_ds_nr=0):
+        def plots(self, parameters=None, result_ds_nr=0, absolute=False):
             """
             get pyqtgraph plot of selected object and timeseries
             :param parameters: string, parameter identification
@@ -96,7 +96,8 @@ class LocationTimeseriesModel(BaseModel):
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(parameters=parameters,
-                                                 result_ds_nr=result_ds_nr)
+                                                 result_ds_nr=result_ds_nr,
+                                                 absolute=absolute)
                 pattern = self.model.datasource.rows[
                     result_ds_nr].pattern.value
                 pen = pg.mkPen(color=self.color.qvalue,
@@ -107,7 +108,8 @@ class LocationTimeseriesModel(BaseModel):
 
             return self._plots[str(parameters)][result_key]
 
-        def timeseries_table(self, parameters=None, result_ds_nr=0):
+        def timeseries_table(self, parameters=None, result_ds_nr=0,
+                             absolute=False):
             """
             get list of timestamp values for object and parameters
             from result datasource
@@ -122,6 +124,8 @@ class LocationTimeseriesModel(BaseModel):
                         self.object_id.value,
                         parameters,
                         fill_value=np.NaN)
+                if absolute:
+                    timeseries = np.abs(timeseries)
             except (KeyError, IndexError, ValueError):
                 # Return an empty array so that the graph won't crash.
                 # The exceptions are already logged by the nc datasource.
