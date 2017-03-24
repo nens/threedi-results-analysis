@@ -5,11 +5,12 @@ threedi-qgis-plugin changelog
 0.9.3 (unreleased)
 ------------------
 
+- Add option to make graphs  ``absolute`` to the graph tool.
+
 - Bugfix predict calcualtion points: For endpoints always enumerate the
   ``last_seq_id`` by one.
 
 - Added QML styling for 2d schematisation.
-- Add option to make graphs  ``absolute`` to the graph tool.
 
 
 0.9.2 (2017-02-14)
