@@ -36,8 +36,8 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     flowelem_ycc = ds.ds.variables['FlowElem_ycc']  # in meters
 
     # -1 probably because of fortran indexing
-    flowline_p1 = flowline_connection[0, :].astype(int) - 1
-    flowline_p2 = flowline_connection[1, :].astype(int) - 1
+    flowline_p1 = flowline_connection[:, 0].astype(int) - 1
+    flowline_p2 = flowline_connection[:, 1].astype(int) - 1
 
     # Point 1 of the connection
     x_p1 = flowelem_xcc[:][flowline_p1]
@@ -96,7 +96,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     # only id mapping is available for all 1d links. (when numbers become
     # available, this code can be improved and optimized
 
-    for i in range(flowline_connection.shape[1]):
+    for i in range(flowline_connection.shape[0]):
         feat = QgsFeature()
 
         p1 = transform.transform(QgsPoint(x_p1[i], y_p1[i]))
