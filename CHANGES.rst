@@ -5,16 +5,21 @@ threedi-qgis-plugin changelog
 0.9.3 (unreleased)
 ------------------
 
-- Changed array shape for lines array in Netcdf. This was done due to a bug in the calculationcore netcdf library
+- Changed array shape for lines array in Netcdf. This was done due to a bug in the calculationcore netcdf library.
+
+- Add option to make graphs  ``absolute`` to the graph tool.
+
+- Bugfix predict calcualtion points: For endpoints always enumerate the
+  ``last_seq_id`` by one.
+
+- Added QML styling for 2d schematisation.
 
 
 0.9.2 (2017-02-14)
 ------------------
 
-
 - Adopted the column names for the ``predict_calc_points`` command to the
   newest 3Di migrations.
- 
 
 
 0.9.1 (2016-12-12)
@@ -29,7 +34,6 @@ threedi-qgis-plugin changelog
 
 0.9 (2016-11-28)
 ----------------
-
 
 - Update cumulative aggregation methods.
 
