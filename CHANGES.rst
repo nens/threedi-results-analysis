@@ -5,7 +5,8 @@ threedi-qgis-plugin changelog
 0.9.3 (unreleased)
 ------------------
 
-- Changed array shape for lines array in Netcdf. This was done due to a bug in the calculationcore netcdf library.
+- Changed array shape for lines array in Netcdf. This was done due to a bug in
+  the calculationcore netcdf library.
 
 - Add option to make graphs  ``absolute`` to the graph tool.
 
