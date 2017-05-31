@@ -10,6 +10,7 @@ from PyQt4.QtCore import QVariant
 import os
 import ogr
 import gdal
+ogr.UseExceptions()  # better exceptions
 
 from ..utils.user_messages import log
 
