@@ -5,7 +5,10 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add the About ``QAction`` in the same way as the other tools.
+
+- Add ``setup.cfg`` with coverage options (needs ``coverage``); exclude the
+  external and importer source files from tests.
 
 
 0.9.3 (2017-04-10)
