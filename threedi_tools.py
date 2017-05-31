@@ -219,6 +219,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             pass
 
         # add 3Di logo and about info (doing nothing right now)
+        # TODO: add this using the add_action() method
         icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
         action = QAction(icon, "3Di about", self.iface.mainWindow())
         action.triggered.connect(self.about)
