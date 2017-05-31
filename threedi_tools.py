@@ -127,14 +127,14 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
-        self.about = About(iface)
 
-        self.tools = []
-        self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
-        self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
-        self.tools.append(self.graph_tool)
-        self.tools.append(self.sideview_tool)
-        self.tools.append(self.about)
+        self.tools = [
+            About(iface),
+            ThreeDiResultSelection(iface, self.ts_datasource),
+            ThreeDiToolbox(iface, self.ts_datasource),
+            self.graph_tool,
+            self.sideview_tool,
+        ]
 
         self.active_datasource = None
         self.group_layer_name = '3Di toolbox layers'
