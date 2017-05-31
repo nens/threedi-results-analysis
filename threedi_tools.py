@@ -25,9 +25,8 @@ import os
 import os.path
 
 from PyQt4.QtCore import (QSettings, QTranslator, qVersion, QCoreApplication,
-    QObject)
+                          QObject)
 from PyQt4.QtGui import QAction, QIcon, QLCDNumber
-from qgis.core import QgsMapLayerRegistry
 
 # Initialize Qt resources from file resources.py
 import resources  # NoQa
@@ -72,6 +71,8 @@ class About(object):
 
 
 class CacheClearer(object):
+    """Tool to delete cache files."""
+
     def __init__(self, iface, parent):
         self.iface = iface
         self.icon_path = ':/plugins/ThreeDiToolbox/icon_broom.png'
@@ -79,6 +80,7 @@ class CacheClearer(object):
         self.parent = parent
 
     def run(self):
+        """Find cached spatialite and csv layer files and delete them."""
         spatialite_filepaths = [
             item.spatialite_cache_filepath() for
             item in self.parent.ts_datasource.rows if
