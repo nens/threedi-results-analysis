@@ -44,6 +44,31 @@ from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
 
 
+class About(object):
+    # add 3Di logo and about info (doing nothing right now)
+
+    def __init__(self, iface):
+        self.iface = iface
+        self.icon_path = ':/plugins/ThreeDiToolbox/icon.png'
+        self.menu_text = "3Di about"
+
+    def run(self):
+        """
+            shows dialog with version information
+        :return:
+        """
+        # todo: add version number and link to sites
+        version = open(os.path.join(
+                os.path.dirname(__file__),
+                'version.rst')).readline().rstrip()
+
+        pop_up_info("3Di Tools versie %s" % version,
+                    "About", self.iface.mainWindow())
+
+    def on_unload(self):
+        pass
+
+
 class ThreeDiTools(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
 
@@ -102,12 +127,14 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
+        self.about = About(iface)
 
         self.tools = []
         self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
         self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
         self.tools.append(self.graph_tool)
         self.tools.append(self.sideview_tool)
+        self.tools.append(self.about)
 
         self.active_datasource = None
         self.group_layer_name = '3Di toolbox layers'
@@ -203,8 +230,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 self.menu,
                 action)
 
-        if tool_instance:
-            setattr(tool_instance, 'action_icon', action)
+        setattr(tool_instance, 'action_icon', action)
         self.actions.append(action)
         return action
 
@@ -217,15 +243,6 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             import remote_debugger_settings
         except ImportError:
             pass
-
-        # add 3Di logo and about info (doing nothing right now)
-        self.add_action(
-            tool_instance=None,
-            icon_path=':/plugins/ThreeDiToolbox/icon.png',
-            text=self.tr("3Di about"),
-            callback=self.about,
-            parent=self.iface.mainWindow()
-        )
 
         for tool in self.tools:
             self.add_action(
@@ -274,21 +291,6 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         else:
             self.sideview_tool.action_icon.setEnabled(False)
 
-
-
-    def about(self):
-        """
-            shows dialog with version information
-        :return:
-        """
-        #todo: add version number and link to sites
-        version = open(os.path.join(
-                os.path.dirname(__file__),
-                'version.rst')).readline().rstrip()
-
-        pop_up_info("3Di Tools versie %s"%version,
-                    "About", self.iface.mainWindow())
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
@@ -321,4 +323,3 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             del self.toolbar_animation
         except AttributeError:
             log("Error, toolbar animation already removed?")
-
