@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
+- Add a button to clear the model cache.
+
 - Add an About tool class so that the about ``QAction`` can be added in the
   same way as the other tools.
 

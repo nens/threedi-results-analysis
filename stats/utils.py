@@ -6,11 +6,13 @@ from ..utils.user_messages import log
 
 log = logging.getLogger(__name__)
 
+STATS_CACHE_LAYER_POSTFIX = '_stats.csv'
+
 
 def get_default_csv_path(layer_name, result_dir):
     """The default file path the stats generating functions in this module
     write to."""
-    filename = layer_name + '_stats.csv'
+    filename = layer_name + STATS_CACHE_LAYER_POSTFIX
     return os.path.join(result_dir, filename)
 
 

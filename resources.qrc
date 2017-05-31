@@ -8,5 +8,6 @@
         <file>icon_add_datasource.png</file>
 		<file>icon_route.png</file>
 		<file>icon_route_small.png</file>
+		<file>icon_broom.png</file>
     </qresource>
 </RCC>

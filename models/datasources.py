@@ -89,6 +89,9 @@ class TimeseriesDatasourceModel(BaseModel):
                 return QgsVectorLayer(
                     layer.source(), layer.name(), layer.providerType())
 
+        def spatialite_cache_filepath(self):
+            return self.datasource().file_path[:-3] + '.sqlite1'
+
         def get_result_layers(self, clone=False):
             """Note: lines and nodes are always in the netCDF, pumps are not
             always in the netCDF.
@@ -103,8 +106,7 @@ class TimeseriesDatasourceModel(BaseModel):
                     data source.
             """
 
-            file_name = self.datasource().file_path[:-3] + '.sqlite1'
-            spl = Spatialite(file_name)
+            spl = Spatialite(self.spatialite_cache_filepath())
 
             if self._line_layer is None:
                 if 'flowlines' in [t[1] for t in spl.getTables()]:
