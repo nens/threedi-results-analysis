@@ -38,8 +38,7 @@ from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
 from .views.map_animator import MapAnimator
-from .utils.user_messages import (
-    pop_up_info, log, pop_up_question)
+from .utils.user_messages import pop_up_info, log
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
@@ -135,17 +134,17 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         return QCoreApplication.translate('ThreeDiTools', message)
 
     def add_action(
-        self,
-        tool_instance,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            tool_instance,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -204,7 +203,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 self.menu,
                 action)
 
-        setattr(tool_instance, 'action_icon', action)
+        if tool_instance:
+            setattr(tool_instance, 'action_icon', action)
         self.actions.append(action)
         return action
 
@@ -219,12 +219,13 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             pass
 
         # add 3Di logo and about info (doing nothing right now)
-        # TODO: add this using the add_action() method
-        icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
-        action = QAction(icon, "3Di about", self.iface.mainWindow())
-        action.triggered.connect(self.about)
-        action.setEnabled(True)
-        self.toolbar.addAction(action)
+        self.add_action(
+            tool_instance=None,
+            icon_path=':/plugins/ThreeDiToolbox/icon.png',
+            text=self.tr("3Di about"),
+            callback=self.about,
+            parent=self.iface.mainWindow()
+        )
 
         for tool in self.tools:
             self.add_action(
