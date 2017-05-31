@@ -169,10 +169,11 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
+        self.cache_clearer = CacheClearer(iface, self)
 
         self.tools = [
             About(iface),
-            CacheClearer(iface, self),
+            self.cache_clearer,
             ThreeDiResultSelection(iface, self.ts_datasource),
             ThreeDiToolbox(iface, self.ts_datasource),
             self.graph_tool,
@@ -326,8 +327,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # crashes with a  segmentation fault
         if self.ts_datasource.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
+            self.cache_clearer.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
+            self.cache_clearer.action_icon.setEnabled(False)
         if (self.ts_datasource.rowCount() > 0 and
                 self.ts_datasource.model_spatialite_filepath is not None):
             self.sideview_tool.action_icon.setEnabled(True)
