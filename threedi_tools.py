@@ -32,7 +32,7 @@ from PyQt4.QtGui import QAction, QIcon, QLCDNumber
 import resources  # NoQa
 
 # Import the code of the tools
-from .stats.utils import STATS_CACHE_LAYER_POSTFIX
+from .stats.utils import get_csv_layer_cache_files
 from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
@@ -46,7 +46,7 @@ from .utils.layer_tree_manager import LayerTreeManager
 
 
 class About(object):
-    # add 3Di logo and about info (doing nothing right now)
+    """Add 3Di logo and about info."""
 
     def __init__(self, iface):
         self.iface = iface
@@ -54,14 +54,11 @@ class About(object):
         self.menu_text = "3Di about"
 
     def run(self):
-        """
-            shows dialog with version information
-        :return:
-        """
+        """Shows dialog with version information."""
         # todo: add version number and link to sites
-        version = open(os.path.join(
-                os.path.dirname(__file__),
-                'version.rst')).readline().rstrip()
+        with open(
+                os.path.join(os.path.dirname(__file__), 'version.rst')) as f:
+            version = f.readline().rstrip()
 
         pop_up_info("3Di Tools versie %s" % version,
                     "About", self.iface.mainWindow())
@@ -73,24 +70,32 @@ class About(object):
 class CacheClearer(object):
     """Tool to delete cache files."""
 
-    def __init__(self, iface, parent):
+    def __init__(self, iface, ts_datasource):
+        """Constructor.
+
+        Args:
+            iface: QGIS interface
+            ts_datasource: TimeseriesDatasourceModel instance
+        """
         self.iface = iface
         self.icon_path = ':/plugins/ThreeDiToolbox/icon_broom.png'
         self.menu_text = "Clear cache"
-        self.parent = parent
+        self.ts_datasource = ts_datasource
 
     def run(self):
-        """Find cached spatialite and csv layer files and delete them."""
+        """Find cached spatialite and csv layer files for all items in the
+        TimeseriesDatasourceModel object and delete them.
+        """
         spatialite_filepaths = [
             item.spatialite_cache_filepath() for
-            item in self.parent.ts_datasource.rows if
-            os.path.exists(item.spatialite_cache_filepath())]
-        result_dirs = [os.path.dirname(item.file_path.value) for
-                       item in self.parent.ts_datasource.rows]
-        csv_filepaths = [
-            os.path.join(_dir, f) for _dir in result_dirs
-            for f in os.listdir(_dir)
-            if f.endswith(STATS_CACHE_LAYER_POSTFIX)]
+            item in self.ts_datasource.rows if
+            os.path.exists(item.spatialite_cache_filepath())
+        ]
+        result_dirs = [
+            os.path.dirname(item.file_path.value) for
+            item in self.ts_datasource.rows
+        ]
+        csv_filepaths = get_csv_layer_cache_files(*result_dirs)
         cached = set(spatialite_filepaths + csv_filepaths)
         if not cached:
             pop_up_info("No cached files found.")
@@ -169,7 +174,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
-        self.cache_clearer = CacheClearer(iface, self)
+        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
 
         self.tools = [
             About(iface),

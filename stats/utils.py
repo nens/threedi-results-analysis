@@ -16,6 +16,14 @@ def get_default_csv_path(layer_name, result_dir):
     return os.path.join(result_dir, filename)
 
 
+def get_csv_layer_cache_files(*directories):
+    """Get paths to the csv cache files."""
+    return [
+        os.path.join(_dir, f) for _dir in directories
+        for f in os.listdir(_dir)
+        if f.endswith(STATS_CACHE_LAYER_POSTFIX)]
+
+
 def _calc_results(
         ncstats, parameters, layer_name, feature_id,
         surface_level=None, bottom_level=None):
