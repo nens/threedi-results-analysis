@@ -96,6 +96,8 @@ class CacheClearer(object):
             item in self.ts_datasource.rows
         ]
         csv_filepaths = get_csv_layer_cache_files(*result_dirs)
+        # Note: convert to set because duplicates are possible if the same
+        # datasource is loaded multiple times
         cached = set(spatialite_filepaths + csv_filepaths)
         if not cached:
             pop_up_info("No cached files found.")
@@ -108,7 +110,10 @@ class CacheClearer(object):
 
         if yes:
             for f in cached:
-                os.remove(f)
+                try:
+                    os.remove(f)
+                except OSError:
+                    pop_up_info("Failed to delete %s." % f)
             pop_up_info("Cache cleared. You may need to restart QGIS and "
                         "reload your data.")
 
