@@ -22,6 +22,7 @@ addons:
 
 before_install:
     - sudo apt-get -qq -y update
+    - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
 
 install:
     # See: https://github.com/tomchadwin/qgis2web/blob/master/.travis.yml
@@ -33,7 +34,6 @@ install:
     - pip install nose nose-exclude coverage==4.0 netCDF4==1.2.7 numpy==1.11.2 cython==0.19
 
 script:
-    - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
     - xvfb-run nosetests
 
 notifications:
