@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
+- Add QGIS as dependency to Travis; make nosetests work on Travis for all
+  tests.
+
 - Add a button to clear the model cache.
 
 - Add an About tool class so that the about ``QAction`` can be added in the
