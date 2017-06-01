@@ -68,17 +68,13 @@ Manually copy to server::
 Tests
 -----
 
-For now running tests is a bit cumbersome because of the relative imports in the code. You have to be
-outside of the repository directory and then run test modules independently like this::
+Install test dependencies::
 
-    $ python -m unittest threedi-qgis-plugin.test.test_datasources
-    etc.
+    $ pip install nose nose-exclude coverage==4.0
 
-**New method** with ``nose`` test runner. Make sure you have ``nose`` installed (``pip install nose``).
-First you have to rename the plugin dir to the right package name, which is ``ThreeDiToolbox`` or
-else the relative imports won't work correctly (see [1]_). Then run ``nosetests`` inside the plugin directory::
-
-    $ nosetests --with-doctest
+The plugin directory must be called ``ThreeDiToolbox`` or else the
+relative imports won't work correctly (see [1]_). Run tests with ``nosetests``
+inside the plugin directory. Running ``make test`` also works.
 
 
 Notes
