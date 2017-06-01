@@ -29,7 +29,8 @@ install:
     - sudo apt-get update
     - sudo apt-get install -y --force-yes qgis python-qgis
     # numpy and cython maybe needed for building netCDF4 (see netcdf4-python)
-    - pip install nose nose-exclude coverage netCDF4==1.2.7 numpy==1.11.2 cython==0.19
+    # NOTE: coverage 4.0 is the last version that doesn't cause a segfault with test_project.py
+    - pip install nose nose-exclude coverage==4.0 netCDF4==1.2.7 numpy==1.11.2 cython==0.19
 
 script:
     - cd .. && mv threedi-qgis-plugin ThreeDiToolbox && cd ThreeDiToolbox
