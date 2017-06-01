@@ -56,8 +56,8 @@ class About(object):
     def run(self):
         """Shows dialog with version information."""
         # todo: add version number and link to sites
-        with open(
-                os.path.join(os.path.dirname(__file__), 'version.rst')) as f:
+        with open(os.path.join(os.path.dirname(__file__),
+                  'version.rst'), 'r') as f:
             version = f.readline().rstrip()
 
         pop_up_info("3Di Tools versie %s" % version,
