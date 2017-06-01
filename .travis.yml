@@ -16,10 +16,10 @@ addons:
     packages:
       - libhdf5-serial-dev
       - libnetcdf-dev
-      - python-qt4
+      - python-qt4  # is this needed?
 
 before_install:
-    - python -c 'import PyQt4'
+    - sudo apt-get -qq -y update
 
 install:
     # See: https://github.com/tomchadwin/qgis2web/blob/master/.travis.yml
@@ -34,6 +34,7 @@ script:
     - nosetests ThreeDiToolbox.test.test_stats
     - xvfb-run nosetests ThreeDiToolbox.test.test_datasources
     - nosetests ThreeDiToolbox.test.test_models
+    - xvfb-run nosetests
 
 notifications:
     email: false
