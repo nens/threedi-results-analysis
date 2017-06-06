@@ -1,4 +1,6 @@
+from distutils.version import LooseVersion
 import os
+import platform
 import unittest
 import tempfile
 import shutil
@@ -26,6 +28,7 @@ from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
+linux_dist, ubuntu_version, _ = platform.linux_distribution()
 
 
 spatialite_datasource_path = os.path.join(
@@ -94,6 +97,11 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
 
+@unittest.skipIf(
+    linux_dist == 'Ubuntu' and
+    LooseVersion(ubuntu_version) < LooseVersion('16.04'),
+    "Your Ubuntu version probably has a GDAL/OGR version that's too old for "
+    "this test to succeed.")
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
 class TestSpatialiteDataSource(unittest.TestCase):
 

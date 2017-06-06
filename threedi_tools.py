@@ -21,25 +21,25 @@
  ***************************************************************************/
 """
 
+import os
 import os.path
 
 from PyQt4.QtCore import (QSettings, QTranslator, qVersion, QCoreApplication,
-    QObject)
+                          QObject)
 from PyQt4.QtGui import QAction, QIcon, QLCDNumber
-from qgis.core import QgsMapLayerRegistry
 
 # Initialize Qt resources from file resources.py
 import resources  # NoQa
 
 # Import the code of the tools
+from .misc_tools import About, CacheClearer
 from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
 from .views.map_animator import MapAnimator
-from .utils.user_messages import (
-    pop_up_info, log, pop_up_question)
+from .utils.user_messages import log
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
@@ -103,12 +103,16 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
+        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
 
-        self.tools = []
-        self.tools.append(ThreeDiResultSelection(iface, self.ts_datasource))
-        self.tools.append(ThreeDiToolbox(iface, self.ts_datasource))
-        self.tools.append(self.graph_tool)
-        self.tools.append(self.sideview_tool)
+        self.tools = [
+            About(iface),
+            self.cache_clearer,
+            ThreeDiResultSelection(iface, self.ts_datasource),
+            ThreeDiToolbox(iface, self.ts_datasource),
+            self.graph_tool,
+            self.sideview_tool,
+        ]
 
         self.active_datasource = None
         self.group_layer_name = '3Di toolbox layers'
@@ -135,17 +139,17 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         return QCoreApplication.translate('ThreeDiTools', message)
 
     def add_action(
-        self,
-        tool_instance,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            tool_instance,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -218,13 +222,6 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         except ImportError:
             pass
 
-        # add 3Di logo and about info (doing nothing right now)
-        icon = QIcon(':/plugins/ThreeDiToolbox/icon.png')
-        action = QAction(icon, "3Di about", self.iface.mainWindow())
-        action.triggered.connect(self.about)
-        action.setEnabled(True)
-        self.toolbar.addAction(action)
-
         for tool in self.tools:
             self.add_action(
                 tool,
@@ -264,28 +261,15 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         # crashes with a  segmentation fault
         if self.ts_datasource.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
+            self.cache_clearer.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
+            self.cache_clearer.action_icon.setEnabled(False)
         if (self.ts_datasource.rowCount() > 0 and
                 self.ts_datasource.model_spatialite_filepath is not None):
             self.sideview_tool.action_icon.setEnabled(True)
         else:
             self.sideview_tool.action_icon.setEnabled(False)
-
-
-
-    def about(self):
-        """
-            shows dialog with version information
-        :return:
-        """
-        #todo: add version number and link to sites
-        version = open(os.path.join(
-                os.path.dirname(__file__),
-                'version.rst')).readline().rstrip()
-
-        pop_up_info("3Di Tools versie %s"%version,
-                    "About", self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -319,4 +303,3 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             del self.toolbar_animation
         except AttributeError:
             log("Error, toolbar animation already removed?")
-
