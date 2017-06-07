@@ -70,7 +70,6 @@ class TestNetcdfDatasource(unittest.TestCase):
         agg_vars = self.ncds.get_available_variables(only_aggregation=True)
         self.assertTrue(len(all_vars) > 0)
         self.assertEqual(len(subgrid_vars) + len(agg_vars), len(all_vars))
-        from nose.tools import set_trace; set_trace()
 
     @unittest.skip("Netcdf file needs to be updated.")
     def test_load_properties(self):
