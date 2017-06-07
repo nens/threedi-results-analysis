@@ -25,11 +25,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     projection = ds.ds.variables['projected_coordinate_system']
     source_epsg = projection.epsg
     # Connections (2, nFlowLine):
-    try:
-        flowline_connection = ds.ds.variables['FlowLine_connection']
-    except KeyError:
-        # temporary fix for bug in netCDF export routine. Remove after May 2016
-        flowline_connection = ds.ds.variables['flowline_connection']
+    flowline_connection = ds.ds.variables['FlowLine_connection']
 
     # FlowElem centers:
     flowelem_xcc = ds.ds.variables['FlowElem_xcc']  # in meters

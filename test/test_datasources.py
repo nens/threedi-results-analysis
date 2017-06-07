@@ -63,12 +63,28 @@ class TestNetcdfDatasource(unittest.TestCase):
         self.assertEqual(ts[0], 0.0)
         self.assertNotEqual(ts[1], 0.0)
 
+    def test_available_vars(self):
+        """Test getting variable names out of netCDF datasource."""
+        all_vars = self.ncds.get_available_variables()
+        subgrid_vars = self.ncds.get_available_variables(only_subgrid_map=True)
+        agg_vars = self.ncds.get_available_variables(only_aggregation=True)
+        self.assertTrue(len(all_vars) > 0)
+        self.assertEqual(len(subgrid_vars) + len(agg_vars), len(all_vars))
+        from nose.tools import set_trace; set_trace()
+
+    @unittest.skip("Netcdf file needs to be updated.")
+    def test_load_properties(self):
+        """Load and pre-calc properties from netcdf."""
+        self.ncds.load_properties()
+
 
 class TestNetcdfDatasourceBasic(unittest.TestCase):
     """Some basic tests without needing an actual netCDF file."""
 
     def setUp(self):
-        mock = lambda x: 'mock'  # Mock the netCDF Dataset
+        class Mock(object):
+            pass
+        mock = Mock()  # Mock the netCDF Dataset
         self.ncds = NetcdfDataSource(netcdf_datasource_path,
                                      load_properties=False,
                                      ds=mock)

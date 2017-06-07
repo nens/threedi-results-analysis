@@ -365,21 +365,11 @@ class NetcdfDataSource(object):
 
     @cached_property
     def available_subgrid_map_vars(self):
-        return self.get_available_variables(
-            only_subgrid_map=True)
+        return self.get_available_variables(only_subgrid_map=True)
 
     @cached_property
     def available_aggregation_vars(self):
-        try:
-            _vars = self.get_available_variables(
-                only_aggregation=True)
-        except IndexError:
-            # If we're here it means no agg. netCDF was found. Fail without
-            # error, but do log it.
-            log("No aggregation netCDF was found, only the data from the "
-                "regular netCDF will be used.", level='WARNING')
-            _vars = []
-        return _vars
+        return self.get_available_variables(only_aggregation=True)
 
     @property
     def metadata(self):
@@ -429,10 +419,13 @@ class NetcdfDataSource(object):
             try:
                 agg_vars = self.ds_aggregation.variables.keys()
                 available_agg_vars = [v for v in possible_agg_vars if v in
-                                  agg_vars]
+                                      agg_vars]
                 available_vars += available_agg_vars
             except IndexError:
-                pass
+                # If we're here it means no agg. netCDF was found. Fail without
+                # error, but do log it.
+                log("No aggregation netCDF was found, only the data from the "
+                    "regular netCDF will be used.", level='WARNING')
         return available_vars
 
     def get_object(self, object_type, object_id):
