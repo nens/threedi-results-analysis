@@ -1,7 +1,13 @@
+import os
 import unittest
 from PyQt4.QtCore import Qt
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
+from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+
+netcdf_datasource_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'data', 'testmodel', 'results', 'subgrid_map.nc')
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -198,7 +204,44 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         pass
 
 
+class TestTimeseriesDatasourceModel(unittest.TestCase):
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": "/dev/random/",
+        "type": "a type",
+        "pattern": "line pattern?",
+    }
 
+    def test_init_with_values(self):
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**self.test_values)
+        for k, v in self.test_values.items():
+            itemvalue = getattr(item, k).value
+            self.assertEqual(itemvalue, v)
+
+    def test_datasource_smoke(self):
+        """Smoke test the ``datasource()`` method."""
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**self.test_values)
+        setattr(item, '_datasource', 'yo')
+        self.assertEqual(item.datasource(), 'yo')
+
+    @unittest.skip("TODO: enable after a working netcdf is available")
+    @unittest.skipIf(not os.path.exists(netcdf_datasource_path),
+                     "Path to test netcdf doesn't exist.")
+    def test_datasource(self):
+        """Test the datasource() method with netcdf file."""
+        test_values = {
+            "active": False,
+            "name": "jaa",
+            "file_path": netcdf_datasource_path,
+            "type": "netcdf",
+            "pattern": "line pattern?",
+        }
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**test_values)
+        item.datasource()
 
 """
 
