@@ -24,7 +24,8 @@ except ImportError:
     except ImportError:
         print("Can't import Spatialite.")
         Spatialite = None
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from ThreeDiToolbox.datasource.netcdf import (
+    NetcdfDataSource, normalized_object_type)
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
@@ -47,6 +48,11 @@ class TestNetcdfDatasource(unittest.TestCase):
     def setUp(self):
         self.ncds = NetcdfDataSource(netcdf_datasource_path,
                                      load_properties=False)
+
+        # cherry picked id and object type that exist in this
+        # test set
+        self.cherry_picked_object_id = 32
+        self.cherry_picked_object_type = 'v2_weir_view'
 
     def test_netcdf_loaded(self):
         """We can open the Netcdf file"""
@@ -78,6 +84,52 @@ class TestNetcdfDatasource(unittest.TestCase):
 
     def test_node_mapping(self):
         self.ncds.node_mapping
+
+    def test_get_ids_memory_layers(self):
+        """test memory layers that are not mapped."""
+        object_id = 42
+        for object_type in ['flowline', 'node', 'pumpline']:
+            ncid = self.ncds.obj_to_netcdf_id(object_id, object_type)
+            self.assertEqual(ncid, object_id)
+
+    def test_get_ids_spatialite_layers(self):
+        """NOTE: this test will fail if you the object types cannot be found
+        in the id_mapping json. You might need to fix this when renewing
+        the model.
+
+        Furthermore, this tests a feature (the channel_mapping) that is a bit
+        iffy in the sense that its correctness can be debated owning to the
+        fact that for channel mappings multiple links can belong to one inp
+        id which leads to all sorts of problems.
+        """
+        norm_obj_type = normalized_object_type(self.cherry_picked_object_type)
+        inp_id = self.ncds.inp_id_from(
+            self.cherry_picked_object_id, norm_obj_type)
+        self.assertEqual(inp_id, 80)
+
+        ncid = self.ncds.netcdf_id_from(inp_id, norm_obj_type)
+        self.assertEqual(
+            ncid,
+            self.ncds.obj_to_netcdf_id(
+                self.cherry_picked_object_id,
+                norm_obj_type
+            )
+        )
+
+    def test_get_timeseries(self):
+        """Test get_timeseries from datasource."""
+        # q exists
+        self.assertTrue(
+            'q' in self.ncds.available_subgrid_map_vars
+        )
+        ts = self.ncds.get_timeseries(
+            'flowlines',
+            # We assume there is at least one timestep of data that we can
+            # slice
+            0,
+            'q',
+        )
+        self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
 
 
 class TestNetcdfDatasourceBasic(unittest.TestCase):
