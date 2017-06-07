@@ -15,21 +15,6 @@ ogr.UseExceptions()  # better exceptions
 from ..utils.user_messages import log
 
 
-def _get_spatialite_path(self):
-    """Return the full path of the spatialite."""
-    provider = self.layer.dataProvider()
-    if not provider.name() == 'spatialite':
-        return
-    # uri is something like
-    # ---------------------
-    # u'dbname=\'/d/dev/models/sewerage/purmerend/purmerend_result.sqlite\'
-    # table="sewerage_manhole" (the_geom) sql='
-    # ---------------------
-    uri = provider.dataSourceUri()
-    dbname = uri.split("'")[1]
-    return dbname
-
-
 class Spatialite(SpatiaLiteDBConnector):
 
     def __init__(self, path, create_if_not_exist=True):
