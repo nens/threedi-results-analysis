@@ -83,16 +83,10 @@ class TimeseriesDatasourceModel(BaseModel):
                 self._datasource = NetcdfDataSource(self.file_path.value)
                 return self._datasource
 
-        @staticmethod
-        def _clone_vector_layer(layer):
-            if layer:
-                return QgsVectorLayer(
-                    layer.source(), layer.name(), layer.providerType())
-
         def spatialite_cache_filepath(self):
             return self.datasource().file_path[:-3] + '.sqlite1'
 
-        def get_result_layers(self, clone=False):
+        def get_result_layers(self):
             """Note: lines and nodes are always in the netCDF, pumps are not
             always in the netCDF.
 
@@ -131,11 +125,7 @@ class TimeseriesDatasourceModel(BaseModel):
                     except KeyError:
                         log("No pumps in netCDF", level='WARNING')
 
-            result_layers = [self._line_layer, self._node_layer,
-                             self._pumpline_layer]
-            if clone:
-                return map(self._clone_vector_layer, result_layers)
-            return result_layers
+            return [self._line_layer, self._node_layer, self._pumpline_layer]
 
     def reset(self):
 

@@ -20,6 +20,14 @@ from .threedi_database import ThreediDatabase
 
 
 def _clone_vector_layer(layer):
+    """Create a new instance of a QgsVectorLayer from an existing one.
+
+    Note that QgsVectorLayer is just view on the underlying data source.
+
+    See CHANGES release 0.8.2 for the reason why layers are cloned in this
+    way. Tl;dr: segfaults occur when you delete layer groups when the same
+    layers are added multiple times
+    """
     if layer:
         return QgsVectorLayer(
             layer.source(), layer.name(), layer.providerType())
