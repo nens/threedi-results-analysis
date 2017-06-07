@@ -87,34 +87,6 @@ AGGREGATION_VARIABLES = [
 AGGREGATION_OPTIONS = {
     'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative'}
 
-VARIABLE_LABELS = {
-    'v2_connection_nodes': (WATERLEVEL, ),
-    'v2_pipe': (DISCHARGE, VELOCITY, ),
-    'v2_channel': (DISCHARGE, VELOCITY, ),
-    'v2_culvert': (DISCHARGE, VELOCITY, ),
-    'v2_pumpstation': (DISCHARGE_PUMP, ),
-    'v2_weir': (DISCHARGE, VELOCITY, ),
-    'v2_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_manhole': (WATERLEVEL, VOLUME, ),
-    'sewerage_pipe': (DISCHARGE, VELOCITY, ),
-    'sewerage_weir': (DISCHARGE, VELOCITY, ),
-    'sewerage_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_pumpstation': (DISCHARGE_PUMP, ),
-    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
-                  VELOCITY_INTERFLOW),
-    'nodes': (WATERLEVEL, ),
-    'pumplines': (DISCHARGE_PUMP, ),
-    'line_results': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
-                  VELOCITY_INTERFLOW),
-    'node_results': (WATERLEVEL,),
-}
-
-
-# todo: this is the right place for these 2 supportive functions?
-def get_available_parameters(object_type):
-    return VARIABLE_LABELS[object_type]
-
-
 layer_information = [
     # layer name, (normalized) object_type, q/h type
 
