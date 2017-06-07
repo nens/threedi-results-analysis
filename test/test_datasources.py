@@ -76,6 +76,9 @@ class TestNetcdfDatasource(unittest.TestCase):
         """Load and pre-calc properties from netcdf."""
         self.ncds.load_properties()
 
+    def test_node_mapping(self):
+        self.ncds.node_mapping
+
 
 class TestNetcdfDatasourceBasic(unittest.TestCase):
     """Some basic tests without needing an actual netCDF file."""
