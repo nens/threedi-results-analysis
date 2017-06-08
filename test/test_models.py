@@ -1,4 +1,3 @@
-import os
 import unittest
 from PyQt4.QtCore import Qt
 
@@ -109,8 +108,10 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         headers = [collection.headerData(i)
                    for i in range(0, collection.columnCount())]
 
-        self.assertListEqual(headers,
-                             ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])#display column names
+        self.assertListEqual(
+            headers,
+            # display column names
+            ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])
 
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
@@ -244,6 +245,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, NetcdfDataSource))
         self.assertTrue(ncds.ds)
+
 
 """
 

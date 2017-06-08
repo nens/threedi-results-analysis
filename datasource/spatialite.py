@@ -1,7 +1,11 @@
+"""
+History:
 
-# tried first with methods of QgsVectorFileWriter, but methods did not create database or
-# table name could not be specified. Changed to classes of the db_manager plugin (is a
-# standard plugin of QGIS, provided with each installation)
+Tried first with methods of QgsVectorFileWriter, but methods did not create
+database or table name could not be specified. Changed to classes of the
+db_manager plugin (is a standard plugin of QGIS, provided with each
+installation)
+"""
 
 
 from qgis.core import QGis, QgsDataSourceURI, QgsVectorLayer
@@ -10,9 +14,9 @@ from PyQt4.QtCore import QVariant
 import os
 import ogr
 import gdal
-ogr.UseExceptions()  # better exceptions
-
 from ..utils.user_messages import log
+
+ogr.UseExceptions()  # better exceptions
 
 
 class Spatialite(SpatiaLiteDBConnector):
@@ -24,7 +28,8 @@ class Spatialite(SpatiaLiteDBConnector):
             # create empty spatialite
             spatialite = self._create_empty_database()
             if spatialite is None:
-                raise IOError('Unable to create empty spatialite "{0}"'.format(path))
+                raise IOError(
+                    'Unable to create empty spatialite "{0}"'.format(path))
             spatialite = None
         SpatiaLiteDBConnector.__init__(self, uri)
 
@@ -50,7 +55,6 @@ class Spatialite(SpatiaLiteDBConnector):
 
         return db
 
-
     def get_layer(self, table_name, display_name=None, geom_field='the_geom'):
 
         if display_name is None:
@@ -68,7 +72,9 @@ class Spatialite(SpatiaLiteDBConnector):
                                                          error=layer.error()))
             return None
 
-    def import_layer(self, layer, table_name, id_field=None, geom_field='the_geom', srid=4326):
+    def import_layer(
+            self, layer, table_name, id_field=None, geom_field='the_geom',
+            srid=4326):
         mapping = {
             int(QVariant.Int): 'INTEGER',
             int(QVariant.Double): 'DOUBLE',
@@ -91,7 +97,8 @@ class Spatialite(SpatiaLiteDBConnector):
         self.createTable(table_name, sql_fields, id_field)
 
         geom_type = QGis.vectorGeometryType(layer.geometryType()).lstrip('WKB')
-        self.addGeometryColumn(table_name, geom_field, geom_type=geom_type, srid=srid)
+        self.addGeometryColumn(
+            table_name, geom_field, geom_type=geom_type, srid=srid)
 
         splayer = self.get_layer(table_name, None, geom_field)
         splayer.addFeatures([feat for feat in layer.getFeatures()])
@@ -100,13 +107,14 @@ class Spatialite(SpatiaLiteDBConnector):
 
         return splayer
 
-
-    def create_empty_layer(self, table_name, wkb_type=QGis.WKBPoint, fields=None, id_field='id',
-                           geom_field='the_geom', srid=4326):
+    def create_empty_layer(
+            self, table_name, wkb_type=QGis.WKBPoint, fields=None,
+            id_field='id', geom_field='the_geom', srid=4326):
 
         self.createTable(table_name, fields, id_field)
         geom_type = QGis.featureType(wkb_type).lstrip('WKB')
-        self.addGeometryColumn(table_name, geom_field, geom_type=geom_type, srid=srid)
+        self.addGeometryColumn(
+            table_name, geom_field, geom_type=geom_type, srid=srid)
         self.createSpatialIndex(table_name, geom_field)
 
         return self.get_layer(table_name, None, geom_field)
