@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
+- Add more tests.
+
+- Remove deprecated/unused code.
+
 - Add QGIS as dependency to Travis; make nosetests work on Travis for all
   tests.
 
