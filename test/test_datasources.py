@@ -27,7 +27,8 @@ except ImportError:
 from ThreeDiToolbox.datasource.netcdf import (
     NetcdfDataSource,
     normalized_object_type,
-    find_id_mapping_file
+    find_id_mapping_file,
+    find_aggregation_netcdf,
 )
 from .utilities import get_qgis_app
 
@@ -41,7 +42,7 @@ netcdf_datasource_path = os.path.join(
     'data', 'testmodel', 'results', 'subgrid_map.nc')
 
 
-def result_data_is_available():
+def result_data_is_available(flow_agg_must_exist=False):
     """Check if we have the necessary result data for the tests."""
     if not os.path.exists(netcdf_datasource_path):
         return False
@@ -49,6 +50,11 @@ def result_data_is_available():
         find_id_mapping_file(netcdf_datasource_path)
     except IndexError:
         return False
+    if flow_agg_must_exist:
+        try:
+            find_aggregation_netcdf(netcdf_datasource_path)
+        except IndexError:
+            return False
     return True
 
 
@@ -63,10 +69,10 @@ class TestNetcdfDatasource(unittest.TestCase):
         # cherry picked id and object type that exist in this
         # test set
         self.cherry_picked_object_id = 114
+        self.cherry_picked_object_type = 'v2_weir_view'
         # the inp id the cherry picked object id maps to (look in
         # id_mapping.json)
         self.complementary_inp_id_of_object_id = 5472
-        self.cherry_picked_object_type = 'v2_weir_view'
 
     def test_netcdf_loaded(self):
         """We can open the Netcdf file"""
@@ -92,7 +98,7 @@ class TestNetcdfDatasource(unittest.TestCase):
         self.assertEqual(len(subgrid_vars) + len(agg_vars), len(all_vars))
 
     def test_load_properties(self):
-        """Load and pre-calc properties from netcdf."""
+        """Test loading properties works with a netcdf file."""
         self.ncds.load_properties()
 
     def test_node_mapping(self):
@@ -141,6 +147,20 @@ class TestNetcdfDatasource(unittest.TestCase):
             # slice
             0,
             'q',
+        )
+        self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
+
+    @unittest.skipIf(
+        not result_data_is_available(flow_agg_must_exist=True),
+        "No flow aggregate found.")
+    def test_flow_aggregate(self):
+        """Simple flow aggregate checks."""
+        self.assertTrue(self.ncds.ds_aggregation)
+        self.assertTrue(self.ncds.get_agg_var_timestamps('s1_max').size > 0)
+        ts = self.ncds.get_timeseries(
+            'nodes',
+            0,
+            's1_max',
         )
         self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
 
