@@ -4,10 +4,11 @@ from PyQt4.QtCore import Qt
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
-
-netcdf_datasource_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'data', 'testmodel', 'results', 'subgrid_map.nc')
+from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from ThreeDiToolbox.test.test_datasources import (
+    netcdf_datasource_path,
+    result_data_is_available,
+)
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -227,9 +228,8 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         setattr(item, '_datasource', 'yo')
         self.assertEqual(item.datasource(), 'yo')
 
-    @unittest.skip("TODO: enable after a working netcdf is available")
-    @unittest.skipIf(not os.path.exists(netcdf_datasource_path),
-                     "Path to test netcdf doesn't exist.")
+    @unittest.skipIf(not result_data_is_available(),
+                     "Result data doesn't exist or is incomplete.")
     def test_datasource(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
@@ -241,7 +241,9 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         }
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**test_values)
-        item.datasource()
+        ncds = item.datasource()
+        self.assertTrue(isinstance(ncds, NetcdfDataSource))
+        self.assertTrue(ncds.ds)
 
 """
 

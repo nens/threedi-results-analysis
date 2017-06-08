@@ -25,24 +25,35 @@ except ImportError:
         print("Can't import Spatialite.")
         Spatialite = None
 from ThreeDiToolbox.datasource.netcdf import (
-    NetcdfDataSource, normalized_object_type)
+    NetcdfDataSource,
+    normalized_object_type,
+    find_id_mapping_file
+)
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
-
-
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'test_spatialite.sqlite')
-
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'testmodel', 'results', 'subgrid_map.nc')
 
 
-@unittest.skipIf(not os.path.exists(netcdf_datasource_path),
-                 "Path to test netcdf doesn't exist.")
+def result_data_is_available():
+    """Check if we have the necessary result data for the tests."""
+    if not os.path.exists(netcdf_datasource_path):
+        return False
+    try:
+        find_id_mapping_file(netcdf_datasource_path)
+    except IndexError:
+        return False
+    return True
+
+
+@unittest.skipIf(not result_data_is_available(),
+                 "Result data doesn't exist or is incomplete.")
 class TestNetcdfDatasource(unittest.TestCase):
 
     def setUp(self):
@@ -51,7 +62,10 @@ class TestNetcdfDatasource(unittest.TestCase):
 
         # cherry picked id and object type that exist in this
         # test set
-        self.cherry_picked_object_id = 32
+        self.cherry_picked_object_id = 114
+        # the inp id the cherry picked object id maps to (look in
+        # id_mapping.json)
+        self.complementary_inp_id_of_object_id = 5472
         self.cherry_picked_object_type = 'v2_weir_view'
 
     def test_netcdf_loaded(self):
@@ -77,7 +91,6 @@ class TestNetcdfDatasource(unittest.TestCase):
         self.assertTrue(len(all_vars) > 0)
         self.assertEqual(len(subgrid_vars) + len(agg_vars), len(all_vars))
 
-    @unittest.skip("Netcdf file needs to be updated.")
     def test_load_properties(self):
         """Load and pre-calc properties from netcdf."""
         self.ncds.load_properties()
@@ -105,7 +118,7 @@ class TestNetcdfDatasource(unittest.TestCase):
         norm_obj_type = normalized_object_type(self.cherry_picked_object_type)
         inp_id = self.ncds.inp_id_from(
             self.cherry_picked_object_id, norm_obj_type)
-        self.assertEqual(inp_id, 80)
+        self.assertEqual(inp_id, self.complementary_inp_id_of_object_id)
 
         ncid = self.ncds.netcdf_id_from(inp_id, norm_obj_type)
         self.assertEqual(

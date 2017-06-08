@@ -1,7 +1,0 @@
-700   ! maxdgr=maximum degree in combined Gauss CG algorithm  # settings: max_degree
-20    ! jamax=maximum number of non-linear iterations  # settings: max_nonlin_iterations
--5   ! mineps=10**maxeps is maximum error in non-linear iterations  # settings.convergence_eps (0.00001 = 1*10e-5: -5 hier neerzetten)
-20  ! jacg= if ja<=jacg then combined Gauss CG algorithm is applied else a simple cg algorithm will be applied  # settings: use_of_cg
-0   ! integration method: 0=standard Euler implicit,1=Carlson implicit, 2=Silecki explicit  # settings: integration_method
-1   ! use_of_nested_newton: 0=no, 1=yes
-

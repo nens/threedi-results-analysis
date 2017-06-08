@@ -1,9 +1,0 @@
-1 -1 0     ! nogrid  # id from model: set to 1
-0    ! kmax  # settings: kmax
--500.0 ! lgrmin  # berekening: raster cel grootte via GDAL.GetGeoTransform * grid_space; if no DEM file available, conf.storage_area
-1      ! imax  # GDAL breedte; if no DEM file available 1
-1     ! jmax  # GDAL hoogte; if no DEM file available 1
-0.01 10000.0     ! sinc, table increment  # settings: table_step_size, dist_calc_points
-0.026  1 ! manning value  # settings: frict_coef (1?)
-0  ! volume porosity and layer thickness  # alleen een 0 schrijven for now
-
