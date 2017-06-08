@@ -38,7 +38,8 @@ class ThreeDiResultSelection(QObject):
 
         self.is_active = False
         self.dialog = None
-        self.ts_datasource.model_schematisation_change.connect(self.on_state_changed)
+        self.ts_datasource.model_schematisation_change.connect(
+            self.on_state_changed)
         self.ts_datasource.results_change.connect(self.on_state_changed)
 
     def on_unload(self):
@@ -76,8 +77,8 @@ class ThreeDiResultSelection(QObject):
             self.dialog.show()
         else:
             self.dialog.setWindowState(
-                    self.dialog.windowState() & ~Qt.WindowMinimized |
-                    Qt.WindowActive)
+                self.dialog.windowState() & ~Qt.WindowMinimized |
+                Qt.WindowActive)
             self.dialog.raise_()
 
     def on_state_changed(self, setting_key, value):
@@ -100,7 +101,7 @@ class ThreeDiResultSelection(QObject):
         self.ts_datasource.reset()
 
         self.ts_datasource.model_spatialite_filepath = setting_dict.get(
-                'model_schematisation', None)
+            'model_schematisation', None)
 
         result_list = setting_dict.get('result_directories', None)
         if result_list is not None:

@@ -185,7 +185,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.ncds.load_properties()
         self.assertEqual(self.ncds.nFlowLine, 42)
         self.assertEqual(self.ncds.nodall, 41)
-        self.assertEqual(self.ncds.end_n1dtot, 3+7)
+        self.assertEqual(self.ncds.end_n1dtot, 3 + 7)
 
     def test_load_properties_default_values(self):
         """Test the default value when attribute isn't present."""

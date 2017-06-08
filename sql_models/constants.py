@@ -56,7 +56,7 @@ class Constants(object):
         # (SHAPE_YZ, 'yz'),
         (SHAPE_TABULATED_RECTANGLE, 'tabulated rectangle'),
         (SHAPE_TABULATED_TRAPEZIUM, 'tabulated trapezium'),
-        )
+    )
 
     PROFILE_SHAPES = dict(PROFILE_SHAPE_CHOICES)
     PROFILE_SHAPES_LOOKUP = reversed_dict(PROFILE_SHAPE_CHOICES)
@@ -135,7 +135,7 @@ class Constants(object):
         (MANHOLE_INDICATOR_MANHOLE, 'manhole'),
         (MANHOLE_INDICATOR_OUTLET, 'outlet'),
         (MANHOLE_INDICATOR_PUMPSTATION, 'pumpstation'),
-        )
+    )
     MANHOLE_INDICATORS = dict(MANHOLE_INDICATOR_CHOICES)
     MANHOLE_INDICATOR_LOOKUP = reversed_dict(MANHOLE_INDICATOR_CHOICES)
 
@@ -173,7 +173,7 @@ class Constants(object):
         (INTEGRATION_METHOD_EULER_IMPLICIT, 'euler-implicit'),
         (INTEGRATION_METHOD_CARLSON_IMPLICIT, 'carlson-implicit'),
         (INTEGRATION_METHOD_SILECKI_EXPLICIT, 'silecki-explicit'),
-        )
+    )
     INTEGRATION_METHODS = dict(INTEGRATION_METHOD_CHOICES)
 
     # SURFACE_CLASS SURFACE_INCLINATION RIONED
@@ -204,7 +204,7 @@ class Constants(object):
         (SURFACE_CLASS_ONVERHARD, 'onverhard'),
         (SURFACE_CLASS_HALF_VERHARD, 'half verhard'),
         (SURFACE_CLASS_PAND, 'pand'),
-        )
+    )
     SURFACE_CLASSES = dict(SURFACE_CLASS_CHOICES)
 
     SURFACE_INCLINATION_HELLEND = 'hellend'
@@ -215,7 +215,7 @@ class Constants(object):
         (SURFACE_INCLINATION_HELLEND, 'hellend'),
         (SURFACE_INCLINATION_VLAK, 'vlak'),
         (SURFACE_INCLINATION_UITGESTREKT, 'uitgestrekt'),
-        )
+    )
     SURFACE_INCLINATIONS = dict(SURFACE_INCLINATION_CHOICES)
 
 

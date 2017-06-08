@@ -34,9 +34,10 @@ def get_line_pattern(item_field):
 
     return Qt.SolidLine
 
+
 class ValueWithChangeSignal(object):
 
-    def __init__(self, signal_name, signal_setting_name, init_value = None):
+    def __init__(self, signal_name, signal_setting_name, init_value=None):
         self.signal_name = signal_name
         self.signal_setting_name = signal_setting_name
         self.value = init_value
@@ -46,7 +47,9 @@ class ValueWithChangeSignal(object):
 
     def __set__(self, instance, value):
         self.value = value
-        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
+        getattr(instance, self.signal_name).emit(
+            self.signal_setting_name, value)
+
 
 class TimeseriesDatasourceModel(BaseModel):
 
@@ -105,9 +108,11 @@ class TimeseriesDatasourceModel(BaseModel):
             if self._line_layer is None:
                 if 'flowlines' in [t[1] for t in spl.getTables()]:
                     # todo check nr of attributes
-                    self._line_layer = spl.get_layer('flowlines', None, 'the_geom')
+                    self._line_layer = spl.get_layer(
+                        'flowlines', None, 'the_geom')
                 else:
-                    self._line_layer = make_flowline_layer(self.datasource(), spl)
+                    self._line_layer = make_flowline_layer(
+                        self.datasource(), spl)
 
             if self._node_layer is None:
                 if 'nodes' in [t[1] for t in spl.getTables()]:
@@ -118,10 +123,12 @@ class TimeseriesDatasourceModel(BaseModel):
             if self._pumpline_layer is None:
 
                 if 'pumplines' in [t[1] for t in spl.getTables()]:
-                    self._pumpline_layer = spl.get_layer('pumplines', None, 'the_geom')
+                    self._pumpline_layer = spl.get_layer(
+                        'pumplines', None, 'the_geom')
                 else:
                     try:
-                        self._pumpline_layer = make_pumpline_layer(self.datasource(), spl)
+                        self._pumpline_layer = make_pumpline_layer(
+                            self.datasource(), spl)
                     except KeyError:
                         log("No pumps in netCDF", level='WARNING')
 
@@ -134,9 +141,3 @@ class TimeseriesDatasourceModel(BaseModel):
     def on_change(self, start=None, stop=None, etc=None):
 
         self.results_change.emit('result_directories', self.rows)
-
-
-
-
-
-

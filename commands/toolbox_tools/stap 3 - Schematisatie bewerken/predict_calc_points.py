@@ -59,7 +59,7 @@ class CustomCommand(CustomCommandBase):
         transform = None
         # spatialites are in WGS84 so we need a tranformation
         if db_type == 'spatialite':
-            transform='{epsg_code}:4326'.format(epsg_code=epsg_code)
+            transform = '{epsg_code}:4326'.format(epsg_code=epsg_code)
         succces, features = pal.predict_points(
             output_layer=calc_pnts_lyr, transform=transform)
 
@@ -72,16 +72,17 @@ class CustomCommand(CustomCommandBase):
                   'Are you sure the table "v2_calculation_point" ' \
                   'is empty?'.format(len(features))
             level = 1
-        messagebar_message("Finished",  msg, level=level, duration=12)
+        messagebar_message("Finished", msg, level=level, duration=12)
         cp_succces, cp_features = pal.fill_connected_pnts_table(
             calc_pnts_lyr=calc_pnts_lyr,
             connected_pnts_lyr=self.connected_pnts_lyr)
         if cp_succces:
-            cp_msg = 'Created {} connected points template'.format(len(cp_features))
+            cp_msg = 'Created {} connected points template'.format(
+                len(cp_features))
             cp_level = 3
             QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnts_lyr)
         else:
             cp_msg = 'Creating connected points failed!'
             cp_level = 1
-        messagebar_message("Finished",  cp_msg, level=cp_level, duration=12)
+        messagebar_message("Finished", cp_msg, level=cp_level, duration=12)
         log.info('Done predicting calcualtion points.\n' + msg)

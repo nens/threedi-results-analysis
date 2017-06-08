@@ -161,7 +161,6 @@ class NcStats(object):
         water_op_straat[water_op_straat > 0] = 1.
         water_op_straat[water_op_straat < 0] = 0
         cum_duration = self.timesteps * water_op_straat[0:-1]
-        #from ..qtdebug import set_trace; set_trace()
         return cum_duration.sum()
 
     def q_end(self, structure_type, obj_id):

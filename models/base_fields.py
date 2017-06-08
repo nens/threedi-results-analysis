@@ -122,7 +122,7 @@ class BaseField(object):
         self.show = show
         self.column_width = column_width
 
-        #get nr on creation to determine order in code, which will be equal to the order of the columns
+        # get nr on creation to determine order in code, which will be equal to the order of the columns
         self.column_nr = None
         self._nr = get_field_nr()
         self.model = None
@@ -143,6 +143,7 @@ class BaseField(object):
 class ValueField(BaseField):
     """Field implementation for Values, which (for now) can be everything which can be showed in plain text
      (string, int, float)"""
+
     def __init__(self, *args, **kwargs):
         super(ValueField, self).__init__(*args, **kwargs)
         self.field_type = VALUE_FIELD
@@ -164,5 +165,3 @@ class CheckboxField(BaseField):
     def __init__(self, **kwargs):
         super(CheckboxField, self).__init__(**kwargs)
         self.field_type = CHECKBOX_FIELD
-
-

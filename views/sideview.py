@@ -9,7 +9,7 @@ import os
 
 from qgis.networkanalysis import QgsArcProperter
 from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-        QgsDistanceArcProperter, QgsGraphAnalyzer
+    QgsDistanceArcProperter, QgsGraphAnalyzer
 import qgis
 from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
     QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, \
@@ -70,12 +70,12 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
-INTERPOLATION_PHYSICAL = 0 # interpolation based on all profiles
-INTERPOLATION_CALCULATION = 1 # interpolation as the 3Di calculation core is
-                              # performing the interpolation. for bottom
-                              # and surface level use profiles close to
-                              # calculation points. For height (profile) first
-                              # get heigth on centerpoints at links
+INTERPOLATION_PHYSICAL = 0  # interpolation based on all profiles
+INTERPOLATION_CALCULATION = 1  # interpolation as the 3Di calculation core is
+# performing the interpolation. for bottom
+# and surface level use profiles close to
+# calculation points. For height (profile) first
+# get heigth on centerpoints at links
 
 
 class SideViewPlotWidget(pg.PlotWidget):
@@ -111,41 +111,56 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(100, 100, 100), width=2)
-        self.sewer_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.sewer_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.sewer_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.sewer_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(50, 50, 50), width=2)
-        self.channel_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.channel_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.channel_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.channel_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(150, 75, 0), width=4)
-        self.culvert_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.culvert_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.culvert_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.culvert_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(200, 30, 30), width=4)
-        self.weir_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.weir_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.weir_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.weir_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(200, 30, 30), width=4, style=Qt.DashLine)
-        self.orifice_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.orifice_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.orifice_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.orifice_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(200, 200, 0), width=4)
-        self.pump_bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-        self.pump_upper_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.pump_bottom_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
+        self.pump_upper_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 255, 0), width=2,  style=Qt.DashLine)
-        self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
+        self.drain_level_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         pen = pg.mkPen(color=QColor(0, 255, 0), width=2)
-        self.surface_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.surface_level_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         self.fill = pg.FillBetweenItem(self.bottom_plot,
                                        self.upper_plot,
                                        pg.mkBrush(200, 200, 200))
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
-        self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
+        self.water_level_plot = pg.PlotDataItem(
+            np.array([(0.0, np.nan)]), pen=pen)
 
         self.addItem(self.drain_level_plot)
         self.addItem(self.surface_level_plot)
@@ -172,7 +187,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
         self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
-        self.time_slider.datasource_changed.connect(self.update_water_level_cache)
+        self.time_slider.datasource_changed.connect(
+            self.update_water_level_cache)
 
         # set code for hovering
         self.vb = self.plotItem.vb
@@ -230,30 +246,30 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if first and begin_node['type'] == SideViewDockWidget.MANHOLE:
                     # add contours of first manhole
                     bottom_line.append((begin_dist - 0.5 * float(
-                                            begin_node['length']),
-                                        begin_node['surface_level'],
-                                        SideViewDockWidget.PIPE))
+                        begin_node['length']),
+                        begin_node['surface_level'],
+                        SideViewDockWidget.PIPE))
                     bottom_line.append((begin_dist - 0.5 * float(
-                                            begin_node['length']),
-                                        float(begin_node['bottom_level']),
-                                        SideViewDockWidget.PIPE))
+                        begin_node['length']),
+                        float(begin_node['bottom_level']),
+                        SideViewDockWidget.PIPE))
                     bottom_line.append((begin_dist + 0.5 * float(
-                                            begin_node['length']),
-                                        float(begin_node['bottom_level']),
-                                        SideViewDockWidget.PIPE))
+                        begin_node['length']),
+                        float(begin_node['bottom_level']),
+                        SideViewDockWidget.PIPE))
 
                     upper_line.append((begin_dist - 0.5 * float(
-                                            begin_node['length']),
-                                       float(begin_node['surface_level']),
-                                       SideViewDockWidget.PIPE))
+                        begin_node['length']),
+                        float(begin_node['surface_level']),
+                        SideViewDockWidget.PIPE))
                     upper_line.append((begin_dist + 0.5 * float(
-                                            begin_node['length']),
-                                       float(begin_node['surface_level']),
-                                       SideViewDockWidget.PIPE))
+                        begin_node['length']),
+                        float(begin_node['surface_level']),
+                        SideViewDockWidget.PIPE))
 
                 # 2. add contours (bottom, upper, drain and surface lines)
                 if (python_value(last_channel_id) is not None and
-                            last_channel_id == feature['channel_id']):
+                        last_channel_id == feature['channel_id']):
                     # 2a. contours based on cross section lines already added, skip
                     # for this line element based on sideview
                     log('skip channel part')
@@ -269,36 +285,37 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                     # 2b.1 get relevant channel_profiles and sort based on direction
                     if direction == 1:
-                        # get start distance from (selected) calc node layer 
+                        # get start distance from (selected) calc node layer
                         channel_length = (profile_links[-1]['real_length'] +
-                                 profile_links[-1]['start_channel_distance'])
+                                          profile_links[-1]['start_channel_distance'])
 
                         dist_from_begin = feature['start_channel_distance']
                         end_dist_from_begin = min(channel_length,
-                                    dist_from_begin + max_length_on_channel)
+                                                  dist_from_begin + max_length_on_channel)
                         length_on_channel = end_dist_from_begin - dist_from_begin
 
                         profile_links = [link for link in profile_links
-                            if link['start_channel_distance'] +
-                                link['real_length'] >= dist_from_begin and
-                            link['start_channel_distance'] <= end_dist_from_begin]
+                                         if link['start_channel_distance'] +
+                                         link['real_length'] >= dist_from_begin and
+                                         link['start_channel_distance'] <= end_dist_from_begin]
                         profile_links = sorted(
                             profile_links,
                             key=lambda x: x['start_channel_distance'])
                     else:
                         # get start distance from (selected) calc node layer
                         dist_from_begin = (feature['start_channel_distance'] +
-                                     feature['real_length'])
-                        end_dist_from_begin = max(dist_from_begin - max_length_on_channel, 0.0)
+                                           feature['real_length'])
+                        end_dist_from_begin = max(
+                            dist_from_begin - max_length_on_channel, 0.0)
                         length_on_channel = dist_from_begin - end_dist_from_begin
 
                         profile_links = [link for link in profile_links
-                            if link['start_channel_distance'] <= (dist_from_begin + 0.01) and
-                            (link['start_channel_distance'] +
-                                link['real_length']) >= (end_dist_from_begin - 0.01)]
+                                         if link['start_channel_distance'] <= (dist_from_begin + 0.01) and
+                                         (link['start_channel_distance'] +
+                                          link['real_length']) >= (end_dist_from_begin - 0.01)]
                         profile_links = sorted(profile_links,
-                            key=lambda x: x['start_channel_distance'],
-                            reverse=True)
+                                               key=lambda x: x['start_channel_distance'],
+                                               reverse=True)
 
                     # 2b.2 get data for contours from relevant profile
                     sub_distance = begin_dist
@@ -307,7 +324,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         # get information of nodes and profiles and links between profiles
                         if direction == 1:
                             link_left = max(link['start_channel_distance'],
-                                             dist_from_begin)
+                                            dist_from_begin)
                             link_right = min(link['start_channel_distance'] + link['real_length'],
                                              end_dist_from_begin)
                             link_length = link_right - link_left
@@ -318,7 +335,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                             link_left = max(link['start_channel_distance'],
                                             end_dist_from_begin)
                             link_right = min(link['start_channel_distance'] + link['real_length'],
-                                       dist_from_begin)
+                                             dist_from_begin)
                             link_length = link_right - link_left
                             sub_begin_node_id = link['end_node']
                             sub_end_node_id = link['start_node']
@@ -335,7 +352,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             # profile is the same as their nearest cross-section on the link
                             begin_level = sub_end_node['bottom_level']
                             if sub_end_node['height'] is not None:
-                                begin_upper_level = sub_end_node['height'] + begin_level
+                                begin_upper_level = sub_end_node['height'] + \
+                                    begin_level
                             else:
                                 begin_upper_level = begin_level
                             begin_surface = sub_end_node['surface_level']
@@ -349,7 +367,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 begin_weight * sub_begin_node['bottom_level'] +
                                 end_weight * sub_end_node['bottom_level'])
                             if (sub_begin_node['height'] is not None and
-                                sub_end_node['height'] is not None):
+                                    sub_end_node['height'] is not None):
                                 begin_upper_level = (
                                     begin_weight * sub_begin_node['height'] +
                                     end_weight * sub_end_node['height'] +
@@ -357,19 +375,20 @@ class SideViewPlotWidget(pg.PlotWidget):
                             else:
                                 begin_upper_level = begin_level
                             if (sub_begin_node['surface_level'] is not None and
-                                sub_end_node['surface_level'] is not None):
+                                    sub_end_node['surface_level'] is not None):
                                 begin_surface = (
                                     begin_weight * sub_begin_node['surface_level'] +
                                     end_weight * sub_end_node['surface_level'])
                             if (sub_begin_node['drain_level'] is not None and
-                                sub_end_node['drain_level'] is not None):
+                                    sub_end_node['drain_level'] is not None):
                                 begin_drain = (
                                     begin_weight * sub_begin_node['drain_level'] +
                                     end_weight * sub_end_node['drain_level'])
                         else:
                             begin_level = sub_begin_node['bottom_level']
                             if sub_begin_node['height'] is not None:
-                                begin_upper_level = sub_begin_node['height'] + begin_level
+                                begin_upper_level = sub_begin_node['height'] + \
+                                    begin_level
                             else:
                                 begin_upper_level = begin_level
                             begin_surface = sub_begin_node['surface_level']
@@ -393,7 +412,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_weight * sub_end_node['bottom_level'])
 
                             if (sub_begin_node['height'] is not None and
-                                sub_end_node['height'] is not None):
+                                    sub_end_node['height'] is not None):
                                 end_upper_level = (
                                     begin_weight * sub_begin_node['height'] +
                                     end_weight * sub_end_node['height'] +
@@ -402,7 +421,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_upper_level = end_level
 
                             if (sub_begin_node['surface_level'] is not None and
-                                sub_end_node['surface_level'] is not None):
+                                    sub_end_node['surface_level'] is not None):
                                 end_surface = (
                                     begin_weight * sub_begin_node['surface_level'] +
                                     end_weight * sub_end_node['surface_level'])
@@ -410,7 +429,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_surface = np.nan
 
                             if (sub_begin_node['drain_level'] is not None and
-                                sub_end_node['drain_level'] is not None):
+                                    sub_end_node['drain_level'] is not None):
                                 end_drain = (
                                     begin_weight * sub_begin_node['drain_level'] +
                                     end_weight * sub_end_node['drain_level'])
@@ -445,7 +464,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                         if (sub_first or sub_begin_node['type'] != SideViewDockWidget.CALCULATION_NODE):
                             drain_level.append((sub_begin_dist, begin_drain))
-                            surface_level.append((sub_begin_dist, begin_surface))
+                            surface_level.append(
+                                (sub_begin_dist, begin_surface))
 
                         drain_level.append((sub_end_dist, end_drain))
                         surface_level.append((sub_end_dist, end_surface))
@@ -479,19 +499,19 @@ class SideViewPlotWidget(pg.PlotWidget):
                          begin_level,
                          ltype))
                     bottom_line.append(
-                        (end_dist-0.5*float(end_node['length']),
+                        (end_dist - 0.5 * float(end_node['length']),
                          end_level,
                          ltype))
 
                     # upper line
                     upper_line.append(
                         (begin_dist + 0.5 * float(begin_node['length']),
-                        begin_upper_level,
-                        ltype))
+                         begin_upper_level,
+                         ltype))
                     upper_line.append(
                         (end_dist - 0.5 * float(end_node['length']),
-                        end_upper_level,
-                        ltype))
+                         end_upper_level,
+                         ltype))
 
                     if first:
                         drain_level.append((begin_dist,
@@ -505,24 +525,27 @@ class SideViewPlotWidget(pg.PlotWidget):
                 last_channel_id = feature['channel_id']
 
                 if end_node['type'] == SideViewDockWidget.MANHOLE:
-                    bottom_line.append((end_dist-0.5*float(end_node['length']), float(end_node['bottom_level']), SideViewDockWidget.PIPE))
-                    bottom_line.append((end_dist+0.5*float(end_node['length']), float(end_node['bottom_level']), SideViewDockWidget.PIPE))
+                    bottom_line.append((end_dist - 0.5 * float(end_node['length']), float(
+                        end_node['bottom_level']), SideViewDockWidget.PIPE))
+                    bottom_line.append((end_dist + 0.5 * float(end_node['length']), float(
+                        end_node['bottom_level']), SideViewDockWidget.PIPE))
                     # todo last: bottom_line.append((float(begin_dist)+0,5*float(end_node['length']), float(begin_node['surface_level'])))
 
                 if end_node['type'] == SideViewDockWidget.MANHOLE:
-                    upper_line.append((end_dist-0.5*float(end_node['length']), float(end_node['surface_level']), SideViewDockWidget.PIPE))
-                    upper_line.append((end_dist+0.5*float(end_node['length']), float(end_node['surface_level']), SideViewDockWidget.PIPE))
-
+                    upper_line.append((end_dist - 0.5 * float(end_node['length']), float(
+                        end_node['surface_level']), SideViewDockWidget.PIPE))
+                    upper_line.append((end_dist + 0.5 * float(end_node['length']), float(
+                        end_node['surface_level']), SideViewDockWidget.PIPE))
 
                 # store node information for water level line
                 if first:
                     self.sideview_nodes.append({'distance': begin_dist,
-                                               'id': begin_node_id,
+                                                'id': begin_node_id,
                                                 'idx': begin_node_idx})
                     first = False
 
                 self.sideview_nodes.append({'distance': end_dist,
-                                           'id': end_node_id,
+                                            'id': end_node_id,
                                             'idx': end_node_idx})
 
         if len(profile) > 0:
@@ -556,16 +579,19 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(tables[SideViewDockWidget.PIPE], dtype=float)
             self.sewer_bottom_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.CHANNEL], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.CHANNEL], dtype=float)
             self.channel_bottom_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.CULVERT], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.CULVERT], dtype=float)
             self.culvert_bottom_plot.setData(ts_table, connect='finite')
 
             ts_table = np.array(tables[SideViewDockWidget.WEIR], dtype=float)
             self.weir_bottom_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.ORIFICE], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.ORIFICE], dtype=float)
             self.orifice_bottom_plot.setData(ts_table, connect='finite')
 
             ts_table = np.array(tables[SideViewDockWidget.PUMP], dtype=float)
@@ -591,22 +617,25 @@ class SideViewPlotWidget(pg.PlotWidget):
                 tables[ptype].append((point[0], point[1]))
 
             ts_table = np.array([(b[0], b[1]) for b in upper_line],
-                                    dtype=float)
+                                dtype=float)
             self.upper_plot.setData(ts_table, connect='finite')
 
             ts_table = np.array(tables[SideViewDockWidget.PIPE], dtype=float)
             self.sewer_upper_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.CHANNEL], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.CHANNEL], dtype=float)
             self.channel_upper_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.CULVERT], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.CULVERT], dtype=float)
             self.culvert_upper_plot.setData(ts_table, connect='finite')
 
             ts_table = np.array(tables[SideViewDockWidget.WEIR], dtype=float)
             self.weir_upper_plot.setData(ts_table, connect='finite')
 
-            ts_table = np.array(tables[SideViewDockWidget.ORIFICE], dtype=float)
+            ts_table = np.array(
+                tables[SideViewDockWidget.ORIFICE], dtype=float)
             self.orifice_upper_plot.setData(ts_table, connect='finite')
 
             ts_table = np.array(tables[SideViewDockWidget.PUMP], dtype=float)
@@ -702,7 +731,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         log('close sideview graph')
         self.profile_route_updated.disconnect(self.update_water_level_cache)
         self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
-        self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
+        self.time_slider.datasource_changed.disconnect(
+            self.update_water_level_cache)
 
     def closeEvent(self, event):
         """
@@ -732,10 +762,10 @@ class RouteTool(QgsMapTool):
         y = event.pos().y()
 
         # use 5 pixels for selecting
-        point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x-5,
-                                                                         y-5)
-        point_ru = self.canvas.getCoordinateTransform().toMapCoordinates(x+5,
-                                                                         y+5)
+        point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x - 5,
+                                                                         y - 5)
+        point_ru = self.canvas.getCoordinateTransform().toMapCoordinates(x + 5,
+                                                                         y + 5)
         rect = QgsRectangle(min(point_ll.x(), point_ru.x()),
                             min(point_ll.y(), point_ru.y()),
                             max(point_ll.x(), point_ru.x()),
@@ -749,7 +779,7 @@ class RouteTool(QgsMapTool):
         selected = self.line_layer.getFeatures(filter)
 
         clicked_point = self.canvas.getCoordinateTransform(
-            ).toMapCoordinates(x, y)
+        ).toMapCoordinates(x, y)
         # transform to wgs84 (lon, lat) if not already:
         transformed_point = transform.transform(clicked_point)
 
@@ -773,6 +803,7 @@ class RouteTool(QgsMapTool):
     def isEditTool(self):
         return False
 
+
 class CustomDistancePropeter(QgsArcProperter):
     """custom properter for graph layer"""
 
@@ -794,6 +825,7 @@ class CustomDistancePropeter(QgsArcProperter):
         # Must be a list of the attribute indexes (int), not strings:
         attributes = []
         return attributes
+
 
 class SideViewMapVisualisation(object):
     # self.line_layer.crs()
@@ -822,7 +854,6 @@ class SideViewMapVisualisation(object):
         self.reset()
         self.iface.mapCanvas().scene().removeItem(self.hover_marker)
 
-
     def set_sideview_route(self, route):
 
         self.reset()
@@ -835,7 +866,6 @@ class SideViewMapVisualisation(object):
             t_pnt = transform.transform(pnt)
             self.rb.addPoint(t_pnt)
 
-
         for point, point_id, dist in route.path_points:
 
             marker = QgsVertexMarker(self.iface.mapCanvas())
@@ -844,7 +874,6 @@ class SideViewMapVisualisation(object):
             marker.setPenWidth(4)
             marker.setCenter(transform.transform(point))
             self.point_markers.append(marker)
-
 
     def reset(self):
         self.rb.reset()
@@ -868,7 +897,7 @@ class SideViewMapVisualisation(object):
         if meters_from_start < 0.0:
             meters_from_start = 0.0
         elif (len(self.active_route.path) > 0 and
-                        meters_from_start > self.active_route.path[-1][-1][1]):
+              meters_from_start > self.active_route.path[-1][-1][1]):
             meters_from_start = self.active_route.path[-1][-1][1]
 
         for route_part in self.active_route.path:
@@ -885,7 +914,8 @@ class SideViewMapVisualisation(object):
                             QGis.Meters, QGis.Degrees, False)  # QGis.Degrees
 
                         point = part[4].geometry().interpolate(length)
-                        self.hover_marker.setCenter(transform.transform(point.asPoint()))
+                        self.hover_marker.setCenter(
+                            transform.transform(point.asPoint()))
                         return
 
     def hover_map(self, point_geometry):
@@ -896,7 +926,6 @@ class SideViewMapVisualisation(object):
 
     def hide_selectable_points(self):
         pass
-
 
 
 class SideViewDockWidget(QDockWidget):
@@ -921,7 +950,6 @@ class SideViewDockWidget(QDockWidget):
     ORIFICE = 14
     PUMP = 15
     CHANNEL = 16
-
 
     def __init__(self, iface, parent_widget=None,
                  parent_class=None, nr=0, tdi_root_tool=None):
@@ -967,7 +995,8 @@ class SideViewDockWidget(QDockWidget):
         self.side_view_tab_widget.addTab(widget, widget.name)
 
         # init route graph
-        director = QgsLineVectorLayerDirector(self.line_layer, -1, '', '', '', 3)
+        director = QgsLineVectorLayerDirector(
+            self.line_layer, -1, '', '', '', 3)
 
         self.route = Route(self.line_layer, director, id_field='nr',
                            weight_properter=CustomDistancePropeter(),
@@ -984,14 +1013,15 @@ class SideViewDockWidget(QDockWidget):
                                                           self.line_layer.crs())
 
         # connect graph hover to point visualisation on map
-        self.active_sideview.profile_hovered.connect(self.map_visualisation.hover_graph)
+        self.active_sideview.profile_hovered.connect(
+            self.map_visualisation.hover_graph)
 
         # add tree layer to map (for fun and testing purposes)
         self.vl_tree_layer = self.route.get_virtual_tree_layer()
 
         self.vl_tree_layer.loadNamedStyle(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), os.pardir,
-                'layer_styles', 'tools', 'tree.qml'))
+            os.path.dirname(os.path.realpath(__file__)), os.pardir,
+            'layer_styles', 'tools', 'tree.qml'))
 
         QgsMapLayerRegistry.instance().addMapLayer(self.vl_tree_layer)
 
@@ -1007,14 +1037,14 @@ class SideViewDockWidget(QDockWidget):
             uri2.setDataSource('', table_name, geom_column)
 
             return QgsVectorLayer(uri2.uri(),
-                                   table_name,
-                                   'spatialite')
+                                  table_name,
+                                  'spatialite')
         # connection node layer
         profile_layer = get_layer(spatialite_path,
                                   'v2_cross_section_definition')
 
         cross_section_location_layer = get_layer(spatialite_path,
-                                  'v2_cross_section_location', 'the_geom')
+                                                 'v2_cross_section_location', 'the_geom')
 
         connection_node_layer = get_layer(spatialite_path,
                                           'v2_connection_nodes',
@@ -1102,15 +1132,15 @@ class SideViewDockWidget(QDockWidget):
         for pipe in pipe_layer.getFeatures():
             # note: no support of calculation nodes on pipes
             profile = profiles[pipe['cross_section_definition_id']]
-            pipe_def ={
+            pipe_def = {
                 'id': 'pipe_' + str(pipe['id']),
                 'type': self.PIPE,
                 'start_node': pipe['connection_node_start_id'],
                 'end_node': pipe['connection_node_end_id'],
                 'start_level': pipe['invert_level_start_point'] +
-                        profile['rel_bottom_level'],
-                'end_level': pipe['invert_level_end_point']  +
-                        profile['rel_bottom_level'],
+                profile['rel_bottom_level'],
+                'end_level': pipe['invert_level_end_point'] +
+                profile['rel_bottom_level'],
                 'start_height': profile['height'],
                 'end_height': profile['height']
             }
@@ -1161,9 +1191,9 @@ class SideViewDockWidget(QDockWidget):
                 'start_node': culvert['connection_node_start_id'],
                 'end_node': culvert['connection_node_end_id'],
                 'start_level': culvert['invert_level_start_point'] +
-                                profile['rel_bottom_level'],
+                profile['rel_bottom_level'],
                 'end_level': culvert['invert_level_end_point'] +
-                                profile['rel_bottom_level'],
+                profile['rel_bottom_level'],
                 'start_height': profile['height'],
                 'end_height': profile['height']
             }
@@ -1205,7 +1235,8 @@ class SideViewDockWidget(QDockWidget):
                     end_upper_level = start_upper_level
 
             if start_upper_level is not None and start_lower_level is not None:
-                start_height = float(start_upper_level) - float(start_lower_level)
+                start_height = float(start_upper_level) - \
+                    float(start_lower_level)
                 end_height = float(end_upper_level) - float(end_lower_level)
 
             pump_def = {
@@ -1235,7 +1266,7 @@ class SideViewDockWidget(QDockWidget):
         if model_line_layer is not None:
             # create indexed sets of calculation points
             request = QgsFeatureRequest().setFilterExpression(
-                    u"type='v2_channel'")
+                u"type='v2_channel'")
             for line in model_line_layer.getFeatures(request):
                 ids = line['spatialite_id']
                 if ids not in channel_calc_points:
@@ -1251,11 +1282,11 @@ class SideViewDockWidget(QDockWidget):
                 crs_points = []
 
             profile_channel_parts = split_line_at_points(
-                                        channel.geometry(),
-                                        crs_points,
-                                        point_feature_id_field='id',
-                                        start_node_id=None,
-                                        end_node_id=None)
+                channel.geometry(),
+                crs_points,
+                point_feature_id_field='id',
+                start_node_id=None,
+                end_node_id=None)
 
             # split on cross section locations
             for i, part in enumerate(profile_channel_parts):
@@ -1294,7 +1325,7 @@ class SideViewDockWidget(QDockWidget):
                 height = crs_def['height']
                 bank_level = p['bank_level']
 
-                points['crs_'+ str(p['id'])] = {
+                points['crs_' + str(p['id'])] = {
                     'point': p.geometry().asPoint(),
                     'type': self.CROSS_SECTION,
                     'surface_level': bank_level,
@@ -1314,10 +1345,10 @@ class SideViewDockWidget(QDockWidget):
                 for line in channel_calc_points[channel['id']]:
                     cpoints_idx.append(line['start_node_idx'])
                     cpoints[line['start_node_idx']] = \
-                                line.geometry().asPolyline()[0]
+                        line.geometry().asPolyline()[0]
                     cpoints_idx.append(line['end_node_idx'])
                     cpoints[line['end_node_idx']] = \
-                                line.geometry().asPolyline()[-1]
+                        line.geometry().asPolyline()[-1]
 
                 # all calculation nodes (points in between, must be a
                 # startpoint as well as an endpoint, so 2 occurances)
@@ -1326,14 +1357,14 @@ class SideViewDockWidget(QDockWidget):
                                cpoint_count.items() if value == 2]
 
                 calculation_points = [{'id': key, 'geom': value} for key, value
-                               in cpoints.items() if key in calc_points]
+                                      in cpoints.items() if key in calc_points]
 
                 channel_parts = split_line_at_points(
-                                            channel.geometry(),
-                                            calculation_points,
-                                            point_feature_id_field='id',
-                                            start_node_id=None,
-                                            end_node_id=None)
+                    channel.geometry(),
+                    calculation_points,
+                    point_feature_id_field='id',
+                    start_node_id=None,
+                    end_node_id=None)
 
                 for i, part in enumerate(channel_parts):
                     if i == 0:
@@ -1341,7 +1372,7 @@ class SideViewDockWidget(QDockWidget):
                     else:
                         start_node_id = 'calc_' + str(part['start_point_id'])
 
-                    if i == len(channel_parts)-1:
+                    if i == len(channel_parts) - 1:
                         end_node_id = channel['connection_node_end_id']
                     else:
                         end_node_id = 'calc_' + str(part['end_point_id'])
@@ -1362,7 +1393,7 @@ class SideViewDockWidget(QDockWidget):
                     lines.append(channel_part)
 
                 for p in calculation_points:
-                    points['calc_'+ str(p['id'])] = {
+                    points['calc_' + str(p['id'])] = {
                         'point': p['geom'],
                         'type': self.CALCULATION_NODE,
                         'surface_level': None,
@@ -1410,7 +1441,7 @@ class SideViewDockWidget(QDockWidget):
             if python_value(line['end_node']) is not None:
                 p2 = points[line['end_node']]['point']
             else:
-                p2 = QgsPoint(p1.x(), p1.y()+0.0001)
+                p2 = QgsPoint(p1.x(), p1.y() + 0.0001)
 
             geom = QgsGeometry.fromPolyline([p1, p2])
             # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
@@ -1492,7 +1523,6 @@ class SideViewDockWidget(QDockWidget):
 
         self.map_visualisation.set_sideview_route(self.route)
 
-
     def reset_sideview(self):
         self.route.reset()
         self.map_visualisation.reset()
@@ -1511,7 +1541,8 @@ class SideViewDockWidget(QDockWidget):
 
         self.unset_route_tool()
 
-        self.active_sideview.profile_hovered.disconnect(self.map_visualisation.hover_graph)
+        self.active_sideview.profile_hovered.disconnect(
+            self.map_visualisation.hover_graph)
         self.map_visualisation.close()
 
         for sideview_plot in self.sideviews:
@@ -1569,7 +1600,7 @@ class SideViewDockWidget(QDockWidget):
         size_policy.setHorizontalStretch(6)
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(
-                self.side_view_tab_widget.sizePolicy().hasHeightForWidth())
+            self.side_view_tab_widget.sizePolicy().hasHeightForWidth())
         self.side_view_tab_widget.setSizePolicy(size_policy)
         self.side_view_tab_widget.setObjectName("sideViewTabWidget")
         self.main_vlayout.addWidget(self.side_view_tab_widget)
@@ -1584,7 +1615,6 @@ class SideViewDockWidget(QDockWidget):
             "DockWidget", "3Di sideview %i" % self.nr, None))
         self.select_sideview_button.setText(_translate(
             "DockWidget", "Kies sideview traject", None))
-
 
         self.reset_sideview_button.setText(_translate(
             "DockWidget", "Reset sideview traject", None))

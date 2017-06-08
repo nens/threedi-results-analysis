@@ -59,8 +59,8 @@ class ThreeDiGraph:
         for widget in self.dock_widgets:
             widget.close()
 
-        #self.ts_datasource.close()
-        #self.ts_datasource = None
+        # self.ts_datasource.close()
+        # self.ts_datasource = None
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -98,7 +98,7 @@ class ThreeDiGraph:
         # show the dockwidget
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)
 
-        #make stack of graph widgets (instead of next to each other)
+        # make stack of graph widgets (instead of next to each other)
         if len(self.dock_widgets) > 1:
             window = qgis.core.QgsApplication.activeWindow()
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)

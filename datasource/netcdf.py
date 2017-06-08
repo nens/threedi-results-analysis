@@ -26,7 +26,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'infiltration_rate': 'm3',
     'su': '',
     'au': '',
-    }
+}
 
 
 # NetCDF variable information
@@ -82,10 +82,11 @@ AGGREGATION_VARIABLES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
-    ]
+]
 
 AGGREGATION_OPTIONS = {
     'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative'}
+
 
 layer_information = [
     # layer name, (normalized) object_type, q/h type
@@ -299,10 +300,10 @@ class NetcdfDataSource(object):
                             self.nFlowLine1dBounds)
         assert (
             self.end_n1dtot <= self.end_n2dobc <= self.nodall
-            ), "Inconsistent node attribute values in netCDF"
+        ), "Inconsistent node attribute values in netCDF"
         assert (
             self.end_1d_line <= self.end_2d_bound_line <= self.nFlowLine
-            ), "Inconsistent line attribute values in netCDF"
+        ), "Inconsistent line attribute values in netCDF"
 
     @cached_property
     def id_mapping(self):

@@ -19,7 +19,7 @@ class BaseModelItem(object):
             setattr(self, field_name,
                     field_class.create_row_field(item=self, value=value))
 
-        #for function_name, function in self._functions:
+        # for function_name, function in self._functions:
         #    setattr(self, function_name, function)
 
     def get_row_nr(self):
@@ -70,22 +70,22 @@ class BaseModel(QAbstractTableModel):
 
         # create item class
         self._fields = sorted(
-                [(name, cl) for name, cl in inspect.getmembers(self.Fields,
-                                            lambda a:not(inspect.isroutine(a)))
-                    if not name.startswith('__') and not name.startswith('_') ],
-                    key=lambda cl: cl[1]._nr)
+            [(name, cl) for name, cl in inspect.getmembers(self.Fields,
+                                                           lambda a:not(inspect.isroutine(a)))
+             if not name.startswith('__') and not name.startswith('_')],
+            key=lambda cl: cl[1]._nr)
 
         self.columns = [cl for name, cl in self._fields]
 
         item_functions = [(name, value) for name, value
-                    in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
-                    if not name.startswith('__')]
+                          in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
+                          if not name.startswith('__')]
 
         self.item_class = type(self.class_name + 'Item', (self._base_model_item_class, self.Fields), {
             '_fields': self._fields
         })
 
-        #for function_name, function in item_functions:
+        # for function_name, function in item_functions:
         #    setattr(self.item_class, function_name, function)
 
         # initiate fields with fieldname, link to model and column_nr
@@ -200,7 +200,8 @@ class BaseModel(QAbstractTableModel):
         :param signal: send signal, False will prevent function from sending signal
         """
         if signal:
-            self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()+len(data_items)-1)
+            self.beginInsertRows(QModelIndex(), self.rowCount(
+            ), self.rowCount() + len(data_items) - 1)
 
         for data_item in data_items:
             item = self._create_item(**data_item)
@@ -216,13 +217,13 @@ class BaseModel(QAbstractTableModel):
         :param count: number of rows to remove
         :param parent: some Qt parameter
         """
-        #signal
-        self.beginRemoveRows(parent, row, row+count-1)
+        # signal
+        self.beginRemoveRows(parent, row, row + count - 1)
 
-        for i in range(row+count-1, row-1, -1):
+        for i in range(row + count - 1, row - 1, -1):
             del self._rows[i]
 
-        #signal
+        # signal
         self.endRemoveRows()
 
     @property

@@ -68,9 +68,9 @@ except ImportError:
 if netCDF4 is not None:
     msg += 'Python-netcdf version {python_netcdf}, netCDF4 version ' \
            '{netcdf} and HDF5 version {netcdf}.'.format(
-                    python_netcdf = netCDF4.__version__,
-                    netcdf = netCDF4.__netcdf4libversion__,
-                    hdf5 = netCDF4.__hdf5libversion__)
+               python_netcdf=netCDF4.__version__,
+               netcdf=netCDF4.__netcdf4libversion__,
+               hdf5=netCDF4.__hdf5libversion__)
     log(msg)
 
 
@@ -84,7 +84,7 @@ except ImportError:
         'external', 'pyqtgraph-0.9.10'))
     try:
         import pyqtgraph
-    except:
+    except Exception:
         # TODO: fix this error (which is the reason of this exception):
         # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
         # could be imported.

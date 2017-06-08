@@ -4,7 +4,7 @@ import os.path
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                os.path.pardir, 'external'))
+                             os.path.pardir, 'external'))
 
 
 import ogr
@@ -90,8 +90,3 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
     def TearDown(self):
         self.session.close_all()
         os.remove(self.file_path)
-
-
-
-
-

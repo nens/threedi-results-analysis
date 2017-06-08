@@ -45,7 +45,7 @@ class CustomCommand(CustomCommandBase):
         try:
             pump_layer = make_pumpline_layer(nds)
             vlayers.append(pump_layer)
-        except:
+        except Exception:
             print("Pumps are still in development")
             pass
 

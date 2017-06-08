@@ -95,7 +95,7 @@ class ThreeDiSideView:
         # show the dockwidget
         self.iface.addDockWidget(Qt.BottomDockWidgetArea, new_widget)
 
-        #make stack of graph widgets (instead of next to each other)
+        # make stack of graph widgets (instead of next to each other)
         if len(self.dock_widgets) > 1:
             window = qgis.core.QgsApplication.activeWindow()
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)

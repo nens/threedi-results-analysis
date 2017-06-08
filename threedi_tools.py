@@ -274,7 +274,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD ThreeDiToolbox"
+        # print "** UNLOAD ThreeDiToolbox"
 
         self.unload_state_sync()
 

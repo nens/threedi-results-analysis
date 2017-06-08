@@ -16,7 +16,7 @@ from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message, messagebar_message
 from ..datasource.netcdf import (
     SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES, AGGREGATION_VARIABLES,
-    )
+)
 from ..datasource.netcdf import (
     CUMULATIVE_AGGREGATION_UNITS)
 
@@ -66,7 +66,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         'med': 'median',
         'cum_positive': 'positive cumulative',
         'cum_negative': 'negative cumulative',
-        }
+    }
 
     for varname in subgrid_map_vars:
         varinfo = subgrid_map_vars_mapping[varname]
@@ -146,11 +146,11 @@ class GraphPlot(pg.PlotWidget):
         """
         if self.location_model:
             self.location_model.dataChanged.disconnect(
-                                            self.location_data_changed)
+                self.location_data_changed)
             self.location_model.rowsInserted.disconnect(
-                                            self.on_insert_locations)
+                self.on_insert_locations)
             self.location_model.rowsAboutToBeRemoved.disconnect(
-                                            self.on_remove_locations)
+                self.on_remove_locations)
             self.location_model = None
 
         if self.ds_model:
@@ -173,7 +173,7 @@ class GraphPlot(pg.PlotWidget):
         self.location_model.dataChanged.connect(self.location_data_changed)
         self.location_model.rowsInserted.connect(self.on_insert_locations)
         self.location_model.rowsAboutToBeRemoved.connect(
-                self.on_remove_locations)
+            self.on_remove_locations)
 
     def set_ds_model(self, model):
 
@@ -189,7 +189,7 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        for i in range(start, end+1):
+        for i in range(start, end + 1):
             ds = self.ds_model.rows[i]
             if ds.active.value:
                 for item in self.location_model.rows:
@@ -206,13 +206,13 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        for i in range(start, end+1):
+        for i in range(start, end + 1):
             ds = self.ds_model.rows[i]
             if ds.active.value:
                 for item in self.location_model.rows:
                     if item.active.value:
                         self.removeItem(item.plots(
-                                self.current_parameter['parameters'], i))
+                            self.current_parameter['parameters'], i))
 
     def ds_data_changed(self, index):
         """
@@ -236,7 +236,7 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        for i in range(start, end+1):
+        for i in range(start, end + 1):
             item = self.location_model.rows[i]
             for ds in self.ds_model.rows:
                 if ds.active.value:
@@ -253,14 +253,14 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        for i in range(start, end+1):
+        for i in range(start, end + 1):
             item = self.location_model.rows[i]
             if item.active.value:
                 for ds in self.ds_model.rows:
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
                         self.removeItem(item.plots(
-                                self.current_parameter['parameters'], index))
+                            self.current_parameter['parameters'], index))
 
     def location_data_changed(self, index):
         """
@@ -302,7 +302,7 @@ class GraphPlot(pg.PlotWidget):
         """
 
         plot = self.location_model.rows[location_nr].plots(
-                    self.current_parameter['parameters'], ds_nr)
+            self.current_parameter['parameters'], ds_nr)
         self.removeItem(plot)
 
     def show_timeseries(self, location_nr, ds_nr):
@@ -312,7 +312,7 @@ class GraphPlot(pg.PlotWidget):
         """
 
         plot = self.location_model.rows[location_nr].plots(
-                self.current_parameter['parameters'], ds_nr)
+            self.current_parameter['parameters'], ds_nr)
         self.addItem(plot)
 
     def set_parameter(self, parameter):
@@ -334,9 +334,9 @@ class GraphPlot(pg.PlotWidget):
                         index = self.ds_model.rows.index(ds)
 
                         self.removeItem(item.plots(
-                                old_parameter['parameters'], index))
+                            old_parameter['parameters'], index))
                         self.addItem(item.plots(
-                                self.current_parameter['parameters'], index))
+                            self.current_parameter['parameters'], index))
 
         self.setLabel("left",
                       self.current_parameter['name'],
@@ -454,8 +454,9 @@ class GraphWidget(QWidget):
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(
-                self.parameter_change)
-        self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+            self.parameter_change)
+        self.remove_timeseries_button.clicked.connect(
+            self.remove_objects_table)
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -467,7 +468,6 @@ class GraphWidget(QWidget):
             self.marker.setColor(Qt.red)
             self.marker.setWidth(2)
 
-
     def set_parameter_list(self, parameter_config):
 
         # reset
@@ -475,7 +475,8 @@ class GraphWidget(QWidget):
 
         self.parameters = dict([(p['name'], p) for p in parameter_config])
 
-        self.parameter_combo_box.insertItems(0, [p['name'] for p in parameter_config])
+        self.parameter_combo_box.insertItems(
+            0, [p['name'] for p in parameter_config])
 
         # todo: find best matching parameter based on previous selection
         if nr_old_parameters > 0:
@@ -487,17 +488,15 @@ class GraphWidget(QWidget):
 
         # self.graph_plot.set_parameter(self.current_parameter)
 
-
-
     def on_close(self):
         """
         unloading widget and remove all required stuff
         :return:
         """
         self.parameter_combo_box.currentIndexChanged.disconnect(
-                self.parameter_change)
+            self.parameter_change)
         self.remove_timeseries_button.clicked.disconnect(
-                self.remove_objects_table)
+            self.remove_objects_table)
 
     def closeEvent(self, event):
         """
@@ -561,7 +560,7 @@ class GraphWidget(QWidget):
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(
-                self.graph_plot.sizePolicy().hasHeightForWidth())
+            self.graph_plot.sizePolicy().hasHeightForWidth())
         self.graph_plot.setSizePolicy(sizePolicy)
         self.graph_plot.setMinimumSize(QSize(250, 250))
         self.hLayout.addWidget(self.graph_plot)
@@ -584,7 +583,7 @@ class GraphWidget(QWidget):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-                self.location_timeseries_table.sizePolicy().hasHeightForWidth())
+            self.location_timeseries_table.sizePolicy().hasHeightForWidth())
         self.location_timeseries_table.setSizePolicy(sizePolicy)
         self.location_timeseries_table.setMinimumSize(QSize(250, 0))
         self.vLayoutTable.addWidget(self.location_timeseries_table)
@@ -598,12 +597,12 @@ class GraphWidget(QWidget):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-                self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
+            self.remove_timeseries_button.sizePolicy().hasHeightForWidth())
         self.remove_timeseries_button.setSizePolicy(sizePolicy)
         self.remove_timeseries_button.setObjectName("remove_timeseries_button")
         self.hLayoutButtons.addWidget(self.remove_timeseries_button)
         self.hLayoutButtons.addItem(
-                QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+            QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         self.retranslateUi()
 
@@ -612,7 +611,7 @@ class GraphWidget(QWidget):
         set translated widget text
         """
         self.remove_timeseries_button.setText(
-                _translate("DockWidget", "Verwijder", None))
+            _translate("DockWidget", "Verwijder", None))
 
     def parameter_change(self, nr):
         """
@@ -621,7 +620,7 @@ class GraphWidget(QWidget):
         :return:
         """
         self.current_parameter = \
-                self.parameters[self.parameter_combo_box.currentText()]
+            self.parameters[self.parameter_combo_box.currentText()]
         self.graph_plot.set_parameter(self.current_parameter)
 
     def add_objects(self, layer, features):
@@ -646,13 +645,12 @@ class GraphWidget(QWidget):
         # get attribute information from selected layers
         items = []
         existing_items = ["%s_%s" % (item.object_type.value,
-                                   str(item.object_id.value))
-                for item in self.model.rows]
+                                     str(item.object_id.value))
+                          for item in self.model.rows]
         for feature in features:
             idx = feature.id()
             if layer.dataProvider().description() == u'Memory provider':
                 idx = feature['id']
-
 
             try:
                 object_name = feature['display_name']
@@ -680,9 +678,10 @@ class GraphWidget(QWidget):
 
         if len(items) > 20:
             msg = "%i nieuwe objecten zijn geselecteerd. Toevoegen aan de " \
-                  "grafiek kan enkele tijd duren. Wilt u doorgaan?" % len(items)
+                  "grafiek kan enkele tijd duren. Wilt u doorgaan?" % len(
+                      items)
             reply = QMessageBox.question(self, 'Objecten toevoegen',
-                     msg, QMessageBox.Yes, QMessageBox.No)
+                                         msg, QMessageBox.Yes, QMessageBox.No)
 
             if reply == QMessageBox.No:
                 return False
@@ -702,8 +701,9 @@ class GraphWidget(QWidget):
         :return:
         """
         selection_model = self.location_timeseries_table.selectionModel()
-        #get unique rows in selected fields
-        rows = set([index.row() for index in selection_model.selectedIndexes()])
+        # get unique rows in selected fields
+        rows = set([index.row()
+                    for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
             self.model.removeRows(row, 1)
 
@@ -745,7 +745,8 @@ class GraphDockWidget(QDockWidget):
         # init current layer state and add listener
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
-        self.root_tool.timeslider_widget.datasource_changed.connect(self.on_active_datasource_change)
+        self.root_tool.timeslider_widget.datasource_changed.connect(
+            self.on_active_datasource_change)
 
     def on_close(self):
         """
@@ -754,10 +755,11 @@ class GraphDockWidget(QDockWidget):
         """
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
-        self.root_tool.timeslider_widget.datasource_changed.disconnect(self.on_active_datasource_change)
+        self.root_tool.timeslider_widget.datasource_changed.disconnect(
+            self.on_active_datasource_change)
 
-        #self.q_graph_widget.close()
-        #self.h_graph_widget.close()
+        # self.q_graph_widget.close()
+        # self.h_graph_widget.close()
 
     def closeEvent(self, event):
         """
@@ -798,7 +800,7 @@ class GraphDockWidget(QDockWidget):
 
         tdi_layer = False
 
-        #get active layer from canvas, otherwise .dataProvider doesn't work
+        # get active layer from canvas, otherwise .dataProvider doesn't work
         canvas = self.iface.mapCanvas()
         current_layer = canvas.currentLayer()
 
@@ -811,14 +813,14 @@ class GraphDockWidget(QDockWidget):
             elif current_layer.name() in ('flowlines', 'nodes'):
                 tdi_layer = True
 
-        #activate button if 3Di layers found
+        # activate button if 3Di layers found
         self.addSelectedObjectButton.setEnabled(tdi_layer)
 
     def add_objects(self):
         canvas = self.iface.mapCanvas()
         current_layer = canvas.currentLayer()
         if not current_layer:
-            #todo: feedback select layer first
+            # todo: feedback select layer first
             return
 
         provider = current_layer.dataProvider()
@@ -827,7 +829,7 @@ class GraphDockWidget(QDockWidget):
 
         if current_layer.name() not in layer_qh_type_mapping.keys():
             if current_layer.name() not in ('flowlines', 'nodes'):
-                #todo: feedback layer not supported
+                # todo: feedback layer not supported
                 return
 
         selected_features = current_layer.selectedFeatures()
@@ -835,7 +837,7 @@ class GraphDockWidget(QDockWidget):
         if current_layer.name() == 'flowlines':
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
-                    self.graphTabWidget.indexOf(self.q_graph_widget))
+                self.graphTabWidget.indexOf(self.q_graph_widget))
             return
         elif current_layer.name() == 'nodes':
             self.h_graph_widget.add_objects(current_layer, selected_features)
@@ -846,11 +848,11 @@ class GraphDockWidget(QDockWidget):
         if layer_qh_type_mapping[current_layer.name()] == 'q':
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
-                    self.graphTabWidget.indexOf(self.q_graph_widget))
+                self.graphTabWidget.indexOf(self.q_graph_widget))
         else:
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
-                    self.graphTabWidget.indexOf(self.h_graph_widget))
+                self.graphTabWidget.indexOf(self.h_graph_widget))
 
     def on_btnstate(self, state):
         """Toggle ``absolute`` state of the GraphPlots"""
@@ -893,7 +895,7 @@ class GraphDockWidget(QDockWidget):
         sizePolicy.setHorizontalStretch(6)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-                self.graphTabWidget.sizePolicy().hasHeightForWidth())
+            self.graphTabWidget.sizePolicy().hasHeightForWidth())
         self.graphTabWidget.setSizePolicy(sizePolicy)
         self.graphTabWidget.setObjectName("graphTabWidget")
         self.mainVLayout.addWidget(self.graphTabWidget)

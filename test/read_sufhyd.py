@@ -5,7 +5,7 @@ from ..tools.importer import Importer
 
 
 class TestReadSufhyd(unittest.TestCase):
-#    def setUp(self):
+    #    def setUp(self):
 
     def test_knp(self):
         knp = '*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   '
@@ -19,7 +19,8 @@ class TestReadSufhyd(unittest.TestCase):
         obj = data['manholes'][0]
         self.assertEqual(obj.data['code'], '0000NOORD1')
         self.assertEqual(obj.data['basin'], None)
-        self.assertTupleEqual(obj.data['geom'], ('POINT', (164371.1, 388463.7), 28992))
+        self.assertTupleEqual(
+            obj.data['geom'], ('POINT', (164371.1, 388463.7), 28992))
         self.assertEqual(obj.data['surface_level'], 19.14)
         self.assertEqual(obj.data['width'], 100.0)
         self.assertEqual(obj.data['length'], None)
@@ -43,13 +44,12 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['connection_node_end.code'], '0000NOORD2')
         self.assertEqual(obj.data['original_length'], 2561.63)
         self.assertDictEqual(obj.data['cross_section_details'],
-                         {'width': 1.500, 'height': 2.000, 'shape': 'egg'})
+                             {'width': 1.500, 'height': 2.000, 'shape': 'egg'})
         self.assertEqual(obj.data['invert_level_start_point'], 5.00)
         self.assertEqual(obj.data['invert_level_end_point'], 2.00)
         self.assertEqual(obj.data['sewerage_type'], None)
         self.assertEqual(obj.data['material'], None)
         self.assertEqual(obj.data['pipe_quality'], None)
-
 
     def test_gemaal(self):
 
@@ -115,7 +115,6 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['discharge_coefficient_negative'], 0.600)
         self.assertEqual(obj.data['sewerage'], True)
 
-
     def test_uitlaat(self):
         uit = '*UIT   000000VBT1   000BYPASS1 0   -4.80                '
 
@@ -144,10 +143,8 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['bottom_level'], 100.00)
         self.assertEqual(obj.data['storage_area'], 80.0)
 
-
     def test_bergend_oppervlak(self):
         bop = '*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00'
-
 
         sufhyd = SufhydReader(bop)
         sufhyd.parse_input()
@@ -169,10 +166,4 @@ class TestImportSufhyd(unittest.TestCase):
 
         data = importer.load_sufhyd_data()
 
-        self.assertTrue(len(data['pipes'])>0)
-
-
-
-
-
-
+        self.assertTrue(len(data['pipes']) > 0)

@@ -15,6 +15,7 @@ from ThreeDiToolbox.utils.guess_indicators import Guesser
 
 test_file = os.path.join('c://tmp', 'test.hyd')
 
+
 @unittest.skipIf(not os.path.exists(test_file),
                  "Path to test sufhyd doesn't exist.")
 class TestImportNewDB(unittest.TestCase):
@@ -123,5 +124,5 @@ class TestGuessIndicators(unittest.TestCase):
 
         guesser = Guesser(self.db)
 
-        data = guesser.run(['manhole_indicator', 'pipe_friction', 'manhole_area'], True)
-
+        data = guesser.run(
+            ['manhole_indicator', 'pipe_friction', 'manhole_area'], True)
