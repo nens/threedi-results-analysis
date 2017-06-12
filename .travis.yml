@@ -35,7 +35,7 @@ install:
 
 script:
     - xvfb-run nosetests -v
-    - pycodestyle --exclude=utils,external,help,resources.py --max-line-length=999 --ignore=E402 .
+    - pycodestyle --exclude=utils/importer,external,help,resources.py --max-line-length=999 --ignore=E402 .
 
 notifications:
     email: false
