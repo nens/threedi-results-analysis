@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
+- Add pycodestyle checking to Travis.
+
+- AutoPEP8 everything.
+
 - Add more tests.
 
 - Remove deprecated/unused code.
