@@ -9,7 +9,7 @@ threedi-qgis-plugin changelog
 
 - AutoPEP8 everything.
 
-- Add more tests.
+- Include model result files in repo + add more tests.
 
 - Remove deprecated/unused code.
 
