@@ -64,8 +64,8 @@ class TimeseriesDatasourceModel(BaseModel):
 
     # fields:
     tool_name = 'result_selection'
-    model_spatialite_filepath = ValueWithChangeSignal('model_schematisation_change',
-                                                      'model_schematisation')
+    model_spatialite_filepath = ValueWithChangeSignal(
+        'model_schematisation_change', 'model_schematisation')
 
     class Fields:
         active = CheckboxField(show=True, default_value=True, column_width=20,

@@ -10,7 +10,8 @@ import os
 from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
     QgsDistanceArcProperter, QgsGraphAnalyzer
 
-from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, QgsFeatureRequest
+from qgis.core import (
+    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest)
 from qgis.networkanalysis import QgsArcProperter
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
@@ -43,7 +44,8 @@ class Route(object):
 
     def __init__(self, line_layer, director,
                  weight_properter=QgsDistanceArcProperter(),
-                 distance_properter=QgsDistanceArcProperter(), id_field="ROWID"):
+                 distance_properter=QgsDistanceArcProperter(),
+                 id_field="ROWID"):
 
         self.line_layer = line_layer
         self.director = director
@@ -187,8 +189,8 @@ class Route(object):
             else:
                 route_direction_feature = 1
 
-            path_props.insert(0,
-                              [None, None, dist, route_direction_feature, feature])
+            path_props.insert(
+                0, [None, None, dist, route_direction_feature, feature])
 
             cur_pos = self.graph.arc(self.tree[cur_pos]).outVertex()
 

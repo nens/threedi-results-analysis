@@ -44,8 +44,9 @@ class BaseModelItem(object):
 
 
 class BaseModel(QAbstractTableModel):
-    """Customized QAbstractTableModel with more pythonic way of field declaration and storage of settings and values in
-    ModelItems, ItemFields and Fields"""
+    """Customized QAbstractTableModel with more pythonic way of field
+    declaration and storage of settings and values in ModelItems, ItemFields
+    and Fields"""
 
     _base_model_item_class = BaseModelItem
     datasource = None
@@ -70,20 +71,25 @@ class BaseModel(QAbstractTableModel):
 
         # create item class
         self._fields = sorted(
-            [(name, cl) for name, cl in inspect.getmembers(self.Fields,
-                                                           lambda a:not(inspect.isroutine(a)))
+            [(name, cl) for name, cl in inspect.getmembers(
+                self.Fields, lambda a:not(inspect.isroutine(a)))
              if not name.startswith('__') and not name.startswith('_')],
             key=lambda cl: cl[1]._nr)
 
         self.columns = [cl for name, cl in self._fields]
 
-        item_functions = [(name, value) for name, value
-                          in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
-                          if not name.startswith('__')]
+        item_functions = [
+            (name, value) for name, value
+            in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
+            if not name.startswith('__')]
 
-        self.item_class = type(self.class_name + 'Item', (self._base_model_item_class, self.Fields), {
-            '_fields': self._fields
-        })
+        self.item_class = type(
+            self.class_name + 'Item',
+            (self._base_model_item_class, self.Fields),
+            {
+                '_fields': self._fields
+            }
+        )
 
         # for function_name, function in item_functions:
         #    setattr(self.item_class, function_name, function)
@@ -100,15 +106,18 @@ class BaseModel(QAbstractTableModel):
     def _create_item(self, *args, **kwargs):
         """
 
-        :param args: all (initial) values of the fields. See Fields class for available fields
-        :param kwargs: all (initial) values of the fields. See Fields class for available fields
+        :param args: all (initial) values of the fields. See Fields class for
+                     available fields
+        :param kwargs: all (initial) values of the fields. See Fields class
+                       for available fields
         :return: created item
         """
         return self.item_class(self, *args, **kwargs)
 
     def rowCount(self, index=QModelIndex):
         """
-        get number of rows (nr of items). Required function for QAbstractTableModel
+        get number of rows (nr of items). Required function for
+        QAbstractTableModel
         :param index: QModelIndex
         :return:
         """
@@ -116,7 +125,8 @@ class BaseModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex):
         """
-        get visible columns for display in table. Required function for QAbstractTableModel
+        get visible columns for display in table. Required function for
+        QAbstractTableModel
         :param index: QModelIndex
         :return:
         """
@@ -156,11 +166,13 @@ class BaseModel(QAbstractTableModel):
         # elif role == Qt.ToolTipRole:
         #     return 'tooltip'
 
-    def headerData(self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
+    def headerData(
+            self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         """
         required Qt function for getting column information
         :param col_nr: column number
-        :param orientation: Qt orientation of header Qt.Horizontal or Qt.Vertical
+        :param orientation: Qt orientation of header Qt.Horizontal or
+                            Qt.Vertical
         :param role: Qt Role (DisplayRole, SizeHintRole, etc)
         :return: value of column, given the role
         """
@@ -181,7 +193,8 @@ class BaseModel(QAbstractTableModel):
         :return: was setting value successful
         """
 
-        # dataChanged.emit is done within the ItemField, triggered by setting the value
+        # dataChanged.emit is done within the ItemField, triggered by setting
+        # the value
         self._rows[index.row()][index.column()].value = value
         return True
 
@@ -197,7 +210,8 @@ class BaseModel(QAbstractTableModel):
         """
         required Qt function for adding rows, including sending signals
         :param data_items: list with values as dictionaries
-        :param signal: send signal, False will prevent function from sending signal
+        :param signal: send signal, False will prevent function from sending
+                       signal
         """
         if signal:
             self.beginInsertRows(QModelIndex(), self.rowCount(

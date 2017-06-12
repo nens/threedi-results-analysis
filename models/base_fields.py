@@ -66,9 +66,11 @@ class BaseItemField(object):
 
     def _set_value(self, value, signal=True):
         """
-        private function for setting value, including sending a signal if value changed
+        private function for setting value, including sending a signal if
+        value changed
         :param value: new value
-        :param signal: bool, send dataChanged event through model on value change
+        :param signal: bool, send dataChanged event through model on value
+                       change
         :return: value changed
         """
         if value == self._value:
@@ -113,7 +115,8 @@ class BaseItemField(object):
 
 class BaseField(object):
 
-    def __init__(self, name=None, column_name=None, default_value=None, show=False, column_width=0):
+    def __init__(self, name=None, column_name=None, default_value=None,
+                 show=False, column_width=0):
 
         self.type = None
         self.name = name
@@ -122,7 +125,8 @@ class BaseField(object):
         self.show = show
         self.column_width = column_width
 
-        # get nr on creation to determine order in code, which will be equal to the order of the columns
+        # get nr on creation to determine order in code, which will be equal
+        # to the order of the columns
         self.column_nr = None
         self._nr = get_field_nr()
         self.model = None
@@ -141,8 +145,8 @@ class BaseField(object):
 
 
 class ValueField(BaseField):
-    """Field implementation for Values, which (for now) can be everything which can be showed in plain text
-     (string, int, float)"""
+    """Field implementation for Values, which (for now) can be everything
+    which can be showed in plain text (string, int, float)"""
 
     def __init__(self, *args, **kwargs):
         super(ValueField, self).__init__(*args, **kwargs)
@@ -153,8 +157,8 @@ class ColorField(BaseField):
     """Field implementation for Colors."""
 
     def __init__(self, *args, **kwargs):
-        """same as BaseField. Color values are a list of three color values in the range of 0-256.
-        For example (68, 55, 204)"""
+        """same as BaseField. Color values are a list of three color values
+        in the range of 0-256. For example (68, 55, 204)"""
         super(ColorField, self).__init__(*args, **kwargs)
         self.field_type = COLOR_FIELD
 

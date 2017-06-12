@@ -8,7 +8,7 @@ class TestReadSufhyd(unittest.TestCase):
     #    def setUp(self):
 
     def test_knp(self):
-        knp = '*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   '
+        knp = '*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   '  # noqa
 
         sufhyd = SufhydReader(knp)
         sufhyd.parse_input()
@@ -28,7 +28,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['material'], None)
 
     def test_lei(self):
-        lei = '*LEI   0000NOORD1   0000NOORD2      5.00    2.002561.63           1.500  2.000 02                                      '
+        lei = '*LEI   0000NOORD1   0000NOORD2      5.00    2.002561.63           1.500  2.000 02                                      '  # noqa
 
         sufhyd = SufhydReader(lei)
         sufhyd.parse_input()
@@ -53,7 +53,7 @@ class TestReadSufhyd(unittest.TestCase):
 
     def test_gemaal(self):
 
-        gem = '*GEM   00000IILST   0000GEMAAL 0             3  625.83   12.66   12.61                 3000.00   12.96   12.66                 3300.00   13.96   13.66                 3330.00   14.96   14.66'
+        gem = '*GEM   00000IILST   0000GEMAAL 0             3  625.83   12.66   12.61                 3000.00   12.96   12.66                 3300.00   13.96   13.66                 3330.00   14.96   14.66'  # noqa
 
         sufhyd = SufhydReader(gem)
         sufhyd.parse_input()
@@ -72,7 +72,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['capacity'], 625.83)
 
     def test_overstort(self):
-        ovs = '*OVS   000000SON2                10.000   17.14 0.941   1   17.04'
+        ovs = '*OVS   000000SON2                10.000   17.14 0.941   1   17.04'  # noqa
 
         sufhyd = SufhydReader(ovs)
         sufhyd.parse_input()
@@ -84,18 +84,20 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['code'], '000000SON2_')
         self.assertEqual(obj.data['connection_node_start.code'], '000000SON2')
         self.assertEqual(obj.data['connection_node_end.code'], '')
-        self.assertDictEqual(obj.data['cross_section_details'],
-                             {'width': 10.000, 'height': 1.000, 'shape': 'rectangle'})
+        self.assertDictEqual(
+            obj.data['cross_section_details'],
+            {'width': 10.000, 'height': 1.000, 'shape': 'rectangle'})
         self.assertEqual(obj.data['crest_type'], 1)
         self.assertEqual(obj.data['crest_level'], 17.14)
         self.assertEqual(obj.data['discharge_coefficient_positive'], 0.941)
         self.assertEqual(obj.data['discharge_coefficient_negative'], 0.0)
         self.assertEqual(obj.data['sewerage'], True)
-        self.assertDictEqual(obj.data['boundary_details'],
-                             {'waterlevel': 17.04, 'winter_wl': None, 'summer_wl': None})
+        self.assertDictEqual(
+            obj.data['boundary_details'],
+            {'waterlevel': 17.04, 'winter_wl': None, 'summer_wl': None})
 
     def test_doorlaat(self):
-        drl = '*DRL   0000G2175U   0000G2175W 0  3.300  0.850 02   16.02 0.600          2'
+        drl = '*DRL   0000G2175U   0000G2175W 0  3.300  0.850 02   16.02 0.600          2'  # noqa
 
         sufhyd = SufhydReader(drl)
         sufhyd.parse_input()
@@ -144,7 +146,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data['storage_area'], 80.0)
 
     def test_bergend_oppervlak(self):
-        bop = '*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00'
+        bop = '*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00'  # noqa
 
         sufhyd = SufhydReader(bop)
         sufhyd.parse_input()

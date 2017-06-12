@@ -483,7 +483,8 @@ class GraphWidget(QWidget):
             self.parameter_combo_box.setCurrentIndex(0)
 
         nr_parameters_tot = self.parameter_combo_box.count()
-        for i in reversed(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot)):
+        for i in reversed(range(nr_parameters_tot - nr_old_parameters,
+                          nr_parameters_tot)):
             self.parameter_combo_box.removeItem(i)
 
         # self.graph_plot.set_parameter(self.current_parameter)

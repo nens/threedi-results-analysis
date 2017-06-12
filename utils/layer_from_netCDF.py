@@ -64,7 +64,10 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     # create inverse mapping
     if 'channel_mapping' not in ds.ds.variables:
         progress_bar.increase_progress(
-            0, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
+            0,
+            "no channel mapping found in netCDF, skip object mapping. Model "
+            "only has 2d?"
+        )
         flowid_to_inp_mapping = {}
         inp_to_splt_mapping = {}
     else:
@@ -77,7 +80,8 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
                              "v2_orifice"):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                for spatialite_id, inp_id in ds.id_mapping[
+                        feature_type].items():
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -175,7 +179,10 @@ def make_node_layer(ds, spatialite, progress_bar=None):
 
     if 'node_mapping' not in ds.ds.variables:
         progress_bar.increase_progress(
-            0, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
+            0,
+            "no node mapping found in netCDF, skip object mapping. Model "
+            "only has 2d?"
+        )
         node_idx_to_inp_id = {}
         inp_to_splt_mapping = {}
     else:
@@ -187,7 +194,8 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         for feature_type in ("v2_connection_nodes", "v2_manhole",
                              "v2_1d_boundary_conditions"):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in ds.id_mapping[feature_type].items():
+                for spatialite_id, inp_id in ds.id_mapping[
+                        feature_type].items():
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")

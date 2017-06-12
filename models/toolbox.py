@@ -62,7 +62,8 @@ class ToolboxModel(QStandardItemModel):
 
     def get_directory_structure(self, rootdir):
         """
-        Creates a nested dictionary that represents the folder structure of rootdir
+        Creates a nested dictionary that represents the folder structure of
+        rootdir.
         """
         dir = {}
         rootdir = rootdir.rstrip(os.sep)

@@ -1,7 +1,7 @@
-
-from qgis.core import (QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
-                       QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
-                       QgsCoordinateReferenceSystem)
+from qgis.core import (
+    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
+    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
+    QgsCoordinateReferenceSystem)
 import math
 
 

@@ -514,5 +514,5 @@ class ImperviousSurfaceMap(Base):
     percentage = Column(Float)
 
 
-# todo: add windshielding, 2d boundary_conditions, floodfill, grid refinement, initial_waterlevel
-# 2dlateral, v2 pumpeddrainagearea
+# TODO: add windshielding, 2d boundary_conditions, floodfill, grid refinement,
+# initial_waterlevel, 2dlateral, v2 pumpeddrainagearea

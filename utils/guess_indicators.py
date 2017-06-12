@@ -28,12 +28,14 @@ class Guesser(object):
         if 'manhole_indicator' in checks:
             manhole_update_count = 0
 
-            # note: sqlite can not use a join with another table in an update statement,
-            # so use 'in'
+            # note: sqlite can not use a join with another table in an update
+            # statement, so use 'in'
             up = update(Manhole).\
                 where(Manhole.connection_node_id.in_(
-                    select([Pumpstation.connection_node_start_id]).correlate())).\
-                values(manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
+                    select(
+                        [Pumpstation.connection_node_start_id]).correlate())).\
+                values(
+                    manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
             if only_empty_fields:
                 up = up.where(Manhole.manhole_indicator is None)
             ret = session.execute(up)
@@ -42,7 +44,9 @@ class Guesser(object):
 
             up = update(Manhole).\
                 where(Manhole.connection_node_id.in_(
-                    select([BoundaryCondition1D.connection_node_id]).correlate())).\
+                    select(
+                        [BoundaryCondition1D.connection_node_id]
+                    ).correlate())).\
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_OUTLET)
             if only_empty_fields:
                 up = up.where(Manhole.manhole_indicator is None)
@@ -96,15 +100,19 @@ class Guesser(object):
             manhole_area_count = 0
 
             manhole_list = session.query(Manhole).join(
-                Manhole.connection_node).filter(ConnectionNode.storage_area is None)
+                Manhole.connection_node).filter(
+                    ConnectionNode.storage_area is None)
 
-            # '01' and '02' are the old identifiers, based on the sufhyd standard
+            # '01' and '02' are the old identifiers, based on the sufhyd
+            # standard
             for manhole in manhole_list:
                 if (manhole.shape in [Constants.MANHOLE_SHAPE_ROUND, '01'] and
                         manhole.width is not None):
                     storage_area = 0.5 * 3.14 * manhole.width * manhole.width
-                elif (manhole.shape in [Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
-                      manhole.width is not None and manhole.length is not None):
+                elif (manhole.shape in [
+                        Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
+                      manhole.width is not None and
+                      manhole.length is not None):
                     storage_area = manhole.width * manhole.length
                 elif manhole.width is not None:
                     storage_area = manhole.width * manhole.width

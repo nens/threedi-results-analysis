@@ -113,10 +113,9 @@ class Importer(object):
             if 'username' in db_set:
                 del db_set['username']
 
-            log_file.write('Added to the {0} database with connection settings {1} :\n'.format(
-                self.db.db_type,
-                str(db_set)
-            ))
+            log_file.write(
+                'Added to the {0} database with connection settings {1} :\n'
+                .format(self.db.db_type, str(db_set)))
             log_file.write('{profiles} profiles\n'
                            '{manholes} manholes\n'
                            '{pipes} pipes\n'
@@ -128,7 +127,7 @@ class Importer(object):
             log_file.write(self.log.get_full_log())
             log_file.close()
 
-            msg = "{errors} errors and {warnings} warnings, see qgis log for " \
+            msg = "{errors} errors and {warnings} warnings, see qgis log for "\
                   "the summary and {log_file} for the full log".format(
                       errors=self.log.level_count.get(logging.ERROR, 0),
                       warnings=self.log.level_count.get(logging.WARNING, 0),
@@ -148,12 +147,14 @@ class Importer(object):
         for ide_rec, unused_list in unused_fields.items():
             for field, count in unused_list.items():
 
-                self.log.add(logging.WARNING,
-                             "Some fields provided in the sufhyd for object "
-                             "'{ide_rec}' are not used.",
-                             {'ide_rec': ide_rec},
-                             "Data of '{ide_rec}' field '{field}' {count} times ignored.",
-                             {'ide_rec': ide_rec, 'field': field, 'count': count})
+                self.log.add(
+                    logging.WARNING,
+                    "Some fields provided in the sufhyd for object "
+                    "'{ide_rec}' are not used.",
+                    {'ide_rec': ide_rec},
+                    "Data of '{ide_rec}' field '{field}' {count} times "
+                    "ignored.",
+                    {'ide_rec': ide_rec, 'field': field, 'count': count})
 
         return reader.get_data()
 
@@ -173,11 +174,13 @@ class Importer(object):
                 doubles.append(record)
                 self.log.add(
                     log_level,
-                    'double values in {unique_field} of {item_name_for_logging}',
+                    'double values in {unique_field} of '
+                    '{item_name_for_logging}',
                     {'unique_field': unique_field,
                         'item_name_for_logging': item_name_for_logging},
                     'for records with {unique_field}: {code}',
-                    {'unique_field': unique_field, 'code': record[unique_field]})
+                    {'unique_field': unique_field,
+                        'code': record[unique_field]})
 
                 if remove_doubles:
                     records.remove(record)
@@ -205,7 +208,8 @@ class Importer(object):
         used_outlets = {}
 
         # check on multiple connections
-        for objects in (data['pipes'], data['pumpstations'], data['weirs'], data['orifices']):
+        for objects in (data['pipes'], data['pumpstations'], data['weirs'],
+                        data['orifices']):
             for obj in objects:
                 for node in ('start_node.code', 'end_node.code'):
                     code = obj[node]
@@ -231,13 +235,14 @@ class Importer(object):
                             new_outlet['node.code'] = new_manhole['code']
                             data['outlets'].append(new_outlet)
 
-                            self.log.add(logging.INFO,
-                                         'multiple connection to outlet',
-                                         {},
-                                         'multiple connection to outlet {orig_code}, '
-                                         'added extra manhole and outlet {new_code}',
-                                         {'orig_code': code,
-                                          'new_code': new_manhole['code']})
+                            self.log.add(
+                                logging.INFO,
+                                'multiple connection to outlet',
+                                {},
+                                'multiple connection to outlet {orig_code}, '
+                                'added extra manhole and outlet {new_code}',
+                                {'orig_code': code,
+                                 'new_code': new_manhole['code']})
 
                         else:
                             used_outlets[code] = 1
@@ -317,7 +322,8 @@ class Importer(object):
                     })
                     obj['end_node.code'] = bound_code
 
-                    if (obj_type == 'orifice' or 'boundary_details' not in obj or
+                    if (obj_type == 'orifice' or
+                            'boundary_details' not in obj or
                             obj['boundary_details']['timeseries'] is None):
                         if obj['crest_level'] is not None:
                             waterlevel = obj['crest_level'] - 0.5
@@ -352,7 +358,7 @@ class Importer(object):
                 manhole['storage_area'] = None
 
             # if manhole['code'] in link_dict:
-            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])
+            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])  # noqa
             #     del manhole
             #     continue
 
@@ -364,7 +370,8 @@ class Importer(object):
 
         data (dict): dictionary with for each object type a list of objects
 
-        returns: (dict) with number of objects committed to the database of each object type
+        returns: (dict) with number of objects committed to the database of
+                 each object type
 
         """
 
@@ -379,7 +386,8 @@ class Importer(object):
                           ImperviousSurface, ImperviousSurfaceMap):
 
                 session.execute("SELECT setval('{table}_id_seq', max(id)) "
-                                "FROM {table}".format(table=table.__tablename__))
+                                "FROM {table}".format(
+                                    table=table.__tablename__))
 
             session.commit()
         crs_list = []
@@ -398,18 +406,20 @@ class Importer(object):
         con_list = []
         srid = 4326
         if self.db.db_type == 'postgres':
-            geom_col = session.execute("SELECT srid FROM geometry_columns "
-                                       "WHERE f_table_name = 'v2_connection_nodes' AND "
-                                       "f_geometry_column = 'the_geom'")
+            geom_col = session.execute(
+                "SELECT srid FROM geometry_columns "
+                "WHERE f_table_name = 'v2_connection_nodes' AND "
+                "f_geometry_column = 'the_geom'")
             srid = geom_col.fetchone()[0]
 
         for manhole in data['manholes']:
             wkt = transform("POINT({0} {1})".format(*manhole['geom']),
                             manhole['geom'][2],
                             srid)
-            con_list.append(ConnectionNode(code=manhole['code'],
-                                           storage_area=manhole['storage_area'],
-                                           the_geom="srid={0};{1}".format(srid, wkt)))
+            con_list.append(
+                ConnectionNode(code=manhole['code'],
+                               storage_area=manhole['storage_area'],
+                               the_geom="srid={0};{1}".format(srid, wkt)))
 
         session.bulk_save_objects(con_list)
         session.commit()
@@ -433,7 +443,8 @@ class Importer(object):
                     logging.ERROR,
                     'node of link not found in nodes',
                     {},
-                    'start node {start_node} or end_node {end_node} of link definition not found',
+                    'start node {start_node} or end_node {end_node} of link '
+                    'definition not found',
                     {'start_node': link['start_node.code'],
                      'end_node': link['end_node.code']}
                 )
@@ -457,19 +468,22 @@ class Importer(object):
         pipe_list = []
         for pipe in data['pipes']:
             try:
-                pipe['connection_node_start_id'] = con_dict[pipe['start_node.code']]
+                pipe['connection_node_start_id'] = con_dict[
+                    pipe['start_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
                     'Start node of pipe not found in nodes',
                     {},
-                    'Start node {start_node} of pipe with code {code} not found',
+                    'Start node {start_node} of pipe with code {code} not '
+                    'found',
                     {'start_node': pipe['start_node.code'],
                         'code': pipe['code']}
                 )
 
             try:
-                pipe['connection_node_end_id'] = con_dict[pipe['end_node.code']]
+                pipe['connection_node_end_id'] = con_dict[
+                    pipe['end_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
@@ -496,19 +510,22 @@ class Importer(object):
         obj_list = []
         for pump in data['pumpstations']:
             try:
-                pump['connection_node_start_id'] = con_dict[pump['start_node.code']]
+                pump['connection_node_start_id'] = con_dict[
+                    pump['start_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
                     'Start node of pump not found in nodes',
                     {},
-                    'Start node {start_node} of pump with code {code} not found',
+                    'Start node {start_node} of pump with code {code} not '
+                    'found',
                     {'start_node': pump['start_node.code'],
                         'code': pump['code']}
                 )
 
             try:
-                pump['connection_node_end_id'] = con_dict[pump['end_node.code']]
+                pump['connection_node_end_id'] = con_dict[
+                    pump['end_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
@@ -525,19 +542,22 @@ class Importer(object):
 
         for weir in data['weirs']:
             try:
-                weir['connection_node_start_id'] = con_dict[weir['start_node.code']]
+                weir['connection_node_start_id'] = con_dict[
+                    weir['start_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
                     'Start node of weir not found in nodes',
                     {},
-                    'Start node {start_node} of weir with code {code} not found',
+                    'Start node {start_node} of weir with code {code} not '
+                    'found',
                     {'start_node': weir['start_node.code'],
                         'code': weir['code']}
                 )
 
             try:
-                weir['connection_node_end_id'] = con_dict[weir['end_node.code']]
+                weir['connection_node_end_id'] = con_dict[
+                    weir['end_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
@@ -559,25 +579,29 @@ class Importer(object):
 
         for orif in data['orifices']:
             try:
-                orif['connection_node_start_id'] = con_dict[orif['start_node.code']]
+                orif['connection_node_start_id'] = con_dict[
+                    orif['start_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
                     'Start node of orifice not found in nodes',
                     {},
-                    'Start node {start_node} of orifice with code {code} not found',
+                    'Start node {start_node} of orifice with code {code} not '
+                    'found',
                     {'start_node': orif['start_node.code'],
                         'code': orif['code']}
                 )
 
             try:
-                orif['connection_node_end_id'] = con_dict[orif['end_node.code']]
+                orif['connection_node_end_id'] = con_dict[
+                    orif['end_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
                     'End node of orifice not found in nodes',
                     {},
-                    'End node {end_node} of orifice with code {code} not found',
+                    'End node {end_node} of orifice with code {code} not '
+                    'found',
                     {'end_node': orif['end_node.code'], 'code': orif['code']}
                 )
 
@@ -648,7 +672,8 @@ class Importer(object):
                 )
                 continue
 
-            imp_map['impervious_surface_id'] = imp_dict[imp_map['imp_surface.code']]
+            imp_map['impervious_surface_id'] = imp_dict[
+                imp_map['imp_surface.code']]
             del imp_map['node.code']
             del imp_map['imp_surface.code']
 

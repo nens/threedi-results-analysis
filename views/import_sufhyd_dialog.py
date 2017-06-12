@@ -116,8 +116,8 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
                     pass
 
                 connInfo = uri.connectionInfo()
-                (success, uname, passwd) = \
-                    QgsCredentialDialog.instance().get(connInfo, uname, passwd, msg)
+                (success, uname, passwd) = QgsCredentialDialog.instance().get(
+                    connInfo, uname, passwd, msg)
 
                 if success:
                     db_set['username'] = passwd

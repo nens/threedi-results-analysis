@@ -39,5 +39,6 @@ class CustomCommandBase(object):
 
     @abc.abstractmethod
     def run(self):
-        """Entry point of CustomCommand. Either call show_gui or run_it here."""
+        """Entry point of CustomCommand. Either call show_gui or run_it here.
+        """
         pass

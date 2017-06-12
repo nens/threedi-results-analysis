@@ -4,7 +4,7 @@ from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGis
+from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
@@ -195,10 +195,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileName(self,
-                                               'Open 3Di model spatialite file',
-                                               init_path,
-                                               'Spatialite (*.sqlite)')
+        filename = QFileDialog.getOpenFileName(
+            self,
+            'Open 3Di model spatialite file',
+            init_path,
+            'Spatialite (*.sqlite)')
 
         if filename == "":
             return False

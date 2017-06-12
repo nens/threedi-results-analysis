@@ -16,7 +16,7 @@ class cached_property(object):
         itself with an ordinary attribute. Deleting the attribute resets the
         property.
 
-        Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
+        Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76  # noqa
 
         See also: http://www.pydanny.com/cached-property.html
         """

@@ -93,7 +93,8 @@ except Exception:
     # TODO: fix this error (which is the reason of this exception):
     # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
     # could be imported.
-    msg = "Error: Exception while loading pyqtgraph. Probably couldn't import PyQt"
+    msg = "Error: Exception while loading pyqtgraph. Probably couldn't "\
+          "import PyQt"
     log(msg)
     pop_up_info(msg)
 

@@ -202,7 +202,7 @@ class Predictor(object):
                                    'content_type_id': 1,
                                    'dist_calc_pnts': 5.0,
                                    'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
+                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},  # noqa
         }
         """
         query_data = self._get_query_data(epsg_code)
