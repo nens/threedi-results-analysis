@@ -8,7 +8,7 @@ import numpy as np
 import os
 
 from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-        QgsDistanceArcProperter, QgsGraphAnalyzer
+    QgsDistanceArcProperter, QgsGraphAnalyzer
 
 from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, QgsFeatureRequest
 from qgis.networkanalysis import QgsArcProperter
@@ -20,6 +20,7 @@ from ..utils.user_messages import log, statusbar_message
 
 class AttributeProperter(QgsArcProperter):
     """custom properter"""
+
     def __init__(self, attribute, attribute_index):
         QgsArcProperter.__init__(self)
         self.attribute = attribute
@@ -159,7 +160,7 @@ class Route(object):
 
         # check if end_point is connected to start point
         if self.tree[id_end_point] == -1:
-             return False, "Path not found", None
+            return False, "Path not found", None
 
         # else continue finding path
         p = []
@@ -168,7 +169,7 @@ class Route(object):
         cur_pos = id_end_point
         while cur_pos != id_start_point:
             point = self.graph.vertex(self.graph.arc(
-                                self.tree[cur_pos]).inVertex()).point()
+                self.tree[cur_pos]).inVertex()).point()
             p.append(point)
 
             dist = self.graph.arc(self.tree[cur_pos]).properties()[1]
@@ -187,7 +188,7 @@ class Route(object):
                 route_direction_feature = 1
 
             path_props.insert(0,
-                    [None, None, dist, route_direction_feature, feature])
+                              [None, None, dist, route_direction_feature, feature])
 
             cur_pos = self.graph.arc(self.tree[cur_pos]).outVertex()
 
@@ -223,13 +224,15 @@ class Route(object):
             if int(branch) >= 0:
                 # add a feature
                 feat = QgsFeature()
-                a = self.graph.vertex(self.graph.arc(branch).inVertex()).point()
-                b = self.graph.vertex(self.graph.arc(branch).outVertex()).point()
+                a = self.graph.vertex(
+                    self.graph.arc(branch).inVertex()).point()
+                b = self.graph.vertex(
+                    self.graph.arc(branch).outVertex()).point()
                 feat.setGeometry(QgsGeometry.fromPolyline([a, b]))
 
                 feat.setAttributes([
-                        float(self.graph.arc(branch).properties()[1]),
-                        int(self.graph.arc(branch).properties()[2])])
+                    float(self.graph.arc(branch).properties()[1]),
+                    int(self.graph.arc(branch).properties()[2])])
                 features.append(feat)
 
         self._virtual_tree_layer.dataProvider().addFeatures(features)
@@ -250,13 +253,13 @@ class Route(object):
         if not self._virtual_tree_layer:
             # create_layer
             self._virtual_tree_layer = QgsVectorLayer(
-                                            "linestring?crs=epsg:4326",
-                                            "temporary_lines",
-                                            "memory")
+                "linestring?crs=epsg:4326",
+                "temporary_lines",
+                "memory")
 
             self._virtual_tree_layer.dataProvider().addAttributes([
-                    QgsField("weight", QVariant.Double),
-                    QgsField("line_id",  QVariant.LongLong)])
+                QgsField("weight", QVariant.Double),
+                QgsField("line_id", QVariant.LongLong)])
 
             self._virtual_tree_layer.commitChanges()
 

@@ -55,20 +55,22 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         "end_node_idx INTEGER NOT NULL"
     ]
 
-    layer = spatialite.create_empty_layer('flowlines', QGis.WKBLineString, fields, 'id')
+    layer = spatialite.create_empty_layer(
+        'flowlines', QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
     if 'channel_mapping' not in ds.ds.variables:
-        progress_bar.increase_progress(0, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
+        progress_bar.increase_progress(
+            0, "no channel mapping found in netCDF, skip object mapping. Model only has 2d?")
         flowid_to_inp_mapping = {}
         inp_to_splt_mapping = {}
     else:
         pass
         flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in
-                                  ds.ds.variables['channel_mapping']])
+                                      ds.ds.variables['channel_mapping']])
 
         # create mapping of inp_id to spatialite_id and feature type
         inp_to_splt_mapping = {}
@@ -105,7 +107,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         spatialite_id = None
 
         try:
-            inp_id = int(flowid_to_inp_mapping[i+1])
+            inp_id = int(flowid_to_inp_mapping[i + 1])
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
         except KeyError:
             cat = ds.line_type_of(i)
@@ -164,7 +166,7 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         "type STRING(25)"
     ]
 
-    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'id' )
+    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -172,11 +174,12 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     # create inverse mapping
 
     if 'node_mapping' not in ds.ds.variables:
-        progress_bar.increase_progress(0, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
+        progress_bar.increase_progress(
+            0, "no node mapping found in netCDF, skip object mapping. Model only has 2d?")
         node_idx_to_inp_id = {}
         inp_to_splt_mapping = {}
     else:
-        node_idx_to_inp_id = dict([(flowid-1, inp_id) for inp_id, flowid in
+        node_idx_to_inp_id = dict([(flowid - 1, inp_id) for inp_id, flowid in
                                    ds.ds.variables['node_mapping']])
 
         # create mapping of inp_id to spatialite_id and feature type
@@ -260,7 +263,8 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
         "node_idx2 INTEGER"
     ]
 
-    layer = spatialite.create_empty_layer('pumplines', QGis.WKBLineString, fields, 'id')
+    layer = spatialite.create_empty_layer(
+        'pumplines', QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 

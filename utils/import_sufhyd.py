@@ -50,12 +50,14 @@ class DataImportLogger(object):
         if base_msg not in self.log_tree:
             self.log_tree[base_msg] = OrderedDict()
 
-        msg = logging.getLevelName(level) + ': ' + base_msg.format(**base_params)
+        msg = logging.getLevelName(level) + ': ' + \
+            base_msg.format(**base_params)
 
         if msg not in self.log_tree[base_msg]:
             self.log_tree[base_msg][msg] = list()
 
-        self.log_tree[base_msg][msg].append(specific_msg.format(**specific_params))
+        self.log_tree[base_msg][msg].append(
+            specific_msg.format(**specific_params))
 
     def get_summary(self):
         return self.get_full_log(True)
@@ -128,9 +130,9 @@ class Importer(object):
 
             msg = "{errors} errors and {warnings} warnings, see qgis log for " \
                   "the summary and {log_file} for the full log".format(
-                    errors=self.log.level_count.get(logging.ERROR, 0),
-                    warnings=self.log.level_count.get(logging.WARNING, 0),
-                    log_file=log_file)
+                      errors=self.log.level_count.get(logging.ERROR, 0),
+                      warnings=self.log.level_count.get(logging.WARNING, 0),
+                      log_file=log_file)
 
             messagebar_message('sufhyd import ready',
                                msg,
@@ -139,7 +141,8 @@ class Importer(object):
             logger.info('sufhyd import ready = ' + msg)
 
     def load_sufhyd_data(self):
-        reader = SufhydReader(open(self.import_file, 'r').read(), data_log=self.log)
+        reader = SufhydReader(
+            open(self.import_file, 'r').read(), data_log=self.log)
         unused_fields = reader.parse_input()
 
         for ide_rec, unused_list in unused_fields.items():
@@ -186,8 +189,10 @@ class Importer(object):
     def check_import_data(self, data):
 
         self._check_on_unique(data['manholes'], 'code', True, 'knoop')
-        self._check_on_unique(data['storage'], 'node.code', True, 'bergend oppervlak knoop')
-        self._check_on_unique(data['outlets'], 'node.code', True, 'uitlaat knoop')
+        self._check_on_unique(
+            data['storage'], 'node.code', True, 'bergend oppervlak knoop')
+        self._check_on_unique(
+            data['outlets'], 'node.code', True, 'uitlaat knoop')
 
         self._check_on_unique(data['weirs'], 'code', False, 'overstort')
         self._check_on_unique(data['pumpstations'], 'code', False, 'gemaal')
@@ -211,10 +216,11 @@ class Importer(object):
                             # add extra manhole
                             new_manhole = copy(manhole_dict[code])
                             new_manhole['code'] = new_manhole['code'] + \
-                                                  '-' + str(used_outlets[code])
+                                '-' + str(used_outlets[code])
 
                             geom = new_manhole['geom']
-                            new_manhole['geom'] = (geom[0], geom[1] + 1.0, geom[2])
+                            new_manhole['geom'] = (
+                                geom[0], geom[1] + 1.0, geom[2])
                             data['manholes'].append(new_manhole)
 
                             # redirect object to new manhole
@@ -295,7 +301,8 @@ class Importer(object):
                     bound_code = obj['code'] + '-bound' + str(inc_nr)
                     inc_nr += 1
 
-                    geom = manhole_geom.get(obj['start_node.code'], (0., 0., 28992))
+                    geom = manhole_geom.get(
+                        obj['start_node.code'], (0., 0., 28992))
                     new_geom = (geom[0], geom[1] + 1.0, geom[2])
 
                     data['manholes'].append({
@@ -333,12 +340,14 @@ class Importer(object):
         storage_dict = {k['node.code']: k for k in data['storage']}
 
         # remove manholes which are part of a link
-        data['manholes'] = [m for m in data['manholes'] if m['code'] not in link_dict]
+        data['manholes'] = [m for m in data['manholes']
+                            if m['code'] not in link_dict]
 
         for manhole in data['manholes']:
             # add storage area
             if manhole['code'] in storage_dict:
-                manhole['storage_area'] = storage_dict[manhole['code']]['storage_area']
+                manhole['storage_area'] = storage_dict[manhole['code']
+                                                       ]['storage_area']
             else:
                 manhole['storage_area'] = None
 
@@ -382,7 +391,7 @@ class Importer(object):
         session.commit()
 
         crs_list = session.query(CrossSectionDefinition).options(
-                load_only("id", "code")).order_by(CrossSectionDefinition.id).all()
+            load_only("id", "code")).order_by(CrossSectionDefinition.id).all()
         crs_dict = {m.code: m.id for m in crs_list}
         del crs_list
 
@@ -390,8 +399,8 @@ class Importer(object):
         srid = 4326
         if self.db.db_type == 'postgres':
             geom_col = session.execute("SELECT srid FROM geometry_columns "
-                            "WHERE f_table_name = 'v2_connection_nodes' AND "
-                            "f_geometry_column = 'the_geom'")
+                                       "WHERE f_table_name = 'v2_connection_nodes' AND "
+                                       "f_geometry_column = 'the_geom'")
             srid = geom_col.fetchone()[0]
 
         for manhole in data['manholes']:
@@ -399,14 +408,14 @@ class Importer(object):
                             manhole['geom'][2],
                             srid)
             con_list.append(ConnectionNode(code=manhole['code'],
-                            storage_area=manhole['storage_area'],
-                            the_geom="srid={0};{1}".format(srid, wkt)))
+                                           storage_area=manhole['storage_area'],
+                                           the_geom="srid={0};{1}".format(srid, wkt)))
 
         session.bulk_save_objects(con_list)
         session.commit()
 
         con_list = session.query(ConnectionNode).options(
-                load_only("id", "code")).order_by(ConnectionNode.id).all()
+            load_only("id", "code")).order_by(ConnectionNode.id).all()
         con_dict = {m.code: m.id for m in con_list}
         del con_list
 
@@ -414,9 +423,11 @@ class Importer(object):
         for link in data['links']:
             try:
                 if link['end_node.code'] in con_dict:
-                    con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+                    con_dict[link['end_node.code']
+                             ] = con_dict[link['start_node.code']]
                 else:
-                    con_dict[link['end_node.code']] = con_dict[link['start_node.code']]
+                    con_dict[link['end_node.code']
+                             ] = con_dict[link['start_node.code']]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
@@ -453,7 +464,8 @@ class Importer(object):
                     'Start node of pipe not found in nodes',
                     {},
                     'Start node {start_node} of pipe with code {code} not found',
-                    {'start_node': pipe['start_node.code'], 'code': pipe['code']}
+                    {'start_node': pipe['start_node.code'],
+                        'code': pipe['code']}
                 )
 
             try:
@@ -491,7 +503,8 @@ class Importer(object):
                     'Start node of pump not found in nodes',
                     {},
                     'Start node {start_node} of pump with code {code} not found',
-                    {'start_node': pump['start_node.code'], 'code': pump['code']}
+                    {'start_node': pump['start_node.code'],
+                        'code': pump['code']}
                 )
 
             try:
@@ -519,7 +532,8 @@ class Importer(object):
                     'Start node of weir not found in nodes',
                     {},
                     'Start node {start_node} of weir with code {code} not found',
-                    {'start_node': weir['start_node.code'], 'code': weir['code']}
+                    {'start_node': weir['start_node.code'],
+                        'code': weir['code']}
                 )
 
             try:
@@ -552,7 +566,8 @@ class Importer(object):
                     'Start node of orifice not found in nodes',
                     {},
                     'Start node {start_node} of orifice with code {code} not found',
-                    {'start_node': orif['start_node.code'], 'code': orif['code']}
+                    {'start_node': orif['start_node.code'],
+                        'code': orif['code']}
                 )
 
             try:
@@ -613,7 +628,7 @@ class Importer(object):
         session.commit()
 
         imp_list = session.query(ImperviousSurface).options(
-                load_only("id", "code")).order_by(ImperviousSurface.id).all()
+            load_only("id", "code")).order_by(ImperviousSurface.id).all()
         imp_dict = {m.code: m.id for m in imp_list}
         del imp_list
 
@@ -628,7 +643,8 @@ class Importer(object):
                     {},
                     'Node {node} of impervious surface map connected to '
                     'impervious surface with code {code} not found',
-                    {'node': imp_map['node.code'], 'code': imp_map['imp_surface.code']}
+                    {'node': imp_map['node.code'],
+                        'code': imp_map['imp_surface.code']}
                 )
                 continue
 

@@ -30,7 +30,7 @@ class QGisHandler(logging.Handler):
                 self.iface is not None):
 
             self.iface.messageBar().pushMessage(
-                    record.funcName, msg, level, 0)
+                record.funcName, msg, level, 0)
 
 
 def setup_logging(iface=None):

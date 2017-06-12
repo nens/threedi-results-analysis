@@ -14,7 +14,7 @@ from ..stats.utils import (
     get_manhole_layer_id_name,
     get_pump_layer_id_name,
     get_default_csv_path,
-    )
+)
 from . import styler
 from .threedi_database import ThreediDatabase
 
@@ -397,7 +397,7 @@ class LayerTreeManager(object):
                 ],
                 'flowlines': [
                     ('line statistieken', '', None),
-                    ],
+                ],
                 'v2_culvert_view': [
                     ('culvert statistieken', '', None),
                 ],
@@ -457,6 +457,7 @@ class LayerTreeManager(object):
 class StatsLayerInfo(object):
     """Small wrapper for grouping functions used to generate statistics
     for some types of layers (node-like, line-like, pump-like)."""
+
     def __init__(self, layers, layer_id_name_func, generate_stats_func):
         self.layers = layers
         self.layer_id_name_func = layer_id_name_func

@@ -98,7 +98,6 @@ class ProjectStateMixin(object):
             # QgsProject.instance().homePathChanged.disconnect(self.set_paths_relative)
             self.connect_to_save_and_load = False
 
-
     def init_state_sync(self, connect_to_save_and_load=True):
         """loads and set the state for m the current project and set the
             connection to the required signals from the tools and iface interface

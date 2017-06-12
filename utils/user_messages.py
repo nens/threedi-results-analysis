@@ -10,7 +10,7 @@ from PyQt4.QtCore import Qt
 
 try:
     from qgis.utils import iface
-except:
+except Exception:
     iface = None
 
 

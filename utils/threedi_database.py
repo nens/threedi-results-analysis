@@ -14,7 +14,6 @@ from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 class ThreediDatabase(object):
 
-
     def __init__(self, connection_settings, db_type='spatialite', echo=False):
         """
 
@@ -60,9 +59,9 @@ class ThreediDatabase(object):
         if self._engine is None or get_seperate_engine:
             if self.db_type == 'spatialite':
                 engine = create_engine('sqlite:///{0}'.format(
-                                                self.settings['db_path']),
-                                       module=dbapi2,
-                                       echo=self.echo)
+                    self.settings['db_path']),
+                    module=dbapi2,
+                    echo=self.echo)
                 if get_seperate_engine:
                     return engine
                 else:
@@ -159,13 +158,15 @@ def get_databases():
 
         if qs.value(prefix + '/saveUsername') == u'true':
             settings['saveUsername'] = True
-            settings['db_settings']['username'] = qs.value(prefix + '/username')
+            settings['db_settings']['username'] = qs.value(
+                prefix + '/username')
         else:
             settings['saveUsername'] = False
 
         if qs.value(prefix + '/savePassword') == u'true':
             settings['savePassword'] = True
-            settings['db_settings']['password'] = qs.value(prefix + '/password')
+            settings['db_settings']['password'] = qs.value(
+                prefix + '/password')
         else:
             settings['savePassword'] = False
 
@@ -174,4 +175,3 @@ def get_databases():
     available_dbs = collections.OrderedDict(sorted(d.items()))
 
     return available_dbs
-
