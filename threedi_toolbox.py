@@ -63,9 +63,6 @@ class ThreeDiToolbox:
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-
-        # print "** CLOSING ThreeDiToolbox"
-
         # disconnects
         if self.dockwidget:
             self.dockwidget.close()
