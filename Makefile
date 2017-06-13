@@ -51,7 +51,17 @@ EXTRAS = metadata.txt icon.png
 
 COMPILED_RESOURCE_FILES = resources.py
 
-PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
+# Exclude:
+# - utils/importer (legacy code)
+# - external (third-party libs)
+# - help (auto-generated)
+# - resources.py (auto-generated)
+# - ui (auto-generated, in principle)
+PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui,help,external,utils/importer,external
+
+# Ignore:
+# - E402 (because of sys.path modifications)
+PEP8IGNORED_CODES=E402
 
 
 #################################################
@@ -229,7 +239,10 @@ pep8:
 	@echo "-----------"
 	@echo "PEP8 issues"
 	@echo "-----------"
-	@pep8 --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128 --exclude $(PEP8EXCLUDE) . || true
+	@pycodestyle --repeat --ignore=$(PEP8IGNORED_CODES) --exclude $(PEP8EXCLUDE) . || true
 	@echo "-----------"
 	@echo "Ignored in PEP8 check:"
 	@echo $(PEP8EXCLUDE)
+	@echo "-----------"
+	@echo "Ignored codes in PEP8 check:"
+	@echo $(PEP8IGNORED_CODES)

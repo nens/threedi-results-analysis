@@ -35,15 +35,7 @@ install:
 
 script:
     - xvfb-run nosetests -v
-      # Exclude:
-      # - utils/importer (legacy code)
-      # - external (third-party libs)
-      # - help (auto-generated)
-      # - resources.py (auto-generated)
-      # - ui (auto-generated, in principle)
-      # Ignore:
-      # - E402 (because of sys.path modifications)
-    - pycodestyle --exclude=utils/importer,external,help,resources.py,ui --ignore=E402 .
+    - make pep8
 
 notifications:
     email: false
