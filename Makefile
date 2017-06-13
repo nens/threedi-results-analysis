@@ -57,7 +57,7 @@ COMPILED_RESOURCE_FILES = resources.py
 # - help (auto-generated)
 # - resources.py (auto-generated)
 # - ui (auto-generated, in principle)
-PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui,help,external,utils/importer,external
+PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui,help,external,utils/importer
 
 # Ignore:
 # - E402 (because of sys.path modifications)
