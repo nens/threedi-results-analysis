@@ -1,6 +1,8 @@
 import unittest
 
 from ThreeDiToolbox.stats.ncstats import NcStats
+from ThreeDiToolbox.stats.utils import get_default_csv_path
+from ThreeDiToolbox.stats.utils import STATS_CACHE_LAYER_POSTFIX
 
 
 class TestNcStats(unittest.TestCase):
@@ -25,3 +27,9 @@ class TestNcStats(unittest.TestCase):
         for parameter_name in ncstats.AVAILABLE_MANHOLE_PARAMETERS:
             # if this crashes a method isn't implemented
             getattr(ncstats, parameter_name)
+
+
+class TestStatsUtils(unittest.TestCase):
+    def test_csv_path(self):
+        p = get_default_csv_path('my_layer', '/home/homie')
+        self.assertEqual(p, '/home/homie/my_layer' + STATS_CACHE_LAYER_POSTFIX)
