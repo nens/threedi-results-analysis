@@ -14,12 +14,20 @@ from ..stats.utils import (
     get_manhole_layer_id_name,
     get_pump_layer_id_name,
     get_default_csv_path,
-    )
+)
 from . import styler
 from .threedi_database import ThreediDatabase
 
 
 def _clone_vector_layer(layer):
+    """Create a new instance of a QgsVectorLayer from an existing one.
+
+    Note that QgsVectorLayer is just view on the underlying data source.
+
+    See CHANGES release 0.8.2 for the reason why layers are cloned in this
+    way. Tl;dr: segfaults occur when you delete layer groups when the same
+    layers are added multiple times
+    """
     if layer:
         return QgsVectorLayer(
             layer.source(), layer.name(), layer.providerType())
@@ -389,7 +397,7 @@ class LayerTreeManager(object):
                 ],
                 'flowlines': [
                     ('line statistieken', '', None),
-                    ],
+                ],
                 'v2_culvert_view': [
                     ('culvert statistieken', '', None),
                 ],
@@ -449,6 +457,7 @@ class LayerTreeManager(object):
 class StatsLayerInfo(object):
     """Small wrapper for grouping functions used to generate statistics
     for some types of layers (node-like, line-like, pump-like)."""
+
     def __init__(self, layers, layer_id_name_func, generate_stats_func):
         self.layers = layers
         self.layer_id_name_func = layer_id_name_func

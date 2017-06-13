@@ -51,11 +51,9 @@ class TimesliderWidget(QSlider):
         self.ts_datasource.rowsInserted.connect(self.on_insert_ds)
         self.ts_datasource.rowsRemoved.connect(self.on_remove_ds)
 
-
     def get_current_ts_datasource_item(self):
 
         return self.active_datasource
-
 
     def on_insert_ds(self, parent, start, end):
         """

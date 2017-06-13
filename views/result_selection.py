@@ -4,7 +4,7 @@ from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry, QGis
+from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
@@ -12,7 +12,7 @@ from ..utils.user_messages import pop_up_info
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), os.pardir, 'ui',
-            'threedi_result_selection_dialog.ui'))
+    'threedi_result_selection_dialog.ui'))
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
@@ -42,12 +42,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         # set events
         self.selectTsDatasourceButton.clicked.connect(
-                self.select_ts_datasource)
+            self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
         self.removeTsDatasourceButton.clicked.connect(
-                self.remove_selected_ts_ds)
+            self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
-                self.select_model_spatialite_file)
+            self.select_model_spatialite_file)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
@@ -61,13 +61,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
-
         if self.ts_datasource.model_spatialite_filepath:
             current_index = self.modelSpatialiteComboBox.findText(
                 self.ts_datasource.model_spatialite_filepath)
 
             self.modelSpatialiteComboBox.setCurrentIndex(
-                    current_index)
+                current_index)
         else:
             current_index = self.modelSpatialiteComboBox.findText('')
             self.modelSpatialiteComboBox.setCurrentIndex(current_index)
@@ -81,12 +80,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
 
         self.selectTsDatasourceButton.clicked.disconnect(
-                self.select_ts_datasource)
+            self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
         self.removeTsDatasourceButton.clicked.disconnect(
-                self.remove_selected_ts_ds)
+            self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
-                self.select_model_spatialite_file)
+            self.select_model_spatialite_file)
 
     def closeEvent(self, event):
         """
@@ -111,9 +110,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             init_path = os.path.expanduser("~")
 
         filename = QFileDialog.getOpenFileName(self,
-                                            'Open resultaten file',
-                                            init_path ,
-                                            'NetCDF (*.nc)')
+                                               'Open resultaten file',
+                                               init_path,
+                                               'NetCDF (*.nc)')
 
         if filename:
             # Little test for checking if there is an id mapping file available
@@ -147,10 +146,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
 
         selection_model = self.resultTableView.selectionModel()
-        #get unique rows in selected fields
-        rows = set([index.row() for index in selection_model.selectedIndexes()])
+        # get unique rows in selected fields
+        rows = set([index.row()
+                    for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.ts_datasource.removeRows(row,1)
+            self.ts_datasource.removeRows(row, 1)
 
     def get_3di_spatialites_legendlist(self):
         """
@@ -162,7 +162,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         for layer in self.iface.legendInterface().layers():
             if layer.name() in layer_qh_type_mapping.keys() and \
-                            layer.dataProvider().name() == 'spatialite':
+                    layer.dataProvider().name() == 'spatialite':
                 source = layer.dataProvider().dataSourceUri().split("'")[1]
                 if source not in tdi_spatialites:
                     tdi_spatialites.append(source)
@@ -177,7 +177,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
 
         self.ts_datasource.model_spatialite_filepath = \
-                self.modelSpatialiteComboBox.currentText()
+            self.modelSpatialiteComboBox.currentText()
         # Just emitting some dummy model indices cuz what else can we do, there
         # is no corresponding rows/columns that's been changed
         self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
@@ -195,10 +195,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileName(self,
-                                               'Open 3Di model spatialite file',
-                                               init_path ,
-                                               'Spatialite (*.sqlite)')
+        filename = QFileDialog.getOpenFileName(
+            self,
+            'Open 3Di model spatialite file',
+            init_path,
+            'Spatialite (*.sqlite)')
 
         if filename == "":
             return False

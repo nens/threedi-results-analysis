@@ -216,8 +216,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         try:
-            # load optional settings for remote debugging for development purposes
-            # add file remote_debugger_settings.py in main directory to use debugger
+            # load optional settings for remote debugging for development
+            # purposes
+            # add file remote_debugger_settings.py in main directory to use
+            # debugger
             import remote_debugger_settings
         except ImportError:
             pass
@@ -274,7 +276,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD ThreeDiToolbox"
+        # print "** UNLOAD ThreeDiToolbox"
 
         self.unload_state_sync()
 

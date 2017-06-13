@@ -4,9 +4,6 @@ import logging
 from ThreeDiToolbox.utils.qlogging import setup_logging
 
 
-
-
-
 class TestLogging(unittest.TestCase):
 
     def test_logging(self):
@@ -18,6 +15,3 @@ class TestLogging(unittest.TestCase):
         log.warning('test message')
 
         self.assertEqual(1, 1)
-
-
-

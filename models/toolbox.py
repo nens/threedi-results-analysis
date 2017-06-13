@@ -1,10 +1,12 @@
-import os, inspect
+import os
+import inspect
 
 from PyQt4.QtGui import QStandardItemModel, QStandardItem, QIcon, QStyle
 
 DEFAULT_TOOLBOX_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
     "..", "commands", "toolbox_tools")
+
 
 class Tool(object):
 
@@ -29,10 +31,8 @@ class ToolGroup(object):
         if parent is not None:
             self.parent.addChild(self)
 
-
     def addChild(self, child):
         self.subnodes.append(child)
-
 
 
 class ToolboxModel(QStandardItemModel):
@@ -62,17 +62,16 @@ class ToolboxModel(QStandardItemModel):
 
     def get_directory_structure(self, rootdir):
         """
-        Creates a nested dictionary that represents the folder structure of rootdir
+        Creates a nested dictionary that represents the folder structure of
+        rootdir.
         """
         dir = {}
         rootdir = rootdir.rstrip(os.sep)
         start = rootdir.rfind(os.sep) + 1
         for path, dirs, files in os.walk(rootdir):
             folders = path[start:].split(os.sep)
-            subdir = dict.fromkeys([f for f in files if os.path.splitext(f)[1] == ".py" and f != "__init__.py"])
+            subdir = dict.fromkeys([f for f in files if os.path.splitext(f)[
+                                   1] == ".py" and f != "__init__.py"])
             parent = reduce(dict.get, folders[:-1], dir)
             parent[folders[-1]] = subdir
         return dir
-
-
-

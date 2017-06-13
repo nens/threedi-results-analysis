@@ -28,38 +28,43 @@ class Guesser(object):
         if 'manhole_indicator' in checks:
             manhole_update_count = 0
 
-            # note: sqlite can not use a join with another table in an update statement,
-            # so use 'in'
+            # note: sqlite can not use a join with another table in an update
+            # statement, so use 'in'
             up = update(Manhole).\
                 where(Manhole.connection_node_id.in_(
-                    select([Pumpstation.connection_node_start_id]).correlate())).\
-                values(manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
+                    select(
+                        [Pumpstation.connection_node_start_id]).correlate())).\
+                values(
+                    manhole_indicator=Constants.MANHOLE_INDICATOR_PUMPSTATION)
             if only_empty_fields:
-                up = up.where(Manhole.manhole_indicator == None)
+                up = up.where(Manhole.manhole_indicator is None)
             ret = session.execute(up)
             session.commit()
             manhole_update_count += ret.rowcount
 
             up = update(Manhole).\
                 where(Manhole.connection_node_id.in_(
-                    select([BoundaryCondition1D.connection_node_id]).correlate())).\
+                    select(
+                        [BoundaryCondition1D.connection_node_id]
+                    ).correlate())).\
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_OUTLET)
             if only_empty_fields:
-                up = up.where(Manhole.manhole_indicator == None)
+                up = up.where(Manhole.manhole_indicator is None)
             ret = session.execute(up)
             session.commit()
             manhole_update_count += ret.rowcount
 
             up = update(Manhole). \
-                where(Manhole.manhole_indicator == None). \
+                where(Manhole.manhole_indicator is None). \
                 values(manhole_indicator=Constants.MANHOLE_INDICATOR_MANHOLE)
             if only_empty_fields:
-                up = up.where(Manhole.manhole_indicator == None)
+                up = up.where(Manhole.manhole_indicator is None)
             ret = session.execute(up)
             session.commit()
             manhole_update_count += ret.rowcount
 
-            msg += 'Manhole indicator updated {0} manholes. '.format(manhole_update_count)
+            msg += 'Manhole indicator updated {0} manholes. '.format(
+                manhole_update_count)
 
         if 'pipe_friction' in checks:
             pipe_friction_count = 0
@@ -82,26 +87,32 @@ class Guesser(object):
                     values(friction_value=friction,
                            friction_type=Constants.FRICTION_TYPE_MANNING)
                 if only_empty_fields:
-                    up = up.where(Pipe.friction_value == None)
+                    up = up.where(Pipe.friction_value is None)
 
                 ret = session.execute(up)
                 session.commit()
                 pipe_friction_count += ret.rowcount
 
-            msg += 'Pipe friction updated {0} pipes. '.format(pipe_friction_count)
+            msg += 'Pipe friction updated {0} pipes. '.format(
+                pipe_friction_count)
 
         if 'manhole_area' in checks:
             manhole_area_count = 0
 
-            manhole_list = session.query(Manhole).join(Manhole.connection_node).filter(ConnectionNode.storage_area == None)
+            manhole_list = session.query(Manhole).join(
+                Manhole.connection_node).filter(
+                    ConnectionNode.storage_area is None)
 
-            # '01' and '02' are the old identifiers, based on the sufhyd standard
+            # '01' and '02' are the old identifiers, based on the sufhyd
+            # standard
             for manhole in manhole_list:
                 if (manhole.shape in [Constants.MANHOLE_SHAPE_ROUND, '01'] and
                         manhole.width is not None):
                     storage_area = 0.5 * 3.14 * manhole.width * manhole.width
-                elif (manhole.shape in [Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
-                      manhole.width is not None and manhole.length is not None):
+                elif (manhole.shape in [
+                        Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
+                      manhole.width is not None and
+                      manhole.length is not None):
                     storage_area = manhole.width * manhole.length
                 elif manhole.width is not None:
                     storage_area = manhole.width * manhole.width
@@ -116,6 +127,7 @@ class Guesser(object):
 
             session.commit()
 
-            msg += 'Manhole area updated {0} manholes. '.format(manhole_area_count)
+            msg += 'Manhole area updated {0} manholes. '.format(
+                manhole_area_count)
 
         return msg

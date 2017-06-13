@@ -2,6 +2,12 @@ import unittest
 from PyQt4.QtCore import Qt
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
+from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from ThreeDiToolbox.test.test_datasources import (
+    netcdf_datasource_path,
+    result_data_is_available,
+)
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -102,8 +108,10 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         headers = [collection.headerData(i)
                    for i in range(0, collection.columnCount())]
 
-        self.assertListEqual(headers,
-                             ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])#display column names
+        self.assertListEqual(
+            headers,
+            # display column names
+            ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])
 
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
@@ -198,6 +206,45 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         pass
 
 
+class TestTimeseriesDatasourceModel(unittest.TestCase):
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": "/dev/random/",
+        "type": "a type",
+        "pattern": "line pattern?",
+    }
+
+    def test_init_with_values(self):
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**self.test_values)
+        for k, v in self.test_values.items():
+            itemvalue = getattr(item, k).value
+            self.assertEqual(itemvalue, v)
+
+    def test_datasource_smoke(self):
+        """Smoke test the ``datasource()`` method."""
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**self.test_values)
+        setattr(item, '_datasource', 'yo')
+        self.assertEqual(item.datasource(), 'yo')
+
+    @unittest.skipIf(not result_data_is_available(),
+                     "Result data doesn't exist or is incomplete.")
+    def test_datasource(self):
+        """Test the datasource() method with netcdf file."""
+        test_values = {
+            "active": False,
+            "name": "jaa",
+            "file_path": netcdf_datasource_path,
+            "type": "netcdf",
+            "pattern": "line pattern?",
+        }
+        tds = TimeseriesDatasourceModel()
+        item = tds._create_item(**test_values)
+        ncds = item.datasource()
+        self.assertTrue(isinstance(ncds, NetcdfDataSource))
+        self.assertTrue(ncds.ds)
 
 
 """

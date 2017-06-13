@@ -58,9 +58,9 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
             init_path = os.path.expanduser("~")
 
         filename = QFileDialog.getOpenFileName(self,
-                                            'Select import file',
-                                            init_path ,
-                                            'Sufhyd (*.hyd)')
+                                               'Select import file',
+                                               init_path,
+                                               'Sufhyd (*.hyd)')
 
         if filename:
             self.filename = filename
@@ -71,7 +71,6 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
-
 
         db_key = self.database_combo.currentText()
 
@@ -117,8 +116,8 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
                     pass
 
                 connInfo = uri.connectionInfo()
-                (success, uname, passwd) = \
-                    QgsCredentialDialog.instance().get(connInfo, uname, passwd, msg)
+                (success, uname, passwd) = QgsCredentialDialog.instance().get(
+                    connInfo, uname, passwd, msg)
 
                 if success:
                     db_set['username'] = passwd
@@ -146,4 +145,3 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.file_button.clicked.disconnect(self.select_sufhyd_file)
 
         event.accept()
-

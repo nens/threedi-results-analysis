@@ -14,12 +14,12 @@ from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 class ThreediDatabase(object):
 
-
     def __init__(self, connection_settings, db_type='spatialite', echo=False):
         """
 
         :param connection_settings:
-        db_type (str choice): database type. 'sqlite' and 'postgresql' are supported
+        db_type (str choice): database type. 'sqlite' and 'postgresql' are
+                              supported
         """
         self.settings = connection_settings
         # make sure within the ThreediDatabase object we always use 'sqlite'
@@ -49,7 +49,8 @@ class ThreediDatabase(object):
                                       ["SPATIALITE=YES"])
             Base.metadata.create_all(self.engine)
 
-            # todo: add settings to improve database creation speed for older versions of gdal
+            # todo: add settings to improve database creation speed for older
+            # versions of gdal
 
     @property
     def engine(self):
@@ -60,9 +61,9 @@ class ThreediDatabase(object):
         if self._engine is None or get_seperate_engine:
             if self.db_type == 'spatialite':
                 engine = create_engine('sqlite:///{0}'.format(
-                                                self.settings['db_path']),
-                                       module=dbapi2,
-                                       echo=self.echo)
+                    self.settings['db_path']),
+                    module=dbapi2,
+                    echo=self.echo)
                 if get_seperate_engine:
                     return engine
                 else:
@@ -106,8 +107,10 @@ class ThreediDatabase(object):
         if self.db_type == 'spatialite':
             session = self.get_session()
 
-            session.execute("""SELECT DisableSpatialIndex('v2_connection_nodes',
-                                                          'the_geom_linestring');""")
+            session.execute(
+                """SELECT DisableSpatialIndex('v2_connection_nodes',
+                                              'the_geom_linestring');"""
+            )
 
             session.execute("""SELECT RecoverSpatialIndex('v2_impervious_surface',
                                                           'the_geom');""")
@@ -159,13 +162,15 @@ def get_databases():
 
         if qs.value(prefix + '/saveUsername') == u'true':
             settings['saveUsername'] = True
-            settings['db_settings']['username'] = qs.value(prefix + '/username')
+            settings['db_settings']['username'] = qs.value(
+                prefix + '/username')
         else:
             settings['saveUsername'] = False
 
         if qs.value(prefix + '/savePassword') == u'true':
             settings['savePassword'] = True
-            settings['db_settings']['password'] = qs.value(prefix + '/password')
+            settings['db_settings']['password'] = qs.value(
+                prefix + '/password')
         else:
             settings['savePassword'] = False
 
@@ -174,4 +179,3 @@ def get_databases():
     available_dbs = collections.OrderedDict(sorted(d.items()))
 
     return available_dbs
-

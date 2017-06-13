@@ -39,20 +39,21 @@ class ProjectStateMixin(object):
                             result = json.JSONDecoder().decode(result_json)
                             self.ts_datasource.insertRows([result])
 
-    - signal 'state_changed'[str, str, list]: this signal has to emit every time a setting which
-        is stored in the state changed. This signal is emitted with the parameters:
+    - signal 'state_changed'[str, str, list]: this signal has to emit every
+      time a setting which is stored in the state changed. This signal is
+      emitted with the parameters:
         - tool name
         - setting key
-        - new value. The value is rapped in an extra list (is easier to support the different
-          value types through the same signal (overloading is supported from qt 4.11.x, so not in
-          QGis)
-        The signal could be declared by adding the next line to the class (needs to be an QObject
-        or simular):
+        - new value. The value is rapped in an extra list (is easier to
+          support the different value types through the same signal (
+          overloading is supported from qt 4.11.x, so not in QGis)
+        The signal could be declared by adding the next line to the class (
+        needs to be an QObject or simular):
 
                 state_changed = pyqtSignal([str, str, list])
 
-        The signal could be emitted from a function, an example (also wrapping a more complex
-        object in json) of this function is:
+        The signal could be emitted from a function, an example (also wrapping
+        a more complex object in json) of this function is:
 
             def on_state_changed(self, setting_key, value):
 
@@ -68,7 +69,8 @@ class ProjectStateMixin(object):
                 else:
                     output = value
 
-                self.state_changed.emit('result_selection', setting_key, [output])
+                self.state_changed.emit('result_selection', setting_key,
+                                        [output])
 
     The class with the mixin needs to call the functions:
     - self.init_state_sync() to start the sync
@@ -76,9 +78,9 @@ class ProjectStateMixin(object):
 
     Under developement notes:
     The functionality to support relative paths is developed, but because the
-    correct signal 'changeHomePath' is supported from 2.17.0, the absolute paths
-    are still communicated (in many cases it works, but with new projects, the
-    behaviour was still not the same at all circumstances)..
+    correct signal 'changeHomePath' is supported from 2.17.0, the absolute
+    paths are still communicated (in many cases it works, but with new
+    projects, the behaviour was still not the same at all circumstances)..
 
     """
     connect_to_save_and_load = False
@@ -93,20 +95,21 @@ class ProjectStateMixin(object):
         if self.connect_to_save_and_load:
             self.iface.newProjectCreated.disconnect(self.load_and_set_state)
             self.iface.projectRead.disconnect(self.load_and_set_state)
-            QgsProject.instance().writeProject.disconnect(self.set_paths_relative)
-            # todo: this signal will be available in version 2.17
+            QgsProject.instance().writeProject.disconnect(
+                self.set_paths_relative)
+            # TODO: this signal will be available in version 2.17
             # QgsProject.instance().homePathChanged.disconnect(self.set_paths_relative)
             self.connect_to_save_and_load = False
 
-
     def init_state_sync(self, connect_to_save_and_load=True):
         """loads and set the state for m the current project and set the
-            connection to the required signals from the tools and iface interface
+            connection to the required signals from the tools and iface
+            interface
 
         Args:
-            connect_to_save_and_load (bool): also include listeners to save, clear
-             and load of project files. Made optional, because tests don't have full
-             iface interface.
+            connect_to_save_and_load (bool): also include listeners to save,
+            clear and load of project files. Made optional, because tests
+            don't have full iface interface.
         """
         self.load_and_set_state()
         self.file_dict = {}
@@ -114,8 +117,9 @@ class ProjectStateMixin(object):
             if hasattr(tool, 'set_state'):
                 # add listener
                 tool.state_changed.connect(self.save_setting_to_project)
-                # keep list of  settings with type 'file', so we can change them
-                # when the location and with that the relative paths change
+                # keep list of  settings with type 'file', so we can change
+                # them when the location and with that the relative paths
+                # change
                 tool_name, description = tool.get_state_description()
                 name = self.get_tool_state_name(tool_name)
                 for key, value in description.items():
@@ -136,8 +140,8 @@ class ProjectStateMixin(object):
 
     def set_paths_relative(self):
         # todo: save setting which indicates if project is stored relative or
-        # absolute,if setting is not set, popup the first time this functions is
-        # called
+        # absolute,if setting is not set, popup the first time this functions
+        # is called
         proj = QgsProject.instance()
         for tool_key, key_dict in self.file_dict.items():
             for setting_key in key_dict.keys():
@@ -172,14 +176,16 @@ class ProjectStateMixin(object):
                 for key, value_type in description.items():
                     # use string or list reader and transform values ourselves.
                     # QgsProject also has methods to read other value type, but
-                    # because 'valid' is (seems to be) always True, it is not possible
-                    # to see if the returned value is the real value or the default.
-                    # Now the default value is detected by indetification of an empty
-                    # string.
+                    # because 'valid' is (seems to be) always True, it is not
+                    # possible to see if the returned value is the real value
+                    # or the default. Now the default value is detected by
+                    # indetification of an empty string.
                     if value_type == list:
-                        value, valid = QgsProject.instance().readListEntry(name, key)
+                        value, valid = QgsProject.instance().readListEntry(
+                            name, key)
                     else:
-                        value, valid = QgsProject.instance().readEntry(name, key)
+                        value, valid = QgsProject.instance().readEntry(
+                            name, key)
                         # self.load_func[value.__name__](name, key)
                         if valid and len(value) > 0:
                             if value_type == int:
@@ -187,10 +193,13 @@ class ProjectStateMixin(object):
                             elif value_type == float:
                                 value = float(value)
                             elif value_type == bool:
-                                value, valid = QgsProject.instance().readBoolEntry(name, key)
+                                value, valid = QgsProject.instance(
+                                ).readBoolEntry(name, key)
                             elif value_type == file:
-                                # todo: change this code when starting to work with 2.17 and up
-                                value, valid = QgsProject.instance().readEntry(name, 'abs_' + key)
+                                # TODO: change this code when starting to
+                                # work with 2.17 and up
+                                value, valid = QgsProject.instance().readEntry(
+                                    name, 'abs_' + key)
                                 # value = self._get_abs_path(value)
                         else:
                             value = None

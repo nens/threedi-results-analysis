@@ -58,7 +58,6 @@ class GuessIndicatorDialogWidget(QDialog):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-
         db_key = self.database_combo.currentText()
 
         settings = self.databases[db_key]
@@ -103,8 +102,8 @@ class GuessIndicatorDialogWidget(QDialog):
                     pass
 
                 connInfo = uri.connectionInfo()
-                (success, uname, passwd) = \
-                    QgsCredentialDialog.instance().get(connInfo, uname, passwd, msg)
+                (success, uname, passwd) = QgsCredentialDialog.instance().get(
+                    connInfo, uname, passwd, msg)
 
                 if success:
                     db_set['username'] = passwd
@@ -148,7 +147,6 @@ class GuessIndicatorDialogWidget(QDialog):
 
     def setupUi(self, checks):
 
-
         self.resize(515, 250)
         self.verticalLayout = QVBoxLayout(self)
 
@@ -165,7 +163,6 @@ class GuessIndicatorDialogWidget(QDialog):
         # self.file_button.setObjectName("file_button")
         # self.horizontalLayout.addWidget(self.file_button)
 
-
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
@@ -173,7 +170,8 @@ class GuessIndicatorDialogWidget(QDialog):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.database_combo.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.database_combo.sizePolicy().hasHeightForWidth())
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -182,24 +180,20 @@ class GuessIndicatorDialogWidget(QDialog):
         self.verticalLayoutBox = QVBoxLayout(self.groupBox)
 
         self.check_pipe_friction = QCheckBox(self.groupBox)
-        #self.check_pipe_friction.setGeometry(QRect(10, 20, 171, 17))
         self.check_pipe_friction.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_pipe_friction)
 
         self.check_manhole_indicator = QCheckBox(self.groupBox)
-        # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
         self.check_manhole_indicator.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_manhole_indicator)
 
         self.check_manhole_area = QCheckBox(self.groupBox)
-        # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
         self.check_manhole_area.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_manhole_area)
 
         self.verticalLayout.addWidget(self.groupBox)
 
         self.check_only_empty_fields = QCheckBox(self)
-        # self.check_only_empty_fields.setGeometry(QRect(10, 40, 171, 17))
         self.check_only_empty_fields.setChecked(True)
         self.verticalLayout.addWidget(self.check_only_empty_fields)
 
@@ -212,17 +206,22 @@ class GuessIndicatorDialogWidget(QDialog):
 
         self.retranslateUi()
         QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                               self.accept)
+                        self.accept)
         QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                               self.reject)
+                        self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Guess indicators", None))
-        self.groupBox_2.setTitle(_translate("self", "Model schematisation database", None))
+        self.groupBox_2.setTitle(_translate(
+            "self", "Model schematisation database", None))
 
         self.groupBox.setTitle(_translate("Import_dialog", "Guess", None))
-        self.check_pipe_friction.setText(_translate("Import_dialog", "Pipe friction", None))
-        self.check_manhole_indicator.setText(_translate("Import_dialog", "Manhole indicator", None))
-        self.check_only_empty_fields.setText(_translate("Import_dialog", "Only null fields", None))
-        self.check_manhole_area.setText(_translate("Import_dialog", "Manhole area (only null fields)", None))
+        self.check_pipe_friction.setText(_translate(
+            "Import_dialog", "Pipe friction", None))
+        self.check_manhole_indicator.setText(_translate(
+            "Import_dialog", "Manhole indicator", None))
+        self.check_only_empty_fields.setText(
+            _translate("Import_dialog", "Only null fields", None))
+        self.check_manhole_area.setText(_translate(
+            "Import_dialog", "Manhole area (only null fields)", None))

@@ -1,8 +1,9 @@
-
-from qgis.core import (QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
-                       QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
-                       QgsCoordinateReferenceSystem)
+from qgis.core import (
+    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
+    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
+    QgsCoordinateReferenceSystem)
 import math
+
 
 def split_line_at_points(polyline_input, point_features,
                          point_feature_id_field='id',
@@ -70,8 +71,7 @@ def split_line_at_points(polyline_input, point_features,
         distance_on_subline2 = closest_seg[0]
 
         snap_points.append((start_vertex_nr, distance_on_subline,
-                       point_geom_on_line, point[point_feature_id_field]))
-
+                            point_geom_on_line, point[point_feature_id_field]))
 
     # order on vertex nr and if same vertex nr on distance
     snap_points.sort(key=lambda x: x[1])
@@ -100,8 +100,8 @@ def split_line_at_points(polyline_input, point_features,
             geom = QgsGeometry.fromPolyline(line_points)
 
             length, unit_type = d.convertMeasurement(
-                    d.computeDistance(line_points),
-                    QGis.Meters, QGis.Meters, False) # QGis.Degrees
+                d.computeDistance(line_points),
+                QGis.Meters, QGis.Meters, False)  # QGis.Degrees
 
             # add line parts
             line_parts.append({
@@ -133,14 +133,13 @@ def split_line_at_points(polyline_input, point_features,
     return line_parts
 
 
-
 def copy_layer_into_memory_layer(source_layer, layer_name):
 
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
-            QGis.featureType(source_provider.geometryType()).lstrip('WKB'),
-            str(source_provider.crs().postgisSrid()))
+        QGis.featureType(source_provider.geometryType()).lstrip('WKB'),
+        str(source_provider.crs().postgisSrid()))
 
     dest_layer = QgsVectorLayer(uri, layer_name, "memory")
     dest_provider = dest_layer.dataProvider()
@@ -152,6 +151,3 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     dest_layer.updateExtents()
 
     return dest_layer
-
-
-

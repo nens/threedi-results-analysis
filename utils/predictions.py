@@ -202,7 +202,7 @@ class Predictor(object):
                                    'content_type_id': 1,
                                    'dist_calc_pnts': 5.0,
                                    'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
+                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},  # noqa
         }
         """
         query_data = self._get_query_data(epsg_code)
@@ -427,7 +427,7 @@ class Predictor(object):
                 'dist_calc_points': None,
                 'the_geom_end': None,
                 'code': None,
-                },
+            },
             'v2_manhole': {
                 'query': query_strings_dict['v2_manhole'],
                 'node_id_start': None,
@@ -439,7 +439,7 @@ class Predictor(object):
                 'dist_calc_points': None,
                 'the_geom_end': 3,
                 'code': 4,
-                },
+            },
             'v2_pipe': {
                 'query': query_strings_dict['v2_pipe'],
                 'node_id_start': 0,
@@ -451,7 +451,7 @@ class Predictor(object):
                 'id': 7,
                 'dist_calc_points': 8,
                 'code': 9,
-                },
+            },
             'v2_culvert': {
                 'query': query_strings_dict['v2_culvert'],
                 'node_id_start': 0,

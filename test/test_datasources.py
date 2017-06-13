@@ -24,29 +24,55 @@ except ImportError:
     except ImportError:
         print("Can't import Spatialite.")
         Spatialite = None
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
+from ThreeDiToolbox.datasource.netcdf import (
+    NetcdfDataSource,
+    normalized_object_type,
+    find_id_mapping_file,
+    find_aggregation_netcdf,
+)
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
-
-
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'test_spatialite.sqlite')
-
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'data', 'testmodel', 'results', 'subgrid_map.nc')
 
 
-@unittest.skipIf(not os.path.exists(netcdf_datasource_path),
-                 "Path to test netcdf doesn't exist.")
+def result_data_is_available(flow_agg_must_exist=False):
+    """Check if we have the necessary result data for the tests."""
+    if not os.path.exists(netcdf_datasource_path):
+        return False
+    try:
+        find_id_mapping_file(netcdf_datasource_path)
+    except IndexError:
+        return False
+    if flow_agg_must_exist:
+        try:
+            find_aggregation_netcdf(netcdf_datasource_path)
+        except IndexError:
+            return False
+    return True
+
+
+@unittest.skipIf(not result_data_is_available(),
+                 "Result data doesn't exist or is incomplete.")
 class TestNetcdfDatasource(unittest.TestCase):
 
     def setUp(self):
         self.ncds = NetcdfDataSource(netcdf_datasource_path,
                                      load_properties=False)
+
+        # cherry picked id and object type that exist in this
+        # test set
+        self.cherry_picked_object_id = 114
+        self.cherry_picked_object_type = 'v2_weir_view'
+        # the inp id the cherry picked object id maps to (look in
+        # id_mapping.json)
+        self.complementary_inp_id_of_object_id = 5472
 
     def test_netcdf_loaded(self):
         """We can open the Netcdf file"""
@@ -63,12 +89,89 @@ class TestNetcdfDatasource(unittest.TestCase):
         self.assertEqual(ts[0], 0.0)
         self.assertNotEqual(ts[1], 0.0)
 
+    def test_available_vars(self):
+        """Test getting variable names out of netCDF datasource."""
+        all_vars = self.ncds.get_available_variables()
+        subgrid_vars = self.ncds.get_available_variables(only_subgrid_map=True)
+        agg_vars = self.ncds.get_available_variables(only_aggregation=True)
+        self.assertTrue(len(all_vars) > 0)
+        self.assertEqual(len(subgrid_vars) + len(agg_vars), len(all_vars))
+
+    def test_load_properties(self):
+        """Test loading properties works with a netcdf file."""
+        self.ncds.load_properties()
+
+    def test_node_mapping(self):
+        self.ncds.node_mapping
+
+    def test_get_ids_memory_layers(self):
+        """test memory layers that are not mapped."""
+        object_id = 42
+        for object_type in ['flowline', 'node', 'pumpline']:
+            ncid = self.ncds.obj_to_netcdf_id(object_id, object_type)
+            self.assertEqual(ncid, object_id)
+
+    def test_get_ids_spatialite_layers(self):
+        """NOTE: this test will fail if you the object types cannot be found
+        in the id_mapping json. You might need to fix this when renewing
+        the model.
+
+        Furthermore, this tests a feature (the channel_mapping) that is a bit
+        iffy in the sense that its correctness can be debated owning to the
+        fact that for channel mappings multiple links can belong to one inp
+        id which leads to all sorts of problems.
+        """
+        norm_obj_type = normalized_object_type(self.cherry_picked_object_type)
+        inp_id = self.ncds.inp_id_from(
+            self.cherry_picked_object_id, norm_obj_type)
+        self.assertEqual(inp_id, self.complementary_inp_id_of_object_id)
+
+        ncid = self.ncds.netcdf_id_from(inp_id, norm_obj_type)
+        self.assertEqual(
+            ncid,
+            self.ncds.obj_to_netcdf_id(
+                self.cherry_picked_object_id,
+                norm_obj_type
+            )
+        )
+
+    def test_get_timeseries(self):
+        """Test get_timeseries from datasource."""
+        # q exists
+        self.assertTrue(
+            'q' in self.ncds.available_subgrid_map_vars
+        )
+        ts = self.ncds.get_timeseries(
+            'flowlines',
+            # We assume there is at least one timestep of data that we can
+            # slice
+            0,
+            'q',
+        )
+        self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
+
+    @unittest.skipIf(
+        not result_data_is_available(flow_agg_must_exist=True),
+        "No flow aggregate found.")
+    def test_flow_aggregate(self):
+        """Simple flow aggregate checks."""
+        self.assertTrue(self.ncds.ds_aggregation)
+        self.assertTrue(self.ncds.get_agg_var_timestamps('s1_max').size > 0)
+        ts = self.ncds.get_timeseries(
+            'nodes',
+            0,
+            's1_max',
+        )
+        self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
+
 
 class TestNetcdfDatasourceBasic(unittest.TestCase):
     """Some basic tests without needing an actual netCDF file."""
 
     def setUp(self):
-        mock = lambda x: 'mock'  # Mock the netCDF Dataset
+        class Mock(object):
+            pass
+        mock = Mock()  # Mock the netCDF Dataset
         self.ncds = NetcdfDataSource(netcdf_datasource_path,
                                      load_properties=False,
                                      ds=mock)
@@ -82,7 +185,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.ncds.load_properties()
         self.assertEqual(self.ncds.nFlowLine, 42)
         self.assertEqual(self.ncds.nodall, 41)
-        self.assertEqual(self.ncds.end_n1dtot, 3+7)
+        self.assertEqual(self.ncds.end_n1dtot, 3 + 7)
 
     def test_load_properties_default_values(self):
         """Test the default value when attribute isn't present."""

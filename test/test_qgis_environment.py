@@ -33,5 +33,6 @@ class QGISTest(unittest.TestCase):
         self.assertIn('ogr', r.providerList())
         self.assertIn('postgres', r.providerList())
 
+
 if __name__ == '__main__':
     unittest.main()

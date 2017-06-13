@@ -17,11 +17,13 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -58,7 +60,8 @@ class Ui_Form(object):
         self.pushButton_2 = QtGui.QPushButton(self.tab_2)
         self.pushButton_2.setObjectName(_fromUtf8("pushButton_2"))
         self.horizontalLayout.addWidget(self.pushButton_2)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.tableView_2 = QtGui.QTableView(self.tab_2)
@@ -72,7 +75,8 @@ class Ui_Form(object):
         self.pushButton_4 = QtGui.QPushButton(self.tab_2)
         self.pushButton_4.setObjectName(_fromUtf8("pushButton_4"))
         self.horizontalLayout_2.addWidget(self.pushButton_4)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem1 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem1)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.tabWidget.addTab(self.tab_2, _fromUtf8(""))
@@ -86,10 +90,11 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         Form.setWindowTitle(_translate("Form", "3Di toolbox", None))
         self.checkBox.setText(_translate("Form", "auto update logboek", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Form", "Toolbox", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(
+            self.tab), _translate("Form", "Toolbox", None))
         self.pushButton.setText(_translate("Form", "PushButton", None))
         self.pushButton_2.setText(_translate("Form", "PushButton", None))
         self.pushButton_3.setText(_translate("Form", "PushButton", None))
         self.pushButton_4.setText(_translate("Form", "PushButton", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("Form", "Instellingen", None))
-
+        self.tabWidget.setTabText(self.tabWidget.indexOf(
+            self.tab_2), _translate("Form", "Instellingen", None))

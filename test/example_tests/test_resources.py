@@ -12,7 +12,6 @@ import unittest
 from PyQt4.QtGui import QIcon
 
 
-
 class ThreeDiToolboxDialogTest(unittest.TestCase):
     """Test rerources work."""
 
@@ -30,10 +29,8 @@ class ThreeDiToolboxDialogTest(unittest.TestCase):
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
+
 if __name__ == "__main__":
     suite = unittest.makeSuite(ThreeDiToolboxResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-
-
-

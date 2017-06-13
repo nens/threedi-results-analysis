@@ -26,7 +26,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'infiltration_rate': 'm3',
     'su': '',
     'au': '',
-    }
+}
 
 
 # NetCDF variable information
@@ -82,37 +82,10 @@ AGGREGATION_VARIABLES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
-    ]
+]
 
 AGGREGATION_OPTIONS = {
     'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative'}
-
-VARIABLE_LABELS = {
-    'v2_connection_nodes': (WATERLEVEL, ),
-    'v2_pipe': (DISCHARGE, VELOCITY, ),
-    'v2_channel': (DISCHARGE, VELOCITY, ),
-    'v2_culvert': (DISCHARGE, VELOCITY, ),
-    'v2_pumpstation': (DISCHARGE_PUMP, ),
-    'v2_weir': (DISCHARGE, VELOCITY, ),
-    'v2_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_manhole': (WATERLEVEL, VOLUME, ),
-    'sewerage_pipe': (DISCHARGE, VELOCITY, ),
-    'sewerage_weir': (DISCHARGE, VELOCITY, ),
-    'sewerage_orifice': (DISCHARGE, VELOCITY, ),
-    'sewerage_pumpstation': (DISCHARGE_PUMP, ),
-    'flowlines': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
-                  VELOCITY_INTERFLOW),
-    'nodes': (WATERLEVEL, ),
-    'pumplines': (DISCHARGE_PUMP, ),
-    'line_results': (DISCHARGE, VELOCITY, DISCHARGE_INTERFLOW,
-                  VELOCITY_INTERFLOW),
-    'node_results': (WATERLEVEL,),
-}
-
-
-# todo: this is the right place for these 2 supportive functions?
-def get_available_parameters(object_type):
-    return VARIABLE_LABELS[object_type]
 
 
 layer_information = [
@@ -327,10 +300,10 @@ class NetcdfDataSource(object):
                             self.nFlowLine1dBounds)
         assert (
             self.end_n1dtot <= self.end_n2dobc <= self.nodall
-            ), "Inconsistent node attribute values in netCDF"
+        ), "Inconsistent node attribute values in netCDF"
         assert (
             self.end_1d_line <= self.end_2d_bound_line <= self.nFlowLine
-            ), "Inconsistent line attribute values in netCDF"
+        ), "Inconsistent line attribute values in netCDF"
 
     @cached_property
     def id_mapping(self):
@@ -365,21 +338,11 @@ class NetcdfDataSource(object):
 
     @cached_property
     def available_subgrid_map_vars(self):
-        return self.get_available_variables(
-            only_subgrid_map=True)
+        return self.get_available_variables(only_subgrid_map=True)
 
     @cached_property
     def available_aggregation_vars(self):
-        try:
-            _vars = self.get_available_variables(
-                only_aggregation=True)
-        except IndexError:
-            # If we're here it means no agg. netCDF was found. Fail without
-            # error, but do log it.
-            log("No aggregation netCDF was found, only the data from the "
-                "regular netCDF will be used.", level='WARNING')
-            _vars = []
-        return _vars
+        return self.get_available_variables(only_aggregation=True)
 
     @property
     def metadata(self):
@@ -429,10 +392,13 @@ class NetcdfDataSource(object):
             try:
                 agg_vars = self.ds_aggregation.variables.keys()
                 available_agg_vars = [v for v in possible_agg_vars if v in
-                                  agg_vars]
+                                      agg_vars]
                 available_vars += available_agg_vars
             except IndexError:
-                pass
+                # If we're here it means no agg. netCDF was found. Fail without
+                # error, but do log it.
+                log("No aggregation netCDF was found, only the data from the "
+                    "regular netCDF will be used.", level='WARNING')
         return available_vars
 
     def get_object(self, object_type, object_id):

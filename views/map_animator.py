@@ -1,5 +1,6 @@
 import os
-from PyQt4.QtGui import (QWidget, QHBoxLayout, QPushButton, QApplication, QComboBox)
+from PyQt4.QtGui import (QWidget, QHBoxLayout,
+                         QPushButton, QApplication, QComboBox)
 from PyQt4.QtCore import (QVariant, )
 from qgis.core import (QgsField, QgsMapLayerRegistry)
 import numpy as np
@@ -22,7 +23,8 @@ set_parameter_config = {
     'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
           {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']},
           {'name': 'Debiet interflow', 'unit': 'm3/s', 'parameters': ['qp']},
-          {'name': 'Snelheid interflow', 'unit': 'm/s', 'parameters': ['up1']}],
+          {'name': 'Snelheid interflow', 'unit': 'm/s',
+           'parameters': ['up1']}],
     'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
 }
@@ -67,12 +69,12 @@ class MapAnimator(QWidget):
         self.state_connectiong_set = False
 
         self.line_parameter_combo_box.currentIndexChanged.connect(
-                self.on_line_parameter_change)
+            self.on_line_parameter_change)
         self.node_parameter_combo_box.currentIndexChanged.connect(
-                self.on_node_parameter_change)
+            self.on_node_parameter_change)
 
         self.root_tool.timeslider_widget.datasource_changed.connect(
-                self.on_active_datasource_change)
+            self.on_active_datasource_change)
 
         self.on_active_datasource_change()
 
@@ -98,8 +100,10 @@ class MapAnimator(QWidget):
         parameter_config = self._get_active_parameter_config()
 
         for combo_box, parameters, pc in (
-                (self.line_parameter_combo_box, self.line_parameters, parameter_config['q']),
-                (self.node_parameter_combo_box, self.node_parameters, parameter_config['h'])):
+                (self.line_parameter_combo_box,
+                 self.line_parameters, parameter_config['q']),
+                (self.node_parameter_combo_box, self.node_parameters,
+                    parameter_config['h'])):
 
             nr_old_parameters = combo_box.count()
 
@@ -112,7 +116,8 @@ class MapAnimator(QWidget):
                 combo_box.setCurrentIndex(0)
 
             nr_parameters_tot = combo_box.count()
-            for i in reversed(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot)):
+            for i in reversed(range(nr_parameters_tot - nr_old_parameters,
+                              nr_parameters_tot)):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
@@ -143,7 +148,8 @@ class MapAnimator(QWidget):
                 self.line_parameter_combo_box.setEnabled(True)
                 self.node_parameter_combo_box.setEnabled(True)
                 self.prepare_animation_layers()
-                self.root_tool.timeslider_widget.sliderReleased.connect(self.update_results)
+                self.root_tool.timeslider_widget.sliderReleased.connect(
+                    self.update_results)
 
             # add listeners
             self.state_connection_set = True
@@ -164,7 +170,7 @@ class MapAnimator(QWidget):
             return
 
         if self.node_layer is not None:
-            #todo: react on datasource change
+            # todo: react on datasource change
             return
 
         line, node, pump = result.get_result_layers()
@@ -204,8 +210,10 @@ class MapAnimator(QWidget):
         ds = result.datasource()
 
         for layer, parameter, stat in (
-                (self.node_layer, self.current_node_parameter['parameters'], 'diff'),
-                (self.line_layer, self.current_line_parameter['parameters'], 'abs')):
+                (self.node_layer,
+                 self.current_node_parameter['parameters'], 'diff'),
+                (self.line_layer, self.current_line_parameter['parameters'],
+                 'abs')):
 
             provider = layer.dataProvider()
 

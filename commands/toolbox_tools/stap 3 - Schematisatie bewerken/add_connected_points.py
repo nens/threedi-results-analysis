@@ -89,7 +89,7 @@ class CustomCommand(CustomCommandBase):
         self.supervising_user_input(msg)
 
     def supervising_user_input(self, msg):
-        messagebar_message("Ready",  msg, level=0, duration=4)
+        messagebar_message("Ready", msg, level=0, duration=4)
 
         # load the levee layer so we can check for intersections with it
         iter = self.connected_pnt_lyr.getFeatures()
@@ -153,7 +153,6 @@ class CustomCommand(CustomCommandBase):
             if fid < 0:
                 self._feat_id += 1
 
-
     def _handle_added(self, feature_id):
         """
         Actually add the feature to the layer.
@@ -164,7 +163,8 @@ class CustomCommand(CustomCommandBase):
             )
             connected_pnt, feat = self._get_connected_pnt_feature(feature_id)
             calculation_pnt_id = connected_pnt['calculation_pnt_id']
-            calc_pnt, calc_pnt_feat = self._get_calculation_pnt_feature(calculation_pnt_id)
+            calc_pnt, calc_pnt_feat = self._get_calculation_pnt_feature(
+                calculation_pnt_id)
             if calc_pnt is None:
                 self.connected_pnt_lyr.deleteFeature(feature_id)
 
@@ -185,7 +185,7 @@ class CustomCommand(CustomCommandBase):
                     "Calculation type {} allows only for {} " \
                     "connected points! " \
                     "Deleting point...".format(current_calc_type, thresh)
-                messagebar_message("Error",  msg, level=2, duration=3)
+                messagebar_message("Error", msg, level=2, duration=3)
                 self.connected_pnt_lyr.deleteFeature(feature_id)
             if feature_id < 0:
                 feat.setAttribute('id', self._feat_id)
@@ -205,7 +205,7 @@ class CustomCommand(CustomCommandBase):
 
             self.connected_pnt_lyr.updateFeature(feat)
             self.connected_pnt_lyr.endEditCommand()
-        except:
+        except Exception:
             self.connected_pnt_lyr.destroyEditCommand()
             raise
 
@@ -235,7 +235,6 @@ class CustomCommand(CustomCommandBase):
             )
         )
         return calc_pnt, calc_pnt_feat
-
 
     def _get_connected_pnt_feature(self, feature_id):
         """

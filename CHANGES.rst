@@ -5,6 +5,17 @@ threedi-qgis-plugin changelog
 0.9.4 (unreleased)
 ------------------
 
+- Fix E501 (line too long) violations manually because AutoPEP8 can't fix
+  those.
+
+- Add pycodestyle checking to Travis.
+
+- AutoPEP8 everything.
+
+- Include model result files in repo + add more tests.
+
+- Remove deprecated/unused code.
+
 - Add QGIS as dependency to Travis; make nosetests work on Travis for all
   tests.
 

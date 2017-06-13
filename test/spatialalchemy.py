@@ -4,7 +4,7 @@ import os.path
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                os.path.pardir, 'external'))
+                             os.path.pardir, 'external'))
 
 
 import ogr
@@ -34,8 +34,8 @@ class GeoTable(Base):
     __tablename__ = 'geotable'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    geom = Column(
-        Geometry(geometry_type='POINT', srid=4326, management=True, spatial_index=True))
+    geom = Column(Geometry(
+        geometry_type='POINT', srid=4326, management=True, spatial_index=True))
 
     def __repr__(self):
         return "<User(geom='%s')>" % (
@@ -90,8 +90,3 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
     def TearDown(self):
         self.session.close_all()
         os.remove(self.file_path)
-
-
-
-
-

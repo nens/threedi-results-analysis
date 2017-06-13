@@ -52,7 +52,6 @@ class PredictCalcPointsDialogWidget(QDialog):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
 
@@ -64,7 +63,7 @@ class PredictCalcPointsDialogWidget(QDialog):
                 'host': host,
                 'port': '',
                 'name': '',
-                'username':'',
+                'username': '',
                 'password': '',
                 'schema': '',
                 'database': '',
@@ -93,9 +92,7 @@ class PredictCalcPointsDialogWidget(QDialog):
 
         event.accept()
 
-
     def setupUi(self):
-
 
         self.resize(515, 250)
         self.verticalLayout = QVBoxLayout(self)
@@ -107,14 +104,14 @@ class PredictCalcPointsDialogWidget(QDialog):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.database_combo.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.database_combo.sizePolicy().hasHeightForWidth())
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
 
         self.groupBox = QGroupBox(self)
         self.verticalLayoutBox = QVBoxLayout(self.groupBox)
-
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
@@ -125,14 +122,16 @@ class PredictCalcPointsDialogWidget(QDialog):
 
         self.retranslateUi()
         QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                               self.accept)
+                        self.accept)
         QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                               self.reject)
+                        self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Predict calc points", None))
-        self.groupBox_2.setTitle(_translate("self", "Model schematisation database", None))
+        self.groupBox_2.setTitle(_translate(
+            "self", "Model schematisation database", None))
+
 
 class AddCoonnectedPointsDialogWidget(QDialog):
 
@@ -164,7 +163,6 @@ class AddCoonnectedPointsDialogWidget(QDialog):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
         db_type = db_entry['db_type']
@@ -180,7 +178,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
                 'host': host,
                 'port': '',
                 'name': '',
-                'username':'',
+                'username': '',
                 'password': '',
                 'schema': '',
                 'database': '',
@@ -209,7 +207,6 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
         event.accept()
 
-
     def setupUi(self):
 
         self.resize(515, 250)
@@ -222,14 +219,14 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.database_combo.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.database_combo.sizePolicy().hasHeightForWidth())
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
 
         self.groupBox = QGroupBox(self)
         self.verticalLayoutBox = QVBoxLayout(self.groupBox)
-
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
@@ -240,11 +237,12 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
         self.retranslateUi()
         QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                               self.accept)
+                        self.accept)
         QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                               self.reject)
+                        self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Add connected points", None))
-        self.groupBox_2.setTitle(_translate("self", "Load from model database", None))
+        self.groupBox_2.setTitle(_translate(
+            "self", "Load from model database", None))

@@ -10,7 +10,7 @@ from PyQt4.QtCore import Qt
 
 try:
     from qgis.utils import iface
-except:
+except Exception:
     iface = None
 
 
@@ -89,7 +89,8 @@ class StatusProgressBar(object):
 
         self.message_bar.layout().addWidget(self.progress_bar)
         if iface is not None:
-            iface.messageBar().pushWidget(self.message_bar, iface.messageBar().INFO)
+            iface.messageBar().pushWidget(
+                self.message_bar, iface.messageBar().INFO)
 
         self.step_size = 1
         self.progress = 0

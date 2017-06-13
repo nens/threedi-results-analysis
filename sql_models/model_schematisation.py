@@ -112,9 +112,9 @@ class Manhole(Base):
     calculation_type = Column(Integer)  # CALCULATION_TYPES
 
     connection_node_id = Column(
-            Integer, ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=False,
-            unique=True)
+        Integer, ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=False,
+        unique=True)
     connection_node = relationship(ConnectionNode,
                                    back_populates="manhole")
 
@@ -132,9 +132,9 @@ class BoundaryCondition1D(Base):
     timeseries = Column(String)
 
     connection_node_id = Column(
-            Integer, ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=False,
-            unique=True)
+        Integer, ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=False,
+        unique=True)
     connection_node = relationship(ConnectionNode,
                                    foreign_keys=connection_node_id,
                                    back_populates="boundary_condition")
@@ -213,23 +213,23 @@ class Pipe(Base):
 
     # node relations
     connection_node_start_id = Column(
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id)
+        ConnectionNode, foreign_keys=connection_node_start_id)
 
     connection_node_end_id = Column(
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id)
+        ConnectionNode, foreign_keys=connection_node_end_id)
 
     original_length = Column(Float)
 
     # cross section and level
     cross_section_definition_id = Column(
-            Integer, ForeignKey("v2_cross_section_definition.id"),
-            nullable=True)
+        Integer, ForeignKey("v2_cross_section_definition.id"),
+        nullable=True)
     cross_section_definition = relationship("CrossSectionDefinition")
 
     invert_level_start_point = Column(Float)
@@ -261,23 +261,23 @@ class Culvert(Base):
 
     # node relations
     connection_node_start_id = Column(
-            'connection_node_start_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=False)
+        'connection_node_start_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=False)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id)
+        ConnectionNode, foreign_keys=connection_node_start_id)
 
     connection_node_end_id = Column(
-            'connection_node_end_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=False)
+        'connection_node_end_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=False)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id)
+        ConnectionNode, foreign_keys=connection_node_end_id)
 
     # cross section and level
     cross_section_definition_id = Column(
-            Integer, ForeignKey("v2_cross_section_definition.id"),
-            nullable=True)
+        Integer, ForeignKey("v2_cross_section_definition.id"),
+        nullable=True)
     cross_section_definition = relationship(CrossSectionDefinition)
     invert_level_start_point = Column(Float)
     invert_level_end_point = Column(Float)
@@ -312,26 +312,26 @@ class Weir(Base):
 
     # node relations
     connection_node_start_id = Column(
-            'connection_node_start_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_start_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id)
+        ConnectionNode, foreign_keys=connection_node_start_id)
 
     connection_node_end_id = Column(
-            'connection_node_end_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_end_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id)
+        ConnectionNode, foreign_keys=connection_node_end_id)
 
     # crest level and cross section
     crest_type = Column(Integer)  # CREST_TYPE
     crest_level = Column(Float)
 
     cross_section_definition_id = Column(
-            Integer, ForeignKey("v2_cross_section_definition.id"),
-            nullable=True)
+        Integer, ForeignKey("v2_cross_section_definition.id"),
+        nullable=True)
     cross_section_definition = relationship("CrossSectionDefinition")
 
     # friction and flow direction
@@ -358,26 +358,26 @@ class Orifice(Base):
 
     # node relations
     connection_node_start_id = Column(
-            'connection_node_start_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_start_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id)
+        ConnectionNode, foreign_keys=connection_node_start_id)
 
     connection_node_end_id = Column(
-            'connection_node_end_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_end_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id)
+        ConnectionNode, foreign_keys=connection_node_end_id)
 
     # crest and cross section
     crest_type = Column(Integer)  # CREST_TYPES
     crest_level = Column(Float)
 
     cross_section_definition_id = Column(
-            Integer, ForeignKey("v2_cross_section_definition.id"),
-            nullable=True)
+        Integer, ForeignKey("v2_cross_section_definition.id"),
+        nullable=True)
     cross_section_definition = relationship("CrossSectionDefinition")
 
     # friction and flow direction
@@ -411,21 +411,20 @@ class Pumpstation(Base):
     classification = Column(Integer)  # in use?
     type_ = Column(Integer, nullable=True, default=1, name='type')
 
-
     # relation ships
     connection_node_start_id = Column(
-            'connection_node_start_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_start_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_start = relationship(
-            ConnectionNode, foreign_keys=connection_node_start_id)
+        ConnectionNode, foreign_keys=connection_node_start_id)
 
     connection_node_end_id = Column(
-            'connection_node_end_id',
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=True)
+        'connection_node_end_id',
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=True)
     connection_node_end = relationship(
-            ConnectionNode, foreign_keys=connection_node_end_id)
+        ConnectionNode, foreign_keys=connection_node_end_id)
 
     # pump details
     start_level = Column(Float)
@@ -499,21 +498,21 @@ class ImperviousSurfaceMap(Base):
     id = Column(Integer, primary_key=True)
 
     impervious_surface_id = Column(
-            Integer,
-            ForeignKey(ImperviousSurface.__tablename__ + ".id"),
-            nullable=True)
+        Integer,
+        ForeignKey(ImperviousSurface.__tablename__ + ".id"),
+        nullable=True)
     impervious_surface = relationship(ImperviousSurface,
                                       back_populates="impervious_surface_maps")
 
     connection_node_id = Column(
-            Integer,
-            ForeignKey(ConnectionNode.__tablename__ + ".id"),
-            nullable=False)
+        Integer,
+        ForeignKey(ConnectionNode.__tablename__ + ".id"),
+        nullable=False)
     connection_node = relationship(ConnectionNode,
                                    back_populates="impervious_surface_map")
 
     percentage = Column(Float)
 
 
-# todo: add windshielding, 2d boundary_conditions, floodfill, grid refinement, initial_waterlevel
-# 2dlateral, v2 pumpeddrainagearea
+# TODO: add windshielding, 2d boundary_conditions, floodfill, grid refinement,
+# initial_waterlevel, 2dlateral, v2 pumpeddrainagearea

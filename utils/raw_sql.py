@@ -22,9 +22,9 @@ def get_query_strings(flavor, epsg_code):
 
     sql_functions_map = {
         'makeline':
-          {'postgres': 'ST_MakeLine',
-           'spatialite': 'MakeLine'
-        },
+        {'postgres': 'ST_MakeLine',
+         'spatialite': 'MakeLine'
+         },
     }
     # ---------- boundary table ------------------
     queries = {}
@@ -107,7 +107,7 @@ def get_query_strings(flavor, epsg_code):
     ;
     """.format(makeline=sql_functions_map['makeline'][flavor],
                epsg_code=epsg_code
-    )
+               )
     queries['v2_pipe'] = pipe_query_str
 
     # ---------- culvert table ------------------
