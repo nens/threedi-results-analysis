@@ -84,8 +84,6 @@ class ThreeDiToolbox:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            # print "** STARTING ThreeDiToolbox"
-
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)

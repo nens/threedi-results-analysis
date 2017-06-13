@@ -59,9 +59,6 @@ class ThreeDiGraph:
         for widget in self.dock_widgets:
             widget.close()
 
-        # self.ts_datasource.close()
-        # self.ts_datasource = None
-
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
         nr = None

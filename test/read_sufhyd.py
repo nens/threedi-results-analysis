@@ -5,8 +5,6 @@ from ..tools.importer import Importer
 
 
 class TestReadSufhyd(unittest.TestCase):
-    #    def setUp(self):
-
     def test_knp(self):
         knp = '*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   '  # noqa
 

@@ -47,7 +47,6 @@ class QGISTest(unittest.TestCase):
         crs.createFromWkt(wkt)
         auth_id = crs.authid()
         expected_auth_id = 'EPSG:4326'
-        # self.assertEqual(auth_id, expected_auth_id)
 
         # now test for a loaded layer
         path = os.path.join(os.path.dirname(__file__), 'tenbytenraster.asc')

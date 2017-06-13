@@ -180,24 +180,20 @@ class GuessIndicatorDialogWidget(QDialog):
         self.verticalLayoutBox = QVBoxLayout(self.groupBox)
 
         self.check_pipe_friction = QCheckBox(self.groupBox)
-        # self.check_pipe_friction.setGeometry(QRect(10, 20, 171, 17))
         self.check_pipe_friction.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_pipe_friction)
 
         self.check_manhole_indicator = QCheckBox(self.groupBox)
-        # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
         self.check_manhole_indicator.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_manhole_indicator)
 
         self.check_manhole_area = QCheckBox(self.groupBox)
-        # self.check_manhole_indicator.setGeometry(QRect(10, 20, 171, 17))
         self.check_manhole_area.setChecked(True)
         self.verticalLayoutBox.addWidget(self.check_manhole_area)
 
         self.verticalLayout.addWidget(self.groupBox)
 
         self.check_only_empty_fields = QCheckBox(self)
-        # self.check_only_empty_fields.setGeometry(QRect(10, 40, 171, 17))
         self.check_only_empty_fields.setChecked(True)
         self.verticalLayout.addWidget(self.check_only_empty_fields)
 

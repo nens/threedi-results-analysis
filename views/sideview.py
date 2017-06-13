@@ -71,11 +71,12 @@ except AttributeError:
 
 
 INTERPOLATION_PHYSICAL = 0  # interpolation based on all profiles
-INTERPOLATION_CALCULATION = 1  # interpolation as the 3Di calculation core is
+# interpolation as the 3Di calculation core is
 # performing the interpolation. for bottom
 # and surface level use profiles close to
 # calculation points. For height (profile) first
 # get heigth on centerpoints at links
+INTERPOLATION_CALCULATION = 1
 
 
 class SideViewPlotWidget(pg.PlotWidget):
