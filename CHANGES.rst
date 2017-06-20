@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.11 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add class diagram documentation for ``ThreediDatabase``.
 
 
 0.10 (2017-06-20)
