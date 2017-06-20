@@ -87,8 +87,7 @@ try:
 except ImportError:
     log('Use provided version of pyqtgraph')
     sys.path.append(os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'external', 'pyqtgraph-0.9.10'))
+        os.path.dirname(os.path.realpath(__file__)), 'external', 'pyqtgraph'))
     try:
         import pyqtgraph
     except Exception:
