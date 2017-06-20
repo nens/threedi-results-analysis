@@ -84,6 +84,7 @@ Notes
        the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this::
 
            $ git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox
+           $ git submodule update --init --recursive
 
 .. [2] Under the hood it calls ``make zip`` which is modified a bit (see ``Makefile``, old zip directive
        is still avaiable) so that it doesn't copy everything to your QGIS plugin directory.
