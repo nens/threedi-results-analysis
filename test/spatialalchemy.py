@@ -3,9 +3,16 @@ import tempfile
 import os.path
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             os.path.pardir, 'external'))
-
+sys.path.insert(
+    0,
+    os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), 'external', 'sqlalchemy', 'lib')
+)
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'external', 'geoalchemy2')
+)
 
 import ogr
 
@@ -15,7 +22,7 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, MetaData
-from spatialalchemy.types import Geometry
+from geoalchemy2.types import Geometry
 
 Base = declarative_base()
 

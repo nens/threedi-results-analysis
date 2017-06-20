@@ -1,0 +1,6 @@
+[submodule "external/geoalchemy2"]
+	path = external/geoalchemy2
+	url = git@github.com:nens/geoalchemy2.git
+[submodule "external/sqlalchemy"]
+	path = external/sqlalchemy
+	url = git@github.com:zzzeek/sqlalchemy.git
