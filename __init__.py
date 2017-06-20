@@ -30,15 +30,22 @@ except ImportError:
 
 msg = ''
 
-sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'external'))
+sys.path.insert(
+    0,
+    os.path.join(os.path.dirname(
+        os.path.realpath(__file__)), 'external', 'sqlalchemy', 'lib')
+)
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'external', 'geoalchemy2')
+)
 
 try:
     import sqlalchemy
-    import spatialalchemy
+    import geoalchemy2
 except ImportError, e:
-    pop_up_info("Error loading sqlalchemy or spatialalchemy from "
+    pop_up_info("Error loading sqlalchemy or geoalchemy2 from "
                 "'external' subdirectory. error %s" % e.message)
 
 try:
@@ -80,8 +87,7 @@ try:
 except ImportError:
     log('Use provided version of pyqtgraph')
     sys.path.append(os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'external', 'pyqtgraph-0.9.10'))
+        os.path.dirname(os.path.realpath(__file__)), 'external', 'pyqtgraph'))
     try:
         import pyqtgraph
     except Exception:
