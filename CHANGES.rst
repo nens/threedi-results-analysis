@@ -2,8 +2,8 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.9.4 (unreleased)
-------------------
+0.10 (2017-06-20)
+-----------------
 
 - Fix E501 (line too long) violations manually because AutoPEP8 can't fix
   those.
