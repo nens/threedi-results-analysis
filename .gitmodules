@@ -4,3 +4,6 @@
 [submodule "external/sqlalchemy"]
 	path = external/sqlalchemy
 	url = https://github.com/zzzeek/sqlalchemy.git
+[submodule "external/pyqtgraph"]
+	path = external/pyqtgraph
+	url = https://github.com/pyqtgraph/pyqtgraph.git
