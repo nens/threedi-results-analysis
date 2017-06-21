@@ -36,6 +36,8 @@ Linux
   Install the netCDF4 libs:``sudo apt-get install libhdf5-serial-dev libnetcdf-dev``.
   Install the python netCDF4 package using ``pip install netCDF4``
   You might need to install the Qt4 PostgreSQL driver for loading sufhyd: ``sudo apt-get install libqt4-sql-psql``.
+  Furthermore, you need to install dependencies in the ``external`` directory:
+  ``pip install -r requirements.txt --target=external --no-deps``
 
 
 Installation
@@ -48,7 +50,8 @@ The plugin can be added using one of the following ways:
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
   ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``);
-  make sure the dir is called ``ThreeDiToolbox`` ([1]_)
+  make sure the dir is called ``ThreeDiToolbox`` ([1]_) Make sure to install external dependencies (see
+  Requirements section).
 
 
 Release
@@ -84,7 +87,6 @@ Notes
        the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this::
 
            $ git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox
-           $ git submodule update --init --recursive
 
 .. [2] Under the hood it calls ``make zip`` which is modified a bit (see ``Makefile``, old zip directive
        is still avaiable) so that it doesn't copy everything to your QGIS plugin directory.

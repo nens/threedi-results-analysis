@@ -6,3 +6,9 @@
 help/build/
 .idea
 remote_debugger_settings.py
+
+# external python dependencies
+external/*.egg-info
+external/sqlalchemy
+external/geoalchemy2
+external/pyqtgraph
