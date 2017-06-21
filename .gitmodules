@@ -1,9 +1,0 @@
-[submodule "external/geoalchemy2"]
-	path = external/geoalchemy2
-	url = https://github.com/nens/geoalchemy2.git
-[submodule "external/sqlalchemy"]
-	path = external/sqlalchemy
-	url = https://github.com/zzzeek/sqlalchemy.git
-[submodule "external/pyqtgraph"]
-	path = external/pyqtgraph
-	url = https://github.com/pyqtgraph/pyqtgraph.git
