@@ -22,13 +22,19 @@ Requirements
 ------------
 
 - QGIS 2.14 or 2.16 (64 bit is recommended)
-- pyqtgraph (included)
+- pyqtgraph
 - netCDF4 (included only for Windows using 64 bit QGIS)
-- sqlalchemy version 1.1.0 or higher (included)
-- spatialalchemy with custom modifications, source available here: https://github.com/nens/geoalchemy2 (included)
+- sqlalchemy version 1.1.0 or higher
+- geoalchemy2 with custom modifications, source available here: https://github.com/nens/geoalchemy2
+
+Most Python dependencies are included in the **distribution** of the plugin,
+but if you clone this repository you need to manually install them in the
+``external`` directory::
+
+    $ pip install -r requirements.txt --target=external --no-deps
 
 Windows
-  The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64 bit installations of QGIS under
+  The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under
   Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
   it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
@@ -36,8 +42,6 @@ Linux
   Install the netCDF4 libs:``sudo apt-get install libhdf5-serial-dev libnetcdf-dev``.
   Install the python netCDF4 package using ``pip install netCDF4``
   You might need to install the Qt4 PostgreSQL driver for loading sufhyd: ``sudo apt-get install libqt4-sql-psql``.
-  Furthermore, you need to install dependencies in the ``external`` directory:
-  ``pip install -r requirements.txt --target=external --no-deps``
 
 
 Installation
