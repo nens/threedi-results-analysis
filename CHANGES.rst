@@ -6,8 +6,8 @@ threedi-qgis-plugin changelog
 -----------------
 
 - Remove checked in source code for SQLAlchemy, SpatialAlchemy
-  (a.k.a. GeoAlchemy2), and PyQtGraph, and replace them by
-  git submodules.
+  (a.k.a. GeoAlchemy2), and PyQtGraph. These packages will now
+  be installed with pip using a requirements.txt.
 
 - Add class diagram documentation for ``ThreediDatabase``.
 
