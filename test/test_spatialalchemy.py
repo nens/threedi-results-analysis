@@ -8,7 +8,7 @@ sys.path.insert(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
 )
 
-import ogr
+from osgeo import ogr, gdal
 
 from pyspatialite import dbapi2
 from sqlalchemy.ext.declarative import declarative_base
@@ -50,7 +50,15 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
         self.file_path = os.path.join(self.tmp_directory, 'testdb.sqlite')
 
         drv = ogr.GetDriverByName('SQLite')
+
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
+
         db = drv.CreateDataSource(self.file_path, ["SPATIALITE=YES"])
+
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
+
         del db
 
         self.engine = create_engine('sqlite:///{0}'.format(self.file_path),
@@ -88,6 +96,6 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
         geo_table = self.session.query(GeoTable).limit(1)[0]
         self.assertIsNotNone(geo_table.geom)
 
-    def TearDown(self):
+    def tearDown(self):
         self.session.close_all()
         os.remove(self.file_path)
