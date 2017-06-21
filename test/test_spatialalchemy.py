@@ -63,7 +63,7 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
 
         self.engine = create_engine('sqlite:///{0}'.format(self.file_path),
                                     module=dbapi2,
-                                    echo=True)
+                                    echo=False)  # disable all the SQL logging
 
         Base.metadata.bind = self.engine
         Base.metadata.reflect(extend_existing=True)
