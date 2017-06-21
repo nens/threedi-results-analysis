@@ -32,13 +32,7 @@ msg = ''
 
 sys.path.insert(
     0,
-    os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), 'external', 'sqlalchemy', 'lib')
-)
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'external', 'geoalchemy2')
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
 )
 
 try:
@@ -47,6 +41,18 @@ try:
 except ImportError, e:
     pop_up_info("Error loading sqlalchemy or geoalchemy2 from "
                 "'external' subdirectory. error %s" % e.message)
+
+try:
+    import pyqtgraph
+    log('Use local installation of pyqtgraph ')
+except Exception:
+    # TODO: fix this error (which is the reason of this exception):
+    # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
+    # could be imported.
+    msg = "Error: Exception while loading pyqtgraph. Probably couldn't "\
+          "import PyQt"
+    log(msg)
+    pop_up_info(msg)
 
 try:
     import netCDF4
@@ -79,30 +85,6 @@ if netCDF4 is not None:
                netcdf=netCDF4.__netcdf4libversion__,
                hdf5=netCDF4.__hdf5libversion__)
     log(msg)
-
-
-try:
-    import pyqtgraph
-    log('Use local installation of pyqtgraph ')
-except ImportError:
-    log('Use provided version of pyqtgraph')
-    sys.path.append(os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'external', 'pyqtgraph'))
-    try:
-        import pyqtgraph
-    except Exception:
-        # TODO: fix this error (which is the reason of this exception):
-        # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
-        # could be imported.
-        pass
-except Exception:
-    # TODO: fix this error (which is the reason of this exception):
-    # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
-    # could be imported.
-    msg = "Error: Exception while loading pyqtgraph. Probably couldn't "\
-          "import PyQt"
-    log(msg)
-    pop_up_info(msg)
 
 
 # noinspection PyPep8Naming

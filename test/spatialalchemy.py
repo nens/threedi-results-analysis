@@ -5,13 +5,7 @@ import sys
 
 sys.path.insert(
     0,
-    os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), 'external', 'sqlalchemy', 'lib')
-)
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'external', 'geoalchemy2')
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
 )
 
 import ogr
