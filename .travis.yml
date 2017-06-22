@@ -1,8 +1,6 @@
-language: python
+language: generic
 sudo: required
 dist: trusty
-python:
-    - 2.7
 
 env:
     - QGIS_REPO=http://qgis.org/debian-ltr
@@ -15,9 +13,9 @@ virtualenv:
 addons:
   apt:
     packages:
+      - python-software-properties
       - libhdf5-serial-dev
       - libnetcdf-dev
-      - python-qt4  # is this needed?
       - xvfb  # emulating X-server
 
 before_install:
