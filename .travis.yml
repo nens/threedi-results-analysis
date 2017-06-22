@@ -5,11 +5,6 @@ dist: trusty
 env:
     - QGIS_REPO=http://qgis.org/debian-ltr
 
-virtualenv:
-    # Make apt installed Python packages work (i.e. PyQt) because Travis runs
-    # tests in a virtualenv for Python 2.7.
-    system_site_packages: true
-
 addons:
   apt:
     packages:
