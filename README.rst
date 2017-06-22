@@ -22,13 +22,19 @@ Requirements
 ------------
 
 - QGIS 2.14 or 2.16 (64 bit is recommended)
-- pyqtgraph (included)
+- pyqtgraph
 - netCDF4 (included only for Windows using 64 bit QGIS)
-- sqlalchemy version 1.1.0 or higher (included)
-- spatialalchemy with custom modifications, source available here: https://github.com/nens/geoalchemy2 (included)
+- sqlalchemy version 1.1.0 or higher
+- geoalchemy2 with custom modifications, source available here: https://github.com/nens/geoalchemy2
+
+Most Python dependencies are included in the **distribution** of the plugin,
+but if you clone this repository you need to manually install them in the
+``external`` directory::
+
+    $ pip install -r requirements.txt --target=external --no-deps
 
 Windows
-  The package includes the dependencies 'pyqtgraph' and 'netCDF4' for 64 bit installations of QGIS under
+  The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under
   Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
   it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
@@ -48,7 +54,8 @@ The plugin can be added using one of the following ways:
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
   ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``);
-  make sure the dir is called ``ThreeDiToolbox`` ([1]_)
+  make sure the dir is called ``ThreeDiToolbox`` ([1]_) Make sure to install external dependencies (see
+  Requirements section).
 
 
 Release

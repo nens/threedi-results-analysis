@@ -7,7 +7,7 @@ from sqlalchemy import (
     Boolean, Column, Integer, String, Float, ForeignKey)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from spatialalchemy.types import Geometry
+from geoalchemy2.types import Geometry
 
 from .constants import Constants
 
