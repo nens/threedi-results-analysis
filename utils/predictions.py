@@ -667,6 +667,11 @@ class Predictor(object):
                 "[*] Successfully saved {} features to the database".format(
                     cnt_feat)
             )
+            if not self.threedi_db.has_valid_spatial_index(
+                    constants.TABLE_NAME_CALC_PNT, 'the_geom'):
+                self.threedi_db.recover_spatial_index(
+                    constants.TABLE_NAME_CALC_PNT, 'the_geom'
+                )
             output_layer.updateExtents()
         else:
             logger.error(
@@ -762,6 +767,11 @@ class Predictor(object):
                 "[*] Successfully saved {} features to the database".format(
                     cnt_feat)
             )
+            if not self.threedi_db.has_valid_spatial_index(
+                    constants.TABLE_NAME_CONN_PNT, 'the_geom'):
+                self.threedi_db.recover_spatial_index(
+                    constants.TABLE_NAME_CONN_PNT, 'the_geom'
+                )
             connected_pnts_lyr.updateExtents()
         else:
             logger.error(

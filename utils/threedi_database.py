@@ -129,6 +129,9 @@ class ThreediDatabase(object):
 
     def table_is_empty(self, table_name):
         """
+        check if the given table is empty
+
+        :returns False if the table contains a least one entry
         """
         is_empty = False
         select_statement = """SELECT 0 FROM {table_name} LIMIT 1;""".format(
@@ -138,7 +141,6 @@ class ThreediDatabase(object):
             result = res.fetchone()
             if result:
                 is_empty = result[0]
-            print("----------", is_empty)
             return is_empty
 
     def has_valid_spatial_index(self, table_name, geom_column):
@@ -154,7 +156,7 @@ class ThreediDatabase(object):
             """.format(table_name=table_name, geom_column=geom_column)
             with self.engine.begin() as connection:
                 result = connection.execute(text(select_statement))
-                return bool(result.fetchone())
+                return bool(result.fetchone()[0])
 
     def recover_spatial_index(self, table_name, geom_column):
         """
@@ -168,7 +170,7 @@ class ThreediDatabase(object):
             """.format(table_name=table_name, geom_column=geom_column)
             with self.engine.begin() as connection:
                 result = connection.execute(text(select_statement))
-                return bool(result.fetchone())
+                return bool(result.fetchone()[0])
 
 
 def get_databases():
