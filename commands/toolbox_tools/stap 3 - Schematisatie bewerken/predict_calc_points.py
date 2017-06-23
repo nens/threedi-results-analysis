@@ -5,6 +5,7 @@ import logging
 
 from qgis.core import QgsMapLayerRegistry, QgsFeatureRequest
 from PyQt4.QtCore import QPyNullVariant
+from PyQt4 import QtGui
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
@@ -15,6 +16,9 @@ from ThreeDiToolbox.utils.predictions import Predictor
 
 from ThreeDiToolbox.utils import constants
 log = logging.getLogger(__name__)
+
+TABLE_NAME_CALC_PNT = 'v2_calculation_point'
+TABLE_NAME_CONN_PNT = 'v2_connected_pnt'
 
 
 class CustomCommand(CustomCommandBase):
@@ -45,10 +49,12 @@ class CustomCommand(CustomCommandBase):
         pal = Predictor(db_type)
         uri = pal.get_uri(**db_set)
         calc_pnts_lyr = pal.get_layer_from_uri(
-            uri, 'v2_calculation_point', 'the_geom')
+            uri, TABLE_NAME_CALC_PNT, 'the_geom')
         self.connected_pnts_lyr = pal.get_layer_from_uri(
-            uri, 'v2_connected_pnt', 'the_geom')
+            uri, TABLE_NAME_CONN_PNT, 'the_geom')
         pal.start_sqalchemy_engine(db_set)
+        if not self.start_fresh(pal):
+            return
         default_epsg_code = 28992
         epsg_code = pal.get_epsg_code() or default_epsg_code
         log.info(
@@ -86,3 +92,27 @@ class CustomCommand(CustomCommandBase):
             cp_level = 1
         messagebar_message("Finished", cp_msg, level=cp_level, duration=12)
         log.info('Done predicting calcualtion points.\n' + msg)
+
+
+    def start_fresh(self, pal):
+        """
+        """
+        fresh = True
+        are_empty = []
+        table_names = [TABLE_NAME_CALC_PNT, TABLE_NAME_CONN_PNT]
+        for tn in table_names:
+            are_empty.append(pal.threedi_db.table_is_empty(tn))
+        print(are_empty)
+        if not all(are_empty):
+            fresh = False
+            print('hoha')
+            reply = QtGui.QMessageBox.question(
+                self.iface.mainWindow(), 'Delete?',
+                'calculation point and connected point tables are not empty',
+                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No
+            )
+            if reply == QtGui.QMessageBox.Yes:
+                pal.threedi_db.delete_from(TABLE_NAME_CALC_PNT)
+                pal.threedi_db.delete_from(TABLE_NAME_CONN_PNT)
+                fresh = True
+        return fresh

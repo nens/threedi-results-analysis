@@ -7,6 +7,7 @@ from pyspatialite import dbapi2
 from PyQt4.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
 
 from ThreeDiToolbox.sql_models.model_schematisation import Base
@@ -116,6 +117,58 @@ class ThreediDatabase(object):
                                                           'the_geom');""")
 
             session.commit()
+
+    def delete_from(self, table_name):
+        """
+        """
+        del_statement = """DELETE FROM {}""".format(table_name)
+
+        # runs a transaction
+        with self.engine.begin() as connection:
+            connection.execute(text(del_statement))
+
+    def table_is_empty(self, table_name):
+        """
+        """
+        is_empty = False
+        select_statement = """SELECT 0 FROM {table_name} LIMIT 1;""".format(
+            table_name=table_name)
+        with self.engine.begin() as connection:
+            res = connection.execute(text(select_statement))
+            result = res.fetchone()
+            if result:
+                is_empty = result[0]
+            print("----------", is_empty)
+            return is_empty
+
+    def has_valid_spatial_index(self, table_name, geom_column):
+        """
+        validate the spatial index for the given table with the given
+        geometry column
+        """
+        # runs a transaction
+
+        if self.db_type == 'spatialite':
+            select_statement = """
+               SELECT CheckSpatialIndex('{table_name}', '{geom_column}');
+            """.format(table_name=table_name, geom_column=geom_column)
+            with self.engine.begin() as connection:
+                result = connection.execute(text(select_statement))
+                return bool(result.fetchone())
+
+    def recover_spatial_index(self, table_name, geom_column):
+        """
+        recover the spatial index for the given table with the given
+        geometry column
+        :returns True when recovery was successful, False otherwise
+        """
+        if self.db_type == 'spatialite':
+            select_statement = """
+               SELECT RecoverSpatialIndex('{table_name}', '{geom_column}');
+            """.format(table_name=table_name, geom_column=geom_column)
+            with self.engine.begin() as connection:
+                result = connection.execute(text(select_statement))
+                return bool(result.fetchone())
 
 
 def get_databases():

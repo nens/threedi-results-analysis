@@ -85,8 +85,8 @@ class Predictor(object):
                 be omitted for spatialite
             'schema' --> database schema name
         """
-        threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
-        self.engine = threedi_db.get_engine()
+        self.threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
+        self.engine = self.threedi_db.engine
 
     def get_layer_from_uri(self, uri, table_name, geom_column='',
                            display_name=''):
@@ -744,12 +744,14 @@ class Predictor(object):
         for feat in calc_pnts_lyr.getFeatures():
             calc_pnt = dict(zip(field_names_calc_pnts, feat.attributes()))
             calc_type = calc_pnt['calc_type']
+            pnts_to_add = 1 if calc_type != 5 else 2
             if calc_type < 2:
                 continue
-            self._add_connected_pnt_feature(
-                feat.geometry(), calc_pnt_id=calc_pnt['id'],
-                field_names=fn_dict_connected_pnts_lyr,
-            )
+            for _ in xrange(pnts_to_add):
+                self._add_connected_pnt_feature(
+                    feat.geometry(), calc_pnt_id=calc_pnt['id'],
+                    field_names=fn_dict_connected_pnts_lyr,
+                )
 
         succces, features = data_provider.addFeatures(
             self._connected_pnt_features
