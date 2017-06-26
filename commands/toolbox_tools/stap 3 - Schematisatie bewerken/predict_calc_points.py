@@ -115,7 +115,10 @@ class CustomCommand(CustomCommandBase):
         """
         fresh = True
         are_empty = []
-        table_names = [TABLE_NAME_CALC_PNT, TABLE_NAME_CONN_PNT]
+        table_names = [
+            constants.TABLE_NAME_CALC_PNT,
+            constants.TABLE_NAME_CONN_PNT
+        ]
         for tn in table_names:
             are_empty.append(predictor.threedi_db.table_is_empty(tn))
         if not all(are_empty):
@@ -127,7 +130,7 @@ class CustomCommand(CustomCommandBase):
                 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No
             )
             if reply == QtGui.QMessageBox.Yes:
-                predictor.threedi_db.delete_from(TABLE_NAME_CALC_PNT)
-                predictor.threedi_db.delete_from(TABLE_NAME_CONN_PNT)
+                predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
+                predictor.threedi_db.delete_from(constants.TABLE_NAME_CONN_PNT)
                 fresh = True
         return fresh
