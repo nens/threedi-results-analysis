@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
+import os
 import logging
 from PyQt4.QtGui import QDialog
 
-from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
+from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import QRect
+from PyQt4.QtCore import Qt
+from PyQt4.QtCore import QObject
+from PyQt4.QtCore import QMetaObject
+from PyQt4 import uic
 from PyQt4.QtGui import (
     QVBoxLayout, QGroupBox, QComboBox, QSizePolicy,
     QDialogButtonBox, QApplication)
@@ -20,6 +26,11 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
+
+
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), os.pardir, 'ui',
+    'move_connected_pnts.ui'))
 
 
 class PredictCalcPointsDialogWidget(QDialog):
@@ -246,3 +257,79 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         self.setWindowTitle(_translate("self", "Add connected points", None))
         self.groupBox_2.setTitle(_translate(
             "self", "Load from model database", None))
+
+
+class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
+
+    def __init__(self, parent=None,
+                 command=None):
+        """Constructor
+
+        Args:
+            parent: Qt parent Widget
+            iface: QGiS interface
+            ts_datasource: TimeseriesDatasourceModel instance
+            command: Command instance with a run_it method which will be called
+                     on acceptance of the dialog
+        """
+        super(MoveConnectedPointsDialogWidget, self).__init__(parent)
+        self.setupUi()
+
+        self.command = command
+
+        self.databases = get_databases()
+        self.database_combo.addItems(self.databases.keys())
+
+        # Connect signals
+        self.buttonBox.accepted.connect(self.on_accept)
+        self.buttonBox.rejected.connect(self.on_reject)
+
+        self.filename = None
+
+    def on_accept(self):
+        """Accept and run the Command.run_it method."""
+
+        db_key = self.database_combo.currentText()
+        db_entry = self.databases[db_key]
+        db_type = db_entry['db_type']
+
+        _db_settings = db_entry['db_settings']
+
+        if db_type == 'spatialite':
+            # usage of db_type 'spatialite' instead of 'sqlite'
+            # makes much more sense because it also used internally
+            # by qgis, for example when by the ``QgsVectorLayer()``-object
+            host = _db_settings['db_path']
+            db_settings = {
+                'host': host,
+                'port': '',
+                'name': '',
+                'username': '',
+                'password': '',
+                'schema': '',
+                'database': '',
+                'db_path': host,
+            }
+        else:
+            db_settings = _db_settings
+            db_settings['schema'] = 'public'
+        self.command.run_it(db_settings, db_type)
+
+        self.accept()
+
+    def on_reject(self):
+        """Cancel"""
+        self.reject()
+        log.debug("Reject")
+
+    def closeEvent(self, event):
+        """
+        Close widget, called by Qt on close
+        :param event: QEvent, close event
+        """
+
+        self.buttonBox.accepted.disconnect(self.on_accept)
+        self.buttonBox.rejected.disconnect(self.on_reject)
+
+        event.accept()
+
