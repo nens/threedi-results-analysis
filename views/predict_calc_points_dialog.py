@@ -12,6 +12,7 @@ from PyQt4 import uic
 from PyQt4.QtGui import (
     QVBoxLayout, QGroupBox, QComboBox, QSizePolicy,
     QDialogButtonBox, QApplication)
+from PyQt4.QtGui import QSpinBox
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
@@ -260,11 +261,9 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
 
 class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
-
     def __init__(self, parent=None,
                  command=None):
         """Constructor
-
         Args:
             parent: Qt parent Widget
             iface: QGiS interface
@@ -273,48 +272,23 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
                      on acceptance of the dialog
         """
         super(MoveConnectedPointsDialogWidget, self).__init__(parent)
-        self.setupUi()
-
+        self.setupUi(self)
+        self.search_distance_field = self.mQgsSpinBox
+        self.search_distance_field.setMaximum(50)
+        self.search_distance_field.setMinimum(5)
+        self.distance_to_levee_field = self.mQgsSpinBox_2
+        self.distance_to_levee_field.setMaximum(30)
+        self.distance_to_levee_field.setMinimum(1)
         self.command = command
-
-        self.databases = get_databases()
-        self.database_combo.addItems(self.databases.keys())
-
-        # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
-
-        self.filename = None
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-        db_key = self.database_combo.currentText()
-        db_entry = self.databases[db_key]
-        db_type = db_entry['db_type']
-
-        _db_settings = db_entry['db_settings']
-
-        if db_type == 'spatialite':
-            # usage of db_type 'spatialite' instead of 'sqlite'
-            # makes much more sense because it also used internally
-            # by qgis, for example when by the ``QgsVectorLayer()``-object
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        self.command.run_it(db_settings, db_type)
-
+        seach_distance = self.search_distance_field.value()
+        distance_to_levee = self.distance_to_levee_field.value()
+        self.command.run_it(seach_distance, distance_to_levee)
         self.accept()
 
     def on_reject(self):
@@ -327,9 +301,7 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
         Close widget, called by Qt on close
         :param event: QEvent, close event
         """
-
-        self.buttonBox.accepted.disconnect(self.on_accept)
-        self.buttonBox.rejected.disconnect(self.on_reject)
-
+        # self.buttonBox.accepted.disconnect(self.on_accept)
+        # self.buttonBox.rejected.disconnect(self.on_reject)
         event.accept()
 

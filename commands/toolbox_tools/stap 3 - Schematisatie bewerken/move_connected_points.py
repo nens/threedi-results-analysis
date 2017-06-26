@@ -13,7 +13,7 @@ from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
-    AddCoonnectedPointsDialogWidget)
+    MoveConnectedPointsDialogWidget)
 from ThreeDiToolbox.commands.base.custom_command import (
     CustomCommandBase)
 from ThreeDiToolbox.utils.predictions import Predictor
@@ -71,10 +71,11 @@ class CustomCommand(CustomCommandBase):
             self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = AddCoonnectedPointsDialogWidget(command=self)
+        self.tool_dialog_widget = MoveConnectedPointsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
-    def run_it(self, db_set, db_type):
+    def run_it(self, search_distance, distance_to_levee):
+        raise Exception(search_distance, distance_to_levee)
         predictor = Predictor(flavor=db_type)
         uri = predictor.get_uri(**db_set)
         self.connected_pnt_lyr = predictor.get_layer_from_uri(
