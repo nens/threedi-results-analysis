@@ -144,18 +144,23 @@ class CustomCommand(CustomCommandBase):
 
         calc_points_dict = self.get_calc_points_by_content()
         print("calc_points_dict ", calc_points_dict)
+
+        # --- for testing purposes -------------------------------- #
         i = 1
+        # ---------------------------------------------------------- #
+
         for key, values in calc_points_dict.iteritems():
             calc_type = key[1]
+
+            # --- for testing purposes -------------------------------- #
             if i == 0:
                 i += 1
                 continue
+            # ---------------------------------------------------------- #
+
             connected_points_selection = self.get_connected_points(
                 values, calc_type
             )
-            # sel_connected_pnts = [feature.geometry().asPoint() for feature in connected_pnt_iter]
-            # extrapolated_line = self.get_extrapolated_line(sel_connected_pnts[-2], sel_connected_pnts[-1])
-            # sel_connected_pnts.extend(extrapolated_line)
             print("connected_points_selection ", connected_points_selection)
             self.move_points_behind_levee(connected_points_selection, calc_type)
 
