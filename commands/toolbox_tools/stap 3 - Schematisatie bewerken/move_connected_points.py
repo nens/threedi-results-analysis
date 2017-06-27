@@ -204,7 +204,9 @@ class CustomCommand(CustomCommandBase):
 
     def get_calc_points_by_content(self):
         """
-        group the calculation points by the content object the originate from
+        group the calculation points by the content object they
+        originate from
+
         :returns a dict like
             {('<source id><source table>', calculation type):
                 [<calculation point id>,
