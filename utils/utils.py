@@ -2,6 +2,9 @@
 import math
 import os
 
+from itertools import izip
+from itertools import tee
+
 # Workaround for Travis which doesn't have qgis
 try:
     from qgis.core import (
@@ -78,3 +81,12 @@ def csv_join(filepath, layer, view_layer_field, csv_field='id',
     join_info.memoryCache = True
     layer.addJoin(join_info)
     return csv_layer
+
+
+def pairwise(iterable):
+    # from https://docs.python.org/2/library/
+    # itertools.html#recipes
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
