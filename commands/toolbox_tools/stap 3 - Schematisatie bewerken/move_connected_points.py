@@ -16,6 +16,9 @@ from qgis.core import (
     QgsCoordinateReferenceSystem
 )
 from qgis.core import QgsPoint
+from qgis.core import QgsDistanceArea
+from qgis.core import QgsCoordinateReferenceSystem
+
 from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -129,6 +132,13 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget = MoveConnectedPointsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
+    def get_extrapolated_line(self, pnt1, pnt2):
+        'Creates a line extrapoled in p1->p2 direction'
+        EXTRAPOL_RATIO = 3
+        a = pnt1
+        b = (pnt1[0]+EXTRAPOL_RATIO*(pnt2[0]-pnt1[0]), pnt1[1]+EXTRAPOL_RATIO*(pnt2[1]-pnt1[1]))
+        return b, a
+
     def get_calc_pnts_hash_table(self):
         fnames_calc_pnt = [
             field.name() for field in self.calc_pnt_lyr.pendingFields()
@@ -146,9 +156,10 @@ class CustomCommand(CustomCommandBase):
                 )
             )
             user_ref = calc_pnt['user_ref']
+            calc_type = calc_pnt['calc_type']
             code, src_id, src_tbl, calc_nr = user_ref.split('#')
             key = '{src_id}{src_table}'.format(src_id=src_id, src_table=src_tbl)
-            calc_pnts_hash[key].append(str(calc_pnt['id']))
+            calc_pnts_hash[(key, calc_type)].append(str(calc_pnt['id']))
         return calc_pnts_hash
 
     def run_it(self, search_distance, distance_to_levee):
@@ -161,30 +172,59 @@ class CustomCommand(CustomCommandBase):
         # print("all_points ", all_points)
         # pairwise loop
         # TODO implement
-        for values in calc_pnts_hash.values():
+        i = 1
+        for key, values in calc_pnts_hash.iteritems():
+            calc_type = key[1]
+            if i == 0:
+                i += 1
+                continue
             id_str = ','.join(values)
             connected_pnt_request = QgsFeatureRequest().setFilterExpression(
                 '"calculation_pnt_id" IN ({ids})'.format(ids=id_str))
             connected_pnt_iter = self.connected_pnt_lyr.getFeatures(connected_pnt_request)
-            sel_connected_pnts = [feature.geometry().asPoint() for feature in connected_pnt_iter]
+            sel_connected_pnts = self.get_connected_pnts(
+                connected_pnt_iter, calc_type
+            )
+            # sel_connected_pnts = [feature.geometry().asPoint() for feature in connected_pnt_iter]
+            # extrapolated_line = self.get_extrapolated_line(sel_connected_pnts[-2], sel_connected_pnts[-1])
+            # sel_connected_pnts.extend(extrapolated_line)
             print("sel_connected_pnts ", sel_connected_pnts)
-            self.ppp(sel_connected_pnts, search_distance, distance_to_levee)
+            self.ppp(sel_connected_pnts, search_distance, distance_to_levee, calc_type)
 
+    def get_connected_pnts(self, connected_pnt_iter, calc_type):
+        pick_by_calc_type = {
+            2: 1,
+            5: 2
+        }
+        sel_connected_pnts = []
 
-    def ppp(self, pnts, search_distance, distance_to_levee):
+        for i, feature in enumerate(connected_pnt_iter):
+            if i % pick_by_calc_type[calc_type] == 0:
+                sel_connected_pnts.append(feature.geometry().asPoint())
+
+        extrapolated_line = self.get_extrapolated_line(
+            sel_connected_pnts[-2], sel_connected_pnts[-1]
+        )
+        sel_connected_pnts.extend(extrapolated_line)
+
+        return sel_connected_pnts
+
+    def ppp(self, pnts, search_distance, distance_to_levee, calc_type):
+
         v_layer = QgsVectorLayer("Point", "pnt", "memory")
         l_layer = QgsVectorLayer("LineString", "line", "memory")
         pr = v_layer.dataProvider()
         pr_l = l_layer.dataProvider()
         pm = PointMover()
 
-        for xy, xy1 in utils.pairwise(pnts):
+        for xy, xy1 in utils.pairwise(pnts[:-1]):
 
             # convert to flat list
             coords = list(itertools.chain(*(xy, xy1)))
 
             m_pnts = pm.move(coords, distance=search_distance/111325.0)
             if not m_pnts:
+                print("no m_pnts!!")
                 continue
             line_start = QgsPoint(m_pnts[0], m_pnts[1])
             line_end = QgsPoint(m_pnts[2], m_pnts[3])
@@ -200,36 +240,61 @@ class CustomCommand(CustomCommandBase):
             feat2.setGeometry(org_line)
             pr_l.addFeatures([feat, feat2])
 
-            # virtual_line_bbox = virtual_line.boundingBox()
-            # levee_features = self.levee_lyr.getFeatures(
-            #     QgsFeatureRequest().setFilterRect(virtual_line_bbox)
-            # )
-            #
-            # for levee in levee_features:
-            #     print("levee ", levee.attributes()[0])
-            #
-            #     if levee.geometry().intersects(virtual_line):
-            #         intersection_pnt =  levee.geometry().intersection(virtual_line)
-            #         print("intersection ", intersection_pnt)
-            #         print("intersection geom", intersection_pnt.geometry())
-            #         g = intersection_pnt.geometry()
-            #         # print("pnt geom", pnt.x())
-            #         # print("pnt geom", pnt.y())
-            #         pnt = QgsPoint(g.x(), g.y())
-            #         line_from_intersect = QgsGeometry.fromPolyline([pnt, line_end])
-            #         moved = line_from_intersect.interpolate(distance_to_levee)
-            #         print("---------- ", moved)
-            #         print("------ geom ", moved.geometry())
-            #         print("------ dir geom ", dir(moved.geometry()))
-            #         seg = QgsFeature()
-            #         seg.setGeometry(moved)
-            #         pr.addFeatures([seg])
-            #         # levee_id = levee.attributes()[0]
-            #         break
+            virtual_line_bbox = virtual_line.boundingBox()
+            levee_features = self.levee_lyr.getFeatures(
+                QgsFeatureRequest().setFilterRect(virtual_line_bbox)
+            )
+
+            matches = collections.defaultdict(list)
+            for levee in levee_features:
+                levee_id = levee.attributes()[4]
+                print("levee ", levee_id)
+                if levee.geometry().intersects(virtual_line):
+                    intersection_pnt = levee.geometry().intersection(virtual_line)
+                    print("intersection ", intersection_pnt)
+                    print("intersection geom", intersection_pnt.geometry())
+                    g = intersection_pnt.geometry()
+                    # print("pnt geom", pnt.x())
+                    # print("pnt geom", pnt.y())
+                    pnt = QgsPoint(g.x(), g.y())
+                    dist = self.get_distance(org_start, pnt)
+                    print('---! dist ', dist)
+                    # seen_dist = matches.get(levee_id)
+                    # if seen_dist is None:
+                    matches[levee_id].append((dist, pnt, levee_id))
+            s_map = {2: {'min': 0, 'max': 1}, 5: {'min': 0, 'max': 2}, }
+            # sort by distance
+            match = sorted(matches.values(), key=lambda x: (x[0]))
+            print("************* matches.values() ", matches.values())
+
+            print("&&&&&&&&&&&&&&&&&&&&&&& match ", match)
+            for m in match[s_map[calc_type]['min']: s_map[calc_type]['max']]:
+                dist, pnt, levee_id = m[0]
+                print('--------------- dist, pnt, levee_id', dist, pnt, levee_id)
+                line_from_intersect = QgsGeometry.fromPolyline([pnt, line_end])
+                print("levee_id ", levee_id)
+                moved = line_from_intersect.interpolate(distance_to_levee/111325.0)
+                seg = QgsFeature()
+                seg.setGeometry(moved)
+                pr.addFeatures([seg])
+                # levee_id = levee.attributes()[0]
+
+
         v_layer.updateExtents()
         # l_layer.updateExtents()
         # show the line
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
+
+    def get_distance(self, pnt1, pnt2):
+        #Create a measure object
+        distance = QgsDistanceArea()
+        crs = QgsCoordinateReferenceSystem()
+        crs.createFromSrsId(3452) # EPSG:4326
+        distance.setSourceCrs(crs)
+        distance.setEllipsoidalMode(True)
+        distance.setEllipsoid('WGS84')
+        m = distance.measureLine(pnt1, pnt2) # ~322.48m.
+        return m
 
     # def run_it(self, search_distance, distance_to_levee):
     #     # get data that already has been pre-calculated
