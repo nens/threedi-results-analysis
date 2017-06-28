@@ -2,19 +2,17 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 import logging
-import math
 import itertools
 import collections
 
-from qgis.core import (
-    QgsMapLayerRegistry,
-    QgsFeatureRequest,
-    QgsFeature,
-    QgsGeometry,
-    QgsVectorLayer,
-    QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem
-)
+from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsFeature
+from qgis.core import QgsGeometry
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsCoordinateReferenceSystem
+
 from qgis.core import QgsPoint
 from qgis.core import QgsDistanceArea
 from qgis.core import QgsCoordinateReferenceSystem
@@ -23,6 +21,7 @@ from PyQt4.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
+from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 
 from ThreeDiToolbox.views.predict_calc_points_dialog import (
     MoveConnectedPointsDialogWidget)
@@ -33,54 +32,6 @@ from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils import utils
 
 log = logging.getLogger(__name__)
-
-
-class PointMover(object):
-    """
-    """
-
-    def __init__(self):
-        pass
-
-    def move(self, line_coords, distance, orientation=None):
-        """
-        :param line_coords: list of coordinates, e.g [x1, y1, x2, y2]
-        :param distance: distance in meters
-        :param orientation:
-            default None --> considers both sides of the line
-            left --> left to drawing direction,
-            right --> right to drawing direction
-        """
-        self.x1 = line_coords[0]
-        self.y1 = line_coords[1]
-        self.x2 = line_coords[2]
-        self.y2 = line_coords[3]
-        # desired length of the perp line
-        self.distance = distance
-        # calculate the distance between the xy coordinates
-        dx = self.x1-self.x2
-        dy = self.y1-self.y2
-        dist = math.sqrt(dx*dx + dy*dy)
-        print("dist ", dist)
-        if dist <= 0:
-            return
-        # the perp line needs to be inbetween those two coords,
-        # so half the distance...
-        dx /= dist
-        dy /= dist
-        # ...so this are the coords
-        self.x3 = self.x1 + (self.distance * dy)
-        self.y3 = self.y1 - (self.distance * dx)
-        self.x4 = self.x1 - (self.distance * dy)
-        self.y4 = self.y1 + (self.distance * dx)
-        print("new coords ", self.x3, self.y3, self.x4, self.y4)
-        # to the left or to the right?
-        if orientation is None:
-            return self.x3, self.y3, self.x4, self.y4
-        elif orientation == 'left':
-            return self.x1, self.y1, self.x3, self.y3
-        elif orientation == 'right':
-            return self.x1, self.y1, self.x4, self.y4
 
 
 class CustomCommand(CustomCommandBase):
@@ -259,8 +210,16 @@ class CustomCommand(CustomCommandBase):
         self.pr_l = l_layer.dataProvider()
         # ---------------------------------------------------------- #
 
-        # TODO rename
-        pm = PointMover()
+        # calc type 2 does not have an orientation, that means the
+        # perpendicular line will be drawn to both sides from teh point
+        # calc type 5 will first look on the left side of the point,
+        # then on the right side
+        ORIENTATION_MAP = {
+            constants.NODE_CALC_TYPE_CONNECTED:
+                [None],
+            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED:
+                ['left', 'right']
+        }
 
         # we're looping pairwise to be able to draw a line between
         # the two points. The last point has been extrapolated, hence
@@ -269,31 +228,40 @@ class CustomCommand(CustomCommandBase):
             # convert to flat list
             coords = list(itertools.chain(*(start_pnt, nxt_pnt)))
 
-            m_pnts = pm.move(coords, distance=self.search_distance)
-            if not m_pnts:
-                print("no m_pnts!!")
-                continue
-            line_start = QgsPoint(m_pnts[0], m_pnts[1])
-            line_end = QgsPoint(m_pnts[2], m_pnts[3])
+            orientation = ORIENTATION_MAP[calc_type]
+            for item in orientation:
+                perpendicular_line = calculate_perpendicular_line(
+                    coords, distance=self.search_distance,
+                    orientation=item
+                )
+                if not perpendicular_line:
+                    print("no perpendicular line!!")
+                    continue
+                line_start = QgsPoint(
+                    perpendicular_line[0], perpendicular_line[1]
+                )
+                line_end = QgsPoint(
+                    perpendicular_line[2], perpendicular_line[3]
+                )
 
-            org_start = QgsPoint(coords[0], coords[1])
-            org_end = QgsPoint(coords[2], coords[3])
+                org_start = QgsPoint(coords[0], coords[1])
+                org_end = QgsPoint(coords[2], coords[3])
 
-            # --- for testing purposes -------------------------------- #
-            org_line = QgsGeometry.fromPolyline([org_start, org_end])
-            feat2 = QgsFeature()
-            feat2.setGeometry(org_line)
-            self.pr_l.addFeatures([feat2])
-            # ---------------------------------------------------------- #
+                # --- for testing purposes -------------------------------- #
+                org_line = QgsGeometry.fromPolyline([org_start, org_end])
+                feat2 = QgsFeature()
+                feat2.setGeometry(org_line)
+                self.pr_l.addFeatures([feat2])
+                # ---------------------------------------------------------- #
 
-            levee_intersections = self.find_levee_intersections(
-                line_start, line_end, org_start
-            )
-            new_positions = self.calculate_new_positions(
-                levee_intersections, calc_type, line_end
-            )
-            # TODO implementation is temporarily
-            self.add_to_connected_point_layer(new_positions)
+                levee_intersections = self.find_levee_intersections(
+                    line_start, line_end, org_start
+                )
+                new_positions = self.calculate_new_positions(
+                    levee_intersections, calc_type, line_end
+                )
+                # TODO implementation is temporarily
+                self.add_to_connected_point_layer(new_positions)
         v_layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
 
@@ -378,9 +346,10 @@ class CustomCommand(CustomCommandBase):
 
         # sort by distance
         match = sorted(levee_intersections.values(), key=lambda x: (x[0]))
-        print("************* matches.values() ", levee_intersections.values())
 
-        print("&&&&&&&&&&&&&&&&&&&&&&& match ", match)
+        print("************* matches.values() ", levee_intersections.values())
+        print("************** match ", match)
+
         start_pos = SLICE_MAP[calc_type]['start']
         end_pos = SLICE_MAP[calc_type]['end']
         for m in match[start_pos:end_pos]:
