@@ -121,14 +121,9 @@ class CustomCommand(CustomCommandBase):
         :param ids: a list of connected point ids
         :param calc_type: the calculation type
 
-        :returns a list of tuples with xy's
-             [(<x, y>), (<x, y>),... ]
+        :returns a dict of lists of tuples with xy's
+             {<feature id>: [(<x, y>), (<x, y>),... ],...}
         """
-        # TODO see how we can do this better
-        pick_by_calc_type = {
-            2: 1,
-            5: 2
-        }
         selected_points = []
 
         id_str = ','.join([str(x) for x in ids])
@@ -141,10 +136,11 @@ class CustomCommand(CustomCommandBase):
         connected_points = self.connected_pnt_lyr.getFeatures(
             connected_pnt_request
         )
-        for i, feature in enumerate(connected_points):
-            if i % pick_by_calc_type[calc_type] == 0:
-                selected_points.append(feature.geometry().asPoint())
+        for feature in connected_points:
+            selected_points.append(feature.geometry().asPoint())
 
+        # add a dummy point to be able to draw a line for the
+        # last point
         extrapolated_point = get_extrapolated_point(
             selected_points[-2], selected_points[-1]
         )
@@ -220,13 +216,21 @@ class CustomCommand(CustomCommandBase):
             constants.NODE_CALC_TYPE_DOUBLE_CONNECTED:
                 ['left', 'right']
         }
-
+        # TODO | we need the connected point id here to we can update
+        # TODO | the existing geometry instead of creating a new one
+        # double connected points exist twice
+        seen_coords = set()
         # we're looping pairwise to be able to draw a line between
         # the two points. The last point has been extrapolated, hence
         # it is not of interest here
         for start_pnt, nxt_pnt in utils.pairwise(points[:-1]):
+            connected_pnt_ids  # belongs to start_pnt
             # convert to flat list
             coords = list(itertools.chain(*(start_pnt, nxt_pnt)))
+            # skip this iteration for the second double connected point
+            if coords in seen_coords:
+                continue
+            seen_coords.add(coords)
 
             orientation = ORIENTATION_MAP[calc_type]
             for item in orientation:
@@ -262,6 +266,7 @@ class CustomCommand(CustomCommandBase):
                 )
                 # TODO implementation is temporarily
                 self.add_to_connected_point_layer(new_positions)
+                self.update_connected_point_layer(new_positions, connected_pnt_ids)
         v_layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
 
@@ -373,6 +378,14 @@ class CustomCommand(CustomCommandBase):
 
         # --- for testing purposes -------------------------------- #
         self.pr.addFeatures(new_features)
+
+    def update_connected_pnt_lyr(self, geoms, connected_pnt_ids):
+        pnts = dict(itertools.izip_longest(connected_pnt_ids, geoms))
+        for conn_pnt_id, geom in pnts.iteritems():
+            self.connected_pnt_lyr.getFeatures()
+            self.connected_pnt_lyr.dataProvider().changeGeometryValues({feature.id(): QgsGeometry.fromPolyline(new_geom)})
+
+
 
     @staticmethod
     def get_distance(pnt1, pnt2):
