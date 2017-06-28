@@ -216,21 +216,33 @@ class CustomCommand(CustomCommandBase):
             constants.NODE_CALC_TYPE_DOUBLE_CONNECTED:
                 ['left', 'right']
         }
+
+        _connected_pnt_ids = None
         # TODO | we need the connected point id here to we can update
         # TODO | the existing geometry instead of creating a new one
-        # double connected points exist twice
-        seen_coords = set()
         # we're looping pairwise to be able to draw a line between
         # the two points. The last point has been extrapolated, hence
         # it is not of interest here
         for start_pnt, nxt_pnt in utils.pairwise(points[:-1]):
-            connected_pnt_ids  # belongs to start_pnt
-            # convert to flat list
-            coords = list(itertools.chain(*(start_pnt, nxt_pnt)))
-            # skip this iteration for the second double connected point
-            if coords in seen_coords:
+
+            connected_pnt_ids = start_pnt.keys()[0]
+            start_pnt_xy = start_pnt.values()[0]
+            nxt_pnt_xy = nxt_pnt.values()[0]
+            # skip this iteration, double connected point exists twice
+            if start_pnt_xy == nxt_pnt_xy:
+                # we do need both ids for updating the geometry
+                _connected_pnt_ids = list(
+                    itertools.chain(
+                        *(start_pnt.keys(), nxt_pnt.keys())
+                    )
+                )
                 continue
-            seen_coords.add(coords)
+
+            coords = list(
+                itertools.chain(
+                    *(start_pnt_xy, nxt_pnt_xy)
+                )
+            )
 
             orientation = ORIENTATION_MAP[calc_type]
             for item in orientation:
@@ -266,7 +278,9 @@ class CustomCommand(CustomCommandBase):
                 )
                 # TODO implementation is temporarily
                 self.add_to_connected_point_layer(new_positions)
-                self.update_connected_point_layer(new_positions, connected_pnt_ids)
+                cids = _connected_pnt_ids or connected_pnt_ids
+                self.update_connected_point_layer(new_positions, cids)
+                _connected_pnt_ids = None
         v_layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
 
