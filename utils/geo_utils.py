@@ -40,7 +40,7 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
     dx = x1-x2
     dy = y1-y2
     dist = math.sqrt(dx*dx + dy*dy)
-    print("dist ", dist)
+    # print("dist ", dist)
     if dist <= 0:
         return
     # the perp line needs to be inbetween those two coords,
@@ -52,7 +52,7 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
     y3 = y1 - (distance * dx)
     x4 = x1 - (distance * dy)
     y4 = y1 + (distance * dx)
-    print("new coords ", x3, y3, x4, y4)
+    # print("new coords ", x3, y3, x4, y4)
     # to the left or to the right?
     if orientation is None:
         return x3, y3, x4, y4

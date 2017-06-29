@@ -95,26 +95,17 @@ class CustomCommand(CustomCommandBase):
             self.multiplier = constants.DEGREE_IN_METERS
 
         calc_points_dict = self.get_calc_points_by_content()
-        print("calc_points_dict ", calc_points_dict)
-
-        # --- for testing purposes -------------------------------- #
-        i = 1
-        # ---------------------------------------------------------- #
 
         for key, values in calc_points_dict.iteritems():
             calc_type = key[1]
+            connected_points_selection = self.get_connected_points(
+                values, calc_type
+            )
+            self.move_points_behind_levee(
+                connected_points_selection, calc_type
+            )
 
-            # --- for testing purposes -------------------------------- #
-            if i == 0:
-                i += 1
-                continue
-            # ---------------------------------------------------------- #
-
-            connected_points_selection = self.get_connected_points(values)
-            print("connected_points_selection ", connected_points_selection)
-            self.move_points_behind_levee(connected_points_selection, calc_type)
-
-    def get_connected_points(self, ids):
+    def get_connected_points(self, ids, calc_type):
         """
 
         :param ids: a list of connected point ids
@@ -122,6 +113,10 @@ class CustomCommand(CustomCommandBase):
         :returns a dict of lists of tuples with xy's
              {<feature id>: [(<x, y>), (<x, y>),... ],...}
         """
+        INDEX_MAP = {
+            constants.NODE_CALC_TYPE_CONNECTED: -2,
+            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED: -3
+        }
         selected_points = []
 
         id_str = ','.join([str(x) for x in ids])
@@ -140,15 +135,10 @@ class CustomCommand(CustomCommandBase):
         # add a dummy point to be able to draw a line for the
         # last point
         extrapolated_point = get_extrapolated_point(
-            selected_points[-2].values()[0],  # xy tuple
-            selected_points[-1].values()[0]   # xy tuple
+            selected_points[INDEX_MAP[calc_type]].values()[0],  # xy tuple
+            selected_points[-1].values()[0],                    # xy tuple
         )
-        selected_points.extend(
-            (
-                {None: extrapolated_point},
-                selected_points[-2]  # already is a dict
-            )
-        )
+        selected_points.append({None: extrapolated_point})
         return selected_points
 
     def get_calc_points_by_content(self):
@@ -225,7 +215,7 @@ class CustomCommand(CustomCommandBase):
         # we're looping pairwise to be able to draw a line between
         # the two points. The last point has been extrapolated, hence
         # it is not of interest here
-        for start_pnt, nxt_pnt in utils.pairwise(points[:-1]):
+        for start_pnt, nxt_pnt in utils.pairwise(points):
 
             connected_pnt_ids = start_pnt.keys()
             start_pnt_xy = start_pnt.values()[0]
@@ -238,7 +228,6 @@ class CustomCommand(CustomCommandBase):
                         *(start_pnt.keys(), nxt_pnt.keys())
                     )
                 )
-                print("skipping --- _connected_pnt_ids ", _connected_pnt_ids)
                 continue
 
             coords = list(
@@ -247,14 +236,14 @@ class CustomCommand(CustomCommandBase):
                 )
             )
 
+            new_positions = []
             orientation = ORIENTATION_MAP[calc_type]
-            for item in orientation:
+            for i, item in enumerate(orientation):
                 perpendicular_line = calculate_perpendicular_line(
                     coords, distance=self.search_distance,
                     orientation=item
                 )
                 if not perpendicular_line:
-                    print("no perpendicular line!!")
                     continue
                 line_start = QgsPoint(
                     perpendicular_line[0], perpendicular_line[1]
@@ -277,15 +266,25 @@ class CustomCommand(CustomCommandBase):
                     line_start, line_end, org_start
                 )
                 if levee_intersections:
-                    new_positions = self.calculate_new_positions(
-                        levee_intersections, calc_type, line_end
+                    new_position = self.calculate_new_position(
+                        levee_intersections, line_end
                     )
-                    # TODO implementation is temporarily
-                    self.add_to_connected_point_layer(new_positions)
-                    cids = _connected_pnt_ids or connected_pnt_ids
-                    print("\nto update: ", dict(itertools.izip_longest(cids, new_positions)))
-                    # self.update_connected_point_layer(new_positions, cids)
-                _connected_pnt_ids = None
+                    new_positions.append(new_position)
+
+            if new_positions:
+                # TODO implementation is temporarily
+                self.add_to_connected_point_layer(new_positions)
+
+                # should always be of length 2 if defined
+                if _connected_pnt_ids is not None:
+                    # new_position can contain just one entry if there
+                    # wasn't an intersection on one side
+                    to_update = dict(itertools.izip_longest(_connected_pnt_ids, new_positions))
+                else:
+                    to_update = dict(zip(connected_pnt_ids, new_positions))
+
+                self.update_connected_point_layer(to_update)
+            _connected_pnt_ids = None
         v_layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
 
@@ -327,20 +326,15 @@ class CustomCommand(CustomCommandBase):
         levee_intersections = collections.defaultdict(list)
         for levee in levee_features:
             levee_id = levee.attributes()[4]
-            print("levee ", levee_id)
             if levee.geometry().intersects(virtual_line):
                 intersection_pnt = levee.geometry().intersection(virtual_line)
-                print("intersection ", intersection_pnt)
-                print("intersection geom", intersection_pnt.geometry())
                 g = intersection_pnt.geometry()
                 pnt = QgsPoint(g.x(), g.y())
                 dist = self.get_distance(centroid, pnt)
-                print('---! dist ', dist)
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
-
         return levee_intersections
 
-    def calculate_new_positions(self, levee_intersections, calc_type, end_point):
+    def calculate_new_position(self, levee_intersections, end_point):
         """
 
         :param levee_intersections: a dict containing intersections
@@ -351,55 +345,23 @@ class CustomCommand(CustomCommandBase):
                     - QgsPoint object of the intersection,
                     - levee id
 
-        :param calc_type: calculation type of the points
         :param end_point: end point of the search path
-        :return:
+        :returns the point geom of the closest intersection
         """
-        new_positions = []
-        # start and end slices for calc type 2 and 5
-        SLICE_MAP = {
-            constants.NODE_CALC_TYPE_CONNECTED: {
-                'start': 0,
-                'end': 1
-            },
-            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED: {
-                'start': 0,
-                'end': 2
-            },
-        }
 
         # sort by distance
-        match = sorted(levee_intersections.values(), key=lambda x: (x[0]))
-
-        print("************* matches.values() ", levee_intersections.values())
-        print("************** match ", match)
-
-        start_pos = SLICE_MAP[calc_type]['start']
-        end_pos = SLICE_MAP[calc_type]['end']
-        print("end point----- ", end_point)
-        for m in match[start_pos:end_pos]:
-            dist, pnt, levee_id = m[0]
-            print('--------------- dist, pnt, levee_id', dist, pnt, levee_id)
-            line_from_intersect = QgsGeometry.fromPolyline([pnt, end_point])
-            line_length_from_intersect = (
-                line_from_intersect.length()
+        intersections = sorted(levee_intersections.values(), key=lambda x: (x[0]))
+        dist, pnt, levee_id = intersections[0][0]
+        line_from_intersect = QgsGeometry.fromPolyline([pnt, end_point])
+        line_length_from_intersect = line_from_intersect.length()
+        if line_length_from_intersect < self.distance_to_levee:
+            extrapolated_point = get_extrapolated_point(pnt, end_point)
+            exp_end_pnt = QgsPoint(
+                extrapolated_point[0], extrapolated_point[1]
             )
-            if line_length_from_intersect < self.distance_to_levee:
-                extrapolated_point = get_extrapolated_point(
-                    pnt, end_point
-                )
-                exp_end_pnt = QgsPoint(extrapolated_point[0], extrapolated_point[1])
-                print("extrapolated_point ", exp_end_pnt)
-                print("pnt ", pnt)
-                line_from_intersect = QgsGeometry.fromPolyline([pnt, exp_end_pnt])
-                print("line_from_intersect.length() ", line_from_intersect.length() * self.multiplier)
-
-
-            # print ("line_from_intersect.length() ", line_from_intersect.length()*constants.DEGREE_IN_METERS)
-            print("levee_id ", levee_id)
-            new_position = line_from_intersect.interpolate(self.distance_to_levee)
-            new_positions.append(new_position)
-        return new_positions
+            line_from_intersect = QgsGeometry.fromPolyline([pnt, exp_end_pnt])
+        new_position = line_from_intersect.interpolate(self.distance_to_levee)
+        return new_position
 
     def add_to_connected_point_layer(self, geoms):
         # TODO update the original layer
@@ -414,14 +376,15 @@ class CustomCommand(CustomCommandBase):
         # --- for testing purposes -------------------------------- #
         self.pr.addFeatures(new_features)
 
-    # def update_connected_point_layer(self, geoms, connected_pnt_ids):
-    #     pnts = dict(itertools.izip_longest(connected_pnt_ids, geoms))
-    #     for conn_pnt_id, geom in pnts.iteritems():
-    #         req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
-    #         self.connected_pnt_lyr.getFeatures(req)
-    #         self.connected_pnt_lyr.dataProvider().changeGeometryValues({conn_pnt_id: geom})
-    #
-
+    def update_connected_point_layer(self, to_update):
+        for conn_pnt_id, geom in to_update.iteritems():
+            # req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
+            # self.connected_pnt_lyr.getFeatures(req)
+            if any([geom is None, conn_pnt_id is None]):
+                continue
+            self.connected_pnt_lyr.dataProvider().changeGeometryValues(
+                {conn_pnt_id: geom}
+            )
 
     @staticmethod
     def get_distance(pnt1, pnt2):
