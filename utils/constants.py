@@ -36,3 +36,6 @@ CONNECTED_PNTS_THRESHOLD = {
 }
 
 DEGREE_IN_METERS = 111325.0
+
+TABLE_NAME_CALC_PNT = 'v2_calculation_point'
+TABLE_NAME_CONN_PNT = 'v2_connected_pnt'

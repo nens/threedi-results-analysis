@@ -88,10 +88,11 @@ class CustomCommand(CustomCommandBase):
 
         self.search_distance = search_distance
         self.distance_to_levee = distance_to_levee
-
+        self.multiplier = 1
         if epsg_code == 4326:
             self.search_distance /= constants.DEGREE_IN_METERS
             self.distance_to_levee /= constants.DEGREE_IN_METERS
+            self.multiplier = constants.DEGREE_IN_METERS
 
         calc_points_dict = self.get_calc_points_by_content()
         print("calc_points_dict ", calc_points_dict)
@@ -109,17 +110,14 @@ class CustomCommand(CustomCommandBase):
                 continue
             # ---------------------------------------------------------- #
 
-            connected_points_selection = self.get_connected_points(
-                values, calc_type
-            )
+            connected_points_selection = self.get_connected_points(values)
             print("connected_points_selection ", connected_points_selection)
             self.move_points_behind_levee(connected_points_selection, calc_type)
 
-    def get_connected_points(self, ids, calc_type):
+    def get_connected_points(self, ids):
         """
 
         :param ids: a list of connected point ids
-        :param calc_type: the calculation type
 
         :returns a dict of lists of tuples with xy's
              {<feature id>: [(<x, y>), (<x, y>),... ],...}
@@ -137,15 +135,19 @@ class CustomCommand(CustomCommandBase):
             connected_pnt_request
         )
         for feature in connected_points:
-            selected_points.append(feature.geometry().asPoint())
+            selected_points.append({feature.id(): feature.geometry().asPoint()})
 
         # add a dummy point to be able to draw a line for the
         # last point
         extrapolated_point = get_extrapolated_point(
-            selected_points[-2], selected_points[-1]
+            selected_points[-2].values()[0],  # xy tuple
+            selected_points[-1].values()[0]   # xy tuple
         )
         selected_points.extend(
-            (extrapolated_point, selected_points[-2])
+            (
+                {None: extrapolated_point},
+                selected_points[-2]  # already is a dict
+            )
         )
         return selected_points
 
@@ -225,7 +227,7 @@ class CustomCommand(CustomCommandBase):
         # it is not of interest here
         for start_pnt, nxt_pnt in utils.pairwise(points[:-1]):
 
-            connected_pnt_ids = start_pnt.keys()[0]
+            connected_pnt_ids = start_pnt.keys()
             start_pnt_xy = start_pnt.values()[0]
             nxt_pnt_xy = nxt_pnt.values()[0]
             # skip this iteration, double connected point exists twice
@@ -236,6 +238,7 @@ class CustomCommand(CustomCommandBase):
                         *(start_pnt.keys(), nxt_pnt.keys())
                     )
                 )
+                print("skipping --- _connected_pnt_ids ", _connected_pnt_ids)
                 continue
 
             coords = list(
@@ -273,13 +276,15 @@ class CustomCommand(CustomCommandBase):
                 levee_intersections = self.find_levee_intersections(
                     line_start, line_end, org_start
                 )
-                new_positions = self.calculate_new_positions(
-                    levee_intersections, calc_type, line_end
-                )
-                # TODO implementation is temporarily
-                self.add_to_connected_point_layer(new_positions)
-                cids = _connected_pnt_ids or connected_pnt_ids
-                self.update_connected_point_layer(new_positions, cids)
+                if levee_intersections:
+                    new_positions = self.calculate_new_positions(
+                        levee_intersections, calc_type, line_end
+                    )
+                    # TODO implementation is temporarily
+                    self.add_to_connected_point_layer(new_positions)
+                    cids = _connected_pnt_ids or connected_pnt_ids
+                    print("\nto update: ", dict(itertools.izip_longest(cids, new_positions)))
+                    # self.update_connected_point_layer(new_positions, cids)
                 _connected_pnt_ids = None
         v_layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayers([v_layer, l_layer])
@@ -371,10 +376,26 @@ class CustomCommand(CustomCommandBase):
 
         start_pos = SLICE_MAP[calc_type]['start']
         end_pos = SLICE_MAP[calc_type]['end']
+        print("end point----- ", end_point)
         for m in match[start_pos:end_pos]:
             dist, pnt, levee_id = m[0]
             print('--------------- dist, pnt, levee_id', dist, pnt, levee_id)
             line_from_intersect = QgsGeometry.fromPolyline([pnt, end_point])
+            line_length_from_intersect = (
+                line_from_intersect.length()
+            )
+            if line_length_from_intersect < self.distance_to_levee:
+                extrapolated_point = get_extrapolated_point(
+                    pnt, end_point
+                )
+                exp_end_pnt = QgsPoint(extrapolated_point[0], extrapolated_point[1])
+                print("extrapolated_point ", exp_end_pnt)
+                print("pnt ", pnt)
+                line_from_intersect = QgsGeometry.fromPolyline([pnt, exp_end_pnt])
+                print("line_from_intersect.length() ", line_from_intersect.length() * self.multiplier)
+
+
+            # print ("line_from_intersect.length() ", line_from_intersect.length()*constants.DEGREE_IN_METERS)
             print("levee_id ", levee_id)
             new_position = line_from_intersect.interpolate(self.distance_to_levee)
             new_positions.append(new_position)
@@ -393,12 +414,13 @@ class CustomCommand(CustomCommandBase):
         # --- for testing purposes -------------------------------- #
         self.pr.addFeatures(new_features)
 
-    def update_connected_pnt_lyr(self, geoms, connected_pnt_ids):
-        pnts = dict(itertools.izip_longest(connected_pnt_ids, geoms))
-        for conn_pnt_id, geom in pnts.iteritems():
-            self.connected_pnt_lyr.getFeatures()
-            self.connected_pnt_lyr.dataProvider().changeGeometryValues({feature.id(): QgsGeometry.fromPolyline(new_geom)})
-
+    # def update_connected_point_layer(self, geoms, connected_pnt_ids):
+    #     pnts = dict(itertools.izip_longest(connected_pnt_ids, geoms))
+    #     for conn_pnt_id, geom in pnts.iteritems():
+    #         req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
+    #         self.connected_pnt_lyr.getFeatures(req)
+    #         self.connected_pnt_lyr.dataProvider().changeGeometryValues({conn_pnt_id: geom})
+    #
 
 
     @staticmethod
