@@ -51,6 +51,7 @@ class CustomCommand(CustomCommandBase):
         self.levee_lyr = None
         self.search_distance = None
         self.distance_to_levee = None
+        self.selected_pnt_ids = collections.defaultdict(list)
 
     def run(self):
         self.table_name_connected = "v2_connected_pnt"
@@ -83,7 +84,7 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def set_selected_pnt_ids(self):
-        self.selected_pnt_ids = collections.defaultdict(list)
+
         user_selection = self.connected_pnt_lyr.selectedFeatures()
 
         fnames_conn_pnt = [
@@ -244,12 +245,6 @@ class CustomCommand(CustomCommandBase):
         :param points: a list of tuple containing xy coordinates
         :param calc_type: the the calculation type for the points
         """
-        # --- for testing purposes -------------------------------- #
-        # v_layer = QgsVectorLayer("Point", "pnt", "memory")
-        # l_layer = QgsVectorLayer("LineString", "line", "memory")
-        # self.pr = v_layer.dataProvider()
-        # self.pr_l = l_layer.dataProvider()
-        # ---------------------------------------------------------- #
 
         # calc type 2 does not have an orientation, that means the
         # perpendicular line will be drawn to both sides from teh point
@@ -318,7 +313,7 @@ class CustomCommand(CustomCommandBase):
                 )
                 if levee_intersections:
                     new_position = self.calculate_new_position(
-                        levee_intersections, line_start, line_end
+                        levee_intersections, line_start, line_end, calc_type
                     )
                     new_positions.append(new_position)
 
@@ -391,7 +386,7 @@ class CustomCommand(CustomCommandBase):
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
         return levee_intersections
 
-    def calculate_new_position(self, levee_intersections, start_point, end_point):
+    def calculate_new_position(self, levee_intersections, start_point, end_point, calc_type):
         """
 
         :param levee_intersections: a dict containing intersections
@@ -410,11 +405,18 @@ class CustomCommand(CustomCommandBase):
         intersections = sorted(levee_intersections.values(), key=lambda x: (x[0]))
         dist, pnt, levee_id = intersections[0][0]
 
-        # find out which point is closer to the intersection
-        end_pnt_dist = self.get_distance(pnt, end_point)
-        start_pnt_dist = self.get_distance(pnt, start_point)
-        pnt_dict = {end_pnt_dist: end_point, start_pnt_dist: start_point}
-        pnt_to_use = pnt_dict[min(end_pnt_dist, start_pnt_dist)]
+        pnt_to_use = end_point
+        if calc_type == constants.NODE_CALC_TYPE_CONNECTED:
+            # find out which point is closer to the intersection
+            end_pnt_dist = self.get_distance(pnt, end_point)
+            start_pnt_dist = self.get_distance(pnt, start_point)
+            pnt_dict = {
+                end_pnt_dist: end_point,
+                start_pnt_dist: start_point
+            }
+            pnt_to_use = pnt_dict[
+                min(end_pnt_dist, start_pnt_dist)
+            ]
         line_from_intersect = QgsGeometry.fromPolyline([pnt, pnt_to_use])
         line_length_from_intersect = line_from_intersect.length()
 
