@@ -273,12 +273,13 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
         """
         super(MoveConnectedPointsDialogWidget, self).__init__(parent)
         self.setupUi(self)
-        self.search_distance_field = self.mQgsSpinBox
-        self.search_distance_field.setMaximum(50)
-        self.search_distance_field.setMinimum(5)
-        self.distance_to_levee_field = self.mQgsSpinBox_2
-        self.distance_to_levee_field.setMaximum(30)
-        self.distance_to_levee_field.setMinimum(1)
+
+        self.spinbox_search_distance.setMaximum(100)
+        self.spinbox_search_distance.setMinimum(2)
+        self.spinbox_levee_distace.setMaximum(50)
+        self.spinbox_levee_distace.setMinimum(1)
+        self.setWindowTitle(_translate("self", "Move connected points", None))
+
         self.command = command
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
@@ -286,9 +287,14 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-        seach_distance = self.search_distance_field.value()
-        distance_to_levee = self.distance_to_levee_field.value()
-        self.command.run_it(seach_distance, distance_to_levee)
+        seach_distance = self.spinbox_search_distance.value()
+        distance_to_levee = self.spinbox_levee_distace.value()
+        use_selection = self.checkBox_feat.isChecked()
+        is_dry_run = self.checkBox_dry_run.isChecked()
+
+        self.command.run_it(
+            seach_distance, distance_to_levee, use_selection, is_dry_run
+        )
         self.accept()
 
     def on_reject(self):
