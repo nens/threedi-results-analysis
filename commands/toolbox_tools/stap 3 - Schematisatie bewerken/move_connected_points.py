@@ -409,13 +409,14 @@ class CustomCommand(CustomCommandBase):
         # sort by distance
         intersections = sorted(levee_intersections.values(), key=lambda x: (x[0]))
         dist, pnt, levee_id = intersections[0][0]
-        line_from_intersect = QgsGeometry.fromPolyline([pnt, end_point])
-        line_length_from_intersect = line_from_intersect.length()
 
-        # flip the line
-        if line_length_from_intersect > self.search_distance/ 1.5:
-            line_from_intersect = QgsGeometry.fromPolyline([pnt, start_point])
-            line_length_from_intersect = line_from_intersect.length()
+        # find out which point is closer to the intersection
+        end_pnt_dist = self.get_distance(pnt, end_point)
+        start_pnt_dist = self.get_distance(pnt, start_point)
+        pnt_dict = {end_pnt_dist: end_point, start_pnt_dist: start_point}
+        pnt_to_use = pnt_dict[min(end_pnt_dist, start_pnt_dist)]
+        line_from_intersect = QgsGeometry.fromPolyline([pnt, pnt_to_use])
+        line_length_from_intersect = line_from_intersect.length()
 
         if line_length_from_intersect < self.distance_to_levee:
             extrapolated_point = get_extrapolated_point(pnt, end_point)
