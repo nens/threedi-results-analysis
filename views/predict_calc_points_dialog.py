@@ -15,6 +15,8 @@ from PyQt4.QtGui import (
 from PyQt4.QtGui import QSpinBox
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.docs.tool_help import move_connected_points_help
+
 
 log = logging.getLogger(__name__)
 
@@ -279,6 +281,8 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_levee_distace.setMaximum(50)
         self.spinbox_levee_distace.setMinimum(1)
         self.setWindowTitle(_translate("self", "Move connected points", None))
+        self.help_text_browser.setText(
+            move_connected_points_help.move_connected_points_doc)
 
         self.command = command
         self.buttonBox.accepted.connect(self.on_accept)

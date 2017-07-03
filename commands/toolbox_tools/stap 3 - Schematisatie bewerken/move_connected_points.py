@@ -38,6 +38,7 @@ log = logging.getLogger(__name__)
 
 class CustomCommand(CustomCommandBase):
     """
+    Move connected points across the nearest levee.
     """
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +73,6 @@ class CustomCommand(CustomCommandBase):
             self.calc_pnt_lyr = calc_pnt_lyr[0]
         if levee_lyr:
             self.levee_lyr = levee_lyr[0]
-
 
         # TODO let the user load the layers
         if all([self.connected_pnt_lyr, self.calc_pnt_lyr, self.levee_lyr]):
