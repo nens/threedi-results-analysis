@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.11 (unreleased)
+0.11 (2017-07-03)
 -----------------
 
 - Remove checked in source code for SQLAlchemy, SpatialAlchemy
