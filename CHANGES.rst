@@ -7,6 +7,8 @@ threedi-qgis-plugin changelog
 
 - Fix release that didn't include depencencies.
 
+- Introduce hack in Makefile to fix missing depencencies.
+
 
 0.11 (2017-07-03)
 -----------------
