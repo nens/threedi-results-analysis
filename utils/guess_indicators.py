@@ -18,8 +18,10 @@ log = logging.getLogger(__name__)
 
 
 class Guesser(object):
-    """Class for guessing certain fields."""
-
+    """
+    Class for guessing manhole indicator, pipe friction and manhole storage
+    area.
+    """
     def __init__(self, threedi_database):
         """Init method.
 
@@ -33,9 +35,8 @@ class Guesser(object):
         """Reset messages."""
         self.messages = []
 
-    def guess_manhole_indicator(self, only_empty_fields):
+    def guess_manhole_indicator(self, session, only_empty_fields):
         """Guess the manhole indicator."""
-        session = self.db.get_session()
         update_counter = 0
 
         # note: sqlite can not use a join with another table in an update
@@ -66,14 +67,11 @@ class Guesser(object):
         session.commit()
         update_counter += ret.rowcount
 
-        session.close()
-
         self.messages.append(
             "Manhole indicator updated {0} manholes.".format(update_counter))
 
-    def guess_pipe_friction(self, only_empty_fields):
+    def guess_pipe_friction(self, session, only_empty_fields):
         """Guess the pipe friction."""
-        session = self.db.get_session()
         update_counter = 0
 
         table_manning = {
@@ -89,7 +87,7 @@ class Guesser(object):
         }
 
         for material_code, friction in table_manning:
-            up = update(Pipe).where(Pipe.material == material_code). \
+            up = update(Pipe).where(Pipe.material == material_code).\
                 values(friction_value=friction,
                        friction_type=Constants.FRICTION_TYPE_MANNING)
             if only_empty_fields:
@@ -97,16 +95,14 @@ class Guesser(object):
 
             ret = session.execute(up)
             session.commit()
-            update_counter += ret.rowcount
 
-        session.close()
+            update_counter += ret.rowcount
 
         self.messages.append(
             "Pipe friction updated {0} pipes.".format(update_counter))
 
-    def guess_manhole_area(self, only_empty_fields):
+    def guess_manhole_area(self, session, only_empty_fields):
         """Guess the manhole area."""
-        session = self.db.get_session()
         update_counter = 0
 
         manhole_list = session.query(Manhole).join(
@@ -136,7 +132,6 @@ class Guesser(object):
             update_counter += ret.rowcount
 
         session.commit()
-        session.close()
 
         self.messages.append(
             "Manhole area updated {0} manholes.".format(update_counter))
@@ -147,6 +142,7 @@ class Guesser(object):
         # from pdb import set_trace
         # pyqtRemoveInputHook()
         # set_trace()
+        session = self.db.get_session()
 
         # start with no messages
         self.reset_messages()
@@ -159,7 +155,7 @@ class Guesser(object):
                     "[ERROR] could not handle {} guess.".format(check))
             else:
                 try:
-                    guess_method(only_empty_fields)
+                    guess_method(session, only_empty_fields)
                 except BaseException, e:
                     self.messages.append(
                         "[ERROR] guessing {}: {}.".format(check, e))
