@@ -3,6 +3,11 @@
 
 import math
 
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsDistanceArea
+
+from ThreeDiToolbox.utils import constants
 
 def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):
     """
@@ -60,3 +65,39 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
         return x1, y1, x3, y3
     elif orientation == 'right':
         return x1, y1, x4, y4
+
+
+def get_epsg_code_from_layer(layer_instance):
+    """
+    """
+    epsg_info = layer_instance.crs().authid()
+    return int(epsg_info.split(':')[1])
+
+
+def get_distance(pnt1, pnt2, epsg_code):
+    """
+    :param pnt1: QgsPoint object
+    :param pnt2: QgsPoint object
+
+    :returns the distance between pnt1 and pnt2
+    """
+    # Create a measure object
+    distance = QgsDistanceArea()
+    crs = QgsCoordinateReferenceSystem()
+    # Sets this CRS by lookup of the given PostGIS SRID in the CRS database.
+    crs.createFromSrid(epsg_code)
+    distance.setSourceCrs(crs)
+    if epsg_code == constants.EPSG_WGS84:
+        distance.setEllipsoidalMode(True)
+        distance.setEllipsoid('WGS84')
+    return distance.measureLine(pnt1, pnt2)
+
+
+def get_coord_transformation_instance(src_epsg, dest_epsg):
+    """
+    :param src_epsg: epsg code of the source geometry
+    :param dest_epsg: epsg code to transform to
+    """
+    src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
+    dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
+    return QgsCoordinateTransform(src_crs, dest_crs)

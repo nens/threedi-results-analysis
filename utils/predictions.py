@@ -11,10 +11,10 @@ from qgis.core import (
 
 from sqlalchemy.exc import ResourceClosedError
 
-from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils import constants
-
+from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from ThreeDiToolbox.utils.geo_utils import  get_coord_transformation_instance
 
 import logging
 
@@ -68,6 +68,8 @@ class Predictor(object):
         self._schema = kwargs['schema']
         if self.flavor == 'spatialite':
             self._uri.setDatabase(host)
+            print("----------------------------- self._uri ", self._uri)
+            return self._uri
         elif self.flavor == 'postgres':
             self._uri.setConnection(host, port, database, username, password)
         return self._uri
@@ -579,7 +581,11 @@ class Predictor(object):
         """
         self._feat_id = 1
         data_provider = output_layer.dataProvider()
-        self._set_coord_transformation(transform)
+        if transform:
+            self._trans = get_coord_transformation_instance(
+                *transform.split(':')
+            )
+        # self._trans = self._set_coord_transformation(transform)
         for node_id, node_info in self.network_dict.iteritems():
             logger.debug("processing node_id {}".format(node_id))
 
@@ -722,14 +728,6 @@ class Predictor(object):
         )
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
-
-    def _set_coord_transformation(self, transform):
-        if not transform:
-            return
-        src_epsg, dest_epsg = transform.split(':')
-        src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
-        dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
-        self._trans = QgsCoordinateTransform(src_crs, dest_crs)
 
     def fill_connected_pnts_table(self, calc_pnts_lyr, connected_pnts_lyr):
         data_provider = connected_pnts_lyr.dataProvider()

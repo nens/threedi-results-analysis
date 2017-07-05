@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import logging
+
+from qgis.core import QgsMapLayerRegistry
+
 from PyQt4.QtGui import QDialog
 
 from PyQt4.QtCore import SIGNAL
@@ -282,7 +285,16 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_levee_distace.setMinimum(1)
         self.setWindowTitle(_translate("self", "Move connected points", None))
         self.help_text_browser.setText(
-            move_connected_points_help.move_connected_points_doc)
+            move_connected_points_help.move_connected_points_doc.replace(
+                '\n', ' ').replace('\r', '')
+        )
+        connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+            'v2_connected_pnt'
+        )
+        # automatically pre-select the right layer if present
+        if connected_pnt_lyr:
+            lyr = connected_pnt_lyr[0]
+            self.connected_pny_lyr_box.setLayer(lyr)
 
         self.command = command
         self.buttonBox.accepted.connect(self.on_accept)
@@ -295,9 +307,12 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
         distance_to_levee = self.spinbox_levee_distace.value()
         use_selection = self.checkBox_feat.isChecked()
         is_dry_run = self.checkBox_dry_run.isChecked()
+        auto_commit = self.checkBox_auto_commit.isChecked()
+        connected_pny_lyr = self.connected_pny_lyr_box.currentLayer()
 
         self.command.run_it(
-            seach_distance, distance_to_levee, use_selection, is_dry_run
+            seach_distance, distance_to_levee, use_selection, is_dry_run,
+            auto_commit, connected_pny_lyr
         )
         self.accept()
 

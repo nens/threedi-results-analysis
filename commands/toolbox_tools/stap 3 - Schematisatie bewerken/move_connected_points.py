@@ -10,18 +10,17 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsCoordinateTransform
-from qgis.core import QgsCoordinateReferenceSystem
-
 from qgis.core import QgsPoint
-from qgis.core import QgsDistanceArea
-from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsField
 
-from PyQt4.QtCore import QPyNullVariant
+from PyQt4.QtCore import QVariant
 
-from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
+from ThreeDiToolbox.utils.geo_utils import get_distance
+from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
+from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
+
+from ThreeDiToolbox.utils.utils import parse_db_source_info
 
 from ThreeDiToolbox.utils.progress import progress_bar
 
@@ -55,29 +54,31 @@ class CustomCommand(CustomCommandBase):
         self.selected_pnt_ids = collections.defaultdict(list)
 
     def run(self):
-        self.table_name_connected = "v2_connected_pnt"
-        self.table_name_calc_pnt = "v2_calculation_point"
-        self.table_name_levees = "v2_levee"
-        connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
-            self.table_name_connected
-        )
-        calc_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
-            self.table_name_calc_pnt
-        )
-        levee_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
-            self.table_name_levees
-        )
-        if connected_pnt_lyr:
-            self.connected_pnt_lyr = connected_pnt_lyr[0]
-        if calc_pnt_lyr:
-            self.calc_pnt_lyr = calc_pnt_lyr[0]
-        if levee_lyr:
-            self.levee_lyr = levee_lyr[0]
+        self.show_gui()
 
-        # TODO let the user load the layers
-        if all([self.connected_pnt_lyr, self.calc_pnt_lyr, self.levee_lyr]):
-            msg = 'Auto detected loaded connected_pnt layer!'
-            self.show_gui()
+        # self.table_name_connected = "v2_connected_pnt"
+        # self.table_name_calc_pnt = "v2_calculation_point"
+        # self.table_name_levees = "v2_levee"
+        # connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        #     self.table_name_connected
+        # )
+        # calc_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        #     self.table_name_calc_pnt
+        # )
+        # levee_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        #     self.table_name_levees
+        # )
+        # if connected_pnt_lyr:
+        #     self.connected_pnt_lyr = connected_pnt_lyr[0]
+        # if calc_pnt_lyr:
+        #     self.calc_pnt_lyr = calc_pnt_lyr[0]
+        # if levee_lyr:
+        #     self.levee_lyr = levee_lyr[0]
+        #
+        # # TODO let the user load the layers
+        # if all([self.connected_pnt_lyr, self.calc_pnt_lyr, self.levee_lyr]):
+        #     msg = 'Auto detected loaded connected_pnt layer!'
+        #     self.show_gui()
 
     def show_gui(self):
         self.tool_dialog_widget = MoveConnectedPointsDialogWidget(command=self)
@@ -87,15 +88,11 @@ class CustomCommand(CustomCommandBase):
 
         user_selection = self.connected_pnt_lyr.selectedFeatures()
 
-        fnames_conn_pnt = [
-            field.name() for field in self.connected_pnt_lyr.pendingFields()
-        ]
-
         for item in user_selection:
             # combine feature with field names
             conn_pnt = dict(
                 zip(
-                    fnames_conn_pnt, item.attributes()
+                    self.fnames_conn_pnt.keys(), item.attributes()
                 )
             )
             self.selected_pnt_ids[item.id()].append(
@@ -104,28 +101,41 @@ class CustomCommand(CustomCommandBase):
         print("self.selected_pnt_ids -----", self.selected_pnt_ids)
 
     def run_it(self, search_distance, distance_to_levee, use_selection,
-               is_dry_run):
-        # get data that already has been pre-calculated
-        # calculation points
-        # TODO get epsg_code
-        epsg_code = 4326
+               is_dry_run, auto_commit, connected_pny_lyr):
 
         self.search_distance = search_distance
         self.distance_to_levee = distance_to_levee
         self.use_selection = use_selection
         self.is_dry_run = is_dry_run
 
+        self.connected_pnt_lyr = connected_pny_lyr
+        self.fnames_conn_pnt = {
+            field.name(): i for i, field
+            in enumerate(self.connected_pnt_lyr.pendingFields())
+        }
+        if not self.is_dry_run:
+            self.connected_pnt_lyr.startEditing()
+        source_info = self.connected_pnt_lyr.dataProvider().dataSourceUri()
+        source_info_dict = parse_db_source_info(source_info)
+        predictor = Predictor(source_info_dict['db_type'])
+        uri = predictor.get_uri(**source_info_dict)
+        self.calc_pnt_lyr = predictor.get_layer_from_uri(
+            uri, constants.TABLE_NAME_CALC_PNT, 'the_geom')
+        self.levee_lyr = predictor.get_layer_from_uri(
+            uri, constants.TABLE_NAME_LEVEE, 'the_geom')
+
+        self.epsg_code = get_epsg_code_from_layer(self.connected_pnt_lyr)
+
         if self.is_dry_run:
             self.create_tmp_layers()
         if self.use_selection:
             self.set_selected_pnt_ids()
 
-        if epsg_code == 4326:
+        if self.epsg_code == constants.EPSG_WGS84:
             self.search_distance /= constants.DEGREE_IN_METERS
             self.distance_to_levee /= constants.DEGREE_IN_METERS
 
         calc_points_dict = self.get_calc_points_by_content()
-        print("calc_points_dict ---", calc_points_dict)
 
         cnt_iterations = len(calc_points_dict)
         cnt = 1
@@ -142,6 +152,16 @@ class CustomCommand(CustomCommandBase):
                 pb.setValue(current)
                 cnt += 1
 
+        if self.is_dry_run:
+            self.pnt_layer.commitChanges()
+            self.pnt_layer.updateExtents()
+            self.line_layer.updateExtents()
+            QgsMapLayerRegistry.instance().addMapLayers(
+                [self.pnt_layer, self.line_layer]
+            )
+
+        if auto_commit:
+            self.connected_pnt_lyr.commitChanges()
         self.connected_pnt_lyr.updateExtents()
         self.iface.mapCanvas().refresh()
         self.connected_pnt_lyr.triggerRepaint()
@@ -217,7 +237,9 @@ class CustomCommand(CustomCommandBase):
             '"calc_type" = {} OR "calc_type" = {}'.format(*calc_type_filter)
         )
         calc_pnt_features = self.calc_pnt_lyr.getFeatures(calc_pnt_request)
-        selected_calc_pnt_ids = list(itertools.chain(*self.selected_pnt_ids.values()))
+        selected_calc_pnt_ids = list(
+            itertools.chain(*self.selected_pnt_ids.values())
+        )
         for calc_pnt_feature in calc_pnt_features:
             if any([calc_pnt_feature.id() in selected_calc_pnt_ids,
                     not self.use_selection]):
@@ -312,10 +334,10 @@ class CustomCommand(CustomCommandBase):
                     line_start, line_end, org_start
                 )
                 if levee_intersections:
-                    new_position = self.calculate_new_position(
+                    new_position, levee_id = self.calculate_new_position(
                         levee_intersections, line_start, line_end, calc_type
                     )
-                    new_positions.append(new_position)
+                    new_positions.append((new_position, levee_id))
 
             if new_positions:
                 self.add_to_tmp_connected_point_layer(new_positions)
@@ -325,20 +347,14 @@ class CustomCommand(CustomCommandBase):
                     # new_position can contain just one entry if there
                     # wasn't an intersection on one side
                     to_update = dict(itertools.izip_longest(
-                        _connected_pnt_ids, new_positions)
+                        _connected_pnt_ids, new_positions,
+                        fillvalue=(None, None))
                     )
                 else:
                     to_update = dict(zip(connected_pnt_ids, new_positions))
 
                 self.update_connected_point_layer(to_update)
             _connected_pnt_ids = None
-
-        if self.is_dry_run:
-            self.pnt_layer.updateExtents()
-            self.line_layer.updateExtents()
-            QgsMapLayerRegistry.instance().addMapLayers(
-                [self.pnt_layer, self.line_layer]
-            )
 
     def find_levee_intersections(self, start_point, end_point, centroid):
         """
@@ -382,7 +398,7 @@ class CustomCommand(CustomCommandBase):
                 intersection_pnt.convertToSingleType()
                 g = intersection_pnt.geometry()
                 pnt = QgsPoint(g.x(), g.y())
-                dist = self.get_distance(centroid, pnt)
+                dist = get_distance(centroid, pnt, epsg_code=self.epsg_code)
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
         return levee_intersections
 
@@ -408,8 +424,12 @@ class CustomCommand(CustomCommandBase):
         pnt_to_use = end_point
         if calc_type == constants.NODE_CALC_TYPE_CONNECTED:
             # find out which point is closer to the intersection
-            end_pnt_dist = self.get_distance(pnt, end_point)
-            start_pnt_dist = self.get_distance(pnt, start_point)
+            end_pnt_dist = get_distance(
+                pnt, end_point, epsg_code=self.epsg_code
+            )
+            start_pnt_dist = get_distance(
+                pnt, start_point, epsg_code=self.epsg_code
+            )
             pnt_dict = {
                 end_pnt_dist: end_point,
                 start_pnt_dist: start_point
@@ -427,61 +447,58 @@ class CustomCommand(CustomCommandBase):
             )
             line_from_intersect = QgsGeometry.fromPolyline([pnt, exp_end_pnt])
         new_position = line_from_intersect.interpolate(self.distance_to_levee)
-        return new_position
+        return new_position, levee_id
 
-    def add_to_tmp_connected_point_layer(self, geoms):
+    def add_to_tmp_connected_point_layer(self, new_positions):
+        """
+        """
         if not self.is_dry_run:
             return
 
-        if not isinstance(geoms, (list, tuple)):
-            geoms = [geoms]
+        if not isinstance(new_positions, list):
+            new_positions = [new_positions]
         new_features = []
-        for geom in geoms:
+
+        for geom, levee_id in new_positions:
             new_feat = QgsFeature()
             new_feat.setGeometry(geom)
+            new_feat.setAttributes([int(levee_id)])
             new_features.append(new_feat)
-
-        self.provider_pnt.addFeatures(new_features)
-
-    def update_connected_point_layer(self, to_update):
-
-        if self.is_dry_run:
-            return
-
-        for conn_pnt_id, geom in to_update.iteritems():
-            # req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
-            # self.connected_pnt_lyr.getFeatures(req)
-            if any([geom is None, conn_pnt_id is None]):
-                continue
-            self.connected_pnt_lyr.dataProvider().changeGeometryValues(
-                {conn_pnt_id: geom}
+            self._tmp_connected_point_id += 1
+        succces, features = self.provider_pnt.addFeatures(new_features)
+        cnt_feat = len(features)
+        if succces:
+            print(
+                "[*] Successfully saved {} features to the database".format(
+                    cnt_feat)
             )
 
-    @staticmethod
-    def get_distance(pnt1, pnt2):
+    def update_connected_point_layer(self, to_update):
         """
-        :param pnt1: QgsPoint object
-        :param pnt2: QgsPoint object
-
-        :returns the distance between pnt1 and pnt2 in meters
         """
-        # Create a measure object
-        distance = QgsDistanceArea()
-        crs = QgsCoordinateReferenceSystem()
-        # TODO make srid dynamic
-        crs.createFromSrsId(3452)  # EPSG:4326
-        distance.setSourceCrs(crs)
-        distance.setEllipsoidalMode(True)
-        distance.setEllipsoid('WGS84')
-        m = distance.measureLine(pnt1, pnt2) # ~322.48m.
-        return m
+        if self.is_dry_run:
+            return
+        for conn_pnt_id, (geom, levee_id) in to_update.iteritems():
+            if any([geom is None, conn_pnt_id is None]):
+                continue
+            req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
+            feat = self.connected_pnt_lyr.getFeatures(req).next()
+            feat['levee_id'] = levee_id
+            feat.setGeometry(geom)
+            self.connected_pnt_lyr.updateFeature(feat)
 
     def create_tmp_layers(self):
+        """
+        """
+        crs = 'EPSG:{}'.format(self.epsg_code)
         self.pnt_layer = QgsVectorLayer(
-            "Point", "temp_connected_pnt", "memory"
+            "Point?crs=" + crs, "temp_connected_pnt", "memory"
         )
         self.line_layer = QgsVectorLayer(
-            "LineString", "temp_connected_line", "memory"
+            "LineString?crs=" + crs, "temp_connected_line", "memory"
         )
         self.provider_pnt = self.pnt_layer.dataProvider()
+        self.pnt_layer.startEditing()
+        self.provider_pnt.addAttributes([QgsField("levee_id", QVariant.Int)])
         self.provider_line = self.line_layer.dataProvider()
+        self._tmp_connected_point_id = 1

@@ -39,3 +39,7 @@ DEGREE_IN_METERS = 111325.0
 
 TABLE_NAME_CALC_PNT = 'v2_calculation_point'
 TABLE_NAME_CONN_PNT = 'v2_connected_pnt'
+TABLE_NAME_LEVEE = 'v2_levee'
+
+EPSG_WGS84 = 4326
+EPSG_RD_NEW = 28992
