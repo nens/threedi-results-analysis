@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix ``guess_indicators.py`` tool.
 
 
 0.11.1 (2017-07-04)
