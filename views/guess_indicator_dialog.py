@@ -89,7 +89,11 @@ class GuessIndicatorDialogWidget(QDialog):
 
                 db.setHostName(uri.host())
                 db.setDatabaseName(uri.database())
-                db.setPort(int(uri.port()))
+                try:
+                    # port can be an empty string, e.g. for spatialite db's
+                    db.setPort(int(uri.port()))
+                except ValueError:
+                    pass
                 db.setUserName(uri.username())
                 db.setPassword(uri.password())
 
