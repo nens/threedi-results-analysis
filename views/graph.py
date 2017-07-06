@@ -612,7 +612,7 @@ class GraphWidget(QWidget):
         set translated widget text
         """
         self.remove_timeseries_button.setText(
-            _translate("DockWidget", "Verwijder", None))
+            _translate("DockWidget", "Delete", None))
 
     def parameter_change(self, nr):
         """
