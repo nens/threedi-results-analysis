@@ -20,9 +20,9 @@ q_pump_cum        pumps
 
 Using ``subgrid_map.nc``:
 
-=======================  ============== ============================= =======================================================
+=======================  ============== ============================= =============================================================
 Variable                 Layer type     Required parameter/field      Calculation method
-=======================  ============== ============================= =======================================================
+=======================  ============== ============================= =============================================================
 q_cumulative_duration    structures
 q_end                    structures
 tot_vol_positive         structures
@@ -31,8 +31,8 @@ time_q_max               structures
 s1_end                   manholes
 wos_duration             manholes       surface_level                 sum the timesteps where (s1 - surface_level) > 0
 tot_vol_pump             pumps
-pump_duration            pumps          pump_capacity                 1000 * vol_pump / pump_capacity, where vol_pump = dt*q
-=======================  ============== ============================= =======================================================
+pump_duration            pumps          pump_capacity                 1000 * vol_pump / pump_capacity, where vol_pump = dt*q_pump
+=======================  ============== ============================= =============================================================
 
 
 Spatialite views
