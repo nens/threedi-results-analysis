@@ -23,15 +23,15 @@ Using ``subgrid_map.nc``:
 =======================  ============== ============================= =============================================================
 Variable                 Layer type     Required parameter/field      Calculation method
 =======================  ============== ============================= =============================================================
-q_cumulative_duration    structures
+q_cumulative_duration    structures                                   sum of dt * count(q > 0)
 q_end                    structures
-tot_vol_positive         structures
-tot_vol_negative         structures
+tot_vol_positive         structures                                   sum of dt * (q > 0)
+tot_vol_negative         structures                                   sum of dt * (q < 0)
 time_q_max               structures
 s1_end                   manholes
-wos_duration             manholes       surface_level                 sum the timesteps where (s1 - surface_level) > 0
+wos_duration             manholes       surface_level                 sum of dt * count(s1 - surface_level > 0)
 tot_vol_pump             pumps
-pump_duration            pumps          pump_capacity                 1000 * vol_pump / pump_capacity, where vol_pump = dt*q_pump
+pump_duration            pumps          pump_capacity                 1000 * vol_pump / pump_capacity, where vol_pump = dt * q_pump
 =======================  ============== ============================= =============================================================
 
 
