@@ -4,7 +4,6 @@ from qgis.core import (
     QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer,
     QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform)
 
-from .utils import csv_join
 from ..utils.user_messages import pop_up_question
 from ..stats.utils import (
     generate_structure_stats,
@@ -14,6 +13,7 @@ from ..stats.utils import (
     get_manhole_layer_id_name,
     get_pump_layer_id_name,
     get_default_csv_path,
+    csv_join,
 )
 from . import styler
 from .threedi_database import ThreediDatabase
