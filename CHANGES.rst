@@ -21,6 +21,13 @@ threedi-qgis-plugin changelog
 0.11 (2017-07-03)
 -----------------
 
+- Automatically remove old entries from both the connected point and the
+  calculation points table when the tool ``predict_calc_points`` is being
+  re-run.
+
+- Add a second connected point to the template for calculation points of type
+  "double connected".
+
 - Remove checked in source code for SQLAlchemy, SpatialAlchemy
   (a.k.a. GeoAlchemy2), and PyQtGraph. These packages will now
   be installed with pip using a requirements.txt.
