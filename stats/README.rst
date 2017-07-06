@@ -8,7 +8,6 @@ Using `flow_aggregate.nc`:
 ================  ============== =========================== ==============================
 Variable          Layer type     Required parameter/field    Calculation method
 ================  ============== =========================== ==============================
-
 q_cum             flowlines
 q_max             flowlines
 q_min             flowlines
@@ -16,7 +15,6 @@ wos_height        nodes          surface_level               s1_max - surface_le
 s1_max            nodes
 water_depth       nodes          bottom_level                s1_max - bottom_level
 q_pump_cum        pumplines
-
 ================  ============== =========================== ==============================
 
 
