@@ -1,11 +1,14 @@
 import os
 import inspect
 
-from PyQt4.QtGui import QStandardItemModel, QStandardItem, QIcon, QStyle
+from PyQt4.QtGui import QIcon
+from PyQt4.QtGui import QStandardItem
+from PyQt4.QtGui import QStandardItemModel
+
 
 DEFAULT_TOOLBOX_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
-    "..", "commands", "toolbox_tools")
+    "..", "commands", "Tools")
 
 
 class Tool(object):
@@ -58,7 +61,12 @@ class ToolboxModel(QStandardItemModel):
                 item.setIcon(icon_toolbox)
                 self.add_items(item, children)
             else:
-                item.setIcon(icon_tool)
+                # show the hammer icon for the actual tool scripts
+                if text.endswith('.py'):
+                    item.setIcon(icon_tool)
+                else:
+                    # empty toolbox directory should have the toolbox icon
+                    item.setIcon(icon_toolbox)
 
     def get_directory_structure(self, rootdir):
         """
@@ -70,8 +78,10 @@ class ToolboxModel(QStandardItemModel):
         start = rootdir.rfind(os.sep) + 1
         for path, dirs, files in os.walk(rootdir):
             folders = path[start:].split(os.sep)
-            subdir = dict.fromkeys([f for f in files if os.path.splitext(f)[
-                                   1] == ".py" and f != "__init__.py"])
+            subdir = dict.fromkeys(
+                [f for f in files if os.path.splitext(f)[1] == ".py" and
+                 f != "__init__.py"]
+            )
             parent = reduce(dict.get, folders[:-1], dir)
             parent[folders[-1]] = subdir
         return dir

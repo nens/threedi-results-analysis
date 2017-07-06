@@ -2,13 +2,16 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 import logging
-from sqlalchemy import update, select
-from sqlalchemy.orm import load_only
 
-from ThreeDiToolbox.sql_models.model_schematisation import (
-    ConnectionNode, Manhole,
-    BoundaryCondition1D, Pipe, Pumpstation, )
+from sqlalchemy import select
+from sqlalchemy import update
+
 from ThreeDiToolbox.sql_models.constants import Constants
+from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
+from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
+from ThreeDiToolbox.sql_models.model_schematisation import Manhole
+from ThreeDiToolbox.sql_models.model_schematisation import Pipe
+from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 
 
 log = logging.getLogger(__name__)
