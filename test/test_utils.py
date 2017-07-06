@@ -3,10 +3,6 @@ Test utils.
 """
 import unittest
 
-from qgis.core import QgsVectorLayer
-
-from PyQt4.QtCore import QVariant
-
 from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
 from ThreeDiToolbox.utils.utils import parse_db_source_info
 

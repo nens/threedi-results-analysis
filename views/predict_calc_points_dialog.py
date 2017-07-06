@@ -4,22 +4,24 @@ import logging
 
 from qgis.core import QgsMapLayerRegistry
 
-from PyQt4.QtGui import QDialog
-
+from PyQt4 import uic
 from PyQt4.QtCore import SIGNAL
 from PyQt4.QtCore import QRect
 from PyQt4.QtCore import Qt
 from PyQt4.QtCore import QObject
 from PyQt4.QtCore import QMetaObject
-from PyQt4 import uic
-from PyQt4.QtGui import (
-    QVBoxLayout, QGroupBox, QComboBox, QSizePolicy,
-    QDialogButtonBox, QApplication)
-from PyQt4.QtGui import QSpinBox
+from PyQt4.QtGui import QVBoxLayout
+from PyQt4.QtGui import QGroupBox
+from PyQt4.QtGui import QComboBox
+from PyQt4.QtGui import QSizePolicy
+from PyQt4.QtGui import QDialogButtonBox
+from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.docs.tool_help import move_connected_points_help
 
+from ThreeDiToolbox.threedi_schema_edits.bres_location import BresLocation
 
 log = logging.getLogger(__name__)
 
@@ -303,16 +305,15 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-        seach_distance = self.spinbox_search_distance.value()
-        distance_to_levee = self.spinbox_levee_distace.value()
-        use_selection = self.checkBox_feat.isChecked()
-        is_dry_run = self.checkBox_dry_run.isChecked()
-        auto_commit = self.checkBox_auto_commit.isChecked()
-        connected_pny_lyr = self.connected_pny_lyr_box.currentLayer()
-
+        bres_loc = BresLocation(
+            search_distance=self.spinbox_search_distance.value(),
+            distance_to_levee=self.spinbox_levee_distace.value(),
+            use_selection=self.checkBox_feat.isChecked(),
+            is_dry_run=self.checkBox_dry_run.isChecked(),
+            connected_pny_lyr=self.connected_pny_lyr_box.currentLayer()
+        )
         self.command.run_it(
-            seach_distance, distance_to_levee, use_selection, is_dry_run,
-            auto_commit, connected_pny_lyr
+            bres_loc, self.checkBox_auto_commit.isChecked()
         )
         self.accept()
 
