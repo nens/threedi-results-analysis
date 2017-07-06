@@ -34,7 +34,7 @@ class ThreeDiResultSelection(QObject):
         self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ':/plugins/ThreeDiToolbox/icon_add_datasource.png'
-        self.menu_text = u'Selecteer 3Di resultaten'
+        self.menu_text = u'Select 3Di results'
 
         self.is_active = False
         self.dialog = None

@@ -42,7 +42,7 @@
        <item>
         <widget class="QPushButton" name="file_button">
          <property name="text">
-          <string>Selecteer</string>
+          <string>Select</string>
          </property>
         </widget>
        </item>

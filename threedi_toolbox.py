@@ -20,16 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os.path
+import imp
 import logging
+import os.path
 
-from PyQt4.QtCore import Qt
 from PyQt4 import QtGui
+from PyQt4.QtCore import Qt
 
-# Import the code for the DockWidget
-from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from .models.toolbox import ToolboxModel
-from .utils.user_messages import pop_up_question
+from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 
 log = logging.getLogger(__name__)
 
@@ -119,17 +118,13 @@ class ThreeDiToolbox:
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            # if not pop_up_question(
-            #         msg="Are you sure you want to run this script?",
-            #         title="Warning"):
-            #     return
             filename = qm_idx.data()
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
+
             log.debug(filename)
             log.debug(item)
             log.debug(path)
-            # from .qdebug import pyqt_set_trace; pyqt_set_trace()
 
             curr_dir = os.path.dirname(__file__)
             module_path = os.path.join(curr_dir, 'commands', *path)
@@ -137,9 +132,10 @@ class ThreeDiToolbox:
             if ext != '.py':
                 log.error("Not a Python script")
                 return
+
             log.debug(module_path)
             log.debug(name)
-            import imp
+
             mod = imp.load_source(name, module_path)
             log.debug(str(mod))
 

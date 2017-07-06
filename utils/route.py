@@ -129,7 +129,7 @@ class Route(object):
         :return:
         """
         if id_start_point == -1:
-            return False, "Geen geldig punt gevonden"
+            return False, "No valid point found"
 
         # else create tree from this tree startpoint
         self.id_start_tree = id_start_point
