@@ -35,6 +35,13 @@ pump_duration            pumps          pump_capacity                 1000 * vol
 =======================  ============== ============================= =============================================================
 
 
+Important note: if the standard aggregation variables (ending with ``_cum``,
+``_max``, ``_min``) aren't available, e.g., due to a missing
+``flow_aggregate.nc`` file, then these variables will be computed from
+the ``subgrid_map.nc`` file, which is very much slower and may be less
+accurate based on what output rate was chosen.
+
+
 Spatialite views
 ----------------
 
