@@ -259,4 +259,4 @@ class MapAnimator(QWidget):
 
     def retranslate_ui(self, widget):
         widget.activateButton.setText(_translate(
-            "MapAnimator", "Animatie aan", None))
+            "MapAnimator", "Animation on", None))
