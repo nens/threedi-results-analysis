@@ -8,6 +8,7 @@ threedi-qgis-plugin changelog
 - [toolbox] rename 'toolbox_tools' to 'Tools', use english for toolbox
   sub-directories, remove 'Instellingen' tab, remove 'auto update logboek'
   checkbox.
+
 - Fix ``guess_indicators.py`` tool.
 
 - Fix clearing cache in Windows.
