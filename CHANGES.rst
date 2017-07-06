@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Fix ``guess_indicators.py`` tool.
+
 - Fix clearing cache in Windows.
 
 
