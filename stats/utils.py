@@ -1,12 +1,19 @@
 import os
 import csv
 import logging
+
+from qgis.core import (
+    QgsVectorLayer,
+    QgsMapLayerRegistry,
+    QgsVectorJoinInfo,
+)
+
 from .ncstats import NcStats, NcStatsAgg
-from ..utils.user_messages import log
 
 log = logging.getLogger(__name__)
 
-STATS_CACHE_LAYER_POSTFIX = '_stats.csv'
+STATS_LAYER_IDENTIFIER = 'stats'  # stats layers contain this string
+STATS_CACHE_LAYER_POSTFIX = '_{}.csv'.format(STATS_LAYER_IDENTIFIER)
 
 
 def get_default_csv_path(layer_name, result_dir):
@@ -22,6 +29,37 @@ def get_csv_layer_cache_files(*directories):
         os.path.join(_dir, f) for _dir in directories
         for f in os.listdir(_dir)
         if f.endswith(STATS_CACHE_LAYER_POSTFIX)]
+
+
+def csv_join(filepath, layer, view_layer_field, csv_field='id',
+             add_to_legend=True):
+    """Generate a layer from csv file and join it with another vector layer.
+
+    Args:
+        filepath: path to the csv file
+        layer: the layer we want to join the csv with
+        view_layer_field: the id (e.g. primary key) of layer
+        csv_field: the id of the csv layer (which is always 'id' in the case
+            of the CustomCommand scripts)
+
+    Returns:
+        the generated csv layer
+    """
+    filename = os.path.basename(filepath)
+    csv_layer_name = os.path.splitext(filename)[0]
+    assert STATS_LAYER_IDENTIFIER in csv_layer_name, (
+        "Error in hardcoded stuff needed to make cache clearer work")
+    csv_uri = "file:///" + filepath
+    csv_layer = QgsVectorLayer(csv_uri, csv_layer_name, "delimitedtext")
+    QgsMapLayerRegistry.instance().addMapLayer(csv_layer,
+                                               addToLegend=add_to_legend)
+    join_info = QgsVectorJoinInfo()
+    join_info.joinLayerId = csv_layer.id()
+    join_info.joinFieldName = csv_field
+    join_info.targetFieldName = view_layer_field
+    join_info.memoryCache = True
+    layer.addJoin(join_info)
+    return csv_layer
 
 
 def _calc_results(

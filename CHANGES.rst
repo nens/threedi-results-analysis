@@ -9,6 +9,10 @@ threedi-qgis-plugin changelog
   sub-directories, remove 'Instellingen' tab, remove 'auto update logboek'
   checkbox.
 
+- Fix ``guess_indicators.py`` tool.
+
+- Fix clearing cache in Windows.
+
 
 0.11.1 (2017-07-04)
 -------------------

@@ -89,7 +89,11 @@ class GuessIndicatorDialogWidget(QDialog):
 
                 db.setHostName(uri.host())
                 db.setDatabaseName(uri.database())
-                db.setPort(int(uri.port()))
+                try:
+                    # port can be an empty string, e.g. for spatialite db's
+                    db.setPort(int(uri.port()))
+                except ValueError:
+                    pass
                 db.setUserName(uri.username())
                 db.setPassword(uri.password())
 
@@ -222,6 +226,6 @@ class GuessIndicatorDialogWidget(QDialog):
         self.check_manhole_indicator.setText(_translate(
             "Import_dialog", "Manhole indicator", None))
         self.check_only_empty_fields.setText(
-            _translate("Import_dialog", "Only null fields", None))
+            _translate("Import_dialog", "Only fill NULL fields", None))
         self.check_manhole_area.setText(_translate(
-            "Import_dialog", "Manhole area (only null fields)", None))
+            "Import_dialog", "Manhole area (only fills NULL fields)", None))
