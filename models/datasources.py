@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from qgis.core import QgsVectorLayer
 from PyQt4.QtCore import Qt, pyqtSignal
 
 from ..datasource.netcdf import NetcdfDataSource
 from base import BaseModel
 from base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
-    make_flowline_layer, make_node_layer, make_pumpline_layer)
+    make_flowline_layer,
+    make_node_layer,
+    make_pumpline_layer,
+    FLOWLINES_LAYER_NAME,
+    NODES_LAYER_NAME,
+    PUMPLINES_LAYER_NAME,
+)
 from ..utils.user_messages import log
 from ..datasource.spatialite import Spatialite
 
@@ -106,25 +111,26 @@ class TimeseriesDatasourceModel(BaseModel):
             spl = Spatialite(self.spatialite_cache_filepath())
 
             if self._line_layer is None:
-                if 'flowlines' in [t[1] for t in spl.getTables()]:
+                if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                     # todo check nr of attributes
                     self._line_layer = spl.get_layer(
-                        'flowlines', None, 'the_geom')
+                        FLOWLINES_LAYER_NAME, None, 'the_geom')
                 else:
                     self._line_layer = make_flowline_layer(
                         self.datasource(), spl)
 
             if self._node_layer is None:
-                if 'nodes' in [t[1] for t in spl.getTables()]:
-                    self._node_layer = spl.get_layer('nodes', None, 'the_geom')
+                if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
+                    self._node_layer = spl.get_layer(
+                        NODES_LAYER_NAME, None, 'the_geom')
                 else:
                     self._node_layer = make_node_layer(self.datasource(), spl)
 
             if self._pumpline_layer is None:
 
-                if 'pumplines' in [t[1] for t in spl.getTables()]:
+                if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                     self._pumpline_layer = spl.get_layer(
-                        'pumplines', None, 'the_geom')
+                        PUMPLINES_LAYER_NAME, None, 'the_geom')
                 else:
                     try:
                         self._pumpline_layer = make_pumpline_layer(

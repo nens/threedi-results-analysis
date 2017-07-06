@@ -8,6 +8,11 @@ from qgis.core import QGis
 
 from .user_messages import StatusProgressBar
 
+# Hardcoded default names
+FLOWLINES_LAYER_NAME = 'flowlines'
+NODES_LAYER_NAME = 'nodes'
+PUMPLINES_LAYER_NAME = 'pumplines'
+
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):
     """Make a memory layer that contains all flow lines.
@@ -59,7 +64,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     ]
 
     layer = spatialite.create_empty_layer(
-        'flowlines', QGis.WKBLineString, fields, 'id')
+        FLOWLINES_LAYER_NAME, QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -173,7 +178,8 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         "type STRING(25)"
     ]
 
-    layer = spatialite.create_empty_layer('nodes', QGis.WKBPoint, fields, 'id')
+    layer = spatialite.create_empty_layer(
+        NODES_LAYER_NAME, QGis.WKBPoint, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -275,7 +281,7 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
     ]
 
     layer = spatialite.create_empty_layer(
-        'pumplines', QGis.WKBLineString, fields, 'id')
+        PUMPLINES_LAYER_NAME, QGis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 

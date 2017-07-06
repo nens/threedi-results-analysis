@@ -2,7 +2,21 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.11 (unreleased)
+0.12 (unreleased)
+-----------------
+
+- Fix clearing cache in Windows.
+
+
+0.11.1 (2017-07-04)
+-------------------
+
+- Fix release that didn't include depencencies.
+
+- Introduce hack in Makefile to fix missing depencencies.
+
+
+0.11 (2017-07-03)
 -----------------
 
 - Automatically remove old entries from both the connected point and the
