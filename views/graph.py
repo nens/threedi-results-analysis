@@ -131,7 +131,7 @@ class GraphPlot(pg.PlotWidget):
         super(GraphPlot, self).__init__(parent)
 
         self.showGrid(True, True, 0.5)
-        self.setLabel("bottom", "Tijd", "s")
+        self.setLabel("bottom", "Time", "s")
 
         self.current_parameter = None
         self.location_model = None
@@ -678,20 +678,20 @@ class GraphWidget(QWidget):
                 items.append(item)
 
         if len(items) > 20:
-            msg = "%i nieuwe objecten zijn geselecteerd. Toevoegen aan de " \
-                  "grafiek kan enkele tijd duren. Wilt u doorgaan?" % len(
+            msg = "%i new objects selected. Adding those to the plot can " \
+                  "take a while. Do you want to continue?" % len(
                       items)
-            reply = QMessageBox.question(self, 'Objecten toevoegen',
+            reply = QMessageBox.question(self, 'Add objects',
                                          msg, QMessageBox.Yes, QMessageBox.No)
 
             if reply == QMessageBox.No:
                 return False
 
         self.model.insertRows(items)
-        msg = "%i nieuwe objecten toegevoegd aan grafiek " % len(items)
+        msg = "%i new objects added to plot " % len(items)
         skipped_items = len(features) - len(items)
         if skipped_items > 0:
-            msg += "(%i al aanwezige objecten overgeslagen)" % skipped_items
+            msg += "(skipped %s already present objects)" % skipped_items
 
         statusbar_message(msg)
         return True
@@ -908,6 +908,6 @@ class GraphDockWidget(QDockWidget):
 
     def retranslate_ui(self, DockWidget):
         DockWidget.setWindowTitle(_translate(
-            "DockWidget", "3Di resultaat grafieken %i" % self.nr, None))
+            "DockWidget", "3Di result plots %i" % self.nr, None))
         self.addSelectedObjectButton.setText(_translate(
-            "DockWidget", "Voeg toe", None))
+            "DockWidget", "Add", None))
