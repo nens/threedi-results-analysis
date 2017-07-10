@@ -87,6 +87,6 @@ class Ui_Import_dialog(object):
         self.groupBox.setTitle(_translate(
             "Import_dialog", "Sufhyd file", None))
         self.file_button.setText(_translate(
-            "Import_dialog", "Selecteer", None))
+            "Import_dialog", "Select", None))
         self.groupBox_2.setTitle(_translate(
             "Import_dialog", "Destination database", None))

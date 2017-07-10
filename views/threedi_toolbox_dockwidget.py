@@ -23,7 +23,8 @@
 
 import os
 
-from PyQt4 import QtGui, uic
+from PyQt4 import QtGui
+from PyQt4 import uic
 from PyQt4.QtCore import pyqtSignal
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(

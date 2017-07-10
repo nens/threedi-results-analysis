@@ -31,9 +31,9 @@ from qgis.core import QgsDataSourceURI
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
-    'q': [{'name': 'Debiet', 'unit': 'm3/s', 'parameters': ['q']},
-          {'name': 'Snelheid', 'unit': 'm/s', 'parameters': ['u1']}],
-    'h': [{'name': 'Waterstand', 'unit': 'mNAP', 'parameters': ['s1']},
+    'q': [{'name': 'Discharge', 'unit': 'm3/s', 'parameters': ['q']},
+          {'name': 'Velocity', 'unit': 'm/s', 'parameters': ['u1']}],
+    'h': [{'name': 'Waterlevel', 'unit': 'mNAP', 'parameters': ['s1']},
           {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
 }
 
@@ -104,8 +104,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.sideview_nodes = []
 
         self.showGrid(True, True, 0.5)
-        self.setLabel("bottom", "Afstand", "m")
-        self.setLabel("left", "Hoogte", "mNAP")
+        self.setLabel("bottom", "Distance", "m")
+        self.setLabel("left", "Height", "mNAP")
 
         pen = pg.mkPen(color=QColor(200, 200, 200), width=1)
         self.bottom_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
@@ -1666,7 +1666,7 @@ class SideViewDockWidget(QDockWidget):
         dock_widget.setWindowTitle(_translate(
             "DockWidget", "3Di sideview %i" % self.nr, None))
         self.select_sideview_button.setText(_translate(
-            "DockWidget", "Kies sideview traject", None))
+            "DockWidget", "Choose sideview trajectory", None))
 
         self.reset_sideview_button.setText(_translate(
-            "DockWidget", "Reset sideview traject", None))
+            "DockWidget", "Reset sideview trajectory", None))
