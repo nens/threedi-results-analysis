@@ -78,6 +78,14 @@ def get_epsg_code_from_layer(layer_instance):
         pass
 
 
+def set_layer_crs(layer_instance, epsg_code):
+    """
+    set the coordinate reference system of the layer to the given epsg code
+    """
+    qcrs = QgsCoordinateReferenceSystem("EPSG:{}".format(epsg_code))
+    layer_instance.setCrs(qcrs)
+    return layer_instance
+
 
 def get_distance(pnt1, pnt2, epsg_code):
     """

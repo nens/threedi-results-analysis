@@ -310,7 +310,7 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
             distance_to_levee=self.spinbox_levee_distace.value(),
             use_selection=self.checkBox_feat.isChecked(),
             is_dry_run=self.checkBox_dry_run.isChecked(),
-            connected_pny_lyr=self.connected_pny_lyr_box.currentLayer()
+            connected_pnt_lyr=self.connected_pny_lyr_box.currentLayer()
         )
         self.command.run_it(
             bres_loc, self.checkBox_auto_commit.isChecked()
