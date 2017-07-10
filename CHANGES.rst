@@ -12,6 +12,7 @@ threedi-qgis-plugin changelog
 - Fix ``guess_indicators.py`` tool.
 
 - Fix clearing cache in Windows.
+- Update documentation for stats module.
 
 
 0.11.1 (2017-07-04)
