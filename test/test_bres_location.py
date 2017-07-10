@@ -57,22 +57,6 @@ class TestBresLocationDryRun(unittest.TestCase):
             connected_pnt_lyr=self.conn_pnt_lyr
         )
 
-    # def tearDown(self):
-    #
-    #     self.predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
-    #     self.predictor.threedi_db.delete_from(constants.TABLE_NAME_CONN_PNT)
-    #
-    #     self.predictor.build_calc_type_dict(epsg_code='4326')
-    #     transform = '{epsg_code}:4326'.format(epsg_code='4326')
-    #     calc_pnt_lyr = self.predictor.get_layer_from_uri(
-    #         self.uri, constants.TABLE_NAME_CALC_PNT, 'the_geom')
-    #     self.predictor.predict_points(
-    #         output_layer=calc_pnt_lyr, transform=transform)
-    #
-    #     self.predictor.fill_connected_pnts_table(
-    #         calc_pnts_lyr=calc_pnt_lyr,
-    #         connected_pnts_lyr=self.conn_pnt_lyr)
-
     def test_has_valid_selection(self):
         self.assertTrue(self.bres_location.has_valid_selection)
 
