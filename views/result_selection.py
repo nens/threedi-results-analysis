@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+import json
 import os
-from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex
+import tempfile
+import urllib2
+
+from lizard_connector.connector import Endpoint
+from PyQt4.QtNetwork import (
+    QNetworkAccessManager, QNetworkRequest
+)
+from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QUrl, QFile
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
@@ -8,6 +16,7 @@ from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
+from .log_in_dialog import LoginDialog
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -19,28 +28,45 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     """Dialog for selecting model (spatialite and result files netCDFs)"""
     closingDialog = pyqtSignal()
 
-    def __init__(self, parent=None, iface=None, ts_datasource=None):
+    def __init__(
+            self, parent=None, iface=None, ts_datasource=None,
+            download_result_model=None, parent_class=None):
         """Constructor
+
         :parent: Qt parent Widget
         :iface: QGiS interface
         :ts_datasource: TimeseriesDatasourceModel instance
+        :download_result_model: DownloadResultModel instance
+        :parent_class: the tool class which instantiated this widget. Is used
+             here for storing volatile information
         """
         super(ThreeDiResultSelectionWidget, self).__init__(parent)
 
+        self.parent_class = parent_class
         self.iface = iface
         self.setupUi(self)
 
+        # login administration
+        self.login_dialog = LoginDialog()
+        self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
+
+        # download administration
+        self.network_manager = QNetworkAccessManager(self)
+
+        # set models on table views and update view columns
         self.ts_datasource = ts_datasource
         self.resultTableView.setModel(self.ts_datasource)
+        self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+        self.download_result_model = download_result_model
+        self.downloadResultTableView.setModel(self.download_result_model)
+        self.download_result_model.set_column_sizes_on_view(
+            self.downloadResultTableView)
 
-        for col_nr in range(0, self.ts_datasource.columnCount()):
-            width = self.ts_datasource.columns[col_nr].column_width
-            if width:
-                self.resultTableView.setColumnWidth(col_nr, width)
-            if not self.ts_datasource.columns[col_nr].show:
-                self.resultTableView.setColumnHidden(col_nr, True)
+        if self.download_result_model.rowCount() > 0:
+            self.downloadResultTableView.setEnabled(True)
+            self.downloadResultButton.setEnabled(True)
 
-        # set events
+        # connect signals
         self.selectTsDatasourceButton.clicked.connect(
             self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
@@ -48,6 +74,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file)
+        # connect signals for the downloader
+        self.loginButton.clicked.connect(self.on_login_button_clicked)
+        # self.downloadResultButton.clicked.connect(self.handle_download)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
@@ -78,7 +107,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
         Clean object on close
         """
-
         self.selectTsDatasourceButton.clicked.disconnect(
             self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
@@ -216,3 +244,65 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         settings.setValue('last_used_spatialite_path',
                           os.path.dirname(filename))
         return True
+
+    def on_login_button_clicked(self):
+        self.login_dialog.show()
+
+    def handle_log_in(self):
+        """Function to handle logging in and populating DownloadResultModel.
+        """
+        # Get the username and password
+        username = self.login_dialog.user_name_input.text()
+        password = self.login_dialog.user_password_input.text()
+
+        if not username or not password:
+            pop_up_info("Username or password cannot be empty.")
+            return
+
+        scenarios_endpoint = Endpoint(
+            username=username,
+            password=password,
+            endpoint='scenarios',
+            all_pages=False,
+        )
+        try:
+            results = scenarios_endpoint.download(page_size=10)
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                pop_up_info("Incorrect username and/or password.")
+            else:
+                pop_up_info(str(e))
+        else:
+            items = [
+                {
+                    'name': r['name'],
+                    'url': r['url'],
+                    'size_bytes': r['total_size'],
+                    'results': r['result_set'],
+                }
+                for r in results
+            ]
+            self.username = username
+            self.password = password
+            self.download_result_model.insertRows(items)
+            # TODO: some duplicate code below. Use signals on model maybe?
+            self.downloadResultTableView.setEnabled(True)
+            self.downloadResultButton.setEnabled(True)
+
+            self.login_dialog.close()
+
+    @property
+    def username(self):
+        return self.parent_class.username
+
+    @username.setter
+    def username(self, username):
+        self.parent_class.username = username
+
+    @property
+    def password(self):
+        return self.parent_class.password
+
+    @password.setter
+    def password(self, password):
+        self.parent_class.password = password

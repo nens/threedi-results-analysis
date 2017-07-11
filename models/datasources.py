@@ -3,8 +3,8 @@
 from PyQt4.QtCore import Qt, pyqtSignal
 
 from ..datasource.netcdf import NetcdfDataSource
-from base import BaseModel
-from base_fields import CheckboxField, ValueField
+from .base import BaseModel
+from .base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
     make_flowline_layer,
     make_node_layer,

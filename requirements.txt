@@ -1,3 +1,4 @@
 git+https://github.com/nens/geoalchemy2.git#egg=geoalchemy2
 SQLAlchemy==1.1.0b3
 pyqtgraph==0.9.10
+git+https://github.com/lizardsystem/lizard-connector.git#egg=lizard_connector

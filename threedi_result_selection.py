@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import os.path
+import logging
+import os
 import json
 
-from PyQt4.QtCore import Qt, pyqtSignal, QObject
+from PyQt4.QtCore import Qt, pyqtSignal, QObject, QUrl
+from PyQt4.QtGui import QFileDialog
+from PyQt4.QtNetwork import (
+    QNetworkAccessManager, QNetworkRequest
+)
 
-from views.result_selection import ThreeDiResultSelectionWidget
+from .views.result_selection import ThreeDiResultSelectionWidget
+from .models.result_downloader import DownloadResultModel
+from .utils.user_messages import pop_up_info
+
+log = logging.getLogger(__name__)
 
 
 class ThreeDiResultSelection(QObject):
@@ -29,6 +38,16 @@ class ThreeDiResultSelection(QObject):
         self.iface = iface
 
         self.ts_datasource = ts_datasource
+        # TODO: unsure if this is the right place for initializing this model
+        self.download_result_model = DownloadResultModel()
+
+        # TODO: fix this fugly shizzle
+        self.download_directory = None
+        self.username = None
+        self.password = None
+
+        # download administration
+        self.network_manager = QNetworkAccessManager(self)
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -66,9 +85,18 @@ class ThreeDiResultSelection(QObject):
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(None,
-                                                           self.iface,
-                                                           self.ts_datasource)
+                self.dialog = ThreeDiResultSelectionWidget(
+                    parent=None,
+                    iface=self.iface,
+                    ts_datasource=self.ts_datasource,
+                    download_result_model=self.download_result_model,
+                    parent_class=self)
+
+                # download signals; connections shouldn't be broken by closing
+                # the dialog.
+                self.dialog.downloadResultButton.clicked.connect(
+                    self.handle_download)
+
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
@@ -115,3 +143,48 @@ class ThreeDiResultSelection(QObject):
                     'model_schematisation': file,
                     'result_directories': list
                 })
+
+    def handle_download(self):
+        result_type_codes_download = [
+            'subgrid_map', 'flow-aggregate', 'id-mapping']
+        selection_model = self.dialog.downloadResultTableView.selectionModel()
+        indexes = selection_model.selectedIndexes()
+        if len(indexes) != 1:
+            pop_up_info("Please select one result.")
+            return
+        row = indexes[0].row()
+        item = self.download_result_model.rows[row]
+        to_download = [
+            r for r in item.results.value if
+            r['result_type']['code'] in result_type_codes_download]
+        to_download_urls = [dl['attachment_url'] for dl in to_download]
+        log.debug(item.name.value)
+
+        directory = QFileDialog.getExistingDirectory(
+            None,
+            'Choose a directory',
+            os.path.expanduser('~'),
+        )
+        self.download_directory = os.path.join(directory, item.name.value)
+
+        log.debug(self.download_directory)
+
+        # Important note: QNetworkAccessManager is asynchronous
+        for url in to_download_urls:
+            request = QNetworkRequest(QUrl(url))
+            request.setRawHeader('username', self.username)
+            request.setRawHeader('password', self.password)
+            reply = self.network_manager.get(request)
+            reply.finished.connect(self.on_single_download_finished)
+        pop_up_info("Download started.")
+
+    def on_single_download_finished(self):
+        reply = self.sender()  # TODO: can't reply be given as arg?
+        raw = reply.readAll()  # QByteArray
+        if not os.path.exists(self.download_directory):
+            log.info("Creating download directory because it doesn't exist.")
+            os.mkdir(self.download_directory)
+        log.debug("Writing to %s" % self.download_directory)
+        filename = reply.url().toString().split('/')[-1]
+        with open(os.path.join(self.download_directory, filename), 'wb') as f:
+            f.write(raw)

@@ -426,12 +426,7 @@ class LocationTimeseriesTable(QTableView):
         self.model = model
 
         self.resizeColumnsToContents()
-        for col_nr in range(0, model.columnCount()):
-            width = model.columns[col_nr].column_width
-            if width:
-                self.setColumnWidth(col_nr, width)
-            if not model.columns[col_nr].show:
-                self.setColumnHidden(col_nr, True)
+        self.model.set_column_sizes_on_view(self)
 
 
 class GraphWidget(QWidget):

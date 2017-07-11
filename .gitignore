@@ -12,3 +12,4 @@ external/*.egg-info
 external/sqlalchemy
 external/geoalchemy2
 external/pyqtgraph
+external/lizard_connector

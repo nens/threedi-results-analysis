@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+
+from .base import BaseModel
+from .base_fields import ValueField
+
+
+class DownloadResultModel(BaseModel):
+    def __init__(self):
+        super(DownloadResultModel, self).__init__(self)
+
+    class Fields:
+        name = ValueField(show=True, column_width=150, column_name='Name')
+        size_bytes = ValueField(
+            show=True, column_width=120, column_name='Size (bytes)')
+        url = ValueField(show=True, column_width=300, column_name='URL')
+        results = ValueField(show=False)
