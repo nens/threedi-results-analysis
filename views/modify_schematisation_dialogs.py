@@ -19,8 +19,7 @@ from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
-from ThreeDiToolbox.docs.tool_help import move_connected_points_help
-
+from ThreeDiToolbox.docs.tool_help import create_bres_locations_help
 from ThreeDiToolbox.threedi_schema_edits.bres_location import BresLocation
 
 log = logging.getLogger(__name__)
@@ -267,7 +266,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
             "self", "Load from model database", None))
 
 
-class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
+class CreateBresLocationsDialogWidget(QDialog, FORM_CLASS):
     def __init__(self, parent=None,
                  command=None):
         """Constructor
@@ -278,16 +277,16 @@ class MoveConnectedPointsDialogWidget(QDialog, FORM_CLASS):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(MoveConnectedPointsDialogWidget, self).__init__(parent)
+        super(CreateBresLocationsDialogWidget, self).__init__(parent)
         self.setupUi(self)
 
         self.spinbox_search_distance.setMaximum(100)
         self.spinbox_search_distance.setMinimum(2)
         self.spinbox_levee_distace.setMaximum(50)
         self.spinbox_levee_distace.setMinimum(1)
-        self.setWindowTitle(_translate("self", "Move connected points", None))
+        self.setWindowTitle(_translate("self", "Create bres locations", None))
         self.help_text_browser.setText(
-            move_connected_points_help.move_connected_points_doc.replace(
+            create_bres_locations_help.move_connected_points_doc.replace(
                 '\n', ' ').replace('\r', '')
         )
         connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(

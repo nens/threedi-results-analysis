@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Add tool "create bres locations".
+
 - [toolbox] rename 'toolbox_tools' to 'Tools', use english for toolbox
   sub-directories, remove 'Instellingen' tab, remove 'auto update logboek'
   checkbox.

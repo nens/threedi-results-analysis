@@ -8,7 +8,7 @@ from qgis.core import QgsMapLayerRegistry
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.widgets.progress import progress_bar
-from ThreeDiToolbox.views.predict_calc_points_dialog import MoveConnectedPointsDialogWidget  # noqa
+from ThreeDiToolbox.views.modify_schematisation_dialogs import CreateBresLocationsDialogWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
@@ -31,7 +31,7 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = MoveConnectedPointsDialogWidget(command=self)
+        self.tool_dialog_widget = CreateBresLocationsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, bres_loc, auto_commit):

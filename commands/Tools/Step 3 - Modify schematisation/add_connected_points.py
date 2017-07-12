@@ -14,7 +14,7 @@ from PyQt4.QtCore import QPyNullVariant
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils import constants
 
-from ThreeDiToolbox.views.predict_calc_points_dialog import AddCoonnectedPointsDialogWidget  # noqa
+from ThreeDiToolbox.views.modify_schematisation_dialogs import AddCoonnectedPointsDialogWidget  # noqa
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 

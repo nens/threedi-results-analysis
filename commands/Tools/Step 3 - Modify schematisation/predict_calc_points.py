@@ -3,16 +3,14 @@
 
 import logging
 
-from qgis.core import QgsMapLayerRegistry, QgsFeatureRequest
+from qgis.core import QgsMapLayerRegistry
+
 from PyQt4 import QtGui
 
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-
-from ThreeDiToolbox.views.predict_calc_points_dialog import PredictCalcPointsDialogWidget  # noqa
-
+from ThreeDiToolbox.views.modify_schematisation_dialogs import PredictCalcPointsDialogWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 
 log = logging.getLogger(__name__)
