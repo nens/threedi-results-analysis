@@ -4,6 +4,8 @@ Test geo utils.
 import unittest
 import os
 import collections
+import tempfile
+import shutil
 
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPoint
@@ -12,14 +14,15 @@ from ThreeDiToolbox.threedi_schema_edits.bres_location import BresLocation
 from ThreeDiToolbox.threedi_schema_edits.bres_location import Predictor
 from ThreeDiToolbox.utils import constants
 
-
-from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.utils.geo_utils import get_distance
 
 
 class TestBresLocationDryRun(unittest.TestCase):
+    """
+    Tests all functionality but does not update the test db.
+    Uses a memory layer instead
+    """
 
     def setUp(self):
 
@@ -64,8 +67,8 @@ class TestBresLocationDryRun(unittest.TestCase):
         # we expect a pipe of calc type 2 and of calc type 5
         expected_keys = [('1v2_pipe', 2), ('4v2_pipe', 5)]
         expected_calc_point_ids = [
-            [2L, 3L, 4L, 5L, 6L, 7L, 8L],  # belongs to pipe 1
-            [26L, 27L, 28L, 29L, 30L, 31L, 32L]  # belongs to pipe 4
+            [2, 3, 4, 5, 6, 7, 8],  # belongs to pipe 1
+            [26, 27, 28, 29, 30, 31, 32]  # belongs to pipe 4
         ]
         calc_points_dict = self.bres_location.get_calc_points_by_content()
         self.assertListEqual(calc_points_dict.keys(), expected_keys)
@@ -76,17 +79,17 @@ class TestBresLocationDryRun(unittest.TestCase):
     def test_it_can_get_connected_points(self):
         # let's get the connected points for pipe 1
         connected_points_selection = self.bres_location.get_connected_points(
-            [2L, 3L, 4L, 5L, 6L, 7L, 8L],  # ids of the calculation points
+            [2, 3, 4, 5, 6, 7, 8],  # ids of the calculation points
             calc_type=2
         )
         expected_connected_points = [
-            {1L: (3.31369, 47.9748)},
-            {2L: (3.31376, 47.9748)},
-            {3L: (3.31382, 47.9748)},
-            {4L: (3.31389, 47.9748)},
-            {5L: (3.31396, 47.9748)},
-            {6L: (3.31402, 47.9748)},
-            {7L: (3.31409, 47.9748)},
+            {1: (3.31369, 47.9748)},
+            {2: (3.31376, 47.9748)},
+            {3: (3.31382, 47.9748)},
+            {4: (3.31389, 47.9748)},
+            {5: (3.31396, 47.9748)},
+            {6: (3.31402, 47.9748)},
+            {7: (3.31409, 47.9748)},
             # extrapolated point, does not have an id
             {None: (3.3142242860395994, 47.974823241109604)}
         ]
@@ -97,7 +100,7 @@ class TestBresLocationDryRun(unittest.TestCase):
 
     def test_it_wont_move_points_behind_levee(self):
         connected_points_selection = self.bres_location.get_connected_points(
-            [2L, 3L, 4L, 5L, 6L, 7L, 8L],  # ids of the calculation points
+            [2, 3, 4, 5, 6, 7, 8],  # ids of the calculation points
             calc_type=2
         )
         self.bres_location.move_points_behind_levee(
@@ -118,7 +121,7 @@ class TestBresLocationDryRun(unittest.TestCase):
 
     def test_we_can_add_to_tmp_connected_point_layer(self):
         connected_points_selection = self.bres_location.get_connected_points(
-            [2L, 3L, 4L, 5L, 6L, 7L, 8L],  # ids of the calculation points
+            [2, 3, 4, 5, 6, 7, 8],  # ids of the calculation points
             calc_type=2
         )
         self.bres_location.move_points_behind_levee(
@@ -137,7 +140,7 @@ class TestBresLocationDryRun(unittest.TestCase):
 
     def test_we_can_add_double_connected_points_to_layer(self):
         connected_points_selection = self.bres_location.get_connected_points(
-            [26L, 27L, 28L, 29L, 30L, 31L, 32L],  # ids of calculation points
+            [26, 27, 28, 29, 30, 31, 32],  # ids of calculation points
             calc_type=5  # double connected
         )
         self.bres_location.move_points_behind_levee(
@@ -244,16 +247,24 @@ class TestBresLocationDryRun(unittest.TestCase):
 
 
 class TestBresLocation(unittest.TestCase):
+    """
+    Basically tests if the database table can be updated with the results
+    """
+
 
     def setUp(self):
 
-        # os.path.abspath(__file__)
         here = os.path.split(os.path.abspath(__file__))[0]
-        test_db = os.path.join(here, 'data', 'simple_bres_test.sqlite')
+        test_db_org = os.path.join(here, 'data', 'simple_bres_test.sqlite')
+
+        tmp_test_file_dir = tempfile.mkdtemp(prefix='bres_location_test')
+        test_db_dest = os.path.join(tmp_test_file_dir, 'simple_bres_test.sqlite')
+        shutil.copyfile(test_db_org, test_db_dest)
+
         db_kwargs = {
-            'database': test_db,
-            'host': test_db,
-            'db_path': test_db,
+            'database': test_db_dest,
+            'host': test_db_dest,
+            'db_path': test_db_dest,
             'password': '',
             'port': '',
             'srid': '',
@@ -280,10 +291,14 @@ class TestBresLocation(unittest.TestCase):
             is_dry_run=is_dry_run,
             connected_pnt_lyr=self.conn_pnt_lyr
         )
+        self.test_db = test_db_dest
+
+    def tearDown(self):
+        os.remove(self.test_db)
 
     def test_it_can_move_points_behind_levee(self):
         connected_points_selection = self.bres_location.get_connected_points(
-            [2L, 3L, 4L, 5L, 6L, 7L, 8L],  # ids of the calculation points
+            [2, 3, 4, 5, 6, 7, 8],  # ids of the calculation points
             calc_type=2
         )
         self.bres_location.move_points_behind_levee(

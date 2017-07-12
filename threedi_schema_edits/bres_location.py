@@ -320,6 +320,10 @@ class BresLocation(object):
                     - levee id
         """
 
+        levee_field_names = [
+            field.name() for field in self.levee_lyr.pendingFields()
+        ]
+
         virtual_line = QgsGeometry.fromPolyline([start_point, end_point])
         # filter levees by bbox of the virtual line
         virtual_line_bbox = virtual_line.boundingBox()
@@ -336,10 +340,18 @@ class BresLocation(object):
         # they need to be sorted first (we want the closest
         # intersection)
         levee_intersections = collections.defaultdict(list)
-        for levee in levee_features:
-            levee_id = levee.attributes()[4]
-            if levee.geometry().intersects(virtual_line):
-                intersection_pnt = levee.geometry().intersection(virtual_line)
+        for levee_feat in levee_features:
+            # combine feature with field names
+            levee = dict(
+                zip(
+                    levee_field_names, levee_feat.attributes()
+                )
+            )
+            levee_id = levee['id']
+            if levee_feat.geometry().intersects(virtual_line):
+                intersection_pnt = levee_feat.geometry().intersection(
+                    virtual_line
+                )
                 intersection_pnt.convertToSingleType()
                 g = intersection_pnt.geometry()
                 pnt = QgsPoint(g.x(), g.y())
