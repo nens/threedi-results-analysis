@@ -92,11 +92,10 @@ class ThreeDiResultSelection(QObject):
                     download_result_model=self.download_result_model,
                     parent_class=self)
 
-                # download signals; connections shouldn't be broken by closing
-                # the dialog.
+                # download signals; signal connections should persist after
+                # closing the dialog.
                 self.dialog.downloadResultButton.clicked.connect(
                     self.handle_download)
-
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
@@ -150,7 +149,7 @@ class ThreeDiResultSelection(QObject):
 
     def handle_download(self):
         result_type_codes_download = [
-            'subgrid_map', 'flow-aggregate', 'id-mapping']
+            'subgrid_map', 'flow-aggregate', 'id-mapping', 'logfiles']
         selection_model = self.dialog.downloadResultTableView.selectionModel()
         indexes = selection_model.selectedIndexes()
         if len(indexes) != 1:
@@ -169,6 +168,9 @@ class ThreeDiResultSelection(QObject):
             'Choose a directory',
             os.path.expanduser('~'),
         )
+        if not directory:
+            return
+
         self.download_directory = os.path.join(directory, item.name.value)
 
         log.debug(self.download_directory)

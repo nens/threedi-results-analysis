@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import os
-import tempfile
 import urllib2
 
 from lizard_connector.connector import Endpoint
@@ -9,6 +9,7 @@ from PyQt4.QtNetwork import (
     QNetworkAccessManager, QNetworkRequest
 )
 from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QUrl, QFile
+from PyQt4.QtCore import QThread, pyqtSignal
 from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
 from PyQt4.QtSql import QSqlDatabase
 from PyQt4 import uic
@@ -22,6 +23,84 @@ from .log_in_dialog import LoginDialog
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), os.pardir, 'ui',
     'threedi_result_selection_dialog.ui'))
+
+log = logging.getLogger(__name__)
+
+
+class ResultsWorker(QThread):
+    """Thread for getting scenario results API data from Lizard."""
+
+    output = pyqtSignal(object)
+
+    def __init__(
+            self, parent=None, endpoint=None, username=None, password=None):
+        self.endpoint = endpoint
+        self.username = username
+        self.password = password
+        super(ResultsWorker, self).__init__(parent)
+
+    def run(self):
+        for results in self.endpoint:
+            items = [
+                {
+                    'name': r['name'],
+                    'url': r['url'],
+                    'size_mebibytes': round(r['total_size'] / 1048576., 1),
+                    'results': r['result_set'],
+                }
+                for r in results
+            ]
+            self.output.emit(items)
+
+
+def retrieve_scenario_results(
+        username, password, endpoint=None, max_iter=None):
+    """Retrieve scenarios from Lizard.
+
+    Args:
+        username: Lizard username
+        password: Lizard password
+        endpoint: Endpoint instance
+        max_iter: max number of iterations (requests) to the endpoint
+
+    Returns:
+        tuple: (a list of dicts, Endpoint iterator)
+
+    Raises:
+        urllib2.HTTPError when authentication with Lizard fails
+    """
+    if endpoint:
+        scenarios_endpoint = endpoint
+    else:
+        scenarios_endpoint = Endpoint(
+            username=username,
+            password=password,
+            endpoint='scenarios',
+            all_pages=False,
+        )
+
+    num_iters = 0
+
+    results = []
+    for r in scenarios_endpoint:
+        if max_iter is not None and num_iters >= max_iter:
+            break
+        print(r)
+        results.extend(r)
+        num_iters += 1
+    log.debug("Num results %s" % len(results))
+
+    items = [
+        {
+            'name': r['name'],
+            'url': r['url'],
+            'size_mebibytes': round(r['total_size'] / 1048576., 1),
+            'results': r['result_set'],
+        }
+        for r in results
+    ]
+    log.debug("Num items %s" % len(results))
+    return items, scenarios_endpoint
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
@@ -282,8 +361,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             return
 
         try:
-            self.populate_download_result_model(
-                username, password, self.download_result_model)
+            items, endpoint = retrieve_scenario_results(
+                username, password, max_iter=1)
+            self.update_download_result_model(items)
         except urllib2.HTTPError as e:
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
@@ -295,39 +375,18 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # don't persist info in the dialog: useful when logged out
             self.login_dialog.user_name_input.clear()
             self.login_dialog.user_password_input.clear()
+
+            # start thread
+            self.thread = ResultsWorker(
+                endpoint=endpoint, username=username, password=password)
+            self.thread.output.connect(self.update_download_result_model)
+            self.thread.start()
+
             # return to widget
             self.login_dialog.close()
 
-    def populate_download_result_model(
-            self, username, password, download_result_model):
-        """Populate DownloadResultModel with Lizard results.
-
-        Args:
-            username: Lizard username
-            password: Lizard password
-            download_result_model: DownloadResultModel instance
-
-        Raises:
-            urllib2.HTTPError when authentication with Lizard fails
-        """
-        scenarios_endpoint = Endpoint(
-            username=username,
-            password=password,
-            endpoint='scenarios',
-            all_pages=False,
-        )
-        results = scenarios_endpoint.download(page_size=10)
-
-        items = [
-            {
-                'name': r['name'],
-                'url': r['url'],
-                'size_bytes': r['total_size'],
-                'results': r['result_set'],
-            }
-            for r in results
-        ]
-        download_result_model.insertRows(items)
+    def update_download_result_model(self, items):
+        self.download_result_model.insertRows(items)
 
     @property
     def username(self):

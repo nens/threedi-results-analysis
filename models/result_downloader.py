@@ -10,7 +10,7 @@ class DownloadResultModel(BaseModel):
 
     class Fields:
         name = ValueField(show=True, column_width=150, column_name='Name')
-        size_bytes = ValueField(
-            show=True, column_width=120, column_name='Size (bytes)')
+        size_mebibytes = ValueField(
+            show=True, column_width=120, column_name='Size (MiB)')
         url = ValueField(show=True, column_width=300, column_name='URL')
         results = ValueField(show=False)
