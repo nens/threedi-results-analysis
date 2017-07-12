@@ -144,6 +144,10 @@ class ThreeDiResultSelection(QObject):
                     'result_directories': list
                 })
 
+    @property
+    def logged_in(self):
+        return self.username is not None and self.password is not None
+
     def handle_download(self):
         result_type_codes_download = [
             'subgrid_map', 'flow-aggregate', 'id-mapping']

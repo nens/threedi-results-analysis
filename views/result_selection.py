@@ -48,6 +48,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         # login administration
         self.login_dialog = LoginDialog()
+        # NOTE: autoDefault was set on ``log_in_button`` (via Qt Designer),
+        # which makes pressing Enter work for logging in.
         self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
 
         # download administration
@@ -62,9 +64,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.download_result_model.set_column_sizes_on_view(
             self.downloadResultTableView)
 
-        if self.download_result_model.rowCount() > 0:
-            self.downloadResultTableView.setEnabled(True)
-            self.downloadResultButton.setEnabled(True)
+        self.toggle_login_interface()
 
         # connect signals
         self.selectTsDatasourceButton.clicked.connect(
@@ -246,50 +246,88 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         return True
 
     def on_login_button_clicked(self):
-        self.login_dialog.show()
+        """Handle log in and out."""
+        if self.logged_in:
+            self.handle_log_out()
+        else:
+            self.login_dialog.user_name_input.setFocus()
+            self.login_dialog.show()
+
+    def handle_log_out(self):
+        self.set_logged_out_status()
+        num_rows = len(self.download_result_model.rows)
+        self.download_result_model.removeRows(0, num_rows)
+        self.toggle_login_interface()
+
+    def toggle_login_interface(self):
+        """Enable/disable aspects of the interface based on login status."""
+        # TODO: better to use signals maybe?
+        if self.logged_in:
+            self.loginButton.setText("Log out")
+            self.downloadResultTableView.setEnabled(True)
+            self.downloadResultButton.setEnabled(True)
+        else:
+            self.loginButton.setText("Log in")
+            self.downloadResultTableView.setEnabled(False)
+            self.downloadResultButton.setEnabled(False)
 
     def handle_log_in(self):
-        """Function to handle logging in and populating DownloadResultModel.
-        """
+        """Handle logging in and populating DownloadResultModel."""
         # Get the username and password
         username = self.login_dialog.user_name_input.text()
         password = self.login_dialog.user_password_input.text()
 
-        if not username or not password:
+        if username == '' or password == '':
             pop_up_info("Username or password cannot be empty.")
             return
 
-        scenarios_endpoint = Endpoint(
-            username=username,
-            password=password,
-            endpoint='scenarios',
-            all_pages=False,
-        )
         try:
-            results = scenarios_endpoint.download(page_size=10)
+            self.populate_download_result_model(
+                username, password, self.download_result_model)
         except urllib2.HTTPError as e:
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
             else:
                 pop_up_info(str(e))
         else:
-            items = [
-                {
-                    'name': r['name'],
-                    'url': r['url'],
-                    'size_bytes': r['total_size'],
-                    'results': r['result_set'],
-                }
-                for r in results
-            ]
-            self.username = username
-            self.password = password
-            self.download_result_model.insertRows(items)
-            # TODO: some duplicate code below. Use signals on model maybe?
-            self.downloadResultTableView.setEnabled(True)
-            self.downloadResultButton.setEnabled(True)
-
+            self.set_logged_in_status(username, password)
+            self.toggle_login_interface()
+            # don't persist info in the dialog: useful when logged out
+            self.login_dialog.user_name_input.clear()
+            self.login_dialog.user_password_input.clear()
+            # return to widget
             self.login_dialog.close()
+
+    def populate_download_result_model(
+            self, username, password, download_result_model):
+        """Populate DownloadResultModel with Lizard results.
+
+        Args:
+            username: Lizard username
+            password: Lizard password
+            download_result_model: DownloadResultModel instance
+
+        Raises:
+            urllib2.HTTPError when authentication with Lizard fails
+        """
+        scenarios_endpoint = Endpoint(
+            username=username,
+            password=password,
+            endpoint='scenarios',
+            all_pages=False,
+        )
+        results = scenarios_endpoint.download(page_size=10)
+
+        items = [
+            {
+                'name': r['name'],
+                'url': r['url'],
+                'size_bytes': r['total_size'],
+                'results': r['result_set'],
+            }
+            for r in results
+        ]
+        download_result_model.insertRows(items)
 
     @property
     def username(self):
@@ -306,3 +344,18 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     @password.setter
     def password(self, password):
         self.parent_class.password = password
+
+    @property
+    def logged_in(self):
+        """Return the logged in status."""
+        return self.parent_class.logged_in
+
+    def set_logged_in_status(self, username, password):
+        """Set logged in status to True."""
+        self.username = username
+        self.password = password
+
+    def set_logged_out_status(self):
+        """Set logged in status to False."""
+        self.username = None
+        self.password = None

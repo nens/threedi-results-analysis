@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>314</width>
+    <width>316</width>
     <height>145</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Login</string>
+   <string>Log in using your Lizard account</string>
   </property>
   <widget class="QLabel" name="user_name_label">
    <property name="geometry">
@@ -81,7 +81,7 @@
     <bool>false</bool>
    </property>
    <property name="autoDefault">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="default">
     <bool>false</bool>
