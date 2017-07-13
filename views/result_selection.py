@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
-import json
+from __future__ import division
+
 import logging
 import os
 import urllib2
 
 from lizard_connector.connector import Endpoint
-from PyQt4.QtNetwork import (
-    QNetworkAccessManager, QNetworkRequest
-)
-from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QUrl, QFile
-from PyQt4.QtCore import QThread, pyqtSignal
-from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
-from PyQt4.QtSql import QSqlDatabase
+from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread
+from PyQt4.QtGui import QWidget, QFileDialog
 from PyQt4 import uic
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
@@ -27,6 +22,19 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 log = logging.getLogger(__name__)
 
 
+def _reshape_scenario_results(results):
+    MEBIBYTE = 1048576
+    return [
+        {
+            'name': r['name'],
+            'url': r['url'],
+            'size_mebibytes': round(r['total_size'] / MEBIBYTE, 1),
+            'results': r['result_set'],
+        }
+        for r in results
+    ]
+
+
 class ResultsWorker(QThread):
     """Thread for getting scenario results API data from Lizard."""
 
@@ -37,31 +45,37 @@ class ResultsWorker(QThread):
         self.endpoint = endpoint
         self.username = username
         self.password = password
+        self.exiting = False
         super(ResultsWorker, self).__init__(parent)
+
+    def __del__(self):
+        print("Deleting worker.")
+        log.info("Deleting worker.")
+        self.stop()
 
     def run(self):
         for results in self.endpoint:
-            items = [
-                {
-                    'name': r['name'],
-                    'url': r['url'],
-                    'size_mebibytes': round(r['total_size'] / 1048576., 1),
-                    'results': r['result_set'],
-                }
-                for r in results
-            ]
+            if self.exiting:
+                print("Exiting...")
+                break
+            items = _reshape_scenario_results(results)
+            print("ResultsWorker - got new data")
             self.output.emit(items)
 
+    def stop(self):
+        """Stop the thread gracefully."""
+        print("Stopping worker.")
+        self.exiting = True
+        self.wait()
 
-def retrieve_scenario_results(
-        username, password, endpoint=None, max_iter=None):
-    """Retrieve scenarios from Lizard.
+
+def initialize_endpoint_iterator(username, password):
+    """Initialize scenarios endpoint iterator and return the results after
+    one iteration.
 
     Args:
         username: Lizard username
         password: Lizard password
-        endpoint: Endpoint instance
-        max_iter: max number of iterations (requests) to the endpoint
 
     Returns:
         tuple: (a list of dicts, Endpoint iterator)
@@ -69,37 +83,20 @@ def retrieve_scenario_results(
     Raises:
         urllib2.HTTPError when authentication with Lizard fails
     """
-    if endpoint:
-        scenarios_endpoint = endpoint
-    else:
-        scenarios_endpoint = Endpoint(
-            username=username,
-            password=password,
-            endpoint='scenarios',
-            all_pages=False,
-        )
+    scenarios_endpoint = Endpoint(
+        username=username,
+        password=password,
+        endpoint='scenarios',
+        all_pages=False,
+    )
 
-    num_iters = 0
-
-    results = []
-    for r in scenarios_endpoint:
-        if max_iter is not None and num_iters >= max_iter:
-            break
-        print(r)
-        results.extend(r)
-        num_iters += 1
+    # do one get request to initialize the iterator
+    results = scenarios_endpoint.get(scenarios_endpoint.base_url)
     log.debug("Num results %s" % len(results))
 
-    items = [
-        {
-            'name': r['name'],
-            'url': r['url'],
-            'size_mebibytes': round(r['total_size'] / 1048576., 1),
-            'results': r['result_set'],
-        }
-        for r in results
-    ]
-    log.debug("Num items %s" % len(results))
+    items = _reshape_scenario_results(results)
+
+    log.debug("Num items %s" % len(items))
     return items, scenarios_endpoint
 
 
@@ -131,9 +128,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # which makes pressing Enter work for logging in.
         self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
 
-        # download administration
-        self.network_manager = QNetworkAccessManager(self)
-
         # set models on table views and update view columns
         self.ts_datasource = ts_datasource
         self.resultTableView.setModel(self.ts_datasource)
@@ -153,9 +147,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file)
-        # connect signals for the downloader
         self.loginButton.clicked.connect(self.on_login_button_clicked)
-        # self.downloadResultButton.clicked.connect(self.handle_download)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
@@ -182,6 +174,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.modelSpatialiteComboBox.currentIndexChanged.connect(
             self.model_spatialite_change)
 
+        self.thread = None
+
     def on_close(self):
         """
         Clean object on close
@@ -191,8 +185,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.closeButton.clicked.disconnect(self.close)
         self.removeTsDatasourceButton.clicked.disconnect(
             self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.connect(
+        self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file)
+        self.loginButton.clicked.disconnect(self.on_login_button_clicked)
+
+        # stop the thread when we close the widget
+        if self.thread:
+            self.thread.output.disconnect(self.update_download_result_model)
+            self.thread.stop()
 
     def closeEvent(self, event):
         """
@@ -361,8 +361,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             return
 
         try:
-            items, endpoint = retrieve_scenario_results(
-                username, password, max_iter=1)
+            items, endpoint = initialize_endpoint_iterator(
+                username, password)
             self.update_download_result_model(items)
         except urllib2.HTTPError as e:
             if e.code == 401:

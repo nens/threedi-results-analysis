@@ -13,7 +13,7 @@ from PyQt4.QtNetwork import (
 
 from .views.result_selection import ThreeDiResultSelectionWidget
 from .models.result_downloader import DownloadResultModel
-from .utils.user_messages import pop_up_info
+from .utils.user_messages import pop_up_info, messagebar_message
 
 log = logging.getLogger(__name__)
 
@@ -163,6 +163,7 @@ class ThreeDiResultSelection(QObject):
         to_download_urls = [dl['attachment_url'] for dl in to_download]
         log.debug(item.name.value)
 
+        # ask user where to store download
         directory = QFileDialog.getExistingDirectory(
             None,
             'Choose a directory',
@@ -170,27 +171,47 @@ class ThreeDiResultSelection(QObject):
         )
         if not directory:
             return
-
         self.download_directory = os.path.join(directory, item.name.value)
+
+        # For now, only work with empty directories that we create ourselves.
+        # Because the files are downloaded and processed in chunks, we cannot
+        # guarantee data integrity with existing files.
+        if os.path.exists(self.download_directory):
+            pop_up_info(
+                "The directory %s already exists." % self.download_directory)
+            return
+        log.info("Creating download directory.")
+        os.mkdir(self.download_directory)
 
         log.debug(self.download_directory)
 
-        # Important note: QNetworkAccessManager is asynchronous
+        CHUNK_SIZE = 16 * 1024
+        # Important note: QNetworkAccessManager is asynchronous, which means
+        # the downloads are processed asynchronous using callbacks.
         for url in to_download_urls:
             request = QNetworkRequest(QUrl(url))
             request.setRawHeader('username', self.username)
             request.setRawHeader('password', self.password)
             reply = self.network_manager.get(request)
+            # Get replies in chunks, and process them
+            reply.setReadBufferSize(CHUNK_SIZE)
+            reply.readyRead.connect(
+                self.on_single_download_ready_to_read_chunk)
             reply.finished.connect(self.on_single_download_finished)
         pop_up_info("Download started.")
 
-    def on_single_download_finished(self):
-        reply = self.sender()  # TODO: can't reply be given as arg?
-        raw = reply.readAll()  # QByteArray
-        if not os.path.exists(self.download_directory):
-            log.info("Creating download directory because it doesn't exist.")
-            os.mkdir(self.download_directory)
-        log.debug("Writing to %s" % self.download_directory)
+    def on_single_download_ready_to_read_chunk(self):
+        """Process a chunk of the downloaded data."""
+        reply = self.sender()
+        raw_chunk = reply.readAll()  # QByteArray
         filename = reply.url().toString().split('/')[-1]
-        with open(os.path.join(self.download_directory, filename), 'wb') as f:
-            f.write(raw)
+        with open(os.path.join(self.download_directory, filename), 'ab') as f:
+            f.write(raw_chunk)
+
+    def on_single_download_finished(self):
+        """Usage: mostly for notifying the user the download has finished."""
+        reply = self.sender()
+        filename = reply.url().toString().split('/')[-1]
+        print("Finished %s" % filename)
+        reply.close()
+        messagebar_message("Done", "Finished downloading %s" % filename)
