@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 EXTRAPLORATION_RATIO = 20
 
 
-class BresLocation(object):
+class BreachLocation(object):
 
     def __init__(self, search_distance, distance_to_levee, use_selection,
                  is_dry_run, connected_pnt_lyr):

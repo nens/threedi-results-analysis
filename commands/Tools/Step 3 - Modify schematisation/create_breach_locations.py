@@ -8,7 +8,7 @@ from qgis.core import QgsMapLayerRegistry
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.widgets.progress import progress_bar
-from ThreeDiToolbox.views.modify_schematisation_dialogs import CreateBresLocationsDialogWidget  # noqa
+from ThreeDiToolbox.views.modify_schematisation_dialogs import CreateBreachLocationsDialogWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
@@ -31,22 +31,22 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = CreateBresLocationsDialogWidget(command=self)
+        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
-    def run_it(self, bres_loc, auto_commit):
+    def run_it(self, breach_loc, auto_commit):
         """
         execute the tool
 
-        :param bres_loc: threedi_schema_edits.bres_location.BresLocation
+        :param breach_loc: threedi_schema_edits.breach_location.BresLocation
             instance
-        :param auto_commit: save the potential bres location directly to
+        :param auto_commit: save the potential breach location directly to
             the database (only in case the dry-run option has not been
             selected)
         """
 
-        bres_location = bres_loc
-        if not bres_location.has_valid_selection:
+        breach_location = breach_loc
+        if not breach_location.has_valid_selection:
             msg = "You need to select at least two connection points"
             messagebar_message(
                 "Error", msg, level=constants.MESSAGE_LEVEL['error'],
@@ -54,7 +54,7 @@ class CustomCommand(CustomCommandBase):
             )
             return
 
-        calc_points_dict = bres_location.get_calc_points_by_content()
+        calc_points_dict = breach_location.get_calc_points_by_content()
 
         cnt_iterations = len(calc_points_dict)
         cnt = 1
@@ -62,31 +62,31 @@ class CustomCommand(CustomCommandBase):
         with progress_bar(self.iface) as pb:
             for key, values in calc_points_dict.iteritems():
                 calc_type = key[1]
-                connected_points_selection = bres_location.get_connected_points(
+                connected_points_selection = breach_location.get_connected_points(
                     values, calc_type
                 )
-                bres_location.move_points_behind_levee(
+                breach_location.move_points_behind_levee(
                     connected_points_selection, calc_type
                 )
                 current = (cnt/float(cnt_iterations)) * 100
                 pb.setValue(current)
                 cnt += 1
 
-        if bres_location.is_dry_run:
-            bres_location.pnt_layer.commitChanges()
-            bres_location.pnt_layer.updateExtents()
-            bres_location.line_layer.updateExtents()
+        if breach_location.is_dry_run:
+            breach_location.pnt_layer.commitChanges()
+            breach_location.pnt_layer.updateExtents()
+            breach_location.line_layer.updateExtents()
             QgsMapLayerRegistry.instance().addMapLayers(
-                [bres_location.pnt_layer, bres_location.line_layer]
+                [breach_location.pnt_layer, breach_location.line_layer]
             )
 
         if auto_commit:
-            bres_location.connected_pnt_lyr.commitChanges()
-        bres_location.connected_pnt_lyr.updateExtents()
+            breach_location.connected_pnt_lyr.commitChanges()
+        breach_location.connected_pnt_lyr.updateExtents()
         self.iface.mapCanvas().refresh()
-        bres_location.connected_pnt_lyr.triggerRepaint()
-        if not bres_location.is_dry_run:
-            msg = "Created {} potential bres locations".format(
-                bres_location.cnt_moved_pnts
+        breach_location.connected_pnt_lyr.triggerRepaint()
+        if not breach_location.is_dry_run:
+            msg = "Created {} potential breach locations".format(
+                breach_location.cnt_moved_pnts
             )
             messagebar_message("Finished", msg, level=3, duration=8)
