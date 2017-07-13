@@ -13,4 +13,4 @@ class DownloadResultModel(BaseModel):
         size_mebibytes = ValueField(
             show=True, column_width=120, column_name='Size (MiB)')
         url = ValueField(show=True, column_width=300, column_name='URL')
-        results = ValueField(show=False)
+        results = ValueField(show=False)  # the scenario results

@@ -5,6 +5,16 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Add Lizard scenario result download functionality to the
+  ``ThreeDiResultSelection`` tool. Some remarks about this feature:
+  - To connect with the Lizard API, ``lizard-connector`` is used. Downloading
+    the data happens in a worker thread because there can be many resuls.
+    After logging in the user will be presented with the newest results
+    immediately (this is synchronous). Progressively older results will be
+    downloaded by the thread and dynamically added to the table view.
+  - Chunked downloading (using append mode) is used because of the large
+    files, which we do not want to keep in memory.
+
 - [toolbox] rename 'toolbox_tools' to 'Tools', use english for toolbox
   sub-directories, remove 'Instellingen' tab, remove 'auto update logboek'
   checkbox.
