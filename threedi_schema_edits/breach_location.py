@@ -31,6 +31,15 @@ EXTRAPLORATION_RATIO = 20
 
 
 class BreachLocation(object):
+    """
+    Class to determine and create possible breach locations. For (selected)
+    connected points it finds intersections with levees that are within the
+    user defined search distance. It then can move the points across that
+    levee. Not only the geometry will be updated but also the levee_id
+    attribute. When using the 'is_dry_run' option the database table will
+    not yet be updated. Instead a memory layer with the possible locations
+    will created.
+    """
 
     def __init__(self, search_distance, distance_to_levee, use_selection,
                  is_dry_run, connected_pnt_lyr):
@@ -84,12 +93,9 @@ class BreachLocation(object):
 
     @property
     def has_valid_selection(self):
-        if self.use_selection and self.selected_pnt_ids:
+        if self.selected_pnt_ids or not self.use_selection:
             return True
-        elif self.use_selection and not self.selected_pnt_ids:
-            return False
-        else:
-            return True
+        return False
 
     def set_selected_pnt_ids(self):
         """

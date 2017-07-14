@@ -1,5 +1,5 @@
 """
-Test geo utils.
+Test breach locations.
 """
 import unittest
 import os
@@ -10,8 +10,8 @@ import shutil
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPoint
 
-from ThreeDiToolbox.threedi_schema_edits.breach_location import BresLocation
-from ThreeDiToolbox.threedi_schema_edits.breach_location import Predictor
+from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
+from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
 
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
@@ -52,7 +52,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         distance_to_levee = 5
         use_selection = False
         is_dry_run = True
-        self.breach_location = BresLocation(
+        self.breach_location = BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,
@@ -284,7 +284,7 @@ class TestBresLocation(unittest.TestCase):
         distance_to_levee = 5
         use_selection = False
         is_dry_run = False
-        self.breach_location = BresLocation(
+        self.breach_location = BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,

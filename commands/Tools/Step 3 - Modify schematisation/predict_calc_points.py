@@ -9,6 +9,7 @@ from PyQt4 import QtGui
 
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.views.modify_schematisation_dialogs import PredictCalcPointsDialogWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
@@ -122,13 +123,10 @@ class CustomCommand(CustomCommandBase):
             are_empty.append(predictor.threedi_db.table_is_empty(tn))
         if not all(are_empty):
             fresh = False
-            reply = QtGui.QMessageBox.question(
-                self.iface.mainWindow(), 'Warning!',
-                'Calculation point and connected point tables are not empty! '
-                'Do you want to delete all their contents?',
-                QtGui.QMessageBox.Yes, QtGui.QMessageBox.No
-            )
-            if reply == QtGui.QMessageBox.Yes:
+            question = 'Calculation point and connected point tables are not ' \
+                       'empty! Do you want to delete all their contents?',
+
+            if pop_up_question('Warning!', question):
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CONN_PNT)
                 fresh = True

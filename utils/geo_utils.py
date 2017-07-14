@@ -29,6 +29,9 @@ def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):
 
 def calculate_perpendicular_line(line_coords, distance, orientation=None):
     """
+    calculates a perpendicular line to the line made of line_coords.
+    Start point will be the first coordinate pair
+
     :param line_coords: list of coordinates, e.g [x1, y1, x2, y2]
     :param distance: distance in meters (desired length of the
         perpendicular line)
@@ -36,6 +39,8 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
         default None --> considers both sides of the line
         left --> left to drawing direction,
         right --> right to drawing direction
+
+    :returns tuple of start and end points of the perpendicular line
     """
     x1 = line_coords[0]
     y1 = line_coords[1]
@@ -46,7 +51,7 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
     dx = x1-x2
     dy = y1-y2
     dist = math.sqrt(dx*dx + dy*dy)
-    if dist <= 0:
+    if dist == 0:
         return
 
     # the perp line needs to be inbetween those two coords,

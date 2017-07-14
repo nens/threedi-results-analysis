@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 import logging
-import collections
 
 from qgis.core import QgsMapLayerRegistry
+from qgis.gui import QgsMessageBar
 
-from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.widgets.progress import progress_bar
+from ThreeDiToolbox.utils.user_messages import progress_bar
 from ThreeDiToolbox.views.modify_schematisation_dialogs import CreateBreachLocationsDialogWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
@@ -49,7 +48,7 @@ class CustomCommand(CustomCommandBase):
         if not breach_location.has_valid_selection:
             msg = "You need to select at least two connection points"
             messagebar_message(
-                "Error", msg, level=constants.MESSAGE_LEVEL['error'],
+                "Error", msg, level=QgsMessageBar.CRITICAL,
                 duration=5
             )
             return
@@ -89,4 +88,6 @@ class CustomCommand(CustomCommandBase):
             msg = "Created {} potential breach locations".format(
                 breach_location.cnt_moved_pnts
             )
-            messagebar_message("Finished", msg, level=3, duration=8)
+            messagebar_message(
+                "Finished", msg, level=QgsMessageBar.SUCCESS, duration=8
+            )
