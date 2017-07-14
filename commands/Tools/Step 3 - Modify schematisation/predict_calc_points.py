@@ -124,9 +124,9 @@ class CustomCommand(CustomCommandBase):
         if not all(are_empty):
             fresh = False
             question = 'Calculation point and connected point tables are not ' \
-                       'empty! Do you want to delete all their contents?',
+                       'empty! Do you want to delete all their contents?'
 
-            if pop_up_question('Warning!', question):
+            if pop_up_question(question):
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CONN_PNT)
                 fresh = True
