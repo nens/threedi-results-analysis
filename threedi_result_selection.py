@@ -192,6 +192,12 @@ class ThreeDiResultSelection(QObject):
             request = QNetworkRequest(QUrl(url))
             request.setRawHeader('username', self.username)
             request.setRawHeader('password', self.password)
+
+            # This might be a little strange, but we pass the download
+            # directory to the reply using the ``QNetworkRequest.User``
+            # attribute, because only existing attributes can be set.
+            request.setAttribute(QNetworkRequest.User, self.download_directory)
+
             reply = self.network_manager.get(request)
             # Get replies in chunks, and process them
             reply.setReadBufferSize(CHUNK_SIZE)
@@ -205,7 +211,12 @@ class ThreeDiResultSelection(QObject):
         reply = self.sender()
         raw_chunk = reply.readAll()  # QByteArray
         filename = reply.url().toString().split('/')[-1]
-        with open(os.path.join(self.download_directory, filename), 'ab') as f:
+        download_directory = reply.request().attribute(QNetworkRequest.User)
+        if not download_directory:
+            raise RuntimeError(
+                "Request is not set up properly, QNetworkRequest.User is "
+                "required to find the download directory.")
+        with open(os.path.join(download_directory, filename), 'ab') as f:
             f.write(raw_chunk)
 
     def on_single_download_finished(self):
