@@ -17,6 +17,12 @@ from .utils.user_messages import pop_up_info, messagebar_message
 
 log = logging.getLogger(__name__)
 
+USER_DOWNLOAD_DIRECTORY = 1111
+
+assert \
+    QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax,\
+    "User defined attribute codes must be between User and UserMax."
+
 
 class ThreeDiResultSelection(QObject):
     """QGIS Plugin Implementation."""
@@ -192,11 +198,8 @@ class ThreeDiResultSelection(QObject):
             request = QNetworkRequest(QUrl(url))
             request.setRawHeader('username', self.username)
             request.setRawHeader('password', self.password)
-
-            # This might be a little strange, but we pass the download
-            # directory to the reply using the ``QNetworkRequest.User``
-            # attribute, because only existing attributes can be set.
-            request.setAttribute(QNetworkRequest.User, self.download_directory)
+            request.setAttribute(
+                USER_DOWNLOAD_DIRECTORY, self.download_directory)
 
             reply = self.network_manager.get(request)
             # Get replies in chunks, and process them
@@ -211,11 +214,11 @@ class ThreeDiResultSelection(QObject):
         reply = self.sender()
         raw_chunk = reply.readAll()  # QByteArray
         filename = reply.url().toString().split('/')[-1]
-        download_directory = reply.request().attribute(QNetworkRequest.User)
+        download_directory = reply.request().attribute(USER_DOWNLOAD_DIRECTORY)
         if not download_directory:
             raise RuntimeError(
-                "Request is not set up properly, QNetworkRequest.User is "
-                "required to find the download directory.")
+                "Request is not set up properly, USER_DOWNLOAD_DIRECTORY is "
+                "required to locate the download directory.")
         with open(os.path.join(download_directory, filename), 'ab') as f:
             f.write(raw_chunk)
 
