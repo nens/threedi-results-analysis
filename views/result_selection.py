@@ -334,6 +334,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def handle_log_out(self):
         self.set_logged_out_status()
+        if self.thread:
+            self.thread.stop()
         num_rows = len(self.download_result_model.rows)
         self.download_result_model.removeRows(0, num_rows)
         self.toggle_login_interface()
