@@ -1,5 +1,7 @@
 # If you don't include this import the test 'test_set_and_load_list'
 # test_project will fail! WTF?
+from contextlib import contextmanager
+
 try:
     from qgis.gui import QgsMessageBar
 except ImportError:
@@ -109,3 +111,29 @@ class StatusProgressBar(object):
     def __del__(self):
         if iface is not None:
             iface.messageBar().clearWidgets()
+
+
+@contextmanager
+def progress_bar(iface, min_value=1, max_value=100):
+    """
+    If you want more control over the layout of your progress bar and want
+    to be able to add messages to it etc, use the StatusProgressBar object
+
+    usage:
+    with progress_bar(iface) as pb:
+        pb.setValue(value)
+    """
+    # clear the message bar
+    iface.messageBar().clearWidgets()
+    # set a new message bar
+    progressMessageBar = iface.messageBar()
+
+    _progress_bar = QProgressBar()
+    # Maximum is set to 100, making it easy to work with
+    # percentage of completion
+    _progress_bar.setMinimum(min_value)
+    _progress_bar.setMaximum(max_value)
+    # pass the progress bar to the message Bar
+    progressMessageBar.pushWidget(_progress_bar)
+    yield _progress_bar
+    iface.messageBar().clearWidgets()

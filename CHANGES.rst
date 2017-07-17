@@ -5,6 +5,15 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Add tool "create breach locations".
+
+- Automatically remove old entries from both the connected point and the
+  calculation points table when the tool ``predict_calc_points`` is being
+  re-run.
+
+- Add a second connected point to the template for calculation points of type
+  "double connected".
+
 - [toolbox] rename 'toolbox_tools' to 'Tools', use english for toolbox
   sub-directories, remove 'Instellingen' tab, remove 'auto update logboek'
   checkbox.
@@ -12,6 +21,7 @@ threedi-qgis-plugin changelog
 - Fix ``guess_indicators.py`` tool.
 
 - Fix clearing cache in Windows.
+
 - Update documentation for stats module.
 
 
