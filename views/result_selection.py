@@ -1,46 +1,145 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
+
+import logging
 import os
-from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex
-from PyQt4.QtGui import QWidget, QFileDialog, QMessageBox
-from PyQt4.QtSql import QSqlDatabase
+import urllib2
+
+from lizard_connector.connector import Endpoint
+from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread
+from PyQt4.QtGui import QWidget, QFileDialog
 from PyQt4 import uic
-from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QGis
 
 from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
+from .log_in_dialog import LoginDialog
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), os.pardir, 'ui',
     'threedi_result_selection_dialog.ui'))
 
+log = logging.getLogger(__name__)
+
+
+def _reshape_scenario_results(results):
+    MEBIBYTE = 1048576
+    return [
+        {
+            'name': r['name'],
+            'url': r['url'],
+            'size_mebibytes': round(r['total_size'] / MEBIBYTE, 1),
+            'results': r['result_set'],
+        }
+        for r in results
+    ]
+
+
+class ResultsWorker(QThread):
+    """Thread for getting scenario results API data from Lizard."""
+
+    output = pyqtSignal(object)
+
+    def __init__(
+            self, parent=None, endpoint=None, username=None, password=None):
+        self.endpoint = endpoint
+        self.username = username
+        self.password = password
+        self.exiting = False
+        super(ResultsWorker, self).__init__(parent)
+
+    def __del__(self):
+        print("Deleting worker.")
+        log.info("Deleting worker.")
+        self.stop()
+
+    def run(self):
+        for results in self.endpoint:
+            if self.exiting:
+                print("Exiting...")
+                break
+            items = _reshape_scenario_results(results)
+            print("ResultsWorker - got new data")
+            self.output.emit(items)
+
+    def stop(self):
+        """Stop the thread gracefully."""
+        print("Stopping worker.")
+        self.exiting = True
+        self.wait()
+
+
+def initialize_endpoint_iterator(username, password):
+    """Initialize scenarios endpoint iterator and return the results after
+    one iteration.
+
+    Args:
+        username: Lizard username
+        password: Lizard password
+
+    Returns:
+        tuple: (a list of dicts, Endpoint iterator)
+
+    Raises:
+        urllib2.HTTPError when authentication with Lizard fails
+    """
+    scenarios_endpoint = Endpoint(
+        username=username,
+        password=password,
+        endpoint='scenarios',
+        all_pages=False,
+    )
+
+    # do one get request to initialize the iterator
+    results = scenarios_endpoint.get(scenarios_endpoint.base_url)
+    log.debug("Num results %s" % len(results))
+
+    items = _reshape_scenario_results(results)
+
+    log.debug("Num items %s" % len(items))
+    return items, scenarios_endpoint
+
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     """Dialog for selecting model (spatialite and result files netCDFs)"""
     closingDialog = pyqtSignal()
 
-    def __init__(self, parent=None, iface=None, ts_datasource=None):
+    def __init__(
+            self, parent=None, iface=None, ts_datasource=None,
+            download_result_model=None, parent_class=None):
         """Constructor
+
         :parent: Qt parent Widget
         :iface: QGiS interface
         :ts_datasource: TimeseriesDatasourceModel instance
+        :download_result_model: DownloadResultModel instance
+        :parent_class: the tool class which instantiated this widget. Is used
+             here for storing volatile information
         """
         super(ThreeDiResultSelectionWidget, self).__init__(parent)
 
+        self.parent_class = parent_class
         self.iface = iface
         self.setupUi(self)
 
+        # login administration
+        self.login_dialog = LoginDialog()
+        # NOTE: autoDefault was set on ``log_in_button`` (via Qt Designer),
+        # which makes pressing Enter work for logging in.
+        self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
+
+        # set models on table views and update view columns
         self.ts_datasource = ts_datasource
         self.resultTableView.setModel(self.ts_datasource)
+        self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+        self.download_result_model = download_result_model
+        self.downloadResultTableView.setModel(self.download_result_model)
+        self.download_result_model.set_column_sizes_on_view(
+            self.downloadResultTableView)
 
-        for col_nr in range(0, self.ts_datasource.columnCount()):
-            width = self.ts_datasource.columns[col_nr].column_width
-            if width:
-                self.resultTableView.setColumnWidth(col_nr, width)
-            if not self.ts_datasource.columns[col_nr].show:
-                self.resultTableView.setColumnHidden(col_nr, True)
+        self.toggle_login_interface()
 
-        # set events
+        # connect signals
         self.selectTsDatasourceButton.clicked.connect(
             self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
@@ -48,6 +147,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file)
+        self.loginButton.clicked.connect(self.on_login_button_clicked)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
@@ -74,18 +174,25 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.modelSpatialiteComboBox.currentIndexChanged.connect(
             self.model_spatialite_change)
 
+        self.thread = None
+
     def on_close(self):
         """
         Clean object on close
         """
-
         self.selectTsDatasourceButton.clicked.disconnect(
             self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
         self.removeTsDatasourceButton.clicked.disconnect(
             self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.connect(
+        self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file)
+        self.loginButton.clicked.disconnect(self.on_login_button_clicked)
+
+        # stop the thread when we close the widget
+        if self.thread:
+            self.thread.output.disconnect(self.update_download_result_model)
+            self.thread.stop()
 
     def closeEvent(self, event):
         """
@@ -216,3 +323,98 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         settings.setValue('last_used_spatialite_path',
                           os.path.dirname(filename))
         return True
+
+    def on_login_button_clicked(self):
+        """Handle log in and out."""
+        if self.logged_in:
+            self.handle_log_out()
+        else:
+            self.login_dialog.user_name_input.setFocus()
+            self.login_dialog.show()
+
+    def handle_log_out(self):
+        self.set_logged_out_status()
+        num_rows = len(self.download_result_model.rows)
+        self.download_result_model.removeRows(0, num_rows)
+        self.toggle_login_interface()
+
+    def toggle_login_interface(self):
+        """Enable/disable aspects of the interface based on login status."""
+        # TODO: better to use signals maybe?
+        if self.logged_in:
+            self.loginButton.setText("Log out")
+            self.downloadResultTableView.setEnabled(True)
+            self.downloadResultButton.setEnabled(True)
+        else:
+            self.loginButton.setText("Log in")
+            self.downloadResultTableView.setEnabled(False)
+            self.downloadResultButton.setEnabled(False)
+
+    def handle_log_in(self):
+        """Handle logging in and populating DownloadResultModel."""
+        # Get the username and password
+        username = self.login_dialog.user_name_input.text()
+        password = self.login_dialog.user_password_input.text()
+
+        if username == '' or password == '':
+            pop_up_info("Username or password cannot be empty.")
+            return
+
+        try:
+            items, endpoint = initialize_endpoint_iterator(
+                username, password)
+            self.update_download_result_model(items)
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                pop_up_info("Incorrect username and/or password.")
+            else:
+                pop_up_info(str(e))
+        else:
+            self.set_logged_in_status(username, password)
+            self.toggle_login_interface()
+            # don't persist info in the dialog: useful when logged out
+            self.login_dialog.user_name_input.clear()
+            self.login_dialog.user_password_input.clear()
+
+            # start thread
+            self.thread = ResultsWorker(
+                endpoint=endpoint, username=username, password=password)
+            self.thread.output.connect(self.update_download_result_model)
+            self.thread.start()
+
+            # return to widget
+            self.login_dialog.close()
+
+    def update_download_result_model(self, items):
+        self.download_result_model.insertRows(items)
+
+    @property
+    def username(self):
+        return self.parent_class.username
+
+    @username.setter
+    def username(self, username):
+        self.parent_class.username = username
+
+    @property
+    def password(self):
+        return self.parent_class.password
+
+    @password.setter
+    def password(self, password):
+        self.parent_class.password = password
+
+    @property
+    def logged_in(self):
+        """Return the logged in status."""
+        return self.parent_class.logged_in
+
+    def set_logged_in_status(self, username, password):
+        """Set logged in status to True."""
+        self.username = username
+        self.password = password
+
+    def set_logged_out_status(self):
+        """Set logged in status to False."""
+        self.username = None
+        self.password = None

@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import os.path
+import logging
+import os
 import json
 
-from PyQt4.QtCore import Qt, pyqtSignal, QObject
+from PyQt4.QtCore import Qt, pyqtSignal, QObject, QUrl
+from PyQt4.QtGui import QFileDialog
+from PyQt4.QtNetwork import (
+    QNetworkAccessManager, QNetworkRequest
+)
 
-from views.result_selection import ThreeDiResultSelectionWidget
+from .views.result_selection import ThreeDiResultSelectionWidget
+from .models.result_downloader import DownloadResultModel
+from .utils.user_messages import pop_up_info, messagebar_message
+
+log = logging.getLogger(__name__)
+
+USER_DOWNLOAD_DIRECTORY = 1111
+
+assert \
+    QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax,\
+    "User defined attribute codes must be between User and UserMax."
 
 
 class ThreeDiResultSelection(QObject):
@@ -29,6 +44,16 @@ class ThreeDiResultSelection(QObject):
         self.iface = iface
 
         self.ts_datasource = ts_datasource
+        # TODO: unsure if this is the right place for initializing this model
+        self.download_result_model = DownloadResultModel()
+
+        # TODO: fix this fugly shizzle
+        self.download_directory = None
+        self.username = None
+        self.password = None
+
+        # download administration
+        self.network_manager = QNetworkAccessManager(self)
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -66,9 +91,17 @@ class ThreeDiResultSelection(QObject):
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(None,
-                                                           self.iface,
-                                                           self.ts_datasource)
+                self.dialog = ThreeDiResultSelectionWidget(
+                    parent=None,
+                    iface=self.iface,
+                    ts_datasource=self.ts_datasource,
+                    download_result_model=self.download_result_model,
+                    parent_class=self)
+
+                # download signals; signal connections should persist after
+                # closing the dialog.
+                self.dialog.downloadResultButton.clicked.connect(
+                    self.handle_download)
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
@@ -115,3 +148,84 @@ class ThreeDiResultSelection(QObject):
                     'model_schematisation': file,
                     'result_directories': list
                 })
+
+    @property
+    def logged_in(self):
+        return self.username is not None and self.password is not None
+
+    def handle_download(self):
+        result_type_codes_download = [
+            'subgrid_map', 'flow-aggregate', 'id-mapping', 'logfiles']
+        selection_model = self.dialog.downloadResultTableView.selectionModel()
+        indexes = selection_model.selectedIndexes()
+        if len(indexes) != 1:
+            pop_up_info("Please select one result.")
+            return
+        row = indexes[0].row()
+        item = self.download_result_model.rows[row]
+        to_download = [
+            r for r in item.results.value if
+            r['result_type']['code'] in result_type_codes_download]
+        to_download_urls = [dl['attachment_url'] for dl in to_download]
+        log.debug(item.name.value)
+
+        # ask user where to store download
+        directory = QFileDialog.getExistingDirectory(
+            None,
+            'Choose a directory',
+            os.path.expanduser('~'),
+        )
+        if not directory:
+            return
+        self.download_directory = os.path.join(directory, item.name.value)
+
+        # For now, only work with empty directories that we create ourselves.
+        # Because the files are downloaded and processed in chunks, we cannot
+        # guarantee data integrity with existing files.
+        if os.path.exists(self.download_directory):
+            pop_up_info(
+                "The directory %s already exists." % self.download_directory)
+            return
+        log.info("Creating download directory.")
+        os.mkdir(self.download_directory)
+
+        log.debug(self.download_directory)
+
+        CHUNK_SIZE = 16 * 1024
+        # Important note: QNetworkAccessManager is asynchronous, which means
+        # the downloads are processed asynchronous using callbacks.
+        for url in to_download_urls:
+            request = QNetworkRequest(QUrl(url))
+            request.setRawHeader('username', self.username)
+            request.setRawHeader('password', self.password)
+            request.setAttribute(
+                USER_DOWNLOAD_DIRECTORY, self.download_directory)
+
+            reply = self.network_manager.get(request)
+            # Get replies in chunks, and process them
+            reply.setReadBufferSize(CHUNK_SIZE)
+            reply.readyRead.connect(
+                self.on_single_download_ready_to_read_chunk)
+            reply.finished.connect(self.on_single_download_finished)
+        pop_up_info("Download started.")
+
+    def on_single_download_ready_to_read_chunk(self):
+        """Process a chunk of the downloaded data."""
+        reply = self.sender()
+        raw_chunk = reply.readAll()  # QByteArray
+        filename = reply.url().toString().split('/')[-1]
+        download_directory = reply.request().attribute(USER_DOWNLOAD_DIRECTORY)
+        if not download_directory:
+            raise RuntimeError(
+                "Request is not set up properly, USER_DOWNLOAD_DIRECTORY is "
+                "required to locate the download directory.")
+        with open(os.path.join(download_directory, filename), 'ab') as f:
+            f.write(raw_chunk)
+
+    def on_single_download_finished(self):
+        """Usage: mostly for notifying the user the download has finished."""
+        reply = self.sender()
+        filename = reply.url().toString().split('/')[-1]
+        print("Finished %s" % filename)
+        reply.close()
+        messagebar_message("Done", "Finished downloading %s" % filename)

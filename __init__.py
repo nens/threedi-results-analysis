@@ -55,6 +55,12 @@ except Exception:
     pop_up_info(msg)
 
 try:
+    import lizard_connector
+except ImportError, e:
+    pop_up_info("Error loading lizard_connector from "
+                "'external' subdirectory. error %s" % e.message)
+
+try:
     import netCDF4
     msg += 'Use local installation of python netCDF4 library'
 except ImportError:
