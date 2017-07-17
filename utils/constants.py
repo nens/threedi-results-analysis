@@ -43,10 +43,3 @@ TABLE_NAME_LEVEE = 'v2_levee'
 
 EPSG_WGS84 = 4326
 EPSG_RD_NEW = 28992
-
-MESSAGE_LEVEL = {
-    'info': 0,
-    'warning': 1,
-    'error': 2,
-    'success': 3,
-}

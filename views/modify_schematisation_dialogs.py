@@ -19,7 +19,6 @@ from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
-from ThreeDiToolbox.docs.tool_help import create_breach_locations_help
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 
 log = logging.getLogger(__name__)
@@ -285,9 +284,15 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_levee_distace.setMaximum(50)
         self.spinbox_levee_distace.setMinimum(1)
         self.setWindowTitle(_translate("self", "Create breach locations", None))
+        tool_help = """
+        Move connected points across the nearest levee. You can limit your
+        point set to your current selection. Using the dry-run option will
+        not save the new geometries to the database table yet but will store
+        them to a memory layer called 'temp_connected_pnt'. Like this you can
+        test your settings first before actually applying them to your model.
+        Using the 'dry-run' option thus is highly recommended."""
         self.help_text_browser.setText(
-            create_breach_locations_help.move_connected_points_doc.replace(
-                '\n', ' ').replace('\r', '')
+            tool_help.replace('        ', '').replace('\n', '').replace('\r', '')  # noqa
         )
         connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
             'v2_connected_pnt'
