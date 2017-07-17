@@ -1,7 +1,10 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
-from qgis.core import (
-    QgsFeature, QgsGeometry, QgsPoint, QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem, QGis)
+from qgis.core import QgsFeature
+from qgis.core import QgsGeometry
+from qgis.core import QgsPoint
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QGis
 
 from .user_messages import StatusProgressBar
 
