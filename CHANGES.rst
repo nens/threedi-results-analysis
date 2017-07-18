@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Fix bug with logout not stopping the thread and keep pulling in results.
+
 - Add Lizard scenario result download functionality to the
   ``ThreeDiResultSelection`` tool. Some remarks about this feature:
 
