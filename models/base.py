@@ -1,5 +1,4 @@
 from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
-from ..utils.user_messages import log
 import inspect
 from base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
 
@@ -252,8 +251,16 @@ class BaseModel(QAbstractTableModel):
 
         :table_view: table view instance that uses this model
         """
-        if table_view.model() is None:
-            raise RuntimeError("No model set on view.")
+        try:
+            if table_view.model() is None:
+                raise RuntimeError("No model set on view.")
+        except TypeError:
+            # in the graph view the ``model`` attribute is overwritten. This
+            # is a workaround for that case.
+            # TODO: the graph view should use ``model()`` instead of setting
+            # to model.
+            if table_view.model is None:
+                raise RuntimeError("No model set on view.")
 
         for col_nr in range(0, self.columnCount()):
             width = self.columns[col_nr].column_width
