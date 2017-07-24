@@ -4,6 +4,7 @@ it work with our own data sources.
 """
 import numpy as np
 import inspect
+from netCDF4 import Dataset
 
 from ..datasource.netcdf import NetcdfDataSource, normalized_object_type
 from ..utils.user_messages import log
@@ -190,21 +191,106 @@ class NcStats(object):
         self.datasource.ds.close()
 
 
-class NcStatsAgg(NcStats):
-    """A version of NcStats that works with the so called 'aggregation'
-    version of the 3Di netCDF files."""
+# class NcStatsAgg(NcStats):
+#     """A version of NcStats that works with the so called 'aggregation'
+#     version of the 3Di netCDF files."""
+#
+#     # Update these lists if you add a new method
+#     AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
+#         NcStats.AVAILABLE_STRUCTURE_PARAMETERS
+#     AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
+#         ['wos_height', 's1_max', 'water_depth']
+#     AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
+#         + NcStats.AVAILABLE_PUMP_PARAMETERS
+#
+#     def __init__(self, *args, **kwargs):
+#         super(NcStatsAgg, self).__init__(*args, **kwargs)
+#         self.ds_agg = self.datasource.ds_aggregation
+#
+#         # Construct a dict with thing we actually have in the loaded netcdf,
+#         # and store netcdf arrays in memory.
+#         self.variables = dict()
+#         for p in (self.AVAILABLE_MANHOLE_PARAMETERS +
+#                   self.AVAILABLE_STRUCTURE_PARAMETERS +
+#                   self.AVAILABLE_PUMP_PARAMETERS):
+#             try:
+#                 copied_array = self.ds_agg.variables[p][:]
+#                 self.variables[p] = copied_array
+#             except KeyError:
+#                 continue
+#
+#         # Generate result statistics a priori
+#         for k, v in self.variables.items():
+#             if k.endswith('_cum'):
+#                 # We can sum without integration because parameter is already
+#                 # an integrated variable.
+#                 calcd_array = v.sum(0)
+#             elif k.endswith('_min'):
+#                 calcd_array = v.min(0)
+#             elif k.endswith('_max'):
+#                 calcd_array = v.max(0)
+#             else:
+#                 raise ValueError("Unknown variable")
+#             self.variables[k] = calcd_array
+#         self.variable_keys = self.variables.keys()
+#
+#     def get_value_from_parameter(self, structure_type, obj_id,
+#                                  parameter_name, **kwargs):
+#         """Select array and get the value.
+#
+#         Args:
+#             structure_type: raw layer name; structure type normalization,
+#                 is delegated to the NetcdfDataSource
+#             obj_id: layer feature id?? -------------> TODO: needs checking!!!
+#             parameter_name: the netcdf variable name
+#             kwargs: unused, but needed to be compatible with NcStats
+#         """
+#         norm_object_type = normalized_object_type(structure_type)
+#         netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
+#         if parameter_name in self.variable_keys:
+#             variable = self.variables[parameter_name]
+#             return variable[netcdf_id]
+#         else:
+#             log("This aggregation variable has no stats (%s), attempting "
+#                 "lookup in regular NcStats." % parameter_name)
+#             # The variable was not found in aggregation netCDF. We will look
+#             # further down in the regular netCDF.
+#             variable = self._get_value_from_parameter(
+#                 structure_type, obj_id, parameter_name, **kwargs)
+#             return variable
+#
+#     def wos_height(self, structure_type, obj_id, surface_level=None):
+#         s1_max = self.get_value_from_parameter(
+#             structure_type, obj_id, 's1_max')
+#         return s1_max - surface_level
+#
+#     def water_depth(self, structure_type, obj_id, bottom_level=None):
+#         s1_max = self.get_value_from_parameter(
+#             structure_type, obj_id, 's1_max')
+#         return s1_max - bottom_level
 
-    # Update these lists if you add a new method
-    AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
-        NcStats.AVAILABLE_STRUCTURE_PARAMETERS
-    AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
-        ['wos_height', 's1_max', 'water_depth']
-    AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
-        + NcStats.AVAILABLE_PUMP_PARAMETERS
+class NcStatsAgg(object):
 
-    def __init__(self, *args, **kwargs):
-        super(NcStatsAgg, self).__init__(*args, **kwargs)
-        self.ds_agg = self.datasource.ds_aggregation
+
+    AGGREGATIONS = {
+        'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative',
+        'duration_positive', 'duration_negative'
+    }
+
+    # # Update these lists if you add a new method
+    # AVAILABLE_STRUCTURE_PARAMETERS = ['q_cum', 'q_max', 'q_min'] + \
+    #     NcStats.AVAILABLE_STRUCTURE_PARAMETERS
+    # AVAILABLE_MANHOLE_PARAMETERS = NcStats.AVAILABLE_MANHOLE_PARAMETERS + \
+    #     ['wos_height', 's1_max', 'water_depth']
+    # AVAILABLE_PUMP_PARAMETERS = ['q_pump_cum'] \
+    #     + NcStats.AVAILABLE_PUMP_PARAMETERS
+
+    def __init__(self, file_path, *args, **kwargs):
+
+        self.file_path = file_path
+        self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
+        log("Opened netcdf: %s" % self.file_path)
+
 
         # Construct a dict with thing we actually have in the loaded netcdf,
         # and store netcdf arrays in memory.
@@ -217,53 +303,3 @@ class NcStatsAgg(NcStats):
                 self.variables[p] = copied_array
             except KeyError:
                 continue
-
-        # Generate result statistics a priori
-        for k, v in self.variables.items():
-            if k.endswith('_cum'):
-                # We can sum without integration because parameter is already
-                # an integrated variable.
-                calcd_array = v.sum(0)
-            elif k.endswith('_min'):
-                calcd_array = v.min(0)
-            elif k.endswith('_max'):
-                calcd_array = v.max(0)
-            else:
-                raise ValueError("Unknown variable")
-            self.variables[k] = calcd_array
-        self.variable_keys = self.variables.keys()
-
-    def get_value_from_parameter(self, structure_type, obj_id,
-                                 parameter_name, **kwargs):
-        """Select array and get the value.
-
-        Args:
-            structure_type: raw layer name; structure type normalization,
-                is delegated to the NetcdfDataSource
-            obj_id: layer feature id?? -------------> TODO: needs checking!!!
-            parameter_name: the netcdf variable name
-            kwargs: unused, but needed to be compatible with NcStats
-        """
-        norm_object_type = normalized_object_type(structure_type)
-        netcdf_id = self.datasource.obj_to_netcdf_id(obj_id, norm_object_type)
-        if parameter_name in self.variable_keys:
-            variable = self.variables[parameter_name]
-            return variable[netcdf_id]
-        else:
-            log("This aggregation variable has no stats (%s), attempting "
-                "lookup in regular NcStats." % parameter_name)
-            # The variable was not found in aggregation netCDF. We will look
-            # further down in the regular netCDF.
-            variable = self._get_value_from_parameter(
-                structure_type, obj_id, parameter_name, **kwargs)
-            return variable
-
-    def wos_height(self, structure_type, obj_id, surface_level=None):
-        s1_max = self.get_value_from_parameter(
-            structure_type, obj_id, 's1_max')
-        return s1_max - surface_level
-
-    def water_depth(self, structure_type, obj_id, bottom_level=None):
-        s1_max = self.get_value_from_parameter(
-            structure_type, obj_id, 's1_max')
-        return s1_max - bottom_level
