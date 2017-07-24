@@ -252,7 +252,7 @@ class BaseModel(QAbstractTableModel):
 
         :table_view: table view instance that uses this model
         """
-        if table_view.model() is None:
+        if table_view.model is None:
             raise RuntimeError("No model set on view.")
 
         for col_nr in range(0, self.columnCount()):
