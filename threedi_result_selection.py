@@ -236,8 +236,7 @@ class ThreeDiResultSelection(QObject):
             raise RuntimeError(
                 "Request is not set up properly, USER_DOWNLOAD_DIRECTORY is "
                 "required to locate the download directory.")
-        with open(os.path.join(
-                download_directory, filename), 'ab') as f:
+        with open(os.path.join(download_directory, filename), 'ab') as f:
             f.write(raw_chunk)
 
     def on_single_download_finished(self):
