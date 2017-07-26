@@ -278,10 +278,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         """
         super(CreateBreachLocationsDialogWidget, self).__init__(parent)
         self.setupUi(self)
-
-        self.spinbox_search_distance.setMaximum(100)
         self.spinbox_search_distance.setMinimum(2)
-        self.spinbox_levee_distace.setMaximum(50)
         self.spinbox_levee_distace.setMinimum(1)
         self.setWindowTitle(_translate("self", "Create breach locations", None))
         tool_help = """
