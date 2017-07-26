@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Fix invalid characters in directory name in the scenario downloader.
+
 - Fix bug in method that sets column sizes due to overwritten attribute.
 
 - Fix bug with logout not stopping the thread and keep pulling in results.

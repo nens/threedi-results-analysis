@@ -3,6 +3,7 @@
 
 import logging
 import os
+import re
 import json
 
 from PyQt4.QtCore import Qt, pyqtSignal, QObject, QUrl
@@ -22,6 +23,21 @@ USER_DOWNLOAD_DIRECTORY = 1111
 assert \
     QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax,\
     "User defined attribute codes must be between User and UserMax."
+
+
+# From Django:
+# https://github.com/django/django/blob/master/django/utils/text.py
+def get_valid_filename(s):
+    """
+    Return the given string converted to a string that can be used for a clean
+    filename. Remove leading and trailing spaces; convert other spaces to
+    underscores; and remove anything that is not an alphanumeric, dash,
+    underscore, or dot.
+    >>> get_valid_filename("john's portrait in 2004.jpg")
+    'johns_portrait_in_2004.jpg'
+    """
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
 
 
 class ThreeDiResultSelection(QObject):
@@ -177,7 +193,8 @@ class ThreeDiResultSelection(QObject):
         )
         if not directory:
             return
-        self.download_directory = os.path.join(directory, item.name.value)
+        dir_name = get_valid_filename(item.name.value)
+        self.download_directory = os.path.join(directory, dir_name)
 
         # For now, only work with empty directories that we create ourselves.
         # Because the files are downloaded and processed in chunks, we cannot
@@ -226,6 +243,5 @@ class ThreeDiResultSelection(QObject):
         """Usage: mostly for notifying the user the download has finished."""
         reply = self.sender()
         filename = reply.url().toString().split('/')[-1]
-        print("Finished %s" % filename)
         reply.close()
         messagebar_message("Done", "Finished downloading %s" % filename)
