@@ -280,8 +280,8 @@ class LayerTreeManager(object):
 
         # tables without geometry
         tables = [(oned_group, 'v2_cross_section_definition'),
-                  (self.schematisation_layergroup, 'v2_global_settings'),
                   (self.schematisation_layergroup, 'v2_numerical_settings'),
+                  (self.schematisation_layergroup, 'v2_global_settings'),
                   (twod_group, 'v2_manhole'),
                   ]
 
