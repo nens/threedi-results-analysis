@@ -4,10 +4,9 @@ outputs it to csv.
 import inspect
 import os
 
-from ThreeDiToolbox.utils import csv_join
 from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
 from ThreeDiToolbox.stats.utils import (
-    generate_structure_stats, get_structure_layer_id_name)
+    generate_structure_stats, get_structure_layer_id_name, csv_join)
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import (
     CustomCommandBase)
