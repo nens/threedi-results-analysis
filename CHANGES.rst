@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Add ``v2_numerical_settings`` to the layer tree manager.
+
 - Fix csv_join import in statistic scripts.
 
 - Fix invalid characters in directory name in the scenario downloader.
