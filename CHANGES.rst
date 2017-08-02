@@ -7,6 +7,10 @@ threedi-qgis-plugin changelog
 
 - Add v2_orifice to the flowlines styling.
 
+- Add ``v2_numerical_settings`` to the layer tree manager.
+
+- Fix csv_join import in statistic scripts.
+
 - Fix invalid characters in directory name in the scenario downloader.
 
 - Fix bug in method that sets column sizes due to overwritten attribute.
