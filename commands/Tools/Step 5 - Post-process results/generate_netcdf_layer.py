@@ -36,21 +36,8 @@ class CustomCommand(CustomCommandBase):
         if not self.datasource:
             pop_up_info("No datasource found, aborting.", title='Error')
             return
-        nds = self.datasource.datasource()  # the netcdf datasource
 
-        spl = Spatialite(self.datasource.spatialite_cache_filepath())
-
-        flowline_layer = make_flowline_layer(nds, spl)
-        node_layer = make_node_layer(nds, spl)
-
-        vlayers = [flowline_layer, node_layer]
-
-        try:
-            pump_layer = make_pumpline_layer(nds, spl)
-            vlayers.append(pump_layer)
-        except Exception:
-            print("Pumps are still in development")
-            pass
+        vlayers = self.datasource.get_result_layers()
 
         # add the layers
         QgsMapLayerRegistry.instance().addMapLayers(vlayers)
