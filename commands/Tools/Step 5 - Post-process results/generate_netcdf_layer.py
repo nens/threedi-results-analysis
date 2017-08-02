@@ -5,9 +5,6 @@ from qgis.core import QgsMapLayerRegistry
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.layer_from_netCDF import (
-    make_flowline_layer, make_node_layer, make_pumpline_layer)
-from ThreeDiToolbox.datasource.spatialite import Spatialite
 
 
 class CustomCommand(CustomCommandBase):
