@@ -7,6 +7,7 @@ from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.layer_from_netCDF import (
     make_flowline_layer, make_node_layer, make_pumpline_layer)
+from ThreeDiToolbox.datasource.spatialite import Spatialite
 
 
 class CustomCommand(CustomCommandBase):
@@ -37,13 +38,15 @@ class CustomCommand(CustomCommandBase):
             return
         nds = self.datasource.datasource()  # the netcdf datasource
 
-        flowline_layer = make_flowline_layer(nds)
-        node_layer = make_node_layer(nds)
+        spl = Spatialite(self.datasource.spatialite_cache_filepath())
+
+        flowline_layer = make_flowline_layer(nds, spl)
+        node_layer = make_node_layer(nds, spl)
 
         vlayers = [flowline_layer, node_layer]
 
         try:
-            pump_layer = make_pumpline_layer(nds)
+            pump_layer = make_pumpline_layer(nds, spl)
             vlayers.append(pump_layer)
         except Exception:
             print("Pumps are still in development")
