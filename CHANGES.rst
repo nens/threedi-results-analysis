@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.12 (unreleased)
 -----------------
 
+- Default maximum for QSpinBox is 99, so setValue is limited to 99. That's
+  why the spinbox_search_distance maximum and spinbox_levee_distance are
+  set to 5000.
+
 - Add v2_orifice to the flowlines styling.
 
 - Add ``v2_numerical_settings`` to the layer tree manager.

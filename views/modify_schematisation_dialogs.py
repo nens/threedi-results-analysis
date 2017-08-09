@@ -278,7 +278,11 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         """
         super(CreateBreachLocationsDialogWidget, self).__init__(parent)
         self.setupUi(self)
+        # default maximum for QSpinBox is 99, so setValue is limited to 99.
+        # That's why we set the Maximum to 5000
+        self.spinbox_search_distance.setMaximum(5000)
         self.spinbox_search_distance.setMinimum(2)
+        self.spinbox_levee_distace.setMaximum(5000)
         self.spinbox_levee_distace.setMinimum(1)
         self.setWindowTitle(_translate("self", "Create breach locations", None))
         tool_help = """
