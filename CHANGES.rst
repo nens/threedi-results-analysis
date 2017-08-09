@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.12 (unreleased)
+0.12 (2017-08-09)
 -----------------
 
 - Default maximum for QSpinBox is 99, so setValue is limited to 99. That's
