@@ -30,7 +30,7 @@ class NcStats(object):
     AVAILABLE_STRUCTURE_PARAMETERS = [
         'q_cumulative_duration', 'q_end', 'tot_vol_positive',
         'tot_vol_negative', 'time_q_max']
-    AVAILABLE_MANHOLE_PARAMETERS = ['s1_end', 'wos_duration']
+    AVAILABLE_MANHOLE_PARAMETERS = ['s1_end', 's1_max', 'wos_duration']
     AVAILABLE_PUMP_PARAMETERS = ['tot_vol_pump', 'pump_duration']
 
     def __init__(self, netcdf_file_path=None, ds=None, datasource=None):
