@@ -609,7 +609,7 @@ class NetcdfDataSource(object):
         else:
             # todo: warning
             return
-        if index:
+        if index is not None:
             return ds.variables[variable][timestamp_idx, index]
         else:
             return ds.variables[variable][timestamp_idx, :]
