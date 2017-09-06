@@ -19,17 +19,6 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
-set_parameter_config = {
-    'q': [{'name': 'Discharge', 'unit': 'm3/s', 'parameters': ['q']},
-          {'name': 'Velocity', 'unit': 'm/s', 'parameters': ['u1']},
-          {'name': 'Discharge interflow', 'unit': 'm3/s', 'parameters': ['qp']},
-          {'name': 'Velocity interflow', 'unit': 'm/s',
-           'parameters': ['up1']}],
-    'h': [{'name': 'Waterlevel', 'unit': 'mNAP', 'parameters': ['s1']},
-          {'name': 'Volume', 'unit': 'm3', 'parameters': ['vol']}]
-}
-
-
 class MapAnimator(QWidget):
     """
     todo:
