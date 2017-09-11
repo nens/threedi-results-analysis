@@ -6,6 +6,25 @@ threedi-qgis-plugin changelog
 -----------------
 
 - Add contol structures for table control
+- Remove unused code.
+
+
+0.12 (2017-08-09)
+-----------------
+
+- Default maximum for QSpinBox is 99, so setValue is limited to 99. That's
+  why the spinbox_search_distance maximum and spinbox_levee_distance are
+  set to 5000.
+
+- Add v2_orifice to the flowlines styling.
+
+- Add ``v2_numerical_settings`` to the layer tree manager.
+
+- Fix csv_join import in statistic scripts.
+
+- Fix invalid characters in directory name in the scenario downloader.
+
+- Fix bug in method that sets column sizes due to overwritten attribute.
 
 - Fix bug with logout not stopping the thread and keep pulling in results.
 
