@@ -2,10 +2,9 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.12 (unreleased)
+0.13 (unreleased)
 -----------------
 
-- Add contol structures for table control
 - Remove unused code.
 
 

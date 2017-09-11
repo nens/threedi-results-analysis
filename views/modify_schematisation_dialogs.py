@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-import os.path
 import logging
 
 from qgis.core import QgsMapLayerRegistry
 
 from PyQt4 import uic
-from PyQt4 import QtCore
 from PyQt4.QtCore import SIGNAL
 from PyQt4.QtCore import QRect
 from PyQt4.QtCore import Qt
@@ -25,11 +23,6 @@ from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 
 log = logging.getLogger(__name__)
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
 
 try:
     _encoding = QApplication.UnicodeUTF8
@@ -285,13 +278,13 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         """
         super(CreateBreachLocationsDialogWidget, self).__init__(parent)
         self.setupUi(self)
-
-        self.spinbox_search_distance.setMaximum(100)
+        # default maximum for QSpinBox is 99, so setValue is limited to 99.
+        # That's why we set the Maximum to 5000
+        self.spinbox_search_distance.setMaximum(5000)
         self.spinbox_search_distance.setMinimum(2)
-        self.spinbox_levee_distace.setMaximum(50)
+        self.spinbox_levee_distace.setMaximum(5000)
         self.spinbox_levee_distace.setMinimum(1)
-        self.setWindowTitle(
-            _translate("self", "Create breach locations", None))
+        self.setWindowTitle(_translate("self", "Create breach locations", None))
         tool_help = """
         Move connected points across the nearest levee. You can limit your
         point set to your current selection. Using the dry-run option will
@@ -342,3 +335,4 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         # self.buttonBox.accepted.disconnect(self.on_accept)
         # self.buttonBox.rejected.disconnect(self.on_reject)
         event.accept()
+
