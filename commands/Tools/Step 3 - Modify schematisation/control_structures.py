@@ -56,6 +56,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.pushbutton_input_save\
             .clicked.connect(self.save_control_structure)
 
+    def run_it(self):
+        """Run it."""
+
     def show_gui(self):
         self.dockwidget_controlled_structures = ControlStructuresDockWidget()
         self.iface.addDockWidget(
