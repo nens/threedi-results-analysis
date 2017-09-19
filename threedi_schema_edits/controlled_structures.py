@@ -67,6 +67,54 @@ class ControlledStructures(object):
         self.threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
         self.engine = self.threedi_db.engine
 
+    def create_action_table(self, list_of_values):
+        """
+        Create an action table (string) of a list of
+        measure and action values.
+
+        Args:
+            (list) list_of_values: A list of values, containing measuring
+                                   values and action values.
+
+        Returns:
+            (str) action_table: A string representing the action table to
+                                be saved.
+        """
+        action_table = '{0};{1}'.format(list_of_values[0], list_of_values[1])
+        return action_table
+
+    def get_target_type(self, table_name):
+        """
+        Get the target type.
+
+        Args:
+            (str) table_name: The table name.
+
+        Returns:
+            (str) target_type: The target type, used for saving the control.
+        """
+        if table_name == V2_WEIR_VIEW_TABLE:
+            target_type = V2_WEIR_TABLE
+        else:
+            target_type = ""
+        return target_type
+
+    def get_action_type(self, table_name):
+        """
+        Get the action type.
+
+        Args:
+            (str) table_name: The table name.
+
+        Returns:
+            (str) action_type: The action type, used for saving the control.
+        """
+        if table_name == V2_WEIR_VIEW_TABLE:
+            action_type = ACTION_TYPE_SET_CREST_LEVEL
+        else:
+            action_type = ""
+        return action_type
+
     def save_table_control(self, table_control):
         """
         Function to save the table control in the v2_control_table.
@@ -78,6 +126,7 @@ class ControlledStructures(object):
                                   table_control["measure_operator"],
                                   table_control["target_id"],
                                   table_control["target_type"],
+                                  table_control["action_type"],
                                   table_control["measure_variable"].
         """
         action_table = table_control["action_table"]
@@ -97,7 +146,6 @@ class ControlledStructures(object):
             if not max_id_control_table:
                 max_id_control_table = 0
             new_id_control_table = max_id_control_table + 1
-        con.close()
         # Insert the variables in the v2_control_table
         with self.engine.connect() as con:
             rs = con.execute(
@@ -109,4 +157,3 @@ class ControlledStructures(object):
                     action_table, measure_operator, target_id, target_type,
                     measure_variable, action_type, new_id_control_table)
             )
-        con.close()

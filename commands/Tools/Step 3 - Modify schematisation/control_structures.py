@@ -10,8 +10,6 @@ from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructures
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    ACTION_TYPE_SET_CREST_LEVEL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     MEASURE_VARIABLE_WATERLEVEL
@@ -21,10 +19,6 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_TOP_DOWN
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     TABLE_CONTROL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    V2_WEIR_VIEW_TABLE
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    V2_WEIR_TABLE
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +54,7 @@ class CustomCommand(CustomCommandBase):
             .clicked.connect(self.run_it)
 
     def run_it(self):
-        """Run it."""
+        """Save the control to the spatialite or POSTGRES database."""
         # Get the model
         db_key = self.dockwidget_controlled_structures.combobox_input_model\
             .currentText()  # name of database
@@ -90,15 +84,15 @@ class CustomCommand(CustomCommandBase):
         # Future options will be table control, pid control,
         # memory control, delta control and timed control.
         control_type = TABLE_CONTROL
-        # Get the variables as input for the v2_control_table
         if control_type == TABLE_CONTROL:
             table_control = {}
             measure_value = self.dockwidget_controlled_structures\
                 .tablewidget_input_rule_table_control.item(0, 0).text()
             action_value = self.dockwidget_controlled_structures\
                 .tablewidget_input_rule_table_control.item(0, 1).text()
-            table_control["action_table"] = '{0};{1}'\
-                .format(measure_value, action_value)
+            list_of_values = [measure_value, action_value]
+            table_control["action_table"] = control_structure\
+                .create_action_table(list_of_values)
             if self.dockwidget_controlled_structures\
                     .combobox_input_rule_operator.currentText()\
                     == 'Bottom up':
@@ -108,16 +102,12 @@ class CustomCommand(CustomCommandBase):
             table_control["measure_operator"] = measure_operator
             table_control["target_id"] = self.dockwidget_controlled_structures\
                 .combobox_input_structure_id.currentText()
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_structure_table.currentText()\
-                    == V2_WEIR_VIEW_TABLE:
-                target_type = V2_WEIR_TABLE
-                action_type = ACTION_TYPE_SET_CREST_LEVEL
-            else:
-                target_type = ""
-                action_type = ""
-            table_control["target_type"] = target_type
-            table_control["action_type"] = action_type
+            table_control["target_type"] = control_structure.get_target_type(
+                self.dockwidget_controlled_structures
+                .combobox_input_structure_table.currentText())
+            table_control["action_type"] = control_structure.get_action_type(
+                self.dockwidget_controlled_structures
+                .combobox_input_structure_table.currentText())
             if self.dockwidget_controlled_structures\
                     .combobox_input_measuring_point_field.currentText()\
                     == "initial_waterlevel":
@@ -178,7 +168,6 @@ class CustomCommand(CustomCommandBase):
                 '''SELECT id FROM v2_connection_nodes;'''
             )
             connection_node_ids = rs.fetchall()
-        con.close()
         for connection_node_id in connection_node_ids:
             id_nr = connection_node_id[0]
             self.dockwidget_controlled_structures.\
@@ -190,7 +179,6 @@ class CustomCommand(CustomCommandBase):
                 '''SELECT weir_id FROM v2_weir_view;'''
             )
             weir_ids = rs.fetchall()
-        con.close()
         for weir_id in weir_ids:
             id_nr = weir_id[0]
             self.dockwidget_controlled_structures.\
