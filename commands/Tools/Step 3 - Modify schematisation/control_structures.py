@@ -10,25 +10,28 @@ from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructures
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    ACTION_TYPE_SET_CREST_LEVEL
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    MEASURE_VARIABLE_WATERLEVEL
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    RULE_OPERATOR_BOTTOM_UP
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    RULE_OPERATOR_TOP_DOWN
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    TABLE_CONTROL
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    V2_WEIR_VIEW_TABLE
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    V2_WEIR_TABLE
 
 log = logging.getLogger(__name__)
-
-ACTIVE_TAB = " (active tab)"
-TABLE_CONTROL = 'table_control'
-BOTTOM_UP = 'Bottom up'
-RULE_OPERATOR_BOTTOM_UP = '>'
-RULE_OPERATOR_TOP_DOWN = '<'
-V2_WEIR_VIEW_TABLE = "v2_weir_view"
-V2_WEIR_TABLE = 'v2_weir'
-INITIAL_WATERLEVEL = "initial_waterlevel"
-WATERLEVEL = 'waterlevel'
-ACTION_TYPE_SET_CREST_LEVEL = 'set_crest_level'
 
 
 class CustomCommand(CustomCommandBase):
     """
-    command to that will load and start an edit session for the connected
+    command that will load and start an edit session for the connected
     point layer and verify the data added to that layer
     """
 
@@ -41,7 +44,7 @@ class CustomCommand(CustomCommandBase):
         self.control_structure = None
 
         self.databases = get_databases()
-        # Remove u'selected' spatialite and postgresdatabases
+        # Remove 'selected' spatialite and postgresdatabases
         # from self.databases to prevent confusion about which database
         # is meant by it
         if 'spatialite: ' in self.databases:
@@ -54,12 +57,78 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
         self.dockwidget_controlled_structures.pushbutton_input_save\
-            .clicked.connect(self.save_control_structure)
+            .clicked.connect(self.run_it)
 
     def run_it(self):
         """Run it."""
+        # Get the model
+        db_key = self.dockwidget_controlled_structures.combobox_input_model\
+            .currentText()  # name of database
+        db_entry = self.databases[db_key]
+
+        _db_settings = db_entry['db_settings']
+
+        if db_entry['db_type'] == 'spatialite':
+            host = _db_settings['db_path']
+            db_settings = {
+                'host': host,
+                'port': '',
+                'name': '',
+                'username': '',
+                'password': '',
+                'schema': '',
+                'database': '',
+                'db_path': host,
+            }
+        else:
+            db_settings = _db_settings
+            db_settings['schema'] = 'public'
+        control_structure = ControlledStructures(flavor=db_entry['db_type'])
+        control_structure.start_sqalchemy_engine(db_settings)
+        # The control_type is the type of control that will be saved.
+        # In the future, this type can be read from a combobox.
+        # Future options will be table control, pid control,
+        # memory control, delta control and timed control.
+        control_type = TABLE_CONTROL
+        # Get the variables as input for the v2_control_table
+        if control_type == TABLE_CONTROL:
+            table_control = {}
+            measure_value = self.dockwidget_controlled_structures\
+                .tablewidget_input_rule_table_control.item(0, 0).text()
+            action_value = self.dockwidget_controlled_structures\
+                .tablewidget_input_rule_table_control.item(0, 1).text()
+            table_control["action_table"] = '{0};{1}'\
+                .format(measure_value, action_value)
+            if self.dockwidget_controlled_structures\
+                    .combobox_input_rule_operator.currentText()\
+                    == 'Bottom up':
+                measure_operator = RULE_OPERATOR_BOTTOM_UP
+            else:
+                measure_operator = RULE_OPERATOR_TOP_DOWN
+            table_control["measure_operator"] = measure_operator
+            table_control["target_id"] = self.dockwidget_controlled_structures\
+                .combobox_input_structure_id.currentText()
+            if self.dockwidget_controlled_structures\
+                    .combobox_input_structure_table.currentText()\
+                    == V2_WEIR_VIEW_TABLE:
+                target_type = V2_WEIR_TABLE
+                action_type = ACTION_TYPE_SET_CREST_LEVEL
+            else:
+                target_type = ""
+                action_type = ""
+            table_control["target_type"] = target_type
+            table_control["action_type"] = action_type
+            if self.dockwidget_controlled_structures\
+                    .combobox_input_measuring_point_field.currentText()\
+                    == "initial_waterlevel":
+                measure_variable = MEASURE_VARIABLE_WATERLEVEL
+            else:
+                measure_variable = ""
+            table_control["measure_variable"] = measure_variable
+            control_structure.save_table_control(table_control)
 
     def show_gui(self):
+        """Show the gui."""
         self.dockwidget_controlled_structures = ControlStructuresDockWidget()
         self.iface.addDockWidget(
             Qt.LeftDockWidgetArea, self.dockwidget_controlled_structures)
@@ -126,85 +195,3 @@ class CustomCommand(CustomCommandBase):
             id_nr = weir_id[0]
             self.dockwidget_controlled_structures.\
                 combobox_input_structure_id.addItem(str(id_nr))
-
-    def save_control_structure(self):
-        """
-        Function to save the created control in the designated table.
-        Currently only works for table control.
-        """
-        control_type = TABLE_CONTROL
-        # Get the model
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(
-            flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
-        # Get the variables as input for the v2_control_table
-        if control_type == TABLE_CONTROL:
-            measure_value = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control.item(0, 0).text()
-            action_value = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control.item(0, 1).text()
-            action_table = '{0};{1}'.format(measure_value, action_value)
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_rule_operator.currentText()\
-                    == BOTTOM_UP:
-                measure_operator = RULE_OPERATOR_BOTTOM_UP
-            else:
-                measure_operator = RULE_OPERATOR_TOP_DOWN
-            target_id = self.dockwidget_controlled_structures\
-                .combobox_input_structure_id.currentText()
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_structure_table.currentText()\
-                    == V2_WEIR_VIEW_TABLE:
-                target_type = V2_WEIR_TABLE
-                action_type = ACTION_TYPE_SET_CREST_LEVEL
-            else:
-                target_type = ""
-                action_type = ''
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_measuring_point_field.currentText()\
-                    == INITIAL_WATERLEVEL:
-                measure_variable = WATERLEVEL
-            else:
-                measure_variable = ""
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''SELECT MAX(id) FROM v2_control_table;'''
-                )
-                max_id_control_table = rs.fetchone()[0]
-                if not max_id_control_table:
-                    max_id_control_table = 0
-                new_id_control_table = max_id_control_table + 1
-            con.close()
-            # Insert the variables in the v2_control_table
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''INSERT INTO v2_control_table (action_table, \
-                    measure_operator, target_id, target_type, \
-                    measure_variable, action_type, id) \
-                    VALUES ('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}');'''
-                    .format(
-                        action_table, measure_operator, target_id, target_type,
-                        measure_variable, action_type, new_id_control_table)
-                )
-            con.close()

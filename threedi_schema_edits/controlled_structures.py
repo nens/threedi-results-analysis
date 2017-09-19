@@ -6,27 +6,20 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+TABLE_CONTROL = 'table_control'
+RULE_OPERATOR_BOTTOM_UP = '>'
+RULE_OPERATOR_TOP_DOWN = '<'
+V2_WEIR_VIEW_TABLE = "v2_weir_view"
+V2_WEIR_TABLE = 'v2_weir'
+MEASURE_VARIABLE_WATERLEVEL = 'waterlevel'
+ACTION_TYPE_SET_CREST_LEVEL = 'set_crest_level'
+
 
 class ControlledStructures(object):
-    _QUERY_TYPE_DICT = {
-        'postgres': 'QPSQL',
-        'spatialite': 'QSQLITE',
-        'spatialite2': 'QSQLITE2'
-    }
 
-    def __init__(self, flavor, lyr_name=""):
+    def __init__(self, flavor):
         self.flavor = flavor
-        self.lyr_name = lyr_name
-        if not self.lyr_name:
-            self.lyr_name = "temporary_lyr"
-        self.data_provider = None
-        self.mem_layer = None
         self._schema = None  # will passed to get_uri()
-        self.query = None
-        self.network_dict = {}
-        self._calc_pnt_features = []
-        self._connected_pnt_features = []
-        self._trans = None
 
     def get_uri(self, **kwargs):
         """
@@ -73,3 +66,47 @@ class ControlledStructures(object):
         """
         self.threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
         self.engine = self.threedi_db.engine
+
+    def save_table_control(self, table_control):
+        """
+        Function to save the table control in the v2_control_table.
+
+        Args:
+            (dict) table_control: This dict contains the values for
+                                  saving the table control. It containts
+                                  table_control["action_table"],
+                                  table_control["measure_operator"],
+                                  table_control["target_id"],
+                                  table_control["target_type"],
+                                  table_control["measure_variable"].
+        """
+        action_table = table_control["action_table"]
+        measure_operator = table_control["measure_operator"]
+        target_id = table_control["target_id"]
+        target_type = table_control["target_type"]
+        action_type = table_control["action_type"]
+        measure_variable = table_control["measure_variable"]
+        with self.engine.connect() as con:
+            # MAX(id) returns None if the sql statement yields nothing.
+            # In this case, max_id_control_table is set to 0 to prevent
+            # TypeErrors when adding 1 to create new_id_control_table.
+            rs = con.execute(
+                '''SELECT MAX(id) FROM v2_control_table;'''
+            )
+            max_id_control_table = rs.fetchone()[0]
+            if not max_id_control_table:
+                max_id_control_table = 0
+            new_id_control_table = max_id_control_table + 1
+        con.close()
+        # Insert the variables in the v2_control_table
+        with self.engine.connect() as con:
+            rs = con.execute(
+                '''INSERT INTO v2_control_table (action_table, \
+                measure_operator, target_id, target_type, \
+                measure_variable, action_type, id) \
+                VALUES ('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}');'''
+                .format(
+                    action_table, measure_operator, target_id, target_type,
+                    measure_variable, action_type, new_id_control_table)
+            )
+        con.close()
