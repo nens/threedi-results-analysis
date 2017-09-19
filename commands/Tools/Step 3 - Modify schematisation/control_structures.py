@@ -9,6 +9,7 @@ from PyQt4.QtCore import Qt
 from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -47,6 +48,7 @@ class CustomCommand(CustomCommandBase):
             self.databases.pop('postgres: None', None)
 
     def run(self):
+        """Run the controlled structures dockwidget."""
         self.show_gui()
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
@@ -55,30 +57,12 @@ class CustomCommand(CustomCommandBase):
 
     def run_it(self):
         """Save the control to the spatialite or POSTGRES database."""
-        # Get the model
         db_key = self.dockwidget_controlled_structures.combobox_input_model\
             .currentText()  # name of database
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
         # The control_type is the type of control that will be saved.
         # In the future, this type can be read from a combobox.
         # Future options will be table control, pid control,
@@ -134,34 +118,16 @@ class CustomCommand(CustomCommandBase):
         By clicking on a different model in the GUI, the id's
         for the measuring points and structures are updated.
         """
-        # Get the model
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.clear()
         self.dockwidget_controlled_structures.\
             combobox_input_structure_id.clear()
         db_key = self.dockwidget_controlled_structures.combobox_input_model\
             .currentText()  # name of database
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
         # Get all id's of the connection nodes
         with control_structure.engine.connect() as con:
             rs = con.execute(
@@ -173,7 +139,7 @@ class CustomCommand(CustomCommandBase):
             self.dockwidget_controlled_structures.\
                 combobox_input_measuring_point_id.addItem(str(id_nr))
         # Get all id's of the structures
-        control_structure.start_sqalchemy_engine(db_settings)
+        control_structure.start_sqalchemy_engine(db["db_settings"])
         with control_structure.engine.connect() as con:
             rs = con.execute(
                 '''SELECT weir_id FROM v2_weir_view;'''
