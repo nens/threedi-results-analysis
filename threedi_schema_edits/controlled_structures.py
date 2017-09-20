@@ -1,10 +1,10 @@
 import logging
 
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from qgis.core import QgsDataSourceURI
 from qgis.gui import QgsMessageBar
 from sqlalchemy.exc import OperationalError
 
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 logger = logging.getLogger(__name__)
@@ -150,10 +150,16 @@ class ControlledStructures(object):
                 if not max_id_control_table:
                     max_id_control_table = 0
                 new_id_control_table = max_id_control_table + 1
-        except OperationalError:
-            msg = "No such table: v2_control_table."
+        except OperationalError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            elif "no such table" in str(e):
+                msg = "Table {} not found.".format("v2_control_table")
+            else:
+                msg = "".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+            return
         # Insert the variables in the v2_control_table
         try:
             with self.engine.connect() as con:
@@ -166,7 +172,12 @@ class ControlledStructures(object):
                         action_table, measure_operator, target_id, target_type,
                         measure_variable, action_type, new_id_control_table)
                 )
-        except OperationalError:
-            msg = "No such table: v2_control_table."
+        except OperationalError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            elif "no such table" in str(e):
+                msg = "Table {} not found.".format("v2_control_table")
+            else:
+                msg = "".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)

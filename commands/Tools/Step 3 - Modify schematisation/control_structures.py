@@ -9,8 +9,6 @@ from sqlalchemy.exc import OperationalError
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    ControlledStructures
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     MEASURE_VARIABLE_WATERLEVEL
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_BOTTOM_UP
@@ -18,6 +16,8 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_TOP_DOWN
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     TABLE_CONTROL
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    ControlledStructures
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -140,11 +140,15 @@ class CustomCommand(CustomCommandBase):
                 id_nr = connection_node_id[0]
                 self.dockwidget_controlled_structures.\
                     combobox_input_measuring_point_id.addItem(str(id_nr))
-        except OperationalError:
-            msg = "No such table: v2_connection_nodes."
+        except OperationalError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            elif "no such table" in str(e):
+                msg = "Table {} not found.".format("v2_connection_nodes")
+            else:
+                msg = "".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
-        # Get all id's of the structures
         try:
             with control_structure.engine.connect() as con:
                 rs = con.execute(
@@ -155,7 +159,12 @@ class CustomCommand(CustomCommandBase):
                 id_nr = weir_id[0]
                 self.dockwidget_controlled_structures.\
                     combobox_input_structure_id.addItem(str(id_nr))
-        except OperationalError:
-            msg = "No such table: v2_weir_view."
+        except OperationalError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            elif "no such table" in str(e):
+                msg = "Table {} not found.".format("v2_weir_view")
+            else:
+                msg = "".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
