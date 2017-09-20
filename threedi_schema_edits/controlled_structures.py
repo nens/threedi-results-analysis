@@ -1,8 +1,11 @@
-from qgis.core import QgsDataSourceURI
+import logging
 
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from qgis.core import QgsDataSourceURI
+from qgis.gui import QgsMessageBar
+from sqlalchemy.exc import OperationalError
 
-import logging
+from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 logger = logging.getLogger(__name__)
 
@@ -135,25 +138,35 @@ class ControlledStructures(object):
         target_type = table_control["target_type"]
         action_type = table_control["action_type"]
         measure_variable = table_control["measure_variable"]
-        with self.engine.connect() as con:
-            # MAX(id) returns None if the sql statement yields nothing.
-            # In this case, max_id_control_table is set to 0 to prevent
-            # TypeErrors when adding 1 to create new_id_control_table.
-            rs = con.execute(
-                '''SELECT MAX(id) FROM v2_control_table;'''
-            )
-            max_id_control_table = rs.fetchone()[0]
-            if not max_id_control_table:
-                max_id_control_table = 0
-            new_id_control_table = max_id_control_table + 1
+        try:
+            with self.engine.connect() as con:
+                # MAX(id) returns None if the sql statement yields nothing.
+                # In this case, max_id_control_table is set to 0 to prevent
+                # TypeErrors when adding 1 to create new_id_control_table.
+                rs = con.execute(
+                    '''SELECT MAX(id) FROM v2_control_table;'''
+                )
+                max_id_control_table = rs.fetchone()[0]
+                if not max_id_control_table:
+                    max_id_control_table = 0
+                new_id_control_table = max_id_control_table + 1
+        except OperationalError:
+            msg = "No such table: v2_control_table."
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         # Insert the variables in the v2_control_table
-        with self.engine.connect() as con:
-            rs = con.execute(
-                '''INSERT INTO v2_control_table (action_table, \
-                measure_operator, target_id, target_type, \
-                measure_variable, action_type, id) \
-                VALUES ('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}');'''
-                .format(
-                    action_table, measure_operator, target_id, target_type,
-                    measure_variable, action_type, new_id_control_table)
-            )
+        try:
+            with self.engine.connect() as con:
+                rs = con.execute(
+                    '''INSERT INTO v2_control_table (action_table, \
+                    measure_operator, target_id, target_type, \
+                    measure_variable, action_type, id) \
+                    VALUES ('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}');'''
+                    .format(
+                        action_table, measure_operator, target_id, target_type,
+                        measure_variable, action_type, new_id_control_table)
+                )
+        except OperationalError:
+            msg = "No such table: v2_control_table."
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)

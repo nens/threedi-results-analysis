@@ -4,12 +4,10 @@
 import logging
 
 from PyQt4.QtCore import Qt
+from qgis.gui import QgsMessageBar
+from sqlalchemy.exc import OperationalError
 
-
-from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.threedi_database import get_databases
-from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -20,6 +18,10 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_TOP_DOWN
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     TABLE_CONTROL
+from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.utils.threedi_database import get_database_properties
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +36,6 @@ class CustomCommand(CustomCommandBase):
         self.args = args
         self.kwargs = kwargs
         self.iface = kwargs.get('iface')
-        self.ts_datasource = kwargs.get('ts_datasource')
         self.dockwidget_controlled_structures = None
         self.control_structure = None
 
@@ -129,23 +130,32 @@ class CustomCommand(CustomCommandBase):
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
         # Get all id's of the connection nodes
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT id FROM v2_connection_nodes;'''
-            )
-            connection_node_ids = rs.fetchall()
-        for connection_node_id in connection_node_ids:
-            id_nr = connection_node_id[0]
-            self.dockwidget_controlled_structures.\
-                combobox_input_measuring_point_id.addItem(str(id_nr))
+        try:
+            with control_structure.engine.connect() as con:
+                rs = con.execute(
+                    '''SELECT id FROM v2_connection_nodes;'''
+                )
+                connection_node_ids = rs.fetchall()
+            for connection_node_id in connection_node_ids:
+                id_nr = connection_node_id[0]
+                self.dockwidget_controlled_structures.\
+                    combobox_input_measuring_point_id.addItem(str(id_nr))
+        except OperationalError:
+            msg = "No such table: v2_connection_nodes."
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         # Get all id's of the structures
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT weir_id FROM v2_weir_view;'''
-            )
-            weir_ids = rs.fetchall()
-        for weir_id in weir_ids:
-            id_nr = weir_id[0]
-            self.dockwidget_controlled_structures.\
-                combobox_input_structure_id.addItem(str(id_nr))
+        try:
+            with control_structure.engine.connect() as con:
+                rs = con.execute(
+                    '''SELECT weir_id FROM v2_weir_view;'''
+                )
+                weir_ids = rs.fetchall()
+            for weir_id in weir_ids:
+                id_nr = weir_id[0]
+                self.dockwidget_controlled_structures.\
+                    combobox_input_structure_id.addItem(str(id_nr))
+        except OperationalError:
+            msg = "No such table: v2_weir_view."
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
