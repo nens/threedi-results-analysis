@@ -6,6 +6,7 @@ import logging
 from PyQt4.QtCore import Qt
 from qgis.gui import QgsMessageBar
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import ProgrammingError
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -136,11 +137,11 @@ class CustomCommand(CustomCommandBase):
                     '''SELECT id FROM v2_connection_nodes;'''
                 )
                 connection_node_ids = rs.fetchall()
-            for connection_node_id in connection_node_ids:
-                id_nr = connection_node_id[0]
-                self.dockwidget_controlled_structures.\
-                    combobox_input_measuring_point_id.addItem(str(id_nr))
-        except OperationalError as e:
+                for connection_node_id in connection_node_ids:
+                    id_nr = connection_node_id[0]
+                    self.dockwidget_controlled_structures.\
+                        combobox_input_measuring_point_id.addItem(str(id_nr))
+        except (OperationalError, ProgrammingError) as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             elif "no such table" in str(e):
@@ -155,11 +156,11 @@ class CustomCommand(CustomCommandBase):
                     '''SELECT weir_id FROM v2_weir_view;'''
                 )
                 weir_ids = rs.fetchall()
-            for weir_id in weir_ids:
-                id_nr = weir_id[0]
-                self.dockwidget_controlled_structures.\
-                    combobox_input_structure_id.addItem(str(id_nr))
-        except OperationalError as e:
+                for weir_id in weir_ids:
+                    id_nr = weir_id[0]
+                    self.dockwidget_controlled_structures.\
+                        combobox_input_structure_id.addItem(str(id_nr))
+        except (OperationalError, ProgrammingError) as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             elif "no such table" in str(e):

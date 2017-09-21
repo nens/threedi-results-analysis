@@ -2,6 +2,7 @@ import logging
 
 from qgis.core import QgsDataSourceURI
 from qgis.gui import QgsMessageBar
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import OperationalError
 
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
@@ -150,7 +151,7 @@ class ControlledStructures(object):
                 if not max_id_control_table:
                     max_id_control_table = 0
                 new_id_control_table = max_id_control_table + 1
-        except OperationalError as e:
+        except (OperationalError, ProgrammingError) as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             elif "no such table" in str(e):
@@ -172,7 +173,7 @@ class ControlledStructures(object):
                         action_table, measure_operator, target_id, target_type,
                         measure_variable, action_type, new_id_control_table)
                 )
-        except OperationalError as e:
+        except (OperationalError, ProgrammingError) as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             elif "no such table" in str(e):
