@@ -5,8 +5,6 @@ from qgis.core import QgsMapLayerRegistry
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.layer_from_netCDF import (
-    make_flowline_layer, make_node_layer, make_pumpline_layer)
 
 
 class CustomCommand(CustomCommandBase):
@@ -35,19 +33,8 @@ class CustomCommand(CustomCommandBase):
         if not self.datasource:
             pop_up_info("No datasource found, aborting.", title='Error')
             return
-        nds = self.datasource.datasource()  # the netcdf datasource
 
-        flowline_layer = make_flowline_layer(nds)
-        node_layer = make_node_layer(nds)
-
-        vlayers = [flowline_layer, node_layer]
-
-        try:
-            pump_layer = make_pumpline_layer(nds)
-            vlayers.append(pump_layer)
-        except Exception:
-            print("Pumps are still in development")
-            pass
+        vlayers = self.datasource.get_result_layers()
 
         # add the layers
         QgsMapLayerRegistry.instance().addMapLayers(vlayers)
