@@ -4,9 +4,6 @@
 import logging
 
 from PyQt4.QtCore import Qt
-from qgis.gui import QgsMessageBar
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.exc import ProgrammingError
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -21,7 +18,6 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
-from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
 
 log = logging.getLogger(__name__)
@@ -131,41 +127,13 @@ class CustomCommand(CustomCommandBase):
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
         # Get all id's of the connection nodes
-        try:
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''SELECT id FROM v2_connection_nodes;'''
-                )
-                connection_node_ids = rs.fetchall()
-                for connection_node_id in connection_node_ids:
-                    id_nr = connection_node_id[0]
-                    self.dockwidget_controlled_structures.\
-                        combobox_input_measuring_point_id.addItem(str(id_nr))
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
-                msg = "Table {} not found.".format("v2_connection_nodes")
-            else:
-                msg = "".format(e)
-            messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
-        try:
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''SELECT weir_id FROM v2_weir_view;'''
-                )
-                weir_ids = rs.fetchall()
-                for weir_id in weir_ids:
-                    id_nr = weir_id[0]
-                    self.dockwidget_controlled_structures.\
-                        combobox_input_structure_id.addItem(str(id_nr))
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
-                msg = "Table {} not found.".format("v2_weir_view")
-            else:
-                msg = "".format(e)
-            messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        list_of_measuring_point_ids = control_structure.select_all_attributes(
+            table_name="v2_connection_nodes", attribute_name="id")
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_point_id.addItems(
+                list_of_measuring_point_ids)
+        # Get the id's of the structures
+        list_of_structure_ids = control_structure.select_all_attributes(
+            table_name="v2_weir_view", attribute_name="weir_id")
+        self.dockwidget_controlled_structures.\
+            combobox_input_structure_id.addItems(list_of_structure_ids)

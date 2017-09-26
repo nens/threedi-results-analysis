@@ -119,6 +119,43 @@ class ControlledStructures(object):
             action_type = ""
         return action_type
 
+    def select_all_attributes(self, table_name, attribute_name):
+        """
+        Select the id's from a table.
+
+
+        Args:
+            (str) table_name: The table name of a spatialite or postgres
+                              database.
+            (str) attribute_name: The name of the attribute of a spatialite or
+                                  postgres database.
+
+        Returns:
+            (list) list_of_attributes: A list of all the attribute values
+                                       of the table.
+                                       The attribute values are strings.
+        """
+        list_of_attributes = []
+        try:
+            with self.engine.connect() as con:
+                rs = con.execute(
+                    '''SELECT {attribute} FROM {table};'''.format(
+                        attribute=attribute_name, table=table_name)
+                )
+                attributes = rs.fetchall()
+                list_of_attributes = [str(attribute_value[0]) for
+                                      attribute_value in attributes]
+        except (OperationalError, ProgrammingError) as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            elif "no such table" in str(e):
+                msg = "Table {} not found.".format(table_name)
+            else:
+                msg = "".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        return list_of_attributes
+
     def save_table_control(self, table_control):
         """
         Function to save the table control in the v2_control_table.
