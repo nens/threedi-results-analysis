@@ -18,6 +18,8 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
+from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
+from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
 
 log = logging.getLogger(__name__)
@@ -67,11 +69,11 @@ class CustomCommand(CustomCommandBase):
         # memory control, delta control and timed control.
         control_type = TABLE_CONTROL
         if control_type == TABLE_CONTROL:
+            tablewidget = self.dockwidget_controlled_structures\
+                .tablewidget_input_rule_table_control
             table_control = {}
-            measure_value = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control.item(0, 0).text()
-            action_value = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control.item(0, 1).text()
+            measure_value = tablewidget.item(0, 0).text()
+            action_value = tablewidget.item(0, 1).text()
             list_of_values = [measure_value, action_value]
             table_control["action_table"] = control_structure\
                 .create_action_table(list_of_values)
@@ -84,12 +86,12 @@ class CustomCommand(CustomCommandBase):
             table_control["measure_operator"] = measure_operator
             table_control["target_id"] = self.dockwidget_controlled_structures\
                 .combobox_input_structure_id.currentText()
-            table_control["target_type"] = control_structure.get_target_type(
-                self.dockwidget_controlled_structures
-                .combobox_input_structure_table.currentText())
-            table_control["action_type"] = control_structure.get_action_type(
-                self.dockwidget_controlled_structures
-                .combobox_input_structure_table.currentText())
+            structure_table = self.dockwidget_controlled_structures\
+                .combobox_input_structure_table.currentText()
+            table_control["target_type"] = DICT_TABLE_NAMES.get(
+                structure_table, "")
+            table_control["action_type"] = DICT_ACTION_TYPES.get(
+                structure_table, "")
             if self.dockwidget_controlled_structures\
                     .combobox_input_measuring_point_field.currentText()\
                     == "initial_waterlevel":

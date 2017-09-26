@@ -87,38 +87,6 @@ class ControlledStructures(object):
         action_table = '{0};{1}'.format(list_of_values[0], list_of_values[1])
         return action_table
 
-    def get_target_type(self, table_name):
-        """
-        Get the target type.
-
-        Args:
-            (str) table_name: The table name.
-
-        Returns:
-            (str) target_type: The target type, used for saving the control.
-        """
-        if table_name == V2_WEIR_VIEW_TABLE:
-            target_type = V2_WEIR_TABLE
-        else:
-            target_type = ""
-        return target_type
-
-    def get_action_type(self, table_name):
-        """
-        Get the action type.
-
-        Args:
-            (str) table_name: The table name.
-
-        Returns:
-            (str) action_type: The action type, used for saving the control.
-        """
-        if table_name == V2_WEIR_VIEW_TABLE:
-            action_type = ACTION_TYPE_SET_CREST_LEVEL
-        else:
-            action_type = ""
-        return action_type
-
     def select_all_attributes(self, table_name, attribute_name):
         """
         Select the id's from a table.
@@ -176,32 +144,21 @@ class ControlledStructures(object):
         target_type = table_control["target_type"]
         action_type = table_control["action_type"]
         measure_variable = table_control["measure_variable"]
-        try:
-            with self.engine.connect() as con:
-                # MAX(id) returns None if the sql statement yields nothing.
-                # In this case, max_id_control_table is set to 0 to prevent
-                # TypeErrors when adding 1 to create new_id_control_table.
-                rs = con.execute(
-                    '''SELECT MAX(id) FROM v2_control_table;'''
-                )
-                max_id_control_table = rs.fetchone()[0]
-                if not max_id_control_table:
-                    max_id_control_table = 0
-                new_id_control_table = max_id_control_table + 1
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
-                msg = "Table {} not found.".format("v2_control_table")
-            else:
-                msg = "".format(e)
-            messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
-            return
+        # Get new id
+        table_name = "v2_control_table"
+        # MAX(id) returns None if the sql statement yields nothing.
+        # In this case, max_id_control_table is set to 0 to prevent
+        # TypeErrors when adding 1 to create new_id_control_table.
+        attribute_name = "MAX(id)"
+        max_id_control_table = int(self.select_all_attributes(
+            table_name, attribute_name)[0])
+        if not max_id_control_table:
+            max_id_control_table = 0
+        new_id_control_table = max_id_control_table + 1
         # Insert the variables in the v2_control_table
         try:
             with self.engine.connect() as con:
-                rs = con.execute(
+                con.execute(
                     '''INSERT INTO v2_control_table (action_table, \
                     measure_operator, target_id, target_type, \
                     measure_variable, action_type, id) \
