@@ -129,13 +129,13 @@ class CustomCommand(CustomCommandBase):
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
         # Get all id's of the connection nodes
-        list_of_measuring_point_ids = control_structure.select_all_attributes(
+        list_of_measuring_point_ids = control_structure.get_attributes(
             table_name="v2_connection_nodes", attribute_name="id")
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.addItems(
                 list_of_measuring_point_ids)
         # Get the id's of the structures
-        list_of_structure_ids = control_structure.select_all_attributes(
+        list_of_structure_ids = control_structure.get_attributes(
             table_name="v2_weir_view", attribute_name="weir_id")
         self.dockwidget_controlled_structures.\
             combobox_input_structure_id.addItems(list_of_structure_ids)

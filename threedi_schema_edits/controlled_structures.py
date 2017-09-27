@@ -87,9 +87,9 @@ class ControlledStructures(object):
         action_table = '{0};{1}'.format(list_of_values[0], list_of_values[1])
         return action_table
 
-    def select_all_attributes(self, table_name, attribute_name):
+    def get_attributes(self, table_name, attribute_name):
         """
-        Select the id's from a table.
+        Get the attributes from a table.
 
 
         Args:
@@ -150,7 +150,7 @@ class ControlledStructures(object):
         # In this case, max_id_control_table is set to 0 to prevent
         # TypeErrors when adding 1 to create new_id_control_table.
         attribute_name = "MAX(id)"
-        max_id_control_table = int(self.select_all_attributes(
+        max_id_control_table = int(self.get_attributes(
             table_name, attribute_name)[0])
         if not max_id_control_table:
             max_id_control_table = 0
