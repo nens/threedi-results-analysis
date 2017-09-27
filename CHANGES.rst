@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Add tool "control structures".
+
 - Remove unused code.
 
 
