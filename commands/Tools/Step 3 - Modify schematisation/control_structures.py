@@ -105,7 +105,7 @@ class CustomCommand(CustomCommandBase):
         """Show the gui."""
         self.dockwidget_controlled_structures = ControlStructuresDockWidget()
         self.iface.addDockWidget(
-            Qt.LeftDockWidgetArea, self.dockwidget_controlled_structures)
+            Qt.BottomDockWidgetArea, self.dockwidget_controlled_structures)
         # Show active models
         self.dockwidget_controlled_structures.combobox_input_model.addItems(
             self.databases.keys())
