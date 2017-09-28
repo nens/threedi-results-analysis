@@ -43,3 +43,12 @@ TABLE_NAME_LEVEE = 'v2_levee'
 
 EPSG_WGS84 = 4326
 EPSG_RD_NEW = 28992
+
+# A dictionary to link tables names to the table views names
+DICT_TABLE_NAMES = {
+    "v2_weir_view": "v2_weir"
+}
+# A dictionary to link the table view names to the action types
+DICT_ACTION_TYPES = {
+    "v2_weir_view": "set_crest_level"
+}

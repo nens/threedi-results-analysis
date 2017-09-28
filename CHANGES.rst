@@ -7,6 +7,8 @@ threedi-qgis-plugin changelog
 
 - Update animated layer and style.
 
+- Add tool "control structures".
+
 - Remove unused code.
 
 
