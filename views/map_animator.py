@@ -202,15 +202,15 @@ class MapAnimator(QWidget):
                 (self.node_layer,
                  self.current_node_parameter['parameters'], 'diff'),
                 (self.line_layer, self.current_line_parameter['parameters'],
-                 'abs')):
+                 'act')): # updated to act for actual, display actual value
 
             provider = layer.dataProvider()
 
             values = ds.get_values_by_timestep_nr(parameter, timestep_nr)
             if stat == 'diff':
                 values = values - ds.get_values_by_timestep_nr(parameter, 0)
-            elif stat == 'abs':
-                values = np.fabs(values)
+            elif stat == 'act':  # updated to act for actual, display actual value
+                values = values # removed np.fabs(values) to get actual value
 
             update_dict = {}
             field_index = layer.fieldNameIndex('result')
