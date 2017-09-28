@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Update animated layer and style.
+
 - Remove unused code.
 
 
