@@ -1,7 +1,7 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.4-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.13-Essen" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="flowline_idx">
+    <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="inp_id">
@@ -23,21 +23,105 @@
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
   </edittypes>
-  <renderer-v2 attr="result" forceraster="0" symbollevels="0" type="graduatedSymbol" graduatedMethod="GraduatedColor" enableorderby="0">
-    <ranges>
-      <range render="true" symbol="0" lower="0.000000000000000" upper="0.328060364634219" label=" 0 - 0.33 "/>
-      <range render="true" symbol="1" lower="0.328060364634219" upper="0.656120729268439" label=" 0.33 - 0.66 "/>
-      <range render="true" symbol="2" lower="0.656120729268439" upper="0.984181093902658" label=" 0.66 - 0.98 "/>
-      <range render="true" symbol="3" lower="0.984181093902658" upper="1.312241458536878" label=" 0.98 - 1.31 "/>
-      <range render="true" symbol="4" lower="1.312241458536878" upper="1.640301823171097" label=" 1.31 - 1.64 "/>
-      <range render="true" symbol="5" lower="1.640301823171097" upper="1.968362187805317" label=" 1.64 - 1.97 "/>
-      <range render="true" symbol="6" lower="1.968362187805317" upper="2.296422552439536" label=" 1.97 - 2.3 "/>
-      <range render="true" symbol="7" lower="2.296422552439536" upper="2.624482917073756" label=" 2.3 - 2.62 "/>
-      <range render="true" symbol="8" lower="2.624482917073756" upper="2.952500000000000" label=" 2.62 - 2.95 "/>
-      <range render="true" symbol="9" lower="2.952500000000000" upper="100000.000000000000000" label=" 2.95 - 100000 "/>
-    </ranges>
+  <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
+    <rules key="{d211413a-1098-4300-9c95-687fccf06e55}">
+      <rule scalemaxdenom="5000" filter=" &quot;type&quot;  NOT IN  ('1d_2d' , '2d' ) AND (&quot;result&quot; > 0.05 OR &quot;result&quot; &lt; -0.05)" key="{f3ed5f66-a74c-4e46-883a-d8d74b6dfdab}" symbol="0" scalemindenom="1" label="Arrow 1D"/>
+      <rule scalemaxdenom="5000" filter=" &quot;type&quot;  LIKE '2d' AND (&quot;result&quot; > 0.05 OR &quot;result&quot; &lt; -0.05)" key="{7b8b0e7f-064f-48ee-a6ac-3ccbd9f269e0}" symbol="1" scalemindenom="1" label="Arrow 2D"/>
+      <rule scalemaxdenom="4000" filter=" &quot;type&quot;  LIKE '1d_2d' AND (&quot;result&quot; > 0.05 OR &quot;result&quot; &lt; -0.05)" key="{66b302d2-cbfe-4609-8e9c-924fd5c41099}" symbol="2" scalemindenom="1" label="Arrow 1D2D"/>
+      <rule filter="&quot;result&quot; >= -1000.000000 AND &quot;result&quot; &lt;= -5.000000" key="{86bf1a19-d043-4759-9e36-dfb964bfdb8f}" symbol="3" label=" -1000.00 - -5.00 "/>
+      <rule filter="&quot;result&quot; > -5.000000 AND &quot;result&quot; &lt;= -2.000000" key="{0f416178-2052-4042-b98e-9963d4118248}" symbol="4" label=" -5.00 - -2.00 "/>
+      <rule filter="&quot;result&quot; > -2.000000 AND &quot;result&quot; &lt;= -1.000000" key="{92c3fb6d-28b4-4128-8133-30c89fd19aa0}" symbol="5" label=" -2.00 - -1.00 "/>
+      <rule filter="&quot;result&quot; > -1.000000 AND &quot;result&quot; &lt;= -0.500000" key="{fe437a4e-512d-4fbb-8d17-f482993d5d19}" symbol="6" label=" -1.00 - -0.50 "/>
+      <rule filter="&quot;result&quot; > -0.500000 AND &quot;result&quot; &lt;= -0.050000" key="{b7a87cdb-698b-42d7-b73b-4882f493751a}" symbol="7" label=" -0.50 - -0.05 "/>
+      <rule filter="&quot;result&quot; > -0.050000 AND &quot;result&quot; &lt;= 0.050000" key="{14e7d38a-06dd-48f2-b59b-63e1ec817c8d}" symbol="8" label=" -0.05 - 0.05 "/>
+      <rule filter="&quot;result&quot; > 0.050000 AND &quot;result&quot; &lt;= 0.500000" key="{7af0becb-2dae-443a-9081-d2c2858dbc9c}" symbol="9" label=" 0.05 - 0.50 "/>
+      <rule filter="&quot;result&quot; > 0.500000 AND &quot;result&quot; &lt;= 1.000000" key="{51ddff75-28e6-4ec1-a979-8f620eafff30}" symbol="10" label=" 0.50 - 1.00 "/>
+      <rule filter="&quot;result&quot; > 1.000000 AND &quot;result&quot; &lt;= 2.000000" key="{ab36a53c-61c0-48ae-b15e-8967eac5d092}" symbol="11" label=" 1.00 - 2.00 "/>
+      <rule filter="&quot;result&quot; > 2.000000 AND &quot;result&quot; &lt;= 5.000000" key="{6da58fa5-d54f-4bdc-8f9a-acd6c6caccbe}" symbol="12" label=" 2.00 - 5.00 "/>
+      <rule filter="&quot;result&quot; > 5.000000 AND &quot;result&quot; &lt;= 10000.000000" key="{56b4dea8-5b4d-4b71-9ee3-37f0542f3f9d}" symbol="13" label=" 5.00 - 10000.00 "/>
+    </rules>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="line" name="0">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="3"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="centralpoint"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@0@0">
+            <layer pass="0" class="SimpleMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="angle_dd_active" v="1"/>
+              <prop k="angle_dd_expression" v="CASE WHEN  &quot;result&quot; &lt; 0 &#xd;&#xa;THEN degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  + 90&#xd;&#xa;ELSE degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  - 90&#xd;&#xa;END"/>
+              <prop k="angle_dd_field" v=""/>
+              <prop k="angle_dd_useexpr" v="1"/>
+              <prop k="color" v="31,120,180,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="name" v="filled_arrowhead"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="0,0,0,255"/>
+              <prop k="outline_style" v="no"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="area"/>
+              <prop k="size" v="3.2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="1">
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="3"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="placement" v="centralpoint"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@1@0">
+            <layer pass="0" class="SimpleMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="angle_dd_active" v="1"/>
+              <prop k="angle_dd_expression" v="CASE WHEN  &quot;result&quot; &lt; 0 &#xd;&#xa;THEN degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  + 90&#xd;&#xa;ELSE degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  - 90&#xd;&#xa;END"/>
+              <prop k="angle_dd_field" v=""/>
+              <prop k="angle_dd_useexpr" v="1"/>
+              <prop k="color" v="86,24,143,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="name" v="filled_arrowhead"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="0,0,0,255"/>
+              <prop k="outline_style" v="no"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="area"/>
+              <prop k="size" v="3"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="10">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -45,9 +129,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="240,249,232,255"/>
+          <prop k="line_color" v="72,72,157,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.4"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -56,7 +140,7 @@
           <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="1">
+      <symbol alpha="1" clip_to_extent="1" type="line" name="11">
         <layer pass="0" class="SimpleLine" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
@@ -64,9 +148,47 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="216,239,212,255"/>
+          <prop k="line_color" v="75,34,115,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.5"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="12">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="151,30,71,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.7"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="13">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="5;2"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="227,26,28,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.9"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -76,22 +198,43 @@
         </layer>
       </symbol>
       <symbol alpha="1" clip_to_extent="1" type="line" name="2">
-        <layer pass="0" class="SimpleLine" locked="0">
-          <prop k="capstyle" v="square"/>
-          <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
-          <prop k="draw_inside_polygon" v="0"/>
-          <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="192,230,192,255"/>
-          <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
-          <prop k="line_width_unit" v="MM"/>
+        <layer pass="0" class="MarkerLine" locked="0">
+          <prop k="interval" v="3"/>
+          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_unit" v="MM"/>
           <prop k="offset" v="0"/>
+          <prop k="offset_along_line" v="0"/>
+          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_unit" v="MM"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="placement" v="centralpoint"/>
+          <prop k="rotate" v="1"/>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="@2@0">
+            <layer pass="0" class="SimpleMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="angle_dd_active" v="1"/>
+              <prop k="angle_dd_expression" v="CASE WHEN  &quot;result&quot; &lt; 0 &#xd;&#xa;THEN degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  - 90&#xd;&#xa;ELSE degrees(&#xd;&#xa;&#x9;azimuth( &#xd;&#xa;&#x9;&#x9;start_point(  $geometry ) ,&#xd;&#xa;&#x9;&#x9;end_point(  $geometry  ) &#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9;)  + 90&#xd;&#xa;END"/>
+              <prop k="angle_dd_field" v=""/>
+              <prop k="angle_dd_useexpr" v="1"/>
+              <prop k="color" v="212,24,237,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="name" v="filled_arrowhead"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="0,0,0,255"/>
+              <prop k="outline_style" v="no"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="area"/>
+              <prop k="size" v="2.6"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
         </layer>
       </symbol>
       <symbol alpha="1" clip_to_extent="1" type="line" name="3">
@@ -102,9 +245,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="165,220,190,255"/>
+          <prop k="line_color" v="227,26,28,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.9"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -121,9 +264,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="137,209,194,255"/>
+          <prop k="line_color" v="151,30,72,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.7"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -140,9 +283,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="110,194,197,255"/>
+          <prop k="line_color" v="75,34,116,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.5"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -159,9 +302,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="85,176,200,255"/>
+          <prop k="line_color" v="72,72,157,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.4"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -178,9 +321,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="60,155,198,255"/>
+          <prop k="line_color" v="142,142,196,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.3"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -197,9 +340,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="34,129,185,255"/>
+          <prop k="line_color" v="212,212,236,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.2"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -216,9 +359,9 @@
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="8,104,172,255"/>
+          <prop k="line_color" v="142,142,196,255"/>
           <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
+          <prop k="line_width" v="0.3"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -228,38 +371,6 @@
         </layer>
       </symbol>
     </symbols>
-    <source-symbol>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="0">
-        <layer pass="0" class="SimpleLine" locked="0">
-          <prop k="capstyle" v="square"/>
-          <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
-          <prop k="draw_inside_polygon" v="0"/>
-          <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="37,235,90,255"/>
-          <prop k="line_style" v="solid"/>
-          <prop k="line_width" v="0.26"/>
-          <prop k="line_width_unit" v="MM"/>
-          <prop k="offset" v="0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
-        </layer>
-      </symbol>
-    </source-symbol>
-    <colorramp type="gradient" name="[source]">
-      <prop k="color1" v="240,249,232,255"/>
-      <prop k="color2" v="8,104,172,255"/>
-      <prop k="discrete" v="0"/>
-      <prop k="stops" v="0.25;186,228,188,255:0.5;123,204,196,255:0.75;67,162,202,255"/>
-    </colorramp>
-    <invertedcolorramp value="0"/>
-    <mode name="equal"/>
-    <rotation/>
-    <sizescale scalemethod="diameter"/>
-    <labelformat format=" %1 - %2 " trimtrailingzeroes="true" decimalplaces="2"/>
   </renderer-v2>
   <labeling type="simple"/>
   <customproperties>
@@ -399,8 +510,8 @@
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property key="variableNames"/>
+    <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>

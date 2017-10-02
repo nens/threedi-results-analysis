@@ -7,6 +7,7 @@ threedi-qgis-plugin changelog
 
 - Change dockwidget for controlled structures: it is now visible in the bottom
   of the screen and contains tabs for the aspects of the controlled structures.
+- Update animated layer and style.
 
 - Add tool "control structures".
 

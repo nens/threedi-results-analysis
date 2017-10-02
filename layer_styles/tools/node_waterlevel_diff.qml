@@ -1,7 +1,7 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.4-Essen" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.13-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="node_idx">
+    <edittype widgetv2type="TextEdit" name="id">
       <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="inp_id">
@@ -22,22 +22,19 @@
   </edittypes>
   <renderer-v2 attr="result" forceraster="0" symbollevels="0" type="graduatedSymbol" graduatedMethod="GraduatedColor" enableorderby="0">
     <ranges>
-      <range render="true" symbol="0" lower="0.000000000000000" upper="0.109716000504910" label=" 0"/>
-      <range render="true" symbol="1" lower="0.109716000504910" upper="0.244611925918491" label=" 0.11"/>
-      <range render="true" symbol="2" lower="0.244611925918491" upper="0.409188139741133" label=" 0.24"/>
-      <range render="true" symbol="3" lower="0.409188139741133" upper="0.607590837559535" label=" 0.41"/>
-      <range render="true" symbol="4" lower="0.607590837559535" upper="0.859121540220926" label=" 0.61"/>
-      <range render="true" symbol="5" lower="0.859121540220926" upper="1.145458736433568" label=" 0.86"/>
-      <range render="true" symbol="6" lower="1.145458736433568" upper="1.559045631168033" label=" 1.15"/>
-      <range render="true" symbol="7" lower="1.559045631168033" upper="2.092413513711577" label=" 1.56"/>
-      <range render="true" symbol="8" lower="2.092413513711577" upper="4.708200000000000" label=" 2.09"/>
-      <range render="true" symbol="9" lower="4.708200000000000" upper="100000.000000000000000" label=" 4.71"/>
+      <range render="true" symbol="0" lower="-99.000000000000000" upper="-1.000000000000000" label=" -99 - -1"/>
+      <range render="true" symbol="1" lower="-1.000000000000000" upper="-0.500000000000000" label=" -1 - -0.5"/>
+      <range render="true" symbol="2" lower="-0.500000000000000" upper="-0.050000000000000" label=" -0.5 - -0.05"/>
+      <range render="true" symbol="3" lower="-0.050000000000000" upper="0.050000000000000" label=" -0.05 - 0.05"/>
+      <range render="true" symbol="4" lower="0.050000000000000" upper="0.500000000000000" label=" 0.05 - 0.5"/>
+      <range render="true" symbol="5" lower="0.500000000000000" upper="1.000000000000000" label=" 0.5 - 1"/>
+      <range render="true" symbol="6" lower="1.000000000000000" upper="99.000000000000000" label=" 1 - 99"/>
     </ranges>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="255,245,235,255"/>
+          <prop k="color" v="202,0,32,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -58,7 +55,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="1">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="254,232,210,255"/>
+          <prop k="color" v="230,110,97,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -79,7 +76,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="2">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="253,214,174,255"/>
+          <prop k="color" v="245,192,169,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -100,7 +97,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="3">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="253,188,130,255"/>
+          <prop k="color" v="247,247,247,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -121,7 +118,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="4">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="253,160,87,255"/>
+          <prop k="color" v="179,213,230,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -142,7 +139,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="5">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="249,131,48,255"/>
+          <prop k="color" v="98,169,206,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -163,70 +160,7 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="6">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="237,100,16,255"/>
-          <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="circle"/>
-          <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,0"/>
-          <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="2"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="size_unit" v="MM"/>
-          <prop k="vertical_anchor_point" v="1"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="7">
-        <layer pass="0" class="SimpleMarker" locked="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="217,72,1,255"/>
-          <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="circle"/>
-          <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,0"/>
-          <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="2"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="size_unit" v="MM"/>
-          <prop k="vertical_anchor_point" v="1"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="8">
-        <layer pass="0" class="SimpleMarker" locked="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="170,55,2,255"/>
-          <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="circle"/>
-          <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,0"/>
-          <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="2"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="size_unit" v="MM"/>
-          <prop k="vertical_anchor_point" v="1"/>
-        </layer>
-      </symbol>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="9">
-        <layer pass="0" class="SimpleMarker" locked="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="127,39,4,255"/>
+          <prop k="color" v="5,113,176,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -269,16 +203,16 @@
       </symbol>
     </source-symbol>
     <colorramp type="gradient" name="[source]">
-      <prop k="color1" v="255,245,235,255"/>
-      <prop k="color2" v="127,39,4,255"/>
+      <prop k="color1" v="202,0,32,255"/>
+      <prop k="color2" v="5,113,176,255"/>
       <prop k="discrete" v="0"/>
-      <prop k="stops" v="0.13;254,230,206,255:0.26;253,208,162,255:0.39;253,174,107,255:0.52;253,141,60,255:0.65;241,105,19,255:0.78;217,72,1,255:0.9;166,54,3,255"/>
+      <prop k="stops" v="0.25;244,165,130,255:0.5;247,247,247,255:0.75;146,197,222,255"/>
     </colorramp>
     <invertedcolorramp value="0"/>
-    <mode name="jenks"/>
+    <mode name="equal"/>
     <rotation/>
     <sizescale scalemethod="diameter"/>
-    <labelformat format=" %1" trimtrailingzeroes="true" decimalplaces="2"/>
+    <labelformat format=" %1 - %2" trimtrailingzeroes="true" decimalplaces="2"/>
   </renderer-v2>
   <labeling type="simple"/>
   <customproperties>
@@ -418,8 +352,8 @@
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property key="variableNames"/>
+    <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
@@ -447,7 +381,7 @@
     <selectedonly on=""/>
   </labelattributes>
   <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="0">
+    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
       <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
