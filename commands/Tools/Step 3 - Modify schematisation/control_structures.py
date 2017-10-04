@@ -142,9 +142,6 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_new.clicked\
             .connect(self.create_new_measuring_point)
-        self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_new_2.clicked\
-            .connect(self.create_new_measuring_point)
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
         start_row = 0
