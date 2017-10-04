@@ -182,14 +182,12 @@ class CustomCommand(CustomCommandBase):
             .combobox_input_measuring_point_table.currentText()
         measuring_point_table_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_point_id.currentText()
-        # attributes = {}
-        # attributes["id"] = new_max_id_measure_map
-        # attributes["object_type"] = measuring_point_table
-        # attributes["object_id"] = measuring_point_table_id
-        measure_point = control_structure.create_measure_point_dict(
-            new_id=new_max_id_measure_map, object_type=measuring_point_table,
-            object_id=measuring_point_table_id)
-        control_structure.insert_into_table(table_name, measure_point)
+        attributes = {
+            "id": new_max_id_measure_map,
+            "object_type": measuring_point_table,
+            "object_id": measuring_point_table_id
+        }
+        control_structure.insert_into_table(table_name, attributes)
         # Set the new ids of the v2_control_measure_map
         self.update_dockwidget_ids()
 
