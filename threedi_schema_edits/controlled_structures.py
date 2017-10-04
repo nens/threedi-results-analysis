@@ -118,16 +118,42 @@ class ControlledStructures(object):
                 msg = "Table {} not found.".format(table_name)
             else:
                 msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             else:
                 msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except Exception as e:
-                msg = "An unknown exception occured: {}".format(e)
-        messagebar_message(
-            "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+            msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         return list_of_attributes
+
+    def create_measure_point_dict(
+            self, new_id=None, object_type=None, object_id=None):
+        """
+        Function to create a dictionary for measuring points,
+        containing the attributes with their values.
+
+        Args:
+            (int) new_id: The (new) id for the measuring point.
+            (str) object_type: The object type (v2_pumpstation_view,
+                v2_culvert_view, v2_orifice_view or v2_weir_view.
+            (int) object_id: The id of the object.
+
+        Returns:
+            (dict) measure_point: A dict containing the measuring point
+                with the attributes and values.
+        """
+        measure_point = {}
+        measure_point["id"] = new_id
+        measure_point["object_type"] = object_type
+        measure_point["object_id"] = object_id
+        return measure_point
 
     def save_table_control(self, table_control):
         """
@@ -195,12 +221,16 @@ class ControlledStructures(object):
                 msg = "Table {} not found.".format(table_name)
             else:
                 msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
             if "unable to open database file" in str(e):
                 msg = "Database not found."
             else:
                 msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except Exception as e:
-                msg = "An unknown exception occured: {}".format(e)
-        messagebar_message(
-            "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+            msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
