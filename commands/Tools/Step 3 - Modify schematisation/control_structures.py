@@ -172,7 +172,7 @@ class CustomCommand(CustomCommandBase):
         try:
             max_id_measure_map = int(control_structure.get_attributes(
                 table_name, attribute_name)[0])
-        except Exception:
+        except TypeError:
             max_id_measure_map = 0
         new_max_id_measure_map = max_id_measure_map + 1
         # Populate the new row in the table
