@@ -155,7 +155,7 @@ class CustomCommand(CustomCommandBase):
         tablewidget.setItem(start_row, 3, QTableWidgetItem(""))
         tablewidget.setCellWidget(
             start_row, 3, self.dockwidget_controlled_structures
-            .pushbutton_input_measuring_point_new_2)
+            .pushbutton_input_measuring_point_new)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -169,9 +169,10 @@ class CustomCommand(CustomCommandBase):
         # Get last id of measure map or set to 0; set to +1
         table_name = "v2_control_measure_map"
         attribute_name = "MAX(id)"
-        max_id_measure_map = int(control_structure.get_attributes(
-            table_name, attribute_name)[0])
-        if not max_id_measure_map:
+        try:
+            max_id_measure_map = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except Exception:
             max_id_measure_map = 0
         new_max_id_measure_map = max_id_measure_map + 1
         # Populate the new row in the table
