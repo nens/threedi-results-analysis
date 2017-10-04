@@ -113,15 +113,20 @@ class ControlledStructures(object):
                 attributes = rs.fetchall()
                 list_of_attributes = [str(attribute_value[0]) for
                                       attribute_value in attributes]
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
+        except OperationalError as e:
+            if "no such table" in str(e):
                 msg = "Table {} not found.".format(table_name)
             else:
-                msg = "".format(e)
-            messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                msg = "An unknown exception occured: {}".format(e)
+        except ProgrammingError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            else:
+                msg = "An unknown exception occured: {}".format(e)
+        except Exception as e:
+                msg = "An unknown exception occured: {}".format(e)
+        messagebar_message(
+            "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         return list_of_attributes
 
     def save_table_control(self, table_control):
@@ -185,12 +190,17 @@ class ControlledStructures(object):
                     .format(table=table_name, attributes=attribute_names,
                             values=attribute_values)
                 )
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
+        except OperationalError as e:
+            if "no such table" in str(e):
                 msg = "Table {} not found.".format(table_name)
             else:
-                msg = "".format(e)
-            messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                msg = "An unknown exception occured: {}".format(e)
+        except ProgrammingError as e:
+            if "unable to open database file" in str(e):
+                msg = "Database not found."
+            else:
+                msg = "An unknown exception occured: {}".format(e)
+        except Exception as e:
+                msg = "An unknown exception occured: {}".format(e)
+        messagebar_message(
+            "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
