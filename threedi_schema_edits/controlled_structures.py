@@ -114,17 +114,12 @@ class ControlledStructures(object):
                 list_of_attributes = [str(attribute_value[0]) for
                                       attribute_value in attributes]
         except OperationalError as e:
-            if "no such table" in str(e):
-                msg = "Table {} not found.".format(table_name)
-            else:
-                msg = "An unknown exception occured: {}".format(e)
+            msg = "{error_message}. Table {table_name} might not exist."\
+                .format(error_meassage=e, table_name=table_name)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            else:
-                msg = "An unknown exception occured: {}".format(e)
+            msg = str(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except Exception as e:
@@ -195,17 +190,12 @@ class ControlledStructures(object):
                             values=attribute_values)
                 )
         except OperationalError as e:
-            if "no such table" in str(e):
-                msg = "Table {} not found.".format(table_name)
-            else:
-                msg = "An unknown exception occured: {}".format(e)
+            msg = "{error_message}. Table {table_name} might not exist."\
+                .format(error_meassage=e, table_name=table_name)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            else:
-                msg = "An unknown exception occured: {}".format(e)
+            msg = str(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except Exception as e:
