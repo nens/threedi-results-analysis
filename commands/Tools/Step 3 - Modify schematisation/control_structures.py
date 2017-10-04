@@ -178,11 +178,32 @@ class CustomCommand(CustomCommandBase):
             max_id_measure_map = 0
         new_max_id_measure_map = max_id_measure_map + 1
         # Populate the new row in the table
+        self.populate_measuring_point_row(new_max_id_measure_map)
+        # Insert the variables in the v2_control_table
+        measuring_point_table = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_table.currentText()
+        measuring_point_table_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_id.currentText()
+        attributes = {}
+        attributes["id"] = new_max_id_measure_map
+        attributes["object_type"] = measuring_point_table
+        attributes["object_id"] = measuring_point_table_id
+        control_structure.insert_into_table(table_name, attributes)
+        # Set the new ids of the v2_control_measure_map
+        self.update_dockwidget_ids()
+
+    def populate_measuring_point_row(self, id_measuring_point):
+        """
+        Populate a row from te measuring point table.
+
+        Args:
+            (str) id_measuring_point: The id of the measuring point."""
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
-        row_position = tablewidget.rowCount()
+        # Always put the new row on top.
+        row_position = 1
         tablewidget.insertRow(row_position)
-        measuring_point_id = QTableWidgetItem(str(new_max_id_measure_map))
+        measuring_point_id = QTableWidgetItem(str(id_measuring_point))
         tablewidget.setItem(row_position, 0, measuring_point_id)
         measuring_point_table_widget = QTableWidgetItem(
             self.dockwidget_controlled_structures
@@ -199,24 +220,13 @@ class CustomCommand(CustomCommandBase):
             self.remove_measuring_point_row)
         tablewidget.setCellWidget(
             row_position, 3, measuring_point_remove_widget)
-        measuring_point_table = self.dockwidget_controlled_structures\
-            .combobox_input_measuring_point_table.currentText()
-        measuring_point_table_id = self.dockwidget_controlled_structures\
-            .combobox_input_measuring_point_id.currentText()
-        # Insert the variables in the v2_control_table
-        attributes = {}
-        attributes["id"] = new_max_id_measure_map
-        attributes["object_type"] = measuring_point_table
-        attributes["object_id"] = measuring_point_table_id
-        control_structure.insert_into_table(table_name, attributes)
-        # Set the new ids of the v2_control_measure_map
-        self.update_dockwidget_ids()
 
     def remove_measuring_point_row(self):
         """Remove a row from the measuring point table."""
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
         row_number = tablewidget.currentRow()
+        # Don't remove the first row.
         dont_remove = 0
         if row_number != dont_remove:
             tablewidget.removeRow(row_number)
