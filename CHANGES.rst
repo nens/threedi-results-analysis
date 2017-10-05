@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Control structures: add the possibility to add and remove measuring stations.
+
 - Change dockwidget for controlled structures: it is now visible in the bottom
   of the screen and contains tabs for the aspects of the controlled structures.
 - Update animated layer and style.

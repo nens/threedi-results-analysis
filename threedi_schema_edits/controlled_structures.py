@@ -89,7 +89,7 @@ class ControlledStructures(object):
 
     def get_attributes(self, table_name, attribute_name):
         """
-        Get the attributes from a table.
+        Get all values of an attribute from a table.
 
 
         Args:
@@ -113,13 +113,16 @@ class ControlledStructures(object):
                 attributes = rs.fetchall()
                 list_of_attributes = [str(attribute_value[0]) for
                                       attribute_value in attributes]
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
-                msg = "Table {} not found.".format(table_name)
-            else:
-                msg = "".format(e)
+        except OperationalError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except ProgrammingError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except Exception as e:
+            msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         return list_of_attributes
@@ -138,12 +141,6 @@ class ControlledStructures(object):
                                   table_control["action_type"],
                                   table_control["measure_variable"].
         """
-        action_table = table_control["action_table"]
-        measure_operator = table_control["measure_operator"]
-        target_id = table_control["target_id"]
-        target_type = table_control["target_type"]
-        action_type = table_control["action_type"]
-        measure_variable = table_control["measure_variable"]
         # Get new id
         table_name = "v2_control_table"
         # MAX(id) returns None if the sql statement yields nothing.
@@ -156,23 +153,50 @@ class ControlledStructures(object):
             max_id_control_table = 0
         new_id_control_table = max_id_control_table + 1
         # Insert the variables in the v2_control_table
+        table_control["id"] = new_id_control_table
+        self.insert_into_table(table_name, table_control)
+
+    def insert_into_table(self, table_name, attributes):
+        """
+        Function to insert data in a table (table_name).
+        The list of values is inserted in the list of attributes.
+
+
+        Args
+            (str) table_name: The table name of a spatialite or postgres
+                              database
+            (dict) attributes: A dictionary of attributes to insert into
+                               the table.
+        """
+        attribute_names = ""
+        attribute_values = ""
+        for key, value in attributes.iteritems():
+            if attribute_names != "":
+                attribute_names += ", '{}'".format(str(key))
+            else:
+                attribute_names += "'{}'".format(str(key))
+            if attribute_values != "":
+                attribute_values += ", '{}'".format(str(value))
+            else:
+                attribute_values += "'{}'".format(str(value))
+        print attribute_values
+        print attribute_names
         try:
             with self.engine.connect() as con:
                 con.execute(
-                    '''INSERT INTO v2_control_table (action_table, \
-                    measure_operator, target_id, target_type, \
-                    measure_variable, action_type, id) \
-                    VALUES ('{0}', '{1}', {2}, '{3}', '{4}', '{5}', '{6}');'''
-                    .format(
-                        action_table, measure_operator, target_id, target_type,
-                        measure_variable, action_type, new_id_control_table)
+                    '''INSERT INTO {table} ({attributes}) VALUES ({values});'''
+                    .format(table=table_name, attributes=attribute_names,
+                            values=attribute_values)
                 )
-        except (OperationalError, ProgrammingError) as e:
-            if "unable to open database file" in str(e):
-                msg = "Database not found."
-            elif "no such table" in str(e):
-                msg = "Table {} not found.".format("v2_control_table")
-            else:
-                msg = "".format(e)
+        except OperationalError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except ProgrammingError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except Exception as e:
+            msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)

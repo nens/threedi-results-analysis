@@ -4,6 +4,8 @@
 import logging
 
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QTableWidgetItem
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -52,6 +54,7 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
+        self.setup_measuring_station_tab()
         self.dockwidget_controlled_structures.pushbutton_input_save\
             .clicked.connect(self.run_it)
 
@@ -92,13 +95,7 @@ class CustomCommand(CustomCommandBase):
                 structure_table, "")
             table_control["action_type"] = DICT_ACTION_TYPES.get(
                 structure_table, "")
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_measuring_point_field.currentText()\
-                    == "initial_waterlevel":
-                measure_variable = MEASURE_VARIABLE_WATERLEVEL
-            else:
-                measure_variable = ""
-            table_control["measure_variable"] = measure_variable
+            table_control["measure_variable"] = "waterlevel"
             control_structure.save_table_control(table_control)
 
     def show_gui(self):
@@ -118,24 +115,117 @@ class CustomCommand(CustomCommandBase):
         By clicking on a different model in the GUI, the id's
         for the measuring points and structures are updated.
         """
-        self.dockwidget_controlled_structures.\
-            combobox_input_measuring_point_id.clear()
-        self.dockwidget_controlled_structures.\
-            combobox_input_structure_id.clear()
         db_key = self.dockwidget_controlled_structures.combobox_input_model\
             .currentText()  # name of database
         db = get_database_properties(db_key)
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Get all id's of the connection nodes
+        # Set the id's of the connection nodes
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_point_id.clear()
         list_of_measuring_point_ids = control_structure.get_attributes(
             table_name="v2_connection_nodes", attribute_name="id")
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.addItems(
                 list_of_measuring_point_ids)
-        # Get the id's of the structures
+        # Set the id's of the structures
+        self.dockwidget_controlled_structures.\
+            combobox_input_structure_id.clear()
         list_of_structure_ids = control_structure.get_attributes(
             table_name="v2_weir_view", attribute_name="weir_id")
         self.dockwidget_controlled_structures.\
             combobox_input_structure_id.addItems(list_of_structure_ids)
+
+    def setup_measuring_station_tab(self):
+        """Setup the measuring station tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_new.clicked\
+            .connect(self.create_new_measuring_point)
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        start_row = 0
+        tablewidget.setItem(start_row, 0, QTableWidgetItem(""))
+        tablewidget.setCellWidget(
+            start_row, 1, self.dockwidget_controlled_structures
+            .combobox_input_measuring_point_table)
+        tablewidget.setCellWidget(
+            start_row, 2, self.dockwidget_controlled_structures
+            .combobox_input_measuring_point_id)
+        tablewidget.setItem(start_row, 3, QTableWidgetItem(""))
+        tablewidget.setCellWidget(
+            start_row, 3, self.dockwidget_controlled_structures
+            .pushbutton_input_measuring_point_new)
+
+    def create_new_measuring_point(self):
+        """Create a new measuring point."""
+        # Get the model
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of measure map or set to 0; set to +1
+        table_name = "v2_control_measure_map"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_measure_map = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_measure_map = 0
+        new_max_id_measure_map = max_id_measure_map + 1
+        # Populate the new row in the table
+        self.populate_measuring_point_row(new_max_id_measure_map)
+        # Insert the variables in the v2_control_table
+        measuring_point_table = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_table.currentText()
+        measuring_point_table_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_id.currentText()
+        attributes = {
+            "id": new_max_id_measure_map,
+            "object_type": measuring_point_table,
+            "object_id": measuring_point_table_id
+        }
+        control_structure.insert_into_table(table_name, attributes)
+        # Set the new ids of the v2_control_measure_map
+        self.update_dockwidget_ids()
+
+    def populate_measuring_point_row(self, id_measuring_point):
+        """
+        Populate a row from te measuring point table.
+
+        Args:
+            (str) id_measuring_point: The id of the measuring point."""
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        # Always put the new row on top.
+        row_position = 1
+        tablewidget.insertRow(row_position)
+        measuring_point_id = QTableWidgetItem(str(id_measuring_point))
+        tablewidget.setItem(row_position, 0, measuring_point_id)
+        measuring_point_table_widget = QTableWidgetItem(
+            self.dockwidget_controlled_structures
+            .combobox_input_measuring_point_table.currentText())
+        tablewidget.setItem(row_position, 1, measuring_point_table_widget)
+        measuring_point_table_id_widget = QTableWidgetItem(
+            self.dockwidget_controlled_structures
+            .combobox_input_measuring_point_id.currentText())
+        tablewidget.setItem(row_position, 2, measuring_point_table_id_widget)
+        measuring_point_remove_widget = QPushButton("Remove")
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        measuring_point_remove_widget.clicked.connect(
+            self.remove_measuring_point_row)
+        tablewidget.setCellWidget(
+            row_position, 3, measuring_point_remove_widget)
+
+    def remove_measuring_point_row(self):
+        """Remove a row from the measuring point table."""
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        row_number = tablewidget.currentRow()
+        # Don't remove the first row.
+        dont_remove = 0
+        if row_number != dont_remove:
+            tablewidget.removeRow(row_number)
