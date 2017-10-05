@@ -254,22 +254,26 @@ class CustomCommand(CustomCommandBase):
         measuring_group_id_name = "measure_group_id"
         measuring_group_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_group_view.currentText()
-        attribute_name = "*"
-        table_name = "v2_control_measure_map"
-        where = "{id_name} = {id_value}"\
-            .format(id_name=measuring_group_id_name,
-                    id_value=measuring_group_id)
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        measure_group = control_structure.get_features_with_where_clause(
-            table_name, attribute_name, where)
-        # Add a tab in the tabwidget of the 'Measuring group' tab in
-        # the controlled structures dockwidget
-        self.populate_measuring_group_tab(measuring_group_id, measure_group)
+        if measuring_group_id == "":
+            return
+        else:
+            attribute_name = "*"
+            table_name = "v2_control_measure_map"
+            where = "{id_name} = {id_value}"\
+                .format(id_name=measuring_group_id_name,
+                        id_value=measuring_group_id)
+            db_key = self.dockwidget_controlled_structures\
+                .combobox_input_model.currentText()  # name of database
+            db = get_database_properties(db_key)
+            control_structure = ControlledStructures(
+                flavor=db["db_entry"]['db_type'])
+            control_structure.start_sqalchemy_engine(db["db_settings"])
+            measure_group = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)
+            # Add a tab in the tabwidget of the 'Measuring group' tab in
+            # the controlled structures dockwidget
+            self.populate_measuring_group_tab(
+                measuring_group_id, measure_group)
 
     def populate_measuring_group_tab(self, measuring_group_id, measure_group):
         """
