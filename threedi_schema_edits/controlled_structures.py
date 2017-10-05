@@ -127,6 +127,48 @@ class ControlledStructures(object):
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         return list_of_attributes
 
+    def get_features_with_where_clause(
+            self, table_name, attribute_name, where):
+        """
+        Get all values of an attribute from a table.
+
+
+        Args:
+            (str) table_name: The table name of a spatialite or postgres
+                              database.
+            (str) attribute_name: The name of the attribute of a spatialite or
+                                  postgres database.
+            (str) where: The where clause for the sql statement.
+
+        Returns:
+            (list) list_of_features: A list of all the features
+                                       of the table.
+                                       The features are tuples.
+        """
+        list_of_features = []
+        try:
+            with self.engine.connect() as con:
+                rs = con.execute(
+                    '''SELECT {attribute} FROM {table} WHERE {where};'''.format(
+                        attribute=attribute_name, table=table_name,
+                        where=where)
+                )
+                features = rs.fetchall()
+                list_of_features = [feature for feature in features]
+        except OperationalError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except ProgrammingError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except Exception as e:
+            msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        return list_of_features
+
     def save_table_control(self, table_control):
         """
         Function to save the table control in the v2_control_table.
