@@ -154,6 +154,116 @@
      <attribute name="title">
       <string>Measuring group</string>
      </attribute>
+     <widget class="QPushButton" name="pushbutton_input_measuring_group_new">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>New</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_group_new">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>20</y>
+        <width>361</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create a new set of measuring groups.</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_group_view">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_measuring_group_view">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>60</y>
+        <width>201</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_group_view">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>60</y>
+        <width>361</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View a measuring group from the database.</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_group_clear">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear all</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_group_clear">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>100</y>
+        <width>371</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear the tabs.</string>
+      </property>
+     </widget>
+     <widget class="QTabWidget" name="tab_measuring_group_view_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>761</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="currentIndex">
+       <number>-1</number>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_rule">
      <attribute name="title">
