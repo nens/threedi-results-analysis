@@ -114,8 +114,7 @@ class ControlledStructures(object):
                 list_of_attributes = [str(attribute_value[0]) for
                                       attribute_value in attributes]
         except OperationalError as e:
-            msg = "{error_message}. Table {table_name} might not exist."\
-                .format(error_message=e, table_name=table_name)
+            msg = str(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
@@ -190,8 +189,7 @@ class ControlledStructures(object):
                             values=attribute_values)
                 )
         except OperationalError as e:
-            msg = "{error_message}. Table {table_name} might not exist."\
-                .format(error_message=e, table_name=table_name)
+            msg = str(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
         except ProgrammingError as e:
