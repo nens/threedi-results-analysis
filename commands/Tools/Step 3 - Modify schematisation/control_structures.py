@@ -4,8 +4,12 @@
 import logging
 
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QLabel
 from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QTableWidget
 from PyQt4.QtGui import QTableWidgetItem
+from PyQt4.QtGui import QVBoxLayout
+from PyQt4.QtGui import QWidget
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -55,6 +59,7 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
         self.setup_measuring_station_tab()
+        self.setup_measuring_group_tab()
         self.dockwidget_controlled_structures.pushbutton_input_save\
             .clicked.connect(self.run_it)
 
@@ -129,6 +134,14 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.addItems(
                 list_of_measuring_point_ids)
+        # Set the id's of the measuring groups
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_group_view.clear()
+        list_of_measuring_group_ids = control_structure.get_attributes(
+            table_name="v2_control_measure_group", attribute_name="id")
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_group_view.addItems(
+                list_of_measuring_group_ids)
         # Set the id's of the structures
         self.dockwidget_controlled_structures.\
             combobox_input_structure_id.clear()
@@ -156,6 +169,12 @@ class CustomCommand(CustomCommandBase):
         tablewidget.setCellWidget(
             start_row, 3, self.dockwidget_controlled_structures
             .pushbutton_input_measuring_point_new)
+
+    def setup_measuring_group_tab(self):
+        """Setup the measuring station tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_group_view.clicked.connect(
+                self.view_measuring_group)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -229,3 +248,83 @@ class CustomCommand(CustomCommandBase):
         dont_remove = 0
         if row_number != dont_remove:
             tablewidget.removeRow(row_number)
+
+    def view_measuring_group(self):
+        """View a measuring group in a new tab in the Measure groups tab."""
+        measuring_group_id_name = "measure_group_id"
+        measuring_group_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_group_view.currentText()
+        if measuring_group_id == "":
+            return
+        else:
+            attribute_name = "*"
+            table_name = "v2_control_measure_map"
+            where = "{id_name} = {id_value}"\
+                .format(id_name=measuring_group_id_name,
+                        id_value=measuring_group_id)
+            db_key = self.dockwidget_controlled_structures\
+                .combobox_input_model.currentText()  # name of database
+            db = get_database_properties(db_key)
+            control_structure = ControlledStructures(
+                flavor=db["db_entry"]['db_type'])
+            control_structure.start_sqalchemy_engine(db["db_settings"])
+            measure_group = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)
+            # Add a tab in the tabwidget of the 'Measuring group' tab in
+            # the controlled structures dockwidget
+            self.populate_measuring_group_tab(
+                measuring_group_id, measure_group)
+
+    def populate_measuring_group_tab(self, measuring_group_id, measure_group):
+        """
+        Add a tab in the tabwidget of the 'Measuring group' tab.
+
+        Args:
+            (int) measuring_group_id: The id of the measure group.
+            (list) measure_group: A list of tuples. The tuples contain the
+                                  different measuring points.
+        """
+        self.create_measuring_group_tab(measuring_group_id)
+        # Populate new tab of "Measuring group" tab
+        for measure_point in measure_group:
+            row_position = self.dockwidget_controlled_structures\
+                .table_measuring_group.rowCount()
+            self.dockwidget_controlled_structures\
+                .table_measuring_group.insertRow(row_position)
+            self.dockwidget_controlled_structures.table_measuring_group\
+                .setItem(row_position, 0, QTableWidgetItem(
+                    "v2_connection_nodes"))
+            self.dockwidget_controlled_structures.table_measuring_group\
+                .setItem(row_position, 1, QTableWidgetItem(
+                    str(measure_point[3])))
+            self.dockwidget_controlled_structures.table_measuring_group\
+                .setItem(row_position, 2, QTableWidgetItem(
+                    str(measure_point[4])))
+
+    def create_measuring_group_tab(self, measuring_group_id):
+        """Create a tab in the Measuring group tab."""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        tab.setLayout(layout)
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setText("Field: {}".format("initial_waterlevel"))
+
+        table_measuring_group = QTableWidget(tab)
+        table_measuring_group.setGeometry(10, 40, 741, 311)
+        table_measuring_group.insertColumn(0)
+        table_measuring_group.setHorizontalHeaderItem(
+            0, QTableWidgetItem("table"))
+        table_measuring_group.insertColumn(1)
+        table_measuring_group.setHorizontalHeaderItem(
+            1, QTableWidgetItem("table_id"))
+        table_measuring_group.insertColumn(2)
+        table_measuring_group.setHorizontalHeaderItem(
+            2, QTableWidgetItem("weight"))
+        self.dockwidget_controlled_structures.table_measuring_group = \
+            table_measuring_group
+        # Set the new tab as the first tab
+        self.dockwidget_controlled_structures\
+            .tab_measuring_group_view_2.insertTab(0, tab, "Group: {}".format(
+                str(measuring_group_id)))
