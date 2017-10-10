@@ -181,6 +181,8 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_group_view.clicked.connect(
                 self.view_measuring_group)
+        self.dockwidget_controlled_structures.tab_measuring_group_view_2\
+            .tabCloseRequested.connect(self.remove_measuring_group_tab)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -359,3 +361,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .tab_measuring_group_view_2.insertTab(0, tab, "Group: {}".format(
                 str(measuring_group_id)))
+
+    def remove_measuring_group_tab(self):
+        """Remove a tab."""
+        self.dockwidget_controlled_structures.tab_measuring_group_view_2\
+            .removeTab(self.dockwidget_controlled_structures
+                       .tab_measuring_group_view_2.currentIndex())
