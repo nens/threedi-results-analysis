@@ -13,8 +13,6 @@ from PyQt4.QtGui import QWidget
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    MEASURE_VARIABLE_WATERLEVEL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_BOTTOM_UP
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     RULE_OPERATOR_TOP_DOWN
