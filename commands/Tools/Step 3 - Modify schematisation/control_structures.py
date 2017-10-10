@@ -22,11 +22,14 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     TABLE_CONTROL
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
+from ThreeDiToolbox.views.control_structures_create_measuring_group import \
+    CreateMeasuringGroupDialogWidget # noqa
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
-from ThreeDiToolbox.views.control_structures_dockwidget import ControlStructuresDockWidget  # noqa
+from ThreeDiToolbox.views.control_structures_dockwidget import \
+    ControlStructuresDockWidget  # noqa
 
 log = logging.getLogger(__name__)
 
@@ -173,6 +176,9 @@ class CustomCommand(CustomCommandBase):
     def setup_measuring_group_tab(self):
         """Setup the measuring station tab."""
         self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_group_new.clicked.connect(
+                self.create_new_measuring_group)
+        self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_group_view.clicked.connect(
                 self.view_measuring_group)
 
@@ -248,6 +254,31 @@ class CustomCommand(CustomCommandBase):
         dont_remove = 0
         if row_number != dont_remove:
             tablewidget.removeRow(row_number)
+
+    def create_new_measuring_group(self):
+        """Create a new measuring group."""
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of measure group or set to 0; set to +1
+        table_name = "v2_control_measure_group"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_measure_group = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_measure_group = 0
+        new_id_measure_group = max_id_measure_group + 1
+        self.dialog_create_measuring_group = \
+            CreateMeasuringGroupDialogWidget(
+                command=self, db_key=db_key,
+                measuring_group_id=str(new_id_measure_group),
+                dockwidget_controlled_structures=self.
+                dockwidget_controlled_structures)
+        self.dialog_create_measuring_group.exec_()  # block execution
 
     def view_measuring_group(self):
         """View a measuring group in a new tab in the Measure groups tab."""

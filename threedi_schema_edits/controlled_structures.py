@@ -221,8 +221,6 @@ class ControlledStructures(object):
                 attribute_values += ", '{}'".format(str(value))
             else:
                 attribute_values += "'{}'".format(str(value))
-        print attribute_values
-        print attribute_names
         try:
             with self.engine.connect() as con:
                 con.execute(
