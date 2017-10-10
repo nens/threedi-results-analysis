@@ -57,89 +57,19 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         """
         super(CreateMeasuringGroupDialogWidget, self).__init__(parent)
         self.setupUi()
-        # Set the id of the measuring group
-        self.label_measuring_group_id_info.setText(measuring_group_id)
 
-        self.command = command
-        self.db_key = db_key
         self.measuring_group_id = measuring_group_id
+        self.command = command
         self.dockwidget_controlled_structures = \
             dockwidget_controlled_structures
 
+        self.db_key = db_key
         self.databases = get_databases()
-
         self.db = get_database_properties(self.db_key)
         self.control_structure = ControlledStructures(
             flavor=self.db["db_entry"]['db_type'])
-        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
-        # Get all id's of the measuring groups
-        list_of_measuring_group_ids = self.control_structure.get_attributes(
-            table_name="v2_control_measure_group", attribute_name="id")
-        for measuring_group_id in list_of_measuring_group_ids:
-            id_nr = measuring_group_id[0]
-            self.combobox_measuring_group_load.addItem(str(id_nr))
-        # Get all id's of the measuring points
-        list_of_measuring_point_ids = self.control_structure.get_attributes(
-            table_name="v2_control_measure_map", attribute_name="id")
-        for measuring_point_id in list_of_measuring_point_ids:
-            id_nr = measuring_point_id[0]
-            self.combobox_measuring_point_load.addItem(str(id_nr))
-
-        # db_key = self.db_key  # name of database
-        # db_entry = self.databases[db_key]
-
-        # # Set the id of the measuring group that is about to be made
-        # self.label_measuring_group_id_info.setText(measuring_group_id)
-
-        # _db_settings = db_entry['db_settings']
-
-        # if db_entry['db_type'] == 'spatialite':
-        #     host = _db_settings['db_path']
-        #     db_settings = {
-        #         'host': host,
-        #         'port': '',
-        #         'name': '',
-        #         'username': '',
-        #         'password': '',
-        #         'schema': '',
-        #         'database': '',
-        #         'db_path': host,
-        #     }
-        # else:
-        #     db_settings = _db_settings
-        #     db_settings['schema'] = 'public'
-        # control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        # control_structure.start_sqalchemy_engine(db_settings)
-        # # Get all id's of the measuring groups
-        # with control_structure.engine.connect() as con:
-        #     rs = con.execute(
-        #         '''SELECT id FROM v2_control_measure_group;'''
-        #     )
-        #     measure_group_ids = rs.fetchall()
-        # con.close()
-        # for measure_group_id in measure_group_ids:
-        #     id_nr = measure_group_id[0]
-        #     self.combobox_measuring_group_load.addItem(str(id_nr))
-        # # Get all id's of the measuring points
-        # with control_structure.engine.connect() as con:
-        #     rs = con.execute(
-        #         '''SELECT id FROM v2_control_measure_map;'''
-        #     )
-        #     measure_map_ids = rs.fetchall()
-        # con.close()
-        # for measure_map_id in measure_map_ids:
-        #     id_nr = measure_map_id[0]
-        #     self.combobox_measuring_point_load.addItem(str(id_nr))
-
-        # Connect signals
-        self.pushbutton_measuring_group_load.clicked.connect(
-            self.load_measuring_group)
-        self.pushbutton_measuring_point_add_point.clicked.connect(
-            self.add_measuring_point)
-        self.pushbutton_measuring_point_load.clicked.connect(
-            self.load_measuring_point)
-        self.buttonbox.accepted.connect(self.on_accept)
-        self.buttonbox.rejected.connect(self.on_reject)
+        self.setup_ids()
+        self.connect_signals()
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
@@ -163,43 +93,46 @@ class CreateMeasuringGroupDialogWidget(QDialog):
 
         event.accept()
 
-    def update_dialog(self):
-        """
-        Function to update the create measuring group dialog.
-        """
-        # Get the model
-        db_key = self.db_key  # name of database
-        db_entry = self.databases[db_key]
+    def setup_ids(self):
+        """Setup the id's for the measuring group and measuring points."""
+        # Set the id of the measuring group
+        self.label_measuring_group_id_info.setText(self.measuring_group_id)
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        # Set all id's of the measuring groups
+        self.combobox_measuring_group_load.clear()
+        list_of_measuring_group_ids = self.control_structure.get_attributes(
+            table_name="v2_control_measure_group", attribute_name="id")
+        self.combobox_measuring_group_load.addItems(
+            list_of_measuring_group_ids)
+        # Set all id's of the measuring points
+        self.combobox_measuring_point_load.clear()
+        list_of_measuring_point_ids = self.control_structure.get_attributes(
+            table_name="v2_control_measure_map", attribute_name="id")
+        self.combobox_measuring_point_load.addItems(
+            list_of_measuring_point_ids)
 
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
+    def setup_connection_nodes_ids(self):
+        """
+        Function to setup the connection_nodes id's.
+        """
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
         # Get all id's of the connection nodes
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT id FROM v2_connection_nodes;'''
-            )
-            connection_node_ids = rs.fetchall()
-        con.close()
-        for connection_node_id in connection_node_ids:
-            id_nr = connection_node_id[0]
-            self.combobox_measuring_group_table_id.addItem(str(id_nr))
+        self.combobox_measuring_group_table_id.clear()
+        list_of_connection_nodes_ids = self.control_structure.get_attributes(
+            table_name="v2_connection_nodes", attribute_name="id")
+        self.combobox_measuring_group_table_id.addItems(
+            list_of_connection_nodes_ids)
+
+    def connect_signals(self):
+        """Connect the signals."""
+        self.pushbutton_measuring_group_load.clicked.connect(
+            self.load_measuring_group)
+        self.pushbutton_measuring_point_add_point.clicked.connect(
+            self.add_measuring_point)
+        self.pushbutton_measuring_point_load.clicked.connect(
+            self.load_measuring_point)
+        self.buttonbox.accepted.connect(self.on_accept)
+        self.buttonbox.rejected.connect(self.on_reject)
 
     def add_measuring_point(self):
         """Add a measuring point to the tablewidget."""
@@ -212,99 +145,22 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         self.tablewidget_measuring_point.setCellWidget(
             row_position, 1, self.combobox_measuring_group_table_id)
         measuring_point_remove = QPushButton("Remove")
-        measuring_point_remove.clicked.connect(self.remove_row)
+        measuring_point_remove.clicked.connect(self.remove_measuring_point)
         self.tablewidget_measuring_point.setCellWidget(
             row_position, 3, measuring_point_remove)
-        self.update_dialog()
-
-    def remove_row(self):
-        """Remove a certain row."""
-        tablewidget = self.tablewidget_measuring_point
-        row_number = tablewidget.currentRow()
-        tablewidget.removeRow(row_number)
-
-    def load_measuring_group(self):
-        """Load a measuring group in the tablewidget."""
-        # Clear table
-        row_count = self.tablewidget_measuring_point.rowCount()
-        for row in range(row_count):
-            self.tablewidget_measuring_point.removeRow(0)
-        db_key = self.db_key  # name of database
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
-        # Get all the measuring points
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT * FROM v2_control_measure_map WHERE measure_group_id={};'''
-                .format(self.combobox_measuring_group_load.currentText())
-            )
-            measure_groups = rs.fetchall()
-        con.close()
-        for measure_group in measure_groups:
-            row_position = self.tablewidget_measuring_point.rowCount()
-            self.tablewidget_measuring_point.insertRow(row_position)
-            self.tablewidget_measuring_point.setItem(
-                row_position, 0, QTableWidgetItem(str(measure_group[2])))
-            self.tablewidget_measuring_point.setItem(
-                row_position, 1, QTableWidgetItem(str(measure_group[3])))
-            self.tablewidget_measuring_point.setItem(
-                row_position, 2, QTableWidgetItem(str(measure_group[4])))
-            measuring_point_remove = QPushButton("Remove")
-            measuring_point_remove.clicked.connect(self.remove_row)
-            self.tablewidget_measuring_point.setCellWidget(
-                row_position, 3, measuring_point_remove)
+        self.setup_connection_nodes_ids()
 
     def load_measuring_point(self):
         """Load a measuring group in the tablewidget."""
-        db_key = self.db_key  # name of database
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
-        # Get the measuring points
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT * FROM v2_control_measure_map WHERE id={};'''
-                .format(self.combobox_measuring_point_load.currentText())
-            )
-            measure_point = rs.fetchone()
-        con.close()
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        # Get the measuring point
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        where_clause = "id={}".format(
+            self.combobox_measuring_point_load.currentText())
+        measure_point = self.control_structure.get_features_with_where_clause(
+            table_name=table_name, attribute_name=attribute_name,
+            where=where_clause)[0]
         # The measuring point should be added on the top of the table
         row_position = 0
         self.tablewidget_measuring_point.insertRow(row_position)
@@ -315,54 +171,83 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         self.tablewidget_measuring_point.setItem(
             row_position, 2, QTableWidgetItem(str(measure_point[4])))
         measuring_point_remove = QPushButton("Remove")
-        measuring_point_remove.clicked.connect(self.remove_row)
+        measuring_point_remove.clicked.connect(self.remove_measuring_point)
         self.tablewidget_measuring_point.setCellWidget(
             row_position, 3, measuring_point_remove)
 
+    def load_measuring_group(self):
+        """Load a measuring group in the tablewidget."""
+        # Remove all current rows.
+        row_count = self.tablewidget_measuring_point.rowCount()
+        for row in range(row_count):
+            self.tablewidget_measuring_point.removeRow(0)
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        # Get all the measuring points from a certain measure group
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        where_clause = "measure_group_id={}".format(
+            self.combobox_measuring_group_load.currentText())
+        measure_groups = self.control_structure.get_features_with_where_clause(
+            table_name=table_name, attribute_name=attribute_name,
+            where=where_clause)
+        for measure_group in measure_groups:
+            row_position = self.tablewidget_measuring_point.rowCount()
+            self.tablewidget_measuring_point.insertRow(row_position)
+            self.tablewidget_measuring_point.setItem(
+                row_position, 0, QTableWidgetItem(str(measure_group[2])))
+            self.tablewidget_measuring_point.setItem(
+                row_position, 1, QTableWidgetItem(str(measure_group[3])))
+            self.tablewidget_measuring_point.setItem(
+                row_position, 2, QTableWidgetItem(str(measure_group[4])))
+            measuring_point_remove = QPushButton("Remove")
+            measuring_point_remove.clicked.connect(self.remove_measuring_point)
+            self.tablewidget_measuring_point.setCellWidget(
+                row_position, 3, measuring_point_remove)
+
+    def remove_measuring_point(self):
+        """Remove a certain measuring point from the tablewidget."""
+        tablewidget = self.tablewidget_measuring_point
+        row_number = tablewidget.currentRow()
+        tablewidget.removeRow(row_number)
+
     def save_measuring_group(self):
         """Save the measuring group in the database."""
-        db_key = self.db_key  # name of database
-        db_entry = self.databases[db_key]
-
-        _db_settings = db_entry['db_settings']
-
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
-            db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
-            }
-        else:
-            db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        control_structure = ControlledStructures(flavor=db_entry['db_type'])
-        control_structure.start_sqalchemy_engine(db_settings)
-        # Get the new measuring_group id
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT MAX(id) FROM v2_control_measure_group;'''
-            )
-            measuring_group_id = rs.fetchone()[0]
-            if not measuring_group_id:
-                measuring_group_id = 0
-            new_measuring_group_id = measuring_group_id + 1
-        con.close()
-        # Insert the variables in the v2_control_measure_group
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''INSERT INTO v2_control_measure_group (id) \
-                VALUES ('{}');'''
-                .format(new_measuring_group_id)
-            )
-        con.close()
-        # Add a tab in the tabwidget of the 'Measuring group' tab in
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        # Insert the measuring group in the v2_control_measure_group
+        table_name = "v2_control_measure_group"
+        attributes = {
+            "id": self.measuring_group_id
+        }
+        self.control_structure.insert_into_table(
+            table_name=table_name, attributes=attributes)
+        # Create a tab in the tabwidget of the 'Measuring group' tab in
         # the controlled structures dockwidget
+        self.add_measuring_group_tab_dockwidget()
+        table_name = "v2_control_measure_map"
+        for row in range(self.tablewidget_measuring_point.rowCount()):
+            # Get the new measuring_point id
+            attribute_name = "MAX(id)"
+            try:
+                max_id_measure_point = int(
+                    self.control_structure.get_attributes(
+                        table_name, attribute_name)[0])
+            except ValueError:
+                max_id_measure_point = 0
+            new_measuring_point_id = max_id_measure_point + 1
+            measure_point_attributes = self.get_measuring_point_attributes(
+                row, new_measuring_point_id)
+            # Save the measuring point in the v2_control_measure_map
+            self.control_structure.insert_into_table(
+                table_name, measure_point_attributes)
+            # Setup new tab of "Measuring group" tab
+            self.setup_measuring_group_table_dockwidget(
+                measure_point_attributes)
+
+    def add_measuring_group_tab_dockwidget(self):
+        """
+        Create a tab for the measure group within the Measure group tab
+        in the dockwidget.
+        """
         tab = QtGui.QWidget()
         layout = QtGui.QVBoxLayout(tab)
         tab.setLayout(layout)
@@ -390,57 +275,66 @@ class CreateMeasuringGroupDialogWidget(QDialog):
             .tab_measuring_group_view_2.insertTab(
                 0, tab, "Group: {}".format(
                     str(self.label_measuring_group_id_info.text())))
-        # Insert the variables in the v2_control_measure_map
-        # and in the newly made tab of the "Measuring group" tab
-        for row in range(self.tablewidget_measuring_point.rowCount()):
-            # Get the new measuring_point id
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''SELECT MAX(id) FROM v2_control_measure_map;'''
-                )
-                measuring_point_id = rs.fetchone()[0]
-                if not measuring_point_id:
-                    measuring_point_id = 0
-                new_measuring_point_id = measuring_point_id + 1
-            con.close()
-            measuring_point_table = self.tablewidget_measuring_point.item(
-                row, 0).text()
-            try:
-                measuring_point_table_id = self.tablewidget_measuring_point\
-                    .item(row, 1).text()
-            except AttributeError:
-                measuring_point_table_id = self.tablewidget_measuring_point\
-                    .cellWidget(row, 1).currentText()
-            try:
-                measuring_point_weight = self.tablewidget_measuring_point.item(
-                    row, 2).text()
-            except AttributeError:
-                measuring_point_weight = ""
-            # Save the variables in the v2_control_measure_map
-            with control_structure.engine.connect() as con:
-                rs = con.execute(
-                    '''INSERT INTO v2_control_measure_map (id, \
-                    measure_group_id, object_type, object_id, \
-                    weight) \
-                    VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');'''
-                    .format(new_measuring_point_id, new_measuring_group_id,
-                            measuring_point_table, measuring_point_table_id,
-                            measuring_point_weight))
-            con.close()
-            # Populate new tab of "Measuring group" tab
-            row_position = self.dockwidget_controlled_structures\
-                .table_measuring_group.rowCount()
-            self.dockwidget_controlled_structures\
-                .table_measuring_group.insertRow(row_position)
-            self.dockwidget_controlled_structures.table_measuring_group\
-                .setItem(row_position, 0, QTableWidgetItem(
-                    "v2_connection_nodes"))
-            self.dockwidget_controlled_structures.table_measuring_group\
-                .setItem(row_position, 1, QTableWidgetItem(
-                    measuring_point_table_id))
-            self.dockwidget_controlled_structures.table_measuring_group\
-                .setItem(row_position, 2, QTableWidgetItem(
-                    measuring_point_weight))
+
+    def get_measuring_point_attributes(self, row_nr, new_measuring_point_id):
+        """
+        Get the attributes of the measuring point from the table.
+
+
+        Args:
+            (int) row_nr: The row number of the tablewidget.
+            (int) new_measuring_point_id: The id of the new measuring point.
+
+        Returns:
+            (dict) attributes: A list containing the attributes
+                               of the measuring point.
+        """
+        measuring_point_table = self.tablewidget_measuring_point.item(
+            row_nr, 0).text()
+        try:
+            measuring_point_table_id = self.tablewidget_measuring_point\
+                .item(row_nr, 1).text()
+        except AttributeError:
+            measuring_point_table_id = self.tablewidget_measuring_point\
+                .cellWidget(row_nr, 1).currentText()
+        try:
+            measuring_point_weight = self.tablewidget_measuring_point.item(
+                row_nr, 2).text()
+        except AttributeError:
+            measuring_point_weight = ""
+        attributes = {
+            "id": new_measuring_point_id,
+            "measure_group_id": self.measuring_group_id,
+            "object_type": measuring_point_table,
+            "object_id": measuring_point_table_id,
+            "weight": measuring_point_weight
+        }
+        return attributes
+
+    def setup_measuring_group_table_dockwidget(
+            self, measure_map_attributes):
+        """
+        Setup a tab for the measure group in the Measure group tab
+        in the dockwidget.
+
+        Args:
+            (dict) measure_map_attributes: A dict containing the attributes
+                                           from the measuring point
+                                            (from v2_control_measure_map).
+        """
+        row_position = self.dockwidget_controlled_structures\
+            .table_measuring_group.rowCount()
+        self.dockwidget_controlled_structures\
+            .table_measuring_group.insertRow(row_position)
+        self.dockwidget_controlled_structures.table_measuring_group\
+            .setItem(row_position, 0, QTableWidgetItem(
+                "v2_connection_nodes"))
+        self.dockwidget_controlled_structures.table_measuring_group\
+            .setItem(row_position, 1, QTableWidgetItem(
+                measure_map_attributes["object_id"]))
+        self.dockwidget_controlled_structures.table_measuring_group\
+            .setItem(row_position, 2, QTableWidgetItem(
+                measure_map_attributes["weight"]))
 
     def setupUi(self):
         self.setObjectName(_fromUtf8("dialog_create_measuring_group"))
