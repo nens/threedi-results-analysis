@@ -5,7 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
-- Control structures: update the Control tab.
+- Control structures: add GUI for adding new rule.
+
 - Control structures: add GUI for adding new rule (table control).
 
 - Control structures: add the possibility to add, view and remove measuring groups.
