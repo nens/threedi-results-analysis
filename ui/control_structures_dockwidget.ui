@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_model">
      <attribute name="title">
@@ -272,8 +272,8 @@
      <widget class="QLabel" name="label_input_rule_operator">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>16</y>
+        <x>30</x>
+        <y>160</y>
         <width>71</width>
         <height>31</height>
        </rect>
@@ -286,8 +286,8 @@
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>20</y>
-        <width>251</width>
+        <y>160</y>
+        <width>201</width>
         <height>27</height>
        </rect>
       </property>
@@ -305,8 +305,8 @@
      <widget class="QLabel" name="label_input_rule_table_control">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>70</y>
+        <x>30</x>
+        <y>200</y>
         <width>101</width>
         <height>31</height>
        </rect>
@@ -319,7 +319,7 @@
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>70</y>
+        <y>200</y>
         <width>281</width>
         <height>61</height>
        </rect>
@@ -356,6 +356,144 @@
        </property>
       </item>
      </widget>
+     <widget class="QPushButton" name="pushbutton_input_rule_new">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>New</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_rule_type_2">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>20</y>
+        <width>201</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>table_control</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label_input_rule_new">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>20</y>
+        <width>361</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create a new rule.</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_rule_view">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_rule_view">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>60</y>
+        <width>201</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_rule_view">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>60</y>
+        <width>361</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View a table control from the database.</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_rule_clear">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear all</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_rule_clear">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>100</y>
+        <width>371</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear the tabs.</string>
+      </property>
+     </widget>
+     <widget class="QTabWidget" name="tab_table_control_view">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>761</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="currentIndex">
+       <number>-1</number>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <zorder>tab_table_control_view</zorder>
+     <zorder>label_input_rule_operator</zorder>
+     <zorder>combobox_input_rule_operator</zorder>
+     <zorder>label_input_rule_table_control</zorder>
+     <zorder>tablewidget_input_rule_table_control</zorder>
+     <zorder>pushbutton_input_rule_new</zorder>
+     <zorder>combobox_input_rule_type_2</zorder>
+     <zorder>label_input_rule_new</zorder>
+     <zorder>pushbutton_input_rule_view</zorder>
+     <zorder>combobox_input_rule_view</zorder>
+     <zorder>label_input_rule_view</zorder>
+     <zorder>pushbutton_input_rule_clear</zorder>
+     <zorder>label_input_rule_clear</zorder>
     </widget>
     <widget class="QWidget" name="tab_structure">
      <attribute name="title">
