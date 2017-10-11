@@ -22,6 +22,8 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.views.control_structures_create_measuring_group import \
     CreateMeasuringGroupDialogWidget # noqa
+from ThreeDiToolbox.views.control_structures_create_table_control_dialog \
+    import CreateTableControlDialogWidget # noqa
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -61,6 +63,7 @@ class CustomCommand(CustomCommandBase):
             .activated.connect(self.update_dockwidget_ids)
         self.setup_measuring_station_tab()
         self.setup_measuring_group_tab()
+        self.setup_rule_tab()
         self.dockwidget_controlled_structures.pushbutton_input_save\
             .clicked.connect(self.run_it)
 
@@ -184,6 +187,12 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_measuring_group_tabs)
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
+
+    def setup_rule_tab(self):
+        """Setup the rule tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_rule_new.clicked.connect(
+                self.create_new_rule)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -373,3 +382,8 @@ class CustomCommand(CustomCommandBase):
         """Remove all tabs in the Measuring group tab."""
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .clear()
+
+    def create_new_rule(self):
+        """Create a new rule."""
+        self.dialog_create_table_control = CreateTableControlDialogWidget()
+        self.dialog_create_table_control.exec_()  # block execution
