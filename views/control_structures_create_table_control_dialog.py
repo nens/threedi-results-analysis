@@ -7,6 +7,7 @@ from PyQt4 import QtCore
 from PyQt4 import uic
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QPushButton
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -116,7 +117,25 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
 
     def connect_signals(self):
         """Connect the signals."""
+        self.pushbutton_input_rule_add_row.clicked.connect(
+            self.add_row)
         self.combobox_input_structure_table.activated.connect(
             self.setup_structure_ids)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
+
+    def add_row(self):
+        """Add a row to the tablewidget."""
+        # The row should be added on the top of the table
+        row_position = 0
+        self.tablewidget_input_rule_table_control.insertRow(row_position)
+        pushbutton_remove_row = QPushButton("Remove")
+        pushbutton_remove_row.clicked.connect(self.remove_row)
+        self.tablewidget_input_rule_table_control.setCellWidget(
+            row_position, 2, pushbutton_remove_row)
+
+    def remove_row(self):
+        """Remove a row from the tablewidget."""
+        tablewidget = self.tablewidget_input_rule_table_control
+        row_number = tablewidget.currentRow()
+        tablewidget.removeRow(row_number)
