@@ -385,5 +385,23 @@ class CustomCommand(CustomCommandBase):
 
     def create_new_rule(self):
         """Create a new rule."""
-        self.dialog_create_table_control = CreateTableControlDialogWidget()
+        db_key = self.dockwidget_controlled_structures.combobox_input_model\
+            .currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of measure group or set to 0; set to +1
+        table_name = "v2_control_table"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_table_control = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_table_control = 0
+        new_id_table_control = max_id_table_control + 1
+        self.dialog_create_table_control = CreateTableControlDialogWidget(
+            db_key=db_key, table_control_id=new_id_table_control,
+            dockwidget_controlled_structures=self.
+            dockwidget_controlled_structures)
         self.dialog_create_table_control.exec_()  # block execution

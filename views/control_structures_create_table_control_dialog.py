@@ -14,6 +14,13 @@ except AttributeError:
     def _fromUtf8(s):
         return s
 
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    ControlledStructures
+from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
+from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
+from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.utils.threedi_database import get_database_properties
+
 log = logging.getLogger(__name__)
 
 
@@ -33,12 +40,83 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, db_key=None, table_control_id=None,
+                 dockwidget_controlled_structures=None):
         """Constructor
 
         Args:
             parent: Qt parent Widget
+            (str) db_key: The key of the database. It's a combination of
+                          database type (postgres/ spatialite) and
+                          name of the database.
+            (int) table_control_id: The new id of the control table.
+            (QDockWidget) dockwidget_controlled_structures:
+                The main dockwidget of the control structures feature.
+                This dockwidget is populated with the new table control
+                upon pressing OK.
         """
         super(CreateTableControlDialogWidget, self).__init__(parent)
         # Show gui
         self.setupUi(self)
+
+        self.table_control_id = table_control_id
+        self.dockwidget_controlled_structures = \
+            dockwidget_controlled_structures
+
+        self.db_key = db_key
+        self.databases = get_databases()
+        self.db = get_database_properties(self.db_key)
+        self.control_structure = ControlledStructures(
+            flavor=self.db["db_entry"]['db_type'])
+        self.setup_ids()
+        self.connect_signals()
+
+    def on_accept(self):
+        """Accept and run the Command.run_it method."""
+        self.save_table_control()
+        self.accept()
+
+    def on_reject(self):
+        """Cancel"""
+        self.reject()
+        log.debug("Reject")
+
+    def closeEvent(self, event):
+        """
+        Close widget, called by Qt on close
+        :param event: QEvent, close event
+        """
+
+        self.buttonbox.accepted.disconnect(self.on_accept)
+        self.buttonbox.rejected.disconnect(self.on_reject)
+
+        event.accept()
+
+    def setup_ids(self):
+        """Setup the table control id, structure type and structure id."""
+        # Set the id of the table control
+        self.label_input_rule_id_number.setText(str(self.table_control_id))
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        # Set the structure type
+        self.combobox_input_structure_table.clear()
+        for key in DICT_TABLE_ID:
+            self.combobox_input_structure_table.addItem(key)
+        # Set the structure id's
+        self.setup_structure_ids()
+
+    def setup_structure_ids(self):
+        """Setup the structure id's."""
+        structure_type = self.combobox_input_structure_table.currentText()
+        self.combobox_input_structure_id.clear()
+        list_of_structure_ids = self.control_structure.get_attributes(
+            table_name=DICT_TABLE_NAMES[structure_type],
+            attribute_name=DICT_TABLE_ID[structure_type])
+        self.combobox_input_structure_id.addItems(
+            list_of_structure_ids)
+
+    def connect_signals(self):
+        """Connect the signals."""
+        self.combobox_input_structure_table.activated.connect(
+            self.setup_structure_ids)
+        self.buttonbox.accepted.connect(self.on_accept)
+        self.buttonbox.rejected.connect(self.on_reject)
