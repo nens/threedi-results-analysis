@@ -61,7 +61,7 @@ DICT_TABLE_ID = {
 # A dictionary to link the table view names to the action types
 DICT_ACTION_TYPES = {
     "v2_culvert": "set_discharge_coefficient",
-    "v2_orificew": "set_discharge_coefficient",
+    "v2_orifice": "set_discharge_coefficient",
     "v2_pumpstation": "set_capacity",
     "v2_weir": "set_crest_level"
 }

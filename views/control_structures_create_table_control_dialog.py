@@ -21,6 +21,13 @@ except AttributeError:
 
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    MEASURE_VARIABLE_WATERLEVEL
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    RULE_OPERATOR_BOTTOM_UP
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    RULE_OPERATOR_TOP_DOWN
+from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
 from ThreeDiToolbox.utils.threedi_database import get_databases
@@ -205,4 +212,38 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             self.tablewidget_input_rule_table_control.removeRow(0)
 
     def save_table_control(self):
-        """Save the table control."""
+        """Save the table control in the database."""
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        tablewidget = self.tablewidget_input_rule_table_control
+        table_control = {}
+        list_of_values_table_control = []
+        for row_number in range(tablewidget.rowCount()):
+            try:
+                measure_value = tablewidget.item(row_number, 0).text()
+            except AttributeError:
+                measure_value = ""
+            try:
+                action_value = tablewidget.item(row_number, 1).text()
+            except AttributeError:
+                action_value = ""
+            list_of_values_table_control.append(
+                [measure_value, action_value])
+        table_control["action_table"] = self.control_structure\
+            .create_action_table(list_of_values_table_control)
+        if self.combobox_input_rule_operator.currentText()\
+                == 'Bottom up':
+            measure_operator = RULE_OPERATOR_BOTTOM_UP
+        else:
+            measure_operator = RULE_OPERATOR_TOP_DOWN
+        table_control["measure_operator"] = measure_operator
+        table_control["target_id"] = self\
+            .combobox_input_structure_id.currentText()
+        structure_table = self.combobox_input_structure_table.currentText()
+        table_control["target_type"] = DICT_TABLE_NAMES.get(
+            structure_table, "")
+        table_control["action_type"] = DICT_ACTION_TYPES.get(
+            structure_table, "")
+        measure_variable = MEASURE_VARIABLE_WATERLEVEL
+        table_control["measure_variable"] = measure_variable
+        table_control["id"] = self.table_control_id
+        self.control_structure.save_table_control(table_control)

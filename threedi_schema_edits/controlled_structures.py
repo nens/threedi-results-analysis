@@ -84,7 +84,13 @@ class ControlledStructures(object):
             (str) action_table: A string representing the action table to
                                 be saved.
         """
-        action_table = '{0};{1}'.format(list_of_values[0], list_of_values[1])
+        action_table = ""
+        row_nr = 0
+        for row in list_of_values:
+            if row_nr > 0:
+                action_table += "#"
+            action_table += "{};{}".format(row[0], row[1])
+            row_nr += 1
         return action_table
 
     def get_attributes(self, table_name, attribute_name):
