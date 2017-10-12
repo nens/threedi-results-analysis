@@ -540,7 +540,7 @@
       </property>
       <item>
        <property name="text">
-        <string>v2_weir_view</string>
+        <string>v2_weir</string>
        </property>
       </item>
      </widget>

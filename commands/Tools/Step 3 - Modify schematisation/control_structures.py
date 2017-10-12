@@ -146,6 +146,13 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.addItems(
                 list_of_measuring_group_ids)
+        # Set the id's of the rules
+        self.dockwidget_controlled_structures\
+            .combobox_input_rule_view.clear()
+        list_of_rule_ids = control_structure.get_attributes(
+            table_name="v2_control_table", attribute_name="id")
+        self.dockwidget_controlled_structures\
+            .combobox_input_rule_view.addItems(list_of_rule_ids)
         # Set the id's of the structures
         self.dockwidget_controlled_structures.\
             combobox_input_structure_id.clear()
@@ -183,8 +190,8 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_measuring_group_view.clicked.connect(
                 self.view_measuring_group)
         self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_group_clear.clicked.connect(
-                self.remove_all_measuring_group_tabs)
+            .pushbutton_input_rule_clear.clicked.connect(
+                self.remove_all_rule_tabs)
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
 
@@ -193,6 +200,14 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_rule_new.clicked.connect(
                 self.create_new_rule)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_rule_view.clicked.connect(
+                self.view_rule)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_rule_clear.clicked.connect(
+                self.remove_all_rule_tabs)
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .tabCloseRequested.connect(self.remove_rule_tab)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -385,5 +400,117 @@ class CustomCommand(CustomCommandBase):
 
     def create_new_rule(self):
         """Create a new rule."""
-        self.dialog_create_table_control = CreateTableControlDialogWidget()
+        db_key = self.dockwidget_controlled_structures.combobox_input_model\
+            .currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of measure group or set to 0; set to +1
+        table_name = "v2_control_table"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_table_control = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_table_control = 0
+        new_id_table_control = max_id_table_control + 1
+        self.dialog_create_table_control = CreateTableControlDialogWidget(
+            db_key=db_key, table_control_id=new_id_table_control,
+            dockwidget_controlled_structures=self.
+            dockwidget_controlled_structures)
         self.dialog_create_table_control.exec_()  # block execution
+
+    def view_rule(self):
+        """View a rule in a new tab in the Rule tab."""
+        rule_type = self.dockwidget_controlled_structures\
+            .combobox_input_rule_type_view.currentText()
+        rule_id_name = "id"
+        rule_id = self.dockwidget_controlled_structures\
+            .combobox_input_rule_view.currentText()
+        if rule_id == "":
+            return
+        else:
+            attribute_name = "*"
+            table_name = "v2_control_table"
+            where = "{id_name} = {id_value}"\
+                .format(id_name=rule_id_name, id_value=rule_id)
+            db_key = self.dockwidget_controlled_structures\
+                .combobox_input_model.currentText()  # name of database
+            db = get_database_properties(db_key)
+            control_structure = ControlledStructures(
+                flavor=db["db_entry"]['db_type'])
+            control_structure.start_sqalchemy_engine(db["db_settings"])
+            rule = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            # Add a tab in the tabwidget of the 'Measuring group' tab in
+            # the controlled structures dockwidget
+            self.create_rule_tab(rule_id, rule)
+            self.populate_rule_tab(rule_type, rule_id, rule)
+
+    def create_rule_tab(self, rule_id, rule):
+        """Create a tab in the Rule tab."""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        tab.setLayout(layout)
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setText("Operator: {}".format(rule[1]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 741, 21)
+        label_field.setText("Structure table: {}".format(rule[3]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 70, 741, 21)
+        label_field.setText("Structure id: {}".format(rule[2]))
+
+        table_control_table = QTableWidget(tab)
+        table_control_table.setGeometry(10, 100, 741, 221)
+        table_control_table.insertColumn(0)
+        table_control_table.setHorizontalHeaderItem(
+            0, QTableWidgetItem("measuring_value"))
+        table_control_table.insertColumn(1)
+        table_control_table.setHorizontalHeaderItem(
+            1, QTableWidgetItem("action_value"))
+        self.dockwidget_controlled_structures.table_control_view = \
+            table_control_table
+
+        self.dockwidget_controlled_structures\
+            .tab_table_control_view.insertTab(
+                0, tab, "Table control: {}".format(str(rule_id)))
+
+    def populate_rule_tab(self, rule_type, rule_id, rule):
+        """
+        Populate a tab in the tabwidget of the 'Rule' tab.
+
+        Args:
+            (str) rule_type: The type of the rule.
+            (int) rule_id: The id of the rule.
+            (list) rule: A list of tuples. The tuples contain the
+                                  different rules.
+        """
+        action_table = rule[0]
+        action_pairs = action_table.split("#")
+        row = 0
+        for action_pair in action_pairs:
+            self.dockwidget_controlled_structures.table_control_view.insertRow(
+                row)
+            measure_value, action_value = action_pair.split(";")
+            self.dockwidget_controlled_structures.table_control_view.setItem(
+                row, 0, QTableWidgetItem(measure_value))
+            self.dockwidget_controlled_structures.table_control_view.setItem(
+                row, 1, QTableWidgetItem(action_value))
+            row += 1
+
+    def remove_rule_tab(self):
+        """Remove a tab in the Rule tab."""
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .removeTab(self.dockwidget_controlled_structures
+                       .tab_table_control_view.currentIndex())
+
+    def remove_all_rule_tabs(self):
+        """Remove all tabs in the Rule tab."""
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .clear()
