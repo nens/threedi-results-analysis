@@ -183,8 +183,8 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_measuring_group_view.clicked.connect(
                 self.view_measuring_group)
         self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_group_clear.clicked.connect(
-                self.remove_all_measuring_group_tabs)
+            .pushbutton_input_rule_clear.clicked.connect(
+                self.remove_all_rule_tabs)
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
 
@@ -193,6 +193,11 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_rule_new.clicked.connect(
                 self.create_new_rule)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_group_clear.clicked.connect(
+                self.remove_all_measuring_group_tabs)
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .tabCloseRequested.connect(self.remove_rule_tab)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -405,3 +410,14 @@ class CustomCommand(CustomCommandBase):
             dockwidget_controlled_structures=self.
             dockwidget_controlled_structures)
         self.dialog_create_table_control.exec_()  # block execution
+
+    def remove_rule_tab(self):
+        """Remove a tab in the Rule tab."""
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .removeTab(self.dockwidget_controlled_structures
+                       .tab_table_control_view.currentIndex())
+
+    def remove_all_rule_tabs(self):
+        """Remove all tabs in the Rule tab."""
+        self.dockwidget_controlled_structures.tab_table_control_view\
+            .clear()
