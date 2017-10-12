@@ -119,6 +119,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         """Connect the signals."""
         self.pushbutton_input_rule_add_row.clicked.connect(
             self.add_row)
+        self.pushbutton_input_rule_clear.clicked.connect(
+            self.clear_table)
         self.combobox_input_structure_table.activated.connect(
             self.setup_structure_ids)
         self.buttonbox.accepted.connect(self.on_accept)
@@ -139,3 +141,10 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         tablewidget = self.tablewidget_input_rule_table_control
         row_number = tablewidget.currentRow()
         tablewidget.removeRow(row_number)
+
+    def clear_table(self):
+        """Clear the tablewidget."""
+        self.tablewidget_input_rule_table_control.clearContents()
+        row_count = self.tablewidget_input_rule_table_control.rowCount()
+        for row in range(row_count):
+            self.tablewidget_input_rule_table_control.removeRow(0)
