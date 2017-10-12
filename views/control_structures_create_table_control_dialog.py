@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+import csv
 import os
 import logging
 
 
 from PyQt4 import QtCore
 from PyQt4 import uic
+from PyQt4.QtCore import QSettings
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QFileDialog
 from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QTableWidgetItem
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -119,6 +123,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         """Connect the signals."""
         self.pushbutton_input_rule_add_row.clicked.connect(
             self.add_row)
+        self.pushbutton_input_rule_load_from_csv.clicked.connect(
+            self.load_from_csv)
         self.pushbutton_input_rule_clear.clicked.connect(
             self.clear_table)
         self.combobox_input_structure_table.activated.connect(
@@ -142,9 +148,61 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         row_number = tablewidget.currentRow()
         tablewidget.removeRow(row_number)
 
+    def load_from_csv(self):
+        """
+        Load data from a csv file in the tablewidget.
+        The delimiter of the csv file should be a comma.
+        """
+        self.clear_table()
+        tablewidget = self.tablewidget_input_rule_table_control
+        filename = self.get_file("csv")
+        if filename:
+            csv_file = open(filename, "rb")
+            row_number = 0
+            action_table = ""
+            try:
+                reader = csv.reader(csv_file)
+                for row in reader:
+                    row_position = tablewidget.rowCount()
+                    tablewidget.insertRow(row_position)
+                    if row_number > 0:
+                        action_table += "#"
+                    measuring_value = QTableWidgetItem(str(row[0]))
+                    action_value = QTableWidgetItem(str(row[1]))
+                    tablewidget.setItem(row_position, 0, measuring_value)
+                    tablewidget.setItem(row_position, 1, action_value)
+                    pushbutton_remove_row = QPushButton("Remove")
+                    pushbutton_remove_row.clicked.connect(self.remove_row)
+                    tablewidget.setCellWidget(
+                        row_position, 2, pushbutton_remove_row)
+                    row_number += 1
+            finally:
+                csv_file.close()
+
+    def get_file(self, file_type):
+        """Function to get a file."""
+        settings = QSettings('3di_plugin', 'qgisplugin')
+
+        try:
+            init_path = settings.value('last_used_import_path', type=str)
+        except TypeError:
+            init_path = os.path.expanduser("~")
+        if file_type == "csv":
+            filename = QFileDialog\
+                .getOpenFileName(None, 'Select import file', init_path,
+                                 'Comma-seperated values (*.csv)')
+        if filename:
+            settings.setValue('last_used_import_path',
+                              os.path.dirname(filename))
+
+        return filename
+
     def clear_table(self):
         """Clear the tablewidget."""
         self.tablewidget_input_rule_table_control.clearContents()
         row_count = self.tablewidget_input_rule_table_control.rowCount()
         for row in range(row_count):
             self.tablewidget_input_rule_table_control.removeRow(0)
+
+    def save_table_control(self):
+        """Save the table control."""
