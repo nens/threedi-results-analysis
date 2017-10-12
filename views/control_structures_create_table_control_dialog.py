@@ -7,11 +7,15 @@ import logging
 from PyQt4 import QtCore
 from PyQt4 import uic
 from PyQt4.QtCore import QSettings
+from PyQt4.QtGui import QPushButton
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
 from PyQt4.QtGui import QFileDialog
-from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QLabel
+from PyQt4.QtGui import QTableWidget
 from PyQt4.QtGui import QTableWidgetItem
+from PyQt4.QtGui import QVBoxLayout
+from PyQt4.QtGui import QWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -213,6 +217,19 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
 
     def save_table_control(self):
         """Save the table control in the database."""
+        table_control = self.create_table_control_dict()
+        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
+        self.control_structure.save_table_control(table_control)
+        self.add_table_control_tab_dockwidget()
+        self.setup_table_control_tab_dockwidget()
+
+    def create_table_control_dict(self):
+        """
+        Create a dict for the table control.
+
+        Returns:
+            (dict): table_control
+        """
         self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
         tablewidget = self.tablewidget_input_rule_table_control
         table_control = {}
@@ -246,4 +263,71 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         measure_variable = MEASURE_VARIABLE_WATERLEVEL
         table_control["measure_variable"] = measure_variable
         table_control["id"] = self.table_control_id
-        self.control_structure.save_table_control(table_control)
+        return table_control
+
+    def add_table_control_tab_dockwidget(self):
+        """
+        Create a tab for the measure group within the Rule group tab
+        in the dockwidget.
+        """
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        tab.setLayout(layout)
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setText("Operator: {}".format(
+            self.combobox_input_rule_operator.currentText()))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 741, 21)
+        label_field.setText("Structure table: {}".format(
+            self.combobox_input_structure_table.currentText()))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 70, 741, 21)
+        label_field.setText("Structure id: {}".format(
+            self.combobox_input_structure_id.currentText()))
+
+        table_control_table = QTableWidget(tab)
+        table_control_table.setGeometry(10, 100, 741, 221)
+        table_control_table.insertColumn(0)
+        table_control_table.setHorizontalHeaderItem(
+            0, QTableWidgetItem("measuring_value"))
+        table_control_table.insertColumn(1)
+        table_control_table.setHorizontalHeaderItem(
+            1, QTableWidgetItem("action_value"))
+        self.dockwidget_controlled_structures.table_control_view = \
+            table_control_table
+
+        self.dockwidget_controlled_structures\
+            .tab_table_control_view.insertTab(
+                0, tab, "Table control: {}".format(
+                    str(self.table_control_id)))
+
+    def setup_table_control_tab_dockwidget(self):
+        """
+        Setup a tab for the table control in the Rule tab
+        in the dockwidget.
+        """
+        tablewidget_dialog = self.tablewidget_input_rule_table_control
+        tablewidget_dockwidget = self.dockwidget_controlled_structures\
+            .table_control_view
+        list_of_values_table_control = []
+        for row_number in range(tablewidget_dialog.rowCount()):
+            try:
+                measure_value = tablewidget_dialog.item(row_number, 0).text()
+            except AttributeError:
+                measure_value = ""
+            try:
+                action_value = tablewidget_dialog.item(row_number, 1).text()
+            except AttributeError:
+                action_value = ""
+            list_of_values_table_control.append([measure_value, action_value])
+            # Populate new tab of "Rule" tab
+            row_position = tablewidget_dockwidget.rowCount()
+            tablewidget_dockwidget.insertRow(row_position)
+            tablewidget_dockwidget.setItem(
+                row_position, 0, QTableWidgetItem(measure_value))
+            tablewidget_dockwidget.setItem(
+                row_position, 1, QTableWidgetItem(action_value))
