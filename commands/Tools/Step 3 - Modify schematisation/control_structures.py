@@ -181,6 +181,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pusbutton_input_control_view.clicked.connect(
                 self.view_control_group)
+        self.dockwidget_controlled_structures\
+            .pushbutton_control_clear.clicked.connect(
+                self.remove_all_control_tabs)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -626,3 +629,7 @@ class CustomCommand(CustomCommandBase):
             tablewidget.setItem(row, 4, QTableWidgetItem(str(
                 structure_id[0])))
             row += 1
+
+    def remove_all_control_tabs(self):
+        """Remove all tabs in the Control tab."""
+        self.dockwidget_controlled_structures.tab_control_view.clear()
