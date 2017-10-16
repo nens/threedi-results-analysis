@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dialog_create_control_group</class>
+ <widget class="QDialog" name="dialog_create_control_group">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>779</width>
+    <height>513</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Create control group</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonbox">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>460</y>
+     <width>191</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+   <property name="centerButtons">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupbox_measuring_group">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>761</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Control group</string>
+   </property>
+   <widget class="QLabel" name="label_measuring_group_id_info">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>90</y>
+      <width>311</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_measuring_group_load_description">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>40</y>
+      <width>231</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>The name of the control group.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_measuring_group_description">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>80</y>
+      <width>231</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The description of the control&lt;/p&gt;&lt;p&gt;group.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>111</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Name:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineedit_input_control_name">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>40</y>
+      <width>351</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_input_control_description">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>111</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Description:</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textedit_input_control_description">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>80</y>
+      <width>351</width>
+      <height>81</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupbox_measuring_points">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>190</y>
+     <width>761</width>
+     <height>251</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Controls</string>
+   </property>
+   <widget class="QTableWidget" name="tablewidget_input_control">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>741</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <attribute name="horizontalHeaderDefaultSectionSize">
+     <number>100</number>
+    </attribute>
+    <row>
+     <property name="text">
+      <string>1</string>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string>measuring_group_id</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>rule_type</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>rule_id</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>structure</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>structure_id</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>action_type</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Action</string>
+     </property>
+    </column>
+    <item row="0" column="1">
+     <property name="text">
+      <string/>
+     </property>
+    </item>
+    <item row="0" column="2">
+     <property name="text">
+      <string/>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_control_measuring_group">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_rule_type">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>table_control</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_rule_id">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_structure_table">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_structure_id">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_field">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushbutton_input_control_new">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>60</y>
+      <width>101</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>New</string>
+    </property>
+   </widget>
+  </widget>
+  <zorder>groupbox_measuring_points</zorder>
+  <zorder>buttonbox</zorder>
+  <zorder>groupbox_measuring_group</zorder>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonbox</sender>
+   <signal>accepted()</signal>
+   <receiver>dialog_create_control_group</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonbox</sender>
+   <signal>rejected()</signal>
+   <receiver>dialog_create_control_group</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

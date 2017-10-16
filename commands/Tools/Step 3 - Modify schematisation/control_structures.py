@@ -24,6 +24,8 @@ from ThreeDiToolbox.views.control_structures_create_measuring_group import \
     CreateMeasuringGroupDialogWidget # noqa
 from ThreeDiToolbox.views.control_structures_create_table_control_dialog \
     import CreateTableControlDialogWidget # noqa
+from ThreeDiToolbox.views.control_structures_create_control_group_dialog \
+    import CreateControlGroupDialogWidget # noqa
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -64,6 +66,7 @@ class CustomCommand(CustomCommandBase):
         self.setup_measuring_station_tab()
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
+        self.setup_control_group_tab()
         self.dockwidget_controlled_structures.pushbutton_input_save\
             .clicked.connect(self.run_it)
 
@@ -208,6 +211,12 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_rule_tabs)
         self.dockwidget_controlled_structures.tab_table_control_view\
             .tabCloseRequested.connect(self.remove_rule_tab)
+
+    def setup_control_group_tab(self):
+        """Setup the control tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_control_new.clicked.connect(
+                self.create_new_control_group)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -514,3 +523,27 @@ class CustomCommand(CustomCommandBase):
         """Remove all tabs in the Rule tab."""
         self.dockwidget_controlled_structures.tab_table_control_view\
             .clear()
+
+    def create_new_control_group(self):
+        """Create a new control group."""
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of control group or set to 0; set to +1
+        table_name = "v2_control_group"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_control_group = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_control_group = 0
+        new_id_control_group = max_id_control_group + 1
+        self.dialog_create_control_group = \
+            CreateControlGroupDialogWidget(
+                db_key=db_key, control_group_id=new_id_control_group,
+                dockwidget_controlled_structures=self.
+                dockwidget_controlled_structures)
+        self.dialog_create_control_group.exec_()  # block execution
