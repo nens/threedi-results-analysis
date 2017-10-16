@@ -26,6 +26,7 @@ threedi-qgis-plugin changelog
 - Refactor control structures: add station is removed from measuring group dialog, measure variable is put from measuring group to rule, action variables are added to rule.
 
 - Control structures: add the possibility to add, view and remove control groups.
+- Update lizard-connector to fix the limit of 1000 results.
 
 - Control structures: add the possibility to add, view and remove rules.
 
