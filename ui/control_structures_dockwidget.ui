@@ -375,7 +375,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>-1</number>
       </property>
       <property name="tabsClosable">
        <bool>true</bool>
@@ -383,98 +383,6 @@
       <property name="movable">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Table control</string>
-       </attribute>
-       <widget class="QTableWidget" name="tablewidget_input_rule_table_control">
-        <property name="geometry">
-         <rect>
-          <x>120</x>
-          <y>60</y>
-          <width>281</width>
-          <height>61</height>
-         </rect>
-        </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::AllEditTriggers</set>
-        </property>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>130</number>
-        </attribute>
-        <row>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </row>
-        <column>
-         <property name="text">
-          <string>Measuring value</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Action value</string>
-         </property>
-        </column>
-        <item row="0" column="0">
-         <property name="text">
-          <string/>
-         </property>
-        </item>
-        <item row="0" column="1">
-         <property name="text">
-          <string/>
-         </property>
-        </item>
-       </widget>
-       <widget class="QLabel" name="label_input_rule_table_control">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>60</y>
-          <width>101</width>
-          <height>31</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Table control:</string>
-        </property>
-       </widget>
-       <widget class="QComboBox" name="combobox_input_rule_operator">
-        <property name="geometry">
-         <rect>
-          <x>120</x>
-          <y>20</y>
-          <width>201</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <item>
-         <property name="text">
-          <string>Bottom up</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Top down</string>
-         </property>
-        </item>
-       </widget>
-       <widget class="QLabel" name="label_input_rule_operator">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>71</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Operator: </string>
-        </property>
-       </widget>
-      </widget>
      </widget>
      <widget class="QComboBox" name="combobox_input_rule_type_view">
       <property name="geometry">
@@ -512,107 +420,10 @@
      <zorder>combobox_input_rule_type_view</zorder>
      <zorder>combobox_input_rule_view</zorder>
     </widget>
-    <widget class="QWidget" name="tab_structure">
-     <attribute name="title">
-      <string>Structure</string>
-     </attribute>
-     <widget class="QLabel" name="label_input_structure_table">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>101</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Table: </string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="combobox_input_structure_table">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>20</y>
-        <width>251</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>v2_weir</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QLabel" name="label_input_structure_id">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>60</y>
-        <width>111</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>weir_id:</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="combobox_input_structure_id">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>60</y>
-        <width>251</width>
-        <height>27</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_input_structure_field">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>111</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Field: </string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="combobox_input_field">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>100</y>
-        <width>251</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>weir_crest_level</string>
-       </property>
-      </item>
-     </widget>
-    </widget>
     <widget class="QWidget" name="tab_control">
      <attribute name="title">
       <string>Control</string>
      </attribute>
-     <widget class="QPushButton" name="pushbutton_input_save">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>450</y>
-        <width>151</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Save control group</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushbutton_input_control_new">
       <property name="geometry">
        <rect>
@@ -724,7 +535,6 @@
       </property>
      </widget>
      <zorder>tab_control_view</zorder>
-     <zorder>pushbutton_input_save</zorder>
      <zorder>pushbutton_input_control_new</zorder>
      <zorder>pusbutton_input_control_view</zorder>
      <zorder>label_input_control_new</zorder>

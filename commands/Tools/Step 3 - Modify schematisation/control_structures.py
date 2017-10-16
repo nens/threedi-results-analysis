@@ -67,48 +67,9 @@ class CustomCommand(CustomCommandBase):
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
         self.setup_control_group_tab()
-        self.dockwidget_controlled_structures.pushbutton_input_save\
-            .clicked.connect(self.run_it)
 
     def run_it(self):
-        """Save the control to the spatialite or POSTGRES database."""
-        db_key = self.dockwidget_controlled_structures.combobox_input_model\
-            .currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        # The control_type is the type of control that will be saved.
-        # In the future, this type can be read from a combobox.
-        # Future options will be table control, pid control,
-        # memory control, delta control and timed control.
-        control_type = TABLE_CONTROL
-        if control_type == TABLE_CONTROL:
-            tablewidget = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control
-            table_control = {}
-            measure_value = tablewidget.item(0, 0).text()
-            action_value = tablewidget.item(0, 1).text()
-            list_of_values = [measure_value, action_value]
-            table_control["action_table"] = control_structure\
-                .create_action_table(list_of_values)
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_rule_operator.currentText()\
-                    == 'Bottom up':
-                measure_operator = RULE_OPERATOR_BOTTOM_UP
-            else:
-                measure_operator = RULE_OPERATOR_TOP_DOWN
-            table_control["measure_operator"] = measure_operator
-            table_control["target_id"] = self.dockwidget_controlled_structures\
-                .combobox_input_structure_id.currentText()
-            structure_table = self.dockwidget_controlled_structures\
-                .combobox_input_structure_table.currentText()
-            table_control["target_type"] = DICT_TABLE_NAMES.get(
-                structure_table, "")
-            table_control["action_type"] = DICT_ACTION_TYPES.get(
-                structure_table, "")
-            table_control["measure_variable"] = "waterlevel"
-            control_structure.save_table_control(table_control)
+        """Run the controlled structures dockwidget."""
 
     def show_gui(self):
         """Show the gui."""
@@ -156,13 +117,6 @@ class CustomCommand(CustomCommandBase):
             table_name="v2_control_table", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.addItems(list_of_rule_ids)
-        # Set the id's of the structures
-        self.dockwidget_controlled_structures.\
-            combobox_input_structure_id.clear()
-        list_of_structure_ids = control_structure.get_attributes(
-            table_name="v2_weir_view", attribute_name="weir_id")
-        self.dockwidget_controlled_structures.\
-            combobox_input_structure_id.addItems(list_of_structure_ids)
 
     def setup_measuring_station_tab(self):
         """Setup the measuring station tab."""
