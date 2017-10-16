@@ -117,6 +117,13 @@ class CustomCommand(CustomCommandBase):
             table_name="v2_control_table", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.addItems(list_of_rule_ids)
+        # Set the id's of the control groups
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_view.clear()
+        list_of_rule_ids = control_structure.get_attributes(
+            table_name="v2_control_group", attribute_name="id")
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_view.addItems(list_of_rule_ids)
 
     def setup_measuring_station_tab(self):
         """Setup the measuring station tab."""
@@ -171,6 +178,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_control_new.clicked.connect(
                 self.create_new_control_group)
+        self.dockwidget_controlled_structures\
+            .pusbutton_input_control_view.clicked.connect(
+                self.view_control_group)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -501,3 +511,118 @@ class CustomCommand(CustomCommandBase):
                 dockwidget_controlled_structures=self.
                 dockwidget_controlled_structures)
         self.dialog_create_control_group.exec_()  # block execution
+
+    def view_control_group(self):
+        """View a control group in a new tab in the Control groups tab."""
+        control_group_id = self.dockwidget_controlled_structures\
+            .combobox_input_control_view.currentText()
+        if control_group_id == "":
+            return
+        else:
+            attribute_name = "*"
+            table_name = "v2_control_group"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control_group_id)
+            db_key = self.dockwidget_controlled_structures\
+                .combobox_input_model.currentText()  # name of database
+            db = get_database_properties(db_key)
+            control_structure = ControlledStructures(
+                flavor=db["db_entry"]['db_type'])
+            control_structure.start_sqalchemy_engine(db["db_settings"])
+            control_group = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            # Create a new tab for the Control tab in the dockwidget
+            self.create_control_group_tab(control_group_id, control_group)
+            attribute_name = "*"
+            table_name = "v2_control"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="control_group_id", id_value=control_group_id)
+            controls = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)
+            self.populate_control_group_tab(control_group_id, controls)
+
+    def create_control_group_tab(self, control_group_id, control_group):
+        """
+        Create a tab in the Control group tab.
+
+        Args:
+            (int) control_grop_id: The id of the control group.
+            (list) control_group: A list of tuples containing the attributes
+                                  of the control group.
+        """
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        tab.setLayout(layout)
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setText("Name: {}".format(control_group[2]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 741, 51)
+        label_field.setText("Description: {}".format(control_group[0]))
+
+        control_group_table = QTableWidget(tab)
+        control_group_table.setGeometry(10, 100, 741, 251)
+        control_group_table.insertColumn(0)
+        control_group_table.setHorizontalHeaderItem(
+            0, QTableWidgetItem("measuring_group_id"))
+        control_group_table.insertColumn(1)
+        control_group_table.setHorizontalHeaderItem(
+            1, QTableWidgetItem("rule_type"))
+        control_group_table.insertColumn(2)
+        control_group_table.setHorizontalHeaderItem(
+            2, QTableWidgetItem("rule_id"))
+        control_group_table.insertColumn(3)
+        control_group_table.setHorizontalHeaderItem(
+            3, QTableWidgetItem("structure"))
+        control_group_table.insertColumn(4)
+        control_group_table.setHorizontalHeaderItem(
+            4, QTableWidgetItem("structure_id"))
+        # Add the tab to the tabwidget in the dockwidget
+        self.dockwidget_controlled_structures.control_group_table = \
+            control_group_table
+        self.dockwidget_controlled_structures.tab_control_view.insertTab(
+            0, tab, "Control group: {}".format(str(control_group_id)))
+
+    def populate_control_group_tab(self, control_group_id, controls):
+        """
+        Add a tab in the tabwidget of the 'Control' tab.
+
+        Args:
+            (int) control_group_id: The id of the control group.
+            (list) controls: A list of tuples. The tuples contain the
+                                  different controls.
+        """
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        tablewidget = self.dockwidget_controlled_structures\
+            .control_group_table
+        row = 0
+        for control in controls:
+            tablewidget.insertRow(row)
+            tablewidget.setItem(row, 0, QTableWidgetItem(str(control[6])))
+            tablewidget.setItem(row, 1, QTableWidgetItem(control[2]))
+            tablewidget.setItem(row, 2, QTableWidgetItem(str(control[3])))
+            # Get structure type and id
+            attribute_name = "target_type"
+            table_name = "v2_control_table"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control[3])
+            structure_type = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            tablewidget.setItem(row, 3, QTableWidgetItem(
+                str(structure_type[0])))
+            attribute_name = "target_id"
+            table_name = "v2_control_table"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control[3])
+            structure_id = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            tablewidget.setItem(row, 4, QTableWidgetItem(str(
+                structure_id[0])))
+            row += 1
