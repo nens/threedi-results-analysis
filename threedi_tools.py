@@ -44,6 +44,9 @@ from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
 
+# use array as reference to active plugin (other ways not work properly)
+active_tdi_plugin = []
+
 
 class ThreeDiTools(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
@@ -58,6 +61,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         """
         # Save reference to the QGIS interface
         QObject.__init__(self)
+
+        active_tdi_plugin.append(self)
 
         self.iface = iface
 
@@ -305,3 +310,5 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             del self.toolbar_animation
         except AttributeError:
             log("Error, toolbar animation already removed?")
+
+        active_tdi_plugin = []
