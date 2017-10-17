@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Control structures: Update Help tab.
+
 - Control structures: 'Ok' buttons in dialogs become 'Save' buttons.
 
 - Refactor control structures: add station is removed from measuring group dialog, measure variable is put from measuring group to rule, action variables are added to rule.
