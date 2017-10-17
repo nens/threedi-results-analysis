@@ -343,12 +343,8 @@ class CustomCommand(CustomCommandBase):
         layout = QVBoxLayout(tab)
         tab.setLayout(layout)
 
-        label_field = QLabel(tab)
-        label_field.setGeometry(10, 10, 741, 21)
-        label_field.setText("Field: {}".format("initial_waterlevel"))
-
         table_measuring_group = QTableWidget(tab)
-        table_measuring_group.setGeometry(10, 40, 741, 311)
+        table_measuring_group.setGeometry(10, 10, 741, 306)
         table_measuring_group.insertColumn(0)
         table_measuring_group.setHorizontalHeaderItem(
             0, QTableWidgetItem("table"))
@@ -433,16 +429,24 @@ class CustomCommand(CustomCommandBase):
         tab.setLayout(layout)
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setGeometry(10, 10, 300, 21)
+        label_field.setText("Measure variable: {}".format(rule[4]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 300, 21)
         label_field.setText("Operator: {}".format(rule[1]))
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 40, 741, 21)
-        label_field.setText("Structure table: {}".format(rule[3]))
+        label_field.setGeometry(310, 10, 300, 21)
+        label_field.setText("Structure table: {}".format(rule[2]))
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 70, 741, 21)
-        label_field.setText("Structure id: {}".format(rule[2]))
+        label_field.setGeometry(310, 40, 300, 21)
+        label_field.setText("Structure id: {}".format(rule[3]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(310, 70, 741, 21)
+        label_field.setText("Action type: {}".format(rule[5]))
 
         table_control_table = QTableWidget(tab)
         table_control_table.setGeometry(10, 100, 741, 221)

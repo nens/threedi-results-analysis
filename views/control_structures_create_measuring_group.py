@@ -111,44 +111,14 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         self.combobox_measuring_point_load.addItems(
             list_of_measuring_point_ids)
 
-    def setup_connection_nodes_ids(self):
-        """
-        Function to setup the connection_nodes id's.
-        """
-        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
-        # Get all id's of the connection nodes
-        self.combobox_measuring_group_table_id.clear()
-        list_of_connection_nodes_ids = self.control_structure.get_attributes(
-            table_name="v2_connection_nodes", attribute_name="id")
-        self.combobox_measuring_group_table_id.addItems(
-            list_of_connection_nodes_ids)
-
     def connect_signals(self):
         """Connect the signals."""
         self.pushbutton_measuring_group_load.clicked.connect(
             self.load_measuring_group)
-        self.pushbutton_measuring_point_add_point.clicked.connect(
-            self.add_measuring_point)
         self.pushbutton_measuring_point_load.clicked.connect(
             self.load_measuring_point)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
-
-    def add_measuring_point(self):
-        """Add a measuring point to the tablewidget."""
-        # The measuring point should be added on the top of the table
-        row_position = 0
-        self.tablewidget_measuring_point.insertRow(row_position)
-        self.tablewidget_measuring_point.setItem(
-            row_position, 0, QTableWidgetItem("v2_connection_nodes"))
-        self.combobox_measuring_group_table_id = QComboBox()
-        self.tablewidget_measuring_point.setCellWidget(
-            row_position, 1, self.combobox_measuring_group_table_id)
-        measuring_point_remove = QPushButton("Remove")
-        measuring_point_remove.clicked.connect(self.remove_measuring_point)
-        self.tablewidget_measuring_point.setCellWidget(
-            row_position, 3, measuring_point_remove)
-        self.setup_connection_nodes_ids()
 
     def load_measuring_point(self):
         """Load a measuring group in the tablewidget."""
@@ -252,13 +222,8 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         layout = QtGui.QVBoxLayout(tab)
         tab.setLayout(layout)
 
-        label_field = QtGui.QLabel(tab)
-        label_field.setGeometry(10, 10, 741, 21)
-        label_field.setText("Field: {}".format(
-            self.combobox_measuring_point_field.currentText()))
-
         table_measuring_group = QtGui.QTableWidget(tab)
-        table_measuring_group.setGeometry(10, 40, 741, 311)
+        table_measuring_group.setGeometry(10, 10, 741, 306)
         table_measuring_group.insertColumn(0)
         table_measuring_group.setHorizontalHeaderItem(
             0, QTableWidgetItem("table"))
@@ -270,7 +235,7 @@ class CreateMeasuringGroupDialogWidget(QDialog):
             2, QTableWidgetItem("weight"))
         self.dockwidget_controlled_structures.table_measuring_group = \
             table_measuring_group
-
+        # Add the tab to the left
         self.dockwidget_controlled_structures\
             .tab_measuring_group_view_2.insertTab(
                 0, tab, "Group: {}".format(
@@ -338,67 +303,41 @@ class CreateMeasuringGroupDialogWidget(QDialog):
 
     def setupUi(self):
         self.setObjectName(_fromUtf8("dialog_create_measuring_group"))
-        self.resize(779, 513)
+        self.resize(779, 515)
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.setGeometry(QtCore.QRect(190, 460, 191, 32))
+        self.buttonbox.setGeometry(QtCore.QRect(180, 440, 191, 32))
         self.buttonbox.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonbox.setStandardButtons(
-            QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Ok)
+        self.buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttonbox.setObjectName(_fromUtf8("buttonbox"))
         self.groupbox_measuring_group = QtGui.QGroupBox(self)
-        self.groupbox_measuring_group.setGeometry(
-            QtCore.QRect(10, 10, 761, 111))
-        self.groupbox_measuring_group.setObjectName(
-            _fromUtf8("groupbox_measuring_group"))
-        self.label_measuring_group_id = QtGui.QLabel(
-            self.groupbox_measuring_group)
-        self.label_measuring_group_id.setGeometry(
-            QtCore.QRect(20, 80, 101, 21))
-        self.label_measuring_group_id.setObjectName(_fromUtf8(
-            "label_measuring_group_id"))
-        self.label_measuring_group_id_info = QtGui.QLabel(
-            self.groupbox_measuring_group)
-        self.label_measuring_group_id_info.setGeometry(
-            QtCore.QRect(200, 90, 311, 20))
+        self.groupbox_measuring_group.setGeometry(QtCore.QRect(10, 10, 761, 131))
+        self.groupbox_measuring_group.setObjectName(_fromUtf8("groupbox_measuring_group"))
+        self.label_measuring_group_id = QtGui.QLabel(self.groupbox_measuring_group)
+        self.label_measuring_group_id.setGeometry(QtCore.QRect(30, 40, 101, 21))
+        self.label_measuring_group_id.setObjectName(_fromUtf8("label_measuring_group_id"))
+        self.label_measuring_group_id_info = QtGui.QLabel(self.groupbox_measuring_group)
+        self.label_measuring_group_id_info.setGeometry(QtCore.QRect(200, 40, 311, 20))
         self.label_measuring_group_id_info.setText(_fromUtf8(""))
-        self.label_measuring_group_id_info.setObjectName(_fromUtf8(
-            "label_measuring_group_id_info"))
-        self.pushbutton_measuring_group_load = QtGui.QPushButton(
-            self.groupbox_measuring_group)
-        self.pushbutton_measuring_group_load.setGeometry(
-            QtCore.QRect(20, 40, 161, 27))
-        self.pushbutton_measuring_group_load.setObjectName(
-            _fromUtf8("pushbutton_measuring_group_load"))
-        self.combobox_measuring_group_load = QtGui.QComboBox(
-            self.groupbox_measuring_group)
-        self.combobox_measuring_group_load.setGeometry(
-            QtCore.QRect(200, 40, 311, 27))
-        self.combobox_measuring_group_load.setObjectName(_fromUtf8(
-            "combobox_measuring_group_load"))
-        self.label_measuring_group_load_description = QtGui.QLabel(
-            self.groupbox_measuring_group)
-        self.label_measuring_group_load_description.setGeometry(
-            QtCore.QRect(530, 40, 231, 31))
-        self.label_measuring_group_load_description.setObjectName(
-            _fromUtf8("label_measuring_group_load_description"))
-        self.label_measuring_group_description = QtGui.QLabel(
-            self.groupbox_measuring_group)
-        self.label_measuring_group_description.setGeometry(
-            QtCore.QRect(530, 80, 231, 41))
-        self.label_measuring_group_description.setObjectName(
-            _fromUtf8("label_measuring_group_description"))
+        self.label_measuring_group_id_info.setObjectName(_fromUtf8("label_measuring_group_id_info"))
+        self.pushbutton_measuring_group_load = QtGui.QPushButton(self.groupbox_measuring_group)
+        self.pushbutton_measuring_group_load.setGeometry(QtCore.QRect(20, 80, 161, 27))
+        self.pushbutton_measuring_group_load.setObjectName(_fromUtf8("pushbutton_measuring_group_load"))
+        self.combobox_measuring_group_load = QtGui.QComboBox(self.groupbox_measuring_group)
+        self.combobox_measuring_group_load.setGeometry(QtCore.QRect(200, 80, 311, 27))
+        self.combobox_measuring_group_load.setObjectName(_fromUtf8("combobox_measuring_group_load"))
+        self.label_measuring_group_load_description = QtGui.QLabel(self.groupbox_measuring_group)
+        self.label_measuring_group_load_description.setGeometry(QtCore.QRect(530, 80, 231, 31))
+        self.label_measuring_group_load_description.setObjectName(_fromUtf8("label_measuring_group_load_description"))
+        self.label_measuring_group_description = QtGui.QLabel(self.groupbox_measuring_group)
+        self.label_measuring_group_description.setGeometry(QtCore.QRect(530, 30, 231, 41))
+        self.label_measuring_group_description.setObjectName(_fromUtf8("label_measuring_group_description"))
         self.groupbox_measuring_points = QtGui.QGroupBox(self)
-        self.groupbox_measuring_points.setGeometry(
-            QtCore.QRect(10, 120, 761, 321))
-        self.groupbox_measuring_points.setObjectName(_fromUtf8(
-            "groupbox_measuring_points"))
-        self.tablewidget_measuring_point = QtGui.QTableWidget(
-            self.groupbox_measuring_points)
-        self.tablewidget_measuring_point.setGeometry(
-            QtCore.QRect(20, 70, 731, 151))
-        self.tablewidget_measuring_point.setObjectName(_fromUtf8(
-            "tablewidget_measuring_point"))
+        self.groupbox_measuring_points.setGeometry(QtCore.QRect(10, 140, 761, 291))
+        self.groupbox_measuring_points.setObjectName(_fromUtf8("groupbox_measuring_points"))
+        self.tablewidget_measuring_point = QtGui.QTableWidget(self.groupbox_measuring_points)
+        self.tablewidget_measuring_point.setGeometry(QtCore.QRect(20, 40, 731, 181))
+        self.tablewidget_measuring_point.setObjectName(_fromUtf8("tablewidget_measuring_point"))
         self.tablewidget_measuring_point.setColumnCount(4)
         self.tablewidget_measuring_point.setRowCount(0)
         item = QtGui.QTableWidgetItem()
@@ -409,106 +348,39 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         self.tablewidget_measuring_point.setHorizontalHeaderItem(2, item)
         item = QtGui.QTableWidgetItem()
         self.tablewidget_measuring_point.setHorizontalHeaderItem(3, item)
-        self.label_measuring_point_field = QtGui.QLabel(
-            self.groupbox_measuring_points)
-        self.label_measuring_point_field.setGeometry(
-            QtCore.QRect(20, 30, 101, 31))
-        self.label_measuring_point_field.setObjectName(
-            _fromUtf8("label_measuring_point_field"))
-        self.combobox_measuring_point_field = QtGui.QComboBox(
-            self.groupbox_measuring_points)
-        self.combobox_measuring_point_field.setGeometry(
-            QtCore.QRect(200, 30, 311, 27))
-        self.combobox_measuring_point_field.setObjectName(_fromUtf8(
-            "combobox_measuring_point_field"))
-        self.combobox_measuring_point_field.addItem(_fromUtf8(""))
-        self.pushbutton_measuring_point_add_point = QtGui.QPushButton(
-            self.groupbox_measuring_points)
-        self.pushbutton_measuring_point_add_point.setGeometry(
-            QtCore.QRect(20, 240, 161, 27))
-        self.pushbutton_measuring_point_add_point.setObjectName(
-            _fromUtf8("pushbutton_measuring_point_add_point"))
-        self.label_measuring_point_add_point = QtGui.QLabel(
-            self.groupbox_measuring_points)
-        self.label_measuring_point_add_point.setGeometry(
-            QtCore.QRect(200, 240, 311, 31))
-        self.label_measuring_point_add_point.setObjectName(
-            _fromUtf8("label_measuring_point_add_point"))
-        self.pushbutton_measuring_point_load = QtGui.QPushButton(
-            self.groupbox_measuring_points)
-        self.pushbutton_measuring_point_load.setGeometry(
-            QtCore.QRect(20, 280, 161, 27))
-        self.pushbutton_measuring_point_load.setObjectName(
-            _fromUtf8("pushbutton_measuring_point_load"))
-        self.combobox_measuring_point_load = QtGui.QComboBox(
-            self.groupbox_measuring_points)
-        self.combobox_measuring_point_load.setGeometry(
-            QtCore.QRect(190, 280, 311, 27))
-        self.combobox_measuring_point_load.setObjectName(
-            _fromUtf8("combobox_measuring_point_load"))
-        self.label_measuring_point_field_description = QtGui.QLabel(
-            self.groupbox_measuring_points)
-        self.label_measuring_point_field_description.setGeometry(
-            QtCore.QRect(530, 20, 231, 41))
-        self.label_measuring_point_field_description.setObjectName(
-            _fromUtf8("label_measuring_point_field_description"))
-        self.label_measuring_point_load_point = QtGui.QLabel(
-            self.groupbox_measuring_points)
-        self.label_measuring_point_load_point.setGeometry(
-            QtCore.QRect(510, 280, 231, 31))
-        self.label_measuring_point_load_point.setObjectName(_fromUtf8(
-            "label_measuring_point_load_point"))
+        self.pushbutton_measuring_point_load = QtGui.QPushButton(self.groupbox_measuring_points)
+        self.pushbutton_measuring_point_load.setGeometry(QtCore.QRect(20, 240, 161, 27))
+        self.pushbutton_measuring_point_load.setObjectName(_fromUtf8("pushbutton_measuring_point_load"))
+        self.combobox_measuring_point_load = QtGui.QComboBox(self.groupbox_measuring_points)
+        self.combobox_measuring_point_load.setGeometry(QtCore.QRect(190, 240, 311, 27))
+        self.combobox_measuring_point_load.setObjectName(_fromUtf8("combobox_measuring_point_load"))
+        self.label_measuring_point_load_point = QtGui.QLabel(self.groupbox_measuring_points)
+        self.label_measuring_point_load_point.setGeometry(QtCore.QRect(510, 240, 231, 31))
+        self.label_measuring_point_load_point.setObjectName(_fromUtf8("label_measuring_point_load_point"))
         self.groupbox_measuring_points.raise_()
         self.buttonbox.raise_()
         self.groupbox_measuring_group.raise_()
 
         self.retranslateUi(self)
-        QtCore.QObject.connect(self.buttonbox, QtCore.SIGNAL(_fromUtf8(
-            "accepted()")), self.accept)
-        QtCore.QObject.connect(self.buttonbox, QtCore.SIGNAL(_fromUtf8(
-            "rejected()")), self.reject)
+        QtCore.QObject.connect(self.buttonbox, QtCore.SIGNAL(_fromUtf8("accepted()")), self.accept)
+        QtCore.QObject.connect(self.buttonbox, QtCore.SIGNAL(_fromUtf8("rejected()")), self.reject)
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self, dialog_create_measuring_group):
-        dialog_create_measuring_group.setWindowTitle(_translate(
-            "dialog_create_measuring_group", "Create measuring group", None))
-        self.groupbox_measuring_group.setTitle(_translate(
-            "dialog_create_measuring_group", "Measuring group", None))
-        self.label_measuring_group_id.setText(_translate(
-            "dialog_create_measuring_group", "id:", None))
-        self.pushbutton_measuring_group_load.setText(_translate(
-            "dialog_create_measuring_group", "Load measuring group", None))
-        self.label_measuring_group_load_description.setText(_translate(
-            "dialog_create_measuring_group", "Load a measuring group.", None))
-        self.label_measuring_group_description.setText(_translate(
-            "dialog_create_measuring_group", "The id of the measure group.",
-            None))
-        self.groupbox_measuring_points.setTitle(_translate(
-            "dialog_create_measuring_group", "Measuring stations", None))
+        self.setWindowTitle(_translate("dialog_create_measuring_group", "Create measuring group", None))
+        self.groupbox_measuring_group.setTitle(_translate("dialog_create_measuring_group", "Measuring group", None))
+        self.label_measuring_group_id.setText(_translate("dialog_create_measuring_group", "id:", None))
+        self.pushbutton_measuring_group_load.setText(_translate("dialog_create_measuring_group", "Load measuring group", None))
+        self.label_measuring_group_load_description.setText(_translate("dialog_create_measuring_group", "Load a measuring group.", None))
+        self.label_measuring_group_description.setText(_translate("dialog_create_measuring_group", "The id of the measure group.", None))
+        self.groupbox_measuring_points.setTitle(_translate("dialog_create_measuring_group", "Measuring stations", None))
         item = self.tablewidget_measuring_point.horizontalHeaderItem(0)
-        item.setText(_translate(
-            "dialog_create_measuring_group", "table", None))
+        item.setText(_translate("dialog_create_measuring_group", "table", None))
         item = self.tablewidget_measuring_point.horizontalHeaderItem(1)
-        item.setText(_translate(
-            "dialog_create_measuring_group", "table_id", None))
+        item.setText(_translate("dialog_create_measuring_group", "table_id", None))
         item = self.tablewidget_measuring_point.horizontalHeaderItem(2)
-        item.setText(_translate(
-            "dialog_create_measuring_group", "weight", None))
+        item.setText(_translate("dialog_create_measuring_group", "weight", None))
         item = self.tablewidget_measuring_point.horizontalHeaderItem(3)
-        item.setText(_translate(
-            "dialog_create_measuring_group", "action", None))
-        self.label_measuring_point_field.setText(_translate(
-            "dialog_create_measuring_group", "field:", None))
-        self.combobox_measuring_point_field.setItemText(0, _translate(
-            "dialog_create_measuring_group", "initial_waterlevel", None))
-        self.pushbutton_measuring_point_add_point.setText(_translate(
-            "dialog_create_measuring_group", "Add station", None))
-        self.label_measuring_point_add_point.setText(_translate(
-            "dialog_create_measuring_group", "<html><head/><body><p>Add a measuring station to the table.</p></body></html>", None))
-        self.pushbutton_measuring_point_load.setText(_translate(
-            "dialog_create_measuring_group", "Load station", None))
-        self.label_measuring_point_field_description.setText(_translate(
-            "dialog_create_measuring_group", "The measure value.", None))
-        self.label_measuring_point_load_point.setText(_translate(
-            "dialog_create_measuring_group", "Load a measuring station.",
-            None))
+        item.setText(_translate("dialog_create_measuring_group", "action", None))
+        self.pushbutton_measuring_point_load.setText(_translate("dialog_create_measuring_group", "Load station", None))
+        self.label_measuring_point_load_point.setText(_translate("dialog_create_measuring_group", "Load a measuring station.", None))

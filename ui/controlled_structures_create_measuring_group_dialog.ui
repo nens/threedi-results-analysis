@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>779</width>
-    <height>513</height>
+    <height>515</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonbox">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>460</y>
+     <x>180</x>
+     <y>440</y>
      <width>191</width>
      <height>32</height>
     </rect>
@@ -38,7 +38,7 @@
      <x>10</x>
      <y>10</y>
      <width>761</width>
-     <height>111</height>
+     <height>131</height>
     </rect>
    </property>
    <property name="title">
@@ -47,8 +47,8 @@
    <widget class="QLabel" name="label_measuring_group_id">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>80</y>
+      <x>30</x>
+      <y>40</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -61,7 +61,7 @@
     <property name="geometry">
      <rect>
       <x>200</x>
-      <y>90</y>
+      <y>40</y>
       <width>311</width>
       <height>20</height>
      </rect>
@@ -74,7 +74,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>40</y>
+      <y>80</y>
       <width>161</width>
       <height>27</height>
      </rect>
@@ -87,7 +87,7 @@
     <property name="geometry">
      <rect>
       <x>200</x>
-      <y>40</y>
+      <y>80</y>
       <width>311</width>
       <height>27</height>
      </rect>
@@ -97,7 +97,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>40</y>
+      <y>80</y>
       <width>231</width>
       <height>31</height>
      </rect>
@@ -110,7 +110,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>80</y>
+      <y>30</y>
       <width>231</width>
       <height>41</height>
      </rect>
@@ -124,9 +124,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>120</y>
+     <y>140</y>
      <width>761</width>
-     <height>321</height>
+     <height>291</height>
     </rect>
    </property>
    <property name="title">
@@ -136,16 +136,11 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>70</y>
+      <y>40</y>
       <width>731</width>
-      <height>151</height>
+      <height>181</height>
      </rect>
     </property>
-    <column>
-     <property name="text">
-      <string>v2_control_measure_map_id</string>
-     </property>
-    </column>
     <column>
      <property name="text">
       <string>table</string>
@@ -167,65 +162,11 @@
      </property>
     </column>
    </widget>
-   <widget class="QLabel" name="label_measuring_point_field">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>101</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>field:</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_measuring_point_field">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>30</y>
-      <width>311</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>initial_waterlevel</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="pushbutton_measuring_point_add_point">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>240</y>
-      <width>161</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Add station</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_measuring_point_add_point">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>240</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a measuring station to the table.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="pushbutton_measuring_point_load">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>280</y>
+      <y>240</y>
       <width>161</width>
       <height>27</height>
      </rect>
@@ -238,30 +179,17 @@
     <property name="geometry">
      <rect>
       <x>190</x>
-      <y>280</y>
+      <y>240</y>
       <width>311</width>
       <height>27</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_measuring_point_field_description">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>20</y>
-      <width>231</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>The measure value.</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_measuring_point_load_point">
     <property name="geometry">
      <rect>
       <x>510</x>
-      <y>280</y>
+      <y>240</y>
       <width>231</width>
       <height>31</height>
      </rect>

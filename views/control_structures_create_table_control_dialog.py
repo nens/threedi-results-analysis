@@ -119,6 +119,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             self.combobox_input_structure_table.addItem(key)
         # Set the structure id's
         self.setup_structure_ids()
+        # Set the action types of the structures
+        self.setup_action_types()
 
     def setup_structure_ids(self):
         """Setup the structure id's."""
@@ -130,6 +132,13 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         self.combobox_input_structure_id.addItems(
             list_of_structure_ids)
 
+    def setup_action_types(self):
+        """Setup the action types of the structures."""
+        self.combobox_input_action_type.clear()
+        structure_type = self.combobox_input_structure_table.currentText()
+        self.combobox_input_action_type\
+            .addItems(DICT_ACTION_TYPES[structure_type])
+
     def connect_signals(self):
         """Connect the signals."""
         self.pushbutton_input_rule_add_row.clicked.connect(
@@ -140,6 +149,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             self.clear_table)
         self.combobox_input_structure_table.activated.connect(
             self.setup_structure_ids)
+        self.combobox_input_structure_table.activated.connect(
+            self.setup_action_types)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
 
@@ -258,8 +269,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         structure_table = self.combobox_input_structure_table.currentText()
         table_control["target_type"] = DICT_TABLE_NAMES.get(
             structure_table, "")
-        table_control["action_type"] = DICT_ACTION_TYPES.get(
-            structure_table, "")
+        table_control["action_type"] = self\
+            .combobox_input_action_type.currentText()
         measure_variable = MEASURE_VARIABLE_WATERLEVEL
         table_control["measure_variable"] = measure_variable
         table_control["id"] = self.table_control_id
@@ -275,19 +286,29 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         tab.setLayout(layout)
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setGeometry(10, 10, 300, 21)
+        label_field.setText("Measure variable: {}".format(
+            self.combobox_input_rule_measure_variable.currentText()))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 300, 21)
         label_field.setText("Operator: {}".format(
             self.combobox_input_rule_operator.currentText()))
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 40, 741, 21)
+        label_field.setGeometry(310, 10, 300, 21)
         label_field.setText("Structure table: {}".format(
             self.combobox_input_structure_table.currentText()))
 
         label_field = QLabel(tab)
-        label_field.setGeometry(10, 70, 741, 21)
+        label_field.setGeometry(310, 40, 300, 21)
         label_field.setText("Structure id: {}".format(
             self.combobox_input_structure_id.currentText()))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(310, 70, 741, 21)
+        label_field.setText("Action type: {}".format(
+            self.combobox_input_action_type.currentText()))
 
         table_control_table = QTableWidget(tab)
         table_control_table.setGeometry(10, 100, 741, 221)
