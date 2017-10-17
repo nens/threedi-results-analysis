@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>784</width>
-    <height>784</height>
+    <height>877</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>190</x>
-     <y>710</y>
+     <y>800</y>
      <width>191</width>
      <height>32</height>
     </rect>
@@ -38,29 +38,29 @@
      <x>10</x>
      <y>10</y>
      <width>771</width>
-     <height>571</height>
+     <height>621</height>
     </rect>
    </property>
    <property name="title">
     <string>Table control</string>
    </property>
-   <widget class="QLabel" name="label_input_rule_operator">
+   <widget class="QLabel" name="label_input_rule_measure_variable">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>70</y>
-      <width>71</width>
-      <height>21</height>
+      <width>181</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Operator: </string>
+     <string>Measure variable:</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="combobox_input_rule_operator">
+   <widget class="QComboBox" name="combobox_input_rule_measure_variable">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>210</x>
       <y>70</y>
       <width>251</width>
       <height>27</height>
@@ -68,12 +68,12 @@
     </property>
     <item>
      <property name="text">
-      <string>Bottom up</string>
+      <string>waterlevel</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>Top down</string>
+      <string>volume</string>
      </property>
     </item>
    </widget>
@@ -81,7 +81,7 @@
     <property name="geometry">
      <rect>
       <x>130</x>
-      <y>120</y>
+      <y>160</y>
       <width>441</width>
       <height>311</height>
      </rect>
@@ -112,7 +112,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>120</y>
+      <y>160</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -125,7 +125,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>490</y>
+      <y>530</y>
       <width>161</width>
       <height>27</height>
      </rect>
@@ -138,7 +138,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>450</y>
+      <y>490</y>
       <width>161</width>
       <height>27</height>
      </rect>
@@ -147,17 +147,17 @@
      <string>Add row</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_input_rule_operator_info">
+   <widget class="QLabel" name="label_input_rule_measure_variable_info">
     <property name="geometry">
      <rect>
-      <x>590</x>
+      <x>490</x>
       <y>70</y>
-      <width>161</width>
-      <height>21</height>
+      <width>261</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Choose the operator.</string>
+     <string>Choose the measure variable.</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_input_rule_table_info">
@@ -178,7 +178,7 @@ values and action values.</string>
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>450</y>
+      <y>490</y>
       <width>541</width>
       <height>31</height>
      </rect>
@@ -191,7 +191,7 @@ values and action values.</string>
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>480</y>
+      <y>520</y>
       <width>561</width>
       <height>51</height>
      </rect>
@@ -204,7 +204,7 @@ values and action values.</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>530</y>
+      <y>570</y>
       <width>161</width>
       <height>27</height>
      </rect>
@@ -217,7 +217,7 @@ values and action values.</string>
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>530</y>
+      <y>570</y>
       <width>561</width>
       <height>31</height>
      </rect>
@@ -252,14 +252,60 @@ values and action values.</string>
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="label_input_rule_operator">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>181</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Operator: </string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_rule_operator">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>110</y>
+      <width>251</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Bottom up</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Top down</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_input_rule_operator_info">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>110</y>
+      <width>261</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Choose the operator.</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>600</y>
+     <y>630</y>
      <width>761</width>
-     <height>111</height>
+     <height>171</height>
     </rect>
    </property>
    <property name="title">
@@ -288,7 +334,7 @@ values and action values.</string>
    <widget class="QLabel" name="label_input_structure_type">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>30</y>
       <width>101</width>
       <height>21</height>
@@ -301,7 +347,7 @@ values and action values.</string>
    <widget class="QLabel" name="label_input_structure_id">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>70</y>
       <width>101</width>
       <height>21</height>
@@ -311,7 +357,7 @@ values and action values.</string>
      <string>Id:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_input_structure_type_2">
+   <widget class="QLabel" name="label_input_structure_type_info">
     <property name="geometry">
      <rect>
       <x>390</x>
@@ -324,7 +370,7 @@ values and action values.</string>
      <string>The type of structure.</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_input_structure_type_3">
+   <widget class="QLabel" name="label_input_structure_id_info">
     <property name="geometry">
      <rect>
       <x>390</x>
@@ -335,6 +381,42 @@ values and action values.</string>
     </property>
     <property name="text">
      <string>The id of the structure.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_input_action_type">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Action type:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_action_type">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>110</y>
+      <width>251</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_input_action_type_info">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>110</y>
+      <width>361</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>The action to apply to the structure.</string>
     </property>
    </widget>
   </widget>
