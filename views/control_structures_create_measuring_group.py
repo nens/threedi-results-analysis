@@ -308,7 +308,7 @@ class CreateMeasuringGroupDialogWidget(QDialog):
         self.buttonbox.setGeometry(QtCore.QRect(180, 440, 191, 32))
         self.buttonbox.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.buttonbox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.buttonbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Save)
         self.buttonbox.setObjectName(_fromUtf8("buttonbox"))
         self.groupbox_measuring_group = QtGui.QGroupBox(self)
         self.groupbox_measuring_group.setGeometry(QtCore.QRect(10, 10, 761, 131))
