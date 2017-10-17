@@ -24,6 +24,8 @@ from ThreeDiToolbox.views.control_structures_create_measuring_group import \
     CreateMeasuringGroupDialogWidget # noqa
 from ThreeDiToolbox.views.control_structures_create_table_control_dialog \
     import CreateTableControlDialogWidget # noqa
+from ThreeDiToolbox.views.control_structures_create_control_group_dialog \
+    import CreateControlGroupDialogWidget # noqa
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -64,48 +66,10 @@ class CustomCommand(CustomCommandBase):
         self.setup_measuring_station_tab()
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
-        self.dockwidget_controlled_structures.pushbutton_input_save\
-            .clicked.connect(self.run_it)
+        self.setup_control_group_tab()
 
     def run_it(self):
-        """Save the control to the spatialite or POSTGRES database."""
-        db_key = self.dockwidget_controlled_structures.combobox_input_model\
-            .currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        # The control_type is the type of control that will be saved.
-        # In the future, this type can be read from a combobox.
-        # Future options will be table control, pid control,
-        # memory control, delta control and timed control.
-        control_type = TABLE_CONTROL
-        if control_type == TABLE_CONTROL:
-            tablewidget = self.dockwidget_controlled_structures\
-                .tablewidget_input_rule_table_control
-            table_control = {}
-            measure_value = tablewidget.item(0, 0).text()
-            action_value = tablewidget.item(0, 1).text()
-            list_of_values = [measure_value, action_value]
-            table_control["action_table"] = control_structure\
-                .create_action_table(list_of_values)
-            if self.dockwidget_controlled_structures\
-                    .combobox_input_rule_operator.currentText()\
-                    == 'Bottom up':
-                measure_operator = RULE_OPERATOR_BOTTOM_UP
-            else:
-                measure_operator = RULE_OPERATOR_TOP_DOWN
-            table_control["measure_operator"] = measure_operator
-            table_control["target_id"] = self.dockwidget_controlled_structures\
-                .combobox_input_structure_id.currentText()
-            structure_table = self.dockwidget_controlled_structures\
-                .combobox_input_structure_table.currentText()
-            table_control["target_type"] = DICT_TABLE_NAMES.get(
-                structure_table, "")
-            table_control["action_type"] = DICT_ACTION_TYPES.get(
-                structure_table, "")
-            table_control["measure_variable"] = "waterlevel"
-            control_structure.save_table_control(table_control)
+        """Run the controlled structures dockwidget."""
 
     def show_gui(self):
         """Show the gui."""
@@ -153,13 +117,13 @@ class CustomCommand(CustomCommandBase):
             table_name="v2_control_table", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.addItems(list_of_rule_ids)
-        # Set the id's of the structures
-        self.dockwidget_controlled_structures.\
-            combobox_input_structure_id.clear()
-        list_of_structure_ids = control_structure.get_attributes(
-            table_name="v2_weir_view", attribute_name="weir_id")
-        self.dockwidget_controlled_structures.\
-            combobox_input_structure_id.addItems(list_of_structure_ids)
+        # Set the id's of the control groups
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_view.clear()
+        list_of_rule_ids = control_structure.get_attributes(
+            table_name="v2_control_group", attribute_name="id")
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_view.addItems(list_of_rule_ids)
 
     def setup_measuring_station_tab(self):
         """Setup the measuring station tab."""
@@ -208,6 +172,20 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_rule_tabs)
         self.dockwidget_controlled_structures.tab_table_control_view\
             .tabCloseRequested.connect(self.remove_rule_tab)
+
+    def setup_control_group_tab(self):
+        """Setup the control tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_control_new.clicked.connect(
+                self.create_new_control_group)
+        self.dockwidget_controlled_structures\
+            .pusbutton_input_control_view.clicked.connect(
+                self.view_control_group)
+        self.dockwidget_controlled_structures\
+            .pushbutton_control_clear.clicked.connect(
+                self.remove_all_control_tabs)
+        self.dockwidget_controlled_structures.tab_control_view\
+            .tabCloseRequested.connect(self.remove_control_tab)
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
@@ -514,3 +492,152 @@ class CustomCommand(CustomCommandBase):
         """Remove all tabs in the Rule tab."""
         self.dockwidget_controlled_structures.tab_table_control_view\
             .clear()
+
+    def create_new_control_group(self):
+        """Create a new control group."""
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get last id of control group or set to 0; set to +1
+        table_name = "v2_control_group"
+        attribute_name = "MAX(id)"
+        try:
+            max_id_control_group = int(control_structure.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
+            max_id_control_group = 0
+        new_id_control_group = max_id_control_group + 1
+        self.dialog_create_control_group = \
+            CreateControlGroupDialogWidget(
+                db_key=db_key, control_group_id=new_id_control_group,
+                dockwidget_controlled_structures=self.
+                dockwidget_controlled_structures)
+        self.dialog_create_control_group.exec_()  # block execution
+
+    def view_control_group(self):
+        """View a control group in a new tab in the Control groups tab."""
+        control_group_id = self.dockwidget_controlled_structures\
+            .combobox_input_control_view.currentText()
+        if control_group_id == "":
+            return
+        else:
+            attribute_name = "*"
+            table_name = "v2_control_group"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control_group_id)
+            db_key = self.dockwidget_controlled_structures\
+                .combobox_input_model.currentText()  # name of database
+            db = get_database_properties(db_key)
+            control_structure = ControlledStructures(
+                flavor=db["db_entry"]['db_type'])
+            control_structure.start_sqalchemy_engine(db["db_settings"])
+            control_group = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            # Create a new tab for the Control tab in the dockwidget
+            self.create_control_group_tab(control_group_id, control_group)
+            attribute_name = "*"
+            table_name = "v2_control"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="control_group_id", id_value=control_group_id)
+            controls = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)
+            self.populate_control_group_tab(control_group_id, controls)
+
+    def create_control_group_tab(self, control_group_id, control_group):
+        """
+        Create a tab in the Control group tab.
+
+        Args:
+            (int) control_grop_id: The id of the control group.
+            (list) control_group: A list of tuples containing the attributes
+                                  of the control group.
+        """
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        tab.setLayout(layout)
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 10, 741, 21)
+        label_field.setText("Name: {}".format(control_group[2]))
+
+        label_field = QLabel(tab)
+        label_field.setGeometry(10, 40, 741, 51)
+        label_field.setText("Description: {}".format(control_group[0]))
+
+        control_group_table = QTableWidget(tab)
+        control_group_table.setGeometry(10, 100, 741, 251)
+        control_group_table.insertColumn(0)
+        control_group_table.setHorizontalHeaderItem(
+            0, QTableWidgetItem("measuring_group_id"))
+        control_group_table.insertColumn(1)
+        control_group_table.setHorizontalHeaderItem(
+            1, QTableWidgetItem("rule_type"))
+        control_group_table.insertColumn(2)
+        control_group_table.setHorizontalHeaderItem(
+            2, QTableWidgetItem("rule_id"))
+        control_group_table.insertColumn(3)
+        control_group_table.setHorizontalHeaderItem(
+            3, QTableWidgetItem("structure"))
+        control_group_table.insertColumn(4)
+        control_group_table.setHorizontalHeaderItem(
+            4, QTableWidgetItem("structure_id"))
+        # Add the tab to the tabwidget in the dockwidget
+        self.dockwidget_controlled_structures.control_group_table = \
+            control_group_table
+        self.dockwidget_controlled_structures.tab_control_view.insertTab(
+            0, tab, "Control group: {}".format(str(control_group_id)))
+
+    def populate_control_group_tab(self, control_group_id, controls):
+        """
+        Add a tab in the tabwidget of the 'Control' tab.
+
+        Args:
+            (int) control_group_id: The id of the control group.
+            (list) controls: A list of tuples. The tuples contain the
+                                  different controls.
+        """
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        tablewidget = self.dockwidget_controlled_structures\
+            .control_group_table
+        row = 0
+        for control in controls:
+            tablewidget.insertRow(row)
+            tablewidget.setItem(row, 0, QTableWidgetItem(str(control[6])))
+            tablewidget.setItem(row, 1, QTableWidgetItem(control[2]))
+            tablewidget.setItem(row, 2, QTableWidgetItem(str(control[3])))
+            # Get structure type and id
+            attribute_name = "target_type"
+            table_name = "v2_control_table"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control[3])
+            structure_type = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            tablewidget.setItem(row, 3, QTableWidgetItem(
+                str(structure_type[0])))
+            attribute_name = "target_id"
+            table_name = "v2_control_table"
+            where = "{id_name} = {id_value}"\
+                .format(id_name="id", id_value=control[3])
+            structure_id = control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0]
+            tablewidget.setItem(row, 4, QTableWidgetItem(str(
+                structure_id[0])))
+            row += 1
+
+    def remove_control_tab(self):
+        """Remove a tab in the Control tab."""
+        self.dockwidget_controlled_structures.tab_control_view\
+            .removeTab(self.dockwidget_controlled_structures
+                       .tab_control_view.currentIndex())
+
+    def remove_all_control_tabs(self):
+        """Remove all tabs in the Control tab."""
+        self.dockwidget_controlled_structures.tab_control_view.clear()
