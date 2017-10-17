@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Refactor control structures: add station is removed from measuring group dialog, measure variable is put from measuring group to rule, action variables are added to rule.
+
 - Control structures: add the possibility to add, view and remove control groups.
 
 - Control structures: add the possibility to add, view and remove rules.
