@@ -145,6 +145,9 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_measuring_point_view.clicked\
             .connect(self.view_measuring_point)
         self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_clear.clicked\
+            .connect(self.clear_measuring_point_table)
+        self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_new.clicked\
             .connect(self.create_new_measuring_point)
         tablewidget = self.dockwidget_controlled_structures\
@@ -302,10 +305,7 @@ class CustomCommand(CustomCommandBase):
         """View all the measuring points in the Measuring station tab."""
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
-        amount_of_rows = tablewidget.rowCount()
-        for row in range(amount_of_rows):
-            if row != 0:
-                tablewidget.removeRow(1)
+        self.clear_measuring_point_table()
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()  # name of database
         db = get_database_properties(db_key)
@@ -340,6 +340,15 @@ class CustomCommand(CustomCommandBase):
         dont_remove = 0
         if row_number != dont_remove:
             tablewidget.removeRow(row_number)
+
+    def clear_measuring_point_table(self):
+        """Clear the measuring point table."""
+        # Leave the first row standing.
+        row_count = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point.rowCount()
+        for row in range(row_count - 1):
+            self.dockwidget_controlled_structures\
+                .tablewidget_measuring_point.removeRow(1)
 
     def create_new_measuring_group(self):
         """Create a new measuring group."""
