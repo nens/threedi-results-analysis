@@ -4,7 +4,7 @@
 import logging
 
 from PyQt4.QtCore import Qt
-# from PyQt4.QtGui import QAbstractItem
+from PyQt4.QtGui import QAbstractItemView
 from PyQt4.QtGui import QLabel
 from PyQt4.QtGui import QPushButton
 from PyQt4.QtGui import QTableWidget
@@ -188,6 +188,7 @@ class CustomCommand(CustomCommandBase):
         tablewidget.setCellWidget(
             start_row, 3, self.dockwidget_controlled_structures
             .pushbutton_input_measuring_point_new)
+        tablewidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def setup_measuring_group_tab(self):
         """Connect the signals for the measuring group tab."""
@@ -476,6 +477,7 @@ class CustomCommand(CustomCommandBase):
         table_measuring_group.insertColumn(2)
         table_measuring_group.setHorizontalHeaderItem(
             2, QTableWidgetItem("weight"))
+        table_measuring_group.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget_controlled_structures.table_measuring_group = \
             table_measuring_group
         # Set the new tab as the first tab
@@ -579,6 +581,7 @@ class CustomCommand(CustomCommandBase):
         table_control_table.insertColumn(1)
         table_control_table.setHorizontalHeaderItem(
             1, QTableWidgetItem("action_value"))
+        table_control_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget_controlled_structures.table_control_view = \
             table_control_table
 
@@ -714,6 +717,7 @@ class CustomCommand(CustomCommandBase):
         control_group_table.insertColumn(4)
         control_group_table.setHorizontalHeaderItem(
             4, QTableWidgetItem("structure_id"))
+        control_group_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # Add the tab to the tabwidget in the dockwidget
         self.dockwidget_controlled_structures.control_group_table = \
             control_group_table

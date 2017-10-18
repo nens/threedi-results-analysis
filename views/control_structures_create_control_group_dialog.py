@@ -5,6 +5,7 @@ import logging
 
 from PyQt4 import QtCore
 from PyQt4 import uic
+from PyQt4.QtGui import QAbstractItemView
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
 from PyQt4.QtGui import QLabel
@@ -293,6 +294,7 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         control_group_table.insertColumn(4)
         control_group_table.setHorizontalHeaderItem(
             4, QTableWidgetItem("structure_id"))
+        control_group_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # Add the tab to the tabwidget in the dockwidget
         self.dockwidget_controlled_structures.control_group_table = \
             control_group_table
@@ -325,9 +327,9 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
                         control_id = 0
                     new_control_id = control_id + 1
                 attributes = {
-                    "control_type": "table",  # staat nu automatisch op table_control  # = rule_type
+                    "control_type": "table",
                     "control_id": self.tablewidget_input_control
-                    .item(row, 2).text(),  # rule_id
+                    .item(row, 2).text(),
                     "control_group_id": new_control_group_id,
                     "measure_group_id": self.tablewidget_input_control
                     .item(row, 0).text(),
@@ -351,4 +353,3 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
                 self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 3, QTableWidgetItem(structure))
                 structure_id = str(self.tablewidget_input_control.item(row, 4).text())
                 self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 4, QTableWidgetItem(structure_id))
-        # Zie save in dockwidget
