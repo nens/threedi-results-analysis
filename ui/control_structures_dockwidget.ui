@@ -62,9 +62,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>180</y>
+        <y>140</y>
         <width>771</width>
-        <height>321</height>
+        <height>361</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -115,7 +115,7 @@
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>210</y>
+        <y>170</y>
         <width>91</width>
         <height>27</height>
        </rect>
@@ -130,7 +130,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>210</y>
+        <y>170</y>
         <width>91</width>
         <height>27</height>
        </rect>
@@ -140,21 +140,8 @@
       <property name="geometry">
        <rect>
         <x>330</x>
-        <y>210</y>
+        <y>170</y>
         <width>91</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>New</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushbutton_input_measuring_point_new_2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>99</width>
         <height>27</height>
        </rect>
       </property>
@@ -166,7 +153,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>60</y>
+        <y>20</y>
         <width>99</width>
         <height>27</height>
        </rect>
@@ -179,7 +166,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>100</y>
+        <y>60</y>
         <width>99</width>
         <height>27</height>
        </rect>
@@ -192,7 +179,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>140</y>
+        <y>100</y>
         <width>99</width>
         <height>27</height>
        </rect>
@@ -205,30 +192,17 @@
       <property name="geometry">
        <rect>
         <x>140</x>
-        <y>100</y>
+        <y>60</y>
         <width>191</width>
         <height>27</height>
        </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_input_measuring_point_new">
-      <property name="geometry">
-       <rect>
-        <x>360</x>
-        <y>20</y>
-        <width>421</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Create a new measuring station.</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_input_measuring_point_view_all">
       <property name="geometry">
        <rect>
         <x>360</x>
-        <y>60</y>
+        <y>20</y>
         <width>421</width>
         <height>31</height>
        </rect>
@@ -241,7 +215,7 @@
       <property name="geometry">
        <rect>
         <x>360</x>
-        <y>140</y>
+        <y>100</y>
         <width>421</width>
         <height>21</height>
        </rect>
@@ -254,7 +228,7 @@
       <property name="geometry">
        <rect>
         <x>360</x>
-        <y>100</y>
+        <y>60</y>
         <width>421</width>
         <height>31</height>
        </rect>
@@ -826,12 +800,6 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </widget>
-     <zorder>groupbox_help_model</zorder>
-     <zorder>groupbox_help_measuring_point</zorder>
-     <zorder>groupbox_help_measuring_group</zorder>
-     <zorder>groupbox_help_rule</zorder>
-     <zorder>groupbox_help_control</zorder>
-     <zorder>groupbox_help_control</zorder>
     </widget>
    </widget>
   </widget>

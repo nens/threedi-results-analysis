@@ -159,9 +159,6 @@ class CustomCommand(CustomCommandBase):
         populate the table of the measuring station tab.
         """
         self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_new_2.clicked\
-            .connect(self.create_new_measuring_point)
-        self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_view_all.clicked\
             .connect(self.view_all_measuring_points)
         self.dockwidget_controlled_structures\
