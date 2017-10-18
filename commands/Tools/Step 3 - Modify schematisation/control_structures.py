@@ -93,7 +93,14 @@ class CustomCommand(CustomCommandBase):
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Set the id's of the connection nodes
+        self.update_connection_node_ids(control_structure)
+        self.update_measuring_point_ids(control_structure)
+        self.update_measuring_group_ids(control_structure)
+        self.update_rule_ids(control_structure)
+        self.update_control_ids(control_structure)
+
+    def update_connection_node_ids(self, control_structure):
+        """Update the connection node id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.clear()
         list_of_measuring_point_ids = control_structure.get_attributes(
@@ -101,7 +108,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.addItems(
                 list_of_measuring_point_ids)
-        # Set the id's of the measuring points
+
+    def update_measuring_point_ids(self, control_structure):
+        """Update the measuring point id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_view.clear()
         list_of_measuring_group_ids = control_structure.get_attributes(
@@ -109,7 +118,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_view.addItems(
                 list_of_measuring_group_ids)
-        # Set the id's of the measuring groups
+
+    def update_measuring_group_ids(self, control_structure):
+        """Update the measuring group id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.clear()
         list_of_measuring_group_ids = control_structure.get_attributes(
@@ -117,14 +128,18 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.addItems(
                 list_of_measuring_group_ids)
-        # Set the id's of the rules
+
+    def update_rule_ids(self, control_structure):
+        """Update the rule id's in the dockwidget."""
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.clear()
         list_of_rule_ids = control_structure.get_attributes(
             table_name="v2_control_table", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.addItems(list_of_rule_ids)
-        # Set the id's of the control groups
+
+    def update_control_ids(self, control_structure):
+        """Update the control id's in the dockwidget."""
         self.dockwidget_controlled_structures\
             .combobox_input_control_view.clear()
         list_of_rule_ids = control_structure.get_attributes(
@@ -252,7 +267,7 @@ class CustomCommand(CustomCommandBase):
         }
         control_structure.insert_into_table(table_name, attributes)
         # Set the new ids of the v2_control_measure_map
-        self.update_dockwidget_ids()
+        self.update_measuring_point_ids(control_structure)
 
     def populate_measuring_point_row(self, id_measuring_point):
         """
@@ -387,6 +402,7 @@ class CustomCommand(CustomCommandBase):
                 dockwidget_controlled_structures=self.
                 dockwidget_controlled_structures)
         self.dialog_create_measuring_group.exec_()  # block execution
+        self.update_measuring_group_ids(control_structure)
 
     def view_measuring_group(self):
         """View a measuring group in a new tab in the Measure groups tab."""
@@ -497,6 +513,7 @@ class CustomCommand(CustomCommandBase):
             dockwidget_controlled_structures=self.
             dockwidget_controlled_structures)
         self.dialog_create_table_control.exec_()  # block execution
+        self.update_rule_ids(control_structure)
 
     def view_rule(self):
         """View a rule in a new tab in the Rule tab."""
@@ -623,6 +640,7 @@ class CustomCommand(CustomCommandBase):
                 dockwidget_controlled_structures=self.
                 dockwidget_controlled_structures)
         self.dialog_create_control_group.exec_()  # block execution
+        self.update_control_ids(control_structure)
 
     def view_control_group(self):
         """View a control group in a new tab in the Control groups tab."""
