@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Control structures: only show dockwidget id's after selecting a model.
+
 - Control structures: tables in the dockwidget tabs have become uneditable.
 
 - Bug fix (control structures): Empty rule is now also shown properly.

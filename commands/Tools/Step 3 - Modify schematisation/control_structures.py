@@ -67,7 +67,6 @@ class CustomCommand(CustomCommandBase):
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
         self.setup_control_group_tab()
-        self.update_dockwidget_ids()
 
     def run_it(self):
         """Run the controlled structures dockwidget."""
