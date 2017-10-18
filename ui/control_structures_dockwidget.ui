@@ -62,9 +62,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
+        <y>180</y>
         <width>771</width>
-        <height>481</height>
+        <height>321</height>
        </rect>
       </property>
       <property name="minimumSize">
@@ -115,7 +115,7 @@
       <property name="geometry">
        <rect>
         <x>130</x>
-        <y>50</y>
+        <y>210</y>
         <width>91</width>
         <height>27</height>
        </rect>
@@ -130,7 +130,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>50</y>
+        <y>210</y>
         <width>91</width>
         <height>27</height>
        </rect>
@@ -139,14 +139,128 @@
      <widget class="QPushButton" name="pushbutton_input_measuring_point_new">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>50</y>
+        <x>340</x>
+        <y>210</y>
         <width>91</width>
         <height>27</height>
        </rect>
       </property>
       <property name="text">
        <string>New</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_point_new_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>New</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_point_view_all">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View all</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_point_view">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_point_clear">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>140</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear all</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_measuring_point_view">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>100</y>
+        <width>191</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_point_new">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>20</y>
+        <width>421</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create a new measuring station.</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_point_view_all">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>60</y>
+        <width>421</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View all stations from the database.</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_point_clear">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>140</y>
+        <width>421</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear the table.</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_point_view">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>100</y>
+        <width>421</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>View a station with this id from the database.</string>
       </property>
      </widget>
     </widget>
