@@ -510,7 +510,7 @@
     </widget>
     <widget class="QWidget" name="tab_control">
      <attribute name="title">
-      <string>Control</string>
+      <string>Control group</string>
      </attribute>
      <widget class="QPushButton" name="pushbutton_input_control_new">
       <property name="geometry">
