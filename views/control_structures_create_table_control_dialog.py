@@ -7,6 +7,7 @@ import logging
 from PyQt4 import QtCore
 from PyQt4 import uic
 from PyQt4.QtCore import QSettings
+from PyQt4.QtGui import QAbstractItemView
 from PyQt4.QtGui import QPushButton
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QDialog
@@ -318,6 +319,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         table_control_table.insertColumn(1)
         table_control_table.setHorizontalHeaderItem(
             1, QTableWidgetItem("action_value"))
+        table_control_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget_controlled_structures.table_control_view = \
             table_control_table
 

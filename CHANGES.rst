@@ -5,6 +5,22 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Control structures: only show dockwidget id's after selecting a model.
+
+- Control structures: tables in the dockwidget tabs have become uneditable.
+
+- Bug fix (control structures): Empty rule is now also shown properly.
+
+- Control structures: creating a new measuring station/ group/ rule/ control updates the dockwidgets id's.
+
+- Control structures: changing the model clear all other tabs.
+
+- Control structures: add the possibility to add, view and remove measuring stations.
+
+- Control structures: Change 'Clear all' buttons in tabs in 'Close all' buttons.
+
+- Control structures: Update Help tab.
+
 - Control structures: 'Ok' buttons in dialogs become 'Save' buttons.
 
 - Refactor control structures: add station is removed from measuring group dialog, measure variable is put from measuring group to rule, action variables are added to rule.

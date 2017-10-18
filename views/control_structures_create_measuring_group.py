@@ -6,7 +6,7 @@ import logging
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import uic
-from PyQt4.QtGui import QComboBox
+from PyQt4.QtGui import QAbstractItemView
 from PyQt4.QtGui import QPushButton
 from PyQt4.QtGui import QTableWidgetItem
 from PyQt4.QtGui import QApplication
@@ -234,6 +234,7 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         table_measuring_group.insertColumn(2)
         table_measuring_group.setHorizontalHeaderItem(
             2, QTableWidgetItem("weight"))
+        table_measuring_group.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget_controlled_structures.table_measuring_group = \
             table_measuring_group
         # Add the tab to the left
