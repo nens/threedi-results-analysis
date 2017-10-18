@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tab_model">
      <attribute name="title">
@@ -353,7 +353,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear the tabs.</string>
+       <string>Close the tabs.</string>
       </property>
      </widget>
      <widget class="QTabWidget" name="tab_measuring_group_view_2">
@@ -473,7 +473,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear the tabs.</string>
+       <string>Close the tabs.</string>
       </property>
      </widget>
      <widget class="QTabWidget" name="tab_table_control_view">
@@ -623,7 +623,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear the tabs.</string>
+       <string>Close the tabs.</string>
       </property>
      </widget>
      <widget class="QTabWidget" name="tab_control_view">
