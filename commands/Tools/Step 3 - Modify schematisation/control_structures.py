@@ -595,16 +595,18 @@ class CustomCommand(CustomCommandBase):
         """
         action_table = rule[0]
         action_pairs = action_table.split("#")
-        row = 0
-        for action_pair in action_pairs:
-            self.dockwidget_controlled_structures.table_control_view.insertRow(
-                row)
-            measure_value, action_value = action_pair.split(";")
-            self.dockwidget_controlled_structures.table_control_view.setItem(
-                row, 0, QTableWidgetItem(measure_value))
-            self.dockwidget_controlled_structures.table_control_view.setItem(
-                row, 1, QTableWidgetItem(action_value))
-            row += 1
+        # Check if there is an action_pair
+        if ";" in action_pairs[0]:
+            row = 0
+            for action_pair in action_pairs:
+                self.dockwidget_controlled_structures.table_control_view\
+                    .insertRow(row)
+                measure_value, action_value = action_pair.split(";")
+                self.dockwidget_controlled_structures.table_control_view\
+                    .setItem(row, 0, QTableWidgetItem(measure_value))
+                self.dockwidget_controlled_structures.table_control_view\
+                    .setItem(row, 1, QTableWidgetItem(action_value))
+                row += 1
 
     def remove_rule_tab(self):
         """Remove a tab in the Rule tab."""

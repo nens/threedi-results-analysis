@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Bug fix (control structures): Empty rule is now also shown properly.
+
+- Control structures: creating a new measuring station/ group/ rule/ control updates the dockwidgets id's.
+
 - Control structures: changing the model clear all other tabs.
 
 - Control structures: add the possibility to add, view and remove measuring stations.
