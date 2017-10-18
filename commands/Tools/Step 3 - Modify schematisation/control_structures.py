@@ -154,8 +154,8 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_measuring_group_view.clicked.connect(
                 self.view_measuring_group)
         self.dockwidget_controlled_structures\
-            .pushbutton_input_rule_clear.clicked.connect(
-                self.remove_all_rule_tabs)
+            .pushbutton_input_measuring_group_close_all.clicked.connect(
+                self.remove_all_measuring_group_tabs)
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
 
@@ -168,7 +168,7 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_rule_view.clicked.connect(
                 self.view_rule)
         self.dockwidget_controlled_structures\
-            .pushbutton_input_rule_clear.clicked.connect(
+            .pushbutton_input_rule_close_all.clicked.connect(
                 self.remove_all_rule_tabs)
         self.dockwidget_controlled_structures.tab_table_control_view\
             .tabCloseRequested.connect(self.remove_rule_tab)
@@ -182,7 +182,7 @@ class CustomCommand(CustomCommandBase):
             .pusbutton_input_control_view.clicked.connect(
                 self.view_control_group)
         self.dockwidget_controlled_structures\
-            .pushbutton_control_clear.clicked.connect(
+            .pushbutton_control_close_all.clicked.connect(
                 self.remove_all_control_tabs)
         self.dockwidget_controlled_structures.tab_control_view\
             .tabCloseRequested.connect(self.remove_control_tab)

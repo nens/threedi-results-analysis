@@ -216,7 +216,7 @@
        <string>View a measuring group from the database.</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushbutton_input_measuring_group_clear">
+     <widget class="QPushButton" name="pushbutton_input_measuring_group_close_all">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -226,7 +226,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear all</string>
+       <string>Close all</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_input_measuring_group_clear">
@@ -336,7 +336,7 @@
        <string>View a table control from the database.</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushbutton_input_rule_clear">
+     <widget class="QPushButton" name="pushbutton_input_rule_close_all">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -346,7 +346,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear all</string>
+       <string>Close all</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_input_rule_clear">
@@ -415,7 +415,7 @@
      <zorder>label_input_rule_new</zorder>
      <zorder>pushbutton_input_rule_view</zorder>
      <zorder>label_input_rule_view</zorder>
-     <zorder>pushbutton_input_rule_clear</zorder>
+     <zorder>pushbutton_input_rule_close_all</zorder>
      <zorder>label_input_rule_clear</zorder>
      <zorder>combobox_input_rule_type_view</zorder>
      <zorder>combobox_input_rule_view</zorder>
@@ -486,7 +486,7 @@
        <string>View a control group from the database.</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushbutton_control_clear">
+     <widget class="QPushButton" name="pushbutton_control_close_all">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -496,7 +496,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Clear all</string>
+       <string>Close all</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_input_control_clear">
@@ -540,7 +540,7 @@
      <zorder>label_input_control_new</zorder>
      <zorder>combobox_input_control_view</zorder>
      <zorder>label_input_control_view</zorder>
-     <zorder>pushbutton_control_clear</zorder>
+     <zorder>pushbutton_control_close_all</zorder>
      <zorder>label_input_control_clear</zorder>
     </widget>
     <widget class="QWidget" name="tab_help">
