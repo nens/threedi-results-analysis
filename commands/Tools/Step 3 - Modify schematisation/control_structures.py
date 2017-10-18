@@ -4,6 +4,7 @@
 import logging
 
 from PyQt4.QtCore import Qt
+# from PyQt4.QtGui import QAbstractItem
 from PyQt4.QtGui import QLabel
 from PyQt4.QtGui import QPushButton
 from PyQt4.QtGui import QTableWidget
@@ -66,6 +67,7 @@ class CustomCommand(CustomCommandBase):
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
         self.setup_control_group_tab()
+        self.update_dockwidget_ids()
 
     def run_it(self):
         """Run the controlled structures dockwidget."""
@@ -78,7 +80,6 @@ class CustomCommand(CustomCommandBase):
         # Show active models
         self.dockwidget_controlled_structures.combobox_input_model.addItems(
             self.databases.keys())
-        self.update_dockwidget_ids()
         self.dockwidget_controlled_structures.show()
 
     def update_dockwidget_ids(self):
@@ -100,7 +101,6 @@ class CustomCommand(CustomCommandBase):
         self.update_control_ids(control_structure)
 
     def update_connection_node_ids(self, control_structure):
-        """Update the connection node id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.clear()
         list_of_measuring_point_ids = control_structure.get_attributes(
@@ -110,7 +110,6 @@ class CustomCommand(CustomCommandBase):
                 list_of_measuring_point_ids)
 
     def update_measuring_point_ids(self, control_structure):
-        """Update the measuring point id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_view.clear()
         list_of_measuring_group_ids = control_structure.get_attributes(
@@ -120,7 +119,6 @@ class CustomCommand(CustomCommandBase):
                 list_of_measuring_group_ids)
 
     def update_measuring_group_ids(self, control_structure):
-        """Update the measuring group id's in the dockwidget."""
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.clear()
         list_of_measuring_group_ids = control_structure.get_attributes(
@@ -130,7 +128,6 @@ class CustomCommand(CustomCommandBase):
                 list_of_measuring_group_ids)
 
     def update_rule_ids(self, control_structure):
-        """Update the rule id's in the dockwidget."""
         self.dockwidget_controlled_structures\
             .combobox_input_rule_view.clear()
         list_of_rule_ids = control_structure.get_attributes(
@@ -139,7 +136,6 @@ class CustomCommand(CustomCommandBase):
             .combobox_input_rule_view.addItems(list_of_rule_ids)
 
     def update_control_ids(self, control_structure):
-        """Update the control id's in the dockwidget."""
         self.dockwidget_controlled_structures\
             .combobox_input_control_view.clear()
         list_of_rule_ids = control_structure.get_attributes(
@@ -148,14 +144,21 @@ class CustomCommand(CustomCommandBase):
             .combobox_input_control_view.addItems(list_of_rule_ids)
 
     def setup_model_tab(self):
-        """Setup the model tab."""
+        """
+        Connect the signals for the model tab.
+        By clicking on a different model in the GUI, the id's
+        for the measuring points and structures are updated.
+        """
         self.dockwidget_controlled_structures.combobox_input_model\
             .currentIndexChanged.connect(self.clear_all_tabs)
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
 
     def setup_measuring_station_tab(self):
-        """Setup the measuring station tab."""
+        """
+        Connect the signals for the measuring station tab and
+        populate the table of the measuring station tab.
+        """
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_new_2.clicked\
             .connect(self.create_new_measuring_point)
@@ -187,7 +190,7 @@ class CustomCommand(CustomCommandBase):
             .pushbutton_input_measuring_point_new)
 
     def setup_measuring_group_tab(self):
-        """Setup the measuring station tab."""
+        """Connect the signals for the measuring group tab."""
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_group_new.clicked.connect(
                 self.create_new_measuring_group)
@@ -201,7 +204,7 @@ class CustomCommand(CustomCommandBase):
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
 
     def setup_rule_tab(self):
-        """Setup the rule tab."""
+        """Connect the signals for the rule tab."""
         self.dockwidget_controlled_structures\
             .pushbutton_input_rule_new.clicked.connect(
                 self.create_new_rule)
@@ -215,7 +218,7 @@ class CustomCommand(CustomCommandBase):
             .tabCloseRequested.connect(self.remove_rule_tab)
 
     def setup_control_group_tab(self):
-        """Setup the control tab."""
+        """Connect the signals for the control tab."""
         self.dockwidget_controlled_structures\
             .pushbutton_input_control_new.clicked.connect(
                 self.create_new_control_group)
