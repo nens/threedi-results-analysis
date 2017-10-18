@@ -102,6 +102,14 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_point_id.addItems(
                 list_of_measuring_point_ids)
+        # Set the id's of the measuring points
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_point_view.clear()
+        list_of_measuring_group_ids = control_structure.get_attributes(
+            table_name="v2_control_measure_map", attribute_name="id")
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_point_view.addItems(
+                list_of_measuring_group_ids)
         # Set the id's of the measuring groups
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.clear()
@@ -133,6 +141,9 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_view_all.clicked\
             .connect(self.view_all_measuring_points)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_view.clicked\
+            .connect(self.view_measuring_point)
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_new.clicked\
             .connect(self.create_new_measuring_point)
@@ -256,8 +267,45 @@ class CustomCommand(CustomCommandBase):
         tablewidget.setCellWidget(
             row_position, 3, measuring_point_remove_widget)
 
+    def view_measuring_point(self):
+        """View a measuring station in 'Ḿeasuring station' tab."""
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        measure_point_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_view.currentText()
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        where = "id={}".format(measure_point_id)
+        measure_point = control_structure.get_features_with_where_clause(
+            table_name=table_name, attribute_name=attribute_name,
+            where=where)[0]
+        # Insert on top of the table
+        row_position = 1
+        tablewidget.insertRow(row_position)
+        measuring_point_id = QTableWidgetItem(str(measure_point[0]))
+        tablewidget.setItem(row_position, 0, measuring_point_id)
+        measuring_point_table = QTableWidgetItem(str(measure_point[2]))
+        tablewidget.setItem(row_position, 1, measuring_point_table)
+        measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
+        tablewidget.setItem(row_position, 2, measuring_point_table_id)
+        measuring_point_remove = QPushButton("Remove")
+        measuring_point_remove.clicked.connect(self.remove_measuring_point_row)
+        tablewidget.setCellWidget(row_position, 3, measuring_point_remove)
+
     def view_all_measuring_points(self):
         """View all the measuring points in the Measuring station tab."""
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        amount_of_rows = tablewidget.rowCount()
+        for row in range(amount_of_rows):
+            if row != 0:
+                tablewidget.removeRow(1)
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()  # name of database
         db = get_database_properties(db_key)
@@ -269,8 +317,6 @@ class CustomCommand(CustomCommandBase):
         measure_points = control_structure.get_attributes(
             table_name=table_name, attribute_name=attribute_name,
             all_features=True)
-        tablewidget = self.dockwidget_controlled_structures\
-            .tablewidget_measuring_point
         for measure_point in measure_points:
             row_position = tablewidget.rowCount()
             tablewidget.insertRow(row_position)
