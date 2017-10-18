@@ -128,6 +128,12 @@ class CustomCommand(CustomCommandBase):
     def setup_measuring_station_tab(self):
         """Setup the measuring station tab."""
         self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_new_2.clicked\
+            .connect(self.create_new_measuring_point)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_view_all.clicked\
+            .connect(self.view_all_measuring_points)
+        self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_new.clicked\
             .connect(self.create_new_measuring_point)
         tablewidget = self.dockwidget_controlled_structures\
@@ -249,6 +255,35 @@ class CustomCommand(CustomCommandBase):
             self.remove_measuring_point_row)
         tablewidget.setCellWidget(
             row_position, 3, measuring_point_remove_widget)
+
+    def view_all_measuring_points(self):
+        """View all the measuring points in the Measuring station tab."""
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        measure_points = control_structure.get_attributes(
+            table_name=table_name, attribute_name=attribute_name,
+            all_features=True)
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        for measure_point in measure_points:
+            row_position = tablewidget.rowCount()
+            tablewidget.insertRow(row_position)
+            measuring_point_id = QTableWidgetItem(str(measure_point[0]))
+            tablewidget.setItem(row_position, 0, measuring_point_id)
+            measuring_point_table = QTableWidgetItem(str(measure_point[2]))
+            tablewidget.setItem(row_position, 1, measuring_point_table)
+            measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
+            tablewidget.setItem(row_position, 2, measuring_point_table_id)
+            measuring_point_remove = QPushButton("Remove")
+            measuring_point_remove.clicked.connect(
+                self.remove_measuring_point_row)
+            tablewidget.setCellWidget(row_position, 3, measuring_point_remove)
 
     def remove_measuring_point_row(self):
         """Remove a row from the measuring point table."""

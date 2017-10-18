@@ -139,7 +139,7 @@
      <widget class="QPushButton" name="pushbutton_input_measuring_point_new">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>330</x>
         <y>210</y>
         <width>91</width>
         <height>27</height>

@@ -93,7 +93,7 @@ class ControlledStructures(object):
             row_nr += 1
         return action_table
 
-    def get_attributes(self, table_name, attribute_name):
+    def get_attributes(self, table_name, attribute_name, all_features=False):
         """
         Get all values of an attribute from a table.
 
@@ -117,8 +117,11 @@ class ControlledStructures(object):
                         attribute=attribute_name, table=table_name)
                 )
                 attributes = rs.fetchall()
-                list_of_attributes = [str(attribute_value[0]) for
-                                      attribute_value in attributes]
+                if all_features is False:
+                    list_of_attributes = [str(attribute_value[0]) for
+                                          attribute_value in attributes]
+                else:
+                    list_of_attributes += attributes
         except OperationalError as e:
             msg = str(e)
             messagebar_message(
