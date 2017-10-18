@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Control structures: changing the model clear all other tabs.
+
 - Control structures: add the possibility to add, view and remove measuring stations.
 
 - Control structures: Change 'Clear all' buttons in tabs in 'Close all' buttons.

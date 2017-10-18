@@ -61,8 +61,7 @@ class CustomCommand(CustomCommandBase):
     def run(self):
         """Run the controlled structures dockwidget."""
         self.show_gui()
-        self.dockwidget_controlled_structures.combobox_input_model\
-            .activated.connect(self.update_dockwidget_ids)
+        self.setup_model_tab()
         self.setup_measuring_station_tab()
         self.setup_measuring_group_tab()
         self.setup_rule_tab()
@@ -132,6 +131,13 @@ class CustomCommand(CustomCommandBase):
             table_name="v2_control_group", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_control_view.addItems(list_of_rule_ids)
+
+    def setup_model_tab(self):
+        """Setup the model tab."""
+        self.dockwidget_controlled_structures.combobox_input_model\
+            .currentIndexChanged.connect(self.clear_all_tabs)
+        self.dockwidget_controlled_structures.combobox_input_model\
+            .activated.connect(self.update_dockwidget_ids)
 
     def setup_measuring_station_tab(self):
         """Setup the measuring station tab."""
@@ -206,6 +212,13 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_control_tabs)
         self.dockwidget_controlled_structures.tab_control_view\
             .tabCloseRequested.connect(self.remove_control_tab)
+
+    def clear_all_tabs(self):
+        """Clear all the tabs of the dockwidget."""
+        self.clear_measuring_point_table()
+        self.remove_all_measuring_group_tabs()
+        self.remove_all_rule_tabs()
+        self.remove_all_control_tabs()
 
     def create_new_measuring_point(self):
         """Create a new measuring point."""
