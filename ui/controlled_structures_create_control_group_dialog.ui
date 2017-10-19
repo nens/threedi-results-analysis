@@ -232,7 +232,7 @@
     </property>
     <item>
      <property name="text">
-      <string>table_control</string>
+      <string>table</string>
      </property>
     </item>
    </widget>
