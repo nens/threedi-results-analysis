@@ -74,19 +74,13 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         self.tablewidget_input_control.setCellWidget(
             0, 2, self.combobox_input_rule_id)
         self.tablewidget_input_control.setCellWidget(
-            0, 3, self.combobox_input_structure_table)
-        self.tablewidget_input_control.setCellWidget(
-            0, 4, self.combobox_input_structure_id)
-        self.tablewidget_input_control.setCellWidget(
-            0, 5, self.combobox_input_field)
-        self.tablewidget_input_control.setCellWidget(
             0, 6, self.pushbutton_input_control_new)
         self.update_ids()
         # Connect signals
         self.pushbutton_input_control_new.clicked.connect(
             self.create_new_control)
         self.combobox_input_rule_id.activated.connect(
-            self.update_structure_options)
+            self.update_structure_ids)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
 
@@ -112,7 +106,6 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         event.accept()
 
     def update_ids(self):
-        """Update the id's."""
         db = get_database_properties(self.db_key)
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
@@ -120,96 +113,50 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         # Measuring group id's
         self.combobox_input_control_measuring_group.clear()
         list_of_measure_group_ids = control_structure.get_attributes(
-            table_name="v2_control_measure_group", attribute_name="id")  # read table name dynamically
+            table_name="v2_control_measure_group", attribute_name="id")
         self.combobox_input_control_measuring_group.addItems(
             list_of_measure_group_ids)
         # Rule id's
         self.combobox_input_rule_id.clear()
         list_of_rule_ids = control_structure.get_attributes(
-            table_name="v2_control_table", attribute_name="id")  # read table name dynamically
-        self.combobox_input_rule_id.addItems(
-            list_of_rule_ids)
-        # Structure type
-        self.combobox_input_structure_table.clear()
-        rule_id = self.combobox_input_rule_id.currentText()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="target_type",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            structure_type = rs.fetchone()[0]
-        self.combobox_input_structure_table.addItem(structure_type)
-        # Structure id
-        self.combobox_input_structure_id.clear()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="target_id",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            structure_id = rs.fetchone()[0]
-        self.combobox_input_structure_id.addItem(str(structure_id))
-        # Action type
-        self.combobox_input_field.clear()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="action_type",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            action_type = rs.fetchone()[0]
-        self.combobox_input_field.addItem(str(action_type))
+            table_name="v2_control_table", attribute_name="id")
+        self.combobox_input_rule_id.addItems(list_of_rule_ids)
+        self.update_structure_ids()
 
-    def update_structure_options(self):
-        """Update the structure options."""
+    def update_structure_ids(self):
         db = get_database_properties(self.db_key)
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Structure type
-        self.combobox_input_structure_table.clear()
+        start_row = 0
         rule_id = self.combobox_input_rule_id.currentText()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="target_type",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            structure_type = rs.fetchone()[0]
-        self.combobox_input_structure_table.addItem(structure_type)
+        table_name = "v2_control_table"
+        id_name = "id"
+        where = "{id_name} = {value}".format(id_name=id_name, value=rule_id)
+        # Structure type
+        # self.combobox_input_structure_table.clear()
+        attribute_name = "target_type"
+        structure_type = str(control_structure.get_features_with_where_clause(
+            table_name, attribute_name, where)[0][0])
+        self.tablewidget_input_control.setItem(
+            start_row, 3, QTableWidgetItem(structure_type))
+        # self.combobox_input_structure_table.addItem(structure_type)
         # Structure id
-        self.combobox_input_structure_id.clear()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="target_id",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            structure_id = rs.fetchone()[0]
-        self.combobox_input_structure_id.addItem(str(structure_id))
+        # self.combobox_input_structure_id.clear()
+        attribute_name = "target_id"
+        structure_id = str(control_structure.get_features_with_where_clause(
+            table_name, attribute_name, where)[0][0])
+        self.tablewidget_input_control.setItem(
+            start_row, 4, QTableWidgetItem(structure_id))
+        # self.combobox_input_structure_id.addItem(str(structure_id))
         # Action type
-        self.combobox_input_field.clear()
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT {attribute} FROM {table_name} WHERE {id_name}={value};'''
-                .format(attribute="action_type",
-                        table_name="v2_control_table",
-                        id_name="id",
-                        value=rule_id)
-            )
-            action_type = rs.fetchone()[0]
-        self.combobox_input_field.addItem(str(action_type))
+        # self.combobox_input_field.clear()
+        attribute_name = "action_type"
+        action_type = str(control_structure.get_features_with_where_clause(
+            table_name, attribute_name, where)[0][0])
+        self.tablewidget_input_control.setItem(
+            start_row, 5, QTableWidgetItem(action_type))
+        # self.combobox_input_field.addItem(str(action_type))
 
     def create_new_control(self):
         """Create a new control."""
@@ -226,17 +173,16 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
             row_position, 2,
             QTableWidgetItem(self.combobox_input_rule_id.currentText()))
         self.tablewidget_input_control.setItem(
-            row_position, 3, QTableWidgetItem(
-                self.combobox_input_structure_table.currentText()))
+            row_position, 3,
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 3).text()))
         self.tablewidget_input_control.setItem(
             row_position, 4,
-            QTableWidgetItem(self.combobox_input_structure_id.currentText()))
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 4).text()))
         self.tablewidget_input_control.setItem(
             row_position, 5,
-            QTableWidgetItem(self.combobox_input_field.currentText()))
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 5).text()))
         pushbutton_control_remove = QPushButton("Remove")
-        pushbutton_control_remove.clicked.connect(
-            self.remove_control_row)
+        pushbutton_control_remove.clicked.connect(self.remove_control_row)
         self.tablewidget_input_control.setCellWidget(
             row_position, 6, pushbutton_control_remove)
 
@@ -253,16 +199,49 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Get the new control_group_id
-        with control_structure.engine.connect() as con:
-            rs = con.execute(
-                '''SELECT MAX(id) FROM v2_control_group;'''
-            )
-            control_group_id = rs.fetchone()[0]
-            if not control_group_id:
-                control_group_id = 0
-            new_control_group_id = control_group_id + 1
         # Create a new tab for the Control tab in the dockwidget
+        self.add_control_group_tab_dockwidget()
+        # Save control group
+        table_name = "v2_control_group"
+        attributes = {
+            "description": self.textedit_input_control_description
+            .toPlainText(),
+            "id": self.control_group_id,
+            "name": self.lineedit_input_control_name.text()
+        }
+        control_structure.insert_into_table(table_name, attributes)
+        # Save controls
+        table_name = "v2_control"
+        amount_of_rows = self.tablewidget_input_control.rowCount()
+        for row in range(amount_of_rows):
+            # Get the new control id
+            if row != 0:
+                with control_structure.engine.connect() as con:
+                    rs = con.execute(
+                        '''SELECT MAX(id) FROM v2_control;'''
+                    )
+                    control_id = rs.fetchone()[0]
+                    if not control_id:
+                        control_id = 0
+                    new_control_id = control_id + 1
+                attributes = {
+                    "control_type": "table",
+                    "control_id": self.tablewidget_input_control
+                    .item(row, 2).text(),
+                    "control_group_id": self.control_group_id,
+                    "measure_group_id": self.tablewidget_input_control
+                    .item(row, 0).text(),
+                    "id": new_control_id
+                }
+                control_structure.insert_into_table(table_name, attributes)
+        # Setup the value of the table in the tab in the dockwidget
+        self.setup_control_group_table_dockwidget()
+
+    def add_control_group_tab_dockwidget(self):
+        """
+        Create a tab for the measure group within the Measure group tab
+        in the dockwidget.
+        """
         tab = QWidget()
         layout = QVBoxLayout(tab)
         tab.setLayout(layout)
@@ -301,55 +280,35 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
 
         self.dockwidget_controlled_structures\
             .tab_control_view.insertTab(
-                0, tab, "Control group: {}".format(
-                    str(new_control_group_id)))
-        # Save control group
-        table_name = "v2_control_group"
-        attributes = {
-            "description": self.textedit_input_control_description
-            .toPlainText(),
-            "id": new_control_group_id,
-            "name": self.lineedit_input_control_name.text()
-        }
-        control_structure.insert_into_table(table_name, attributes)
-        # Save controls
-        table_name = "v2_control"
+                0, tab, "Control group: {}".format(str(self.control_group_id)))
+
+    def setup_control_group_table_dockwidget(self):
+        """
+        Setup a tab for the measure group in the Measure group tab
+        in the dockwidget.
+        """
         amount_of_rows = self.tablewidget_input_control.rowCount()
-        for row in range(amount_of_rows):
-            # Get the new control id
-            if row != 0:
-                with control_structure.engine.connect() as con:
-                    rs = con.execute(
-                        '''SELECT MAX(id) FROM v2_control;'''
-                    )
-                    control_id = rs.fetchone()[0]
-                    if not control_id:
-                        control_id = 0
-                    new_control_id = control_id + 1
-                attributes = {
-                    "control_type": "table",
-                    "control_id": self.tablewidget_input_control
-                    .item(row, 2).text(),
-                    "control_group_id": new_control_group_id,
-                    "measure_group_id": self.tablewidget_input_control
-                    .item(row, 0).text(),
-                    "id": new_control_id
-                }
-                control_structure.insert_into_table(table_name, attributes)
-        # Create new tab in Control tab in dockwidget
-        amount_of_rows = self.tablewidget_input_control.rowCount()
+        tablewidget_dockwidget = self\
+            .dockwidget_controlled_structures.control_group_table
+        tablewidget_dialog = self.tablewidget_input_control
         for row in range(amount_of_rows):
             # Skip first row with comboboxes
             if row != 0:
                 row_position = row - 1
-                self.dockwidget_controlled_structures.control_group_table.insertRow(row_position)
-                measuring_group_id = str(self.tablewidget_input_control.item(row, 0).text())
-                self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 0, QTableWidgetItem(measuring_group_id))
-                rule_type = str(self.tablewidget_input_control.item(row, 1).text())
-                self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 1, QTableWidgetItem(rule_type))
-                rule_id = str(self.tablewidget_input_control.item(row, 2).text())
-                self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 2, QTableWidgetItem(rule_id))
-                structure = str(self.tablewidget_input_control.item(row, 3).text())
-                self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 3, QTableWidgetItem(structure))
-                structure_id = str(self.tablewidget_input_control.item(row, 4).text())
-                self.dockwidget_controlled_structures.control_group_table.setItem(row_position, 4, QTableWidgetItem(structure_id))
+                tablewidget_dockwidget.insertRow(row_position)
+                measuring_group_id = str(
+                    tablewidget_dialog.item(row, 0).text())
+                tablewidget_dockwidget.setItem(
+                    row_position, 0, QTableWidgetItem(measuring_group_id))
+                rule_type = str(tablewidget_dialog.item(row, 1).text())
+                tablewidget_dockwidget.setItem(
+                    row_position, 1, QTableWidgetItem(rule_type))
+                rule_id = str(tablewidget_dialog.item(row, 2).text())
+                tablewidget_dockwidget.setItem(
+                    row_position, 2, QTableWidgetItem(rule_id))
+                structure = str(tablewidget_dialog.item(row, 3).text())
+                tablewidget_dockwidget.setItem(
+                    row_position, 3, QTableWidgetItem(structure))
+                structure_id = str(tablewidget_dialog.item(row, 4).text())
+                tablewidget_dockwidget.setItem(
+                    row_position, 4, QTableWidgetItem(structure_id))

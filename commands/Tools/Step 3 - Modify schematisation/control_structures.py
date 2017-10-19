@@ -14,12 +14,6 @@ from PyQt4.QtGui import QWidget
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    RULE_OPERATOR_BOTTOM_UP
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    RULE_OPERATOR_TOP_DOWN
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    TABLE_CONTROL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
     ControlledStructures
 from ThreeDiToolbox.views.control_structures_create_measuring_group import \
     CreateMeasuringGroupDialogWidget # noqa
@@ -29,8 +23,6 @@ from ThreeDiToolbox.views.control_structures_create_control_group_dialog \
     import CreateControlGroupDialogWidget # noqa
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
-from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
-from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.views.control_structures_dockwidget import \
     ControlStructuresDockWidget  # noqa
 
@@ -158,9 +150,6 @@ class CustomCommand(CustomCommandBase):
         Connect the signals for the measuring station tab and
         populate the table of the measuring station tab.
         """
-        self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_new_2.clicked\
-            .connect(self.create_new_measuring_point)
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_point_view_all.clicked\
             .connect(self.view_all_measuring_points)

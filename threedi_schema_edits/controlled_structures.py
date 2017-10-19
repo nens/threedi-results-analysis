@@ -10,13 +10,9 @@ from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 logger = logging.getLogger(__name__)
 
-TABLE_CONTROL = 'table_control'
 RULE_OPERATOR_BOTTOM_UP = '>'
 RULE_OPERATOR_TOP_DOWN = '<'
-V2_WEIR_VIEW_TABLE = "v2_weir_view"
-V2_WEIR_TABLE = 'v2_weir'
 MEASURE_VARIABLE_WATERLEVEL = 'waterlevel'
-ACTION_TYPE_SET_CREST_LEVEL = 'set_crest_level'
 
 
 class ControlledStructures(object):
