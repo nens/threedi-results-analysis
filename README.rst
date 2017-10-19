@@ -31,7 +31,7 @@ Most Python dependencies are included in the **distribution** of the plugin,
 but if you clone this repository you need to manually install them in the
 ``external`` directory::
 
-    $ pip install -r requirements.txt --target=external --no-deps
+    $ pip install -r requirements.txt --target=external --no-deps -U
 
 Windows
   The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under

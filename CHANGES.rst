@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.13 (unreleased)
 -----------------
 
+- Update lizard-connector to 0.5 to fix the limit of 1000 results.
+
 - Add tool "control structures".
 
 - Remove unused code.

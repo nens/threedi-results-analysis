@@ -69,37 +69,6 @@ class ResultsWorker(QThread):
         self.wait()
 
 
-def initialize_endpoint_iterator(username, password):
-    """Initialize scenarios endpoint iterator and return the results after
-    one iteration.
-
-    Args:
-        username: Lizard username
-        password: Lizard password
-
-    Returns:
-        tuple: (a list of dicts, Endpoint iterator)
-
-    Raises:
-        urllib2.HTTPError when authentication with Lizard fails
-    """
-    scenarios_endpoint = Endpoint(
-        username=username,
-        password=password,
-        endpoint='scenarios',
-        all_pages=False,
-    )
-
-    # do one get request to initialize the iterator
-    results = scenarios_endpoint.get(scenarios_endpoint.base_url)
-    log.debug("Num results %s" % len(results))
-
-    items = _reshape_scenario_results(results)
-
-    log.debug("Num items %s" % len(items))
-    return items, scenarios_endpoint
-
-
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     """Dialog for selecting model (spatialite and result files netCDFs)"""
     closingDialog = pyqtSignal()
@@ -363,9 +332,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             return
 
         try:
-            items, endpoint = initialize_endpoint_iterator(
-                username, password)
-            self.update_download_result_model(items)
+            scenarios_endpoint = Endpoint(
+                username=username,
+                password=password,
+                endpoint='scenarios',
+            )
+            endpoint = scenarios_endpoint.download_paginated(page_size=10)
         except urllib2.HTTPError as e:
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
