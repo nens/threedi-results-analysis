@@ -154,6 +154,9 @@
       <height>211</height>
      </rect>
     </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
     <attribute name="horizontalHeaderDefaultSectionSize">
      <number>100</number>
     </attribute>
@@ -229,7 +232,7 @@
     </property>
     <item>
      <property name="text">
-      <string>table_control</string>
+      <string>table</string>
      </property>
     </item>
    </widget>
@@ -237,36 +240,6 @@
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_input_structure_table">
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_input_structure_id">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_input_field">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
       <y>60</y>
       <width>101</width>
       <height>27</height>
