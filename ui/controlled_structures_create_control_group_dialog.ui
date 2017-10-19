@@ -246,36 +246,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QComboBox" name="combobox_input_structure_table">
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_input_structure_id">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="combobox_input_field">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>60</y>
-      <width>101</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="pushbutton_input_control_new">
     <property name="geometry">
      <rect>

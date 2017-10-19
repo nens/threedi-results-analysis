@@ -74,12 +74,6 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         self.tablewidget_input_control.setCellWidget(
             0, 2, self.combobox_input_rule_id)
         self.tablewidget_input_control.setCellWidget(
-            0, 3, self.combobox_input_structure_table)
-        self.tablewidget_input_control.setCellWidget(
-            0, 4, self.combobox_input_structure_id)
-        self.tablewidget_input_control.setCellWidget(
-            0, 5, self.combobox_input_field)
-        self.tablewidget_input_control.setCellWidget(
             0, 6, self.pushbutton_input_control_new)
         self.update_ids()
         # Connect signals
@@ -134,28 +128,35 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
+        start_row = 0
         rule_id = self.combobox_input_rule_id.currentText()
         table_name = "v2_control_table"
         id_name = "id"
         where = "{id_name} = {value}".format(id_name=id_name, value=rule_id)
         # Structure type
-        self.combobox_input_structure_table.clear()
+        # self.combobox_input_structure_table.clear()
         attribute_name = "target_type"
         structure_type = str(control_structure.get_features_with_where_clause(
             table_name, attribute_name, where)[0][0])
-        self.combobox_input_structure_table.addItem(structure_type)
+        self.tablewidget_input_control.setItem(
+            start_row, 3, QTableWidgetItem(structure_type))
+        # self.combobox_input_structure_table.addItem(structure_type)
         # Structure id
-        self.combobox_input_structure_id.clear()
+        # self.combobox_input_structure_id.clear()
         attribute_name = "target_id"
         structure_id = str(control_structure.get_features_with_where_clause(
             table_name, attribute_name, where)[0][0])
-        self.combobox_input_structure_id.addItem(str(structure_id))
+        self.tablewidget_input_control.setItem(
+            start_row, 4, QTableWidgetItem(structure_id))
+        # self.combobox_input_structure_id.addItem(str(structure_id))
         # Action type
-        self.combobox_input_field.clear()
+        # self.combobox_input_field.clear()
         attribute_name = "action_type"
         action_type = str(control_structure.get_features_with_where_clause(
             table_name, attribute_name, where)[0][0])
-        self.combobox_input_field.addItem(str(action_type))
+        self.tablewidget_input_control.setItem(
+            start_row, 5, QTableWidgetItem(action_type))
+        # self.combobox_input_field.addItem(str(action_type))
 
     def create_new_control(self):
         """Create a new control."""
@@ -172,14 +173,14 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
             row_position, 2,
             QTableWidgetItem(self.combobox_input_rule_id.currentText()))
         self.tablewidget_input_control.setItem(
-            row_position, 3, QTableWidgetItem(
-                self.combobox_input_structure_table.currentText()))
+            row_position, 3,
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 3).text()))
         self.tablewidget_input_control.setItem(
             row_position, 4,
-            QTableWidgetItem(self.combobox_input_structure_id.currentText()))
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 4).text()))
         self.tablewidget_input_control.setItem(
             row_position, 5,
-            QTableWidgetItem(self.combobox_input_field.currentText()))
+            QTableWidgetItem(self.tablewidget_input_control.item(0, 5).text()))
         pushbutton_control_remove = QPushButton("Remove")
         pushbutton_control_remove.clicked.connect(self.remove_control_row)
         self.tablewidget_input_control.setCellWidget(
