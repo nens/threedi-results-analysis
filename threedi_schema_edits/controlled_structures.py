@@ -194,9 +194,10 @@ class ControlledStructures(object):
         # In this case, max_id_control_table is set to 0 to prevent
         # TypeErrors when adding 1 to create new_id_control_table.
         attribute_name = "MAX(id)"
-        max_id_control_table = int(self.get_attributes(
-            table_name, attribute_name)[0])
-        if not max_id_control_table:
+        try:
+            max_id_control_table = int(self.get_attributes(
+                table_name, attribute_name)[0])
+        except ValueError:
             max_id_control_table = 0
         new_id_control_table = max_id_control_table + 1
         # Insert the variables in the v2_control_table
