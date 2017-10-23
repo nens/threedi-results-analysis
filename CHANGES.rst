@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix adding new table control to empty v2_control_table.
 
 
 0.13 (2017-10-23)
