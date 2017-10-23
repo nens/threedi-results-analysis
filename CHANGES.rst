@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.13 (unreleased)
+0.13 (2017-10-23)
 -----------------
 
 - Update lizard-connector to 0.5 to fix the limit of 1000 results.
