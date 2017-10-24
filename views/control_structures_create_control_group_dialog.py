@@ -257,7 +257,7 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
             self.textedit_input_control_description.toPlainText()))
 
         control_group_table = QTableWidget(tab)
-        control_group_table.setGeometry(10, 100, 741, 251)
+        control_group_table.setGeometry(10, 100, 741, 181)
         control_group_table.insertColumn(0)
         control_group_table.setHorizontalHeaderItem(
             0, QTableWidgetItem("measuring_group_id"))

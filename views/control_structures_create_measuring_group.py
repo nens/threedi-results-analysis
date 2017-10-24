@@ -224,7 +224,7 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         tab.setLayout(layout)
 
         table_measuring_group = QtGui.QTableWidget(tab)
-        table_measuring_group.setGeometry(10, 10, 741, 306)
+        table_measuring_group.setGeometry(10, 10, 741, 266)
         table_measuring_group.insertColumn(0)
         table_measuring_group.setHorizontalHeaderItem(
             0, QTableWidgetItem("table"))

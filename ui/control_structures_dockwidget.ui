@@ -336,7 +336,7 @@
         <x>20</x>
         <y>140</y>
         <width>761</width>
-        <height>361</height>
+        <height>321</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -350,6 +350,42 @@
       </property>
       <property name="movable">
        <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushbutton_input_measuring_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>470</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_measuring_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>470</y>
+        <width>201</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_measuring_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a measuring group from the database.</string>
       </property>
      </widget>
     </widget>
@@ -456,7 +492,7 @@
         <x>20</x>
         <y>140</y>
         <width>761</width>
-        <height>361</height>
+        <height>321</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -497,6 +533,57 @@
        </rect>
       </property>
      </widget>
+     <widget class="QPushButton" name="pushbutton_input_rule_delete">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>470</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_rule_delete">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>470</y>
+        <width>61</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_rule_type_delete">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>470</y>
+        <width>121</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>table_control</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label_input_rule_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a rule from the database.</string>
+      </property>
+     </widget>
      <zorder>tab_table_control_view</zorder>
      <zorder>pushbutton_input_rule_new</zorder>
      <zorder>combobox_input_rule_type_2</zorder>
@@ -507,6 +594,10 @@
      <zorder>label_input_rule_clear</zorder>
      <zorder>combobox_input_rule_type_view</zorder>
      <zorder>combobox_input_rule_view</zorder>
+     <zorder>pushbutton_input_rule_delete</zorder>
+     <zorder>combobox_input_rule_delete</zorder>
+     <zorder>combobox_input_rule_type_delete</zorder>
+     <zorder>label_input_rule_delete</zorder>
     </widget>
     <widget class="QWidget" name="tab_control">
      <attribute name="title">
@@ -606,7 +697,7 @@
         <x>20</x>
         <y>140</y>
         <width>761</width>
-        <height>361</height>
+        <height>321</height>
        </rect>
       </property>
       <property name="autoFillBackground">
@@ -622,6 +713,42 @@
        <bool>true</bool>
       </property>
      </widget>
+     <widget class="QPushButton" name="pushbutton_control_delete">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>470</y>
+        <width>99</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="combobox_input_control_delete">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>470</y>
+        <width>201</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_input_control_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a control group from the database.</string>
+      </property>
+     </widget>
      <zorder>tab_control_view</zorder>
      <zorder>pushbutton_input_control_new</zorder>
      <zorder>pusbutton_input_control_view</zorder>
@@ -630,6 +757,9 @@
      <zorder>label_input_control_view</zorder>
      <zorder>pushbutton_control_close_all</zorder>
      <zorder>label_input_control_clear</zorder>
+     <zorder>pushbutton_control_delete</zorder>
+     <zorder>combobox_input_control_delete</zorder>
+     <zorder>label_input_control_group_delete</zorder>
     </widget>
     <widget class="QWidget" name="tab_help">
      <attribute name="title">
