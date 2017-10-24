@@ -112,10 +112,15 @@ class CustomCommand(CustomCommandBase):
     def update_measuring_group_ids(self, control_structure):
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.clear()
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_group_delete.clear()
         list_of_measuring_group_ids = control_structure.get_attributes(
             table_name="v2_control_measure_group", attribute_name="id")
         self.dockwidget_controlled_structures.\
             combobox_input_measuring_group_view.addItems(
+                list_of_measuring_group_ids)
+        self.dockwidget_controlled_structures.\
+            combobox_input_measuring_group_delete.addItems(
                 list_of_measuring_group_ids)
 
     def update_rule_ids(self, control_structure):
@@ -191,6 +196,9 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_measuring_group_tabs)
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .tabCloseRequested.connect(self.remove_measuring_group_tab)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_group_delete.clicked.connect(
+                self.delete_measuring_group_from_database)
 
     def setup_rule_tab(self):
         """Connect the signals for the rule tab."""
@@ -471,7 +479,7 @@ class CustomCommand(CustomCommandBase):
         tab.setLayout(layout)
 
         table_measuring_group = QTableWidget(tab)
-        table_measuring_group.setGeometry(10, 10, 741, 306)
+        table_measuring_group.setGeometry(10, 10, 741, 266)
         table_measuring_group.insertColumn(0)
         table_measuring_group.setHorizontalHeaderItem(
             0, QTableWidgetItem("table"))
@@ -499,6 +507,42 @@ class CustomCommand(CustomCommandBase):
         """Remove all tabs in the Measuring group tab."""
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .clear()
+
+    def delete_measuring_group_from_database(self):
+        tabwidget = self.dockwidget_controlled_structures\
+            .tab_measuring_group_view_2
+        tab_number = tabwidget.count()
+        # Get id of measuring group
+        measuring_group_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_group_delete.currentText()
+        # Remove measuring points of measuring group from database
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        table_name = "v2_control_measure_map"
+        where = " WHERE measure_group_id = '{}'".format(str(
+            measuring_group_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        self.update_measuring_point_ids(control_structure)
+        # Remove measuring group grom database
+        table_name = "v2_control_measure_group"
+        where = " WHERE id = '{}'".format(str(measuring_group_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        self.update_measuring_group_ids(control_structure)
+        # Remove measuring group from tabs in dockwidget
+        tabs_to_remove = []
+        for tab in range(tab_number):
+            if tabwidget.tabText(tab) == \
+                    "Group: {}".format(measuring_group_id):
+                tabs_to_remove += [tab]
+        # Removing a tabs makes the tab go to the left, so delete the tabs in
+        # reversed order (from right to left)
+        [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
 
     def create_new_rule(self):
         """Create a new rule."""
