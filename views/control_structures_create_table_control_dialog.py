@@ -312,7 +312,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             self.combobox_input_action_type.currentText()))
 
         table_control_table = QTableWidget(tab)
-        table_control_table.setGeometry(10, 100, 741, 221)
+        table_control_table.setGeometry(10, 100, 741, 181)
         table_control_table.insertColumn(0)
         table_control_table.setHorizontalHeaderItem(
             0, QTableWidgetItem("measuring_value"))

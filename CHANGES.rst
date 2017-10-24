@@ -5,7 +5,9 @@ threedi-qgis-plugin changelog
 0.14 (unreleased)
 -----------------
 
-- Make it possible to delete measuring group from the database and from view with the 'Delete button'.
+- Also make it possible to delete rule from the database and from view with the 'Delete button' in the 'Rule' tab.
+
+- Make it possible to delete measuring group from the database and from view with the 'Delete button in the 'Measuring group' tab.
 
 - Removing measuring stations in the 'Measuring station' tab also removes them from the database.
 
