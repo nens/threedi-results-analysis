@@ -375,6 +375,19 @@
        </rect>
       </property>
      </widget>
+     <widget class="QLabel" name="label_input_measuring_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a measuring group from the database.</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_rule">
      <attribute name="title">
@@ -558,6 +571,19 @@
        </property>
       </item>
      </widget>
+     <widget class="QLabel" name="label_input_rule_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a rule from the database.</string>
+      </property>
+     </widget>
      <zorder>tab_table_control_view</zorder>
      <zorder>pushbutton_input_rule_new</zorder>
      <zorder>combobox_input_rule_type_2</zorder>
@@ -571,6 +597,7 @@
      <zorder>pushbutton_input_rule_delete</zorder>
      <zorder>combobox_input_rule_delete</zorder>
      <zorder>combobox_input_rule_type_delete</zorder>
+     <zorder>label_input_rule_delete</zorder>
     </widget>
     <widget class="QWidget" name="tab_control">
      <attribute name="title">
@@ -709,6 +736,19 @@
        </rect>
       </property>
      </widget>
+     <widget class="QLabel" name="label_input_control_group_delete">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>470</y>
+        <width>371</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete a control group from the database.</string>
+      </property>
+     </widget>
      <zorder>tab_control_view</zorder>
      <zorder>pushbutton_input_control_new</zorder>
      <zorder>pusbutton_input_control_view</zorder>
@@ -719,6 +759,7 @@
      <zorder>label_input_control_clear</zorder>
      <zorder>pushbutton_control_delete</zorder>
      <zorder>combobox_input_control_delete</zorder>
+     <zorder>label_input_control_group_delete</zorder>
     </widget>
     <widget class="QWidget" name="tab_help">
      <attribute name="title">
