@@ -245,3 +245,31 @@ class ControlledStructures(object):
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+
+    def delete_from_database(self, table_name, where=""):
+        """
+        Function to delete data from a table (table_name).
+
+        Args
+            (str) table_name: The table name of a spatialite or postgres
+                              database
+            (str) where: A where clause for the delete statement.
+        """
+        try:
+            with self.engine.connect() as con:
+                con.execute(
+                    '''DELETE FROM {table}{where};'''.format(
+                        table=table_name, where=where)
+                )
+        except OperationalError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except ProgrammingError as e:
+            msg = str(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+        except Exception as e:
+            msg = "An unknown exception occured: {}".format(e)
+            messagebar_message(
+                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)

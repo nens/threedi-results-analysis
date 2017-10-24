@@ -356,6 +356,22 @@ class CustomCommand(CustomCommandBase):
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
         row_number = tablewidget.currentRow()
+        # Get id of measuring point
+        measuring_point_id = tablewidget.item(row_number, 0).text()
+        # Remove measuring point from database
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        table_name = "v2_control_measure_map"
+        where = " WHERE id = '{}'".format(str(measuring_point_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        # Update measuring point ids
+        self.update_measuring_point_ids(control_structure)
+        # Remove measuring point from dockwidget
         # Don't remove the first row.
         dont_remove = 0
         if row_number != dont_remove:
