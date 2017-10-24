@@ -138,10 +138,14 @@ class CustomCommand(CustomCommandBase):
     def update_control_ids(self, control_structure):
         self.dockwidget_controlled_structures\
             .combobox_input_control_view.clear()
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_delete.clear()
         list_of_rule_ids = control_structure.get_attributes(
             table_name="v2_control_group", attribute_name="id")
         self.dockwidget_controlled_structures\
             .combobox_input_control_view.addItems(list_of_rule_ids)
+        self.dockwidget_controlled_structures\
+            .combobox_input_control_delete.addItems(list_of_rule_ids)
 
     def setup_model_tab(self):
         """
@@ -234,6 +238,9 @@ class CustomCommand(CustomCommandBase):
                 self.remove_all_control_tabs)
         self.dockwidget_controlled_structures.tab_control_view\
             .tabCloseRequested.connect(self.remove_control_tab)
+        self.dockwidget_controlled_structures\
+            .pushbutton_control_delete.clicked.connect(
+                self.delete_control_group_from_database)
 
     def clear_all_tabs(self):
         """Clear all the tabs of the dockwidget."""
@@ -698,12 +705,11 @@ class CustomCommand(CustomCommandBase):
         control_structure.start_sqalchemy_engine(db["db_settings"])
         if rule_type == "table_control":
             table_name = "v2_control_table"
-        where = " WHERE id = '{}'".format(str(
-            rule_id))
+        where = " WHERE id = '{}'".format(str(rule_id))
         control_structure.delete_from_database(
             table_name=table_name, where=where)
         self.update_rule_ids(control_structure)
-        # Remove measuring group from tabs in dockwidget
+        # Remove rule from tabs in dockwidget
         tabs_to_remove = []
         for tab in range(tab_number):
             if tabwidget.tabText(tab) == \
@@ -789,7 +795,7 @@ class CustomCommand(CustomCommandBase):
         label_field.setText("Description: {}".format(control_group[0]))
 
         control_group_table = QTableWidget(tab)
-        control_group_table.setGeometry(10, 100, 741, 251)
+        control_group_table.setGeometry(10, 100, 741, 181)
         control_group_table.insertColumn(0)
         control_group_table.setHorizontalHeaderItem(
             0, QTableWidgetItem("measuring_group_id"))
@@ -863,3 +869,39 @@ class CustomCommand(CustomCommandBase):
     def remove_all_control_tabs(self):
         """Remove all tabs in the Control tab."""
         self.dockwidget_controlled_structures.tab_control_view.clear()
+
+    def delete_control_group_from_database(self):
+        tabwidget = self.dockwidget_controlled_structures\
+            .tab_control_view
+        tab_number = tabwidget.count()
+        # Get id of control group
+        control_group_id = self.dockwidget_controlled_structures\
+            .combobox_input_control_delete.currentText()
+        # Remove control of control group from database
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()  # name of database
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        table_name = "v2_control"
+        where = " WHERE control_group_id = '{}'".format(str(
+            control_group_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        self.update_control_ids(control_structure)
+        # Remove control group from database
+        table_name = "v2_control_group"
+        where = " WHERE id = '{}'".format(str(control_group_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        self.update_control_ids(control_structure)
+        # Remove control group from tabs in dockwidget
+        tabs_to_remove = []
+        for tab in range(tab_number):
+            if tabwidget.tabText(tab) == \
+                    "Control group: {}".format(control_group_id):
+                tabs_to_remove += [tab]
+        # Removing a tabs makes the tab go to the left, so delete the tabs in
+        # reversed order (from right to left)
+        [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
