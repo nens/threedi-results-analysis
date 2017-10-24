@@ -13,6 +13,8 @@ threedi-qgis-plugin changelog
 
 - Removing measuring stations in the 'Measuring station' tab also removes them from the database.
 
+- Fix adding new table control to empty v2_control_table.
+
 
 0.13 (2017-10-23)
 -----------------
