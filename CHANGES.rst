@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Removing measuring stations in the 'Measuring station' tab also removes them from the database.
 
 
 0.13 (2017-10-23)
