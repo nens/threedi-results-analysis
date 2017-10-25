@@ -141,6 +141,14 @@
       <height>181</height>
      </rect>
     </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+    </property>
+    <row>
+     <property name="text">
+      <string>1</string>
+     </property>
+    </row>
     <column>
      <property name="text">
       <string>table</string>
@@ -196,6 +204,44 @@
     </property>
     <property name="text">
      <string>Load a measuring station.</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_measuring_point_table">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>70</y>
+      <width>91</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>v2_connection_nodes</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="combobox_input_measuring_point_id">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>70</y>
+      <width>91</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushbutton_input_measuring_point_new">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>70</y>
+      <width>91</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>New</string>
     </property>
    </widget>
   </widget>
