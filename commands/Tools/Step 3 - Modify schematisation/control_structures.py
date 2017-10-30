@@ -408,7 +408,7 @@ class CustomCommand(CustomCommandBase):
         # Get id of measuring group
         measuring_group_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_group_delete.currentText()
-        # Remove measuring points of measuring group from database
+        # Remove measuring points of the measuring group from database
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()  # name of database
         db = get_database_properties(db_key)
@@ -421,6 +421,28 @@ class CustomCommand(CustomCommandBase):
         control_structure.delete_from_database(
             table_name=table_name, where=where)
         self.update_measuring_point_ids(control_structure)
+        # Get the id's of the control the measuring group is part of
+        try:
+            # Get the control id(s) from v2_control
+            table_name = "v2_control"
+            attribute_name = "id"
+            where = "{measuring_group_id} = {value}".format(
+                measuring_group_id="measure_group_id",
+                value=measuring_group_id)
+            control_ids = control_structure.get_features_with_where_clause(
+                table_name=table_name, attribute_name=attribute_name,
+                where=where)
+            for control in control_ids:
+                control_id = control[0]
+                # Remove these controls from v2_control
+                table_name = "v2_control"
+                where = " WHERE id = '{}'".format(str(control_id))
+                control_structure.delete_from_database(
+                    table_name=table_name, where=where)
+                self.update_control_ids(control_structure)
+        except Exception:
+            # No linked controls
+            pass
         # Remove measuring group from database
         table_name = "v2_control_measure_group"
         where = " WHERE id = '{}'".format(str(measuring_group_id))

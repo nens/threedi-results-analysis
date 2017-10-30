@@ -274,3 +274,132 @@ class ControlledStructures(object):
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+    #     self.clean_up_database()
+
+
+    # def clean_up_database(self):
+    #     """
+    #     This function checks the tables of the database to see whether there
+    #     are control groups without controls, controls without measuring groups
+    #     or rules or measuring groups without measuring points.
+    #     """
+    #     # Control group
+    #     control_group_id_names = {
+    #         "v2_control_group": "id",
+    #         "v2_control": "control_group_id"
+    #     }
+    #     changes_control_group_id = self.get_changes_id(control_group_id_names)
+    #     # print changes_control_group_id, 5
+    #     # self.delete_changes_id(control_group_id_names, changes_control_group_id)
+    #     # Rule
+    #     rule_id_names = {
+    #         "v2_control_table": "id",
+    #         "v2_control": "control_id"
+    #     }
+    #     changes_rule_id = self.get_changes_id(rule_id_names)
+    #     # self.delete_changes_id(rule_id_names, changes_rule_id)
+    #     # Measuring group
+    #     measuring_group_id_names = {
+    #         "v2_control_measure_group": "id",
+    #         "v2_control_measure_map": "measure_group_id",
+    #         "v2_control": "measure_group_id"
+    #     }
+    #     changes_measuring_group_id = self.get_changes_id(measuring_group_id_names)
+    #     # print changes_measuring_group_id, 6
+    #     self.delete_changes_id(measuring_group_id_names, changes_measuring_group_id)
+    #     # if len(changes_control_group_id) > 0 or len(changes_rule_id) > 0 or len(changes_measuring_group_id) > 0:
+    #     #     changes_made = True
+    #     #     while changes_made is True:
+    #     #         # --> Remove redundant entries
+    #     #         # Chack for changes in the control group id (v2_control_group)
+    #     #         # Add changes to changes_control_group
+    #     #         # Chack for changes in the rule id (v2_control_table)
+    #     #         # Chack for changes in the measuring group id (v2_control_measure_group)
+    #     #         changes_made = False
+    #     return
+
+    # def get_changes_id(self, id_names):
+    #     """
+    #     This function returns differences in primary keys and foreign keys between the different tables.
+
+    #     Args:
+    #         (dict) id_names: This dict contains the table_names as keys
+    #                          and the id_names as values.
+
+    #     Returns:
+    #         (list) changes_id: A list containing differences in id
+    #                            in the different tables.
+    #     """
+    #     all_id = []
+    #     for key, value in id_names.iteritems():
+    #         # print key, 1, value
+    #         try:
+    #             list_of_id = self.get_attributes(table_name=key, attribute_name=value)
+    #             # print list_of_id, 2
+    #             all_id.append(list(set(list_of_id)))  # set to get distinct values
+    #             # print all_id, 3
+    #         except:
+    #             continue
+
+    #     changes_id = []
+    #     id_list = all_id[0]
+    #     for list_of_id in all_id:
+    #         changes_id += \
+    #             list(set(list_of_id) - set(id_list))
+    #         changes_id += \
+    #             list(set(id_list) - set(list_of_id))
+    #     changed_id = list(set(changes_id))
+
+
+
+    #     # from collections import Counter
+    #     # cnt = Counter()
+    #     # for id_number in list_of_id:
+    #     # len_dict = len(id_names)
+    #     # print changes_id, 4
+
+    #     # all_id = []
+    #     # changes_id = []
+    #     # for key, value in id_names.iteritems():
+    #     #     print key, value, 78
+    #     #     list_of_id = self.get_attributes(table_name=key, attribute_name=value)
+    #     #     # list_of_id = list(set(self.get_attributes(
+    #     #     #     table_name=key, attribute_name=value)))
+    #     #     print 77, list_of_id
+    #     #     # print list_of_id, 1
+    #     #     if not all_id:
+    #     #         print 75, list_of_id
+    #     #         all_id = list_of_id
+    #     #         # print all_id, 2
+    #     #     else:
+    #     #         changes_id += list(set(list_of_id) - set())
+    #     #         print changes_id, 3, all_id, 3, list_of_id
+    #     #         # changes_id += list(set(all_id) - set(list_of_id))
+    #     # print changes_id, 4
+    #     return changed_id
+
+    # def delete_changes_id(self, id_names, id_values):
+    #     """
+    #     Delete the database entries that either no longer have their primary or foreign key
+    #     or where the values of the ids don't match.
+
+    #     Args:
+    #         (dict) id_names: This dict contains the table_names as keys
+    #                          and the id_names as values.
+    #         (list) values: A list of id numbers that should be deleted from the database.
+    #     """
+    #     # Also delete entries where an id is None/'None'/empty
+    #     adjusted_values = ' OR '.join(id_values)
+    #     # adjusted_values += ' OR None'
+    #     # print adjusted_values
+    #     # print id_names
+    #     for key, value in id_names.iteritems():
+    #         print key, value
+    #         # print key, 10, id_names[key][1]
+    #         where = " WHERE {attribute} = {values}".format(
+    #             attribute=value,
+    #             values=adjusted_values)
+    #         self.delete_from_database(table_name=key, where=where)
+    #     # return
+    #     return
+
