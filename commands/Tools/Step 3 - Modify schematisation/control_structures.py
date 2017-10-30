@@ -434,6 +434,63 @@ class CustomCommand(CustomCommandBase):
                 where=where)
             for control in control_ids:
                 control_id = control[0]
+                print control_id, 1
+                # Get the rule id's from v2_control
+                table_name = "v2_control"
+                attribute_name = "control_id"
+                where = "id = '{}'".format(str(control_id))
+                rule_ids = control_structure.get_features_with_where_clause(
+                    table_name=table_name, attribute_name=attribute_name,
+                    where=where)
+                print rule_ids, 2
+                # Remove these rules from v2_control_table
+                for rule in rule_ids:
+                    rule_id = rule[0]
+                    print rule_id, 4
+                    table_name = "v2_control_table"
+                    attribute_name = "id"
+                    where = " WHERE {attribute} = {value}".format(
+                        attribute=attribute_name, value=rule_id)
+                    control_structure.delete_from_database(
+                        table_name=table_name, where=where)
+                    # Also remove these rules in tab Rules
+                    tabwidget_rule = self.dockwidget_controlled_structures\
+                        .tab_table_control_view
+                    tabs_to_remove = []
+                    for tab in range(tab_number):
+                        if tabwidget_rule.tabText(tab) == \
+                                "Table control: {}".format(rule_id):
+                            tabs_to_remove += [tab]
+                    # Removing a tabs makes the tab go to the left, so delete
+                    # the tabs in reversed order (from right to left)
+                    [tabwidget_rule.removeTab(tab) for tab in reversed(
+                        tabs_to_remove)]
+                # Get the control group id from v2_control
+                table_name = "v2_control"
+                attribute_name = "control_group_id"
+                where = "id = '{}'".format(str(control_id))
+                control_group_ids = control_structure\
+                    .get_features_with_where_clause(
+                        table_name=table_name, attribute_name=attribute_name,
+                        where=where)
+                # Remove these control groups from v2_control_group
+                for control_group in control_group_ids:
+                    control_group_id = control_group[0]
+                    print control_group_id, 5
+                    table_name = "v2_control_group"
+                    attribute_name = "id"
+                    where = " WHERE {attribute} = {value}".format(
+                        attribute=attribute_name, value=control_group_id)
+                    control_structure.delete_from_database(
+                        table_name=table_name, where=where)
+                # Also remove these control groups in tab Control groups
+                    tabwidget_control = self.dockwidget_controlled_structures\
+                        .tab_control_view
+                    tabs_to_remove = []
+                    for tab in range(tab_number):
+                        if tabwidget_control.tabText(tab) == \
+                                "Control group: {}".format(control_group_id):
+                            tabs_to_remove += [tab]
                 # Remove these controls from v2_control
                 table_name = "v2_control"
                 where = " WHERE id = '{}'".format(str(control_id))
@@ -441,7 +498,7 @@ class CustomCommand(CustomCommandBase):
                     table_name=table_name, where=where)
                 self.update_control_ids(control_structure)
         except Exception:
-            # No linked controls
+            # No linked control groups or rules
             pass
         # Remove measuring group from database
         table_name = "v2_control_measure_group"
