@@ -670,14 +670,6 @@ class CustomCommand(CustomCommandBase):
         # the measuring groups and the measuring points the rule is linked to
         # and delete them
         try:
-            # Get the control id(s) from v2_control
-            table_name = "v2_control"
-            attribute_name = "id"
-            where = "{rule_id} = {value}".format(
-                rule_id="control_id", value=rule_id)
-            control_ids = control_structure.get_features_with_where_clause(
-                table_name=table_name, attribute_name=attribute_name,
-                where=where)
             # Get the measure group id's from v2_control
             table_name = "v2_control"
             attribute_name = "measure_group_id"
