@@ -112,12 +112,6 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
             table_name="v2_control_measure_group", attribute_name="id")
         self.combobox_measuring_group_load.addItems(
             list_of_measuring_group_ids)
-        # Set all id's of the measuring points
-        self.combobox_measuring_point_load.clear()
-        list_of_measuring_point_ids = self.control_structure.get_attributes(
-            table_name="v2_control_measure_map", attribute_name="id")
-        self.combobox_measuring_point_load.addItems(
-            list_of_measuring_point_ids)
         # Set all id's of the connection nodes
         self.combobox_input_measuring_point_id.clear()
         list_of_connection_node_ids = self.control_structure.get_attributes(
@@ -130,8 +124,6 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
             self.load_measuring_group)
         self.pushbutton_input_measuring_point_new.clicked.connect(
             self.create_new_measuring_point)
-        self.pushbutton_measuring_point_load.clicked.connect(
-            self.load_measuring_point)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
 
@@ -188,31 +180,6 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         BUTTON_ROW = 0
         if row_number != BUTTON_ROW:
             tablewidget.removeRow(row_number)
-
-    def load_measuring_point(self):
-        """Load a measuring group in the tablewidget."""
-        self.control_structure.start_sqalchemy_engine(self.db["db_settings"])
-        # Get the measuring point
-        table_name = "v2_control_measure_map"
-        attribute_name = "*"
-        where_clause = "id={}".format(
-            self.combobox_measuring_point_load.currentText())
-        measure_point = self.control_structure.get_features_with_where_clause(
-            table_name=table_name, attribute_name=attribute_name,
-            where=where_clause)[0]
-        # The measuring point should be added on the top of the table
-        row_position = 1
-        self.tablewidget_measuring_point.insertRow(row_position)
-        self.tablewidget_measuring_point.setItem(
-            row_position, 0, QTableWidgetItem(str(measure_point[2])))
-        self.tablewidget_measuring_point.setItem(
-            row_position, 1, QTableWidgetItem(str(measure_point[3])))
-        self.tablewidget_measuring_point.setItem(
-            row_position, 2, QTableWidgetItem(str(measure_point[4])))
-        measuring_point_remove = QPushButton("Remove")
-        measuring_point_remove.clicked.connect(self.remove_measuring_point)
-        self.tablewidget_measuring_point.setCellWidget(
-            row_position, 3, measuring_point_remove)
 
     def load_measuring_group(self):
         """Load a measuring group in the tablewidget."""
