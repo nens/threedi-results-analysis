@@ -404,7 +404,6 @@ class CustomCommand(CustomCommandBase):
     def delete_measuring_group_from_database(self):
         tabwidget = self.dockwidget_controlled_structures\
             .tab_measuring_group_view_2
-        tab_number = tabwidget.count()
         # Get id of measuring group
         measuring_group_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_group_delete.currentText()
@@ -421,7 +420,9 @@ class CustomCommand(CustomCommandBase):
         control_structure.delete_from_database(
             table_name=table_name, where=where)
         self.update_measuring_point_ids(control_structure)
-        # Get the id's of the control the measuring group is part of
+        # Remove the database entries of the control groups, the controls,
+        # the rules and the measuring points the measuring group is linked to
+        # and delete them
         try:
             # Get the control id(s) from v2_control
             table_name = "v2_control"
@@ -450,10 +451,12 @@ class CustomCommand(CustomCommandBase):
                         attribute=attribute_name, value=rule_id)
                     control_structure.delete_from_database(
                         table_name=table_name, where=where)
+                    self.update_rule_ids()
                     # Also remove these rules in tab Rules
                     tabwidget_rule = self.dockwidget_controlled_structures\
                         .tab_table_control_view
                     tabs_to_remove = []
+                    tab_number = tabwidget_rule.count()
                     for tab in range(tab_number):
                         if tabwidget_rule.tabText(tab) == \
                                 "Table control: {}".format(rule_id):
@@ -479,14 +482,21 @@ class CustomCommand(CustomCommandBase):
                         attribute=attribute_name, value=control_group_id)
                     control_structure.delete_from_database(
                         table_name=table_name, where=where)
+                    self.update_control_ids()
                 # Also remove these control groups in tab Control groups
                     tabwidget_control = self.dockwidget_controlled_structures\
                         .tab_control_view
                     tabs_to_remove = []
                     for tab in range(tab_number):
+                        tab_number = tabwidget_control.count()
                         if tabwidget_control.tabText(tab) == \
                                 "Control group: {}".format(control_group_id):
                             tabs_to_remove += [tab]
+                            # Removing a tabs makes the tab go to the left,
+                            # so delete the tabs in reversed order
+                            # (from right to left)
+                            [tabwidget_control.removeTab(tab) for tab in
+                                reversed(tabs_to_remove)]
                 # Remove these controls from v2_control
                 table_name = "v2_control"
                 where = " WHERE id = '{}'".format(str(control_id))
@@ -504,6 +514,7 @@ class CustomCommand(CustomCommandBase):
         self.update_measuring_group_ids(control_structure)
         # Remove measuring group from tabs in Measuring group tab
         tabs_to_remove = []
+        tab_number = tabwidget.count()
         for tab in range(tab_number):
             if tabwidget.tabText(tab) == \
                     "Group: {}".format(measuring_group_id):
@@ -644,19 +655,111 @@ class CustomCommand(CustomCommandBase):
     def delete_rule_from_database(self):
         tabwidget = self.dockwidget_controlled_structures\
             .tab_table_control_view
-        tab_number = tabwidget.count()
-        # Get id and type of rule
-        rule_id = self.dockwidget_controlled_structures\
-            .combobox_input_rule_view.currentText()
-        rule_type = self.dockwidget_controlled_structures\
-            .combobox_input_rule_type_delete.currentText()
-        # Remove rule from database
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()  # name of database
         db = get_database_properties(db_key)
         control_structure = ControlledStructures(
             flavor=db["db_entry"]['db_type'])
         control_structure.start_sqalchemy_engine(db["db_settings"])
+        # Get id and type of rule
+        rule_id = self.dockwidget_controlled_structures\
+            .combobox_input_rule_view.currentText()
+        rule_type = self.dockwidget_controlled_structures\
+            .combobox_input_rule_type_delete.currentText()
+        # Remove the database entries of the control groups, the controls,
+        # the measuring groups and the measuring points the rule is linked to
+        # and delete them
+        try:
+            # Get the control id(s) from v2_control
+            table_name = "v2_control"
+            attribute_name = "id"
+            where = "{rule_id} = {value}".format(
+                rule_id="control_id", value=rule_id)
+            control_ids = control_structure.get_features_with_where_clause(
+                table_name=table_name, attribute_name=attribute_name,
+                where=where)
+            # Get the measure group id's from v2_control
+            table_name = "v2_control"
+            attribute_name = "measure_group_id"
+            where = "control_id = '{}'".format(str(rule_id))
+            measure_group_ids = control_structure\
+                .get_features_with_where_clause(
+                    table_name=table_name, attribute_name=attribute_name,
+                    where=where)
+            # Remove the measuring points from the database that belong to
+            # these measuring groups
+            for measure_group in measure_group_ids:
+                measure_group_id = measure_group[0]
+                table_name = "v2_control_measure_map"
+                where = " WHERE measure_group_id = '{}'".format(
+                    str(measure_group_id))
+                control_structure.delete_from_database(
+                    table_name=table_name, where=where)
+                self.update_measuring_point_ids()
+                # Remove these measure groups from v2_control_measure_group
+                table_name = "v2_control_measure_group"
+                attribute_name = "id"
+                where = " WHERE {attribute} = {value}".format(
+                    attribute=attribute_name, value=measure_group_id)
+                control_structure.delete_from_database(
+                    table_name=table_name, where=where)
+                self.update_measuring_group_ids()
+                # Also remove these measure groups in tab Measuring group
+                tabwidget_measuring_group = self.\
+                    dockwidget_controlled_structures\
+                    .tab_measuring_group_view_2
+                tabs_to_remove = []
+                tab_number = tabwidget_measuring_group.count()
+                for tab in range(tab_number):
+                    if tabwidget_measuring_group.tabText(tab) == \
+                            "Group: {}".format(measure_group_id):
+                        tabs_to_remove += [tab]
+                        # Removing a tabs makes the tab go to the left,
+                        # so delete the tabs in reversed order
+                        # (from right to left)
+                        [tabwidget_measuring_group.removeTab(tab)
+                            for tab in reversed(tabs_to_remove)]
+            # Get the control group id from v2_control
+            table_name = "v2_control"
+            attribute_name = "control_group_id"
+            where = "control_id = '{}'".format(str(rule_id))
+            control_group_ids = control_structure\
+                .get_features_with_where_clause(
+                    table_name=table_name, attribute_name=attribute_name,
+                    where=where)
+            # Remove these control groups from v2_control_group
+            for control_group in control_group_ids:
+                control_group_id = control_group[0]
+                table_name = "v2_control_group"
+                attribute_name = "id"
+                where = " WHERE {attribute} = '{value}'".format(
+                    attribute=attribute_name, value=str(control_group_id))
+                control_structure.delete_from_database(
+                    table_name=table_name, where=where)
+                self.update_control_ids()
+                # Also remove these control groups in tab Control groups
+                tabwidget_control_group = self.\
+                    dockwidget_controlled_structures.tab_control_view
+                tabs_to_remove = []
+                tab_number = tabwidget_control_group.count()
+                for tab in range(tab_number):
+                    if tabwidget_control_group.tabText(tab) == \
+                            "Control group: {}".format(control_group_id):
+                        tabs_to_remove += [tab]
+                        # Removing a tabs makes the tab go to the left,
+                        # so delete the tabs in reversed order
+                        # (from right to left)
+                        [tabwidget_measuring_group.removeTab(tab)
+                            for tab in reversed(tabs_to_remove)]
+        except Exception:
+            pass
+        # Remove these controls from v2_control
+        table_name = "v2_control"
+        where = " WHERE control_id = '{}'".format(str(rule_id))
+        control_structure.delete_from_database(
+            table_name=table_name, where=where)
+        self.update_control_ids(control_structure)
+        # Remove rule from database
         if rule_type == "table_control":
             table_name = "v2_control_table"
         where = " WHERE id = '{}'".format(str(rule_id))
@@ -665,6 +768,7 @@ class CustomCommand(CustomCommandBase):
         self.update_rule_ids(control_structure)
         # Remove rule from tabs in dockwidget
         tabs_to_remove = []
+        tab_number = tabwidget.count()
         for tab in range(tab_number):
             if tabwidget.tabText(tab) == \
                     "Table control: {}".format(rule_id):
