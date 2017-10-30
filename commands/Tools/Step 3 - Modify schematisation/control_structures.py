@@ -434,7 +434,6 @@ class CustomCommand(CustomCommandBase):
                 where=where)
             for control in control_ids:
                 control_id = control[0]
-                print control_id, 1
                 # Get the rule id's from v2_control
                 table_name = "v2_control"
                 attribute_name = "control_id"
@@ -442,11 +441,9 @@ class CustomCommand(CustomCommandBase):
                 rule_ids = control_structure.get_features_with_where_clause(
                     table_name=table_name, attribute_name=attribute_name,
                     where=where)
-                print rule_ids, 2
                 # Remove these rules from v2_control_table
                 for rule in rule_ids:
                     rule_id = rule[0]
-                    print rule_id, 4
                     table_name = "v2_control_table"
                     attribute_name = "id"
                     where = " WHERE {attribute} = {value}".format(
@@ -476,7 +473,6 @@ class CustomCommand(CustomCommandBase):
                 # Remove these control groups from v2_control_group
                 for control_group in control_group_ids:
                     control_group_id = control_group[0]
-                    print control_group_id, 5
                     table_name = "v2_control_group"
                     attribute_name = "id"
                     where = " WHERE {attribute} = {value}".format(
@@ -498,7 +494,7 @@ class CustomCommand(CustomCommandBase):
                     table_name=table_name, where=where)
                 self.update_control_ids(control_structure)
         except Exception:
-            # No linked control groups or rules
+            # No linked controls, control groups or rules
             pass
         # Remove measuring group from database
         table_name = "v2_control_measure_group"
@@ -506,7 +502,7 @@ class CustomCommand(CustomCommandBase):
         control_structure.delete_from_database(
             table_name=table_name, where=where)
         self.update_measuring_group_ids(control_structure)
-        # Remove measuring group from tabs in dockwidget
+        # Remove measuring group from tabs in Measuring group tab
         tabs_to_remove = []
         for tab in range(tab_number):
             if tabwidget.tabText(tab) == \
