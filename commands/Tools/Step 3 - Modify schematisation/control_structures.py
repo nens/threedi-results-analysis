@@ -420,9 +420,8 @@ class CustomCommand(CustomCommandBase):
         control_structure.delete_from_database(
             table_name=table_name, where=where)
         self.update_measuring_point_ids(control_structure)
-        # Remove the database entries of the control groups, the controls,
-        # the rules and the measuring points the measuring group is linked to
-        # and delete them
+        # Remove the database entries of the controls the measuring group is
+        # linked to and delete them. Delete empty control groups
         try:
             # Get the control id(s) from v2_control
             table_name = "v2_control"
@@ -443,40 +442,60 @@ class CustomCommand(CustomCommandBase):
                     .get_features_with_where_clause(
                         table_name=table_name, attribute_name=attribute_name,
                         where=where)
-                # Remove these control groups from v2_control_group
                 for control_group in control_group_ids:
                     control_group_id = control_group[0]
-                    table_name = "v2_control_group"
-                    attribute_name = "id"
-                    where = " WHERE {attribute} = {value}".format(
-                        attribute=attribute_name, value=control_group_id)
+                    # Remove control from v2_control
+                    table_name = "v2_control"
+                    where = " WHERE control_group_id = '{}'".format(
+                        str(control_group_id))
                     control_structure.delete_from_database(
                         table_name=table_name, where=where)
-                    self.update_control_ids()
-                    # Also remove these control groups in tab Control groups
-                    tabwidget_control = self.dockwidget_controlled_structures\
-                        .tab_control_view
-                    tabs_to_remove = []
-                    tab_number = tabwidget_control.count()
-                    for tab in range(tab_number):
-                        if tabwidget_control.tabText(tab) == \
-                                "Control group: {}".format(control_group_id):
-                            tabs_to_remove += [tab]
-                            # Removing a tabs makes the tab go to the left,
-                            # so delete the tabs in reversed order
-                            # (from right to left)
-                            [tabwidget_control.removeTab(tab) for tab in
-                                reversed(tabs_to_remove)]
+                    self.update_control_ids(control_structure)
+                    # Check whether there are still controls
+                    # linked to this control group
+                    # If not, delete these empty control groups.
+                    try:
+                        table_name = "v2_control"
+                        attribute_name = "COUNT(*)"
+                        where = "control_group_id = '{}'".format(
+                            str(control_group_id))
+                        count_control_group_ids = control_structure\
+                            .get_features_with_where_clause(
+                                table_name=table_name,
+                                attribute_name=attribute_name,
+                                where=where)
+                        if count_control_group_ids[0][0] == 0:
+                            # Remove these control groups from v2_control_group
+                            table_name = "v2_control_group"
+                            attribute_name = "id"
+                            where = " WHERE {attribute} = {value}".format(
+                                attribute=attribute_name,
+                                value=control_group_id)
+                            control_structure.delete_from_database(
+                                table_name=table_name, where=where)
+                            self.update_control_ids()
+                            # Also remove these control groups in
+                            # tab Control groups
+                            tabwidget_control = self\
+                                .dockwidget_controlled_structures\
+                                .tab_control_view
+                            tabs_to_remove = []
+                            tab_number = tabwidget_control.count()
+                            for tab in range(tab_number):
+                                if tabwidget_control.tabText(tab) == \
+                                        "Control group: {}".format(
+                                            control_group_id):
+                                    tabs_to_remove += [tab]
+                                    # Removing a tabs makes the tab go to the
+                                    # left, so delete the tabs in reversed
+                                    # order (from right to left).
+                                    [tabwidget_control.removeTab(tab)
+                                        for tab in reversed(tabs_to_remove)]
+                    except Exception:
+                        pass
         except Exception:
-            # No linked controls, control groups or rules
+            # No linked controls
             pass
-        # Remove measuring groups from v2_control
-        table_name = "v2_control"
-        where = " WHERE measure_group_id = '{}'".format(
-            str(measuring_group_id))
-        control_structure.delete_from_database(
-            table_name=table_name, where=where)
-        self.update_control_ids(control_structure)
         # Remove measuring group from database
         table_name = "v2_control_measure_group"
         where = " WHERE id = '{}'".format(str(measuring_group_id))
@@ -645,44 +664,81 @@ class CustomCommand(CustomCommandBase):
             .combobox_input_rule_view.currentText()
         rule_type = self.dockwidget_controlled_structures\
             .combobox_input_rule_type_delete.currentText()
-        # Remove the database entries of the control groups, the controls,
-        # the measuring groups and the measuring points the rule is linked to
-        # and delete them
+        # Remove the database entries of the the controls the rule is linked to
+        # and delete them. Delete empty control groups
         try:
-            # Get the control group id from v2_control
+            # Get the control id(s) from v2_control
             table_name = "v2_control"
-            attribute_name = "control_group_id"
-            where = "control_id = '{}'".format(str(rule_id))
-            control_group_ids = control_structure\
-                .get_features_with_where_clause(
-                    table_name=table_name, attribute_name=attribute_name,
-                    where=where)
-            # Remove these control groups from v2_control_group
-            for control_group in control_group_ids:
-                control_group_id = control_group[0]
-                table_name = "v2_control_group"
-                attribute_name = "id"
-                where = " WHERE {attribute} = '{value}'".format(
-                    attribute=attribute_name, value=str(control_group_id))
-                control_structure.delete_from_database(
-                    table_name=table_name, where=where)
-                self.update_control_ids()
-                # Also remove these control groups in tab Control groups
-                tabwidget_control_group = self.\
-                    dockwidget_controlled_structures.tab_control_view
-                tabs_to_remove = []
-                tab_number = tabwidget_control_group.count()
-                for tab in range(tab_number):
-                    if tabwidget_control_group.tabText(tab) == \
-                            "Control group: {}".format(control_group_id):
-                        tabs_to_remove += [tab]
-                        # Removing a tabs makes the tab go to the left,
-                        # so delete the tabs in reversed order
-                        # (from right to left)
-                        [tabwidget_control_group.removeTab(tab)
-                            for tab in reversed(tabs_to_remove)]
+            attribute_name = "id"
+            where = "{rule_id} = {value}".format(
+                rule_id="control_id",
+                value=rule_id)
+            control_ids = control_structure.get_features_with_where_clause(
+                table_name=table_name, attribute_name=attribute_name,
+                where=where)
+            for control in control_ids:
+                control_id = control[0]
+                # Get the control group id from v2_control
+                table_name = "v2_control"
+                attribute_name = "control_group_id"
+                where = "id = '{}'".format(str(control_id))
+                control_group_ids = control_structure\
+                    .get_features_with_where_clause(
+                        table_name=table_name, attribute_name=attribute_name,
+                        where=where)
+                for control_group in control_group_ids:
+                    control_group_id = control_group[0]
+                    # Remove control from v2_control
+                    table_name = "v2_control"
+                    where = " WHERE control_group_id = '{}'".format(
+                        str(control_group_id))
+                    control_structure.delete_from_database(
+                        table_name=table_name, where=where)
+                    self.update_control_ids(control_structure)
+                    # Check whether there are still controls
+                    # linked to this control group
+                    # If not, delete these empty control groups.
+                    try:
+                        table_name = "v2_control"
+                        attribute_name = "COUNT(*)"
+                        where = "control_group_id = '{}'".format(
+                            str(control_group_id))
+                        count_control_group_ids = control_structure\
+                            .get_features_with_where_clause(
+                                table_name=table_name,
+                                attribute_name=attribute_name,
+                                where=where)
+                        if count_control_group_ids[0][0] == 0:
+                            # Remove these control groups from v2_control_group
+                            table_name = "v2_control_group"
+                            attribute_name = "id"
+                            where = " WHERE {attribute} = {value}".format(
+                                attribute=attribute_name,
+                                value=control_group_id)
+                            control_structure.delete_from_database(
+                                table_name=table_name, where=where)
+                            self.update_control_ids()
+                            # Also remove these control groups in
+                            # tab Control groups
+                            tabwidget_control = self\
+                                .dockwidget_controlled_structures\
+                                .tab_control_view
+                            tabs_to_remove = []
+                            tab_number = tabwidget_control.count()
+                            for tab in range(tab_number):
+                                if tabwidget_control.tabText(tab) == \
+                                        "Control group: {}".format(
+                                            control_group_id):
+                                    tabs_to_remove += [tab]
+                                    # Removing a tabs makes the tab go to the
+                                    # left, so delete the tabs in reversed
+                                    # order (from right to left).
+                                    [tabwidget_control.removeTab(tab)
+                                        for tab in reversed(tabs_to_remove)]
+                    except Exception:
+                        pass
         except Exception:
-            # No linked controls, control groups or measure groups
+            # No linked controls
             pass
         # Remove these rules from v2_control
         table_name = "v2_control"

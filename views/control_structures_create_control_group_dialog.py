@@ -112,16 +112,22 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         control_structure.start_sqalchemy_engine(db["db_settings"])
         # Measuring group id's
         self.combobox_input_control_measuring_group.clear()
-        list_of_measure_group_ids = control_structure.get_attributes(
-            table_name="v2_control_measure_group", attribute_name="id")
-        self.combobox_input_control_measuring_group.addItems(
-            list_of_measure_group_ids)
+        try:
+            list_of_measure_group_ids = control_structure.get_attributes(
+                table_name="v2_control_measure_group", attribute_name="id")
+            self.combobox_input_control_measuring_group.addItems(
+                list_of_measure_group_ids)
+        except Exception:
+            pass
         # Rule id's
-        self.combobox_input_rule_id.clear()
-        list_of_rule_ids = control_structure.get_attributes(
-            table_name="v2_control_table", attribute_name="id")
-        self.combobox_input_rule_id.addItems(list_of_rule_ids)
-        self.update_structure_ids()
+        try:
+            self.combobox_input_rule_id.clear()
+            list_of_rule_ids = control_structure.get_attributes(
+                table_name="v2_control_table", attribute_name="id")
+            self.combobox_input_rule_id.addItems(list_of_rule_ids)
+            self.update_structure_ids()
+        except Exception:
+            pass
 
     def update_structure_ids(self):
         db = get_database_properties(self.db_key)
@@ -133,38 +139,39 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         table_name = "v2_control_table"
         id_name = "id"
         where = "{id_name} = {value}".format(id_name=id_name, value=rule_id)
-        # Structure type
-        # self.combobox_input_structure_table.clear()
-        attribute_name = "target_type"
-        structure_type = str(control_structure.get_features_with_where_clause(
-            table_name, attribute_name, where)[0][0])
-        if structure_type == "v2_culvert_view":
-            structure = "culvert"
-        elif structure_type == "v2_pumpstation_view":
-            structure = "pumpstation"
-        elif structure_type == "v2_orifice_view":
-            structure = "orifice"
-        elif structure_type == "v2_weir_view":
-            structure = "weir"
-        self.tablewidget_input_control.setItem(
-            start_row, 3, QTableWidgetItem(structure))
-        # self.combobox_input_structure_table.addItem(structure_type)
-        # Structure id
-        # self.combobox_input_structure_id.clear()
-        attribute_name = "target_id"
-        structure_id = str(control_structure.get_features_with_where_clause(
-            table_name, attribute_name, where)[0][0])
-        self.tablewidget_input_control.setItem(
-            start_row, 4, QTableWidgetItem(structure_id))
-        # self.combobox_input_structure_id.addItem(str(structure_id))
-        # Action type
-        # self.combobox_input_field.clear()
-        attribute_name = "action_type"
-        action_type = str(control_structure.get_features_with_where_clause(
-            table_name, attribute_name, where)[0][0])
-        self.tablewidget_input_control.setItem(
-            start_row, 5, QTableWidgetItem(action_type))
-        # self.combobox_input_field.addItem(str(action_type))
+        try:
+            # Structure type
+            attribute_name = "target_type"
+            structure_type = str(
+                control_structure.get_features_with_where_clause(
+                    table_name, attribute_name, where)[0][0])
+            structure = ""
+            if structure_type == "v2_culvert_view":
+                structure = "culvert"
+            elif structure_type == "v2_pumpstation_view":
+                structure = "pumpstation"
+            elif structure_type == "v2_orifice_view":
+                structure = "orifice"
+            elif structure_type == "v2_weir_view":
+                structure = "weir"
+            self.tablewidget_input_control.setItem(
+                start_row, 3, QTableWidgetItem(structure))
+            # Structure id
+            attribute_name = "target_id"
+            structure_id = str(
+                control_structure.get_features_with_where_clause(
+                    table_name, attribute_name, where)[0][0])
+            self.tablewidget_input_control.setItem(
+                start_row, 4, QTableWidgetItem(structure_id))
+            # Action type
+            attribute_name = "action_type"
+            action_type = str(control_structure.get_features_with_where_clause(
+                table_name, attribute_name, where)[0][0])
+            self.tablewidget_input_control.setItem(
+                start_row, 5, QTableWidgetItem(action_type))
+        # Empty v2_control
+        except Exception:
+            pass
 
     def create_new_control(self):
         """Create a new control."""
