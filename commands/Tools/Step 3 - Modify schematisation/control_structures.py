@@ -491,6 +491,7 @@ class CustomCommand(CustomCommandBase):
                                     [tabwidget_control.removeTab(tab)
                                         for tab in reversed(tabs_to_remove)]
                     except Exception:
+                        # No empty control groups
                         pass
         except Exception:
             # No linked controls
@@ -734,6 +735,7 @@ class CustomCommand(CustomCommandBase):
                                     [tabwidget_control.removeTab(tab)
                                         for tab in reversed(tabs_to_remove)]
                     except Exception:
+                        # No empty control groups
                         pass
         except Exception:
             # No linked controls
