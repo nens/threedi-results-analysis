@@ -138,8 +138,16 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
         attribute_name = "target_type"
         structure_type = str(control_structure.get_features_with_where_clause(
             table_name, attribute_name, where)[0][0])
+        if structure_type == "v2_culvert_view":
+            structure = "culvert"
+        elif structure_type == "v2_pumpstation_view":
+            structure = "pumpstation"
+        elif structure_type == "v2_orifice_view":
+            structure = "orifice"
+        elif structure_type == "v2_weir_view":
+            structure = "weir"
         self.tablewidget_input_control.setItem(
-            start_row, 3, QTableWidgetItem(structure_type))
+            start_row, 3, QTableWidgetItem(structure))
         # self.combobox_input_structure_table.addItem(structure_type)
         # Structure id
         # self.combobox_input_structure_id.clear()

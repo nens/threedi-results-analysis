@@ -298,7 +298,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
-        label_field.setText("Structure table: {}".format(
+        label_field.setText("Structure type: {}".format(
             self.combobox_input_structure_table.currentText()))
 
         label_field = QLabel(tab)

@@ -591,7 +591,15 @@ class CustomCommand(CustomCommandBase):
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
-        label_field.setText("Structure table: {}".format(rule[2]))
+        if rule[2] == "v2_culvert_view":
+            structure_type = "culvert"
+        elif rule[2] == "v2_pumpstation_view":
+            structure_type = "pumpstation"
+        elif rule[2] == "v2_orifice_view":
+            structure_type = "orifice"
+        elif rule[2] == "v2_weir_view":
+            structure_type = "weir"
+        label_field.setText("Structure type: {}".format(structure_type))
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 40, 300, 21)
@@ -899,9 +907,16 @@ class CustomCommand(CustomCommandBase):
             where = "{id_name} = {id_value}"\
                 .format(id_name="id", id_value=control[3])
             structure_type = control_structure.get_features_with_where_clause(
-                table_name, attribute_name, where)[0]
-            tablewidget.setItem(row, 3, QTableWidgetItem(
-                str(structure_type[0])))
+                table_name, attribute_name, where)[0][0]
+            if structure_type == "v2_culvert_view":
+                structure = "culvert"
+            elif structure_type == "v2_orifice_view":
+                structure = "orifice"
+            elif structure_type == "v2_pumpstation_view":
+                structure = "pumpstation"
+            elif structure_type == "v2_weir_view":
+                structure = "weir"
+            tablewidget.setItem(row, 3, QTableWidgetItem(str(structure)))
             attribute_name = "target_id"
             table_name = "v2_control_table"
             where = "{id_name} = {id_value}"\
