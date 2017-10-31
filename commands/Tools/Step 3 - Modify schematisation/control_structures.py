@@ -959,6 +959,19 @@ class CustomCommand(CustomCommandBase):
                 control_structure.delete_from_database(
                     table_name=table_name, where=where)
                 self.update_rule_ids(control_structure)
+                # Also remove these rules in tab Rules
+                tabwidget_rule = self.dockwidget_controlled_structures\
+                    .tab_table_control_view
+                tabs_to_remove = []
+                tab_number = tabwidget_rule.count()
+                for tab in range(tab_number):
+                    if tabwidget_rule.tabText(tab) == \
+                            "Table control: {}".format(rule_id):
+                        tabs_to_remove += [tab]
+                # Removing a tabs makes the tab go to the left, so delete
+                # the tabs in reversed order (from right to left)
+                [tabwidget_rule.removeTab(tab) for tab in reversed(
+                    tabs_to_remove)]
             # Get measuring group ids
             table_name = "v2_control"
             attribute_name = "measure_group_id"
@@ -982,6 +995,21 @@ class CustomCommand(CustomCommandBase):
                 control_structure.delete_from_database(
                     table_name=table_name, where=where)
                 self.update_measuring_group_ids(control_structure)
+                # Also remove these measure groups in tab Measuring group
+                tabwidget_measuring_group = self.\
+                    dockwidget_controlled_structures\
+                    .tab_measuring_group_view_2
+                tabs_to_remove = []
+                tab_number = tabwidget_measuring_group.count()
+                for tab in range(tab_number):
+                    if tabwidget_measuring_group.tabText(tab) == \
+                            "Group: {}".format(measuring_group_id):
+                        tabs_to_remove += [tab]
+                        # Removing a tabs makes the tab go to the left,
+                        # so delete the tabs in reversed order
+                        # (from right to left)
+                        [tabwidget_measuring_group.removeTab(tab)
+                            for tab in reversed(tabs_to_remove)]
         # Remove control of control group from database
         table_name = "v2_control"
         where = " WHERE control_group_id = '{}'".format(str(
