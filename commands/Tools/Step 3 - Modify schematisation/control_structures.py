@@ -761,6 +761,7 @@ class CustomCommand(CustomCommandBase):
         # Removing a tabs makes the tab go to the left, so delete the tabs in
         # reversed order (from right to left)
         [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
+        self.update_control_ids()
 
     def create_new_control_group(self):
         """Create a new control group."""
