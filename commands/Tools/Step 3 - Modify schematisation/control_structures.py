@@ -463,8 +463,8 @@ class CustomCommand(CustomCommandBase):
                             .get_features_with_where_clause(
                                 table_name=table_name,
                                 attribute_name=attribute_name,
-                                where=where)
-                        if count_control_group_ids[0][0] == 0:
+                                where=where)[0][0]
+                        if count_control_group_ids == 0:
                             # Remove these control groups from v2_control_group
                             table_name = "v2_control_group"
                             attribute_name = "id"
@@ -473,7 +473,6 @@ class CustomCommand(CustomCommandBase):
                                 value=control_group_id)
                             control_structure.delete_from_database(
                                 table_name=table_name, where=where)
-                            self.update_control_ids()
                             # Also remove these control groups in
                             # tab Control groups
                             tabwidget_control = self\
@@ -512,6 +511,7 @@ class CustomCommand(CustomCommandBase):
         # Removing a tabs makes the tab go to the left, so delete the tabs in
         # reversed order (from right to left)
         [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
+        self.update_control_ids()
 
     def create_new_rule(self):
         """Create a new rule."""
@@ -694,7 +694,6 @@ class CustomCommand(CustomCommandBase):
                         str(control_group_id))
                     control_structure.delete_from_database(
                         table_name=table_name, where=where)
-                    self.update_control_ids(control_structure)
                     # Check whether there are still controls
                     # linked to this control group
                     # If not, delete these empty control groups.
@@ -707,8 +706,8 @@ class CustomCommand(CustomCommandBase):
                             .get_features_with_where_clause(
                                 table_name=table_name,
                                 attribute_name=attribute_name,
-                                where=where)
-                        if count_control_group_ids[0][0] == 0:
+                                where=where)[0][0]
+                        if count_control_group_ids == 0:
                             # Remove these control groups from v2_control_group
                             table_name = "v2_control_group"
                             attribute_name = "id"
@@ -717,7 +716,6 @@ class CustomCommand(CustomCommandBase):
                                 value=control_group_id)
                             control_structure.delete_from_database(
                                 table_name=table_name, where=where)
-                            self.update_control_ids()
                             # Also remove these control groups in
                             # tab Control groups
                             tabwidget_control = self\
