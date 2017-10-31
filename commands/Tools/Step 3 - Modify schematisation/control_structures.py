@@ -649,47 +649,6 @@ class CustomCommand(CustomCommandBase):
         # the measuring groups and the measuring points the rule is linked to
         # and delete them
         try:
-            # Get the measure group id's from v2_control
-            table_name = "v2_control"
-            attribute_name = "measure_group_id"
-            where = "control_id = '{}'".format(str(rule_id))
-            measure_group_ids = control_structure\
-                .get_features_with_where_clause(
-                    table_name=table_name, attribute_name=attribute_name,
-                    where=where)
-            # Remove the measuring points from the database that belong to
-            # these measuring groups
-            for measure_group in measure_group_ids:
-                measure_group_id = measure_group[0]
-                table_name = "v2_control_measure_map"
-                where = " WHERE measure_group_id = '{}'".format(
-                    str(measure_group_id))
-                control_structure.delete_from_database(
-                    table_name=table_name, where=where)
-                self.update_measuring_point_ids()
-                # Remove these measure groups from v2_control_measure_group
-                table_name = "v2_control_measure_group"
-                attribute_name = "id"
-                where = " WHERE {attribute} = {value}".format(
-                    attribute=attribute_name, value=measure_group_id)
-                control_structure.delete_from_database(
-                    table_name=table_name, where=where)
-                self.update_measuring_group_ids()
-                # Also remove these measure groups in tab Measuring group
-                tabwidget_measuring_group = self.\
-                    dockwidget_controlled_structures\
-                    .tab_measuring_group_view_2
-                tabs_to_remove = []
-                tab_number = tabwidget_measuring_group.count()
-                for tab in range(tab_number):
-                    if tabwidget_measuring_group.tabText(tab) == \
-                            "Group: {}".format(measure_group_id):
-                        tabs_to_remove += [tab]
-                        # Removing a tabs makes the tab go to the left,
-                        # so delete the tabs in reversed order
-                        # (from right to left)
-                        [tabwidget_measuring_group.removeTab(tab)
-                            for tab in reversed(tabs_to_remove)]
             # Get the control group id from v2_control
             table_name = "v2_control"
             attribute_name = "control_group_id"
@@ -720,7 +679,7 @@ class CustomCommand(CustomCommandBase):
                         # Removing a tabs makes the tab go to the left,
                         # so delete the tabs in reversed order
                         # (from right to left)
-                        [tabwidget_measuring_group.removeTab(tab)
+                        [tabwidget_control_group.removeTab(tab)
                             for tab in reversed(tabs_to_remove)]
         except Exception:
             # No linked controls, control groups or measure groups
