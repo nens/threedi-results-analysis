@@ -11,7 +11,7 @@ threedi-qgis-plugin changelog
 
 - Make it possible to delete measuring group from the database and from view with the 'Delete button in the 'Measuring group' tab.
 
-- Removing measuring stations in the 'Measuring station' tab also removes them from the database.
+- Measuring stations no longer stand on their own. They are created in the Measuring group dialog. The measuring station tab now only gives an overview of the measuring stations in the database. 
 
 - Fix adding new table control to empty v2_control_table.
 
