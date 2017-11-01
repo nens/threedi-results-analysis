@@ -362,8 +362,8 @@ class ControlledStructures(object):
                         # Removing a tabs makes the tab go to the left, so
                         # delete the tabs in reversed order
                         # (from right to left).
-                        [tabwidget.removeTab(tab)
-                            for tab in reversed(tabs_to_remove)]
+                [tabwidget.removeTab(tab)
+                    for tab in reversed(tabs_to_remove)]
         except Exception:
             # No empty control groups
             pass
