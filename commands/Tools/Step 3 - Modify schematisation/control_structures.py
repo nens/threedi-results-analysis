@@ -512,7 +512,7 @@ class CustomCommand(CustomCommandBase):
         # Removing a tabs makes the tab go to the left, so delete the tabs in
         # reversed order (from right to left)
         [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
-        self.update_control_ids()
+        self.update_control_ids(control_structure)
 
     def create_new_rule(self):
         """Create a new rule."""
@@ -581,6 +581,7 @@ class CustomCommand(CustomCommandBase):
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
+        structure_type = ""
         if rule[2] == "v2_culvert_view":
             structure_type = "culvert"
         elif rule[2] == "v2_pumpstation_view":
@@ -662,7 +663,7 @@ class CustomCommand(CustomCommandBase):
         control_structure.start_sqalchemy_engine(db["db_settings"])
         # Get id and type of rule
         rule_id = self.dockwidget_controlled_structures\
-            .combobox_input_rule_view.currentText()
+            .combobox_input_rule_delete.currentText()
         rule_type = self.dockwidget_controlled_structures\
             .combobox_input_rule_type_delete.currentText()
         # Remove the database entries of the the controls the rule is linked to
@@ -763,7 +764,7 @@ class CustomCommand(CustomCommandBase):
         # Removing a tabs makes the tab go to the left, so delete the tabs in
         # reversed order (from right to left)
         [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
-        self.update_control_ids()
+        self.update_control_ids(control_structure)
 
     def create_new_control_group(self):
         """Create a new control group."""
