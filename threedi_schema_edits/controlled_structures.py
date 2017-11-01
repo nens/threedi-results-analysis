@@ -274,3 +274,96 @@ class ControlledStructures(object):
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
                 "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+
+    def delete_controls_and_control_groups(
+            self, id_name, id_value, tabwidget):
+        """
+        Remove the database entries of the controls and delete them.
+        Delete empty control groups
+
+        Args:
+            (str) id_name: The attribute name to find the corresponding
+                           control with. This could for example be
+                           "measure_group_id".
+            (int) id_value: The value of the id to find the corresponding
+                            control group with.
+            (QTabWidget) tabwidget: The tabwidget with control group tabs.
+                                    If an empty control group is created by
+                                    deleting controls, the control group is
+                                    also removed from the tabwidget
+        """
+        try:
+            # Get the control id(s) from v2_control
+            table_name = "v2_control"
+            attribute_name = "id"
+            where = "{id_name} = {id_value}".format(
+                id_name=id_name, id_value=id_value)
+            control_ids = self.get_features_with_where_clause(
+                table_name=table_name, attribute_name=attribute_name,
+                where=where)
+            for control in control_ids:
+                control_id = control[0]
+                # Get the control group id from v2_control
+                table_name = "v2_control"
+                attribute_name = "control_group_id"
+                where = "id = '{}'".format(str(control_id))
+                control_group_ids = self.get_features_with_where_clause(
+                    table_name=table_name, attribute_name=attribute_name,
+                    where=where)
+                for control_group in control_group_ids:
+                    control_group_id = control_group[0]
+                    # Remove control from v2_control
+                    table_name = "v2_control"
+                    where = " WHERE control_group_id = '{}'".format(
+                        str(control_group_id))
+                    self.delete_from_database(
+                        table_name=table_name, where=where)
+                    # Check whether there are still controls linked to this
+                    # control group. If not, delete these empty control groups.
+                    self.delete_empty_control_groups(
+                        control_group_id, tabwidget)
+        except Exception:
+            # No linked controls
+            pass
+
+    def delete_empty_control_groups(self, control_group_id, tabwidget):
+        """
+        Delete empty control groups that are created by removing controls.
+
+        Args:
+            (int) control_group_id: The value of the control group id.
+            (QTabWidget) tabwidget: The tabwidget with control group tabs.
+                                    If an empty control group is created by
+                                    deleting controls, the control group is
+                                    also removed from the tabwidget
+        """
+        try:
+            table_name = "v2_control"
+            attribute_name = "COUNT(*)"
+            where = "control_group_id = '{}'".format(str(control_group_id))
+            count_control_group_ids = self.get_features_with_where_clause(
+                table_name=table_name, attribute_name=attribute_name,
+                where=where)[0][0]
+            if count_control_group_ids == 0:
+                # Remove these control groups from v2_control_group
+                table_name = "v2_control_group"
+                attribute_name = "id"
+                where = " WHERE {attribute} = {value}".format(
+                    attribute=attribute_name, value=control_group_id)
+                self.delete_from_database(table_name=table_name, where=where)
+                # Also remove these control groups in
+                # tab Control groups
+                tabs_to_remove = []
+                tab_number = tabwidget.count()
+                for tab in range(tab_number):
+                    if tabwidget.tabText(tab) == "Control group: {}".format(
+                            control_group_id):
+                        tabs_to_remove += [tab]
+                        # Removing a tabs makes the tab go to the left, so
+                        # delete the tabs in reversed order
+                        # (from right to left).
+                        [tabwidget.removeTab(tab)
+                            for tab in reversed(tabs_to_remove)]
+        except Exception:
+            # No empty control groups
+            pass
