@@ -128,7 +128,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         structure_type = self.combobox_input_structure_table.currentText()
         self.combobox_input_structure_id.clear()
         list_of_structure_ids = self.control_structure.get_attributes(
-            table_name=DICT_TABLE_NAMES[structure_type],
+            table_name="{table_name_base}_view".format(
+                table_name_base=DICT_TABLE_NAMES[structure_type]),
             attribute_name=DICT_TABLE_ID[structure_type])
         self.combobox_input_structure_id.addItems(
             list_of_structure_ids)

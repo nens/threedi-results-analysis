@@ -508,24 +508,29 @@ class CustomCommand(CustomCommandBase):
 
         label_field = QLabel(tab)
         label_field.setGeometry(10, 40, 300, 21)
-        label_field.setText("Operator: {}".format(rule[1]))
+        operator = ""
+        if rule[1] == ">":
+            operator = "Bottom up"
+        elif rule[1] == "<":
+            operator = "Top down"
+        label_field.setText("Operator: {}".format(operator))
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
         structure_type = ""
-        if rule[2] == "v2_culvert_view":
+        if rule[3] == "v2_culvert":
             structure_type = "culvert"
-        elif rule[2] == "v2_pumpstation_view":
+        elif rule[3] == "v2_pumpstation":
             structure_type = "pumpstation"
-        elif rule[2] == "v2_orifice_view":
+        elif rule[3] == "v2_orifice":
             structure_type = "orifice"
-        elif rule[2] == "v2_weir_view":
+        elif rule[3] == "v2_weir":
             structure_type = "weir"
         label_field.setText("Structure type: {}".format(structure_type))
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 40, 300, 21)
-        label_field.setText("Structure id: {}".format(rule[3]))
+        label_field.setText("Structure id: {}".format(rule[2]))
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 70, 741, 21)

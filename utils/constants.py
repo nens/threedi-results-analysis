@@ -46,10 +46,10 @@ EPSG_RD_NEW = 28992
 
 # A dictionary to link tables names to the table views names
 DICT_TABLE_NAMES = {
-    "culvert": "v2_culvert_view",
-    "orifice": "v2_orifice_view",
-    "pumpstation": "v2_pumpstation_view",
-    "weir": "v2_weir_view"
+    "culvert": "v2_culvert",
+    "orifice": "v2_orifice",
+    "pumpstation": "v2_pumpstation",
+    "weir": "v2_weir"
 }
 # A dictionary to link tables names to the id names
 DICT_TABLE_ID = {
