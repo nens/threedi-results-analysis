@@ -46,22 +46,22 @@ EPSG_RD_NEW = 28992
 
 # A dictionary to link tables names to the table views names
 DICT_TABLE_NAMES = {
-    "v2_culvert": "v2_culvert_view",
-    "v2_orifice": "v2_orifice_view",
-    "v2_pumpstation": "v2_pumpstation_view",
-    "v2_weir": "v2_weir_view"
+    "culvert": "v2_culvert",
+    "orifice": "v2_orifice",
+    "pumpstation": "v2_pumpstation",
+    "weir": "v2_weir"
 }
 # A dictionary to link tables names to the id names
 DICT_TABLE_ID = {
-    "v2_culvert": "cul_id",
-    "v2_orifice": "orf_id",
-    "v2_pumpstation": "pump_id",
-    "v2_weir": "weir_id"
+    "culvert": "cul_id",
+    "orifice": "orf_id",
+    "pumpstation": "pump_id",
+    "weir": "weir_id"
 }
 # A dictionary to link the table view names to the action types
 DICT_ACTION_TYPES = {
-    "v2_culvert": ["set_discharge_coefficient"],
-    "v2_orifice": ["set_crest_level", "set_discharge_coefficient"],
-    "v2_pumpstation": ["set_capacity"],
-    "v2_weir": ["set_crest_level", "set_discharge_coefficient"]
+    "culvert": ["set_discharge_coefficient"],
+    "orifice": ["set_crest_level", "set_discharge_coefficient"],
+    "pumpstation": ["set_capacity"],
+    "weir": ["set_crest_level", "set_discharge_coefficient"]
 }
