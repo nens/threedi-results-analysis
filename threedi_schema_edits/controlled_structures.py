@@ -314,8 +314,8 @@ class ControlledStructures(object):
                     control_group_id = control_group[0]
                     # Remove control from v2_control
                     table_name = "v2_control"
-                    where = " WHERE control_group_id = '{}'".format(
-                        str(control_group_id))
+                    where = " WHERE id = '{}'".format(
+                        str(control_id))
                     self.delete_from_database(
                         table_name=table_name, where=where)
                     # Check whether there are still controls linked to this
