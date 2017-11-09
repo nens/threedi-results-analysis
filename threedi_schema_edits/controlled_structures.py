@@ -318,6 +318,19 @@ class ControlledStructures(object):
                         str(control_id))
                     self.delete_from_database(
                         table_name=table_name, where=where)
+                    # Also remove control groups with these controls in the
+                    # tab Control groups
+                    tabs_to_remove = []
+                    tab_number = tabwidget.count()
+                    for tab in range(tab_number):
+                        if tabwidget.tabText(tab) == "Control group: {}"\
+                                .format(control_group_id):
+                            tabs_to_remove += [tab]
+                            # Removing a tabs makes the tab go to the left, so
+                            # delete the tabs in reversed order
+                            # (from right to left).
+                    [tabwidget.removeTab(tab)
+                        for tab in reversed(tabs_to_remove)]
                     # Check whether there are still controls linked to this
                     # control group. If not, delete these empty control groups.
                     self.delete_empty_control_groups(
