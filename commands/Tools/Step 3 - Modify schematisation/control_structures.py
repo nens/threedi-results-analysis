@@ -224,18 +224,31 @@ class CustomCommand(CustomCommandBase):
         self.remove_all_rule_tabs()
         self.remove_all_control_tabs()
 
+    def connect_to_database(self):
+        """
+        This function sets up a connection to the database with the database
+        key selected in the Model tab.
+
+        Returns:
+            (ControlledStructures) control_structure: The connection to the
+                database. With this connection, inserts and deletes can be
+                done.
+        """
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()
+        db = get_database_properties(db_key)
+        control_structure = ControlledStructures(
+            flavor=db["db_entry"]['db_type'])
+        control_structure.start_sqalchemy_engine(db["db_settings"])
+        return control_structure
+
     def view_measuring_point(self):
         """View a measuring station in 'Ḿeasuring station' tab."""
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
         measure_point_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_point_view.currentText()
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         table_name = "v2_control_measure_map"
         attribute_name = "*"
         where = "id={}".format(measure_point_id)
@@ -257,12 +270,7 @@ class CustomCommand(CustomCommandBase):
         tablewidget = self.dockwidget_controlled_structures\
             .tablewidget_measuring_point
         self.clear_measuring_point_table()
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         table_name = "v2_control_measure_map"
         attribute_name = "*"
         measure_points = control_structure.get_attributes(
@@ -288,15 +296,12 @@ class CustomCommand(CustomCommandBase):
 
     def create_new_measuring_group(self):
         """Create a new measuring group."""
+        control_structure = self.connect_to_database()
         db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Get last id of measure group or set to 0; set to +1
+            .combobox_input_model.currentText()
         table_name = "v2_control_measure_group"
         attribute_name = "MAX(id)"
+        # Get last id of measure group or set to 0; set to +1
         try:
             max_id_measure_group = int(control_structure.get_attributes(
                 table_name, attribute_name)[0])
@@ -326,12 +331,7 @@ class CustomCommand(CustomCommandBase):
             where = "{id_name} = {id_value}"\
                 .format(id_name=measuring_group_id_name,
                         id_value=measuring_group_id)
-            db_key = self.dockwidget_controlled_structures\
-                .combobox_input_model.currentText()  # name of database
-            db = get_database_properties(db_key)
-            control_structure = ControlledStructures(
-                flavor=db["db_entry"]['db_type'])
-            control_structure.start_sqalchemy_engine(db["db_settings"])
+            control_structure = self.connect_to_database()
             measure_group = control_structure.get_features_with_where_clause(
                 table_name, attribute_name, where)
             # Add a tab in the tabwidget of the 'Measuring group' tab in
@@ -402,12 +402,7 @@ class CustomCommand(CustomCommandBase):
             .clear()
 
     def delete_measuring_group_from_database(self):
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         # Get id of measuring group
         measuring_group_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_group_delete.currentText()
@@ -447,15 +442,12 @@ class CustomCommand(CustomCommandBase):
 
     def create_new_rule(self):
         """Create a new rule."""
-        db_key = self.dockwidget_controlled_structures.combobox_input_model\
-            .currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Get last id of measure group or set to 0; set to +1
+        control_structure = self.connect_to_database()
+        db_key = self.dockwidget_controlled_structures\
+            .combobox_input_model.currentText()
         table_name = "v2_control_table"
         attribute_name = "MAX(id)"
+        # Get last id of measure group or set to 0; set to +1
         try:
             max_id_table_control = int(control_structure.get_attributes(
                 table_name, attribute_name)[0])
@@ -483,12 +475,7 @@ class CustomCommand(CustomCommandBase):
             table_name = "v2_control_table"
             where = "{id_name} = {id_value}"\
                 .format(id_name=rule_id_name, id_value=rule_id)
-            db_key = self.dockwidget_controlled_structures\
-                .combobox_input_model.currentText()  # name of database
-            db = get_database_properties(db_key)
-            control_structure = ControlledStructures(
-                flavor=db["db_entry"]['db_type'])
-            control_structure.start_sqalchemy_engine(db["db_settings"])
+            control_structure = self.connect_to_database()
             rule = control_structure.get_features_with_where_clause(
                 table_name, attribute_name, where)[0]
             # Add a tab in the tabwidget of the 'Measuring group' tab in
@@ -589,12 +576,7 @@ class CustomCommand(CustomCommandBase):
             .clear()
 
     def delete_rule_from_database(self):
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         # Get id and type of rule
         rule_id = self.dockwidget_controlled_structures\
             .combobox_input_rule_delete.currentText()
@@ -635,15 +617,12 @@ class CustomCommand(CustomCommandBase):
 
     def create_new_control_group(self):
         """Create a new control group."""
+        control_structure = self.connect_to_database()
         db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
-        # Get last id of control group or set to 0; set to +1
+            .combobox_input_model.currentText()
         table_name = "v2_control_group"
         attribute_name = "MAX(id)"
+        # Get last id of control group or set to 0; set to +1
         try:
             max_id_control_group = int(control_structure.get_attributes(
                 table_name, attribute_name)[0])
@@ -669,12 +648,7 @@ class CustomCommand(CustomCommandBase):
             table_name = "v2_control_group"
             where = "{id_name} = {id_value}"\
                 .format(id_name="id", id_value=control_group_id)
-            db_key = self.dockwidget_controlled_structures\
-                .combobox_input_model.currentText()  # name of database
-            db = get_database_properties(db_key)
-            control_structure = ControlledStructures(
-                flavor=db["db_entry"]['db_type'])
-            control_structure.start_sqalchemy_engine(db["db_settings"])
+            control_structure = self.connect_to_database()
             control_group = control_structure.get_features_with_where_clause(
                 table_name, attribute_name, where)[0]
             # Create a new tab for the Control tab in the dockwidget
@@ -741,12 +715,7 @@ class CustomCommand(CustomCommandBase):
             (list) controls: A list of tuples. The tuples contain the
                                   different controls.
         """
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         tablewidget = self.dockwidget_controlled_structures\
             .control_group_table
         row = 0
@@ -793,12 +762,7 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.tab_control_view.clear()
 
     def delete_control_group_from_database(self):
-        db_key = self.dockwidget_controlled_structures\
-            .combobox_input_model.currentText()  # name of database
-        db = get_database_properties(db_key)
-        control_structure = ControlledStructures(
-            flavor=db["db_entry"]['db_type'])
-        control_structure.start_sqalchemy_engine(db["db_settings"])
+        control_structure = self.connect_to_database()
         # Get id of control group
         control_group_id = self.dockwidget_controlled_structures\
             .combobox_input_control_delete.currentText()
