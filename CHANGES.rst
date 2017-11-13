@@ -5,15 +5,7 @@ threedi-qgis-plugin changelog
 0.14 (unreleased)
 -----------------
 
-- Also make it possible to delete control groups from the database and from view with the 'Delete button' in the 'Control group' tab.
-
-- Also make it possible to delete rule from the database and from view with the 'Delete button' in the 'Rule' tab.
-
-- Make it possible to delete measuring group from the database and from view with the 'Delete button in the 'Measuring group' tab.
-
-- Measuring stations no longer stand on their own. They are created in the Measuring group dialog. The measuring station tab now only gives an overview of the measuring stations in the database. 
-
-- Fix adding new table control to empty v2_control_table.
+- Fix bugs in the control structures.
 
 
 0.13 (2017-10-23)
