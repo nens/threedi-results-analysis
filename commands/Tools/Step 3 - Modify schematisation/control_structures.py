@@ -265,6 +265,7 @@ class CustomCommand(CustomCommandBase):
                 dockwidget_controlled_structures)
         self.dialog_create_measuring_group.exec_()  # block execution
         self.update_measuring_point_ids(control_structure)
+        self.update_measuring_group_ids(control_structure)
 
     def view_measuring_group(self):
         """
