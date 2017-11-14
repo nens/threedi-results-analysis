@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix bugs in the control structures.
 
 
 0.13 (2017-10-23)

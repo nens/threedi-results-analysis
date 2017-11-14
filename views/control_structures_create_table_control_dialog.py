@@ -128,7 +128,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         structure_type = self.combobox_input_structure_table.currentText()
         self.combobox_input_structure_id.clear()
         list_of_structure_ids = self.control_structure.get_attributes(
-            table_name=DICT_TABLE_NAMES[structure_type],
+            table_name="{table_name_base}_view".format(
+                table_name_base=DICT_TABLE_NAMES[structure_type]),
             attribute_name=DICT_TABLE_ID[structure_type])
         self.combobox_input_structure_id.addItems(
             list_of_structure_ids)
@@ -298,7 +299,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
-        label_field.setText("Structure table: {}".format(
+        label_field.setText("Structure type: {}".format(
             self.combobox_input_structure_table.currentText()))
 
         label_field = QLabel(tab)
@@ -312,7 +313,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             self.combobox_input_action_type.currentText()))
 
         table_control_table = QTableWidget(tab)
-        table_control_table.setGeometry(10, 100, 741, 221)
+        table_control_table.setGeometry(10, 100, 741, 181)
         table_control_table.insertColumn(0)
         table_control_table.setHorizontalHeaderItem(
             0, QTableWidgetItem("measuring_value"))
