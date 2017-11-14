@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.14 (unreleased)
+0.14 (2017-11-14)
 -----------------
 
 - Fix bugs in the control structures.
