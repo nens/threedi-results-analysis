@@ -148,24 +148,6 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures.combobox_input_model\
             .activated.connect(self.update_dockwidget_ids)
 
-    def setup_measuring_station_tab(self):
-        """
-        Connect the signals for the measuring station tab and
-        populate the table of the measuring station tab.
-        """
-        self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_view_all.clicked\
-            .connect(self.view_all_measuring_points)
-        self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_view.clicked\
-            .connect(self.view_measuring_point)
-        self.dockwidget_controlled_structures\
-            .pushbutton_input_measuring_point_clear.clicked\
-            .connect(self.clear_measuring_point_table)
-        tablewidget = self.dockwidget_controlled_structures\
-            .tablewidget_measuring_point
-        tablewidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
     def setup_measuring_group_tab(self):
         """Connect the signals for the measuring group tab."""
         self.dockwidget_controlled_structures\
@@ -182,6 +164,21 @@ class CustomCommand(CustomCommandBase):
         self.dockwidget_controlled_structures\
             .pushbutton_input_measuring_group_delete.clicked.connect(
                 self.delete_measuring_group_from_database)
+
+    def setup_measuring_station_tab(self):
+        """Connect the signals for the measuring station tab."""
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_view_all.clicked\
+            .connect(self.view_all_measuring_points)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_view.clicked\
+            .connect(self.view_measuring_point)
+        self.dockwidget_controlled_structures\
+            .pushbutton_input_measuring_point_clear.clicked\
+            .connect(self.clear_measuring_point_table)
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        tablewidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def setup_rule_tab(self):
         """Connect the signals for the rule tab."""
@@ -242,60 +239,12 @@ class CustomCommand(CustomCommandBase):
         control_structure.start_sqalchemy_engine(db["db_settings"])
         return control_structure
 
-    def view_measuring_point(self):
-        """View a measuring station in 'Ḿeasuring station' tab."""
-        tablewidget = self.dockwidget_controlled_structures\
-            .tablewidget_measuring_point
-        measure_point_id = self.dockwidget_controlled_structures\
-            .combobox_input_measuring_point_view.currentText()
-        control_structure = self.connect_to_database()
-        table_name = "v2_control_measure_map"
-        attribute_name = "*"
-        where = "id={}".format(measure_point_id)
-        measure_point = control_structure.get_features_with_where_clause(
-            table_name=table_name, attribute_name=attribute_name,
-            where=where)[0]
-        # Insert on top of the table
-        row_position = 0
-        tablewidget.insertRow(row_position)
-        measuring_point_id = QTableWidgetItem(str(measure_point[0]))
-        tablewidget.setItem(row_position, 0, measuring_point_id)
-        measuring_point_table = QTableWidgetItem(str(measure_point[2]))
-        tablewidget.setItem(row_position, 1, measuring_point_table)
-        measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
-        tablewidget.setItem(row_position, 2, measuring_point_table_id)
-
-    def view_all_measuring_points(self):
-        """View all the measuring points in the Measuring station tab."""
-        tablewidget = self.dockwidget_controlled_structures\
-            .tablewidget_measuring_point
-        self.clear_measuring_point_table()
-        control_structure = self.connect_to_database()
-        table_name = "v2_control_measure_map"
-        attribute_name = "*"
-        measure_points = control_structure.get_attributes(
-            table_name=table_name, attribute_name=attribute_name,
-            all_features=True)
-        for measure_point in measure_points:
-            row_position = tablewidget.rowCount()
-            tablewidget.insertRow(row_position)
-            measuring_point_id = QTableWidgetItem(str(measure_point[0]))
-            tablewidget.setItem(row_position, 0, measuring_point_id)
-            measuring_point_table = QTableWidgetItem(str(measure_point[2]))
-            tablewidget.setItem(row_position, 1, measuring_point_table)
-            measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
-            tablewidget.setItem(row_position, 2, measuring_point_table_id)
-
-    def clear_measuring_point_table(self):
-        """Clear the measuring point table."""
-        row_count = self.dockwidget_controlled_structures\
-            .tablewidget_measuring_point.rowCount()
-        for row in range(row_count):
-            self.dockwidget_controlled_structures\
-                .tablewidget_measuring_point.removeRow(0)
-
     def create_new_measuring_group(self):
-        """Create a new measuring group."""
+        """
+        Open a dialog for creating and saving a new measuring group in the
+        database. A new id for this measuring group is created to show in
+        the dialog.
+        """
         control_structure = self.connect_to_database()
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()
@@ -316,10 +265,13 @@ class CustomCommand(CustomCommandBase):
                 dockwidget_controlled_structures)
         self.dialog_create_measuring_group.exec_()  # block execution
         self.update_measuring_point_ids(control_structure)
-        self.update_measuring_group_ids(control_structure)
 
     def view_measuring_group(self):
-        """View a measuring group in a new tab in the Measure groups tab."""
+        """
+        View a measuring group in a new tab in the Measuring groups tab.
+        A new tab is created with the measuring group id of the selected
+        combobox, and populated with data of this measuring group.
+        """
         measuring_group_id_name = "measure_group_id"
         measuring_group_id = self.dockwidget_controlled_structures\
             .combobox_input_measuring_group_view.currentText()
@@ -341,7 +293,7 @@ class CustomCommand(CustomCommandBase):
 
     def populate_measuring_group_tab(self, measuring_group_id, measure_group):
         """
-        Add a tab in the tabwidget of the 'Measuring group' tab.
+        Add and populate a tab in the tabwidget of the 'Measuring group' tab.
 
         Args:
             (int) measuring_group_id: The id of the measure group.
@@ -366,7 +318,10 @@ class CustomCommand(CustomCommandBase):
                     str(measure_point[4])))
 
     def create_measuring_group_tab(self, measuring_group_id):
-        """Create a tab in the Measuring group tab."""
+        """
+        Create a new measuring group in te Measuring group tab.
+        The new tab is added to the left.
+        """
         tab = QWidget()
         layout = QVBoxLayout(tab)
         tab.setLayout(layout)
@@ -391,17 +346,26 @@ class CustomCommand(CustomCommandBase):
                 str(measuring_group_id)))
 
     def remove_measuring_group_tab(self):
-        """Remove a tab in the Measuring group tab."""
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .removeTab(self.dockwidget_controlled_structures
                        .tab_measuring_group_view_2.currentIndex())
 
     def remove_all_measuring_group_tabs(self):
-        """Remove all tabs in the Measuring group tab."""
         self.dockwidget_controlled_structures.tab_measuring_group_view_2\
             .clear()
 
     def delete_measuring_group_from_database(self):
+        """
+        Delete a measuring group from the database.
+        Measuring stations that belong to these measuring groups are
+        deleted.
+        Controls that contain these measuring groups are also
+        deleted. If this results in an empty control group, this control
+        group is also removed from the database and from the Control group
+        tab.
+        Tabs that contain these measuring groups are removed from the
+        Measuring group tab.
+        """
         control_structure = self.connect_to_database()
         # Get id of measuring group
         measuring_group_id = self.dockwidget_controlled_structures\
@@ -440,8 +404,71 @@ class CustomCommand(CustomCommandBase):
         self.update_measuring_group_ids(control_structure)
         self.update_control_ids(control_structure)
 
+    def view_all_measuring_points(self):
+        """
+        View all the measuring stations in the Measuring station tab.
+        The ids of the measuring stations are obtained from the database.
+        A new row is made in the tab for each measuring station.
+        """
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        self.clear_measuring_point_table()
+        control_structure = self.connect_to_database()
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        measure_points = control_structure.get_attributes(
+            table_name=table_name, attribute_name=attribute_name,
+            all_features=True)
+        for measure_point in measure_points:
+            row_position = tablewidget.rowCount()
+            tablewidget.insertRow(row_position)
+            measuring_point_id = QTableWidgetItem(str(measure_point[0]))
+            tablewidget.setItem(row_position, 0, measuring_point_id)
+            measuring_point_table = QTableWidgetItem(str(measure_point[2]))
+            tablewidget.setItem(row_position, 1, measuring_point_table)
+            measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
+            tablewidget.setItem(row_position, 2, measuring_point_table_id)
+
+    def view_measuring_point(self):
+        """
+        View a measuring station in 'Ḿeasuring station' tab.
+        The id of the measuring station is read from the combobox.
+        A new row is made in the tab with the data from this measuring
+        station.
+        """
+        tablewidget = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point
+        measure_point_id = self.dockwidget_controlled_structures\
+            .combobox_input_measuring_point_view.currentText()
+        control_structure = self.connect_to_database()
+        table_name = "v2_control_measure_map"
+        attribute_name = "*"
+        where = "id={}".format(measure_point_id)
+        measure_point = control_structure.get_features_with_where_clause(
+            table_name=table_name, attribute_name=attribute_name,
+            where=where)[0]
+        # Insert on top of the table
+        row_position = 0
+        tablewidget.insertRow(row_position)
+        measuring_point_id = QTableWidgetItem(str(measure_point[0]))
+        tablewidget.setItem(row_position, 0, measuring_point_id)
+        measuring_point_table = QTableWidgetItem(str(measure_point[2]))
+        tablewidget.setItem(row_position, 1, measuring_point_table)
+        measuring_point_table_id = QTableWidgetItem(str(measure_point[3]))
+        tablewidget.setItem(row_position, 2, measuring_point_table_id)
+
+    def clear_measuring_point_table(self):
+        row_count = self.dockwidget_controlled_structures\
+            .tablewidget_measuring_point.rowCount()
+        for row in range(row_count):
+            self.dockwidget_controlled_structures\
+                .tablewidget_measuring_point.removeRow(0)
+
     def create_new_rule(self):
-        """Create a new rule."""
+        """
+        Open a dialog for creating and saving a new rule in the database.
+        A new id for this rule is created to show in the dialog.
+        """
         control_structure = self.connect_to_database()
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()
@@ -462,7 +489,11 @@ class CustomCommand(CustomCommandBase):
         self.update_rule_ids(control_structure)
 
     def view_rule(self):
-        """View a rule in a new tab in the Rule tab."""
+        """
+        View a rule in a new tab in the Rule tab.
+        A new tab is created with the rule id of the selected
+        combobox, and populated with data of this rule.
+        """
         rule_type = self.dockwidget_controlled_structures\
             .combobox_input_rule_type_view.currentText()
         rule_id_name = "id"
@@ -484,7 +515,14 @@ class CustomCommand(CustomCommandBase):
             self.populate_rule_tab(rule_type, rule_id, rule)
 
     def create_rule_tab(self, rule_id, rule):
-        """Create a tab in the Rule tab."""
+        """
+        Create a tab in the Rule tab. The tab is added to the left.
+
+        Args:
+            (int) rule_id: The id of the rule.
+            (list) rule: A list of tuples containing the attributes
+                                  of the rule.
+        """
         tab = QWidget()
         layout = QVBoxLayout(tab)
         tab.setLayout(layout)
@@ -541,7 +579,8 @@ class CustomCommand(CustomCommandBase):
 
     def populate_rule_tab(self, rule_type, rule_id, rule):
         """
-        Populate a tab in the tabwidget of the 'Rule' tab.
+        Populate a tab in the tabwidget of the 'Rule' tab with data of the
+        selected rule.
 
         Args:
             (str) rule_type: The type of the rule.
@@ -565,17 +604,22 @@ class CustomCommand(CustomCommandBase):
                 row += 1
 
     def remove_rule_tab(self):
-        """Remove a tab in the Rule tab."""
         self.dockwidget_controlled_structures.tab_table_control_view\
             .removeTab(self.dockwidget_controlled_structures
                        .tab_table_control_view.currentIndex())
 
     def remove_all_rule_tabs(self):
-        """Remove all tabs in the Rule tab."""
         self.dockwidget_controlled_structures.tab_table_control_view\
             .clear()
 
     def delete_rule_from_database(self):
+        """
+        Delete a rule from the database.
+        Controls that contain these rules are deleted. If this results in an
+        empty control group, this control group is also removed from the
+        database and from the Control group tab.
+        Tabs that contain these rules are removed from the Rule tab.
+        """
         control_structure = self.connect_to_database()
         # Get id and type of rule
         rule_id = self.dockwidget_controlled_structures\
@@ -616,7 +660,11 @@ class CustomCommand(CustomCommandBase):
         self.update_control_ids(control_structure)
 
     def create_new_control_group(self):
-        """Create a new control group."""
+        """
+        Open a dialog for creating and saving a new control group in the
+        database. A new id for this control group is created to show in the
+        dialog.
+        """
         control_structure = self.connect_to_database()
         db_key = self.dockwidget_controlled_structures\
             .combobox_input_model.currentText()
@@ -638,7 +686,11 @@ class CustomCommand(CustomCommandBase):
         self.update_control_ids(control_structure)
 
     def view_control_group(self):
-        """View a control group in a new tab in the Control groups tab."""
+        """
+        View a control group in a new tab in the Control group tab.
+        A new tab is created with the control group id of the selected
+        combobox, and populated with data of this control group.
+        """
         control_group_id = self.dockwidget_controlled_structures\
             .combobox_input_control_view.currentText()
         if control_group_id == "":
@@ -663,10 +715,10 @@ class CustomCommand(CustomCommandBase):
 
     def create_control_group_tab(self, control_group_id, control_group):
         """
-        Create a tab in the Control group tab.
+        Create a tab in the Control group tab. The tab is added to the left.
 
         Args:
-            (int) control_grop_id: The id of the control group.
+            (int) control_group_id: The id of the control group.
             (list) control_group: A list of tuples containing the attributes
                                   of the control group.
         """
@@ -708,7 +760,8 @@ class CustomCommand(CustomCommandBase):
 
     def populate_control_group_tab(self, control_group_id, controls):
         """
-        Add a tab in the tabwidget of the 'Control' tab.
+        Populate the new tab in the Control group tab with data of the
+        selected control group.
 
         Args:
             (int) control_group_id: The id of the control group.
@@ -752,16 +805,20 @@ class CustomCommand(CustomCommandBase):
             row += 1
 
     def remove_control_tab(self):
-        """Remove a tab in the Control tab."""
         self.dockwidget_controlled_structures.tab_control_view\
             .removeTab(self.dockwidget_controlled_structures
                        .tab_control_view.currentIndex())
 
     def remove_all_control_tabs(self):
-        """Remove all tabs in the Control tab."""
         self.dockwidget_controlled_structures.tab_control_view.clear()
 
     def delete_control_group_from_database(self):
+        """
+        Delete a control group from the database. This also deletes the
+        controls that are part of this control group.
+        Tabs that contain this control group are removed from the Control
+        group tab.
+        """
         control_structure = self.connect_to_database()
         # Get id of control group
         control_group_id = self.dockwidget_controlled_structures\
