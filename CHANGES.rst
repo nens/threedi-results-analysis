@@ -2,7 +2,7 @@ threedi-qgis-plugin changelog
 =============================
 
 
-0.15 (unreleased)
+0.15 (2018-02-07)
 -----------------
 
 - Update lizard-connector, which contains a fix for mitigating problems with
