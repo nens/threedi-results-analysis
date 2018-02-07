@@ -5,7 +5,8 @@ threedi-qgis-plugin changelog
 0.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Update lizard-connector, which contains a fix for mitigating problems with
+  the ``future`` library that is used by QGIS.
 
 
 0.14 (2017-11-14)
