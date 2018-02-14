@@ -94,9 +94,17 @@ if netCDF4 is not None:
 
 try:
     import h5py
+    log("Using local h5py installation.")
 except ImportError as e:
-    pop_up_info("Error loading h5py from "
-                "'external' subdirectory. error %s" % e.message)
+    sys.path.append(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'external', 'h5py-win64'))
+    try:
+        import h5py
+        log("Using h5py provided by plugin.")
+    except ImportError as e:
+        pop_up_info("Error loading h5py from "
+                    "'external' subdirectory. error %s" % e.message)
 
 
 # noinspection PyPep8Naming
