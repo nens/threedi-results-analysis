@@ -96,15 +96,21 @@ try:
     import h5py
     log("Using local h5py installation.")
 except ImportError as e:
-    sys.path.append(os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'external', 'h5py-win64'))
-    try:
-        import h5py
-        log("Using h5py provided by plugin.")
-    except ImportError as e:
-        pop_up_info("Error loading h5py from "
-                    "'external' subdirectory. error %s" % e.message)
+    if os.name == 'nt':
+        if sys.maxsize > 2**32:
+            sys.path.append(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'external', 'h5py-win64'))
+            try:
+                import h5py
+                log("Using h5py provided by plugin.")
+            except ImportError as e:
+                pop_up_info("Error loading h5py from "
+                            "'external' subdirectory. error %s" % e.message)
+        else:
+            log("Only 64-bit h5py available.")
+    else:
+        log("Can't import h5py")
 
 
 # noinspection PyPep8Naming
