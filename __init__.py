@@ -92,6 +92,12 @@ if netCDF4 is not None:
                hdf5=netCDF4.__hdf5libversion__)
     log(msg)
 
+try:
+    import h5py
+except ImportError as e:
+    pop_up_info("Error loading h5py from "
+                "'external' subdirectory. error %s" % e.message)
+
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
