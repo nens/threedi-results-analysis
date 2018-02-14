@@ -44,10 +44,9 @@ Linux
 
     $ sudo apt-get install libhdf5-serial-dev libnetcdf-dev
 
-  Install the Python bindings::
+  Install Python packages globally because we don't include them for Linux::
 
-    $ pip install netCDF4
-    $ pip install h5py==2.5.0  # you can attempt to try a newer version, but this works for me on QGIS 2.14
+    $ sudo pip install -r requirements-dev.txt -U
 
   You might need to install the Qt4 PostgreSQL driver for loading sufhyd::
 
