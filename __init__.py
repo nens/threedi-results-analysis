@@ -101,16 +101,15 @@ except ImportError as e:
             sys.path.append(os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 'external', 'h5py-win64'))
-            try:
-                import h5py
-                log("Using h5py provided by plugin.")
-            except ImportError as e:
-                pop_up_info("Error loading h5py from "
-                            "'external' subdirectory. error %s" % e.message)
+            import h5py
+            log("Using h5py provided by plugin.")
         else:
-            log("Only 64-bit h5py available.")
+            pop_up_info('Error: could not find h5py installation. Change '
+                        'to the 64-bit version of QGIS or try to install the '
+                        'h5py python libary yourself.')
     else:
-        log("Can't import h5py")
+        pop_up_info('Error: could not find h5py installation. Please '
+                    'install the h5py package manually.')
 
 
 # noinspection PyPep8Naming
