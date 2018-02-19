@@ -53,7 +53,8 @@ class BaseDataSource(object):
     def node_mapping(self):
         pass
 
-    # TODO: not sure if needed, used in creating layer
+    # TODO: used in creating layer in NetcdfDataSource, but should be
+    # refactored out because the new DataSource uses hdf5
     @abstractmethod
     def id_mapping(self):
         pass
