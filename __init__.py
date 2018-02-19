@@ -92,6 +92,25 @@ if netCDF4 is not None:
                hdf5=netCDF4.__hdf5libversion__)
     log(msg)
 
+try:
+    import h5py
+    log("Using local h5py installation.")
+except ImportError as e:
+    if os.name == 'nt':
+        if sys.maxsize > 2**32:
+            sys.path.append(os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'external', 'h5py-win64'))
+            import h5py
+            log("Using h5py provided by plugin.")
+        else:
+            pop_up_info('Error: could not find h5py installation. Change '
+                        'to the 64-bit version of QGIS or try to install the '
+                        'h5py python libary yourself.')
+    else:
+        pop_up_info('Error: could not find h5py installation. Please '
+                    'install the h5py package manually.')
+
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
