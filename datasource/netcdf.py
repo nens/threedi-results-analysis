@@ -7,6 +7,7 @@ import os
 from netCDF4 import Dataset
 import numpy as np
 
+from .base import BaseDataSource
 from ..utils.user_messages import log
 from ..utils import cached_property
 
@@ -241,7 +242,7 @@ def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
     return nc_vars
 
 
-class NetcdfDataSource(object):
+class NetcdfDataSource(BaseDataSource):
     """This netCDF datasource combines three things:
 
     1. the regular 3Di result netcdf: subgrid_map.nc
