@@ -254,6 +254,16 @@ class TestDataSourceLayerManager(unittest.TestCase):
     def test_smoke(self):
         DataSourceLayerManager('a type', '/tmp/to/some/where')
 
+    def test_datasource_failure(self):
+        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
+        with self.assertRaises(KeyError):
+            dlm.datasource
+
+    def test_datasource_success(self):
+        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
+        setattr(dlm, '_datasource', 'FOO')
+        self.assertEqual(dlm.datasource, 'FOO')
+
 
 """
 
