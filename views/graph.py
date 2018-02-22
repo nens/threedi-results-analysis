@@ -106,7 +106,7 @@ pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
 # Layer providers that we can use for the graph
-VALID_PROVIDERS = ['spatialite', 'memory']
+VALID_PROVIDERS = ['spatialite', 'memory', 'ogr']
 
 
 try:
