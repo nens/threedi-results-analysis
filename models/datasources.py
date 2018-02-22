@@ -69,11 +69,7 @@ class DataSourceLayerManager(object):
         self.ds_type = ds_type
         self.file_path = file_path
 
-        self.datasource = self.get_datasource()
-
-        if self.ds_type == 'netcdf':
-            self.spatialite_cache_filepath = \
-                self.get_spatialite_cache_filepath()
+        self._datasource = None
 
         self._line_layer = None
         self._node_layer = None
@@ -84,12 +80,19 @@ class DataSourceLayerManager(object):
             'netcdf-groundwater': self.get_result_layers_groundwater,
         }
 
-    def get_datasource(self):
-        ds_class = self.type_ds_mapping[self.ds_type]
-        return ds_class(self.file_path)
+    @property
+    def datasource(self):
+        if self._datasource is None:
+            ds_class = self.type_ds_mapping[self.ds_type]
+            self._datasource = ds_class(self.file_path)
+        return self._datasource
 
-    def get_spatialite_cache_filepath(self):
-        return self.datasource.file_path[:-3] + '.sqlite1'
+    @property
+    def spatialite_cache_filepath(self):
+        if self.ds_type == 'netcdf':
+            return self.datasource.file_path[:-3] + '.sqlite1'
+        else:
+            raise ValueError("Only applicable for type 'netcdf'")
 
     def get_result_layers(self):
         f = self.type_ds_layer_func_mapping[self.ds_type]
