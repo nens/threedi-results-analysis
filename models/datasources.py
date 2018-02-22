@@ -56,6 +56,86 @@ class ValueWithChangeSignal(object):
             self.signal_setting_name, value)
 
 
+class DataSourceLayerManager(object):
+    """
+    Abstracts away datasource-layer specifics.
+    """
+    type_ds_mapping = {
+        'netcdf': NetcdfDataSource,
+        'netcdf-groundwater': NotImplemented,
+    }
+
+    def __init__(self, ds_type, file_path):
+        self.ds_type = ds_type
+        self.file_path = file_path
+
+        self.datasource = self.get_datasource()
+
+        if self.ds_type == 'netcdf':
+            self.spatialite_cache_filepath = \
+                self.get_spatialite_cache_filepath()
+
+        self._line_layer = None
+        self._node_layer = None
+        self._pumpline_layer = None
+
+        self.type_ds_layer_func_mapping = {
+            'netcdf': self.get_result_layers_regular,
+            'netcdf-groundwater': self.get_result_layers_groundwater,
+        }
+
+    def get_datasource(self):
+        ds_class = self.type_ds_mapping[self.ds_type]
+        return ds_class(self.file_path)
+
+    def get_spatialite_cache_filepath(self):
+        return self.datasource.file_path[:-3] + '.sqlite1'
+
+    def get_result_layers(self):
+        f = self.type_ds_layer_func_mapping[self.ds_type]
+        return f()
+
+    def get_result_layers_regular(self):
+        """Note: lines and nodes are always in the netCDF, pumps are not
+        always in the netCDF.
+        """
+
+        spl = Spatialite(self.spatialite_cache_filepath)
+
+        if self._line_layer is None:
+            if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
+                # todo check nr of attributes
+                self._line_layer = spl.get_layer(
+                    FLOWLINES_LAYER_NAME, None, 'the_geom')
+            else:
+                self._line_layer = make_flowline_layer(
+                    self.datasource(), spl)
+
+        if self._node_layer is None:
+            if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
+                self._node_layer = spl.get_layer(
+                    NODES_LAYER_NAME, None, 'the_geom')
+            else:
+                self._node_layer = make_node_layer(self.datasource(), spl)
+
+        if self._pumpline_layer is None:
+
+            if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
+                self._pumpline_layer = spl.get_layer(
+                    PUMPLINES_LAYER_NAME, None, 'the_geom')
+            else:
+                try:
+                    self._pumpline_layer = make_pumpline_layer(
+                        self.datasource(), spl)
+                except KeyError:
+                    log("No pumps in netCDF", level='WARNING')
+
+        return [self._line_layer, self._node_layer, self._pumpline_layer]
+
+    def get_result_layers_groundwater(self):
+        raise NotImplementedError
+
+
 class TimeseriesDatasourceModel(BaseModel):
 
     model_schematisation_change = pyqtSignal(str, str)
@@ -80,65 +160,20 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
-        _line_layer = None
-        _node_layer = None
-        _pumpline_layer = None
+        def datasource_layer_manager(self):
+            if not hasattr(self, '_datasource_layer_manager'):
+                self._datasource_layer_manager = DataSourceLayerManager(
+                    self.type.value, self.file_path.value)
+            return self._datasource_layer_manager
 
         def datasource(self):
-            if hasattr(self, '_datasource'):
-                return self._datasource
-            elif self.type.value == 'netcdf':
-                self._datasource = NetcdfDataSource(self.file_path.value)
-                return self._datasource
+            return self.datasource_layer_manager().datasource
 
         def spatialite_cache_filepath(self):
-            return self.datasource().file_path[:-3] + '.sqlite1'
+            return self.datasource_layer_manager().spatialite_cache_filepath
 
         def get_result_layers(self):
-            """Note: lines and nodes are always in the netCDF, pumps are not
-            always in the netCDF.
-
-            Args:
-                clone: always return a new layer (i.e., the 'cloning') instead
-                    of using the ones that belong to the
-                    TimeseriesDatasourceModel. This method does still utilize
-                    the caching mechanism of the Spatialite, but just creates
-                    a new layer everytime when possible. This also isn't a
-                    real copy, since layers are just views on the underlying
-                    data source.
-            """
-
-            spl = Spatialite(self.spatialite_cache_filepath())
-
-            if self._line_layer is None:
-                if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                    # todo check nr of attributes
-                    self._line_layer = spl.get_layer(
-                        FLOWLINES_LAYER_NAME, None, 'the_geom')
-                else:
-                    self._line_layer = make_flowline_layer(
-                        self.datasource(), spl)
-
-            if self._node_layer is None:
-                if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                    self._node_layer = spl.get_layer(
-                        NODES_LAYER_NAME, None, 'the_geom')
-                else:
-                    self._node_layer = make_node_layer(self.datasource(), spl)
-
-            if self._pumpline_layer is None:
-
-                if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                    self._pumpline_layer = spl.get_layer(
-                        PUMPLINES_LAYER_NAME, None, 'the_geom')
-                else:
-                    try:
-                        self._pumpline_layer = make_pumpline_layer(
-                            self.datasource(), spl)
-                    except KeyError:
-                        log("No pumps in netCDF", level='WARNING')
-
-            return [self._line_layer, self._node_layer, self._pumpline_layer]
+            return self.datasource_layer_manager().get_result_layers()
 
     def reset(self):
 
