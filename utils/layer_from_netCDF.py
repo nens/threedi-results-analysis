@@ -1,10 +1,13 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
+import os
+
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QGis
+from qgis.core import QgsVectorLayer
 
 from .user_messages import StatusProgressBar
 
@@ -12,6 +15,28 @@ from .user_messages import StatusProgressBar
 FLOWLINES_LAYER_NAME = 'flowlines'
 NODES_LAYER_NAME = 'nodes'
 PUMPLINES_LAYER_NAME = 'pumplines'
+
+
+def get_or_create_flowline_layer(ds, shp_path):
+    if not os.path.exists(shp_path):
+        ga = ds.gridadmin  # TODO: to implement
+        ga.lines.reproject_to('4326').to_shape(shp_path)
+    return QgsVectorLayer(shp_path, FLOWLINES_LAYER_NAME, 'ogr')
+
+
+def get_or_create_node_layer(ds, shp_path):
+    if not os.path.exists(shp_path):
+        ga = ds.gridadmin  # TODO: to implement
+        ga.nodes.reproject_to('4326').to_shape(shp_path)
+    return QgsVectorLayer(shp_path, NODES_LAYER_NAME, 'ogr')
+
+
+def get_or_create_pumpline_layer(ds, shp_path):
+    # TODO: pumps exporter not yet implemented
+    if not os.path.exists(shp_path):
+        ga = ds.gridadmin  # TODO: to implement
+        ga.pumps.reproject_to('4326').to_shape(shp_path)
+    return QgsVectorLayer(shp_path, PUMPLINES_LAYER_NAME, 'ogr')
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):

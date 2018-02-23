@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
 from PyQt4.QtCore import Qt, pyqtSignal
 
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
+    get_or_create_flowline_layer,
+    get_or_create_node_layer,
+    get_or_create_pumpline_layer,
     make_flowline_layer,
     make_node_layer,
     make_pumpline_layer,
@@ -82,6 +86,7 @@ class DataSourceLayerManager(object):
 
     @property
     def datasource(self):
+        """Returns a ``BaseDataSource`` or subclass instance."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
             self._datasource = ds_class(self.file_path)
@@ -93,6 +98,10 @@ class DataSourceLayerManager(object):
             return self.datasource.file_path[:-3] + '.sqlite1'
         else:
             raise ValueError("Only applicable for type 'netcdf'")
+
+    @property
+    def datasource_dir(self):
+        return os.path.dirname(self.datasource.file_path)
 
     def get_result_layers(self):
         f = self.type_ds_layer_func_mapping[self.ds_type]
@@ -136,7 +145,16 @@ class DataSourceLayerManager(object):
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
     def get_result_layers_groundwater(self):
-        raise NotImplementedError
+        lines_shp_path = os.path.join(self.datasource_dir, 'flowlines.shp')
+        nodes_shp_path = os.path.join(self.datasource_dir, 'nodes.shp')
+        pumps_shp_path = os.path.join(self.datasource_dir, 'pumplines.shp')
+        self._line_layer = self._line_layer or get_or_create_flowline_layer(
+            self.datasource, lines_shp_path)
+        self._node_layer = self._node_layer or get_or_create_node_layer(
+            self.datasource, nodes_shp_path)
+        self._pumpline_layer = self._pumpline_layer or \
+            get_or_create_pumpline_layer(self.datasource, pumps_shp_path)
+        return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
 class TimeseriesDatasourceModel(BaseModel):
