@@ -662,11 +662,22 @@ class GraphWidget(QWidget):
                 log("Guessing the object_name now because it's a v2 model",
                     level='WARNING')
                 try:
-                    object_name = feature[2]
+                    # this is extremely hardcoded, we're just guessing
+                    DISPLAY_NAME_DEFAULT_COLUMN = 2
+                    # This check is the least we can do to have some assurance
+                    # that this column is somewhat related to the display name
+                    if 'display_name' in feature.fields(
+                            )[DISPLAY_NAME_DEFAULT_COLUMN].name():
+                        object_name = feature[DISPLAY_NAME_DEFAULT_COLUMN]
+                    else:
+                        object_name = 'N/A'
                 except KeyError:
-                    log("It's probably a memory layer, but putting a dummy "
-                        "name just for safety.")
-                    object_name = 'dummy'
+                    log(
+                        "Layer has no 'display_name', it's probably a "
+                        "result layer, but putting a placeholder "
+                        "object name just for safety."
+                    )
+                    object_name = 'N/A'
 
             # check if object not already exist
             if (layer.name() + '_' + str(idx)) not in existing_items:
