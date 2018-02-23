@@ -107,6 +107,8 @@ pg.setConfigOption('foreground', 'k')
 
 # Layer providers that we can use for the graph
 VALID_PROVIDERS = ['spatialite', 'memory', 'ogr']
+# providers which don't have a primary key
+PROVIDERS_WITHOUT_PRIMARY_KEY = ['memory', 'ogr']
 
 
 try:
@@ -645,7 +647,11 @@ class GraphWidget(QWidget):
                           for item in self.model.rows]
         for feature in features:
             idx = feature.id()
-            if layer.dataProvider().description() == u'Memory provider':
+            if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
+                # We can't do ``feature.id()``, so we have to pick something
+                # that we have agreed on. For now we have hardcoded the 'id'
+                # field as the default, but that doesn't mean it's always
+                # the case in the future when more layers are added!
                 idx = feature['id']
 
             try:
