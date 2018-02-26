@@ -3,6 +3,7 @@
 import os
 from PyQt4.QtCore import Qt, pyqtSignal
 
+from ..datasource.base import DummyDataSource
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
@@ -66,7 +67,7 @@ class DataSourceLayerManager(object):
     """
     type_ds_mapping = {
         'netcdf': NetcdfDataSource,
-        'netcdf-groundwater': NotImplemented,
+        'netcdf-groundwater': DummyDataSource,
     }
 
     def __init__(self, ds_type, file_path):
@@ -80,34 +81,35 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            'netcdf': self.get_result_layers_regular,
-            'netcdf-groundwater': self.get_result_layers_groundwater,
+            'netcdf': self._get_result_layers_regular,
+            'netcdf-groundwater': self._get_result_layers_groundwater,
         }
 
     @property
     def datasource(self):
-        """Returns a ``BaseDataSource`` or subclass instance."""
+        """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
             self._datasource = ds_class(self.file_path)
         return self._datasource
 
     @property
-    def spatialite_cache_filepath(self):
-        if self.ds_type == 'netcdf':
-            return self.datasource.file_path[:-3] + '.sqlite1'
-        else:
-            raise ValueError("Only applicable for type 'netcdf'")
-
-    @property
     def datasource_dir(self):
         return os.path.dirname(self.datasource.file_path)
 
     def get_result_layers(self):
+        """Get QgsVectorLayers for line, node, and pumpline layers."""
         f = self.type_ds_layer_func_mapping[self.ds_type]
         return f()
 
-    def get_result_layers_regular(self):
+    @property
+    def spatialite_cache_filepath(self):
+        """Only valid for type 'netcdf'"""
+        if self.ds_type != 'netcdf':
+            raise ValueError("Only applicable for type 'netcdf'")
+        return self.datasource.file_path[:-3] + '.sqlite1'
+
+    def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not
         always in the netCDF.
         """
@@ -121,14 +123,14 @@ class DataSourceLayerManager(object):
                     FLOWLINES_LAYER_NAME, None, 'the_geom')
             else:
                 self._line_layer = make_flowline_layer(
-                    self.datasource(), spl)
+                    self.datasource, spl)
 
         if self._node_layer is None:
             if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                 self._node_layer = spl.get_layer(
                     NODES_LAYER_NAME, None, 'the_geom')
             else:
-                self._node_layer = make_node_layer(self.datasource(), spl)
+                self._node_layer = make_node_layer(self.datasource, spl)
 
         if self._pumpline_layer is None:
 
@@ -138,13 +140,13 @@ class DataSourceLayerManager(object):
             else:
                 try:
                     self._pumpline_layer = make_pumpline_layer(
-                        self.datasource(), spl)
+                        self.datasource, spl)
                 except KeyError:
                     log("No pumps in netCDF", level='WARNING')
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
-    def get_result_layers_groundwater(self):
+    def _get_result_layers_groundwater(self):
         lines_shp_path = os.path.join(self.datasource_dir, 'flowlines.shp')
         nodes_shp_path = os.path.join(self.datasource_dir, 'nodes.shp')
         pumps_shp_path = os.path.join(self.datasource_dir, 'pumplines.shp')
@@ -152,8 +154,15 @@ class DataSourceLayerManager(object):
             self.datasource, lines_shp_path)
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.datasource, nodes_shp_path)
-        self._pumpline_layer = self._pumpline_layer or \
-            get_or_create_pumpline_layer(self.datasource, pumps_shp_path)
+        try:
+            self._pumpline_layer = self._pumpline_layer or \
+                get_or_create_pumpline_layer(self.datasource, pumps_shp_path)
+        except Exception:
+            log(
+                "TODO: pumps not yet implemented in gridadmin, failing "
+                "silently to get things workin'."
+            )
+            self._pumpline_layer = None
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
