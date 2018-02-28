@@ -5,7 +5,7 @@ import json
 import os
 
 from netCDF4 import Dataset
-import numpy as nupy
+import numpy as np
 
 from ..utils.user_messages import log
 from ..utils import cached_property

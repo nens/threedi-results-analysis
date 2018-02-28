@@ -213,7 +213,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             }]
             self.ts_datasource.insertRows(items)
             settings.setValue('last_used_datasource_path',
-                                  os.path.dirname(filename))
+                              os.path.dirname(filename))
             return True
         return False
 
