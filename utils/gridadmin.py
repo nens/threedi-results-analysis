@@ -4,12 +4,12 @@ import os
 from osgeo import ogr
 from shapely.geometry import LineString  # TODO: should not be an dependency
 
-from gridadmin.constants import SHP_DRIVER_NAME
-from gridadmin.constants import GEO_PACKAGE_DRIVER_NAME
-from gridadmin.constants import TYPE_FUNC_MAP
-from gridadmin.constants import OGR_FIELD_TYPE_MAP
-from gridadmin.orm import BaseOgrExporter
-from gridadmin.utils import get_spatial_reference
+from threedi_gridadmin.constants import SHP_DRIVER_NAME
+from threedi_gridadmin.constants import GEO_PACKAGE_DRIVER_NAME
+from threedi_gridadmin.constants import TYPE_FUNC_MAP
+from threedi_gridadmin.constants import OGR_FIELD_TYPE_MAP
+from threedi_gridadmin.orm import BaseOgrExporter
+from threedi_gridadmin.utils import get_spatial_reference
 
 
 class QgisNodesOgrExporter(BaseOgrExporter):
