@@ -10,7 +10,7 @@ from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread
 from PyQt4.QtGui import QWidget, QFileDialog
 from PyQt4 import uic
 
-from ..datasource.netcdf import (find_id_mapping_file, layer_qh_type_mapping)
+from ..datasource.netcdf import (find_id_mapping_file, find_h5_file, layer_qh_type_mapping)
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
 
@@ -192,16 +192,19 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         if filename:
             # Little test for checking if there is an id mapping file available
-            # If not we're not going to proceed.
+            # If not we check if an .h5 file is available
+            # If not we're not going to proceed
             try:
                 find_id_mapping_file(filename)
             except IndexError:
-                pop_up_info("No id mapping file found, we tried the following "
-                            "locations: [., ../input_generated]. Please add "
-                            "this file to the correct location and try again.",
-                            title='Error')
-                return False
-
+                try:
+                    find_h5_file(filename)
+                except IndexError:
+                    pop_up_info("No id mapping or .h5 file found, we tried the following "
+                                "locations: [., ../input_generated]. Please add "
+                                "this file to the correct location and try again.",
+                                title='Error')
+                    return False
             # Add to the datasource
             items = [{
                 'type': 'netcdf',
@@ -210,10 +213,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             }]
             self.ts_datasource.insertRows(items)
             settings.setValue('last_used_datasource_path',
-                              os.path.dirname(filename))
-
+                                  os.path.dirname(filename))
             return True
-
         return False
 
     def remove_selected_ts_ds(self):

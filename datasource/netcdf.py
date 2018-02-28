@@ -5,7 +5,7 @@ import json
 import os
 
 from netCDF4 import Dataset
-import numpy as np
+import numpy as nupy
 
 from ..utils.user_messages import log
 from ..utils import cached_property
@@ -151,6 +151,37 @@ def find_id_mapping_file(netcdf_file_path):
         IndexError if nothing is found
     """
     pattern = 'id_mapping*'
+    inpdir = os.path.join(os.path.dirname(netcdf_file_path),
+                          '..', 'input_generated')
+    resultdir = os.path.dirname(netcdf_file_path)
+
+    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
+    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
+
+    inpfiles = from_resultdir + from_inpdir
+    return inpfiles[0]
+
+def find_h5_file(netcdf_file_path):
+    """An ad-hoc way to get the h5_file.
+
+    We assume the h5_file file is in on of the following locations (note:
+    this order is also the searching order):
+
+    1) . (in the same dir as the netcdf)
+    2) ../input_generated
+
+    relative to the netcdf file and that it starts with 'h5_file'.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        h5_file path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = '*.h5'
     inpdir = os.path.join(os.path.dirname(netcdf_file_path),
                           '..', 'input_generated')
     resultdir = os.path.dirname(netcdf_file_path)
