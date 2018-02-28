@@ -1,6 +1,7 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
 import os
 
+from osgeo import ogr
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
@@ -20,14 +21,22 @@ PUMPLINES_LAYER_NAME = 'pumplines'
 def get_or_create_flowline_layer(ds, shp_path):
     if not os.path.exists(shp_path):
         ga = ds.gridadmin  # TODO: to implement
-        ga.lines.reproject_to('4326').to_shape(shp_path)
+        reprojected = ga.lines.reproject_to('4326')
+        from .gridadmin import QgisLinesOgrExporter
+        exporter = QgisLinesOgrExporter(reprojected)
+        exporter.driver = ogr.GetDriverByName('ESRI Shapefile')
+        exporter.save(shp_path, reprojected.data, '4326')
     return QgsVectorLayer(shp_path, FLOWLINES_LAYER_NAME, 'ogr')
 
 
 def get_or_create_node_layer(ds, shp_path):
     if not os.path.exists(shp_path):
         ga = ds.gridadmin  # TODO: to implement
-        ga.nodes.reproject_to('4326').to_shape(shp_path)
+        reprojected = ga.nodes.reproject_to('4326')
+        from .gridadmin import QgisNodesOgrExporter
+        exporter = QgisNodesOgrExporter(reprojected)
+        exporter.driver = ogr.GetDriverByName('ESRI Shapefile')
+        exporter.save(shp_path, reprojected.data, '4326')
     return QgsVectorLayer(shp_path, NODES_LAYER_NAME, 'ogr')
 
 
