@@ -56,7 +56,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         self.supported_drivers = {
             GEO_PACKAGE_DRIVER_NAME,
             SHP_DRIVER_NAME,
-            SPATIALITE_DRIVER_NAME,
         }
 
     def save(self, file_name, node_data, target_epsg_code, **kwargs):
@@ -67,20 +66,17 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         :param node_data: dict of node data
         """
         assert self.driver is not None
-        geomtype = 0
         sr = get_spatial_reference(target_epsg_code)
         self.del_datasource(file_name)
-        # TODO: Add ["SPATIALITE=YES"]?
-        data_source = self.driver.CreateDataSource(file_name)
+        data_source = self.driver.CreateDataSource(
+            file_name, ["SPATIALITE=YES"])
         layer = data_source.CreateLayer(
-            str(os.path.basename(file_name)),
+            str(os.path.splitext(os.path.basename(file_name))[0]),
             sr,
-            geomtype
+            geom_type=ogr.wkbPoint25D,
+            options=['FORMAT=SPATIALITE']
         )
         fields = self.QGIS_NODE_FIELDS
-        # if self._nodes.has_1d:
-        #     fields.update(QGIS_NODE_1D_FIELDS)
-
         for field_name, field_type in fields.iteritems():
             layer.CreateField(ogr.FieldDefn(
                     str(field_name), OGR_FIELD_TYPE_MAP[field_type])
@@ -110,7 +106,15 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     raw_value = node_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
+                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
+                # thus FID defaults to 'OGC_FID', which sucks.
+                # See: http://www.gdal.org/drv_sqlite.html
+                # To circumvent this, we set 'OGC_FID' to 'id', so we can do
+                # feature.id() in QGIS and get the node index without having
+                # to specify that we need the use the 'id' column
+                feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
+            feature.Destroy()
 
 
 class QgisKCUDescriptor(KCUDescriptor):
@@ -219,7 +223,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         assert self.driver is not None
 
         kcu_dict = QgisKCUDescriptor()
-        geomtype = 0
         sr = get_spatial_reference(target_epsg_code)
 
         geom_source = 'from_threedicore'
@@ -227,16 +230,15 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             geom_source = kwargs['geom']
 
         self.del_datasource(file_name)
-        # TODO: Add ["SPATIALITE=YES"]?
-        data_source = self.driver.CreateDataSource(file_name)
+        data_source = self.driver.CreateDataSource(
+            file_name, ["SPATIALITE=YES"])
         layer = data_source.CreateLayer(
-            str(os.path.basename(file_name)),
+            str(os.path.splitext(os.path.basename(file_name))[0]),
             sr,
-            geomtype
+            geom_type=ogr.wkbLineString25D,
+            options=['FORMAT=SPATIALITE'],
         )
         fields = self.LINE_FIELDS
-        # if self._lines.has_1d:
-        #     fields.update(LINE_1D_FIELDS)
         for field_name, field_type in fields.iteritems():
             layer.CreateField(ogr.FieldDefn(
                     str(field_name), OGR_FIELD_TYPE_MAP[field_type])
@@ -283,6 +285,13 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     raw_value = line_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
+                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
+                # thus FID defaults to 'OGC_FID', which sucks.
+                # See: http://www.gdal.org/drv_sqlite.html
+                # To circumvent this, we set 'OGC_FID' to our 'id', so we
+                # can do feature.id() in QGIS and get the line index without
+                # having to specify the 'id' column.
+                feature.SetFID(line_data['id'][i])
 
             layer.CreateFeature(feature)
             feature.Destroy()

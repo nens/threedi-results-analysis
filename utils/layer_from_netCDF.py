@@ -9,6 +9,7 @@ from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QGis
 from qgis.core import QgsVectorLayer
+from qgis.core import QgsDataSourceURI
 
 from .user_messages import StatusProgressBar
 from ..datasource.spatialite import disable_sqlite_synchronous
@@ -28,7 +29,10 @@ def get_or_create_flowline_layer(ds, output_path):
         exporter = QgisLinesOgrExporter(reprojected)
         exporter.driver = ogr.GetDriverByName('SQLite')
         exporter.save(output_path, reprojected.data, '4326')
-    return QgsVectorLayer(output_path, FLOWLINES_LAYER_NAME, 'ogr')
+    uri = QgsDataSourceURI()
+    uri.setDatabase(output_path)
+    uri.setDataSource('', FLOWLINES_LAYER_NAME, 'geometry')
+    return QgsVectorLayer(uri.uri(), FLOWLINES_LAYER_NAME, 'spatialite')
 
 
 @disable_sqlite_synchronous
@@ -40,7 +44,10 @@ def get_or_create_node_layer(ds, output_path):
         exporter = QgisNodesOgrExporter(reprojected)
         exporter.driver = ogr.GetDriverByName('SQLite')
         exporter.save(output_path, reprojected.data, '4326')
-    return QgsVectorLayer(output_path, NODES_LAYER_NAME, 'ogr')
+    uri = QgsDataSourceURI()
+    uri.setDatabase(output_path)
+    uri.setDataSource('', NODES_LAYER_NAME, 'geometry')
+    return QgsVectorLayer(uri.uri(), NODES_LAYER_NAME, 'spatialite')
 
 
 @disable_sqlite_synchronous
@@ -49,7 +56,7 @@ def get_or_create_pumpline_layer(ds, output_path):
     if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
         ga.pumps.reproject_to('4326').to_shape(output_path)
-    return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'ogr')
+    return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'spatialite')
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):
