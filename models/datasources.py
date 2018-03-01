@@ -81,7 +81,7 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            'netcdf': self._get_result_layers_regular,
+            'netcdf': self._get_result_layers_groundwater,
             'netcdf-groundwater': self._get_result_layers_groundwater,
         }
 
@@ -147,16 +147,16 @@ class DataSourceLayerManager(object):
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
     def _get_result_layers_groundwater(self):
-        lines_shp_path = os.path.join(self.datasource_dir, 'flowlines.shp')
-        nodes_shp_path = os.path.join(self.datasource_dir, 'nodes.shp')
-        pumps_shp_path = os.path.join(self.datasource_dir, 'pumplines.shp')
+        lines_path = os.path.join(self.datasource_dir, 'flowlines.sqlite')
+        nodes_path = os.path.join(self.datasource_dir, 'nodes.sqlite')
+        pumps_path = os.path.join(self.datasource_dir, 'pumplines.sqlite')
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, lines_shp_path)
+            self.datasource, lines_path)
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, nodes_shp_path)
+            self.datasource, nodes_path)
         try:
             self._pumpline_layer = self._pumpline_layer or \
-                get_or_create_pumpline_layer(self.datasource, pumps_shp_path)
+                get_or_create_pumpline_layer(self.datasource, pumps_path)
         except Exception:
             log(
                 "TODO: pumps not yet implemented in gridadmin, failing "

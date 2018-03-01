@@ -11,6 +11,7 @@ from qgis.core import QGis
 from qgis.core import QgsVectorLayer
 
 from .user_messages import StatusProgressBar
+from ..datasource.spatialite import disable_sqlite_synchronous
 
 # Hardcoded default names
 FLOWLINES_LAYER_NAME = 'flowlines'
@@ -18,34 +19,37 @@ NODES_LAYER_NAME = 'nodes'
 PUMPLINES_LAYER_NAME = 'pumplines'
 
 
-def get_or_create_flowline_layer(ds, shp_path):
-    if not os.path.exists(shp_path):
+@disable_sqlite_synchronous
+def get_or_create_flowline_layer(ds, output_path):
+    if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
         reprojected = ga.lines.reproject_to('4326')
         from .gridadmin import QgisLinesOgrExporter
         exporter = QgisLinesOgrExporter(reprojected)
-        exporter.driver = ogr.GetDriverByName('ESRI Shapefile')
-        exporter.save(shp_path, reprojected.data, '4326')
-    return QgsVectorLayer(shp_path, FLOWLINES_LAYER_NAME, 'ogr')
+        exporter.driver = ogr.GetDriverByName('SQLite')
+        exporter.save(output_path, reprojected.data, '4326')
+    return QgsVectorLayer(output_path, FLOWLINES_LAYER_NAME, 'ogr')
 
 
-def get_or_create_node_layer(ds, shp_path):
-    if not os.path.exists(shp_path):
+@disable_sqlite_synchronous
+def get_or_create_node_layer(ds, output_path):
+    if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
         reprojected = ga.nodes.reproject_to('4326')
         from .gridadmin import QgisNodesOgrExporter
         exporter = QgisNodesOgrExporter(reprojected)
-        exporter.driver = ogr.GetDriverByName('ESRI Shapefile')
-        exporter.save(shp_path, reprojected.data, '4326')
-    return QgsVectorLayer(shp_path, NODES_LAYER_NAME, 'ogr')
+        exporter.driver = ogr.GetDriverByName('SQLite')
+        exporter.save(output_path, reprojected.data, '4326')
+    return QgsVectorLayer(output_path, NODES_LAYER_NAME, 'ogr')
 
 
-def get_or_create_pumpline_layer(ds, shp_path):
+@disable_sqlite_synchronous
+def get_or_create_pumpline_layer(ds, output_path):
     # TODO: pumps exporter not yet implemented
-    if not os.path.exists(shp_path):
+    if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
-        ga.pumps.reproject_to('4326').to_shape(shp_path)
-    return QgsVectorLayer(shp_path, PUMPLINES_LAYER_NAME, 'ogr')
+        ga.pumps.reproject_to('4326').to_shape(output_path)
+    return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'ogr')
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):

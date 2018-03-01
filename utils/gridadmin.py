@@ -10,6 +10,9 @@ from threedi_gridadmin.constants import TYPE_FUNC_MAP
 from threedi_gridadmin.constants import OGR_FIELD_TYPE_MAP
 from threedi_gridadmin.orm import BaseOgrExporter
 from threedi_gridadmin.utils import get_spatial_reference
+from threedi_gridadmin.utils import KCUDescriptor
+
+SPATIALITE_DRIVER_NAME = 'SQLite'
 
 
 class QgisNodesOgrExporter(BaseOgrExporter):
@@ -21,17 +24,17 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     QGIS_NODE_FIELDS = OrderedDict([
         ('id', 'int'),
         ('inp_id', 'int'),
-        ('splt_id', 'int'),
+        ('spatialite_id', 'int'),
         # TODO: feat_type is not yet implemented
-        ('feat_type', 'str'),  # e.g. v2_connection_nodes
+        ('feature_type', 'str'),  # e.g. v2_connection_nodes
         ('type', 'str'),  # 1d, 2d, etc.
     ])
 
     QGIS_NODE_FIELD_NAME_MAP = OrderedDict([
         ('id', 'id'),
         ('inp_id', 'seq_id'),
-        ('splt_id', 'content_pk'),
-        ('feat_type', 'node_type'),
+        ('spatialite_id', 'content_pk'),
+        ('feature_type', 'node_type'),
         ('type', 'node_type'),
     ])
 
@@ -53,6 +56,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         self.supported_drivers = {
             GEO_PACKAGE_DRIVER_NAME,
             SHP_DRIVER_NAME,
+            SPATIALITE_DRIVER_NAME,
         }
 
     def save(self, file_name, node_data, target_epsg_code, **kwargs):
@@ -108,7 +112,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             layer.CreateFeature(feature)
 
 
-class QgisKCUDescriptor(dict):
+class QgisKCUDescriptor(KCUDescriptor):
     def __init__(self, *args, **kwargs):
         super(QgisKCUDescriptor, self).__init__(*args, **kwargs)
 
@@ -172,10 +176,10 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         ('kcu', 'int'),  # unused in plugin
         # type is a combination of 'kcu' and 'cont_type'
         ('type', 'str'),
-        ('node_a', 'int'),
-        ('node_b', 'int'),
-        ('cont_type', 'str'),  # unused in plugin
-        ('splt_id', 'int'),
+        ('start_node_idx', 'int'),
+        ('end_node_idx', 'int'),
+        ('content_type', 'str'),  # unused in plugin
+        ('spatialite_id', 'int'),
         ('inp_id', 'int'),
     ])
 
@@ -184,12 +188,12 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     LINE_FIELD_NAME_MAP = OrderedDict([
         ('id', 'id'),
         ('kcu', 'kcu'),
-        ('type', 'type'),  # kcu_descr, also special case / nonexistent
-        ('node_a', 'node_a'),  # special case, doesn't really exist
-        ('node_b', 'node_b'),  # special case, doesn't really exist
+        ('type', 'does not matter'),
+        ('start_node_idx', 'does not matter'),
+        ('end_node_idx', 'does not matter'),
         ('inp_id', 'lik'),
-        ('cont_type', 'content_type'),
-        ('splt_id', 'content_pk'),
+        ('content_type', 'content_type'),
+        ('spatialite_id', 'content_pk'),
     ])
 
     def __init__(self, lines):
@@ -200,6 +204,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         self.supported_drivers = {
             GEO_PACKAGE_DRIVER_NAME,
             SHP_DRIVER_NAME,
+            SPATIALITE_DRIVER_NAME,
         }
         self.driver = None
 
@@ -268,9 +273,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                             value = str(kcu_dict[int(line_data['kcu'][i])])
                         except KeyError:
                             pass
-                elif field_name == 'node_a':
+                elif field_name == 'start_node_idx':
                     value = TYPE_FUNC_MAP[field_type](node_a[i])
-                elif field_name == 'node_b':
+                elif field_name == 'end_node_idx':
                     value = TYPE_FUNC_MAP[field_type](node_b[i])
                 else:
                     raw_value = line_data[fname][i]
