@@ -81,7 +81,7 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            'netcdf': self._get_result_layers_groundwater,
+            'netcdf': self._get_result_layers_regular,
             'netcdf-groundwater': self._get_result_layers_groundwater,
         }
 
