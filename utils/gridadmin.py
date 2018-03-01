@@ -70,6 +70,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         geomtype = 0
         sr = get_spatial_reference(target_epsg_code)
         self.del_datasource(file_name)
+        # TODO: Add ["SPATIALITE=YES"]?
         data_source = self.driver.CreateDataSource(file_name)
         layer = data_source.CreateLayer(
             str(os.path.basename(file_name)),
@@ -226,6 +227,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             geom_source = kwargs['geom']
 
         self.del_datasource(file_name)
+        # TODO: Add ["SPATIALITE=YES"]?
         data_source = self.driver.CreateDataSource(file_name)
         layer = data_source.CreateLayer(
             str(os.path.basename(file_name)),
