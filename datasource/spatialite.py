@@ -17,7 +17,7 @@ from osgeo import gdal
 
 from ..utils.user_messages import log
 
-ogr.UseExceptions()  # better exceptions
+ogr.UseExceptions()  # fail fast
 
 
 def disable_sqlite_synchronous(func):
