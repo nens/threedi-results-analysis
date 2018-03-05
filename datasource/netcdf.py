@@ -170,7 +170,7 @@ def find_h5_file(netcdf_file_path):
     1) . (in the same dir as the netcdf)
     2) ../preprocessed
 
-    relative to the netcdf file and that it starts with 'h5_file'.
+    relative to the netcdf file and has extension '.h5'
 
     Args:
         netcdf_file_path: path to the result netcdf
