@@ -11,6 +11,8 @@ from threedi_gridadmin.orm import BaseOgrExporter
 from threedi_gridadmin.utils import get_spatial_reference
 from threedi_gridadmin.utils import KCUDescriptor
 
+ogr.UseExceptions()  # better exceptions
+
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
 
