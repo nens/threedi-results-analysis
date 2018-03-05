@@ -183,7 +183,7 @@ def find_h5_file(netcdf_file_path):
     """
     pattern = '*.h5'
     inpdir = os.path.join(os.path.dirname(netcdf_file_path),
-                          '..', 'input_generated')
+                          '..', 'preprocessed')
     resultdir = os.path.dirname(netcdf_file_path)
 
     from_inpdir = glob.glob(os.path.join(inpdir, pattern))

@@ -201,7 +201,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     find_h5_file(filename)
                 except IndexError:
                     pop_up_info("No id mapping or .h5 file found, we tried the following "
-                                "locations: [., ../input_generated]. Please add "
+                                "locations: id_mapping in [., ../input_generated] and"
+                                "h5_file in [., ../preprocessed]. Please add "
                                 "this file to the correct location and try again.",
                                 title='Error')
                     return False
