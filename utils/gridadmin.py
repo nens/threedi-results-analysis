@@ -2,7 +2,6 @@ from collections import OrderedDict
 import os
 
 from osgeo import ogr
-from shapely.geometry import LineString  # TODO: should not be an dependency
 
 from threedi_gridadmin.constants import SHP_DRIVER_NAME
 from threedi_gridadmin.constants import GEO_PACKAGE_DRIVER_NAME
@@ -73,7 +72,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         layer = data_source.CreateLayer(
             str(os.path.splitext(os.path.basename(file_name))[0]),
             sr,
-            geom_type=ogr.wkbPoint25D,
+            geom_type=ogr.wkbPoint,
             options=['FORMAT=SPATIALITE']
         )
         fields = self.QGIS_NODE_FIELDS
@@ -85,7 +84,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         for i in xrange(node_data['id'].size):
             point = ogr.Geometry(ogr.wkbPoint)
-            point.AddPoint(
+            point.AddPoint_2D(
                 node_data['coordinates'][0][i],
                 node_data['coordinates'][1][i]
             )
@@ -225,17 +224,13 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         kcu_dict = QgisKCUDescriptor()
         sr = get_spatial_reference(target_epsg_code)
 
-        geom_source = 'from_threedicore'
-        if kwargs:
-            geom_source = kwargs['geom']
-
         self.del_datasource(file_name)
         data_source = self.driver.CreateDataSource(
             file_name, ["SPATIALITE=YES"])
         layer = data_source.CreateLayer(
             str(os.path.splitext(os.path.basename(file_name))[0]),
             sr,
-            geom_type=ogr.wkbLineString25D,
+            geom_type=ogr.wkbLineString,
             options=['FORMAT=SPATIALITE'],
         )
         fields = self.LINE_FIELDS
@@ -248,16 +243,11 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         node_a = line_data['line'][0]
         node_b = line_data['line'][1]
         for i in xrange(node_a.size):
-            if geom_source == 'from_threedicore':
-                line = ogr.Geometry(ogr.wkbLineString)
-                line.AddPoint(line_data['line_coords'][0][i],
-                              line_data['line_coords'][1][i])
-                line.AddPoint(line_data['line_coords'][2][i],
-                              line_data['line_coords'][3][i])
-            elif geom_source == 'from_spatialite':
-                linepoints = line_data['line_geometries'][i].reshape(2, -1).T
-                line_geom = LineString(linepoints)
-                line = ogr.CreateGeometryFromWkt(line_geom.wkt)
+            line = ogr.Geometry(ogr.wkbLineString)
+            line.AddPoint_2D(line_data['line_coords'][0][i],
+                             line_data['line_coords'][1][i])
+            line.AddPoint_2d(line_data['line_coords'][2][i],
+                             line_data['line_coords'][3][i])
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
