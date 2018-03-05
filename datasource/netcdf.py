@@ -168,7 +168,7 @@ def find_h5_file(netcdf_file_path):
     this order is also the searching order):
 
     1) . (in the same dir as the netcdf)
-    2) ../input_generated
+    2) ../preprocessed
 
     relative to the netcdf file and that it starts with 'h5_file'.
 
