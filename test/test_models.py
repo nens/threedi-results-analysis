@@ -2,7 +2,10 @@ import unittest
 from PyQt4.QtCore import Qt
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.models.datasources import (
+    TimeseriesDatasourceModel,
+    DataSourceLayerManager,
+)
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 from ThreeDiToolbox.test.test_datasources import (
     netcdf_datasource_path,
@@ -222,12 +225,12 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
             itemvalue = getattr(item, k).value
             self.assertEqual(itemvalue, v)
 
-    def test_datasource_smoke(self):
-        """Smoke test the ``datasource()`` method."""
+    def test_datasource_layer_manager_smoke(self):
+        """Smoke test the ``datasource_layer_manager()`` method."""
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**self.test_values)
-        setattr(item, '_datasource', 'yo')
-        self.assertEqual(item.datasource(), 'yo')
+        setattr(item, '_datasource_layer_manager', 'yo')
+        self.assertEqual(item.datasource_layer_manager(), 'yo')
 
     @unittest.skipIf(not result_data_is_available(),
                      "Result data doesn't exist or is incomplete.")
@@ -245,6 +248,21 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, NetcdfDataSource))
         self.assertTrue(ncds.ds)
+
+
+class TestDataSourceLayerManager(unittest.TestCase):
+    def test_smoke(self):
+        DataSourceLayerManager('a type', '/tmp/to/some/where')
+
+    def test_datasource_failure(self):
+        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
+        with self.assertRaises(KeyError):
+            dlm.datasource
+
+    def test_datasource_success(self):
+        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
+        setattr(dlm, '_datasource', 'FOO')
+        self.assertEqual(dlm.datasource, 'FOO')
 
 
 """

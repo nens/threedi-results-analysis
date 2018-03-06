@@ -6,17 +6,37 @@ database or table name could not be specified. Changed to classes of the
 db_manager plugin (is a standard plugin of QGIS, provided with each
 installation)
 """
-
+from functools import wraps
+import os
 
 from qgis.core import QGis, QgsDataSourceURI, QgsVectorLayer
 from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
 from PyQt4.QtCore import QVariant
-import os
-import ogr
-import gdal
+from osgeo import ogr
+from osgeo import gdal
+
 from ..utils.user_messages import log
 
-ogr.UseExceptions()  # better exceptions
+ogr.UseExceptions()  # fail fast
+
+
+def disable_sqlite_synchronous(func):
+    """
+    Decorator for temporarily disabling the 'OGR_SQLITE_SYNCHRONOUS' global
+    option. Without doing this creating a spatialite file fails (doesn't
+    complete or incredibly slow) under Ubuntu 14.04.
+
+    Note: shouldn't be needed anymore in newer versions of GDAL.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
+        retval = func(*args, **kwargs)
+        if int(gdal.VersionInfo()) < 2000000:
+            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
+        return retval
+    return wrapper
 
 
 class Spatialite(SpatiaLiteDBConnector):
@@ -42,17 +62,10 @@ class Spatialite(SpatiaLiteDBConnector):
 
         return uri
 
+    @disable_sqlite_synchronous
     def _create_empty_database(self):
         drv = ogr.GetDriverByName('SQLite')
-
-        if int(gdal.VersionInfo()) < 2000000:
-            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
-
         db = drv.CreateDataSource(self.path, ["SPATIALITE=YES"])
-
-        if int(gdal.VersionInfo()) < 2000000:
-            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
-
         return db
 
     def get_layer(self, table_name, display_name=None, geom_field='the_geom'):

@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Add layer generation for ``netcdf-groundwater`` results.
+
+- Add ``BaseDataSource`` abstract interface.
+
 - Add h5py 2.7.0 to ``external`` libs for Windows. The files were acquired
   by installing h5py using OSGeo4W on Windows 7, and copying the installed
   files to the ``external`` folder.
