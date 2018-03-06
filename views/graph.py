@@ -106,7 +106,9 @@ pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
 # Layer providers that we can use for the graph
-VALID_PROVIDERS = ['spatialite', 'memory']
+VALID_PROVIDERS = ['spatialite', 'memory', 'ogr']
+# providers which don't have a primary key
+PROVIDERS_WITHOUT_PRIMARY_KEY = ['memory', 'ogr']
 
 
 try:
@@ -645,7 +647,11 @@ class GraphWidget(QWidget):
                           for item in self.model.rows]
         for feature in features:
             idx = feature.id()
-            if layer.dataProvider().description() == u'Memory provider':
+            if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
+                # We can't do ``feature.id()``, so we have to pick something
+                # that we have agreed on. For now we have hardcoded the 'id'
+                # field as the default, but that doesn't mean it's always
+                # the case in the future when more layers are added!
                 idx = feature['id']
 
             try:
@@ -656,11 +662,22 @@ class GraphWidget(QWidget):
                 log("Guessing the object_name now because it's a v2 model",
                     level='WARNING')
                 try:
-                    object_name = feature[2]
+                    # this is extremely hardcoded, we're just guessing
+                    DISPLAY_NAME_DEFAULT_COLUMN = 2
+                    # This check is the least we can do to have some assurance
+                    # that this column is somewhat related to the display name
+                    if 'display_name' in feature.fields(
+                            )[DISPLAY_NAME_DEFAULT_COLUMN].name():
+                        object_name = feature[DISPLAY_NAME_DEFAULT_COLUMN]
+                    else:
+                        object_name = 'N/A'
                 except KeyError:
-                    log("It's probably a memory layer, but putting a dummy "
-                        "name just for safety.")
-                    object_name = 'dummy'
+                    log(
+                        "Layer has no 'display_name', it's probably a "
+                        "result layer, but putting a placeholder "
+                        "object name just for safety."
+                    )
+                    object_name = 'N/A'
 
             # check if object not already exist
             if (layer.name() + '_' + str(idx)) not in existing_items:
