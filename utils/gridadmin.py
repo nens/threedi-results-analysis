@@ -3,13 +3,11 @@ import os
 
 from osgeo import ogr
 
-from threedi_gridadmin.constants import SHP_DRIVER_NAME
-from threedi_gridadmin.constants import GEO_PACKAGE_DRIVER_NAME
-from threedi_gridadmin.constants import TYPE_FUNC_MAP
-from threedi_gridadmin.constants import OGR_FIELD_TYPE_MAP
-from threedi_gridadmin.orm import BaseOgrExporter
-from threedi_gridadmin.utils import get_spatial_reference
-from threedi_gridadmin.utils import KCUDescriptor
+from threedigrid.admin.constants import TYPE_FUNC_MAP
+from threedigrid.admin.constants import OGR_FIELD_TYPE_MAP
+from threedigrid.orm.base.exporters import BaseOgrExporter
+from threedigrid.admin.utils import get_spatial_reference
+from threedigrid.admin.utils import KCUDescriptor
 
 ogr.UseExceptions()  # fail fast
 
@@ -55,8 +53,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         """
         self._nodes = nodes
         self.supported_drivers = {
-            GEO_PACKAGE_DRIVER_NAME,
-            SHP_DRIVER_NAME,
+            SPATIALITE_DRIVER_NAME,
         }
 
     def save(self, file_name, node_data, target_epsg_code, **kwargs):
@@ -208,8 +205,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         """
         self._lines = lines
         self.supported_drivers = {
-            GEO_PACKAGE_DRIVER_NAME,
-            SHP_DRIVER_NAME,
             SPATIALITE_DRIVER_NAME,
         }
         self.driver = None
@@ -248,7 +243,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
                              line_data['line_coords'][1][i])
-            line.AddPoint_2d(line_data['line_coords'][2][i],
+            line.AddPoint_2D(line_data['line_coords'][2][i],
                              line_data['line_coords'][3][i])
 
             feature = ogr.Feature(_definition)
