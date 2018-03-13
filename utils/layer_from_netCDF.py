@@ -24,11 +24,10 @@ PUMPLINES_LAYER_NAME = 'pumplines'
 def get_or_create_flowline_layer(ds, output_path):
     if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
-        reprojected = ga.lines.reproject_to('4326')
         from .gridadmin import QgisLinesOgrExporter
-        exporter = QgisLinesOgrExporter(reprojected)
+        exporter = QgisLinesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, reprojected.data, '4326')
+        exporter.save(output_path, ga.lines.data, '4326')
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', FLOWLINES_LAYER_NAME, 'geometry')
@@ -39,11 +38,10 @@ def get_or_create_flowline_layer(ds, output_path):
 def get_or_create_node_layer(ds, output_path):
     if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
-        reprojected = ga.nodes.reproject_to('4326')
         from .gridadmin import QgisNodesOgrExporter
-        exporter = QgisNodesOgrExporter(reprojected)
+        exporter = QgisNodesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, reprojected.data, '4326')
+        exporter.save(output_path, ga.nodes.data, '4326')
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', NODES_LAYER_NAME, 'geometry')
