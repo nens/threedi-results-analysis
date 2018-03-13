@@ -19,6 +19,8 @@ FLOWLINES_LAYER_NAME = 'flowlines'
 NODES_LAYER_NAME = 'nodes'
 PUMPLINES_LAYER_NAME = 'pumplines'
 
+IGNORE_FIRST = slice(1, None, None)
+
 
 @disable_sqlite_synchronous
 def get_or_create_flowline_layer(ds, output_path):
@@ -27,7 +29,8 @@ def get_or_create_flowline_layer(ds, output_path):
         from .gridadmin import QgisLinesOgrExporter
         exporter = QgisLinesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, ga.lines.data, '4326')
+        data = ga.lines.slice(IGNORE_FIRST).data
+        exporter.save(output_path, data, data.epsg_code)
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', FLOWLINES_LAYER_NAME, 'geometry')
@@ -41,7 +44,8 @@ def get_or_create_node_layer(ds, output_path):
         from .gridadmin import QgisNodesOgrExporter
         exporter = QgisNodesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, ga.nodes.data, '4326')
+        data = ga.nodes.slice(IGNORE_FIRST).data
+        exporter.save(output_path, data, data.epsg_code)
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', NODES_LAYER_NAME, 'geometry')
