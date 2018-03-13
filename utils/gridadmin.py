@@ -13,6 +13,8 @@ ogr.UseExceptions()  # fail fast
 
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
+from ..utils.user_messages import log
+
 
 class QgisNodesOgrExporter(BaseOgrExporter):
     """
@@ -279,6 +281,87 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 # can do feature.id() in QGIS and get the line index without
                 # having to specify the 'id' column.
                 feature.SetFID(line_data['id'][i])
+
+            layer.CreateFeature(feature)
+            feature.Destroy()
+
+
+class QgisPumpsOgrExporter(BaseOgrExporter):
+    """
+    Exports to ogr formats. You need to set the driver explicitly
+    before calling save()
+    """
+    FIELDS = OrderedDict([
+        ('id', 'int'),
+        ('node_idx1', 'int'),
+        ('node_idx2', 'int'),
+    ])
+
+    FIELD_NAME_MAP = OrderedDict([
+        ('id', 'id'),
+        ('node_idx1', 'node1_id'),
+        ('node_idx2', 'node2_id'),
+    ])
+
+    def __init__(self, node_data):
+        self.node_data = node_data
+        self.driver = None
+
+    def save(self, file_name, pump_data, target_epsg_code, **kwargs):
+        """
+        save to file format specified by the driver, e.g. shapefile
+
+        :param file_name: name of the outputfile
+        :param line_data: dict of line data
+        """
+        assert self.driver is not None
+
+        sr = get_spatial_reference(target_epsg_code)
+
+        self.del_datasource(file_name)
+        data_source = self.driver.CreateDataSource(
+            file_name, ["SPATIALITE=YES"])
+        layer = data_source.CreateLayer(
+            str(os.path.splitext(os.path.basename(file_name))[0]),
+            sr,
+            geom_type=ogr.wkbLineString,
+            options=['FORMAT=SPATIALITE'],
+        )
+
+        for field_name, field_type in self.FIELDS.iteritems():
+            layer.CreateField(ogr.FieldDefn(
+                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
+            )
+        _definition = layer.GetLayerDefn()
+
+        for i in xrange(pump_data['id'].size):
+            line = ogr.Geometry(ogr.wkbLineString)
+            node1_id = pump_data['node1_id'][i]
+            node2_id = pump_data['node2_id'][i]
+
+            for node_id in [node1_id, node2_id]:
+                try:
+                    line.AddPoint_2D(
+                        self.node_data['coordinates'][0][node_id],
+                        self.node_data['coordinates'][1][node_id],
+                    )
+                except IndexError:
+                    log("Invalid node id: %s" % node_id)
+
+            feature = ogr.Feature(_definition)
+            feature.SetGeometry(line)
+            for field_name, field_type in self.FIELDS.iteritems():
+                fname = self.FIELD_NAME_MAP[field_name]
+                raw_value = pump_data[fname][i]
+                value = TYPE_FUNC_MAP[field_type](raw_value)
+                feature.SetField(str(field_name), value)
+                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
+                # thus FID defaults to 'OGC_FID', which sucks.
+                # See: http://www.gdal.org/drv_sqlite.html
+                # To circumvent this, we set 'OGC_FID' to our 'id', so we
+                # can do feature.id() in QGIS and get the line index without
+                # having to specify the 'id' column.
+                feature.SetFID(pump_data['id'][i])
 
             layer.CreateFeature(feature)
             feature.Destroy()

@@ -57,7 +57,13 @@ def get_or_create_pumpline_layer(ds, output_path):
     # TODO: pumps exporter not yet implemented
     if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
-        ga.pumps.reproject_to('4326').to_shape(output_path)
+        from .gridadmin import QgisPumpsOgrExporter
+        exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
+        exporter.driver = ogr.GetDriverByName('SQLite')
+        exporter.save(output_path, ga.pumps.data, ga.pumps.epsg_code)
+    uri = QgsDataSourceURI()
+    uri.setDatabase(output_path)
+    uri.setDataSource('', PUMPLINES_LAYER_NAME, 'geometry')
     return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'spatialite')
 
 

@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Add pumplines exporter.
+
 - Add layer generation for ``netcdf-groundwater`` results.
 
 - Add ``BaseDataSource`` abstract interface.
