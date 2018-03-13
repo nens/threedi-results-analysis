@@ -29,8 +29,8 @@ def get_or_create_flowline_layer(ds, output_path):
         from .gridadmin import QgisLinesOgrExporter
         exporter = QgisLinesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        data = ga.lines.slice(IGNORE_FIRST).data
-        exporter.save(output_path, data, data.epsg_code)
+        sliced = ga.lines.slice(IGNORE_FIRST).data
+        exporter.save(output_path, sliced.data, sliced.epsg_code)
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', FLOWLINES_LAYER_NAME, 'geometry')
@@ -44,8 +44,8 @@ def get_or_create_node_layer(ds, output_path):
         from .gridadmin import QgisNodesOgrExporter
         exporter = QgisNodesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        data = ga.nodes.slice(IGNORE_FIRST).data
-        exporter.save(output_path, data, data.epsg_code)
+        sliced = ga.nodes.slice(IGNORE_FIRST).data
+        exporter.save(output_path, sliced.data, sliced.epsg_code)
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', NODES_LAYER_NAME, 'geometry')
