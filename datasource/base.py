@@ -64,8 +64,9 @@ class BaseDataSource(object):
 
 
 class DummyDataSource(BaseDataSource):
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, file_path=None, *args, **kwargs):
+        self.file_path = file_path
+        self._ga = None
 
     @cached_property
     def available_subgrid_map_vars(self):
@@ -91,3 +92,14 @@ class DummyDataSource(BaseDataSource):
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
         pass
+
+    @property
+    def gridadmin(self):
+        if not self._ga:
+            import os
+            from threedigrid import GridH5Admin
+            d = os.path.dirname(self.file_path)
+            f = os.path.join(d, 'gridadmin.h5')
+            self._ga = GridH5Admin(f)
+
+        return self._ga

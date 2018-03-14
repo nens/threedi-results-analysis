@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Combine nodes, flowlines and pumplines in one ``gridadmin.sqlite`` file.
+
 - Add pumplines exporter.
 
 - Add layer generation for ``netcdf-groundwater`` results.

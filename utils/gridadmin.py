@@ -58,7 +58,9 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             SPATIALITE_DRIVER_NAME,
         }
 
-    def save(self, file_name, node_data, target_epsg_code, **kwargs):
+    def save(
+            self, file_name, layer_name, node_data, target_epsg_code,
+            **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -67,11 +69,14 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         """
         assert self.driver is not None
         sr = get_spatial_reference(target_epsg_code)
-        self.del_datasource(file_name)
-        data_source = self.driver.CreateDataSource(
-            file_name, ["SPATIALITE=YES"])
+        if not os.path.exists(file_name):
+            data_source = self.driver.CreateDataSource(
+                file_name, ["SPATIALITE=YES"])
+        else:
+            data_source = self.driver.Open(file_name, update=1)
+
         layer = data_source.CreateLayer(
-            str(os.path.splitext(os.path.basename(file_name))[0]),
+            layer_name,
             sr,
             geom_type=ogr.wkbPoint,
             options=['FORMAT=SPATIALITE']
@@ -115,6 +120,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                 feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
             feature.Destroy()
+        data_source = None
 
 
 class QgisKCUDescriptor(KCUDescriptor):
@@ -211,7 +217,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         }
         self.driver = None
 
-    def save(self, file_name, line_data, target_epsg_code, **kwargs):
+    def save(
+            self, file_name, layer_name, line_data, target_epsg_code,
+            **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -222,12 +230,14 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
         kcu_dict = QgisKCUDescriptor()
         sr = get_spatial_reference(target_epsg_code)
+        if not os.path.exists(file_name):
+            data_source = self.driver.CreateDataSource(
+                file_name, ["SPATIALITE=YES"])
+        else:
+            data_source = self.driver.Open(file_name, update=1)
 
-        self.del_datasource(file_name)
-        data_source = self.driver.CreateDataSource(
-            file_name, ["SPATIALITE=YES"])
         layer = data_source.CreateLayer(
-            str(os.path.splitext(os.path.basename(file_name))[0]),
+            layer_name,
             sr,
             geom_type=ogr.wkbLineString,
             options=['FORMAT=SPATIALITE'],
@@ -284,6 +294,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
             layer.CreateFeature(feature)
             feature.Destroy()
+        data_source = None
 
 
 class QgisPumpsOgrExporter(BaseOgrExporter):
@@ -307,7 +318,9 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         self.node_data = node_data
         self.driver = None
 
-    def save(self, file_name, pump_data, target_epsg_code, **kwargs):
+    def save(
+            self, file_name, layer_name, pump_data, target_epsg_code,
+            **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -317,12 +330,14 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         assert self.driver is not None
 
         sr = get_spatial_reference(target_epsg_code)
+        if not os.path.exists(file_name):
+            data_source = self.driver.CreateDataSource(
+                file_name, ["SPATIALITE=YES"])
+        else:
+            data_source = self.driver.Open(file_name, update=1)
 
-        self.del_datasource(file_name)
-        data_source = self.driver.CreateDataSource(
-            file_name, ["SPATIALITE=YES"])
         layer = data_source.CreateLayer(
-            str(os.path.splitext(os.path.basename(file_name))[0]),
+            layer_name,
             sr,
             geom_type=ogr.wkbLineString,
             options=['FORMAT=SPATIALITE'],
@@ -365,3 +380,4 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
             layer.CreateFeature(feature)
             feature.Destroy()
+        data_source = None
