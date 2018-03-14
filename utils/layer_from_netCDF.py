@@ -54,7 +54,6 @@ def get_or_create_node_layer(ds, output_path):
 
 @disable_sqlite_synchronous
 def get_or_create_pumpline_layer(ds, output_path):
-    # TODO: pumps exporter not yet implemented
     if not os.path.exists(output_path):
         ga = ds.gridadmin  # TODO: to implement
         from .gridadmin import QgisPumpsOgrExporter
@@ -64,7 +63,7 @@ def get_or_create_pumpline_layer(ds, output_path):
     uri = QgsDataSourceURI()
     uri.setDatabase(output_path)
     uri.setDataSource('', PUMPLINES_LAYER_NAME, 'geometry')
-    return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'spatialite')
+    return QgsVectorLayer(uri.uri(), PUMPLINES_LAYER_NAME, 'spatialite')
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):

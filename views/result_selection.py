@@ -196,9 +196,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we're not going to proceed
             try:
                 find_id_mapping_file(filename)
+                ds_type = 'netcdf'
             except IndexError:
                 try:
                     find_h5_file(filename)
+                    ds_type = 'netcdf-groundwater'
                 except IndexError:
                     pop_up_info("No id mapping or .h5 file found, we tried the following "
                                 "locations: id_mapping in [., ../input_generated] and"
@@ -208,7 +210,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     return False
             # Add to the datasource
             items = [{
-                'type': 'netcdf',
+                'type': ds_type,
                 'name': os.path.basename(filename).lower().rstrip('.nc'),
                 'file_path': filename
             }]

@@ -1,7 +1,10 @@
 from abc import (
     ABCMeta,
     abstractmethod,
+    abstractproperty,
 )
+
+from ..utils import cached_property
 
 
 class BaseDataSource(object):
@@ -13,11 +16,11 @@ class BaseDataSource(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    @abstractmethod
+    @abstractproperty
     def available_subgrid_map_vars(self):
         pass
 
-    @abstractmethod
+    @abstractproperty
     def available_aggregation_vars(self):
         pass
 
@@ -64,11 +67,13 @@ class DummyDataSource(BaseDataSource):
     def __init__(self, *args, **kwargs):
         pass
 
+    @cached_property
     def available_subgrid_map_vars(self):
-        pass
+        return []
 
+    @cached_property
     def available_aggregation_vars(self):
-        pass
+        return []
 
     def node_type_of(self, node_idx):
         pass
@@ -81,7 +86,7 @@ class DummyDataSource(BaseDataSource):
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
-        pass
+        return range(10)
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):

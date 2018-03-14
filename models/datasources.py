@@ -95,7 +95,7 @@ class DataSourceLayerManager(object):
 
     @property
     def datasource_dir(self):
-        return os.path.dirname(self.datasource.file_path)
+        return os.path.dirname(self.file_path)
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
@@ -154,15 +154,8 @@ class DataSourceLayerManager(object):
             self.datasource, lines_path)
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.datasource, nodes_path)
-        try:
-            self._pumpline_layer = self._pumpline_layer or \
-                get_or_create_pumpline_layer(self.datasource, pumps_path)
-        except Exception:
-            log(
-                "TODO: pumps not yet implemented in gridadmin, failing "
-                "silently to get things workin'."
-            )
-            self._pumpline_layer = None
+        self._pumpline_layer = self._pumpline_layer or \
+            get_or_create_pumpline_layer(self.datasource, pumps_path)
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
