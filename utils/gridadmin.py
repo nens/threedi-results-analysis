@@ -17,9 +17,8 @@ SPATIALITE_DRIVER_NAME = 'SQLite'
 
 def get_spatial_reference(epsg_code):
     """Get spatial reference from EPSG code."""
-    epsg_code = int(epsg_code)
     spatial_ref = osr.SpatialReference()
-    spatial_ref.ImportFromEPSG(epsg_code)
+    spatial_ref.ImportFromEPSG(int(epsg_code))
     return spatial_ref
 
 
