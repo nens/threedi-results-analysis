@@ -53,7 +53,8 @@ def get_or_create_flowline_layer(ds, output_path):
         exporter.driver = ogr.GetDriverByName('SQLite')
         sliced = ga.lines.slice(IGNORE_FIRST)
         exporter.save(
-            output_path, FLOWLINES_LAYER_NAME, sliced.data, sliced.epsg_code)
+            output_path, FLOWLINES_LAYER_NAME, sliced.data,
+            sliced.epsg_code, '4326')
     return _get_vec_lyr(output_path, FLOWLINES_LAYER_NAME)
 
 
@@ -67,7 +68,8 @@ def get_or_create_node_layer(ds, output_path):
         exporter.driver = ogr.GetDriverByName('SQLite')
         sliced = ga.nodes.slice(IGNORE_FIRST)
         exporter.save(
-            output_path, NODES_LAYER_NAME, sliced.data, sliced.epsg_code)
+            output_path, NODES_LAYER_NAME, sliced.data,
+            sliced.epsg_code, '4326')
     return _get_vec_lyr(output_path, NODES_LAYER_NAME)
 
 
@@ -81,8 +83,7 @@ def get_or_create_pumpline_layer(ds, output_path):
         exporter.driver = ogr.GetDriverByName('SQLite')
         exporter.save(
             output_path, PUMPLINES_LAYER_NAME, ga.pumps.data,
-            ga.pumps.epsg_code
-        )
+            ga.pumps.epsg_code, '4326')
     return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
 
 

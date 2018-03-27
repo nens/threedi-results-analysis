@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Reproject gridadmin.sqlite to wgs84 (EPSG:4326): this fixes the side view
+  tool that expects the generated layers to be in that projection.
+
 - Add groundwater categories to styling.
 
 - Combine nodes, flowlines and pumplines in one ``gridadmin.sqlite`` file.
