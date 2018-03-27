@@ -6,14 +6,21 @@ from osgeo import ogr, osr
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.admin.constants import OGR_FIELD_TYPE_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
-from threedigrid.geo_utils import get_spatial_reference
 from threedigrid.admin.utils import KCUDescriptor
+
+from ..utils.user_messages import log
 
 ogr.UseExceptions()  # fail fast
 
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
-from ..utils.user_messages import log
+
+def get_spatial_reference(epsg_code):
+    """Get spatial reference from EPSG code."""
+    epsg_code = int(epsg_code)
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromEPSG(epsg_code)
+    return spatial_ref
 
 
 class QgisNodesOgrExporter(BaseOgrExporter):
