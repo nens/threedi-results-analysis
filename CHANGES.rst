@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Set root logger level to make logging to QGIS work.
+
 - Add groundwater categories to styling.
 
 - Combine nodes, flowlines and pumplines in one ``gridadmin.sqlite`` file.
