@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Fix cache clearer for groundwater.
+
 - Reproject gridadmin.sqlite to wgs84 (EPSG:4326): this fixes the side view
   tool that expects the generated layers to be in that projection.
 
