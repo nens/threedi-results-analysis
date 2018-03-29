@@ -1,19 +1,25 @@
 from collections import OrderedDict
 import os
 
-from osgeo import ogr
+from osgeo import ogr, osr
 
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.admin.constants import OGR_FIELD_TYPE_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
-from threedigrid.admin.utils import get_spatial_reference
 from threedigrid.admin.utils import KCUDescriptor
+
+from ..utils.user_messages import log
 
 ogr.UseExceptions()  # fail fast
 
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
-from ..utils.user_messages import log
+
+def get_spatial_reference(epsg_code):
+    """Get spatial reference from EPSG code."""
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromEPSG(int(epsg_code))
+    return spatial_ref
 
 
 class QgisNodesOgrExporter(BaseOgrExporter):
@@ -59,8 +65,8 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         }
 
     def save(
-            self, file_name, layer_name, node_data, target_epsg_code,
-            **kwargs):
+            self, file_name, layer_name, node_data, source_epsg_code,
+            target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -68,7 +74,10 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         :param node_data: dict of node data
         """
         assert self.driver is not None
-        sr = get_spatial_reference(target_epsg_code)
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
+
         if not os.path.exists(file_name):
             data_source = self.driver.CreateDataSource(
                 file_name, ["SPATIALITE=YES"])
@@ -77,7 +86,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         layer = data_source.CreateLayer(
             layer_name,
-            sr,
+            target_sr,
             geom_type=ogr.wkbPoint,
             options=['FORMAT=SPATIALITE']
         )
@@ -94,6 +103,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                 node_data['coordinates'][0][i],
                 node_data['coordinates'][1][i]
             )
+            point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
             for field_name, field_type in fields.iteritems():
@@ -218,8 +228,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         self.driver = None
 
     def save(
-            self, file_name, layer_name, line_data, target_epsg_code,
-            **kwargs):
+            self, file_name, layer_name, line_data, source_epsg_code,
+            target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -229,7 +239,10 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         assert self.driver is not None
 
         kcu_dict = QgisKCUDescriptor()
-        sr = get_spatial_reference(target_epsg_code)
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
+
         if not os.path.exists(file_name):
             data_source = self.driver.CreateDataSource(
                 file_name, ["SPATIALITE=YES"])
@@ -238,7 +251,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
         layer = data_source.CreateLayer(
             layer_name,
-            sr,
+            target_sr,
             geom_type=ogr.wkbLineString,
             options=['FORMAT=SPATIALITE'],
         )
@@ -257,6 +270,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                              line_data['line_coords'][1][i])
             line.AddPoint_2D(line_data['line_coords'][2][i],
                              line_data['line_coords'][3][i])
+            line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
@@ -319,8 +333,8 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         self.driver = None
 
     def save(
-            self, file_name, layer_name, pump_data, target_epsg_code,
-            **kwargs):
+            self, file_name, layer_name, pump_data, source_epsg_code,
+            target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -329,7 +343,9 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         """
         assert self.driver is not None
 
-        sr = get_spatial_reference(target_epsg_code)
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
         if not os.path.exists(file_name):
             data_source = self.driver.CreateDataSource(
                 file_name, ["SPATIALITE=YES"])
@@ -338,7 +354,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
         layer = data_source.CreateLayer(
             layer_name,
-            sr,
+            target_sr,
             geom_type=ogr.wkbLineString,
             options=['FORMAT=SPATIALITE'],
         )
@@ -362,6 +378,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                     )
                 except IndexError:
                     log("Invalid node id: %s" % node_id)
+            line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
