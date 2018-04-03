@@ -84,7 +84,7 @@ class DummyDataSource(BaseDataSource):
         >>> ds = DummyDataSource()
         >>> ds._strip_prefix('Mesh2D_s1')
         's1'
-        >>> ds._strip_prefix('Mesh1D_1')
+        >>> ds._strip_prefix('Mesh1D_q')
         'q'
         >>> ds._strip_prefix('iets_anders')
         'iets_anders'
