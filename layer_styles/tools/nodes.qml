@@ -1,23 +1,23 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.17-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.18.16" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
     <edittype widgetv2type="TextEdit" name="OGC_FID">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="inp_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="spatialite_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="feature_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
   <renderer-v2 attr="type" forceraster="0" symbollevels="0" type="categorizedSymbol" enableorderby="1">
@@ -35,6 +35,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="53,171,255,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -56,7 +57,8 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="223,128,237,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="rectangle"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="name" v="square"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -77,6 +79,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="223,223,223,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -98,7 +101,8 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="222,106,39,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="rectangle"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="name" v="square"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -119,6 +123,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="51,160,44,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -129,7 +134,7 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
-          <prop k="size" v="2"/>
+          <prop k="size" v="2.4"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
@@ -138,9 +143,10 @@
       <symbol alpha="1" clip_to_extent="1" type="marker" name="5">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="31,120,180,255"/>
+          <prop k="color" v="103,255,1,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="name" v="rectangle"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="name" v="square"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -150,7 +156,7 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="area"/>
-          <prop k="size" v="2"/>
+          <prop k="size" v="2.4"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
@@ -163,6 +169,7 @@
           <prop k="angle" v="0"/>
           <prop k="color" v="119,119,119,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
@@ -188,6 +195,7 @@
   </renderer-v2>
   <labeling type="simple"/>
   <customproperties>
+    <property key="embeddedWidgets/count" value="0"/>
     <property key="labeling" value="pal"/>
     <property key="labeling/addDirectionSymbol" value="false"/>
     <property key="labeling/angleOffset" value="0"/>
@@ -337,12 +345,14 @@
     <property key="labeling/shapeSizeY" value="0"/>
     <property key="labeling/shapeTransparency" value="0"/>
     <property key="labeling/shapeType" value="0"/>
+    <property key="labeling/substitutions" value="&lt;substitutions/>"/>
     <property key="labeling/textColorA" value="255"/>
     <property key="labeling/textColorB" value="0"/>
     <property key="labeling/textColorG" value="0"/>
     <property key="labeling/textColorR" value="0"/>
     <property key="labeling/textTransp" value="0"/>
     <property key="labeling/upsidedownLabels" value="0"/>
+    <property key="labeling/useSubstitutions" value="false"/>
     <property key="labeling/wrapChar" value=""/>
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
@@ -375,17 +385,58 @@
     <multilineenabled fieldname="" on=""/>
     <selectedonly on=""/>
   </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
+  <SingleCategoryDiagramRenderer diagramType="Pie" sizeLegend="0" attributeLegend="1">
+    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
       <fontProperties description="Ubuntu,11,-1,5,50,0,0,0,0,0" style=""/>
       <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
+    <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
+      <layer pass="0" class="SimpleMarker" locked="0">
+        <prop k="angle" v="0"/>
+        <prop k="color" v="255,0,0,255"/>
+        <prop k="horizontal_anchor_point" v="1"/>
+        <prop k="joinstyle" v="bevel"/>
+        <prop k="name" v="circle"/>
+        <prop k="offset" v="0,0"/>
+        <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+        <prop k="offset_unit" v="MM"/>
+        <prop k="outline_color" v="0,0,0,255"/>
+        <prop k="outline_style" v="solid"/>
+        <prop k="outline_width" v="0"/>
+        <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+        <prop k="outline_width_unit" v="MM"/>
+        <prop k="scale_method" v="diameter"/>
+        <prop k="size" v="2"/>
+        <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+        <prop k="size_unit" v="MM"/>
+        <prop k="vertical_anchor_point" v="1"/>
+      </layer>
+    </symbol>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <DiagramLayerSettings yPosColumn="-1" showColumn="0" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
   <annotationform></annotationform>
+  <aliases>
+    <alias field="OGC_FID" index="0" name=""/>
+    <alias field="id" index="1" name=""/>
+    <alias field="inp_id" index="2" name=""/>
+    <alias field="spatialite_id" index="3" name=""/>
+    <alias field="feature_type" index="4" name=""/>
+    <alias field="type" index="5" name=""/>
+  </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
-  <attributeactions/>
+  <attributeactions default="-1"/>
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+    <columns>
+      <column width="-1" hidden="0" type="field" name="OGC_FID"/>
+      <column width="-1" hidden="0" type="field" name="id"/>
+      <column width="-1" hidden="0" type="field" name="inp_id"/>
+      <column width="-1" hidden="0" type="field" name="spatialite_id"/>
+      <column width="-1" hidden="0" type="field" name="feature_type"/>
+      <column width="-1" hidden="0" type="field" name="type"/>
+      <column width="-1" hidden="1" type="actions"/>
+    </columns>
+  </attributetableconfig>
   <editform></editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
@@ -414,5 +465,14 @@ def my_form_open(dialog, layer, feature):
     <rowstyles/>
     <fieldstyles/>
   </conditionalstyles>
+  <defaults>
+    <default field="OGC_FID" expression=""/>
+    <default field="id" expression=""/>
+    <default field="inp_id" expression=""/>
+    <default field="spatialite_id" expression=""/>
+    <default field="feature_type" expression=""/>
+    <default field="type" expression=""/>
+  </defaults>
+  <previewExpression></previewExpression>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
