@@ -79,6 +79,15 @@ class DummyDataSource(BaseDataSource):
         """Strip away netCDF variable name prefixes.
 
         Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
+
+        >>> from ThreeDiToolbox.datasource.base import DummyDataSource
+        >>> ds = DummyDataSource()
+        >>> ds._strip_prefix('Mesh2D_s1')
+        's1'
+        >>> ds._strip_prefix('Mesh1D_1')
+        'q'
+        >>> ds._strip_prefix('iets_anders')
+        'iets_anders'
         """
         if var_name.startswith(self.PREFIX_1D):
             return var_name[self.PREFIX_1D_LENGTH:]
