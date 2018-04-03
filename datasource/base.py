@@ -64,7 +64,10 @@ class BaseDataSource(object):
 
 
 def strip_prefix(var_name):
-    """Strip away netCDF variable name prefixes."""
+    """Strip away netCDF variable name prefixes.
+
+    Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
+    """
     prefix1 = 'Mesh1D_'
     prefix2 = 'Mesh2D_'
     prefix1_length = 7
@@ -91,6 +94,8 @@ class DummyDataSource(BaseDataSource):
         raw_available_vars = [
             v for v in self.ds.variables.keys() if
             v.startswith('Mesh2D_') or v.startswith('Mesh1D_')]
+        # Convert to a set to (1) get rid of duplicate variable names, and (2)
+        # to intersect with known variables
         available_vars = set([strip_prefix(v) for v in raw_available_vars])
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars.intersection(
