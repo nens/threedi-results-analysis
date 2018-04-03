@@ -65,8 +65,10 @@ class BaseDataSource(object):
 
 class DummyDataSource(BaseDataSource):
     def __init__(self, file_path=None, *args, **kwargs):
+        from netCDF4 import Dataset
         self.file_path = file_path
         self._ga = None
+        self.ds = Dataset(file_path)
 
     @cached_property
     def available_subgrid_map_vars(self):
@@ -87,7 +89,7 @@ class DummyDataSource(BaseDataSource):
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
-        return range(10)
+        return self.ds.variables['time'][:]
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
