@@ -63,14 +63,39 @@ class BaseDataSource(object):
     #     pass
 
 
+def strip_prefix(var_name):
+    """Strip away netCDF variable name prefixes."""
+    prefix1 = 'Mesh1D_'
+    prefix2 = 'Mesh2D_'
+    prefix1_length = 7
+    prefix2_length = 7
+    if var_name.startswith(prefix1):
+        return var_name[prefix1_length:]
+    elif var_name.startswith(prefix2):
+        return var_name[prefix2_length:]
+    else:
+        return var_name
+
+
 class DummyDataSource(BaseDataSource):
     def __init__(self, file_path=None, *args, **kwargs):
+        from netCDF4 import Dataset
         self.file_path = file_path
         self._ga = None
+        self.ds = Dataset(file_path)
 
     @cached_property
     def available_subgrid_map_vars(self):
-        return []
+        from .netcdf import SUBGRID_MAP_VARIABLES
+        known_subgrid_map_vars = set([v for v, _, _ in SUBGRID_MAP_VARIABLES])
+        raw_available_vars = [
+            v for v in self.ds.variables.keys() if
+            v.startswith('Mesh2D_') or v.startswith('Mesh1D_')]
+        available_vars = set([strip_prefix(v) for v in raw_available_vars])
+        # filter using a hardcoded 'whitelist'
+        available_known_vars = available_vars.intersection(
+            known_subgrid_map_vars)
+        return list(available_known_vars)
 
     @cached_property
     def available_aggregation_vars(self):
