@@ -105,9 +105,12 @@ class DataSourceLayerManager(object):
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf'"""
-        if self.ds_type != 'netcdf':
-            raise ValueError("Only applicable for type 'netcdf'")
-        return self.datasource.file_path[:-3] + '.sqlite1'
+        if self.ds_type == 'netcdf':
+            return self.file_path[:-3] + '.sqlite1'
+        elif self.ds_type == 'netcdf-groundwater':
+            return os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        else:
+            raise ValueError("Invalid datasource type %s" % self.ds_type)
 
     def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not

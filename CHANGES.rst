@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Fix cache clearer for groundwater.
+
 - Fix incorrect 'q_lat' name.
 
 - Set root logger level to make logging to QGIS work.
