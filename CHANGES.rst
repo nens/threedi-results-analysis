@@ -7,6 +7,10 @@ threedi-qgis-plugin changelog
 
 - Fix cache clearer for groundwater.
 
+- Fix incorrect 'q_lat' name.
+
+- Set root logger level to make logging to QGIS work.
+
 - Reproject gridadmin.sqlite to wgs84 (EPSG:4326): this fixes the side view
   tool that expects the generated layers to be in that projection.
 

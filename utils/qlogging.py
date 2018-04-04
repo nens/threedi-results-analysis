@@ -35,7 +35,7 @@ class QGisHandler(logging.Handler):
 
 def setup_logging(iface=None):
 
-    log = logging.getLogger('')
+    log = logging.getLogger('')  # set up a root logger
 
     ql = QGisHandler(iface)
     ql.setLevel(logging.INFO)
@@ -53,3 +53,5 @@ def setup_logging(iface=None):
     log.addHandler(ql)
     # log.addHandler(fh)
     log.addHandler(st)
+
+    log.setLevel(logging.INFO)  # set level of root logger
