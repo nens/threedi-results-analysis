@@ -128,7 +128,8 @@ class DummyDataSource(BaseDataSource):
         pass
 
     def get_timestamps(self, object_type=None, parameter=None):
-        return range(10)
+        # TODO: use cached property to limit file access
+        return self.ds.variables['time'][:]
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
