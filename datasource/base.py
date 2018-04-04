@@ -100,7 +100,7 @@ class DummyDataSource(BaseDataSource):
     def available_subgrid_map_vars(self):
         """Available variables from 'subgrid_map.nc'."""
         from .netcdf import SUBGRID_MAP_VARIABLES
-        known_subgrid_map_vars = set([v for v, _, _ in SUBGRID_MAP_VARIABLES])
+        known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         raw_available_vars = [
             v for v in self.ds.variables.keys() if
             v.startswith(self.PREFIX_1D) or v.startswith(self.PREFIX_2D)]
