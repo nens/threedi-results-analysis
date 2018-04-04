@@ -14,3 +14,4 @@ external/sqlalchemy
 external/geoalchemy2
 external/pyqtgraph
 external/lizard_connector
+external/threedigrid
