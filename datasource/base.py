@@ -74,6 +74,10 @@ class DummyDataSource(BaseDataSource):
         self.file_path = file_path
         self._ga = None
         self.ds = Dataset(file_path)
+        self.nMesh2D_nodes = self.ds.dimensions['nMesh2D_nodes'].size
+        self.nMesh1D_nodes = self.ds.dimensions['nMesh1D_nodes'].size
+        self.nMesh2D_lines = self.ds.dimensions['nMesh2D_lines'].size
+        self.nMesh1D_lines = self.ds.dimensions['nMesh1D_lines'].size
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -123,9 +127,52 @@ class DummyDataSource(BaseDataSource):
     def line_type_of(self, line_idx):
         pass
 
+    @cached_property
+    def timestamps(self):
+        return self.get_timestamps()
+
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
-        pass
+        return self.temporary_get_timeseries_impl(
+            object_type, object_id, nc_variable, fill_value)
+
+    def temporary_get_timeseries_impl(
+            self, object_type, object_id, nc_variable, fill_value=None):
+        # TODO: this is a crappy but working implementation, replace it by a
+        # better one in the future (e.g. using threedigrid)!
+        import numpy as np
+        if object_type in ['nodes', 'flowlines', 'pumplines']:
+            object_id -= 1
+        if object_type == 'nodes':
+            if object_id < self.nMesh2D_nodes:
+                # it's 2d
+                nc_variable = self.PREFIX_2D + nc_variable
+                netcdf_id = object_id
+            else:
+                # it's 1d
+                nc_variable = self.PREFIX_1D + nc_variable
+                netcdf_id = object_id - self.nMesh2D_nodes
+        elif object_type == 'flowlines':
+            if object_id < self.nMesh2D_lines:
+                # it's 2d
+                nc_variable = self.PREFIX_2D + nc_variable
+                netcdf_id = object_id
+            else:
+                # it's 1d
+                nc_variable = self.PREFIX_1D + nc_variable
+                netcdf_id = object_id - self.nMesh2D_lines
+        elif object_type == 'pumplines':
+            nc_variable = self.PREFIX_1D + nc_variable
+            netcdf_id = object_id
+        else:
+            raise NotImplementedError("TODO")
+
+        vals = self.ds.variables[nc_variable][:, netcdf_id]
+
+        # Zip timeseries together in (n,2) array
+        if fill_value is not None and type(vals) == np.ma.core.MaskedArray:
+            vals = vals.filled(fill_value)
+        return np.vstack((self.timestamps, vals)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
