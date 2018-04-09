@@ -60,12 +60,12 @@ except ImportError, e:
                 "'external' subdirectory. error %s" % e.message)
 
 try:
-    # Note: we're not importing it directly because this will load .pyd files
-    # dynamically. Because the loaded files are open in QGIS you can't delete
-    # it unless you close the program (at least with Windows), which is a
-    # problem when you're trying to update the plugin using the plugin manager
-    # because it tries to delete the old plugin files. For this reason we're
-    # delaying any import to shared libraries for as long as possible.
+    # Note: we're not importing it directly using the import statement because
+    # this will cause .pyd files to be loaded in dynamically. Because the
+    # loaded files are open in QGIS you can't delete them unless you close the
+    # program (at least with Windows), which is problematic when trying to
+    # update the plugin using the plugin manager (because it tries to delete
+    # the old plugin files). Real imports are postponed as long as possible.
     imp.find_module('netCDF4')
     log('Use local installation of python netCDF4 library')
 except ImportError:
@@ -98,12 +98,12 @@ except ImportError:
 #     log(msg)
 
 try:
-    # Note: we're not importing it directly because this will load .pyd files
-    # dynamically. Because the loaded files are open in QGIS you can't delete
-    # it unless you close the program (at least with Windows), which is a
-    # problem when you're trying to update the plugin using the plugin manager
-    # because it tries to delete the old plugin files. For this reason we're
-    # delaying any import to shared libraries for as long as possible.
+    # Note: we're not importing it directly using the import statement because
+    # this will cause .pyd files to be loaded in dynamically. Because the
+    # loaded files are open in QGIS you can't delete them unless you close the
+    # program (at least with Windows), which is problematic when trying to
+    # update the plugin using the plugin manager (because it tries to delete
+    # the old plugin files). Real imports are postponed as long as possible.
     imp.find_module('h5py')
     log("Using local h5py installation.")
 except ImportError as e:
