@@ -121,6 +121,9 @@ class DummyDataSource(BaseDataSource):
     def available_aggregation_vars(self):
         return []
 
+    def get_available_variables(self):
+        return self.available_subgrid_map_vars
+
     def node_type_of(self, node_idx):
         pass
 
@@ -180,6 +183,8 @@ class DummyDataSource(BaseDataSource):
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
+        import numpy as np
+        return np.arange(10)
         pass
 
     @property
