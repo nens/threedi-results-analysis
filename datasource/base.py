@@ -193,10 +193,10 @@ class DummyDataSource(BaseDataSource):
         var_2d = self.PREFIX_2D + variable
         var_1d = self.PREFIX_1D + variable
 
-        # TODO: check if this mutates the argument
-        index = index - 1
-
         if index is not None:
+            # TODO: check if this mutates the argument
+            index = index - 1
+
             # hacky object_type checking mechanism, sinds we don't have
             # that information readily available
             if variable == 'q_pump':
