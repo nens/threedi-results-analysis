@@ -207,14 +207,16 @@ class DummyDataSource(BaseDataSource):
                 threshold = self.nMesh2D_nodes
             else:
                 raise ValueError(variable)
+            # find indices of 2d and 1d components
             idx_2d = np.where(index < threshold)[0]
             idx_1d = np.where(index >= threshold)[0]
+            # make index arrays that can be used on the nc variables
             iarr_2d = index[idx_2d]
             iarr_1d = index[idx_1d] - threshold
             res = np.zeros(index.shape)
             # Note sure if a netCDF bug or a known difference in behavior.
             # Indexing a numpy array using [], or np.array([], dtype=int)
-            # works, but on a netCDF dataset it doesn't. Therefore we must
+            # works, but on a netCDF Variable it doesn't. Therefore we must
             # explicitly check if the list is empty.
             if iarr_2d.size > 0:
                 res[idx_2d] = self.ds.variables[var_2d][timestamp_idx, iarr_2d]
