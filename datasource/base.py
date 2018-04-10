@@ -194,7 +194,7 @@ class DummyDataSource(BaseDataSource):
         var_1d = self.PREFIX_1D + variable
 
         if index is not None:
-            # TODO: check if this mutates the argument
+            # a new array is created, thus safe
             index = index - 1
 
             # hacky object_type checking mechanism, sinds we don't have
