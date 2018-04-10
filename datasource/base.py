@@ -183,9 +183,52 @@ class DummyDataSource(BaseDataSource):
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
+        return self.temp_get_values_by_timestep_nr_impl(
+            variable, timestamp_idx, index)
+
+    def temp_get_values_by_timestep_nr_impl(
+            self, variable, timestamp_idx, index=None):
         import numpy as np
-        return np.arange(10)
-        pass
+        from .netcdf import Q_TYPES, H_TYPES
+        var_2d = self.PREFIX_2D + variable
+        var_1d = self.PREFIX_1D + variable
+
+        # TODO: check if this mutates the argument
+        index = index - 1
+
+        if index is not None:
+            # hacky object_type checking mechanism, sinds we don't have
+            # that information readily available
+            if variable == 'q_pump':
+                return self.ds.variables[var_1d][timestamp_idx, index]
+            elif variable in Q_TYPES:
+                threshold = self.nMesh2D_lines
+            elif variable in H_TYPES:
+                threshold = self.nMesh2D_nodes
+            else:
+                raise ValueError(variable)
+            idx_2d = np.where(index < threshold)[0]
+            idx_1d = np.where(index >= threshold)[0]
+            iarr_2d = index[idx_2d]
+            iarr_1d = index[idx_1d] - threshold
+            res = np.zeros(index.shape)
+            # Note sure if a netCDF bug or a known difference in behavior.
+            # Indexing a numpy array using [], or np.array([], dtype=int)
+            # works, but on a netCDF dataset it doesn't. Therefore we must
+            # explicitly check if the list is empty.
+            if iarr_2d.size > 0:
+                res[idx_2d] = self.ds.variables[var_2d][timestamp_idx, iarr_2d]
+            if iarr_1d.size > 0:
+                res[idx_1d] = self.ds.variables[var_1d][timestamp_idx, iarr_1d]
+            return res
+        else:
+            if variable == 'q_pump':
+                return self.ds.variables[var_1d][timestamp_idx, index]
+            # TODO: pumps won't work
+            vals_2d = self.ds.variables[var_2d][timestamp_idx, :]
+            vals_1d = self.ds.variables[var_1d][timestamp_idx, :]
+            # order is: 2D, then 1D
+            return np.hstack((vals_2d, vals_1d))
 
     @property
     def gridadmin(self):
