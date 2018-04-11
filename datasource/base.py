@@ -122,6 +122,7 @@ class DummyDataSource(BaseDataSource):
         return []
 
     def get_available_variables(self):
+        # This method is used by the water balance plugin (DeltaresTdiToolbox)
         return self.available_subgrid_map_vars
 
     def node_type_of(self, node_idx):
