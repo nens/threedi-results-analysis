@@ -236,7 +236,7 @@ class DummyDataSource(BaseDataSource):
     def gridadmin(self):
         if not self._ga:
             import os
-            from threedigrid.admin.gridadmin import GridH5Admin
+            from ..utils.patched_threedigrid import GridH5Admin
             d = os.path.dirname(self.file_path)
             f = os.path.join(d, 'gridadmin.h5')
             self._ga = GridH5Admin(f)
