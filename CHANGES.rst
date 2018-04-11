@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Add (temporary) ad-hoc implementations of get_timeseries and
+  get_values_by_timestemp_nr.
+
 - Fix cache clearer for groundwater.
 
 - Fix incorrect 'q_lat' name.
