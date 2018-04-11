@@ -226,7 +226,7 @@ class DummyDataSource(BaseDataSource):
             return res
         else:
             if variable == 'q_pump':
-                return self.ds.variables[var_1d][timestamp_idx, index]
+                return self.ds.variables[var_1d][timestamp_idx, :]
             # TODO: pumps won't work
             vals_2d = self.ds.variables[var_2d][timestamp_idx, :]
             vals_1d = self.ds.variables[var_1d][timestamp_idx, :]
