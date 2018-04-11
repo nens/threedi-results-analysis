@@ -10,6 +10,6 @@ the best way for now is to import ``GridH5Admin`` from this module, e.g.:
 
 """
 
-from threedigrid.admin.lines import Lines
+from threedigrid.admin.lines.models import Lines
 del Lines.line_geometries
-from threedigrid import *  # noqa
+from threedigrid.admin.gridadmin import GridH5Admin  # noqa
