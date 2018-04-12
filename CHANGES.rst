@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Fix QGIS plugin updater problem on Windows with files being unable to be
+  deleted because they're held open by QGIS.
+
 - Fix cache clearer for groundwater.
 
 - Fix incorrect 'q_lat' name.
