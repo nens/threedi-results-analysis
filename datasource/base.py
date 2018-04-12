@@ -74,6 +74,10 @@ class DummyDataSource(BaseDataSource):
         self.file_path = file_path
         self._ga = None
         self.ds = Dataset(file_path)
+        self.nMesh2D_nodes = self.ds.dimensions['nMesh2D_nodes'].size
+        self.nMesh1D_nodes = self.ds.dimensions['nMesh1D_nodes'].size
+        self.nMesh2D_lines = self.ds.dimensions['nMesh2D_lines'].size
+        self.nMesh1D_lines = self.ds.dimensions['nMesh1D_lines'].size
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -117,15 +121,62 @@ class DummyDataSource(BaseDataSource):
     def available_aggregation_vars(self):
         return []
 
+    def get_available_variables(self):
+        # This method is used by the water balance plugin (DeltaresTdiToolbox)
+        return self.available_subgrid_map_vars
+
     def node_type_of(self, node_idx):
         pass
 
     def line_type_of(self, line_idx):
         pass
 
+    @cached_property
+    def timestamps(self):
+        return self.get_timestamps()
+
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
-        pass
+        return self.temporary_get_timeseries_impl(
+            object_type, object_id, nc_variable, fill_value)
+
+    def temporary_get_timeseries_impl(
+            self, object_type, object_id, nc_variable, fill_value=None):
+        # TODO: this is a crappy but working implementation, replace it by a
+        # better one in the future (e.g. using threedigrid)!
+        import numpy as np
+        if object_type in ['nodes', 'flowlines', 'pumplines']:
+            object_id -= 1
+        if object_type == 'nodes':
+            if object_id < self.nMesh2D_nodes:
+                # it's 2d
+                nc_variable = self.PREFIX_2D + nc_variable
+                netcdf_id = object_id
+            else:
+                # it's 1d
+                nc_variable = self.PREFIX_1D + nc_variable
+                netcdf_id = object_id - self.nMesh2D_nodes
+        elif object_type == 'flowlines':
+            if object_id < self.nMesh2D_lines:
+                # it's 2d
+                nc_variable = self.PREFIX_2D + nc_variable
+                netcdf_id = object_id
+            else:
+                # it's 1d
+                nc_variable = self.PREFIX_1D + nc_variable
+                netcdf_id = object_id - self.nMesh2D_lines
+        elif object_type == 'pumplines':
+            nc_variable = self.PREFIX_1D + nc_variable
+            netcdf_id = object_id
+        else:
+            raise NotImplementedError("TODO")
+
+        vals = self.ds.variables[nc_variable][:, netcdf_id]
+
+        # Zip timeseries together in (n,2) array
+        if fill_value is not None and type(vals) == np.ma.core.MaskedArray:
+            vals = vals.filled(fill_value)
+        return np.vstack((self.timestamps, vals)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
@@ -133,13 +184,60 @@ class DummyDataSource(BaseDataSource):
 
     # used in map_animator
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
-        pass
+        return self.temp_get_values_by_timestep_nr_impl(
+            variable, timestamp_idx, index)
+
+    def temp_get_values_by_timestep_nr_impl(
+            self, variable, timestamp_idx, index=None):
+        import numpy as np
+        from .netcdf import Q_TYPES, H_TYPES
+        var_2d = self.PREFIX_2D + variable
+        var_1d = self.PREFIX_1D + variable
+
+        if index is not None:
+            # a new array is created, thus safe
+            index = index - 1
+
+            # hacky object_type checking mechanism, sinds we don't have
+            # that information readily available
+            if variable == 'q_pump':
+                return self.ds.variables[var_1d][timestamp_idx, index]
+            elif variable in Q_TYPES:
+                threshold = self.nMesh2D_lines
+            elif variable in H_TYPES:
+                threshold = self.nMesh2D_nodes
+            else:
+                raise ValueError(variable)
+            # find indices of 2d and 1d components
+            idx_2d = np.where(index < threshold)[0]
+            idx_1d = np.where(index >= threshold)[0]
+            # make index arrays that can be used on the nc variables
+            iarr_2d = index[idx_2d]
+            iarr_1d = index[idx_1d] - threshold
+            res = np.zeros(index.shape)
+            # Note sure if a netCDF bug or a known difference in behavior.
+            # Indexing a numpy array using [], or np.array([], dtype=int)
+            # works, but on a netCDF Variable it doesn't. Therefore we must
+            # explicitly check if the list is empty.
+            if iarr_2d.size > 0:
+                res[idx_2d] = self.ds.variables[var_2d][timestamp_idx, iarr_2d]
+            if iarr_1d.size > 0:
+                res[idx_1d] = self.ds.variables[var_1d][timestamp_idx, iarr_1d]
+            return res
+        else:
+            if variable == 'q_pump':
+                return self.ds.variables[var_1d][timestamp_idx, :]
+            # TODO: pumps won't work
+            vals_2d = self.ds.variables[var_2d][timestamp_idx, :]
+            vals_1d = self.ds.variables[var_1d][timestamp_idx, :]
+            # order is: 2D, then 1D
+            return np.hstack((vals_2d, vals_1d))
 
     @property
     def gridadmin(self):
         if not self._ga:
             import os
-            from threedigrid.admin.gridadmin import GridH5Admin
+            from ..utils.patched_threedigrid import GridH5Admin
             d = os.path.dirname(self.file_path)
             f = os.path.join(d, 'gridadmin.h5')
             self._ga = GridH5Admin(f)
