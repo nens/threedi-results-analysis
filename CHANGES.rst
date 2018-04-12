@@ -7,6 +7,9 @@ threedi-qgis-plugin changelog
 
 - Add (temporary) ad-hoc implementations of get_timeseries and
   get_values_by_timestemp_nr.
+  
+- Fix QGIS plugin updater problem on Windows with files being unable to be
+  deleted because they're held open by QGIS.
 
 - Fix cache clearer for groundwater.
 

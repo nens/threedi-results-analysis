@@ -4,7 +4,6 @@ from itertools import (starmap, product)
 import json
 import os
 
-from netCDF4 import Dataset
 import numpy as np
 
 from .base import BaseDataSource
@@ -297,6 +296,12 @@ class NetcdfDataSource(BaseDataSource):
             load_properties: call load_properties
             ds: netCDF4.Dataset, optional (useful for tests)
         """
+        # Note: we don't want module level imports of dynamically loaded
+        # libraries because importing them will cause files to be held open
+        # which cause trouble when updating the plugin. Therefore we delay
+        # the import as much as possible.
+        from netCDF4 import Dataset
+
         self.file_path = file_path
         # Load netcdf
         if not ds:
@@ -346,6 +351,12 @@ class NetcdfDataSource(BaseDataSource):
     @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
+        # Note: we don't want module level imports of dynamically loaded
+        # libraries because importing them will cause files to be held open
+        # which cause trouble when updating the plugin. Therefore we delay
+        # the import as much as possible.
+        from netCDF4 import Dataset
+
         # Load aggregation netcdf
         aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
         log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
