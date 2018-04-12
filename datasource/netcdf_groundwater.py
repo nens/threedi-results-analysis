@@ -162,7 +162,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
                 res[idx_2d] = self.ds.variables[var_2d][timestamp_idx, iarr_2d]
             if iarr_1d.size > 0:
                 res[idx_1d] = self.ds.variables[var_1d][timestamp_idx, iarr_1d]
-            return res
         else:
             if variable == 'q_pump':
                 return self.ds.variables[var_1d][timestamp_idx, :]
@@ -170,7 +169,16 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             vals_2d = self.ds.variables[var_2d][timestamp_idx, :]
             vals_1d = self.ds.variables[var_1d][timestamp_idx, :]
             # order is: 2D, then 1D
-            return np.hstack((vals_2d, vals_1d))
+            res = np.hstack((vals_2d, vals_1d))
+
+        fill_value_2d = self.ds.variables[var_2d]._FillValue
+        fill_value_1d = self.ds.variables[var_1d]._FillValue
+        assert fill_value_1d == fill_value_2d, \
+            "Difference in fill value, can't consolidate"
+        # res is a normal array, we need to mask the values again from the
+        # netcdf
+        masked_res = np.ma.masked_values(res, fill_value_2d)
+        return masked_res
 
     @property
     def gridadmin(self):
