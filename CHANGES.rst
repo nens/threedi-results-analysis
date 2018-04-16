@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Remask masked arrays in ``get_values_by_timestemp_nr`` for
+  NetcdfDataSourceGroundwater.
+
 - Add module base.netcdf_groundwater (relocated from base.DummyDataSourse)
 
 - Fix find_h5_file
