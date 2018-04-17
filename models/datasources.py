@@ -2,7 +2,6 @@
 
 import os
 from PyQt4.QtCore import Qt, pyqtSignal
-
 from ..datasource.netcdf_groundwater import NetcdfDataSourceGroundwater
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
