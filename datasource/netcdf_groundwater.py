@@ -4,12 +4,15 @@ from abc import (
     abstractproperty,
 )
 
-from .base import BaseDataSource
 
+from .base import BaseDataSource
 from ..utils import cached_property
 
-# class DummyDataSource(BaseDataSource):
-class NetcdfDataSource_groundwater(BaseDataSource):
+
+class NetcdfDataSourceGroundwater(BaseDataSource):
+
+
+class NetcdfDataSourceGroundwater(BaseDataSource):
     PREFIX_1D = 'Mesh1D_'
     PREFIX_2D = 'Mesh2D_'
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
@@ -30,13 +33,13 @@ class NetcdfDataSource_groundwater(BaseDataSource):
 
         Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
 
-        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfDataSource_groundwater
-        >>> ds = NetcdfDataSource_groundwater()
-        >>> ds._strip_prefix('Mesh2D_s1')
+        from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfDataSourceGroundwater
+        ds = NetcdfDataSourceGroundwater()
+        ds._strip_prefix('Mesh2D_s1')
         's1'
-        >>> ds._strip_prefix('Mesh1D_q')
+        ds._strip_prefix('Mesh1D_q')
         'q'
-        >>> ds._strip_prefix('iets_anders')
+        ds._strip_prefix('iets_anders')
         'iets_anders'
         """
         if var_name.startswith(self.PREFIX_1D):

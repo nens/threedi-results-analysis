@@ -15,12 +15,12 @@ ogr.UseExceptions()  # fail fast
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
 
+
 def get_spatial_reference(epsg_code):
     """Get spatial reference from EPSG code."""
     spatial_ref = osr.SpatialReference()
     spatial_ref.ImportFromEPSG(int(epsg_code))
     return spatial_ref
-
 
 class QgisNodesOgrExporter(BaseOgrExporter):
     """
