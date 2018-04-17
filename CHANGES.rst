@@ -4,6 +4,9 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- Add netcdf version (netcdf or netcdf-groundwater) detection to make
+  plugin more robust
+
 - Pinned threedigrid to working version (0.1.3)
 
 - Animation tool: split nodes and lines into node_results, line_results,
