@@ -4,6 +4,10 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- Pinned threedigrid to working version (0.1.3)
+
+- Animation tool: split nodes and lines into node_results, line_results,
+  node_results_groundwater, line_results_groundwater (all with own styling)
 
 - Add module base.netcdf_groundwater (relocated from base.DummyDataSourse)
 
