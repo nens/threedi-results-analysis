@@ -10,9 +10,6 @@ from ..utils import cached_property
 
 
 class NetcdfDataSourceGroundwater(BaseDataSource):
-
-
-class NetcdfDataSourceGroundwater(BaseDataSource):
     PREFIX_1D = 'Mesh1D_'
     PREFIX_2D = 'Mesh2D_'
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
