@@ -48,9 +48,7 @@ class MapAnimator(QWidget):
         self.line_layer = None
         self.line_layer_groundwater = None
         self.node_layer_groundwater = None
-
         self.state = False
-
         self.setup_ui()
 
         # set initial state
@@ -175,20 +173,21 @@ class MapAnimator(QWidget):
             QgsField("result", QVariant.Double)
         ])
         features = self.line_layer.getFeatures()
-        ids = [f.id() for f in features if f.attribute('type') == '2d_groundwater'
-               or f.attribute('type') == '1d_2d_groundwater']
+        ids = [f.id() for f in features if f.attribute('type') ==
+               '2d_groundwater' or f.attribute('type') == '1d_2d_groundwater']
         self.line_layer.dataProvider().deleteFeatures(ids)
         self.line_layer.updateFields()
 
 
         # lines with groundwater results
-        self.line_layer_groundwater = copy_layer_into_memory_layer(line, 'line_results_groundwater')
+        self.line_layer_groundwater = copy_layer_into_memory_layer(line,
+                                                'line_results_groundwater')
         self.line_layer_groundwater.dataProvider().addAttributes([
             QgsField("result", QVariant.Double)
         ])
         features = self.line_layer_groundwater.getFeatures()
-        ids = [f.id() for f in features if f.attribute('type') != '2d_groundwater'
-               and f.attribute('type') != '1d_2d_groundwater']
+        ids = [f.id() for f in features if f.attribute('type') !=
+               '2d_groundwater' and f.attribute('type') != '1d_2d_groundwater']
         self.line_layer_groundwater.dataProvider().deleteFeatures(ids)
         self.line_layer_groundwater.updateFields()
 
@@ -199,20 +198,23 @@ class MapAnimator(QWidget):
             QgsField("result", QVariant.Double)
         ])
         features = self.node_layer.getFeatures()
-        ids = [f.id() for f in features if f.attribute('type') == '2d_groundwater'
-               or f.attribute('type') == '2d_groundwater_bound']
+        ids = [f.id() for f in features if f.attribute('type') ==
+               '2d_groundwater' or f.attribute('type') ==
+               '2d_groundwater_bound']
         self.node_layer.dataProvider().deleteFeatures(ids)
         self.node_layer.updateFields()
 
 
         # nodes with groundwater results
-        self.node_layer_groundwater = copy_layer_into_memory_layer(node, 'node_results_groundwater')
+        self.node_layer_groundwater = copy_layer_into_memory_layer(node,
+                                                    'node_results_groundwater')
         self.node_layer_groundwater.dataProvider().addAttributes([
             QgsField("result", QVariant.Double)
         ])
         features = self.node_layer_groundwater.getFeatures()
-        ids = [f.id() for f in features if f.attribute('type') != '2d_groundwater'
-               and f.attribute('type') != '2d_groundwater_bound']
+        ids = [f.id() for f in features if f.attribute('type') !=
+               '2d_groundwater' and f.attribute('type') !=
+               '2d_groundwater_bound']
         self.node_layer_groundwater.dataProvider().deleteFeatures(ids)
         self.node_layer_groundwater.updateFields()
 
@@ -235,9 +237,11 @@ class MapAnimator(QWidget):
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
         QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer_groundwater, True)
+        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer_groundwater,
+                                                   True)
         QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer_groundwater, True)
+        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer_groundwater,
+                                                   True)
 
 
     def update_results(self):
@@ -257,7 +261,8 @@ class MapAnimator(QWidget):
                  'act'),
                 (self.node_layer_groundwater,
                  self.current_node_parameter['parameters'], 'diff'),
-                (self.line_layer_groundwater, self.current_line_parameter['parameters'],
+                (self.line_layer_groundwater,
+                 self.current_line_parameter['parameters'],
                  'act')): # updated to act for actual, display actual value
 
             provider = layer.dataProvider()
@@ -265,7 +270,8 @@ class MapAnimator(QWidget):
             values = ds.get_values_by_timestep_nr(parameter, timestep_nr)
             if stat == 'diff':
                 values = values - ds.get_values_by_timestep_nr(parameter, 0)
-            elif stat == 'act':  # updated to act for actual, display actual value
+            # updated to act for actual, display actual value
+            elif stat == 'act':
                 values = values # removed np.fabs(values) to get actual value
 
             update_dict = {}
