@@ -4,6 +4,8 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- Title of sideview dockwidget does not overlap with button anymore
+
 - Add netcdf version (netcdf or netcdf-groundwater) detection to make
   plugin more robust
 
