@@ -4,6 +4,9 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+
+- Add progress bar to new layer generation.
+
 - Pinned threedigrid to working version (0.1.3)
 
 - Animation tool: split nodes and lines into node_results, line_results,
