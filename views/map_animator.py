@@ -178,10 +178,9 @@ class MapAnimator(QWidget):
         self.line_layer.dataProvider().deleteFeatures(ids)
         self.line_layer.updateFields()
 
-
         # lines with groundwater results
-        self.line_layer_groundwater = copy_layer_into_memory_layer(line,
-                                                'line_results_groundwater')
+        self.line_layer_groundwater = copy_layer_into_memory_layer(
+            line, 'line_results_groundwater')
         self.line_layer_groundwater.dataProvider().addAttributes([
             QgsField("result", QVariant.Double)
         ])
@@ -190,7 +189,6 @@ class MapAnimator(QWidget):
                '2d_groundwater' and f.attribute('type') != '1d_2d_groundwater']
         self.line_layer_groundwater.dataProvider().deleteFeatures(ids)
         self.line_layer_groundwater.updateFields()
-
 
         # nodes without groundwater results
         self.node_layer = copy_layer_into_memory_layer(node, 'node_results')
@@ -204,10 +202,9 @@ class MapAnimator(QWidget):
         self.node_layer.dataProvider().deleteFeatures(ids)
         self.node_layer.updateFields()
 
-
         # nodes with groundwater results
-        self.node_layer_groundwater = copy_layer_into_memory_layer(node,
-                                                    'node_results_groundwater')
+        self.node_layer_groundwater = copy_layer_into_memory_layer(
+            node, 'node_results_groundwater')
         self.node_layer_groundwater.dataProvider().addAttributes([
             QgsField("result", QVariant.Double)
         ])
@@ -217,7 +214,6 @@ class MapAnimator(QWidget):
                '2d_groundwater_bound']
         self.node_layer_groundwater.dataProvider().deleteFeatures(ids)
         self.node_layer_groundwater.updateFields()
-
 
         # todo: add this layers to the correct location
         self.line_layer.loadNamedStyle(os.path.join(
@@ -237,12 +233,11 @@ class MapAnimator(QWidget):
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
         QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer_groundwater,
-                                                   True)
+        QgsMapLayerRegistry.instance().addMapLayer(
+            self.line_layer_groundwater, True)
         QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer_groundwater,
-                                                   True)
-
+        QgsMapLayerRegistry.instance().addMapLayer(
+            self.node_layer_groundwater, True)
 
     def update_results(self):
         if not self.state:
