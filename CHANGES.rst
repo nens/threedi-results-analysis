@@ -4,13 +4,6 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
-- Add netcdf version (netcdf or netcdf-groundwater) detection to make
-  plugin more robust
-
-- Pinned threedigrid to working version (0.1.3)
-
-- Animation tool: split nodes and lines into node_results, line_results,
-  node_results_groundwater, line_results_groundwater (all with own styling)
 
 - Change the geometry column name of ``gridadmin.sqlite`` from ``GEOM`` to
   ``the_geom`` so that it behaves similarly to the old
@@ -20,6 +13,14 @@ threedi-qgis-plugin changelog
 
 - Make ``disable_sqlite_synchronous`` re-entrant (i.e.: it works expectedly
   when multiple functions that are decorated with it call each other)
+
+- Add netcdf version (netcdf or netcdf-groundwater) detection to make
+  plugin more robust
+
+- Pinned threedigrid to working version (0.1.3)
+
+- Animation tool: split nodes and lines into node_results, line_results,
+  node_results_groundwater, line_results_groundwater (all with own styling)
 
 - Add module base.netcdf_groundwater (relocated from base.DummyDataSourse)
 
