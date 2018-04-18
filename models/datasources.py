@@ -2,7 +2,6 @@
 
 import os
 from PyQt4.QtCore import Qt, pyqtSignal
-
 from ..datasource.netcdf_groundwater import NetcdfDataSourceGroundwater
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
@@ -20,7 +19,7 @@ from ..utils.layer_from_netCDF import (
 )
 from ..utils.user_messages import log
 from ..datasource.spatialite import Spatialite
-
+from ..utils.user_messages import StatusProgressBar
 
 def get_line_pattern(item_field):
     """
@@ -149,12 +148,19 @@ class DataSourceLayerManager(object):
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
-    def _get_result_layers_groundwater(self):
+    def _get_result_layers_groundwater(self, progress_bar=None):
+
+        if progress_bar is None:
+            progress_bar = StatusProgressBar(100, 'create gridadmin.sqlite')
+
         sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        progress_bar.increase_progress(33, "create flowline layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.datasource, sqlite_path)
+        progress_bar.increase_progress(33, "create node layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.datasource, sqlite_path)
+        progress_bar.increase_progress(34, "create pumplayer")
         self._pumpline_layer = self._pumpline_layer or \
             get_or_create_pumpline_layer(self.datasource, sqlite_path)
         return [self._line_layer, self._node_layer, self._pumpline_layer]

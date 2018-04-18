@@ -35,11 +35,11 @@ def contains_layer(sqlite_path, layer_name):
     return has_layer
 
 
-def _get_vec_lyr(sqlite_path, layer_name):
+def _get_vec_lyr(sqlite_path, layer_name, geom_column='the_geom'):
     """Helper function to construct a QgsVectorLayer."""
     uri = QgsDataSourceURI()
     uri.setDatabase(sqlite_path)
-    uri.setDataSource('', layer_name, 'geometry')
+    uri.setDataSource('', layer_name, geom_column)
     return QgsVectorLayer(uri.uri(), layer_name, 'spatialite')
 
 

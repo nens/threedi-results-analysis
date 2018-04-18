@@ -27,14 +27,27 @@ def disable_sqlite_synchronous(func):
     complete or incredibly slow) under Ubuntu 14.04.
 
     Note: shouldn't be needed anymore in newer versions of GDAL.
+
+    Note 2: this decorator is 're-entrant'
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if int(gdal.VersionInfo()) < 2000000:
+        gdal_version_too_low = int(gdal.VersionInfo()) < 2000000
+        # if it was already off prior to entering this function it means
+        # that something has turned this option off. This means that we don't
+        # have to set it to OFF ourselves, but moreover, we don't want to
+        # mess with the setting and turn it back on (this is somewhat
+        # similar to a re-entrant lock).
+        initial_option_value = gdal.GetConfigOption('OGR_SQLITE_SYNCHRONOUS')
+        already_off = initial_option_value == 'OFF'
+        if gdal_version_too_low and not already_off:
             gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
-        retval = func(*args, **kwargs)
-        if int(gdal.VersionInfo()) < 2000000:
-            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
+            retval = func(*args, **kwargs)
+            gdal.SetConfigOption(
+                'OGR_SQLITE_SYNCHRONOUS', initial_option_value)
+        else:
+            # business as usual
+            retval = func(*args, **kwargs)
         return retval
     return wrapper
 
@@ -123,11 +136,15 @@ class Spatialite(SpatiaLiteDBConnector):
     def create_empty_layer(
             self, table_name, wkb_type=QGis.WKBPoint, fields=None,
             id_field='id', geom_field='the_geom', srid=4326):
+        self.create_empty_layer_only(
+            table_name, wkb_type, fields, id_field, geom_field, srid)
+        return self.get_layer(table_name, None, geom_field)
 
+    def create_empty_layer_only(
+            self, table_name, wkb_type=QGis.WKBPoint, fields=None,
+            id_field='id', geom_field='the_geom', srid=4326):
         self.createTable(table_name, fields, id_field)
         geom_type = QGis.featureType(wkb_type).lstrip('WKB')
         self.addGeometryColumn(
             table_name, geom_field, geom_type=geom_type, srid=srid)
         self.createSpatialIndex(table_name, geom_field)
-
-        return self.get_layer(table_name, None, geom_field)
