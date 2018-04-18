@@ -204,8 +204,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
-                                "(before June 2018) with a threedi calculation"
-                                "core  that is not able to include groundwater"
+                                "(after May 2018) with a 3Di calculation"
+                                "core that is able to include groundwater"
                                 " calculations. The ThreeDiToolbox reads "
                                 "this netcdf together with an .h5 file, we "
                                 "could however not find this .h5 file. We "
@@ -220,14 +220,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
-                                "(after May 2018) with a threedi "
-                                "calculation core  that is able to include "
-                                "groundwater calculations. The ThreeDiToolbox "
-                                "reads this netcdf together with an "
-                                "id_mapping file, we could however not find "
-                                "this id_mapping file. We searched in folder "
-                                "[../input_generate]. Please add this file "
-                                "to the correct location and try again",
+                                "(before June 2018) with a 3Di calculation "
+                                "core that is not able to include groundwater "
+                                "calculations. The ThreeDiToolbox reads this "
+                                "netcdf together with an id_mapping file, "
+                                "we could however not find this id_mapping "
+                                "file. We searched in folder "
+                                "[../input_generated]. Please add this "
+                                "file to the correct location and try again",
                                 title='Error')
                     return False
 
