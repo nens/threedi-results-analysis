@@ -201,27 +201,33 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             if detect_netcdf_version(filename) == 'netcdf-groundwater':
                 try:
                     find_h5_file(filename)
-                    ds_type = 'netcdf-groundwater'
+                    ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
-                                "before June 2018. It needs a .h5 file, we "
-                                "could however not find this .h5 file. "
-                                "We searched in folder [../preprocessed]. "
-                                "Please add this file to the correct location"
-                                " and try again",
+                                "(before June 2018) with a threedi calculation"
+                                "core  that is not able to include groundwater"
+                                " calculations. The ThreeDiToolbox reads "
+                                "this netcdf together with an .h5 file, we "
+                                "could however not find this .h5 file. We "
+                                "searched in folder [../preprocessed]. Please "
+                                "add this file to the correct location and "
+                                "try again",
                                 title='Error')
                     return False
             elif detect_netcdf_version(filename) == 'netcdf':
                 try:
                     find_id_mapping_file(filename)
-                    ds_type = 'netcdf'
+                    ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
-                                "after May 2018. It needs a id_mapping file, "
-                                "we could however not find this "
-                                "id_mapping file. We searched in folder "
-                                "[../preprocessed]. Please add his file to the"
-                                " correct location and try again",
+                                "(after May 2018) with a threedi "
+                                "calculation core  that is able to include "
+                                "groundwater calculations. The ThreeDiToolbox "
+                                "reads this netcdf together with an "
+                                "id_mapping file, we could however not find "
+                                "this id_mapping file. We searched in folder "
+                                "[../input_generate]. Please add this file "
+                                "to the correct location and try again",
                                 title='Error')
                     return False
 

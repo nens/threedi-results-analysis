@@ -211,15 +211,11 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf'
             - 'netcdf-groundwater'
 
-    Raises:
-        IndexError if nothing is found
     """
-
-    result_dir = os.path.dirname(netcdf_file_path)
 
     from netCDF4 import Dataset
 
-    dataset = Dataset(netcdf_file_path, mode='r', format='NETCDF4')
+    dataset = Dataset(netcdf_file_path, mode='r')
 
     if "threedicore_version" in dataset.ncattrs():
         return 'netcdf-groundwater'
