@@ -123,8 +123,8 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     raw_value = node_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # explicitly set feature id just to be sure (it can also
-                # autoincremently set itself if you don't specify)
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
                 feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
             feature.Destroy()
@@ -303,8 +303,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     raw_value = line_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # explicitly set feature id just to be sure (it can also
-                # autoincremently set itself if you don't specify)
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
                 feature.SetFID(line_data['id'][i])
 
             layer.CreateFeature(feature)
@@ -391,8 +391,8 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 raw_value = pump_data[fname][i]
                 value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # explicitly set feature id just to be sure (it can also
-                # autoincremently set itself if you don't specify)
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
                 feature.SetFID(pump_data['id'][i])
 
             layer.CreateFeature(feature)
