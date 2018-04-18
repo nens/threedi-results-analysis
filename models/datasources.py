@@ -155,8 +155,6 @@ class DataSourceLayerManager(object):
 
         sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
         progress_bar.increase_progress(33, "create flowline layer")
-        # this will also create a new sqlite if it doesn't exist
-        # spl = Spatialite(sqlite_path)
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.datasource, sqlite_path)
         progress_bar.increase_progress(33, "create node layer")
