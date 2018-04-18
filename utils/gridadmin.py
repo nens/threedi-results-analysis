@@ -2,12 +2,13 @@ from collections import OrderedDict
 import os
 
 from osgeo import ogr, osr
-
+from qgis.core import QGis
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.admin.constants import OGR_FIELD_TYPE_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
 from threedigrid.admin.utils import KCUDescriptor
 
+from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import log
 
 ogr.UseExceptions()  # fail fast
@@ -29,7 +30,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     """
 
     QGIS_NODE_FIELDS = OrderedDict([
-        ('id', 'int'),
+        # ('id', 'int'),
         ('inp_id', 'int'),
         ('spatialite_id', 'int'),
         # TODO: feat_type is not yet implemented
@@ -38,7 +39,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     ])
 
     QGIS_NODE_FIELD_NAME_MAP = OrderedDict([
-        ('id', 'id'),
+        # ('id', 'id'),
         ('inp_id', 'seq_id'),
         ('spatialite_id', 'content_pk'),
         ('feature_type', 'node_type'),
@@ -54,6 +55,14 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         '6': '2d_groundwater_bound',
         '7': '1d_bound',
     }
+
+    FIELDS = [
+        'id INTEGER',
+        'inp_id INTEGER',
+        'spatialite_id INTEGER',
+        'feature_type VARCHAR',  # use STRING?
+        'type VARCHAR',
+    ]
 
     def __init__(self, nodes):
         """
@@ -78,23 +87,30 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         target_sr = get_spatial_reference(target_epsg_code)
         transform = osr.CoordinateTransformation(src_sr, target_sr)
 
-        if not os.path.exists(file_name):
-            data_source = self.driver.CreateDataSource(
-                file_name, ["SPATIALITE=YES"])
-        else:
-            data_source = self.driver.Open(file_name, update=1)
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBPoint, fields=self.FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
 
-        layer = data_source.CreateLayer(
-            layer_name,
-            target_sr,
-            geom_type=ogr.wkbPoint,
-            options=['FORMAT=SPATIALITE']
-        )
-        fields = self.QGIS_NODE_FIELDS
-        for field_name, field_type in fields.iteritems():
-            layer.CreateField(ogr.FieldDefn(
-                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-            )
+        # layer = data_source.CreateLayer(
+        #     layer_name,
+        #     target_sr,
+        #     geom_type=ogr.wkbPoint,
+        #     options=['FORMAT=SPATIALITE']
+        # )
+        # fields = self.QGIS_NODE_FIELDS
+        # for field_name, field_type in fields.iteritems():
+        #     layer.CreateField(ogr.FieldDefn(
+        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
+        #     )
         _definition = layer.GetLayerDefn()
 
         for i in xrange(node_data['id'].size):
@@ -106,7 +122,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
-            for field_name, field_type in fields.iteritems():
+            for field_name, field_type in self.QGIS_NODE_FIELDS.iteritems():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     raw_value = node_data[fname][i]
@@ -127,6 +143,9 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                 # To circumvent this, we set 'OGC_FID' to 'id', so we can do
                 # feature.id() in QGIS and get the node index without having
                 # to specify that we need the use the 'id' column
+
+                # explicitly set feature id just to be sure (it can also
+                # autoincremently set itself if you don't specify)
                 feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
             feature.Destroy()
@@ -193,7 +212,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     before calling save()
     """
     LINE_FIELDS = OrderedDict([
-        ('id', 'int'),
+        # ('id', 'int'),
         ('kcu', 'int'),  # unused in plugin
         # type is a combination of 'kcu' and 'cont_type'
         ('type', 'str'),
@@ -207,7 +226,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     # maps the fields names of grid line objects
     # to their external representation
     LINE_FIELD_NAME_MAP = OrderedDict([
-        ('id', 'id'),
+        # ('id', 'id'),
         ('kcu', 'kcu'),
         ('type', 'does not matter'),
         ('start_node_idx', 'does not matter'),
@@ -216,6 +235,17 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         ('content_type', 'content_type'),
         ('spatialite_id', 'content_pk'),
     ])
+
+    FIELDS = [
+        'id INTEGER',
+        'kcu INTEGER',
+        'type VARCHAR',
+        'start_node_idx INTEGER',
+        'end_node_idx INTEGER',
+        'content_type VARCHAR',
+        'spatialite_id INTEGER',
+        'inp_id INTEGER',
+    ]
 
     def __init__(self, lines):
         """
@@ -243,23 +273,29 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         target_sr = get_spatial_reference(target_epsg_code)
         transform = osr.CoordinateTransformation(src_sr, target_sr)
 
-        if not os.path.exists(file_name):
-            data_source = self.driver.CreateDataSource(
-                file_name, ["SPATIALITE=YES"])
-        else:
-            data_source = self.driver.Open(file_name, update=1)
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
 
-        layer = data_source.CreateLayer(
-            layer_name,
-            target_sr,
-            geom_type=ogr.wkbLineString,
-            options=['FORMAT=SPATIALITE'],
-        )
-        fields = self.LINE_FIELDS
-        for field_name, field_type in fields.iteritems():
-            layer.CreateField(ogr.FieldDefn(
-                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-            )
+        # layer = data_source.CreateLayer(
+        #     layer_name,
+        #     target_sr,
+        #     geom_type=ogr.wkbLineString,
+        #     options=['FORMAT=SPATIALITE'],
+        # )
+        # for field_name, field_type in self.LINE_FIELDS.iteritems():
+        #     layer.CreateField(ogr.FieldDefn(
+        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
+        #     )
         _definition = layer.GetLayerDefn()
 
         node_a = line_data['line'][0]
@@ -274,7 +310,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
-            for field_name, field_type in fields.iteritems():
+            for field_name, field_type in self.LINE_FIELDS.iteritems():
                 fname = self.LINE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     value = None
@@ -346,23 +382,31 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         src_sr = get_spatial_reference(source_epsg_code)
         target_sr = get_spatial_reference(target_epsg_code)
         transform = osr.CoordinateTransformation(src_sr, target_sr)
-        if not os.path.exists(file_name):
-            data_source = self.driver.CreateDataSource(
-                file_name, ["SPATIALITE=YES"])
-        else:
-            data_source = self.driver.Open(file_name, update=1)
 
-        layer = data_source.CreateLayer(
-            layer_name,
-            target_sr,
-            geom_type=ogr.wkbLineString,
-            options=['FORMAT=SPATIALITE'],
-        )
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
 
-        for field_name, field_type in self.FIELDS.iteritems():
-            layer.CreateField(ogr.FieldDefn(
-                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-            )
+        # layer = data_source.CreateLayer(
+        #     layer_name,
+        #     target_sr,
+        #     geom_type=ogr.wkbLineString,
+        #     options=['FORMAT=SPATIALITE'],
+        # )
+
+        # for field_name, field_type in self.FIELDS.iteritems():
+        #     layer.CreateField(ogr.FieldDefn(
+        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
+        #     )
         _definition = layer.GetLayerDefn()
 
         for i in xrange(pump_data['id'].size):

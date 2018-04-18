@@ -35,11 +35,11 @@ def contains_layer(sqlite_path, layer_name):
     return has_layer
 
 
-def _get_vec_lyr(sqlite_path, layer_name):
+def _get_vec_lyr(sqlite_path, layer_name, geom_column='geometry'):
     """Helper function to construct a QgsVectorLayer."""
     uri = QgsDataSourceURI()
     uri.setDatabase(sqlite_path)
-    uri.setDataSource('', layer_name, 'geometry')
+    uri.setDataSource('', layer_name, geom_column)
     return QgsVectorLayer(uri.uri(), layer_name, 'spatialite')
 
 
@@ -55,7 +55,8 @@ def get_or_create_flowline_layer(ds, output_path):
         exporter.save(
             output_path, FLOWLINES_LAYER_NAME, sliced.data,
             sliced.epsg_code, 4326)
-    return _get_vec_lyr(output_path, FLOWLINES_LAYER_NAME)
+    return _get_vec_lyr(
+        output_path, FLOWLINES_LAYER_NAME, geom_column='the_geom')
 
 
 @disable_sqlite_synchronous
@@ -70,7 +71,7 @@ def get_or_create_node_layer(ds, output_path):
         exporter.save(
             output_path, NODES_LAYER_NAME, sliced.data,
             sliced.epsg_code, 4326)
-    return _get_vec_lyr(output_path, NODES_LAYER_NAME)
+    return _get_vec_lyr(output_path, NODES_LAYER_NAME, geom_column='the_geom')
 
 
 @disable_sqlite_synchronous
