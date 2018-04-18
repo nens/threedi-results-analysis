@@ -233,11 +233,11 @@ class MapAnimator(QWidget):
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
         QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer_groundwater,
-                                                   True)
+        QgsMapLayerRegistry.instance().addMapLayer(
+            self.line_layer_groundwater, True)
         QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer_groundwater,
-                                                   True)
+        QgsMapLayerRegistry.instance().addMapLayer(
+            self.node_layer_groundwater, True)
 
     def update_results(self):
         if not self.state:

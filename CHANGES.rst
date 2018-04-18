@@ -16,10 +16,6 @@ threedi-qgis-plugin changelog
 
 - Fix find_h5_file
 
-- Add module base.netcdf_groundwater (relocated from base.DummyDataSourse)
-
-- Fix find_h5_file
-
 - Add (temporary) ad-hoc implementations of get_timeseries and
   get_values_by_timestemp_nr.
   
