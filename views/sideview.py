@@ -1186,8 +1186,7 @@ class SideViewDockWidget(QDockWidget):
                 'end_node': pipe['connection_node_end_id'],
                 'start_level': pipe['invert_level_start_point'] +
                 profile['rel_bottom_level'],
-                'end_level': pipe['invert_level_end_po
-int'] +
+                'end_level': pipe['invert_level_end_point'] +
                 profile['rel_bottom_level'],
                 'start_height': profile['height'],
                 'end_height': profile['height']
