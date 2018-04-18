@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
 from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
+    QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, \
     QDockWidget, QComboBox, QMessageBox, QColor, QCursor
 
 import numpy as np
@@ -1186,7 +1186,8 @@ class SideViewDockWidget(QDockWidget):
                 'end_node': pipe['connection_node_end_id'],
                 'start_level': pipe['invert_level_start_point'] +
                 profile['rel_bottom_level'],
-                'end_level': pipe['invert_level_end_point'] +
+                'end_level': pipe['invert_level_end_po
+int'] +
                 profile['rel_bottom_level'],
                 'start_height': profile['height'],
                 'end_height': profile['height']
@@ -1631,6 +1632,12 @@ class SideViewDockWidget(QDockWidget):
 
         # add button to add objects to graphs
         self.button_bar_hlayout = QHBoxLayout(self)
+
+        # add title to graph
+        self.title_label = QLabel(self)
+        self.title_label.setObjectName("TitleLabel")
+        self.button_bar_hlayout.addWidget(self.title_label)
+
         self.select_sideview_button = QPushButton(self)
         self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
@@ -1639,8 +1646,8 @@ class SideViewDockWidget(QDockWidget):
         self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
 
-        spacer_item = QSpacerItem(40,
-                                  20,
+        spacer_item = QSpacerItem(0,
+                                  0,
                                   QSizePolicy.Expanding,
                                   QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
@@ -1663,10 +1670,11 @@ class SideViewDockWidget(QDockWidget):
         QMetaObject.connectSlotsByName(dock_widget)
 
     def retranslate_ui(self, dock_widget):
-        dock_widget.setWindowTitle(_translate(
-            "DockWidget", "3Di sideview %i" % self.nr, None))
+        #dock_widget.setWindowTitle(_translate(
+        #    "DockWidget", "3Di sideview %i" % self.nr, None))
+        self.title_label.setText(_translate(
+            "DockWidget", "3Di sideview nr. %i " % self.nr, None))
         self.select_sideview_button.setText(_translate(
             "DockWidget", "Choose sideview trajectory", None))
-
         self.reset_sideview_button.setText(_translate(
             "DockWidget", "Reset sideview trajectory", None))
