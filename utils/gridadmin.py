@@ -1,10 +1,8 @@
 from collections import OrderedDict
-import os
 
 from osgeo import ogr, osr
 from qgis.core import QGis
 from threedigrid.admin.constants import TYPE_FUNC_MAP
-from threedigrid.admin.constants import OGR_FIELD_TYPE_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
 from threedigrid.admin.utils import KCUDescriptor
 
@@ -29,8 +27,8 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     before calling save()
     """
 
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
     QGIS_NODE_FIELDS = OrderedDict([
-        # ('id', 'int'),
         ('inp_id', 'int'),
         ('spatialite_id', 'int'),
         # TODO: feat_type is not yet implemented
@@ -39,7 +37,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     ])
 
     QGIS_NODE_FIELD_NAME_MAP = OrderedDict([
-        # ('id', 'id'),
         ('inp_id', 'seq_id'),
         ('spatialite_id', 'content_pk'),
         ('feature_type', 'node_type'),
@@ -100,17 +97,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         # get layer for writing
         layer = data_source.GetLayerByName(layer_name)
 
-        # layer = data_source.CreateLayer(
-        #     layer_name,
-        #     target_sr,
-        #     geom_type=ogr.wkbPoint,
-        #     options=['FORMAT=SPATIALITE']
-        # )
-        # fields = self.QGIS_NODE_FIELDS
-        # for field_name, field_type in fields.iteritems():
-        #     layer.CreateField(ogr.FieldDefn(
-        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-        #     )
         _definition = layer.GetLayerDefn()
 
         for i in xrange(node_data['id'].size):
@@ -137,13 +123,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     raw_value = node_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
-                # thus FID defaults to 'OGC_FID', which sucks.
-                # See: http://www.gdal.org/drv_sqlite.html
-                # To circumvent this, we set 'OGC_FID' to 'id', so we can do
-                # feature.id() in QGIS and get the node index without having
-                # to specify that we need the use the 'id' column
-
                 # explicitly set feature id just to be sure (it can also
                 # autoincremently set itself if you don't specify)
                 feature.SetFID(node_data['id'][i])
@@ -211,8 +190,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     Exports to ogr formats. You need to set the driver explicitly
     before calling save()
     """
+
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
     LINE_FIELDS = OrderedDict([
-        # ('id', 'int'),
         ('kcu', 'int'),  # unused in plugin
         # type is a combination of 'kcu' and 'cont_type'
         ('type', 'str'),
@@ -226,7 +206,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     # maps the fields names of grid line objects
     # to their external representation
     LINE_FIELD_NAME_MAP = OrderedDict([
-        # ('id', 'id'),
         ('kcu', 'kcu'),
         ('type', 'does not matter'),
         ('start_node_idx', 'does not matter'),
@@ -286,16 +265,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         # get layer for writing
         layer = data_source.GetLayerByName(layer_name)
 
-        # layer = data_source.CreateLayer(
-        #     layer_name,
-        #     target_sr,
-        #     geom_type=ogr.wkbLineString,
-        #     options=['FORMAT=SPATIALITE'],
-        # )
-        # for field_name, field_type in self.LINE_FIELDS.iteritems():
-        #     layer.CreateField(ogr.FieldDefn(
-        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-        #     )
         _definition = layer.GetLayerDefn()
 
         node_a = line_data['line'][0]
@@ -334,12 +303,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     raw_value = line_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
-                # thus FID defaults to 'OGC_FID', which sucks.
-                # See: http://www.gdal.org/drv_sqlite.html
-                # To circumvent this, we set 'OGC_FID' to our 'id', so we
-                # can do feature.id() in QGIS and get the line index without
-                # having to specify the 'id' column.
+                # explicitly set feature id just to be sure (it can also
+                # autoincremently set itself if you don't specify)
                 feature.SetFID(line_data['id'][i])
 
             layer.CreateFeature(feature)
@@ -352,14 +317,14 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
     Exports to ogr formats. You need to set the driver explicitly
     before calling save()
     """
+
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
     FIELDS = OrderedDict([
-        # ('id', 'int'),
         ('node_idx1', 'int'),
         ('node_idx2', 'int'),
     ])
 
     FIELD_NAME_MAP = OrderedDict([
-        # ('id', 'id'),
         ('node_idx1', 'node1_id'),
         ('node_idx2', 'node2_id'),
     ])
@@ -402,17 +367,6 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         # get layer for writing
         layer = data_source.GetLayerByName(layer_name)
 
-        # layer = data_source.CreateLayer(
-        #     layer_name,
-        #     target_sr,
-        #     geom_type=ogr.wkbLineString,
-        #     options=['FORMAT=SPATIALITE'],
-        # )
-
-        # for field_name, field_type in self.FIELDS.iteritems():
-        #     layer.CreateField(ogr.FieldDefn(
-        #             str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-        #     )
         _definition = layer.GetLayerDefn()
 
         for i in xrange(pump_data['id'].size):
@@ -437,12 +391,8 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 raw_value = pump_data[fname][i]
                 value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
-                # thus FID defaults to 'OGC_FID', which sucks.
-                # See: http://www.gdal.org/drv_sqlite.html
-                # To circumvent this, we set 'OGC_FID' to our 'id', so we
-                # can do feature.id() in QGIS and get the line index without
-                # having to specify the 'id' column.
+                # explicitly set feature id just to be sure (it can also
+                # autoincremently set itself if you don't specify)
                 feature.SetFID(pump_data['id'][i])
 
             layer.CreateFeature(feature)
