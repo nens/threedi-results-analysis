@@ -27,6 +27,8 @@ def disable_sqlite_synchronous(func):
     complete or incredibly slow) under Ubuntu 14.04.
 
     Note: shouldn't be needed anymore in newer versions of GDAL.
+
+    Note 2: this decorator is 're-entrant'
     """
     @wraps(func)
     def wrapper(*args, **kwargs):

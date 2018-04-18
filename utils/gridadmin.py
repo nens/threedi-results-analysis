@@ -56,7 +56,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         '7': '1d_bound',
     }
 
-    FIELDS = [
+    TABLE_FIELDS = [
         'id INTEGER',
         'inp_id INTEGER',
         'spatialite_id INTEGER',
@@ -92,7 +92,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBPoint, fields=self.FIELDS,
+            layer_name, wkb_type=QGis.WKBPoint, fields=self.TABLE_FIELDS,
             id_field='id', geom_field='the_geom', srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
@@ -236,7 +236,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         ('spatialite_id', 'content_pk'),
     ])
 
-    FIELDS = [
+    TABLE_FIELDS = [
         'id INTEGER',
         'kcu INTEGER',
         'type VARCHAR',
@@ -278,7 +278,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBLineString, fields=self.FIELDS,
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
             id_field='id', geom_field='the_geom', srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
@@ -353,16 +353,22 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
     before calling save()
     """
     FIELDS = OrderedDict([
-        ('id', 'int'),
+        # ('id', 'int'),
         ('node_idx1', 'int'),
         ('node_idx2', 'int'),
     ])
 
     FIELD_NAME_MAP = OrderedDict([
-        ('id', 'id'),
+        # ('id', 'id'),
         ('node_idx1', 'node1_id'),
         ('node_idx2', 'node2_id'),
     ])
+
+    TABLE_FIELDS = [
+        'id INTEGER',
+        'node_idx1 INTEGER',
+        'node_idx2 INTEGER',
+    ]
 
     def __init__(self, node_data):
         self.node_data = node_data
@@ -388,7 +394,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBLineString, fields=self.FIELDS,
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
             id_field='id', geom_field='the_geom', srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
