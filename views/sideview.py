@@ -1645,7 +1645,7 @@ class SideViewDockWidget(QDockWidget):
         self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
 
-        spacer_item = QSpacerItem(20,
+        spacer_item = QSpacerItem(0,
                                   0,
                                   QSizePolicy.Expanding,
                                   QSizePolicy.Minimum)
