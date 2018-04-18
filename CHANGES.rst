@@ -4,8 +4,8 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
-
-- Add progress bar to new layer generation.
+- Add netcdf version (netcdf or netcdf-groundwater) detection to make
+  plugin more robust
 
 - Pinned threedigrid to working version (0.1.3)
 

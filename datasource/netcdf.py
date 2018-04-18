@@ -161,6 +161,7 @@ def find_id_mapping_file(netcdf_file_path):
     inpfiles = from_resultdir + from_inpdir
     return inpfiles[0]
 
+
 def find_h5_file(netcdf_file_path):
     """An ad-hoc way to get the h5_file.
 
@@ -191,6 +192,35 @@ def find_h5_file(netcdf_file_path):
 
     inpfiles = from_resultdir + from_inpdir
     return inpfiles[0]
+
+
+def detect_netcdf_version(netcdf_file_path):
+    """An ad-hoc way to detect whether we work with
+    1. or an regular netcdf: one that has been made with on "old" calculation
+    core (without groundater). This netcdf does not include an attribute
+    'threedicore_version'
+    2. or an groundwater netcdf: one that has been made with on "new"
+    calculation core (with optional groundater calculations). This netcdf
+    does include an attribute 'threedicore_version'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the version (a string) of the netcdf
+            - 'netcdf'
+            - 'netcdf-groundwater'
+
+    """
+
+    from netCDF4 import Dataset
+
+    dataset = Dataset(netcdf_file_path, mode='r')
+
+    if "threedicore_version" in dataset.ncattrs():
+        return 'netcdf-groundwater'
+    else:
+        return 'netcdf'
 
 
 def find_aggregation_netcdf(netcdf_file_path):
