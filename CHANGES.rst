@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Remask masked arrays in ``get_values_by_timestemp_nr`` for
+  NetcdfDataSourceGroundwater.
+
 - Change the geometry column name of ``gridadmin.sqlite`` from ``GEOM`` to
   ``the_geom`` so that it behaves similarly to the old
   ``subgrid_map.sqlite1``. This required the use of the ``Spatialite``
