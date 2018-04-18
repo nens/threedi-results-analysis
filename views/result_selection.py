@@ -198,10 +198,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we check if an .h5 file is available
             # If not we're not going to proceed
 
-            if detect_netcdf_version(filename) == 'netcdf-groundwater':
+            ds_type = detect_netcdf_version(filename)
+
+            if ds_type == 'netcdf-groundwater':
                 try:
                     find_h5_file(filename)
-                    ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
                                 "(after May 2018) with a 3Di calculation"
@@ -214,10 +215,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                 "try again",
                                 title='Error')
                     return False
-            elif detect_netcdf_version(filename) == 'netcdf':
+            elif ds_type == 'netcdf':
                 try:
                     find_id_mapping_file(filename)
-                    ds_type = detect_netcdf_version(filename)
                 except IndexError:
                     pop_up_info("You selected a netcdf that was created "
                                 "(before June 2018) with a 3Di calculation "
