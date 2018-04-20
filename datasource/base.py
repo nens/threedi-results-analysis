@@ -4,8 +4,6 @@ from abc import (
     abstractproperty,
 )
 
-from ..utils import cached_property
-
 
 class BaseDataSource(object):
     # NOTE: methods used in ncstats methods are ignored for now to keep
