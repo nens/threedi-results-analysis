@@ -14,12 +14,12 @@ ogr.UseExceptions()  # fail fast
 SPATIALITE_DRIVER_NAME = 'SQLite'
 
 
-
 def get_spatial_reference(epsg_code):
     """Get spatial reference from EPSG code."""
     spatial_ref = osr.SpatialReference()
     spatial_ref.ImportFromEPSG(int(epsg_code))
     return spatial_ref
+
 
 class QgisNodesOgrExporter(BaseOgrExporter):
     """
@@ -99,6 +99,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         _definition = layer.GetLayerDefn()
 
+        layer.StartTransaction()
         for i in xrange(node_data['id'].size):
             point = ogr.Geometry(ogr.wkbPoint)
             point.AddPoint_2D(
@@ -128,6 +129,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                 feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
             feature.Destroy()
+        layer.CommitTransaction()
         data_source = None
 
 
@@ -269,6 +271,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
         node_a = line_data['line'][0]
         node_b = line_data['line'][1]
+        layer.StartTransaction()
         for i in xrange(node_a.size):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
@@ -309,6 +312,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
             layer.CreateFeature(feature)
             feature.Destroy()
+        layer.CommitTransaction()
         data_source = None
 
 
@@ -369,6 +373,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
         _definition = layer.GetLayerDefn()
 
+        layer.StartTransaction()
         for i in xrange(pump_data['id'].size):
             line = ogr.Geometry(ogr.wkbLineString)
             node1_id = pump_data['node1_id'][i]
@@ -397,4 +402,5 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
             layer.CreateFeature(feature)
             feature.Destroy()
+        layer.CommitTransaction()
         data_source = None

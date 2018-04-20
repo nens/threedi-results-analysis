@@ -5,6 +5,10 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Wrap layer generation code in transactions to improve performance (it was
+  very slow on Windows, this improves it considerably so it's possible that
+  it autocommited on every statement, see: http://gdal.org/drv_sqlite.html)
+
 - Update groundwater flowlines overlapping order.
 
 - Title of sideview dockwidget does not overlap with button anymore
