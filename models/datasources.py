@@ -21,6 +21,7 @@ from ..utils.user_messages import log
 from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import StatusProgressBar
 
+
 def get_line_pattern(item_field):
     """
     get (default) line pattern for plots from this datasource
