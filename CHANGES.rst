@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Update groundwater flowlines overlapping order.
+
 - Title of sideview dockwidget does not overlap with button anymore
 
 - Remask masked arrays in ``get_values_by_timestemp_nr`` for
