@@ -56,5 +56,5 @@ class TestGeoUtils(unittest.TestCase):
 
         # should return None when the distance between the points <= 0
         line_coords = [0, 0, 0, 0]
-        l = calculate_perpendicular_line(line_coords, 20)
-        self.assertIsNone(l)
+        L = calculate_perpendicular_line(line_coords, 20)
+        self.assertIsNone(L)

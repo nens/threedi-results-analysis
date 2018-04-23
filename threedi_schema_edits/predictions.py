@@ -16,7 +16,7 @@ from sqlalchemy.exc import ResourceClosedError
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.utils.geo_utils import  get_coord_transformation_instance
+from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
 
 import logging
 

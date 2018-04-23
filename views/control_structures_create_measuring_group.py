@@ -97,9 +97,11 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
 
     def setup_tablewidget(self):
         tablewidget = self.tablewidget_measuring_point
-        tablewidget.setCellWidget(0, 0, self.combobox_input_measuring_point_table)
+        tablewidget.setCellWidget(
+            0, 0, self.combobox_input_measuring_point_table)
         tablewidget.setCellWidget(0, 1, self.combobox_input_measuring_point_id)
-        tablewidget.setCellWidget(0, 3, self.pushbutton_input_measuring_point_new)
+        tablewidget.setCellWidget(
+            0, 3, self.pushbutton_input_measuring_point_new)
 
     def update_ids(self):
         """Setup the id's for the measuring group and measuring points."""
@@ -116,7 +118,8 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         self.combobox_input_measuring_point_id.clear()
         list_of_connection_node_ids = self.control_structure.get_attributes(
             table_name="v2_connection_nodes", attribute_name="id")
-        self.combobox_input_measuring_point_id.addItems(list_of_connection_node_ids)
+        self.combobox_input_measuring_point_id.addItems(
+            list_of_connection_node_ids)
 
     def connect_signals(self):
         """Connect the signals."""
@@ -164,7 +167,8 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
             measuring_point_weight = tablewidget.item(0, 2).text()
         except AttributeError:
             measuring_point_weight = ""
-        tablewidget.setItem(row_position, 2, QTableWidgetItem(measuring_point_weight))
+        tablewidget.setItem(
+            row_position, 2, QTableWidgetItem(measuring_point_weight))
         measuring_point_remove_widget = QPushButton("Remove")
         measuring_point_remove_widget.clicked.connect(
             self.remove_measuring_point_row)

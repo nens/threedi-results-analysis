@@ -22,6 +22,7 @@ except AttributeError:
 
 log = logging.getLogger(__name__)
 
+
 class MapAnimator(QWidget):
     """
     todo:
@@ -109,7 +110,7 @@ class MapAnimator(QWidget):
 
             nr_parameters_tot = combo_box.count()
             for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                              nr_parameters_tot)):
+                                    nr_parameters_tot)):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
@@ -258,7 +259,7 @@ class MapAnimator(QWidget):
                  self.current_node_parameter['parameters'], 'diff'),
                 (self.line_layer_groundwater,
                  self.current_line_parameter['parameters'],
-                 'act')): # updated to act for actual, display actual value
+                 'act')):  # updated to act for actual, display actual value
 
             provider = layer.dataProvider()
 
@@ -267,7 +268,7 @@ class MapAnimator(QWidget):
                 values = values - ds.get_values_by_timestep_nr(parameter, 0)
             # updated to act for actual, display actual value
             elif stat == 'act':
-                values = values # removed np.fabs(values) to get actual value
+                values = values  # removed np.fabs(values) to get actual value
 
             update_dict = {}
             field_index = layer.fieldNameIndex('result')

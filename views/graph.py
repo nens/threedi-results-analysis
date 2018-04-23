@@ -481,7 +481,7 @@ class GraphWidget(QWidget):
 
         nr_parameters_tot = self.parameter_combo_box.count()
         for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                          nr_parameters_tot)):
+                                nr_parameters_tot)):
             self.parameter_combo_box.removeItem(i)
 
         # self.graph_plot.set_parameter(self.current_parameter)
@@ -667,7 +667,7 @@ class GraphWidget(QWidget):
                     # This check is the least we can do to have some assurance
                     # that this column is somewhat related to the display name
                     if 'display_name' in feature.fields(
-                            )[DISPLAY_NAME_DEFAULT_COLUMN].name():
+                    )[DISPLAY_NAME_DEFAULT_COLUMN].name():
                         object_name = feature[DISPLAY_NAME_DEFAULT_COLUMN]
                     else:
                         object_name = 'N/A'
