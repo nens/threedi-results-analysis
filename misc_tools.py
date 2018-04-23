@@ -34,7 +34,7 @@ class About(object):
 
     def __init__(self, iface):
         self.iface = iface
-        self.icon_path = ':/plugins/ThreeDiToolbox/icon.png'
+        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon.png'
         self.menu_text = "3Di about"
 
     def run(self):
@@ -62,7 +62,7 @@ class CacheClearer(object):
             ts_datasource: TimeseriesDatasourceModel instance
         """
         self.iface = iface
-        self.icon_path = ':/plugins/ThreeDiToolbox/icon_broom.png'
+        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon_broom.png'
         self.menu_text = "Clear cache"
         self.ts_datasource = ts_datasource
 

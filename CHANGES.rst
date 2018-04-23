@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Move icons to ``icons`` folder.
+
 - Wrap layer generation code in transactions to improve performance (it was
   very slow on Windows, this improves it considerably so it's possible that
   it autocommited on every statement, see: http://gdal.org/drv_sqlite.html)
