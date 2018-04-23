@@ -241,7 +241,7 @@ pep8:
 	@echo "-----------"
 	@echo "PEP8 issues"
 	@echo "-----------"
-	@pycodestyle --repeat --ignore=$(PEP8IGNORED_CODES) --exclude $(PEP8EXCLUDE) . || false
+	@pycodestyle --repeat --ignore=$(PEP8IGNORED_CODES) --exclude $(PEP8EXCLUDE)
 	@echo "-----------"
 	@echo "Ignored in PEP8 check:"
 	@echo $(PEP8EXCLUDE)
