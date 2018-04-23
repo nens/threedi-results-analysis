@@ -10,7 +10,10 @@ from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread
 from PyQt4.QtGui import QWidget, QFileDialog
 from PyQt4 import uic
 
-from ..datasource.netcdf import (find_id_mapping_file, find_h5_file, layer_qh_type_mapping)
+from ..datasource.netcdf import (find_id_mapping_file,
+                                 find_h5_file,
+                                 layer_qh_type_mapping,
+                                 detect_netcdf_version)
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
 
@@ -194,21 +197,42 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # Little test for checking if there is an id mapping file available
             # If not we check if an .h5 file is available
             # If not we're not going to proceed
-            try:
-                find_id_mapping_file(filename)
-            except IndexError:
+
+            ds_type = detect_netcdf_version(filename)
+
+            if ds_type == 'netcdf-groundwater':
                 try:
                     find_h5_file(filename)
                 except IndexError:
-                    pop_up_info("No id mapping or .h5 file found, we tried the following "
-                                "locations: id_mapping in [., ../input_generated] and"
-                                "h5_file in [., ../preprocessed]. Please add "
-                                "this file to the correct location and try again.",
+                    pop_up_info("You selected a netcdf that was created "
+                                "(after May 2018) with a 3Di calculation"
+                                "core that is able to include groundwater"
+                                " calculations. The ThreeDiToolbox reads "
+                                "this netcdf together with an .h5 file, we "
+                                "could however not find this .h5 file. We "
+                                "searched in folder [../preprocessed]. Please "
+                                "add this file to the correct location and "
+                                "try again",
                                 title='Error')
                     return False
-            # Add to the datasource
+            elif ds_type == 'netcdf':
+                try:
+                    find_id_mapping_file(filename)
+                except IndexError:
+                    pop_up_info("You selected a netcdf that was created "
+                                "(before June 2018) with a 3Di calculation "
+                                "core that is not able to include groundwater "
+                                "calculations. The ThreeDiToolbox reads this "
+                                "netcdf together with an id_mapping file, "
+                                "we could however not find this id_mapping "
+                                "file. We searched in folder "
+                                "[../input_generated]. Please add this "
+                                "file to the correct location and try again",
+                                title='Error')
+                    return False
+
             items = [{
-                'type': 'netcdf',
+                'type': ds_type,
                 'name': os.path.basename(filename).lower().rstrip('.nc'),
                 'file_path': filename
             }]

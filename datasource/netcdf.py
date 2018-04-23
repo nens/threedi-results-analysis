@@ -4,7 +4,6 @@ from itertools import (starmap, product)
 import json
 import os
 
-from netCDF4 import Dataset
 import numpy as np
 
 from .base import BaseDataSource
@@ -42,7 +41,7 @@ VOLUME = NcVar('vol', 'volume', 'm3')
 VOLUME_AGG = NcVar('vol1', 'volume', 'm3')
 DISCHARGE_PUMP = NcVar('q_pump', 'discharge pump', 'm3/s')
 DISCHARGE_INTERFLOW = NcVar('qp', 'discharge interflow', 'm3/s')
-DISCHARGE_LATERAL = NcVar('qlat', 'discharge lateral', 'm3/s')
+DISCHARGE_LATERAL = NcVar('q_lat', 'discharge lateral', 'm3/s')
 VELOCITY_INTERFLOW = NcVar('up1', 'velocity interflow', 'm/s')
 RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
@@ -162,6 +161,7 @@ def find_id_mapping_file(netcdf_file_path):
     inpfiles = from_resultdir + from_inpdir
     return inpfiles[0]
 
+
 def find_h5_file(netcdf_file_path):
     """An ad-hoc way to get the h5_file.
 
@@ -192,6 +192,35 @@ def find_h5_file(netcdf_file_path):
 
     inpfiles = from_resultdir + from_inpdir
     return inpfiles[0]
+
+
+def detect_netcdf_version(netcdf_file_path):
+    """An ad-hoc way to detect whether we work with
+    1. or an regular netcdf: one that has been made with on "old" calculation
+    core (without groundater). This netcdf does not include an attribute
+    'threedicore_version'
+    2. or an groundwater netcdf: one that has been made with on "new"
+    calculation core (with optional groundater calculations). This netcdf
+    does include an attribute 'threedicore_version'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the version (a string) of the netcdf
+            - 'netcdf'
+            - 'netcdf-groundwater'
+
+    """
+
+    from netCDF4 import Dataset
+
+    dataset = Dataset(netcdf_file_path, mode='r')
+
+    if "threedicore_version" in dataset.ncattrs():
+        return 'netcdf-groundwater'
+    else:
+        return 'netcdf'
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -297,6 +326,12 @@ class NetcdfDataSource(BaseDataSource):
             load_properties: call load_properties
             ds: netCDF4.Dataset, optional (useful for tests)
         """
+        # Note: we don't want module level imports of dynamically loaded
+        # libraries because importing them will cause files to be held open
+        # which cause trouble when updating the plugin. Therefore we delay
+        # the import as much as possible.
+        from netCDF4 import Dataset
+
         self.file_path = file_path
         # Load netcdf
         if not ds:
@@ -346,6 +381,12 @@ class NetcdfDataSource(BaseDataSource):
     @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
+        # Note: we don't want module level imports of dynamically loaded
+        # libraries because importing them will cause files to be held open
+        # which cause trouble when updating the plugin. Therefore we delay
+        # the import as much as possible.
+        from netCDF4 import Dataset
+
         # Load aggregation netcdf
         aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
         log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)

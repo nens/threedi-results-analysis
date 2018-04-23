@@ -19,44 +19,72 @@ FLOWLINES_LAYER_NAME = 'flowlines'
 NODES_LAYER_NAME = 'nodes'
 PUMPLINES_LAYER_NAME = 'pumplines'
 
+IGNORE_FIRST = slice(1, None, None)
+
+
+def contains_layer(sqlite_path, layer_name):
+    driver = ogr.GetDriverByName('SQLite')
+    data_source = driver.Open(sqlite_path)
+    has_layer = False
+    for i in range(data_source.GetLayerCount()):
+        lyr = data_source.GetLayer(i)
+        if lyr.GetName() == layer_name:
+            has_layer = True
+            break
+    data_source = None  # close data source
+    return has_layer
+
+
+def _get_vec_lyr(sqlite_path, layer_name, geom_column='the_geom'):
+    """Helper function to construct a QgsVectorLayer."""
+    uri = QgsDataSourceURI()
+    uri.setDatabase(sqlite_path)
+    uri.setDataSource('', layer_name, geom_column)
+    return QgsVectorLayer(uri.uri(), layer_name, 'spatialite')
+
 
 @disable_sqlite_synchronous
 def get_or_create_flowline_layer(ds, output_path):
-    if not os.path.exists(output_path):
+    if not os.path.exists(output_path) or not \
+            contains_layer(output_path, FLOWLINES_LAYER_NAME):
         ga = ds.gridadmin  # TODO: to implement
-        reprojected = ga.lines.reproject_to('4326')
         from .gridadmin import QgisLinesOgrExporter
-        exporter = QgisLinesOgrExporter(reprojected)
+        exporter = QgisLinesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, reprojected.data, '4326')
-    uri = QgsDataSourceURI()
-    uri.setDatabase(output_path)
-    uri.setDataSource('', FLOWLINES_LAYER_NAME, 'geometry')
-    return QgsVectorLayer(uri.uri(), FLOWLINES_LAYER_NAME, 'spatialite')
+        sliced = ga.lines.slice(IGNORE_FIRST)
+        exporter.save(
+            output_path, FLOWLINES_LAYER_NAME, sliced.data,
+            sliced.epsg_code, 4326)
+    return _get_vec_lyr(output_path, FLOWLINES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
 def get_or_create_node_layer(ds, output_path):
-    if not os.path.exists(output_path):
+    if not os.path.exists(output_path) or not \
+            contains_layer(output_path, NODES_LAYER_NAME):
         ga = ds.gridadmin  # TODO: to implement
-        reprojected = ga.nodes.reproject_to('4326')
         from .gridadmin import QgisNodesOgrExporter
-        exporter = QgisNodesOgrExporter(reprojected)
+        exporter = QgisNodesOgrExporter('dont matter')
         exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(output_path, reprojected.data, '4326')
-    uri = QgsDataSourceURI()
-    uri.setDatabase(output_path)
-    uri.setDataSource('', NODES_LAYER_NAME, 'geometry')
-    return QgsVectorLayer(uri.uri(), NODES_LAYER_NAME, 'spatialite')
+        sliced = ga.nodes.slice(IGNORE_FIRST)
+        exporter.save(
+            output_path, NODES_LAYER_NAME, sliced.data,
+            sliced.epsg_code, 4326)
+    return _get_vec_lyr(output_path, NODES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
 def get_or_create_pumpline_layer(ds, output_path):
-    # TODO: pumps exporter not yet implemented
-    if not os.path.exists(output_path):
+    if not os.path.exists(output_path) or not \
+            contains_layer(output_path, PUMPLINES_LAYER_NAME):
         ga = ds.gridadmin  # TODO: to implement
-        ga.pumps.reproject_to('4326').to_shape(output_path)
-    return QgsVectorLayer(output_path, PUMPLINES_LAYER_NAME, 'spatialite')
+        from .gridadmin import QgisPumpsOgrExporter
+        exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
+        exporter.driver = ogr.GetDriverByName('SQLite')
+        exporter.save(
+            output_path, PUMPLINES_LAYER_NAME, ga.pumps.data,
+            ga.pumps.epsg_code, 4326)
+    return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):

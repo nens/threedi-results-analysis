@@ -1,19 +1,24 @@
 from collections import OrderedDict
-import os
 
-from osgeo import ogr
+from osgeo import ogr, osr
+from qgis.core import QGis
+from threedigrid.admin.constants import TYPE_FUNC_MAP
+from threedigrid.orm.base.exporters import BaseOgrExporter
+from threedigrid.admin.utils import KCUDescriptor
 
-from threedi_gridadmin.constants import SHP_DRIVER_NAME
-from threedi_gridadmin.constants import GEO_PACKAGE_DRIVER_NAME
-from threedi_gridadmin.constants import TYPE_FUNC_MAP
-from threedi_gridadmin.constants import OGR_FIELD_TYPE_MAP
-from threedi_gridadmin.orm import BaseOgrExporter
-from threedi_gridadmin.utils import get_spatial_reference
-from threedi_gridadmin.utils import KCUDescriptor
+from ..datasource.spatialite import Spatialite
+from ..utils.user_messages import log
 
 ogr.UseExceptions()  # fail fast
 
 SPATIALITE_DRIVER_NAME = 'SQLite'
+
+
+def get_spatial_reference(epsg_code):
+    """Get spatial reference from EPSG code."""
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromEPSG(int(epsg_code))
+    return spatial_ref
 
 
 class QgisNodesOgrExporter(BaseOgrExporter):
@@ -22,8 +27,8 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     before calling save()
     """
 
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
     QGIS_NODE_FIELDS = OrderedDict([
-        ('id', 'int'),
         ('inp_id', 'int'),
         ('spatialite_id', 'int'),
         # TODO: feat_type is not yet implemented
@@ -32,7 +37,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     ])
 
     QGIS_NODE_FIELD_NAME_MAP = OrderedDict([
-        ('id', 'id'),
         ('inp_id', 'seq_id'),
         ('spatialite_id', 'content_pk'),
         ('feature_type', 'node_type'),
@@ -49,17 +53,26 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         '7': '1d_bound',
     }
 
+    TABLE_FIELDS = [
+        'id INTEGER',
+        'inp_id INTEGER',
+        'spatialite_id INTEGER',
+        'feature_type VARCHAR',  # use STRING?
+        'type VARCHAR',
+    ]
+
     def __init__(self, nodes):
         """
         :param lines: lines.models.Lines instance
         """
         self._nodes = nodes
         self.supported_drivers = {
-            GEO_PACKAGE_DRIVER_NAME,
-            SHP_DRIVER_NAME,
+            SPATIALITE_DRIVER_NAME,
         }
 
-    def save(self, file_name, node_data, target_epsg_code, **kwargs):
+    def save(
+            self, file_name, layer_name, node_data, source_epsg_code,
+            target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -67,32 +80,36 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         :param node_data: dict of node data
         """
         assert self.driver is not None
-        sr = get_spatial_reference(target_epsg_code)
-        self.del_datasource(file_name)
-        data_source = self.driver.CreateDataSource(
-            file_name, ["SPATIALITE=YES"])
-        layer = data_source.CreateLayer(
-            str(os.path.splitext(os.path.basename(file_name))[0]),
-            sr,
-            geom_type=ogr.wkbPoint,
-            options=['FORMAT=SPATIALITE']
-        )
-        fields = self.QGIS_NODE_FIELDS
-        for field_name, field_type in fields.iteritems():
-            layer.CreateField(ogr.FieldDefn(
-                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-            )
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
+
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBPoint, fields=self.TABLE_FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
+
         _definition = layer.GetLayerDefn()
 
+        layer.StartTransaction()
         for i in xrange(node_data['id'].size):
             point = ogr.Geometry(ogr.wkbPoint)
             point.AddPoint_2D(
                 node_data['coordinates'][0][i],
                 node_data['coordinates'][1][i]
             )
+            point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
-            for field_name, field_type in fields.iteritems():
+            for field_name, field_type in self.QGIS_NODE_FIELDS.iteritems():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     raw_value = node_data[fname][i]
@@ -107,15 +124,13 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     raw_value = node_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
-                # thus FID defaults to 'OGC_FID', which sucks.
-                # See: http://www.gdal.org/drv_sqlite.html
-                # To circumvent this, we set 'OGC_FID' to 'id', so we can do
-                # feature.id() in QGIS and get the node index without having
-                # to specify that we need the use the 'id' column
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
                 feature.SetFID(node_data['id'][i])
             layer.CreateFeature(feature)
             feature.Destroy()
+        layer.CommitTransaction()
+        data_source = None
 
 
 class QgisKCUDescriptor(KCUDescriptor):
@@ -177,8 +192,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     Exports to ogr formats. You need to set the driver explicitly
     before calling save()
     """
+
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
     LINE_FIELDS = OrderedDict([
-        ('id', 'int'),
         ('kcu', 'int'),  # unused in plugin
         # type is a combination of 'kcu' and 'cont_type'
         ('type', 'str'),
@@ -192,7 +208,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     # maps the fields names of grid line objects
     # to their external representation
     LINE_FIELD_NAME_MAP = OrderedDict([
-        ('id', 'id'),
         ('kcu', 'kcu'),
         ('type', 'does not matter'),
         ('start_node_idx', 'does not matter'),
@@ -202,19 +217,30 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         ('spatialite_id', 'content_pk'),
     ])
 
+    TABLE_FIELDS = [
+        'id INTEGER',
+        'kcu INTEGER',
+        'type VARCHAR',
+        'start_node_idx INTEGER',
+        'end_node_idx INTEGER',
+        'content_type VARCHAR',
+        'spatialite_id INTEGER',
+        'inp_id INTEGER',
+    ]
+
     def __init__(self, lines):
         """
         :param lines: lines.models.Lines instance
         """
         self._lines = lines
         self.supported_drivers = {
-            GEO_PACKAGE_DRIVER_NAME,
-            SHP_DRIVER_NAME,
             SPATIALITE_DRIVER_NAME,
         }
         self.driver = None
 
-    def save(self, file_name, line_data, target_epsg_code, **kwargs):
+    def save(
+            self, file_name, layer_name, line_data, source_epsg_code,
+            target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -224,36 +250,39 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         assert self.driver is not None
 
         kcu_dict = QgisKCUDescriptor()
-        sr = get_spatial_reference(target_epsg_code)
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
 
-        self.del_datasource(file_name)
-        data_source = self.driver.CreateDataSource(
-            file_name, ["SPATIALITE=YES"])
-        layer = data_source.CreateLayer(
-            str(os.path.splitext(os.path.basename(file_name))[0]),
-            sr,
-            geom_type=ogr.wkbLineString,
-            options=['FORMAT=SPATIALITE'],
-        )
-        fields = self.LINE_FIELDS
-        for field_name, field_type in fields.iteritems():
-            layer.CreateField(ogr.FieldDefn(
-                    str(field_name), OGR_FIELD_TYPE_MAP[field_type])
-            )
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
+
         _definition = layer.GetLayerDefn()
 
         node_a = line_data['line'][0]
         node_b = line_data['line'][1]
+        layer.StartTransaction()
         for i in xrange(node_a.size):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
                              line_data['line_coords'][1][i])
-            line.AddPoint_2d(line_data['line_coords'][2][i],
+            line.AddPoint_2D(line_data['line_coords'][2][i],
                              line_data['line_coords'][3][i])
+            line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
-            for field_name, field_type in fields.iteritems():
+            for field_name, field_type in self.LINE_FIELDS.iteritems():
                 fname = self.LINE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     value = None
@@ -277,13 +306,101 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     raw_value = line_data[fname][i]
                     value = TYPE_FUNC_MAP[field_type](raw_value)
                 feature.SetField(str(field_name), value)
-                # Using ['FID=id'] in CreateLayer doesn't work on GDAL < 2.0,
-                # thus FID defaults to 'OGC_FID', which sucks.
-                # See: http://www.gdal.org/drv_sqlite.html
-                # To circumvent this, we set 'OGC_FID' to our 'id', so we
-                # can do feature.id() in QGIS and get the line index without
-                # having to specify the 'id' column.
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
                 feature.SetFID(line_data['id'][i])
 
             layer.CreateFeature(feature)
             feature.Destroy()
+        layer.CommitTransaction()
+        data_source = None
+
+
+class QgisPumpsOgrExporter(BaseOgrExporter):
+    """
+    Exports to ogr formats. You need to set the driver explicitly
+    before calling save()
+    """
+
+    # 'id' can be ignored, it is set automatically, or by 'SetFID'
+    FIELDS = OrderedDict([
+        ('node_idx1', 'int'),
+        ('node_idx2', 'int'),
+    ])
+
+    FIELD_NAME_MAP = OrderedDict([
+        ('node_idx1', 'node1_id'),
+        ('node_idx2', 'node2_id'),
+    ])
+
+    TABLE_FIELDS = [
+        'id INTEGER',
+        'node_idx1 INTEGER',
+        'node_idx2 INTEGER',
+    ]
+
+    def __init__(self, node_data):
+        self.node_data = node_data
+        self.driver = None
+
+    def save(
+            self, file_name, layer_name, pump_data, source_epsg_code,
+            target_epsg_code, **kwargs):
+        """
+        save to file format specified by the driver, e.g. shapefile
+
+        :param file_name: name of the outputfile
+        :param line_data: dict of line data
+        """
+        assert self.driver is not None
+
+        src_sr = get_spatial_reference(source_epsg_code)
+        target_sr = get_spatial_reference(target_epsg_code)
+        transform = osr.CoordinateTransformation(src_sr, target_sr)
+
+        # this will also create a new sqlite if it doesn't exist
+        spl = Spatialite(file_name)
+        # create a new spatially enabled layer. The Spatialite connector is
+        # used to create a custom geometry column name
+        spl.create_empty_layer_only(
+            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
+            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+        del spl  # closes the connection
+        # reopen the file as writeable
+        data_source = self.driver.Open(file_name, update=1)
+        # get layer for writing
+        layer = data_source.GetLayerByName(layer_name)
+
+        _definition = layer.GetLayerDefn()
+
+        layer.StartTransaction()
+        for i in xrange(pump_data['id'].size):
+            line = ogr.Geometry(ogr.wkbLineString)
+            node1_id = pump_data['node1_id'][i]
+            node2_id = pump_data['node2_id'][i]
+
+            for node_id in [node1_id, node2_id]:
+                try:
+                    line.AddPoint_2D(
+                        self.node_data['coordinates'][0][node_id],
+                        self.node_data['coordinates'][1][node_id],
+                    )
+                except IndexError:
+                    log("Invalid node id: %s" % node_id)
+            line.Transform(transform)
+
+            feature = ogr.Feature(_definition)
+            feature.SetGeometry(line)
+            for field_name, field_type in self.FIELDS.iteritems():
+                fname = self.FIELD_NAME_MAP[field_name]
+                raw_value = pump_data[fname][i]
+                value = TYPE_FUNC_MAP[field_type](raw_value)
+                feature.SetField(str(field_name), value)
+                # explicitly set feature id to the 'id' field of the gridadmin
+                # data, because graph tool uses the feature id.
+                feature.SetFID(pump_data['id'][i])
+
+            layer.CreateFeature(feature)
+            feature.Destroy()
+        layer.CommitTransaction()
+        data_source = None

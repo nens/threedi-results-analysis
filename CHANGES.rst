@@ -5,6 +5,61 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Move icons to ``icons`` folder.
+
+- Wrap layer generation code in transactions to improve performance (it was
+  very slow on Windows, this improves it considerably so it's possible that
+  it autocommited on every statement, see: http://gdal.org/drv_sqlite.html)
+
+- Update groundwater flowlines overlapping order.
+
+- Title of sideview dockwidget does not overlap with button anymore
+
+- Remask masked arrays in ``get_values_by_timestemp_nr`` for
+  NetcdfDataSourceGroundwater.
+
+- Change the geometry column name of ``gridadmin.sqlite`` from ``GEOM`` to
+  ``the_geom`` so that it behaves similarly to the old
+  ``subgrid_map.sqlite1``. This required the use of the ``Spatialite``
+  connector (subclasses QGIS db_plugin) because GDAL versions lower than 2.0
+  do not support renaming of geometry columns.
+
+- Make ``disable_sqlite_synchronous`` re-entrant (i.e.: it works expectedly
+  when multiple functions that are decorated with it call each other)
+
+- Add netcdf version (netcdf or netcdf-groundwater) detection to make
+  plugin more robust
+
+- Pinned threedigrid to working version (0.1.3)
+
+- Animation tool: split nodes and lines into node_results, line_results,
+  node_results_groundwater, line_results_groundwater (all with own styling)
+
+- Add module base.netcdf_groundwater (relocated from base.DummyDataSourse)
+
+- Fix find_h5_file
+
+- Add (temporary) ad-hoc implementations of get_timeseries and
+  get_values_by_timestemp_nr.
+
+- Fix QGIS plugin updater problem on Windows with files being unable to be
+  deleted because they're held open by QGIS.
+
+- Fix cache clearer for groundwater.
+
+- Fix incorrect 'q_lat' name.
+
+- Set root logger level to make logging to QGIS work.
+
+- Reproject gridadmin.sqlite to wgs84 (EPSG:4326): this fixes the side view
+  tool that expects the generated layers to be in that projection.
+
+- Add groundwater categories to styling.
+
+- Combine nodes, flowlines and pumplines in one ``gridadmin.sqlite`` file.
+
+- Add pumplines exporter.
+
 - Add layer generation for ``netcdf-groundwater`` results.
 
 - Add ``BaseDataSource`` abstract interface.

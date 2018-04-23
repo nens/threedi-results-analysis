@@ -77,11 +77,6 @@ class BaseModel(QAbstractTableModel):
 
         self.columns = [cl for name, cl in self._fields]
 
-        item_functions = [
-            (name, value) for name, value
-            in inspect.getmembers(self.Fields, lambda a:(inspect.isroutine(a)))
-            if not name.startswith('__')]
-
         self.item_class = type(
             self.class_name + 'Item',
             (self._base_model_item_class, self.Fields),
@@ -89,9 +84,6 @@ class BaseModel(QAbstractTableModel):
                 '_fields': self._fields
             }
         )
-
-        # for function_name, function in item_functions:
-        #    setattr(self.item_class, function_name, function)
 
         # initiate fields with fieldname, link to model and column_nr
         for i in range(0, len(self._fields)):

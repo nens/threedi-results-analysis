@@ -2,8 +2,7 @@
 
 import os
 from PyQt4.QtCore import Qt, pyqtSignal
-
-from ..datasource.base import DummyDataSource
+from ..datasource.netcdf_groundwater import NetcdfDataSourceGroundwater
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
@@ -20,6 +19,7 @@ from ..utils.layer_from_netCDF import (
 )
 from ..utils.user_messages import log
 from ..datasource.spatialite import Spatialite
+from ..utils.user_messages import StatusProgressBar
 
 
 def get_line_pattern(item_field):
@@ -67,7 +67,7 @@ class DataSourceLayerManager(object):
     """
     type_ds_mapping = {
         'netcdf': NetcdfDataSource,
-        'netcdf-groundwater': DummyDataSource,
+        'netcdf-groundwater': NetcdfDataSourceGroundwater,
     }
 
     def __init__(self, ds_type, file_path):
@@ -95,7 +95,7 @@ class DataSourceLayerManager(object):
 
     @property
     def datasource_dir(self):
-        return os.path.dirname(self.datasource.file_path)
+        return os.path.dirname(self.file_path)
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
@@ -105,9 +105,12 @@ class DataSourceLayerManager(object):
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf'"""
-        if self.ds_type != 'netcdf':
-            raise ValueError("Only applicable for type 'netcdf'")
-        return self.datasource.file_path[:-3] + '.sqlite1'
+        if self.ds_type == 'netcdf':
+            return self.file_path[:-3] + '.sqlite1'
+        elif self.ds_type == 'netcdf-groundwater':
+            return os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        else:
+            raise ValueError("Invalid datasource type %s" % self.ds_type)
 
     def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not
@@ -146,23 +149,21 @@ class DataSourceLayerManager(object):
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
-    def _get_result_layers_groundwater(self):
-        lines_path = os.path.join(self.datasource_dir, 'flowlines.sqlite')
-        nodes_path = os.path.join(self.datasource_dir, 'nodes.sqlite')
-        pumps_path = os.path.join(self.datasource_dir, 'pumplines.sqlite')
+    def _get_result_layers_groundwater(self, progress_bar=None):
+
+        if progress_bar is None:
+            progress_bar = StatusProgressBar(100, 'create gridadmin.sqlite')
+
+        sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        progress_bar.increase_progress(33, "create flowline layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, lines_path)
+            self.datasource, sqlite_path)
+        progress_bar.increase_progress(33, "create node layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, nodes_path)
-        try:
-            self._pumpline_layer = self._pumpline_layer or \
-                get_or_create_pumpline_layer(self.datasource, pumps_path)
-        except Exception:
-            log(
-                "TODO: pumps not yet implemented in gridadmin, failing "
-                "silently to get things workin'."
-            )
-            self._pumpline_layer = None
+            self.datasource, sqlite_path)
+        progress_bar.increase_progress(34, "create pumplayer")
+        self._pumpline_layer = self._pumpline_layer or \
+            get_or_create_pumpline_layer(self.datasource, sqlite_path)
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 

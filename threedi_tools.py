@@ -220,7 +220,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             # purposes
             # add file remote_debugger_settings.py in main directory to use
             # debugger
-            import remote_debugger_settings
+            import remote_debugger_settings  # noqa
         except ImportError:
             pass
 
