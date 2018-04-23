@@ -154,7 +154,8 @@ class ControlledStructures(object):
         try:
             with self.engine.connect() as con:
                 rs = con.execute(
-                    '''SELECT {attribute} FROM {table} WHERE {where};'''.format(
+                    '''SELECT {attribute} FROM {table} WHERE {where};'''
+                    .format(
                         attribute=attribute_name, table=table_name,
                         where=where)
                 )

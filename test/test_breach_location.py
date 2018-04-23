@@ -210,8 +210,8 @@ class TestBreachLocationDryRun(unittest.TestCase):
             perp_line[2], perp_line[3]
         )
         levee_intersections = collections.defaultdict()
-        levee_intersections[2] = [(12., QgsPoint(3.31369,47.9747), 2)]
-        levee_intersections[3] = [(3., QgsPoint(3.31369,47.9748), 3)]
+        levee_intersections[2] = [(12., QgsPoint(3.31369, 47.9747), 2)]
+        levee_intersections[3] = [(3., QgsPoint(3.31369, 47.9748), 3)]
         new_position, levee_id = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )
@@ -230,8 +230,8 @@ class TestBreachLocationDryRun(unittest.TestCase):
             perp_line[2], perp_line[3]
         )
         levee_intersections = collections.defaultdict()
-        levee_intersections[2] = [(12., QgsPoint(3.31369,47.9747), 2)]
-        levee_intersections[3] = [(3., QgsPoint(3.31369,47.9748), 3)]
+        levee_intersections[2] = [(12., QgsPoint(3.31369, 47.9747), 2)]
+        levee_intersections[3] = [(3., QgsPoint(3.31369, 47.9748), 3)]
         new_position, _ = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )
@@ -251,14 +251,14 @@ class TestBresLocation(unittest.TestCase):
     Basically tests if the database table can be updated with the results
     """
 
-
     def setUp(self):
 
         here = os.path.split(os.path.abspath(__file__))[0]
         test_db_org = os.path.join(here, 'data', 'simple_breach_test.sqlite')
 
         tmp_test_file_dir = tempfile.mkdtemp(prefix='breach_location_test')
-        test_db_dest = os.path.join(tmp_test_file_dir, 'simple_breach_test.sqlite')
+        test_db_dest = os.path.join(
+            tmp_test_file_dir, 'simple_breach_test.sqlite')
         shutil.copyfile(test_db_org, test_db_dest)
 
         db_kwargs = {

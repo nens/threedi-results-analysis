@@ -22,6 +22,7 @@ class Guesser(object):
     Class for guessing manhole indicator, pipe friction and manhole storage
     area.
     """
+
     def __init__(self, threedi_database):
         """Init method.
 
@@ -121,9 +122,9 @@ class Guesser(object):
                     manhole.width is not None):
                 storage_area = 0.5 * 3.14 * manhole.width * manhole.width
             elif (manhole.shape in [
-                Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
-                          manhole.width is not None and
-                          manhole.length is not None):
+                    Constants.MANHOLE_SHAPE_RECTANGLE, '02'] and
+                    manhole.width is not None and
+                    manhole.length is not None):
                 storage_area = manhole.width * manhole.length
             elif manhole.width is not None:
                 storage_area = manhole.width * manhole.width

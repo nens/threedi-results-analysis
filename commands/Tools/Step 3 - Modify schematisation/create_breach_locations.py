@@ -30,7 +30,8 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(command=self)
+        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(
+            command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, breach_loc, auto_commit):
@@ -61,13 +62,12 @@ class CustomCommand(CustomCommandBase):
         with progress_bar(self.iface) as pb:
             for key, values in calc_points_dict.iteritems():
                 calc_type = key[1]
-                connected_points_selection = breach_location.get_connected_points(
-                    values, calc_type
-                )
+                connected_points_selection = \
+                    breach_location.get_connected_points(values, calc_type)
                 breach_location.move_points_behind_levee(
                     connected_points_selection, calc_type
                 )
-                current = (cnt/float(cnt_iterations)) * 100
+                current = (cnt / float(cnt_iterations)) * 100
                 pb.setValue(current)
                 cnt += 1
 

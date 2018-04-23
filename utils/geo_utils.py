@@ -21,8 +21,9 @@ def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):
     :returns the start- and endpoint of the extrapolated line
     """
     extrapolated_point = (
-        starting_pnt[0] + extrapolation_ration * (end_pnt[0]-starting_pnt[0]),
-        starting_pnt[1] + extrapolation_ration * (end_pnt[1]-starting_pnt[1])
+        starting_pnt[0] + extrapolation_ration *
+        (end_pnt[0] - starting_pnt[0]),
+        starting_pnt[1] + extrapolation_ration * (end_pnt[1] - starting_pnt[1])
     )
     return extrapolated_point
 
@@ -48,9 +49,9 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
     y2 = line_coords[3]
 
     # calculate the distance between the xy coordinates
-    dx = x1-x2
-    dy = y1-y2
-    dist = math.sqrt(dx*dx + dy*dy)
+    dx = x1 - x2
+    dy = y1 - y2
+    dist = math.sqrt(dx * dx + dy * dy)
     if dist == 0:
         return
 

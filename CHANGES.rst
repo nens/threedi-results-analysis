@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Enable PEP8 check in build process; fix remaining PEP8 errors.
+
 - Move icons to ``icons`` folder.
 
 - Wrap layer generation code in transactions to improve performance (it was

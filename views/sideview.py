@@ -1669,7 +1669,7 @@ class SideViewDockWidget(QDockWidget):
         QMetaObject.connectSlotsByName(dock_widget)
 
     def retranslate_ui(self, dock_widget):
-        #dock_widget.setWindowTitle(_translate(
+        # dock_widget.setWindowTitle(_translate(
         #    "DockWidget", "3Di sideview %i" % self.nr, None))
         self.title_label.setText(_translate(
             "DockWidget", "3Di sideview nr. %i " % self.nr, None))

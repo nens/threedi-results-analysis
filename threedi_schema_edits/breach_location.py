@@ -383,7 +383,8 @@ class BreachLocation(object):
         """
 
         # sort by distance
-        intersections = sorted(levee_intersections.values(), key=lambda x: (x[0]))
+        intersections = sorted(
+            levee_intersections.values(), key=lambda x: (x[0]))
         dist, pnt, levee_id = intersections[0][0]
 
         pnt_to_use = end_point
@@ -487,4 +488,3 @@ class BreachLocation(object):
         self.pnt_layer.startEditing()
         self.provider_pnt.addAttributes([QgsField("levee_id", QVariant.Int)])
         self.provider_line = self.line_layer.dataProvider()
-
