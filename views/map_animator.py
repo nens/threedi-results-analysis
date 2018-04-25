@@ -275,6 +275,14 @@ class MapAnimator(QWidget):
 
             for feature in layer.getFeatures():
                 ids = int(feature.id())
+                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+                # groundwater because those indexes start from 1 (something to
+                # do with a trash element), but for the non-groundwater version
+                # it is not. HOWEVER, due to some magic hackery in how the
+                # *_result layers are created/copied from the regular result
+                # layers, the resulting feature ids also start from 1, which
+                # why we need to subtract it in both cases, which btw is
+                # purely coincidental.
                 value = values[ids - 1]
                 update_dict[ids] = {
                     field_index: float(value)}
