@@ -191,3 +191,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             self._ga = GridH5Admin(f)
 
         return self._ga
+
+    @property
+    def ds_aggregation(self):
+        raise IndexError("TODO")

@@ -5,6 +5,9 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Disable the "Calculate statistics?" prompt if there are already csv files
+  available.
+
 - Enable PEP8 check in build process; fix remaining PEP8 errors.
 
 - Move icons to ``icons`` folder.

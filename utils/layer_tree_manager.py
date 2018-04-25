@@ -9,6 +9,7 @@ from ..stats.utils import (
     generate_structure_stats,
     generate_manhole_stats,
     generate_pump_stats,
+    get_csv_layer_cache_files,
     get_structure_layer_id_name,
     get_manhole_layer_id_name,
     get_pump_layer_id_name,
@@ -345,11 +346,19 @@ class LayerTreeManager(object):
         return layers
 
     def add_statistic_layers(self, result_row_nr, start_row, stop_row):
+        result_dirs = [
+            os.path.dirname(self.model.rows[row_nr].file_path.value)
+            for row_nr in range(start_row, stop_row + 1)]
+        csv_filepaths = get_csv_layer_cache_files(*result_dirs)
+        no_existing_csv_files = len(csv_filepaths) == 0
 
-        if not pop_up_question('Do you want to calculate statistics (in this '
-                               'version it can still take forever with large '
-                               'netcdf files)?',
-                               'Calculate statistics?',):
+        # only bother with a prompt if there are no csv files at all. If there
+        # are files we assume we can load them
+        if no_existing_csv_files and not pop_up_question(
+                'Do you want to calculate statistics (in this '
+                'version it can still take forever with large '
+                'netcdf files)?',
+                'Calculate statistics?'):
             return
 
         for row_nr in range(start_row, stop_row + 1):
