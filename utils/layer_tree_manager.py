@@ -349,8 +349,7 @@ class LayerTreeManager(object):
         result_dirs = [
             os.path.dirname(self.model.rows[row_nr].file_path.value)
             for row_nr in range(start_row, stop_row + 1)]
-        csv_filepaths = get_csv_layer_cache_files(*result_dirs)
-        no_existing_csv_files = len(csv_filepaths) == 0
+        no_existing_csv_files = bool(get_csv_layer_cache_files(*result_dirs))
 
         # only bother with a prompt if there are no csv files at all. If there
         # are files we assume we can load them
