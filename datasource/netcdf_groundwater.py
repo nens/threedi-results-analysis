@@ -17,6 +17,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         self.nMesh1D_nodes = self.ds.dimensions['nMesh1D_nodes'].size
         self.nMesh2D_lines = self.ds.dimensions['nMesh2D_lines'].size
         self.nMesh1D_lines = self.ds.dimensions['nMesh1D_lines'].size
+        self._cache = {}
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -122,25 +123,42 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         return self.ds.variables['time'][:]
 
     # used in map_animator
-    def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
+    def get_values_by_timestep_nr(
+            self, variable, timestamp_idx, index=None, use_cache=True):
         return self.temp_get_values_by_timestep_nr_impl(
-            variable, timestamp_idx, index)
+            variable, timestamp_idx, index, use_cache)
+
+    def _nc_from_mem(self, variable, use_cache=True):
+        """Get netcdf data from memory if needed."""
+        if use_cache:
+            try:
+                data = self._cache[variable]
+            except KeyError:
+                # Keep the whole netCDF array for a variable in memory for
+                # performance
+                data = self.ds.variables[variable][:]  # make copy
+                self._cache[variable] = data
+        else:
+            # this returns a netCDF Variable, which behaves like a np array
+            data = self.ds.variables[variable]
+        return data
 
     def temp_get_values_by_timestep_nr_impl(
-            self, variable, timestamp_idx, index=None):
+            self, variable, timestamp_idx, index=None, use_cache=True):
         import numpy as np
         from .netcdf import Q_TYPES, H_TYPES
         var_2d = self.PREFIX_2D + variable
         var_1d = self.PREFIX_1D + variable
 
         if index is not None:
-            # a new array is created, thus safe
-            index = index - 1
+            # in the groundwater version, the node index starts from 1 instead
+            # of 0.
+            index = index - 1  # copies the array
 
             # hacky object_type checking mechanism, sinds we don't have
             # that information readily available
             if variable == 'q_pump':
-                return self.ds.variables[var_1d][timestamp_idx, index]
+                return self._nc_from_mem(var_1d)[timestamp_idx, index]
             elif variable in Q_TYPES:
                 threshold = self.nMesh2D_lines
             elif variable in H_TYPES:
@@ -159,15 +177,15 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # works, but on a netCDF Variable it doesn't. Therefore we must
             # explicitly check if the list is empty.
             if iarr_2d.size > 0:
-                res[idx_2d] = self.ds.variables[var_2d][timestamp_idx, iarr_2d]
+                res[idx_2d] = self._nc_from_mem(var_2d)[timestamp_idx, iarr_2d]
             if iarr_1d.size > 0:
-                res[idx_1d] = self.ds.variables[var_1d][timestamp_idx, iarr_1d]
+                res[idx_1d] = self._nc_from_mem(var_1d)[timestamp_idx, iarr_1d]
         else:
             if variable == 'q_pump':
-                return self.ds.variables[var_1d][timestamp_idx, :]
+                return self._nc_from_mem(var_1d)[timestamp_idx, :]
             # TODO: pumps won't work
-            vals_2d = self.ds.variables[var_2d][timestamp_idx, :]
-            vals_1d = self.ds.variables[var_1d][timestamp_idx, :]
+            vals_2d = self._nc_from_mem(var_2d)[timestamp_idx, :]
+            vals_1d = self._nc_from_mem(var_1d)[timestamp_idx, :]
             # order is: 2D, then 1D
             res = np.hstack((vals_2d, vals_1d))
 

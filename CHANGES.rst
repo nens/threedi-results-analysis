@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Add caching of netcdf data in ``get_values_by_timestemp_nr``.
+
 - Enable PEP8 check in build process; fix remaining PEP8 errors.
 
 - Move icons to ``icons`` folder.
