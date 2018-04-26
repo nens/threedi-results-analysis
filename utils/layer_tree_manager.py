@@ -349,11 +349,11 @@ class LayerTreeManager(object):
         result_dirs = [
             os.path.dirname(self.model.rows[row_nr].file_path.value)
             for row_nr in range(start_row, stop_row + 1)]
-        no_existing_csv_files = bool(get_csv_layer_cache_files(*result_dirs))
+        csv_files_exist = bool(get_csv_layer_cache_files(*result_dirs))
 
         # only bother with a prompt if there are no csv files at all. If there
         # are files we assume we can load them
-        if no_existing_csv_files and not pop_up_question(
+        if not csv_files_exist and not pop_up_question(
                 'Do you want to calculate statistics (in this '
                 'version it can still take forever with large '
                 'netcdf files)?',

@@ -134,7 +134,9 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         var_1d = self.PREFIX_1D + variable
 
         if index is not None:
-            # a new array is created, thus safe
+            # in the groundwater version, the node index starts from 1 instead
+            # of 0.
+            # Note: a new array is created, e.g., index doesn't get modified
             index = index - 1
 
             # hacky object_type checking mechanism, sinds we don't have
