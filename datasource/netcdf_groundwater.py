@@ -158,7 +158,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # hacky object_type checking mechanism, sinds we don't have
             # that information readily available
             if variable == 'q_pump':
-                return self._nc_from_mem(var_1d)[timestamp_idx, index]
+                return self._nc_from_mem(
+                    var_1d, use_cache)[timestamp_idx, index]
             elif variable in Q_TYPES:
                 threshold = self.nMesh2D_lines
             elif variable in H_TYPES:
@@ -177,15 +178,17 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # works, but on a netCDF Variable it doesn't. Therefore we must
             # explicitly check if the list is empty.
             if iarr_2d.size > 0:
-                res[idx_2d] = self._nc_from_mem(var_2d)[timestamp_idx, iarr_2d]
+                res[idx_2d] = self._nc_from_mem(
+                    var_2d, use_cache)[timestamp_idx, iarr_2d]
             if iarr_1d.size > 0:
-                res[idx_1d] = self._nc_from_mem(var_1d)[timestamp_idx, iarr_1d]
+                res[idx_1d] = self._nc_from_mem(
+                    var_1d, use_cache)[timestamp_idx, iarr_1d]
         else:
             if variable == 'q_pump':
-                return self._nc_from_mem(var_1d)[timestamp_idx, :]
+                return self._nc_from_mem(var_1d, use_cache)[timestamp_idx, :]
             # TODO: pumps won't work
-            vals_2d = self._nc_from_mem(var_2d)[timestamp_idx, :]
-            vals_1d = self._nc_from_mem(var_1d)[timestamp_idx, :]
+            vals_2d = self._nc_from_mem(var_2d, use_cache)[timestamp_idx, :]
+            vals_1d = self._nc_from_mem(var_1d, use_cache)[timestamp_idx, :]
             # order is: 2D, then 1D
             res = np.hstack((vals_2d, vals_1d))
 
