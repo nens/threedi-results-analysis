@@ -196,7 +196,4 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
 
     @property
     def ds_aggregation(self):
-        # TODO: indexerror is raised because in the old datasource it's also
-        # raised when no ds_aggregation can be found, but we need something
-        # better...
-        raise IndexError("TODO")
+        return None
