@@ -48,7 +48,6 @@ def get_gr_name(current_layer_name):
         msg = "Unsupported layer: %s." % current_layer_name
         log.warning(msg)
         return None
-assert get_gr_name('v2_weir_view') == 'v2_weir'
 
 
 def get_gr_type(current_layer_name):
@@ -59,7 +58,6 @@ def get_gr_type(current_layer_name):
         msg = "Unsupported layer: %s." % current_layer_name
         log.warning(msg)
         return None
-assert get_gr_type('v2_weir_view') == 'lines'
 
 
 def get_layer_source(current_layer_name):
@@ -70,6 +68,10 @@ def get_layer_source(current_layer_name):
         msg = "Unsupported layer: %s." % current_layer_name
         log.warning(msg)
         return None
+
+
+assert get_gr_name('v2_weir_view') == 'v2_weir'
+assert get_gr_type('v2_weir_view') == 'lines'
 assert get_layer_source('v2_weir_view') == 'schematized'
 assert get_layer_source('pumplines') == 'result'
 
