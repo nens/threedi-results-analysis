@@ -22,6 +22,7 @@ except AttributeError:
 
 log = logging.getLogger(__name__)
 
+
 class MapAnimator(QWidget):
     """
     todo:
@@ -109,7 +110,7 @@ class MapAnimator(QWidget):
 
             nr_parameters_tot = combo_box.count()
             for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                              nr_parameters_tot)):
+                                    nr_parameters_tot)):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
@@ -258,7 +259,7 @@ class MapAnimator(QWidget):
                  self.current_node_parameter['parameters'], 'diff'),
                 (self.line_layer_groundwater,
                  self.current_line_parameter['parameters'],
-                 'act')): # updated to act for actual, display actual value
+                 'act')):  # updated to act for actual, display actual value
 
             provider = layer.dataProvider()
 
@@ -267,13 +268,24 @@ class MapAnimator(QWidget):
                 values = values - ds.get_values_by_timestep_nr(parameter, 0)
             # updated to act for actual, display actual value
             elif stat == 'act':
-                values = values # removed np.fabs(values) to get actual value
+                values = values  # removed np.fabs(values) to get actual value
 
             update_dict = {}
             field_index = layer.fieldNameIndex('result')
 
             for feature in layer.getFeatures():
                 ids = int(feature.id())
+                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+                # groundwater because those indexes start from 1 (something to
+                # do with a trash element), but for the non-groundwater version
+                # it is not. HOWEVER, due to some magic hackery in how the
+                # *_result layers are created/copied from the regular result
+                # layers, the resulting feature ids also start from 1, which
+                # why we need to subtract it in both cases, which btw is
+                # purely coincidental.
+                # TODO: to avoid all this BS this part should be refactored
+                # by passing the index to get_values_by_timestep_nr, which
+                # should take this into account
                 value = values[ids - 1]
                 update_dict[ids] = {
                     field_index: float(value)}

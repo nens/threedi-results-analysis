@@ -124,7 +124,7 @@ except ImportError as e:
 try:
     # Note: threedigrid depends on h5py and netCDF, so don't import it directly
     # (see above).
-    imp.find_module('threedigrid') # noqa
+    imp.find_module('threedigrid')  # noqa
 except ImportError as e:
     pop_up_info("Error loading threedigrid from "
                 "'external' subdirectory. error %s" % e.message)

@@ -113,8 +113,9 @@ class ThreediDatabase(object):
                                               'the_geom_linestring');"""
             )
 
-            session.execute("""SELECT RecoverSpatialIndex('v2_impervious_surface',
-                                                          'the_geom');""")
+            session.execute(
+                """SELECT RecoverSpatialIndex('v2_impervious_surface',
+                                              'the_geom');""")
 
             session.commit()
 

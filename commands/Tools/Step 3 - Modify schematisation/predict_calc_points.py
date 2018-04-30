@@ -5,8 +5,6 @@ import logging
 
 from qgis.core import QgsMapLayerRegistry
 
-from PyQt4 import QtGui
-
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_question
@@ -123,8 +121,9 @@ class CustomCommand(CustomCommandBase):
             are_empty.append(predictor.threedi_db.table_is_empty(tn))
         if not all(are_empty):
             fresh = False
-            question = 'Calculation point and connected point tables are not ' \
-                       'empty! Do you want to delete all their contents?'
+            question = (
+                'Calculation point and connected point tables are not '
+                'empty! Do you want to delete all their contents?')
 
             if pop_up_question(question, 'Warning'):
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)

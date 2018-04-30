@@ -388,10 +388,14 @@ class NetcdfDataSource(BaseDataSource):
         from netCDF4 import Dataset
 
         # Load aggregation netcdf
-        aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
-        log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-        return Dataset(aggregation_netcdf_file, mode='r',
-                       format='NETCDF4')
+        try:
+            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+        except IndexError:
+            return None
+        else:
+            log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            return Dataset(aggregation_netcdf_file, mode='r',
+                           format='NETCDF4')
 
     @cached_property
     def channel_mapping(self):
@@ -643,7 +647,8 @@ class NetcdfDataSource(BaseDataSource):
                 data = ds.variables[variable][:]  # make copy
                 self.cache[variable] = data
         else:
-            data = ds.variables[variable][:]
+            # nc var behaves like a np array
+            data = ds.variables[variable]
 
         try:
             # shape ds.variables['q'] array = (t, number of ids)

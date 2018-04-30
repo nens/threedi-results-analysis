@@ -284,7 +284,8 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_search_distance.setMinimum(2)
         self.spinbox_levee_distace.setMaximum(5000)
         self.spinbox_levee_distace.setMinimum(1)
-        self.setWindowTitle(_translate("self", "Create breach locations", None))
+        self.setWindowTitle(_translate(
+            "self", "Create breach locations", None))
         tool_help = """
         Move connected points across the nearest levee. You can limit your
         point set to your current selection. Using the dry-run option will
@@ -335,4 +336,3 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         # self.buttonBox.accepted.disconnect(self.on_accept)
         # self.buttonBox.rejected.disconnect(self.on_reject)
         event.accept()
-

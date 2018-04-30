@@ -174,7 +174,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
     if layer_name == 'nodes':
         try:
             ncstats = NcStatsAgg(datasource=nds)
-        except IndexError:
+        except ValueError:
             log.error('No aggregation netcdf available for statistics')
             ncstats = NcStats(datasource=nds)
 
@@ -182,7 +182,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         # It's a v2 spatialite layer
         try:
             ncstats = NcStatsAgg(datasource=nds)
-        except IndexError:
+        except ValueError:
             log.error('No aggregation netcdf available for statistics')
             ncstats = NcStats(datasource=nds)
     else:
@@ -274,14 +274,14 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
         # the layer type
         try:
             ncstats = NcStatsAgg(datasource=nds)
-        except IndexError:
+        except ValueError:
             log.error('No aggregation netcdf available for statistics')
             ncstats = NcStats(datasource=nds)
     else:
         # It's a view
         try:
             ncstats = NcStatsAgg(datasource=nds)
-        except IndexError:
+        except ValueError:
             log.error('No aggregation netcdf available for statistics')
             ncstats = NcStats(datasource=nds)
 
@@ -350,7 +350,7 @@ def generate_pump_stats(nds, result_dir, layer, layer_id_name,
         # the layer type
         try:
             ncstats = NcStatsAgg(datasource=nds)
-        except IndexError:
+        except ValueError:
             ncstats = NcStats(datasource=nds)
     else:
         # It's a view
