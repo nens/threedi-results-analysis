@@ -7,6 +7,7 @@ threedi-qgis-plugin changelog
 
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.
+- Add caching of netcdf data in ``get_values_by_timestemp_nr``.
 
 - Enable PEP8 check in build process; fix remaining PEP8 errors.
 

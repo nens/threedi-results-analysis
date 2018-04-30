@@ -647,7 +647,8 @@ class NetcdfDataSource(BaseDataSource):
                 data = ds.variables[variable][:]  # make copy
                 self.cache[variable] = data
         else:
-            data = ds.variables[variable][:]
+            # nc var behaves like a np array
+            data = ds.variables[variable]
 
         try:
             # shape ds.variables['q'] array = (t, number of ids)
