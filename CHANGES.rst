@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Enable threedigrid get_timeseries for result and shcematization layers
+
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.
 - Add caching of netcdf data in ``get_values_by_timestemp_nr``.
