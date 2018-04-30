@@ -153,6 +153,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         if index is not None:
             # in the groundwater version, the node index starts from 1 instead
             # of 0.
+            # Note: a new array is created, e.g., index doesn't get modified
             index = index - 1  # copies the array
 
             # hacky object_type checking mechanism, sinds we don't have
@@ -212,3 +213,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             self._ga = GridH5Admin(f)
 
         return self._ga
+
+    @property
+    def ds_aggregation(self):
+        return None
