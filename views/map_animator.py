@@ -283,6 +283,9 @@ class MapAnimator(QWidget):
                 # layers, the resulting feature ids also start from 1, which
                 # why we need to subtract it in both cases, which btw is
                 # purely coincidental.
+                # TODO: to avoid all this BS this part should be refactored
+                # by passing the index to get_values_by_timestep_nr, which
+                # should take this into account
                 value = values[ids - 1]
                 update_dict[ids] = {
                     field_index: float(value)}
