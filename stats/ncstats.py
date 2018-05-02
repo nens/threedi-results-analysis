@@ -205,7 +205,8 @@ class NcStatsAgg(NcStats):
     def __init__(self, *args, **kwargs):
         super(NcStatsAgg, self).__init__(*args, **kwargs)
 
-        if self.datasource.ds_aggregation is None:
+        if (not isinstance(self.datasource, NetcdfDataSource) or
+                self.datasource.ds_aggregation is None):
             raise ValueError("No aggration netcdf available in data source.")
 
         # Construct a dict with thing we actually have in the loaded netcdf,

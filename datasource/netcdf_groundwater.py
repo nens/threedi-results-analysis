@@ -122,25 +122,38 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         """Available variables from 'subgrid_map.nc'."""
         from .netcdf import SUBGRID_MAP_VARIABLES
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
-        raw_available_vars = [
-            v for v in self.ds.variables.keys() if
-            v.startswith(self.PREFIX_1D) or v.startswith(self.PREFIX_2D)]
-        # Convert to a set to (1) get rid of duplicate variable names, and (2)
-        # to intersect with known variables
-        available_vars = set(
-            [self._strip_prefix(v) for v in raw_available_vars])
+        available_vars = (
+            self.gridadmin_result.nodes._field_names |
+            self.gridadmin_result.lines._field_names |
+            self.gridadmin_result.pumps._field_names
+        )
         # filter using a hardcoded 'whitelist'
-        available_known_vars = available_vars.intersection(
-            known_subgrid_map_vars)
+        available_known_vars = available_vars & known_subgrid_map_vars
         return list(available_known_vars)
 
     @cached_property
     def available_aggregation_vars(self):
-        return []
+        agg = self.gridadmin_aggregate_result
+        if not agg:
+            return []
+        # hardcoded whitelist
+        known_vars = set(
+            agg.lines.Meta.composite_fields.keys() +
+            agg.nodes.Meta.composite_fields.keys() +
+            agg.pumps.Meta.composite_fields.keys()
+        )
+        available_vars = (
+            agg.nodes._field_names | agg.lines._field_names |
+            agg.pumps._field_names
+        )
+        available_known_vars = available_vars & known_vars
+        return list(available_known_vars)
 
     def get_available_variables(self):
         # This method is used by the water balance plugin (DeltaresTdiToolbox)
-        return self.available_subgrid_map_vars
+        return (
+            self.available_subgrid_map_vars + self.available_aggregation_vars
+        )
 
     def node_type_of(self, node_idx):
         pass
@@ -369,5 +382,13 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             self._ga_result = GridH5ResultAdmin(h5, self.file_path)
         return self._ga_result
 
-    def ds_aggregation(self):
-        return None
+    @cached_property
+    def gridadmin_aggregate_result(self):
+        from ..datasource.netcdf import find_h5_file, find_aggregation_netcdf
+        from ..utils.patched_threedigrid import GridH5AggregateResultAdmin
+        try:
+            agg_path = find_aggregation_netcdf(self.file_path)
+            h5 = find_h5_file(self.file_path)
+            return GridH5AggregateResultAdmin(h5, agg_path)
+        except IndexError:
+            return None
