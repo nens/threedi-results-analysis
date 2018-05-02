@@ -6,6 +6,14 @@ threedi-qgis-plugin changelog
 -----------------
 
 - Enable threedigrid get_timeseries for result and schematization layers
+- Update available vars methods using threedigrid for
+  NetcdfDataSourceGroundwater.
+
+- Implement ``available_aggregation_vars`` using threedigrid.
+
+- Bump threedigrid to 0.2.2.
+
+- Enable threedigrid get_timeseries for result and shcematization layers
 
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.
