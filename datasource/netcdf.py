@@ -20,7 +20,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'q_pump': 'm3',
     'qp': 'm3',
     'up1': 'm',
-    'qlat': 'm3',
+    'q_lat': 'm3',
     'vol1': 'm3',
     'rain': 'm3',
     'infiltration_rate': 'm3',
@@ -79,11 +79,15 @@ AGGREGATION_VARIABLES = [
     VELOCITY,
     VELOCITY_INTERFLOW,
     WATERLEVEL,
+    # TODO: for some reason it's called 'vol' in the groundwater netcdf, while
+    # it's called 'vol1' in the old one
+    VOLUME,
     VOLUME_AGG,  # this is the only difference with SUBGRID_MAP_VARIABLES
     RAIN_INTENSITY,
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    WET_CROSS_SECTION_AREA,
 ]
 
 AGGREGATION_OPTIONS = {

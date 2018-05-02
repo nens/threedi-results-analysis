@@ -98,6 +98,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             agg.nodes.Meta.composite_fields.keys() +
             agg.pumps.Meta.composite_fields.keys()
         )
+        # all available fields, including hdf5 fields
         available_vars = (
             agg.nodes._field_names | agg.lines._field_names |
             agg.pumps._field_names
@@ -110,12 +111,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         return (
             self.available_subgrid_map_vars + self.available_aggregation_vars
         )
-
-    def node_type_of(self, node_idx):
-        pass
-
-    def line_type_of(self, line_idx):
-        pass
 
     @cached_property
     def timestamps(self):
