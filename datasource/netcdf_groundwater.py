@@ -25,11 +25,11 @@ layer_information = [
     ('line_results_groundwater', 'lines', 'lines', 'result')
     ]
 
-nc_variable_information = [
-    # gridadmin_type, [nc_variables]
-    ('nodes', ['q_lat', 'rain', 's1', 'su', 'vol', 'Mesh2D_leak']),
-    ('lines', ['au', 'q', 'u1']),
-    ('pumps', ['Mesh1D_q_pump'])]
+# nc_variable_information = [
+#     # gridadmin_type, [nc_variables]
+#     ('nodes', ['q_lat', 'rain', 's1', 'su', 'vol', 'Mesh2D_leak']),
+#     ('lines', ['au', 'q', 'u1']),
+#     ('pumps', ['Mesh1D_q_pump'])]
 
 object_type_gr_name = dict(
     [(a[0], a[1]) for a in layer_information])
@@ -37,26 +37,6 @@ object_type_gr_type = dict(
     [(a[0], a[2]) for a in layer_information])
 object_type_layer_source = dict(
     [(a[0], a[3]) for a in layer_information])
-gr_type_nc_var = dict(
-    [(a[0], a[1]) for a in nc_variable_information])
-
-# Get the gridadmin name (weirs, channels, etc) for internal purposes
-# 'v2_weir_view' >> 'weirs'
-# object_type_gr_name[current_layer_name]
-
-# Get the gridadmin type (nodes, lines, pumps) for internal purposes
-# 'v2_weir_view' >> 'lines'
-# object_type_gr_type[current_layer_name]
-
-# Get the layer source (schematized, result) for internal purposes
-# 'v2_weir_view' >> 'schematized'
-# object_type_layer_source[current_layer_name]
-
-# assert get_gr_name('v2_weir_view') == 'weirs'
-# assert get_gr_type('v2_weir_view') == 'lines'
-# assert get_layer_source('v2_weir_view') == 'schematized'
-# assert get_layer_source('pumplines') == 'result'
-# assert get_nc_variables('v2_channel') == ['au', 'q', 'u1']
 
 
 class NetcdfDataSourceGroundwater(BaseDataSource):
@@ -151,133 +131,62 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def _get_timeseries_schematisation_layer(
             self, object_type, object_id, nc_variable, timeseries=None,
             only=None, data=None):
-
         """
-            this function retireves a timeserie when user select a
-            schematization layer and e.g. 'adds' it to the graph
-        -   to get a timeseries using threedigridadmin, we need to call e.g.
-            gr.lines.filter(content_type='v2_channel', content_pk=1).
-            timeseries(indexes=slice(None)).only('q').data['q']
-        -   this will return multiple timeseries (since a v2_channel can be
-            splitted up in multiple flowlines
+        -   this function retireves a timeserie when user select a
+            schematization layer and e.g. 'adds' it to the graph.
+        -   filtering for nodes/lines differs from filtering for pumps:
+            - nodes/lines:  qgisvectorlayer object_id = gridadmin content_pk
+            - pumps:        has no contect_pk, therefore we use id.
+                            Qgisvectorlayer object_id = gridadmin id + 1
         -   slice(None) means we get all timesteps.
         -   get_timeseries_schematisation_layer() gets strings as arguments
             that we need to parse as atrributes
         """
-
         # we need the gridadmin type (e.g. from flowlines to lines)
         grid_type = object_type_gr_type[object_type]
-        # a schematized layer is either a nodes, lines or pumps. The
-        # gridadmin syntax for nodes and lines is the same
+        # we need the gridadmin name (e.g. from nodes to connectionnodes)
+        grid_name = object_type_gr_name[object_type]
 
         if grid_type in ['nodes', 'lines']:
             # one example for v2_connection_nodes
             # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).only('vol').data['vol']
+            #   indexes=slice(None)).vol
 
             # one example for v2_channels
             # e.g. gr.lines.channels.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).only('au').data['au']
+            #   indexes=slice(None)).au
 
             # gr.nodes
-            first = getattr(self.gr, object_type_gr_type[object_type])
+            first = getattr(self.gr, grid_type)
             # gr.nodes.connectionnodes
-            second = getattr(first, object_type_gr_name[object_type])
+            second = getattr(first, grid_name)
             # gr.nodes.connectionnodes.filter(content_pk=1)
             third = second.filter(content_pk=object_id)
             # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None))
             fourth = third.timeseries(indexes=slice(None))
             # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).only('vol')
-            fifth = fourth.only(nc_variable)
-            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).only('vol').data['vol']
-            sixth = fifth.data
-            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).only('vol').data['vol']
+            #   indexes=slice(None)).vol
+            fifth = getattr(fourth, nc_variable)
+            # this could return multiple timeseries, since a v2_channel can
+            # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
-            self.vals = sixth[nc_variable][:, pick_only_first_of_element]
+            self.vals = fifth[:, pick_only_first_of_element]
 
         elif grid_type == 'pumps':
-            #gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-            #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
+            # gr.pumps.filter(id=3).timeseries(indexes=slice(
+                # None)).Mesh1D_q_pump
             # gr.pumps
-            first = getattr(self.gr, object_type_gr_type[object_type])
+            first = getattr(self.gr, grid_type)
             # gr.pumps.filter(id=3)
             gr_id = object_id - 1
             second = first.filter(id=gr_id)
             # gr.pumps.filter(id=3).timeseries(indexes=slice(None))
             third = second.timeseries(indexes=slice(None))
             # only nc variable available for pumps is q_pump
-            # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-            #   'Mesh1D_q_pump')
-            fourth = third.only(nc_variable)
-            # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-            #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
-            self.vals = fourth.data[nc_variable]
-
-
-        # if grid_type in ['nodes', 'lines']:
-        #     # one example for v2_connection_nodes
-        #     # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-        #     #   indexes=slice(None)).only('vol').data['vol']
-        #
-        #     # one example for v2_channels
-        #     # e.g. gr.lines.channels.filter(content_pk=1).timeseries(
-        #     #   indexes=slice(None)).only('au').data['au']
-        #
-        #     # gr.nodes
-        #     first = getattr(self.gr, object_type_gr_type[object_type])
-        #     # gr.nodes.connectionnodes
-        #     second = getattr(first, object_type_gr_name[object_type])
-        #     # gr.nodes.connectionnodes.filter(content_pk=1)
-        #     third = second.filter(content_pk=object_id)
-        #     # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-        #     #   indexes=slice(None))
-        #     fourth = third.timeseries(indexes=slice(None))
-        #     # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-        #     #   indexes=slice(None)).only('vol')
-        #     if nc_variable not in gr_type_nc_var[grid_type]:
-        #         msg = "Unsupported nc_variable: %s." % nc_variable
-        #         log.warning(msg)
-        #         # return None
-        #         self.vals = self.timestamps.fill(None)
-        #     else:
-        #         fifth = fourth.only(nc_variable)
-        #         # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-        #         #   indexes=slice(None)).only('vol').data['vol']
-        #         sixth = fifth.data
-        #         # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-        #         #   indexes=slice(None)).only('vol').data['vol']
-        #         pick_only_first_of_element = 0
-        #         self.vals = sixth[nc_variable][:, pick_only_first_of_element]
-        #
-        # elif grid_type == 'pumps':
-        #     # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-        #     #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
-        #     # gr.pumps
-        #     first = getattr(self.gr, object_type_gr_type[object_type])
-        #     # gr.pumps.filter(id=3)
-        #     gr_id = object_id - 1
-        #     second = first.filter(id=gr_id)
-        #     # gr.pumps.filter(id=3).timeseries(indexes=slice(None))
-        #     third = second.timeseries(indexes=slice(None))
-        #     # only nc variable available for pumps is q_pump
-        #     if nc_variable not in gr_type_nc_var[grid_type]:
-        #         msg = "Unsupported nc_variable: %s." % nc_variable
-        #         log.warning(msg)
-        #         # return None
-        #         self.vals = self.timestamps.fill(None)
-        #         # self.vals = np.empty([144,1])
-        #     else:
-        #         # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-        #         #   'Mesh1D_q_pump')
-        #         fourth = third.only(nc_variable)
-        #         # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
-        #         #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
-        #         self.vals = fourth.data[nc_variable]
-
+            # gr.pumps.filter(id=3).timeseries(indexes=slice(
+            #   None)).Mesh1D_q_pump
+            self.vals = getattr(third, nc_variable)
 
     def _get_timeseries_result_layer(self, object_type, object_id,
                                      nc_variable):
@@ -289,70 +198,20 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         -   slice(None) means we get all timesteps.
         -   get_timeseries_result_layer() gets strings as arguments
             that we need to parse as atrributes
-        -   using the gridadmin in a python we see that:
-        In [1]: gr.nodes.id
-        Out[1]: array([0, 1, 2, ..., 15601, 15602, 15603])
-        In [2]: len(gr.nodes.id)
-        Out[2]: 15604
-        In [3]: len(set(gr.nodes.id))
-        Out[3]: 15604
-        In [4]: gr.nodes.filter(id=0)
-        this returns empty stuff
-        -   The nodes QgisVectorLayer contains id 1 till 15603 (15603 rows),
-            therefore we can use id to retrieve a timeseries
         """
-
         # we need the gridadmin type (e.g. from flowlines to lines)
         grid_type = object_type_gr_type[object_type]
 
-        if grid_type in ['nodes', 'lines']:
-            # one example for nodes
-            #  gr.nodes
-            first = getattr(self.gr, grid_type)
-            # gr.nodes.filter(id=100)
-            second = first.filter(id=object_id)
-            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-            third = second.timeseries(indexes=slice(None))
-            # get the timeserie of the nc_variable
-            fourth = getattr(third, nc_variable)
-            # flatten numpyarray
-            self.vals = fourth.flatten()
-        elif grid_type == 'pumps':
-            #  gr.pumps
-            first = getattr(self.gr, grid_type)
-            # gr.pumps.filter(id=100)
-            second = first.filter(id=object_id)
-            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-            third = second.timeseries(indexes=slice(None))
-            self.vals = third.only('Mesh1D_q_pump').data['Mesh1D_q_pump']
-
-        # if grid_type in ['nodes', 'lines']:
-        #     # one example for nodes
-        #     #  gr.nodes
-        #     first = getattr(self.gr, grid_type)
-        #     # gr.nodes.filter(id=100)
-        #     second = first.filter(id=object_id)
-        #     # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        #     third = second.timeseries(indexes=slice(None))
-        #     # get the timeserie of the nc_variable
-        #     if nc_variable not in gr_type_nc_var[grid_type]:
-        #         msg = "Unsupported nc_variable: %s." % nc_variable
-        #         log.warning(msg)
-        #         # return None
-        #         # self.vals = np.empty([144, 1])
-        #         self.vals = self.timestamps.fill(None)
-        #     else:
-        #         fourth = getattr(third, nc_variable)
-        #         # flatten numpyarray
-        #         self.vals = fourth.flatten()
-        # elif grid_type == 'pumps':
-        #     #  gr.pumps
-        #     first = getattr(self.gr, grid_type)
-        #     # gr.pumps.filter(id=100)
-        #     second = first.filter(id=object_id)
-        #     # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        #     third = second.timeseries(indexes=slice(None))
-        #     self.vals = third.only('Mesh1D_q_pump').data['Mesh1D_q_pump']
+        # one example for nodes: e.g. gr.nodes
+        first = getattr(self.gr, grid_type)
+        # gr.nodes.filter(id=100)
+        second = first.filter(id=object_id)
+        # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+        third = second.timeseries(indexes=slice(None))
+        # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
+        fourth = getattr(third, nc_variable)
+        # flatten numpyarray
+        self.vals = fourth.flatten()
 
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
@@ -371,14 +230,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         if fill_value is not None and type(self.vals) == \
                 np.ma.core.MaskedArray:
             self.vals = self.vals.filled(fill_value)
-
-        msg = "object_type: {object_type} " \
-              "object_id {object_id} " \
-              "nc_variable {nc_variable}".format(object_type=object_type,
-                                                 object_id=object_id,
-                                                 nc_variable=nc_variable)
-        log.warning(msg)
-
         return np.vstack((self.timestamps, self.vals)).T
 
     def get_timestamps(self, object_type=None, parameter=None):

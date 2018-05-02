@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- add leakage to subgrid_map variables
+
 - Enable threedigrid get_timeseries for result and schematization layers
 - Update available vars methods using threedigrid for
   NetcdfDataSourceGroundwater.
