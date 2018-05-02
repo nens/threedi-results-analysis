@@ -87,6 +87,7 @@ AGGREGATION_VARIABLES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    # TODO: does it make sense that cross section is in the agg vars?
     WET_CROSS_SECTION_AREA,
 ]
 
