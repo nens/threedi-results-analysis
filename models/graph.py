@@ -126,7 +126,7 @@ class LocationTimeseriesModel(BaseModel):
                         fill_value=np.NaN)
                 if absolute:
                     timeseries = np.abs(timeseries)
-            except (KeyError, IndexError, ValueError):
+            except (KeyError, IndexError, ValueError, AttributeError):
                 # Return an empty array so that the graph won't crash.
                 # The exceptions are already logged by the nc datasource.
                 timeseries = EMPTY_TIMESERIES

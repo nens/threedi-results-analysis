@@ -5,32 +5,31 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-
 layer_information = [
-    # layer object_type, gridadmin_name , gridadmin_type, qgis layer_source
-    ('v2_connection_nodes', 'v2_connection_nodes', 'nodes', 'schematized'),
-    ('v2_pipe_view', 'v2_pipe', 'lines', 'schematized'),
-    ('v2_channel', 'v2_channel', 'lines', 'schematized'),
-    ('v2_culvert_view', 'v2_culvert', 'lines', 'schematized'),
-    ('v2_pumpstation', 'v2_pumpstation', 'pumps', 'schematized'),
-    # deze niet nodig toch?
-    #  ('v2_pumpstation_view', 'pumpstation', 'q', 'schematized'),
-    ('v2_weir_view', 'v2_weir', 'lines', 'schematized'),
-    ('v2_orifice_view', 'v2_orifice', 'lines', 'schematized'),
-    # ('sewerage_manhole', 'manhole', 'h', 'schematized'),
-    # ('sewerage_pipe_view', 'pipe', 'q', 'schematized'),
-    # ('sewerage_pumpstation', 'pumpstation', 'q', 'schematized'),
-    # ('sewerage_pumpstation_view', 'pumpstation', 'q', 'schematized'),
-    # ('sewerage_weir_view', 'weir', 'q', 'schematized'),
-    # ('sewerage_orifice_view', 'orifice', 'q', 'schematized'),
+    # layer object_type, gridadmin_name, gridadmin_type, qgis layer_source
+    ('v2_connection_nodes', 'connectionnodes', 'nodes', 'schematized'),
+    ('v2_pipe_view', 'pipes', 'lines', 'schematized'),
+    ('v2_channel', 'channels', 'lines', 'schematized'),
+    ('v2_culvert_view', 'culverts', 'lines', 'schematized'),
+    # Todo:
+    # 'v2_manhole_view', 'manholes', 'nodes', 'schematized'),
+    ('v2_pumpstation_view', 'pumps', 'pumps', 'schematized'),
+    ('v2_weir_view', 'weirs', 'lines', 'schematized'),
+    ('v2_orifice_view', 'orifices', 'lines', 'schematized'),
     ('flowlines', 'lines', 'lines', 'result'),
     ('nodes', 'nodes', 'nodes', 'result'),
     ('pumplines', 'pumps', 'pumps', 'result'),
     ('node_results', 'nodes', 'nodes', 'result'),
     ('node_results_groundwater', 'nodes', 'h', 'result'),
     ('line_results', 'lines', 'lines', 'result'),
-    ('line_results_groundwater', 'lines', 'lines', 'result'),
-]
+    ('line_results_groundwater', 'lines', 'lines', 'result')
+    ]
+
+nc_variable_information = [
+    # gridadmin_type, [nc_variables]
+    ('nodes', ['q_lat', 'rain', 's1', 'su', 'vol', 'Mesh2D_leak']),
+    ('lines', ['au', 'q', 'u1']),
+    ('pumps', ['Mesh1D_q_pump'])]
 
 object_type_gr_name = dict(
     [(a[0], a[1]) for a in layer_information])
@@ -38,42 +37,26 @@ object_type_gr_type = dict(
     [(a[0], a[2]) for a in layer_information])
 object_type_layer_source = dict(
     [(a[0], a[3]) for a in layer_information])
+gr_type_nc_var = dict(
+    [(a[0], a[1]) for a in nc_variable_information])
 
+# Get the gridadmin name (weirs, channels, etc) for internal purposes
+# 'v2_weir_view' >> 'weirs'
+# object_type_gr_name[current_layer_name]
 
-def get_gr_name(current_layer_name):
-    # Get the gridadmin name (v2_weir, v2_channel, etc) for internal purposes
-    if current_layer_name in object_type_gr_name.keys():
-        return object_type_gr_name[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        log.warning(msg)
-        return None
+# Get the gridadmin type (nodes, lines, pumps) for internal purposes
+# 'v2_weir_view' >> 'lines'
+# object_type_gr_type[current_layer_name]
 
+# Get the layer source (schematized, result) for internal purposes
+# 'v2_weir_view' >> 'schematized'
+# object_type_layer_source[current_layer_name]
 
-def get_gr_type(current_layer_name):
-    # Get the gridadmin type (nodes, lines, pumps) for internal purposes
-    if current_layer_name in object_type_gr_type.keys():
-        return object_type_gr_type[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        log.warning(msg)
-        return None
-
-
-def get_layer_source(current_layer_name):
-    # Get the layer source (schematized, result) for internal purposes
-    if current_layer_name in object_type_layer_source.keys():
-        return object_type_layer_source[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        log.warning(msg)
-        return None
-
-
-assert get_gr_name('v2_weir_view') == 'v2_weir'
-assert get_gr_type('v2_weir_view') == 'lines'
-assert get_layer_source('v2_weir_view') == 'schematized'
-assert get_layer_source('pumplines') == 'result'
+# assert get_gr_name('v2_weir_view') == 'weirs'
+# assert get_gr_type('v2_weir_view') == 'lines'
+# assert get_layer_source('v2_weir_view') == 'schematized'
+# assert get_layer_source('pumplines') == 'result'
+# assert get_nc_variables('v2_channel') == ['au', 'q', 'u1']
 
 
 class NetcdfDataSourceGroundwater(BaseDataSource):
@@ -152,25 +135,13 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def timestamps(self):
         return self.get_timestamps()
 
-    # def get_timeseries(
-    #         self, object_type, object_id, nc_variable, fill_value=None):
-    #     return self.temporary_get_timeseries_impl(
-    #         object_type, object_id, nc_variable, fill_value)
-
-    def get_timeseries_schematisation_layer(
+    def _get_timeseries_schematisation_layer(
             self, object_type, object_id, nc_variable, timeseries=None,
             only=None, data=None):
 
         """
-        -   just using a random v2_bergermeer nc and h5 file we see that:
-        In [1]: gr.lines.filter(content_type='v2_channel').content_pk
-        Out[1]: array([1, 1, 2, ...,  760,  851, 1090]
-        In [2]: len(set(gr.lines.filter(content_type='v2_channel').content_pk))
-        Out[2]: 2346
-        In [3]: len(set(gr.lines.filter(content_type='v2_channel').content_pk))
-        Out[3]: 1175
-        -   The v2_channel QgisVectorLayer contains id 1 till 666668899 (
-            1175 rows), so we can use content_pk to retrieve a timeseries
+            this function retireves a timeserie when user select a
+            schematization layer and e.g. 'adds' it to the graph
         -   to get a timeseries using threedigridadmin, we need to call e.g.
             gr.lines.filter(content_type='v2_channel', content_pk=1).
             timeseries(indexes=slice(None)).only('q').data['q']
@@ -181,37 +152,125 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             that we need to parse as atrributes
         """
 
-        # one example for v2_weir_view
-        # gr.lines
-        # determine wheter v2_weir_view is a lines, nodes or pumps
-        first = getattr(self.gr, get_gr_type(object_type))
-        # gr.lines.filter(content_type='v2_weir', content_pk=1)
-        # we need to get de gridadminname of v2_weir_view (=v2_weir)
-        second = first.filter(content_type=get_gr_name(object_type),
-                              content_pk=object_id)
-        # gr.lines.filter(content_type='v2_channel',content_pk=1).timeseries(
-        # indexes=slice(None))
-        third = second.timeseries(indexes=slice(None))
-        # gr.lines.filter(content_type='v2_channel',content_pk=1).timeseries(
-        # indexes=slice(None)).only('q')
-        fourth = third.only(nc_variable)
-        # gr.lines.filter(content_type='v2_channel',content_pk=1).timeseries(
-        # indexes=slice(None)).only('q').data
-        fifth = fourth.data
-        # fifth is an OrderedDict:
-        # OrderedDict([('q', array([  [ 0.00000000e+00,  0.00000000e+00],
-        #                             [-3.27184124e-10, -7.85903914e-12],
-        # to only get the array we use fifth['q']
+        # we need the gridadmin type (e.g. from flowlines to lines)
+        grid_type = object_type_gr_type[object_type]
+        # a schematized layer is either a nodes, lines or pumps. The
+        # gridadmin syntax for nodes and lines is the same
 
-        # for now, we just take only the timeseries of the first flowline (
-        # when multiple flowlines are returned
-        # TODO
-        # return all timeseries are do an avg, min, max
-        # e.g. self.vals = np.mean(fifth[nc_variable], axis=1)
-        self.vals = fifth[nc_variable][:, 0]
+        if grid_type in ['nodes', 'lines']:
+            # one example for v2_connection_nodes
+            # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).only('vol').data['vol']
 
-    def get_timeseries_result_layer(self, object_type, object_id, nc_variable):
+            # one example for v2_channels
+            # e.g. gr.lines.channels.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).only('au').data['au']
+
+            # gr.nodes
+            first = getattr(self.gr, object_type_gr_type[object_type])
+            # gr.nodes.connectionnodes
+            second = getattr(first, object_type_gr_name[object_type])
+            # gr.nodes.connectionnodes.filter(content_pk=1)
+            third = second.filter(content_pk=object_id)
+            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None))
+            fourth = third.timeseries(indexes=slice(None))
+            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).only('vol')
+            fifth = fourth.only(nc_variable)
+            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).only('vol').data['vol']
+            sixth = fifth.data
+            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).only('vol').data['vol']
+            pick_only_first_of_element = 0
+            self.vals = sixth[nc_variable][:, pick_only_first_of_element]
+
+        elif grid_type == 'pumps':
+            #gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+            #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
+            # gr.pumps
+            first = getattr(self.gr, object_type_gr_type[object_type])
+            # gr.pumps.filter(id=3)
+            gr_id = object_id - 1
+            second = first.filter(id=gr_id)
+            # gr.pumps.filter(id=3).timeseries(indexes=slice(None))
+            third = second.timeseries(indexes=slice(None))
+            # only nc variable available for pumps is q_pump
+            # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+            #   'Mesh1D_q_pump')
+            fourth = third.only(nc_variable)
+            # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+            #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
+            self.vals = fourth.data[nc_variable]
+
+
+        # if grid_type in ['nodes', 'lines']:
+        #     # one example for v2_connection_nodes
+        #     # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+        #     #   indexes=slice(None)).only('vol').data['vol']
+        #
+        #     # one example for v2_channels
+        #     # e.g. gr.lines.channels.filter(content_pk=1).timeseries(
+        #     #   indexes=slice(None)).only('au').data['au']
+        #
+        #     # gr.nodes
+        #     first = getattr(self.gr, object_type_gr_type[object_type])
+        #     # gr.nodes.connectionnodes
+        #     second = getattr(first, object_type_gr_name[object_type])
+        #     # gr.nodes.connectionnodes.filter(content_pk=1)
+        #     third = second.filter(content_pk=object_id)
+        #     # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+        #     #   indexes=slice(None))
+        #     fourth = third.timeseries(indexes=slice(None))
+        #     # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+        #     #   indexes=slice(None)).only('vol')
+        #     if nc_variable not in gr_type_nc_var[grid_type]:
+        #         msg = "Unsupported nc_variable: %s." % nc_variable
+        #         log.warning(msg)
+        #         # return None
+        #         self.vals = self.timestamps.fill(None)
+        #     else:
+        #         fifth = fourth.only(nc_variable)
+        #         # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+        #         #   indexes=slice(None)).only('vol').data['vol']
+        #         sixth = fifth.data
+        #         # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+        #         #   indexes=slice(None)).only('vol').data['vol']
+        #         pick_only_first_of_element = 0
+        #         self.vals = sixth[nc_variable][:, pick_only_first_of_element]
+        #
+        # elif grid_type == 'pumps':
+        #     # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+        #     #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
+        #     # gr.pumps
+        #     first = getattr(self.gr, object_type_gr_type[object_type])
+        #     # gr.pumps.filter(id=3)
+        #     gr_id = object_id - 1
+        #     second = first.filter(id=gr_id)
+        #     # gr.pumps.filter(id=3).timeseries(indexes=slice(None))
+        #     third = second.timeseries(indexes=slice(None))
+        #     # only nc variable available for pumps is q_pump
+        #     if nc_variable not in gr_type_nc_var[grid_type]:
+        #         msg = "Unsupported nc_variable: %s." % nc_variable
+        #         log.warning(msg)
+        #         # return None
+        #         self.vals = self.timestamps.fill(None)
+        #         # self.vals = np.empty([144,1])
+        #     else:
+        #         # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+        #         #   'Mesh1D_q_pump')
+        #         fourth = third.only(nc_variable)
+        #         # gr.pumps.filter(id=3).timeseries(indexes=slice(None)).only(
+        #         #   'Mesh1D_q_pump').data['Mesh1D_q_pump']
+        #         self.vals = fourth.data[nc_variable]
+
+
+    def _get_timeseries_result_layer(self, object_type, object_id,
+                                     nc_variable):
         """
+        -   this function retireves a timeserie when user select a
+            result layer and e.g. 'adds' it to the graph
         -   to get a timeseries using threedigridadmin, we need to call e.g.
             ga.nodes.filter(id=100).timeseries(indexes=slice(None)).s1
         -   slice(None) means we get all timesteps.
@@ -230,19 +289,57 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             therefore we can use id to retrieve a timeseries
         """
 
-        # we need the grdadmin type (e.g. rom flowlines to lines)
-        object_type = get_gr_type(object_type)
-        # one example for nodes
-        # gr.nodes
-        first = getattr(self.gr, object_type)
-        # gr.nodes.filter(id=100)
-        second = first.filter(id=object_id)
-        # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        third = second.timeseries(indexes=slice(None))
-        # get the timeserie of the nc_variable
-        self.vals = getattr(third, nc_variable)
-        # flatten numpyarray
-        self.vals = self.vals.flatten()
+        # we need the gridadmin type (e.g. from flowlines to lines)
+        grid_type = object_type_gr_type[object_type]
+
+        if grid_type in ['nodes', 'lines']:
+            # one example for nodes
+            #  gr.nodes
+            first = getattr(self.gr, grid_type)
+            # gr.nodes.filter(id=100)
+            second = first.filter(id=object_id)
+            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+            third = second.timeseries(indexes=slice(None))
+            # get the timeserie of the nc_variable
+            fourth = getattr(third, nc_variable)
+            # flatten numpyarray
+            self.vals = fourth.flatten()
+        elif grid_type == 'pumps':
+            #  gr.pumps
+            first = getattr(self.gr, grid_type)
+            # gr.pumps.filter(id=100)
+            second = first.filter(id=object_id)
+            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+            third = second.timeseries(indexes=slice(None))
+            self.vals = third.only('Mesh1D_q_pump').data['Mesh1D_q_pump']
+
+        # if grid_type in ['nodes', 'lines']:
+        #     # one example for nodes
+        #     #  gr.nodes
+        #     first = getattr(self.gr, grid_type)
+        #     # gr.nodes.filter(id=100)
+        #     second = first.filter(id=object_id)
+        #     # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+        #     third = second.timeseries(indexes=slice(None))
+        #     # get the timeserie of the nc_variable
+        #     if nc_variable not in gr_type_nc_var[grid_type]:
+        #         msg = "Unsupported nc_variable: %s." % nc_variable
+        #         log.warning(msg)
+        #         # return None
+        #         # self.vals = np.empty([144, 1])
+        #         self.vals = self.timestamps.fill(None)
+        #     else:
+        #         fourth = getattr(third, nc_variable)
+        #         # flatten numpyarray
+        #         self.vals = fourth.flatten()
+        # elif grid_type == 'pumps':
+        #     #  gr.pumps
+        #     first = getattr(self.gr, grid_type)
+        #     # gr.pumps.filter(id=100)
+        #     second = first.filter(id=object_id)
+        #     # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+        #     third = second.timeseries(indexes=slice(None))
+        #     self.vals = third.only('Mesh1D_q_pump').data['Mesh1D_q_pump']
 
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
@@ -250,21 +347,25 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         self.gr = self.gridadmin_result
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
-        if get_layer_source(object_type) == 'result':
-            if object_type == 'pumplines':
-                nc_variable = 'Mesh1D_q_pump'
-            self.get_timeseries_result_layer(
+        if object_type_layer_source[object_type] == 'result':
+            self._get_timeseries_result_layer(
                 object_type, object_id, nc_variable)
-        elif get_layer_source(object_type) == 'schematized':
-            if object_type == 'v2_pumpstation':
-                nc_variable = 'Mesh1D_q_pump'
-            self.get_timeseries_schematisation_layer(
+        elif object_type_layer_source[object_type] == 'schematized':
+            self._get_timeseries_schematisation_layer(
                 object_type, object_id, nc_variable)
 
         # Zip timeseries together in (n,2) array
         if fill_value is not None and type(self.vals) == \
                 np.ma.core.MaskedArray:
             self.vals = self.vals.filled(fill_value)
+
+        msg = "object_type: {object_type} " \
+              "object_id {object_id} " \
+              "nc_variable {nc_variable}".format(object_type=object_type,
+                                                 object_id=object_id,
+                                                 nc_variable=nc_variable)
+        log.warning(msg)
+
         return np.vstack((self.timestamps, self.vals)).T
 
     def get_timestamps(self, object_type=None, parameter=None):

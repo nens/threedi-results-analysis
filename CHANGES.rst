@@ -5,7 +5,7 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
-- Enable threedigrid get_timeseries for result and shcematization layers
+- Enable threedigrid get_timeseries for result and schematization layers
 
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.

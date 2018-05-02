@@ -666,9 +666,15 @@ class GraphWidget(QWidget):
                     DISPLAY_NAME_DEFAULT_COLUMN = 2
                     # This check is the least we can do to have some assurance
                     # that this column is somewhat related to the display name
-                    if 'display_name' in feature.fields(
+                    if 'display_name' == feature.fields(
                     )[DISPLAY_NAME_DEFAULT_COLUMN].name():
                         object_name = feature[DISPLAY_NAME_DEFAULT_COLUMN]
+                    # Nodes QgisVectorLayer 5th column is 'type'
+                    #elif 'type' == feature.fields()[4].name():
+                    #    object_name = feature[4]
+                    # Lines QgisVectorLayer 3rd column is 'type'
+                    #elif 'type' == feature.fields()[2].name():
+                    #    object_name = feature[2]
                     else:
                         object_name = 'N/A'
                 except KeyError:

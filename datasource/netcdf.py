@@ -47,6 +47,8 @@ RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
+LEAKAGE_RATE = NcVar('Mesh2D_leak', 'leakage rate', 'm3/s')
+
 
 _Q_TYPES = [
     DISCHARGE,
@@ -64,6 +66,7 @@ _H_TYPES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    LEAKAGE_RATE,
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
