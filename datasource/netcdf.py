@@ -309,6 +309,12 @@ def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
     return nc_vars
 
 
+AGG_Q_TYPES = list(product_and_concat(Q_TYPES))
+AGG_H_TYPES = list(product_and_concat(H_TYPES))
+POSSIBLE_AGG_VARS = list(product_and_concat(
+    [v.name for v in AGGREGATION_VARIABLES]))
+
+
 class NetcdfDataSource(BaseDataSource):
     """This netCDF datasource combines three things:
 
@@ -468,14 +474,9 @@ class NetcdfDataSource(BaseDataSource):
                                           if v in subgrid_map_vars]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
-            possible_agg_vars = [product_and_concat([v]) for v, _, _ in
-                                 AGGREGATION_VARIABLES]
-            # This flattens the list of lists
-            possible_agg_vars = [item for sublist in possible_agg_vars for
-                                 item in sublist]
             try:
                 agg_vars = self.ds_aggregation.variables.keys()
-                available_agg_vars = [v for v in possible_agg_vars if v in
+                available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
             except IndexError:

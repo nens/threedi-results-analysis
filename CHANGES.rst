@@ -6,6 +6,9 @@ threedi-qgis-plugin changelog
 -----------------
 
 - Progressbar exporting to gridadmin.sqlite starts now at 0%
+- Add support for aggregate netcdf in NetcdfDataSourceGroundwater.
+
+- add leakage to subgrid_map variables
 
 - Update available vars methods using threedigrid for
   NetcdfDataSourceGroundwater.

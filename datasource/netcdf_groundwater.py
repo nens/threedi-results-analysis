@@ -1,7 +1,14 @@
-from .base import BaseDataSource
-from ..utils import cached_property
 import logging
 import numpy as np
+
+from .base import BaseDataSource
+from ..utils import cached_property
+from .netcdf import (
+    SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES)
+
+# all possible var names from regular netcdf AND agg netcdf
+ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
+ALL_H_TYPES = H_TYPES + AGG_H_TYPES
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +83,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     @cached_property
     def available_subgrid_map_vars(self):
         """Available variables from 'subgrid_map.nc'."""
-        from .netcdf import SUBGRID_MAP_VARIABLES
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         available_vars = (
             self.gridadmin_result.nodes._field_names |
@@ -273,6 +279,13 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
 
+        if nc_variable in self.available_subgrid_map_vars:
+            self.gr = self.gridadmin_result
+            ts = self.timestamps
+        elif nc_variable in self.available_aggregation_vars:
+            self.gr = self.gridadmin_aggregate_result
+            ts = self.get_timestamps(parameter=nc_variable)
+
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
             values = self._get_timeseries_result_layer(
@@ -291,13 +304,29 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         if fill_value is not None and type(values) == \
                 np.ma.core.MaskedArray:
             filled_vals = values.filled(fill_value)
-            return np.vstack((self.timestamps, filled_vals)).T
+            return np.vstack((ts, filled_vals)).T
         else:
-            return np.vstack((self.timestamps, values)).T
+            return np.vstack((ts, values)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
-        return self.ds.variables['time'][:]
+        if parameter is None:
+            return self.ds.variables['time'][:]
+        elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
+            return self.ds.variables['time'][:]
+        else:
+            # determine the grid type from the parameter alone
+            if parameter.startswith('q_pump'):
+                object_type = 'pumplines'
+            elif parameter in AGG_Q_TYPES:
+                object_type = 'flowlines'
+            elif parameter in AGG_H_TYPES:
+                object_type = 'nodes'
+            else:
+                raise ValueError(parameter)
+            grid_type = object_type_gr_type[object_type]
+            orm_obj = getattr(self.gridadmin_aggregate_result, grid_type)
+            return orm_obj.get_timestamps(parameter)
 
     # used in map_animator
     def get_values_by_timestep_nr(
@@ -305,7 +334,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         return self.temp_get_values_by_timestep_nr_impl(
             variable, timestamp_idx, index, use_cache)
 
-    def _nc_from_mem(self, variable, use_cache=True):
+    def _nc_from_mem(self, ds, variable, use_cache=True):
         """Get netcdf data from memory if needed."""
         if use_cache:
             try:
@@ -313,19 +342,25 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             except KeyError:
                 # Keep the whole netCDF array for a variable in memory for
                 # performance
-                data = self.ds.variables[variable][:]  # make copy
+                data = ds.variables[variable][:]  # make copy
                 self._cache[variable] = data
         else:
             # this returns a netCDF Variable, which behaves like a np array
-            data = self.ds.variables[variable]
+            data = ds.variables[variable]
         return data
 
     def temp_get_values_by_timestep_nr_impl(
             self, variable, timestamp_idx, index=None, use_cache=True):
-        import numpy as np
-        from .netcdf import Q_TYPES, H_TYPES
         var_2d = self.PREFIX_2D + variable
         var_1d = self.PREFIX_1D + variable
+
+        # determine if it's an agg var
+        if variable in self.available_subgrid_map_vars:
+            ds = self.ds
+        elif variable in self.available_aggregation_vars:
+            ds = self.ds_aggregation
+        else:
+            raise ValueError(variable)
 
         if index is not None:
             # in the groundwater version, the node index starts from 1 instead
@@ -335,12 +370,12 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
 
             # hacky object_type checking mechanism, sinds we don't have
             # that information readily available
-            if variable == 'q_pump':
+            if variable.startswith('q_pump'):
                 return self._nc_from_mem(
-                    var_1d, use_cache)[timestamp_idx, index]
-            elif variable in Q_TYPES:
+                    ds, var_1d, use_cache)[timestamp_idx, index]
+            elif variable in ALL_Q_TYPES:
                 threshold = self.nMesh2D_lines
-            elif variable in H_TYPES:
+            elif variable in ALL_H_TYPES:
                 threshold = self.nMesh2D_nodes
             else:
                 raise ValueError(variable)
@@ -357,21 +392,23 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # explicitly check if the list is empty.
             if iarr_2d.size > 0:
                 res[idx_2d] = self._nc_from_mem(
-                    var_2d, use_cache)[timestamp_idx, iarr_2d]
+                    ds, var_2d, use_cache)[timestamp_idx, iarr_2d]
             if iarr_1d.size > 0:
                 res[idx_1d] = self._nc_from_mem(
-                    var_1d, use_cache)[timestamp_idx, iarr_1d]
+                    ds, var_1d, use_cache)[timestamp_idx, iarr_1d]
         else:
-            if variable == 'q_pump':
-                return self._nc_from_mem(var_1d, use_cache)[timestamp_idx, :]
-            # TODO: pumps won't work
-            vals_2d = self._nc_from_mem(var_2d, use_cache)[timestamp_idx, :]
-            vals_1d = self._nc_from_mem(var_1d, use_cache)[timestamp_idx, :]
+            if variable.startswith('q_pump'):
+                return self._nc_from_mem(
+                    ds, var_1d, use_cache)[timestamp_idx, :]
+            vals_2d = self._nc_from_mem(
+                ds, var_2d, use_cache)[timestamp_idx, :]
+            vals_1d = self._nc_from_mem(
+                ds, var_1d, use_cache)[timestamp_idx, :]
             # order is: 2D, then 1D
             res = np.hstack((vals_2d, vals_1d))
 
-        fill_value_2d = self.ds.variables[var_2d]._FillValue
-        fill_value_1d = self.ds.variables[var_1d]._FillValue
+        fill_value_2d = ds.variables[var_2d]._FillValue
+        fill_value_1d = ds.variables[var_1d]._FillValue
         assert fill_value_1d == fill_value_2d, \
             "Difference in fill value, can't consolidate"
         # res is a normal array, we need to mask the values again from the
@@ -407,3 +444,24 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             return GridH5AggregateResultAdmin(h5, agg_path)
         except IndexError:
             return None
+
+    @cached_property
+    def ds_aggregation(self):
+        """The aggregation netcdf dataset."""
+        # Note: we don't want module level imports of dynamically loaded
+        # libraries because importing them will cause files to be held open
+        # which cause trouble when updating the plugin. Therefore we delay
+        # the import as much as possible.
+        from netCDF4 import Dataset
+        from ..datasource.netcdf import find_aggregation_netcdf
+
+        # Load aggregation netcdf
+        try:
+            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+        except IndexError:
+            return None
+        else:
+            log.info(
+                "Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            return Dataset(aggregation_netcdf_file, mode='r',
+                           format='NETCDF4')
