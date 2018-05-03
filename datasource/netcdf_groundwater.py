@@ -4,7 +4,9 @@ import numpy as np
 from .base import BaseDataSource
 from ..utils import cached_property
 from .netcdf import (
-    SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES)
+    SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES,
+    find_h5_file, find_aggregation_netcdf
+)
 
 # all possible var names from regular netcdf AND agg netcdf
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
@@ -420,7 +422,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def gridadmin(self):
         if not self._ga:
             from ..utils.patched_threedigrid import GridH5Admin
-            from ..datasource.netcdf import find_h5_file
             h5 = find_h5_file(self.file_path)
             self._ga = GridH5Admin(h5)
         return self._ga
@@ -428,7 +429,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     @property
     def gridadmin_result(self):
         if not self._ga_result:
-            from ..datasource.netcdf import find_h5_file
             from ..utils.patched_threedigrid import GridH5ResultAdmin
             h5 = find_h5_file(self.file_path)
             self._ga_result = GridH5ResultAdmin(h5, self.file_path)
@@ -436,7 +436,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
 
     @cached_property
     def gridadmin_aggregate_result(self):
-        from ..datasource.netcdf import find_h5_file, find_aggregation_netcdf
         from ..utils.patched_threedigrid import GridH5AggregateResultAdmin
         try:
             agg_path = find_aggregation_netcdf(self.file_path)
@@ -453,7 +452,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
         from netCDF4 import Dataset
-        from ..datasource.netcdf import find_aggregation_netcdf
 
         # Load aggregation netcdf
         try:
