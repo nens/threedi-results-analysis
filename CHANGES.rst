@@ -5,9 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
-- add leakage to subgrid_map variables
+- Progressbar exporting to gridadmin.sqlite starts now at 0%
 
-- Enable threedigrid get_timeseries for result and schematization layers
 - Update available vars methods using threedigrid for
   NetcdfDataSourceGroundwater.
 
@@ -15,7 +14,7 @@ threedi-qgis-plugin changelog
 
 - Bump threedigrid to 0.2.2.
 
-- Enable threedigrid get_timeseries for result and shcematization layers
+- Enable threedigrid get_timeseries for result and schematization layers
 
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.

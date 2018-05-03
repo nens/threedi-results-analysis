@@ -6,34 +6,28 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 layer_information = [
-    # layer object_type, gridadmin_name, gridadmin_type, qgis layer_source
-    ('v2_connection_nodes', 'connectionnodes', 'nodes', 'schematized'),
-    ('v2_pipe_view', 'pipes', 'lines', 'schematized'),
-    ('v2_channel', 'channels', 'lines', 'schematized'),
-    ('v2_culvert_view', 'culverts', 'lines', 'schematized'),
+    # object_type, model_instance, model_instance_subset, qgis_layer_source
+    ('v2_connection_nodes', 'nodes', 'connectionnodes', 'schematized'),
+    ('v2_pipe_view', 'lines', 'pipes', 'schematized'),
+    ('v2_channel', 'lines', 'channels', 'schematized'),
+    ('v2_culvert_view', 'lines', 'culverts', 'schematized'),
     # Todo:
-    # 'v2_manhole_view', 'manholes', 'nodes', 'schematized'),
+    # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
     ('v2_pumpstation_view', 'pumps', 'pumps', 'schematized'),
     ('v2_weir_view', 'weirs', 'lines', 'schematized'),
-    ('v2_orifice_view', 'orifices', 'lines', 'schematized'),
+    ('v2_orifice_view', 'lines', 'orifices', 'schematized'),
     ('flowlines', 'lines', 'lines', 'result'),
     ('nodes', 'nodes', 'nodes', 'result'),
     ('pumplines', 'pumps', 'pumps', 'result'),
     ('node_results', 'nodes', 'nodes', 'result'),
-    ('node_results_groundwater', 'nodes', 'h', 'result'),
+    ('node_results_groundwater', 'nodes', 'nodes', 'result'),
     ('line_results', 'lines', 'lines', 'result'),
     ('line_results_groundwater', 'lines', 'lines', 'result')
     ]
 
-# nc_variable_information = [
-#     # gridadmin_type, [nc_variables]
-#     ('nodes', ['q_lat', 'rain', 's1', 'su', 'vol', 'Mesh2D_leak']),
-#     ('lines', ['au', 'q', 'u1']),
-#     ('pumps', ['Mesh1D_q_pump'])]
-
-object_type_gr_name = dict(
+object_type_model_instance = dict(
     [(a[0], a[1]) for a in layer_information])
-object_type_gr_type = dict(
+object_type_model_instance_subset = dict(
     [(a[0], a[2]) for a in layer_information])
 object_type_layer_source = dict(
     [(a[0], a[3]) for a in layer_information])
@@ -142,51 +136,81 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         -   get_timeseries_schematisation_layer() gets strings as arguments
             that we need to parse as atrributes
         """
-        # we need the gridadmin type (e.g. from flowlines to lines)
-        grid_type = object_type_gr_type[object_type]
-        # we need the gridadmin name (e.g. from nodes to connectionnodes)
-        grid_name = object_type_gr_name[object_type]
+        # get the gridadmin model instance (e.g. v2_pipe_view to lines)
+        model_instance = object_type_model_instance[object_type]
+        # get the gridadmin model instance subset (e.g. v2_pipe_view to pipes)
+        model_instance_subset = object_type_model_instance_subset[object_type]
 
-        if grid_type in ['nodes', 'lines']:
-            # one example for v2_connection_nodes
+        if model_instance in ['nodes', 'lines']:
+            # one example for v2_connection_nodes =
+            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).vol
+            # one example for v2_channels =
+            # gr.lines.channels.filter(content_pk=1).timeseries(
+            #   indexes=slice(None)).au
+            # e.g. gr.nodes
+            gr_model_instance = getattr(self.gr, model_instance)
+            # e.g. gr.nodes.connectionnodes
+            gr_model_instance_subset = getattr(
+                gr_model_instance, model_instance_subset)
+            # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
+            #   indexes=slice(None))
+            gr_model_instance_subset_filter_timeseries = \
+                gr_model_instance_subset.filter(content_pk=object_id).\
+                    timeseries(indexes=slice(None))
             # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None)).vol
-
-            # one example for v2_channels
-            # e.g. gr.lines.channels.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).au
-
-            # gr.nodes
-            first = getattr(self.gr, grid_type)
-            # gr.nodes.connectionnodes
-            second = getattr(first, grid_name)
-            # gr.nodes.connectionnodes.filter(content_pk=1)
-            third = second.filter(content_pk=object_id)
-            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None))
-            fourth = third.timeseries(indexes=slice(None))
-            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).vol
-            fifth = getattr(fourth, nc_variable)
+            gr_model_instance_subset_filter_timeseries_ncvar = getattr(
+                gr_model_instance_subset_filter_timeseries, nc_variable)
             # this could return multiple timeseries, since a v2_channel can
             # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
-            self.vals = fifth[:, pick_only_first_of_element]
+            self.vals = gr_model_instance_subset_filter_timeseries_ncvar[
+                        :, pick_only_first_of_element]
 
-        elif grid_type == 'pumps':
+        elif model_instance == 'pumps':
+            # one example for v2_pumpstation =
             # gr.pumps.filter(id=3).timeseries(indexes=slice(
                 # None)).Mesh1D_q_pump
             # gr.pumps
-            first = getattr(self.gr, grid_type)
-            # gr.pumps.filter(id=3)
-            gr_id = object_id - 1
-            second = first.filter(id=gr_id)
-            # gr.pumps.filter(id=3).timeseries(indexes=slice(None))
-            third = second.timeseries(indexes=slice(None))
-            # only nc variable available for pumps is q_pump
-            # gr.pumps.filter(id=3).timeseries(indexes=slice(
-            #   None)).Mesh1D_q_pump
-            self.vals = getattr(third, nc_variable)
+            gr_model_instance = getattr(self.gr, model_instance)
+            # gr.pumps.timeseries(indexes=slice(None))
+            gr_model_instance_subset = \
+                gr_model_instance.timeseries(indexes=slice(None))
+
+            # tijdelijke hack omdat threedigrid indexerrors geeft op pumps
+            # normaalgesproken zou dit werken:
+            # gr.pumps.filter(id=1).timeseries(indexes=slice(None)).q_pump
+            # echter, dit geeft nu een: "IndexError: boolean index did not
+            # match indexed array along dimension 1; dimension is 20 but
+            # corresponding boolean dimension is 19"
+
+            # ter achtergrond info:
+            # v2_bergermeer heeft 18 v2_pumpstations
+            # v2_bergermeer heeft 19 pumplines (export functie is goed!)
+
+            # vanwege indexerror daarom tijdelijke hack:
+            # dit werkt: gr.pumps.q_pump[:,1:].shape --> (10, 19)
+            # echter dit werkt niet: gr.pumps.filter(id=1).q_pump[:,1:]
+            # dus de id array moeten we ook gaan slicen
+            # ff nieuwe array bouwen (v2_bergermeer id = {1, 2, .., 18, 19}
+            id_array = gr_model_instance_subset.id
+            # dan kunnen we vervolgens bijv doen:
+            # gr.pumps.timeseries(indexes=slice(None)).q_pump
+            gr_model_instance_subset_ncvar = getattr(
+                gr_model_instance_subset, nc_variable)
+
+            # gr.pumps.timeseries(indexes=slice(None)).q_pump[:, 1:][:,
+            # id_array == 3]
+            gr_model_instance_subset_ncvar_filter = \
+                gr_model_instance_subset_ncvar[:, 1:][
+                     :, id_array == object_id]
+            # flatten numpyarray
+            self.vals = gr_model_instance_subset_ncvar_filter.flatten()
+            # Todo:
+            # wait for Jelle/Lars to fix this IndexError in threedigrid,
+            # so that we can do the normal way (maybe also using content_pk
+            # instead of id?
 
     def _get_timeseries_result_layer(self, object_type, object_id,
                                      nc_variable):
@@ -199,19 +223,61 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         -   get_timeseries_result_layer() gets strings as arguments
             that we need to parse as atrributes
         """
-        # we need the gridadmin type (e.g. from flowlines to lines)
-        grid_type = object_type_gr_type[object_type]
+        # get the gridadmin model instance (e.g. pumplines_view to pumps)
+        model_instance = object_type_model_instance[object_type]
 
-        # one example for nodes: e.g. gr.nodes
-        first = getattr(self.gr, grid_type)
-        # gr.nodes.filter(id=100)
-        second = first.filter(id=object_id)
-        # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        third = second.timeseries(indexes=slice(None))
-        # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
-        fourth = getattr(third, nc_variable)
-        # flatten numpyarray
-        self.vals = fourth.flatten()
+        if model_instance in ['nodes', 'lines']:
+            # one example for nodes: e.g. gr.nodes
+            gr_model_instance = getattr(self.gr, model_instance)
+            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+            gr_model_instance_filter_timeseries = gr_model_instance.filter(
+                id=object_id).timeseries(indexes=slice(None))
+            # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
+            gr_model_instance_filter_timeseries_ncvar = getattr(
+                gr_model_instance_filter_timeseries, nc_variable)
+            # flatten numpyarray
+            self.vals = gr_model_instance_filter_timeseries_ncvar.flatten()
+        elif model_instance == 'pumps':
+            # gr.pumps
+            gr_model_instance = getattr(self.gr, model_instance)
+            # gr.pumps.timeseries(indexes=slice(None))
+            gr_model_instance_timeseries = gr_model_instance.timeseries(
+                indexes=slice(None))
+
+            # tijdelijke hack omdat threedigrid indexerrors geeft op pumps
+            # --------------------------------------------------
+            # normaalgesproken zou dit werken:
+            # gr.pumps.filter(id=1).timeseries(indexes=slice(None)).q_pump
+            # echter, dit geeft nu een: "IndexError: boolean index did not
+            # match indexed array along dimension 1; dimension is 20 but
+            # corresponding boolean dimension is 19"
+
+            # ter achtergrond info:
+            # v2_bergermeer heeft 18 v2_pumpstations
+            # v2_bergermeer heeft 19 pumplines (export functie is goed!)
+
+            # vanwege indexerror daarom tijdelijke hack:
+            # dit werkt: gr.pumps.q_pump[:,1:].shape --> (10, 19)
+            # echter dit werkt niet: gr.pumps.filter(id=1).q_pump[:,1:]
+            # dus de id array moeten we ook gaan slicen
+            # ff nieuwe array bouwen
+            # id_array = gr.pumps.id # --> is id 1 tm 19
+            id_array = gr_model_instance.id
+            # dan kunnen we vervolgens bijv doen:
+            # gr.pumps.timeseries(indexes=slice(None)).q_pump
+            gr_model_instance_timeseries_ncvar = getattr(
+                gr_model_instance_timeseries, nc_variable)
+            # gr.pumps.timeseries(indexes=slice(None)).q_pump[:, 1:][:,
+            # id_array == 3]
+            gr_model_instance_timeseries_ncvar_filter = \
+                gr_model_instance_timeseries_ncvar[
+                :, 1:][:, id_array == object_id]
+            # flatten numpyarray
+            self.vals = gr_model_instance_timeseries_ncvar_filter.flatten()
+            # Todo:
+            # wait for Jelle/Lars to fix this IndexError in threedigrid,
+            # so that we can do the normal way (maybe also using content_pk
+            # instead of id?
 
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
@@ -230,6 +296,14 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         if fill_value is not None and type(self.vals) == \
                 np.ma.core.MaskedArray:
             self.vals = self.vals.filled(fill_value)
+
+        msg = "{object_id} object_id and {object_type} object_type and " \
+              "{nc_variable} nc_variable".format(object_id=object_id,
+                                                 object_type=object_type,
+                                                 nc_variable=nc_variable)
+
+        log.warning(msg)
+
         return np.vstack((self.timestamps, self.vals)).T
 
     def get_timestamps(self, object_type=None, parameter=None):

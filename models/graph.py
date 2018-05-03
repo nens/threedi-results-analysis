@@ -120,10 +120,10 @@ class LocationTimeseriesModel(BaseModel):
             try:
                 timeseries = self.model.datasource.rows[
                     result_ds_nr].datasource().get_timeseries(
-                        self.object_type.value,
-                        self.object_id.value,
-                        parameters,
-                        fill_value=np.NaN)
+                    self.object_type.value,
+                    self.object_id.value,
+                    parameters,
+                    fill_value=np.NaN)
                 if absolute:
                     timeseries = np.abs(timeseries)
             except (KeyError, IndexError, ValueError, AttributeError):
