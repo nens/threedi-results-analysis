@@ -51,8 +51,10 @@ class ToolboxModel(QStandardItemModel):
         self.add_items(self, self.file_structure)
 
     def add_items(self, parent, elements):
-        icon_toolbox = QIcon(':/plugins/ThreeDiToolbox/icon_toolbox_small.png')
-        icon_tool = QIcon(':/plugins/ThreeDiToolbox/icon_hammer_small.png')
+        icon_toolbox = QIcon(
+            ':/plugins/ThreeDiToolbox/icons/icon_toolbox_small.png')
+        icon_tool = QIcon(
+            ':/plugins/ThreeDiToolbox/icons/icon_hammer_small.png')
 
         for text, children in iter(sorted(elements.iteritems())):
             item = QStandardItem(text)
