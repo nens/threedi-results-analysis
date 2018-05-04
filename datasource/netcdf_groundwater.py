@@ -287,6 +287,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         elif nc_variable in self.available_aggregation_vars:
             gr = self.gridadmin_aggregate_result
             ts = self.get_timestamps(parameter=nc_variable)
+        else:
+            log.error("Unsupported variable %s", nc_variable)
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
@@ -362,7 +364,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             ds = self.ds_aggregation
         else:
-            raise ValueError(variable)
+            log.error("Unsupported variable %s", variable)
 
         if index is not None:
             # in the groundwater version, the node index starts from 1 instead
