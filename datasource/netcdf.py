@@ -49,9 +49,6 @@ INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('Mesh2D_leak', 'leakage rate', 'm3/s')
 
-
-
-
 _Q_TYPES = [
     DISCHARGE,
     DISCHARGE_INTERFLOW,
@@ -567,6 +564,7 @@ class NetcdfDataSource(BaseDataSource):
 
     def get_timeseries(self, object_type, object_id, variable, start_ts=None,
                        end_ts=None, fill_value=None):
+        # type: (object, object, object, object, object, object) -> object
         """Get a list of time series from netcdf.
 
         Args:

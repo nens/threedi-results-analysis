@@ -153,7 +153,7 @@ class DataSourceLayerManager(object):
 
         if progress_bar is None:
             progress_bar = StatusProgressBar(100, 'create gridadmin.sqlite')
-
+        progress_bar.increase_progress(0, "initialize")
         sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
         progress_bar.increase_progress(33, "create flowline layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
