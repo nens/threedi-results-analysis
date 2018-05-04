@@ -82,12 +82,11 @@ AGGREGATION_VARIABLES = [
     # TODO: for some reason it's called 'vol' in the groundwater netcdf, while
     # it's called 'vol1' in the old one
     VOLUME,
-    VOLUME_AGG,  # this is the only difference with SUBGRID_MAP_VARIABLES
+    VOLUME_AGG,
     RAIN_INTENSITY,
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
-    # TODO: does it make sense that cross section is in the agg vars?
     WET_CROSS_SECTION_AREA,
 ]
 
