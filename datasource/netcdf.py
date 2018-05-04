@@ -564,7 +564,6 @@ class NetcdfDataSource(BaseDataSource):
 
     def get_timeseries(self, object_type, object_id, variable, start_ts=None,
                        end_ts=None, fill_value=None):
-        # type: (object, object, object, object, object, object) -> object
         """Get a list of time series from netcdf.
 
         Args:

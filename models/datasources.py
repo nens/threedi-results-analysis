@@ -153,15 +153,15 @@ class DataSourceLayerManager(object):
 
         if progress_bar is None:
             progress_bar = StatusProgressBar(100, 'create gridadmin.sqlite')
-        progress_bar.increase_progress(0, "initialize")
+        progress_bar.increase_progress(0, "create flowline layer")
         sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
-        progress_bar.increase_progress(33, "create flowline layer")
+        progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.datasource, sqlite_path)
-        progress_bar.increase_progress(33, "create node layer")
+        progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.datasource, sqlite_path)
-        progress_bar.increase_progress(34, "create pumplayer")
+        progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or \
             get_or_create_pumpline_layer(self.datasource, sqlite_path)
         return [self._line_layer, self._node_layer, self._pumpline_layer]
