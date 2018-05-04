@@ -326,7 +326,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
                 object_type = 'nodes'
             else:
                 raise ValueError(parameter)
-            grid_type = object_type_gr_type[object_type]
+            grid_type = object_type_model_instance[object_type]
             orm_obj = getattr(self.gridadmin_aggregate_result, grid_type)
             return orm_obj.get_timestamps(parameter)
 
