@@ -125,8 +125,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         return self.get_timestamps()
 
     def _get_timeseries_schematisation_layer(
-            self, object_type, object_id, nc_variable, timeseries=None,
-            only=None, data=None):
+            self, gridadmin_result, object_type, object_id, nc_variable,
+            timeseries=None, only=None, data=None):
         """
         -   this function retireves a timeserie when user select a
             schematization layer and e.g. 'adds' it to the graph.
@@ -144,7 +144,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         model_instance_subset = object_type_model_instance_subset[object_type]
 
         # gr.nodes / gr.lines / gr.pumps
-        gr_model_instance = getattr(self.gridadmin_result, model_instance)
+        gr_model_instance = getattr(gridadmin_result, model_instance)
 
         if model_instance in ['nodes', 'lines']:
             # one example for v2_connection_nodes =
@@ -213,8 +213,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             raise ValueError('object_type not available')
         return vals
 
-    def _get_timeseries_result_layer(self, object_type, object_id,
-                                     nc_variable):
+    def _get_timeseries_result_layer(
+            self, gridadmin_result, object_type, object_id, nc_variable):
         """
         -   this function retireves a timeserie when user select a
             result layer and e.g. 'adds' it to the graph
@@ -228,7 +228,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         model_instance = object_type_model_instance[object_type]
 
         # gr.nodes / gr.lines / gr.pumps
-        gr_model_instance = getattr(self.gridadmin_result, model_instance)
+        gr_model_instance = getattr(gridadmin_result, model_instance)
 
         if model_instance in ['nodes', 'lines']:
             # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
@@ -282,19 +282,19 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             self, object_type, object_id, nc_variable, fill_value=None):
 
         if nc_variable in self.available_subgrid_map_vars:
-            self.gr = self.gridadmin_result
+            gr = self.gridadmin_result
             ts = self.timestamps
         elif nc_variable in self.available_aggregation_vars:
-            self.gr = self.gridadmin_aggregate_result
+            gr = self.gridadmin_aggregate_result
             ts = self.get_timestamps(parameter=nc_variable)
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
             values = self._get_timeseries_result_layer(
-                object_type, object_id, nc_variable)
+                gr, object_type, object_id, nc_variable)
         elif object_type_layer_source[object_type] == 'schematized':
             values = self._get_timeseries_schematisation_layer(
-                object_type, object_id, nc_variable)
+                gr, object_type, object_id, nc_variable)
 
         msg = "{object_id} object_id and {object_type} object_type and " \
               "{nc_variable} nc_variable".format(object_id=object_id,
