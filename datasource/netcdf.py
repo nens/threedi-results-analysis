@@ -478,6 +478,9 @@ class NetcdfDataSource(BaseDataSource):
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
+            else:
+                log("No aggregation netCDF was found, only the data from the "
+                    "regular netCDF will be used.", level='WARNING')
         return available_vars
 
     def get_object(self, object_type, object_id):
