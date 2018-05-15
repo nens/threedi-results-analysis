@@ -78,13 +78,15 @@ def get_or_create_pumpline_layer(ds, output_path):
     if not os.path.exists(output_path) or not \
             contains_layer(output_path, PUMPLINES_LAYER_NAME):
         ga = ds.gridadmin  # TODO: to implement
-        from .gridadmin import QgisPumpsOgrExporter
-        exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
-        exporter.driver = ogr.GetDriverByName('SQLite')
-        exporter.save(
-            output_path, PUMPLINES_LAYER_NAME, ga.pumps.data,
-            ga.pumps.epsg_code, 4326)
-    return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
+        if ga.has_pumpstations:
+            from .gridadmin import QgisPumpsOgrExporter
+            exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
+            exporter.driver = ogr.GetDriverByName('SQLite')
+            exporter.save(output_path, PUMPLINES_LAYER_NAME, ga.pumps.data,
+                          ga.pumps.epsg_code, 4326)
+            return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
+        else:
+            return None
 
 
 def make_flowline_layer(ds, spatialite, progress_bar=None):

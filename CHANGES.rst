@@ -4,8 +4,11 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- use gridadmin has_pumpstations in functions get_or_create_pumpline_layer and
+  available_subgrid_map_vars
 
 - Progressbar exporting to gridadmin.sqlite starts now at 0%
+
 - Add support for aggregate netcdf in NetcdfDataSourceGroundwater.
 
 - add leakage to subgrid_map variables

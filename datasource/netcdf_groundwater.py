@@ -86,11 +86,15 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def available_subgrid_map_vars(self):
         """Available variables from 'subgrid_map.nc'."""
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
-        available_vars = (
-            self.gridadmin_result.nodes._field_names |
-            self.gridadmin_result.lines._field_names |
-            self.gridadmin_result.pumps._field_names
-        )
+        if self.gridadmin_result.has_pumpstations:
+            available_vars = (
+                self.gridadmin_result.nodes._field_names |
+                self.gridadmin_result.lines._field_names |
+                self.gridadmin_result.pumps._field_names)
+        else:
+            available_vars = (
+                self.gridadmin_result.nodes._field_names |
+                self.gridadmin_result.lines._field_names)
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
         return list(available_known_vars)

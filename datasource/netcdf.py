@@ -478,7 +478,7 @@ class NetcdfDataSource(BaseDataSource):
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
-            except IndexError:
+            except (IndexError, AttributeError):
                 # If we're here it means no agg. netCDF was found. Fail without
                 # error, but do log it.
                 log("No aggregation netCDF was found, only the data from the "
