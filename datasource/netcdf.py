@@ -473,14 +473,12 @@ class NetcdfDataSource(BaseDataSource):
                                           if v in subgrid_map_vars]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
-            try:
+            if self.ds_aggregation is not None:
                 agg_vars = self.ds_aggregation.variables.keys()
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
-            except (IndexError, AttributeError):
-                # If we're here it means no agg. netCDF was found. Fail without
-                # error, but do log it.
+            else:
                 log("No aggregation netCDF was found, only the data from the "
                     "regular netCDF will be used.", level='WARNING')
         return available_vars
