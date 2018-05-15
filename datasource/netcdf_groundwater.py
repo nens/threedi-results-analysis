@@ -370,7 +370,24 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         else:
             log.error("Unsupported variable %s", variable)
 
-        if index is not None:
+        if index is None:
+            if variable.startswith('q_pump'):
+                return self._nc_from_mem(
+                    ds, var_1d, use_cache)[timestamp_idx, :]
+            arrs = []
+            # Note: order is: 2D, then 1D
+            # Note 2: it's possible to only have 2D or 1D
+            if var_2d in ds.variables.keys():
+                vals_2d = self._nc_from_mem(
+                    ds, var_2d, use_cache)[timestamp_idx, :]
+                arrs.append(vals_2d)
+            if var_1d in ds.variables.keys():
+                vals_1d = self._nc_from_mem(
+                    ds, var_1d, use_cache)[timestamp_idx, :]
+                arrs.append(vals_1d)
+            assert len(arrs) > 0, "No 2D and 1D?"
+            res = np.hstack(tuple(arrs))
+        else:
             # in the groundwater version, the node index starts from 1 instead
             # of 0.
             # Note: a new array is created, e.g., index doesn't get modified
@@ -404,24 +421,20 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             if iarr_1d.size > 0:
                 res[idx_1d] = self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, iarr_1d]
-        else:
-            if variable.startswith('q_pump'):
-                return self._nc_from_mem(
-                    ds, var_1d, use_cache)[timestamp_idx, :]
-            vals_2d = self._nc_from_mem(
-                ds, var_2d, use_cache)[timestamp_idx, :]
-            vals_1d = self._nc_from_mem(
-                ds, var_1d, use_cache)[timestamp_idx, :]
-            # order is: 2D, then 1D
-            res = np.hstack((vals_2d, vals_1d))
 
-        fill_value_2d = ds.variables[var_2d]._FillValue
-        fill_value_1d = ds.variables[var_1d]._FillValue
-        assert fill_value_1d == fill_value_2d, \
-            "Difference in fill value, can't consolidate"
+        if var_2d in ds.variables.keys():
+            fill_value_2d = ds.variables[var_2d]._FillValue
+            fill_value = fill_value_2d
+        if var_1d in ds.variables.keys():
+            fill_value_1d = ds.variables[var_1d]._FillValue
+            fill_value = fill_value_1d
+
+        if var_2d in ds.variables.keys() and var_1d in ds.variables.keys():
+            assert fill_value_1d == fill_value_2d, \
+                "Difference in fill value, can't consolidate"
         # res is a normal array, we need to mask the values again from the
         # netcdf
-        masked_res = np.ma.masked_values(res, fill_value_2d)
+        masked_res = np.ma.masked_values(res, fill_value)
         return masked_res
 
     @property
