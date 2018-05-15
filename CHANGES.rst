@@ -8,6 +8,9 @@ threedi-qgis-plugin changelog
   available_subgrid_map_vars
 
 - Progressbar exporting to gridadmin.sqlite starts now at 0%
+- Add support for aggregate netcdf in NetcdfDataSourceGroundwater.
+
+- add leakage to subgrid_map variables
 
 - Add support for aggregate netcdf in NetcdfDataSourceGroundwater.
 
