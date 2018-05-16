@@ -623,6 +623,10 @@ class GraphWidget(QWidget):
 
     def get_feature_index(self, layer, feature):
         """
+        get the id of the selected id feature
+        :param layer: selected Qgis layer to be added
+        :param feature: selected Qgis feature to be added
+        :return: idx (integer)
         We can't do ``feature.id()``, so we have to pick something that we
         have agreed on. For now we have hardcoded the 'id' field as the
         default, but that doesn't mean it's always the case in the future
@@ -635,7 +639,11 @@ class GraphWidget(QWidget):
 
     def get_object_name(self, layer, feature):
         """
-        to get a object_name we use the following logic:
+        get the object_name (display_name / type)  of the selected id feature
+        :param layer: selected Qgis layer to be added
+        :param feature: selected Qgis feature to be added
+        :return: object_name (string)
+        To get a object_name we use the following logic:
         - get the '*display_name*' column if available;
         - if not: get the 'type' column if available;
         - if not: object_name = 'N/A'
@@ -658,9 +666,13 @@ class GraphWidget(QWidget):
 
     def get_new_items(self, layer, features, filename, existing_items):
         """
-        :param feature: selected Qgis layer feature to be added
-        :return: list: a list of items that have been selected by user, and
-        that are not already in the (graph) widget
+        get a list of new items (that have been selected by user) to be added
+        to graph (if they do not already exist in the graph items
+        :param layer: selected Qgis layer to be added
+        :param features: selected Qgis features to be added
+        :param filename: selected Qgis features to be added
+        :param existing_items: selected Qgis features to be added
+        :return: new_items (list)
         """
         new_items = []
         for feature in features:
