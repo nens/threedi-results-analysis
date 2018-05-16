@@ -130,7 +130,8 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                         logger.debug(
                             "Error getting index %s from %s array", i, fname)
                         value = None
-                feature.SetField(str(field_name), value)
+                if value is not None:
+                    feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
                 feature.SetFID(node_data['id'][i])
@@ -304,15 +305,16 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                         # it just returns a ``np.array(None, dtype=object)``
                         logger.debug(
                             "Failed to get index %s from content_type", i)
+                        cont_type_raw_value = None
+
+                    if cont_type_raw_value:
+                        value = \
+                            TYPE_FUNC_MAP[field_type](cont_type_raw_value)
                     else:
-                        if cont_type_raw_value:
-                            value = \
-                                TYPE_FUNC_MAP[field_type](cont_type_raw_value)
-                        else:
-                            try:
-                                value = str(kcu_dict[int(line_data['kcu'][i])])
-                            except KeyError:
-                                pass
+                        try:
+                            value = str(kcu_dict[int(line_data['kcu'][i])])
+                        except KeyError:
+                            pass
                 elif field_name == 'start_node_idx':
                     value = TYPE_FUNC_MAP[field_type](node_a[i])
                 elif field_name == 'end_node_idx':
@@ -324,7 +326,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     except IndexError:
                         logger.debug(
                             "Error getting index %s from %s array", i, fname)
-                feature.SetField(str(field_name), value)
+                        value = None
+                if value is not None:
+                    feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
                 feature.SetFID(line_data['id'][i])
