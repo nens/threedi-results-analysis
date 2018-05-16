@@ -657,7 +657,8 @@ class GraphWidget(QWidget):
                             object_name = 'N/A'
                             log("Layer has no 'display_name', it's probably a "
                                 "result layer, but putting a placeholder "
-                                "object name just for safety.",level='WARNING')
+                                "object name just for safety.",
+                                level='WARNING')
             # check if object not already exist
             if (layer.name() + '_' + str(idx)) not in existing_items:
                 item = {
