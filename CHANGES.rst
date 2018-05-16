@@ -4,6 +4,8 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- try to show more often the object_name in graph widget (instead of 'N/A')
+
 - use gridadmin has_pumpstations in functions get_or_create_pumpline_layer and
   available_subgrid_map_vars
 

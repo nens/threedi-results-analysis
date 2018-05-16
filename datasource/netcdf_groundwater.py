@@ -23,7 +23,7 @@ layer_information = [
     # Todo:
     # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
     ('v2_pumpstation_view', 'pumps', 'pumps', 'schematized'),
-    ('v2_weir_view', 'weirs', 'lines', 'schematized'),
+    ('v2_weir_view', 'lines', 'weirs', 'schematized'),
     ('v2_orifice_view', 'lines', 'orifices', 'schematized'),
     ('flowlines', 'lines', 'lines', 'result'),
     ('nodes', 'nodes', 'nodes', 'result'),
@@ -302,11 +302,11 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             values = self._get_timeseries_schematisation_layer(
                 gr, object_type, object_id, nc_variable)
 
-        msg = "{object_id} object_id and {object_type} object_type and " \
-              "{nc_variable} nc_variable".format(object_id=object_id,
+        msg = "object_id={object_id} and object_type={object_type} and " \
+              "nc_variable={nc_variable}".format(object_id=object_id,
                                                  object_type=object_type,
                                                  nc_variable=nc_variable)
-        log.debug(msg)
+        log.warning(msg)
 
         # Zip timeseries together in (n,2) array
         if fill_value is not None and type(values) == \
