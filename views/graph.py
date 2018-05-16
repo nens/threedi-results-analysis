@@ -621,50 +621,57 @@ class GraphWidget(QWidget):
             self.parameters[self.parameter_combo_box.currentText()]
         self.graph_plot.set_parameter(self.current_parameter)
 
-    def find_object_id_and_name(self, layer, features, filename,
-                                existing_items):
+    def get_feature_index(self, layer, feature):
+        """
+        We can't do ``feature.id()``, so we have to pick something that we
+        have agreed on. For now we have hardcoded the 'id' field as the
+        default, but that doesn't mean it's always the case in the future
+        when more layers are added!
+        """
+        idx = feature.id()
+        if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
+            idx = feature['id']
+        return idx
+
+    def get_object_name(self, layer, feature):
+        """
+        to get a object_name we use the following logic:
+        - get the '*display_name*' column if available;
+        - if not: get the 'type' column if available;
+        - if not: object_name = 'N/A'
+        """
+        object_name = None
+        for column_nr, field in enumerate(layer.fields()):
+            if 'display_name' in field.name():
+                object_name = feature[column_nr]
+        if object_name is None:
+            for column_nr, field in enumerate(layer.fields()):
+                if field.name() == 'type':
+                    object_name = feature[column_nr]
+                    break
+                else:
+                    object_name = 'N/A'
+                    log("Layer has no 'display_name', it's probably a result "
+                        "layer, but putting a placeholder object name just "
+                        "for safety.", level='WARNING')
+        return object_name
+
+    def get_new_items(self, layer, features, filename, existing_items):
         """
         :param feature: selected Qgis layer feature to be added
         :return: list: a list of items that have been selected by user, and
         that are not already in the (graph) widget
         """
         new_items = []
-        idx = None
-        object_name = None
-
         for feature in features:
-            idx = feature.id()
-            if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
-                # We can't do ``feature.id()``, so we have to pick something
-                # that we have agreed on. For now we have hardcoded the 'id'
-                # field as the default, but that doesn't mean it's always
-                # the case in the future when more layers are added!
-                idx = feature['id']
-            # to get a object_name we use the following logic:
-            # get the '*display_name*' column if available;
-            # if not: get the 'type' column if available;
-            # if not: object_name = 'N/A'
-            for column_nr, field in enumerate(layer.fields()):
-                if 'display_name' in field.name():
-                    object_name = feature[column_nr]
-                    break
-                else:
-                    for column_nr, field in enumerate(layer.fields()):
-                        if field.name() == 'type':
-                            object_name = feature[column_nr]
-                            break
-                        else:
-                            object_name = 'N/A'
-                            log("Layer has no 'display_name', it's probably a "
-                                "result layer, but putting a placeholder "
-                                "object name just for safety.",
-                                level='WARNING')
+            new_idx = self.get_feature_index(layer, feature)
+            new_object_name = self.get_object_name(layer, feature)
             # check if object not already exist
-            if (layer.name() + '_' + str(idx)) not in existing_items:
+            if (layer.name() + '_' + str(new_idx)) not in existing_items:
                 item = {
                     'object_type': layer.name(),
-                    'object_id': idx,
-                    'object_name': object_name,
+                    'object_id': new_idx,
+                    'object_name': new_object_name,
                     'file_path': filename
                 }
                 new_items.append(item)
@@ -692,9 +699,8 @@ class GraphWidget(QWidget):
         existing_items = ["%s_%s" % (item.object_type.value,
                                      str(item.object_id.value))
                           for item in self.model.rows]
+        items = self.get_new_items(layer, features, filename, existing_items)
 
-        items = self.find_object_id_and_name(layer, features,
-                                             filename, existing_items)
         if len(items) > 20:
             msg = "%i new objects selected. Adding those to the plot can " \
                   "take a while. Do you want to continue?" % len(
