@@ -1,5 +1,5 @@
-threedi-qgis-plugin
-===================
+ThreeDiToolbox
+==============
 
 .. image:: https://travis-ci.org/nens/threedi-qgis-plugin.svg?branch=master
     :target: https://travis-ci.org/nens/threedi-qgis-plugin
@@ -62,16 +62,15 @@ The plugin can be added using one of the following ways:
   Plugins > Manage And Install Plugins... > Settings; add ``https://plugins.lizard.net/plugins.xml`` and reload.
   Install the plugin by selecting ThreeDiToolbox.
 - Copy or symlink the repo directory to your plugin directory (on Linux:
-  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``);
-  make sure the dir is called ``ThreeDiToolbox`` ([1]_) Make sure to install external dependencies (see
-  Requirements section).
+  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``); make sure to install
+  external dependencies (see Requirements section).
 
 
 Release
 -------
 
 Make sure you have ``zest.releaser`` with ``qgispluginreleaser`` installed. To make a release (also
-see: [2]_)::
+see: [1]_)::
 
     $ cd /path/to/the/plugin
     $ fullrelease  # NOTE: if it asks you if you want to check out the tag press 'y'.
@@ -88,18 +87,11 @@ Install test dependencies::
 
     $ pip install nose nose-exclude coverage==4.0
 
-The plugin directory must be called ``ThreeDiToolbox`` or else the
-relative imports won't work correctly (see [1]_). Run tests with ``nosetests``
-inside the plugin directory. Running ``make test`` also works.
+Run tests with ``nosetests`` inside the plugin directory. Running ``make test`` also works.
 
 
 Notes
 -----
 
-.. [1] The repo dir itself is a package (has an ``__init__.py``). To make everything work correctly
-       the repo dir must be named ``ThreeDiToolbox``. Easiest way is to clone like this::
-
-           $ git clone git@github.com:nens/threedi-qgis-plugin.git ThreeDiToolbox
-
-.. [2] Under the hood it calls ``make zip`` which is modified a bit (see ``Makefile``, old zip directive
+.. [1] Under the hood it calls ``make zip`` which is modified a bit (see ``Makefile``, old zip directive
        is still avaiable) so that it doesn't copy everything to your QGIS plugin directory.
