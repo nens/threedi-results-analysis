@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import logging
 
 from osgeo import ogr, osr
 from qgis.core import QGis
@@ -7,7 +8,8 @@ from threedigrid.orm.base.exporters import BaseOgrExporter
 from threedigrid.admin.utils import KCUDescriptor
 
 from ..datasource.spatialite import Spatialite
-from ..utils.user_messages import log
+
+logger = logging.getLogger(__name__)
 
 ogr.UseExceptions()  # fail fast
 
@@ -121,9 +123,15 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     # OGR dislikes unicode for some reason...
                     value = str(value)
                 else:
-                    raw_value = node_data[fname][i]
-                    value = TYPE_FUNC_MAP[field_type](raw_value)
-                feature.SetField(str(field_name), value)
+                    try:
+                        raw_value = node_data[fname][i]
+                        value = TYPE_FUNC_MAP[field_type](raw_value)
+                    except IndexError:
+                        logger.debug(
+                            "Error getting index %s from %s array", i, fname)
+                        value = None
+                if value is not None:
+                    feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
                 feature.SetFID(node_data['id'][i])
@@ -285,11 +293,20 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             for field_name, field_type in self.LINE_FIELDS.iteritems():
                 fname = self.LINE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
-                    value = None
+                    value = None  # if all fails
+
                     # TODO: first try to find a mapping with kcu, then find
                     # a mapping using cont_type. If cont_type is not None,
                     # then use the cont_type, else use kcu
-                    cont_type_raw_value = line_data['content_type'][i]
+                    try:
+                        cont_type_raw_value = line_data['content_type'][i]
+                    except IndexError:
+                        # threedigrid weirdness, if a field is unavailable,
+                        # it just returns a ``np.array(None, dtype=object)``
+                        logger.debug(
+                            "Failed to get index %s from content_type", i)
+                        cont_type_raw_value = None
+
                     if cont_type_raw_value:
                         value = \
                             TYPE_FUNC_MAP[field_type](cont_type_raw_value)
@@ -303,9 +320,15 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 elif field_name == 'end_node_idx':
                     value = TYPE_FUNC_MAP[field_type](node_b[i])
                 else:
-                    raw_value = line_data[fname][i]
-                    value = TYPE_FUNC_MAP[field_type](raw_value)
-                feature.SetField(str(field_name), value)
+                    try:
+                        raw_value = line_data[fname][i]
+                        value = TYPE_FUNC_MAP[field_type](raw_value)
+                    except IndexError:
+                        logger.debug(
+                            "Error getting index %s from %s array", i, fname)
+                        value = None
+                if value is not None:
+                    feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
                 feature.SetFID(line_data['id'][i])
@@ -386,7 +409,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                         self.node_data['coordinates'][1][node_id],
                     )
                 except IndexError:
-                    log("Invalid node id: %s" % node_id)
+                    logger.debug("Invalid node id: %s" % node_id)
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)

@@ -20,7 +20,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'q_pump': 'm3',
     'qp': 'm3',
     'up1': 'm',
-    'qlat': 'm3',
+    'q_lat': 'm3',
     'vol1': 'm3',
     'rain': 'm3',
     'infiltration_rate': 'm3',
@@ -47,6 +47,7 @@ RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
+LEAKAGE_RATE = NcVar('Mesh2D_leak', 'leakage rate', 'm3/s')
 
 _Q_TYPES = [
     DISCHARGE,
@@ -64,6 +65,7 @@ _H_TYPES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    LEAKAGE_RATE,
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -77,11 +79,15 @@ AGGREGATION_VARIABLES = [
     VELOCITY,
     VELOCITY_INTERFLOW,
     WATERLEVEL,
-    VOLUME_AGG,  # this is the only difference with SUBGRID_MAP_VARIABLES
+    # TODO: for some reason it's called 'vol' in the groundwater netcdf, while
+    # it's called 'vol1' in the old one
+    VOLUME,
+    VOLUME_AGG,
     RAIN_INTENSITY,
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    WET_CROSS_SECTION_AREA,
 ]
 
 AGGREGATION_OPTIONS = {
@@ -302,6 +308,12 @@ def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
     return nc_vars
 
 
+AGG_Q_TYPES = list(product_and_concat(Q_TYPES))
+AGG_H_TYPES = list(product_and_concat(H_TYPES))
+POSSIBLE_AGG_VARS = list(product_and_concat(
+    [v.name for v in AGGREGATION_VARIABLES]))
+
+
 class NetcdfDataSource(BaseDataSource):
     """This netCDF datasource combines three things:
 
@@ -461,19 +473,12 @@ class NetcdfDataSource(BaseDataSource):
                                           if v in subgrid_map_vars]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
-            possible_agg_vars = [product_and_concat([v]) for v, _, _ in
-                                 AGGREGATION_VARIABLES]
-            # This flattens the list of lists
-            possible_agg_vars = [item for sublist in possible_agg_vars for
-                                 item in sublist]
-            try:
+            if self.ds_aggregation is not None:
                 agg_vars = self.ds_aggregation.variables.keys()
-                available_agg_vars = [v for v in possible_agg_vars if v in
+                available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
-            except IndexError:
-                # If we're here it means no agg. netCDF was found. Fail without
-                # error, but do log it.
+            else:
                 log("No aggregation netCDF was found, only the data from the "
                     "regular netCDF will be used.", level='WARNING')
         return available_vars

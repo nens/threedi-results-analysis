@@ -23,14 +23,6 @@ class BaseDataSource(object):
         pass
 
     @abstractmethod
-    def node_type_of(self, node_idx):
-        pass
-
-    @abstractmethod
-    def line_type_of(self, line_idx):
-        pass
-
-    @abstractmethod
     def get_timeseries(
             self, object_type, object_id, nc_variable, fill_value=None):
         pass

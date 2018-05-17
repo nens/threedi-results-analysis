@@ -621,73 +621,97 @@ class GraphWidget(QWidget):
             self.parameters[self.parameter_combo_box.currentText()]
         self.graph_plot.set_parameter(self.current_parameter)
 
+    def get_feature_index(self, layer, feature):
+        """
+        get the id of the selected id feature
+        :param layer: selected Qgis layer to be added
+        :param feature: selected Qgis feature to be added
+        :return: idx (integer)
+        We can't do ``feature.id()``, so we have to pick something that we
+        have agreed on. For now we have hardcoded the 'id' field as the
+        default, but that doesn't mean it's always the case in the future
+        when more layers are added!
+        """
+        idx = feature.id()
+        if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
+            idx = feature['id']
+        return idx
+
+    def get_object_name(self, layer, feature):
+        """
+        get the object_name (display_name / type)  of the selected id feature
+        :param layer: selected Qgis layer to be added
+        :param feature: selected Qgis feature to be added
+        :return: object_name (string)
+        To get a object_name we use the following logic:
+        - get the '*display_name*' column if available;
+        - if not: get the 'type' column if available;
+        - if not: object_name = 'N/A'
+        """
+        object_name = None
+        for column_nr, field in enumerate(layer.fields()):
+            if 'display_name' in field.name():
+                object_name = feature[column_nr]
+        if object_name is None:
+            for column_nr, field in enumerate(layer.fields()):
+                if field.name() == 'type':
+                    object_name = feature[column_nr]
+                    break
+                else:
+                    object_name = 'N/A'
+                    log("Layer has no 'display_name', it's probably a result "
+                        "layer, but putting a placeholder object name just "
+                        "for safety.", level='WARNING')
+        return object_name
+
+    def get_new_items(self, layer, features, filename, existing_items):
+        """
+        get a list of new items (that have been selected by user) to be added
+        to graph (if they do not already exist in the graph items
+        :param layer: selected Qgis layer to be added
+        :param features: selected Qgis features to be added
+        :param filename: selected Qgis features to be added
+        :param existing_items: selected Qgis features to be added
+        :return: new_items (list)
+        """
+        new_items = []
+        for feature in features:
+            new_idx = self.get_feature_index(layer, feature)
+            new_object_name = self.get_object_name(layer, feature)
+            # check if object not already exist
+            if (layer.name() + '_' + str(new_idx)) not in existing_items:
+                item = {
+                    'object_type': layer.name(),
+                    'object_id': new_idx,
+                    'object_name': new_object_name,
+                    'file_path': filename
+                }
+                new_items.append(item)
+        return new_items
+
     def add_objects(self, layer, features):
         """
-
         :param layer: layer of features
         :param features: Qgis layer features to be added
         :return: boolean: new objects are added
         """
 
-        # Get the active database as URI, connInfo is something like:
+        # Get the active database as URI, conn_info is something like:
         # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
         # DS_152_1D_totaal_bergingsbak/results/
         # DS_152_1D_totaal_bergingsbak_result.sqlite'"
-        connInfo = QgsDataSourceURI(
+        conn_info = QgsDataSourceURI(
             layer.dataProvider().dataSourceUri()).connectionInfo()
         try:
-            filename = connInfo.split("'")[1]
+            filename = conn_info.split("'")[1]
         except IndexError:
             filename = 'nofilename'
 
         # get attribute information from selected layers
-        items = []
         existing_items = ["%s_%s" % (item.object_type.value,
                                      str(item.object_id.value))
                           for item in self.model.rows]
-        for feature in features:
-            idx = feature.id()
-            if layer.dataProvider().name() in PROVIDERS_WITHOUT_PRIMARY_KEY:
-                # We can't do ``feature.id()``, so we have to pick something
-                # that we have agreed on. For now we have hardcoded the 'id'
-                # field as the default, but that doesn't mean it's always
-                # the case in the future when more layers are added!
-                idx = feature['id']
-
-            try:
-                object_name = feature['display_name']
-            except KeyError:
-                # TODO: need a more generic way, i.e., this needs to be fixed
-                # in the views themselved:
-                log("Guessing the object_name now because it's a v2 model",
-                    level='WARNING')
-                try:
-                    # this is extremely hardcoded, we're just guessing
-                    DISPLAY_NAME_DEFAULT_COLUMN = 2
-                    # This check is the least we can do to have some assurance
-                    # that this column is somewhat related to the display name
-                    if 'display_name' in feature.fields(
-                    )[DISPLAY_NAME_DEFAULT_COLUMN].name():
-                        object_name = feature[DISPLAY_NAME_DEFAULT_COLUMN]
-                    else:
-                        object_name = 'N/A'
-                except KeyError:
-                    log(
-                        "Layer has no 'display_name', it's probably a "
-                        "result layer, but putting a placeholder "
-                        "object name just for safety."
-                    )
-                    object_name = 'N/A'
-
-            # check if object not already exist
-            if (layer.name() + '_' + str(idx)) not in existing_items:
-                item = {
-                    'object_type': layer.name(),
-                    'object_id': idx,
-                    'object_name': object_name,
-                    'file_path': filename
-                }
-                items.append(item)
+        items = self.get_new_items(layer, features, filename, existing_items)
 
         if len(items) > 20:
             msg = "%i new objects selected. Adding those to the plot can " \
