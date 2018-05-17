@@ -1,8 +1,8 @@
 ThreeDiToolbox
 ==============
 
-.. image:: https://travis-ci.org/nens/threedi-qgis-plugin.svg?branch=master
-    :target: https://travis-ci.org/nens/threedi-qgis-plugin
+.. image:: https://travis-ci.org/nens/ThreeDiToolbox.svg?branch=master
+    :target: https://travis-ci.org/nens/ThreeDiToolbox
 
 A QGIS plugin for working with 3Di models and netCDF results. Features include:
 
