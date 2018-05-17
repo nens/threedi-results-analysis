@@ -35,22 +35,26 @@ but if you clone this repository you need to manually install them in the
     $ pip install -r requirements.txt --target=external --no-deps -U
 
 Windows
-  The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under
-  Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
-  it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
+^^^^^^^
+
+The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under
+Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
+it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
 
 Linux
-  If you're on Linux, NetCDF and HDF5 dependencies are **not** included, so you have to install them::
+^^^^^
 
-    $ sudo apt-get install libhdf5-serial-dev libnetcdf-dev
+For Linux, NetCDF and HDF5 dependencies are **not** included, so you have to install them::
 
-  Install Python packages globally because we don't include them for Linux::
+$ sudo apt-get install libhdf5-serial-dev libnetcdf-dev
 
-    $ sudo pip install -r requirements-dev.txt -U
+Install Python packages globally because we don't include them for Linux::
 
-  You might need to install the Qt4 PostgreSQL driver for loading sufhyd::
+$ sudo pip install -r requirements-dev.txt -U
 
-    $ sudo apt-get install libqt4-sql-psql
+You might need to install the Qt4 PostgreSQL driver for loading sufhyd::
+
+$ sudo apt-get install libqt4-sql-psql
 
 
 Installation
