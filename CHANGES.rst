@@ -4,6 +4,13 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+
+- Fix leakage name.
+
+- Implement ``get_timeseries`` for pumplines using the newest threedigrid.
+
+- Fix SetFID error caused by int32.
+
 - try to show more often the object_name in graph widget (instead of 'N/A')
 
 - use gridadmin has_pumpstations in functions get_or_create_pumpline_layer and
