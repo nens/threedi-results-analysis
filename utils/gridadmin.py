@@ -23,8 +23,12 @@ def get_spatial_reference(epsg_code):
     return spatial_ref
 
 
-def _fix_fid_for_SetFID(fid):
-    """SetFID can't handle numpy.int64, which the h5 data sometimes returns"""
+def _temp_fix_fid_for_SetFID(fid):
+    """SetFID can't handle numpy.int64, which the h5 data sometimes returns
+
+    Note: shouldn't be needed anymore in newer results because it's converted
+    back to int32. Ask Martijn.
+    """
     return int(fid)
 
 
@@ -139,7 +143,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                     feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(node_data['id'][i])
+                fid = _temp_fix_fid_for_SetFID(node_data['id'][i])
                 feature.SetFID(fid)
             layer.CreateFeature(feature)
             feature.Destroy()
@@ -337,7 +341,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(line_data['id'][i])
+                fid = _temp_fix_fid_for_SetFID(line_data['id'][i])
                 feature.SetFID(fid)
 
             layer.CreateFeature(feature)
@@ -428,7 +432,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(pump_data['id'][i])
+                fid = _temp_fix_fid_for_SetFID(pump_data['id'][i])
                 feature.SetFID(fid)
 
             layer.CreateFeature(feature)

@@ -168,51 +168,13 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
                     content_pk=object_id).timeseries(indexes=slice(None))
             # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None)).vol
-            filter_timeseries_ncvar = getattr(
-                filter_timeseries, nc_variable)
+            filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
             # this could return multiple timeseries, since a v2_channel can
             # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
-
         elif model_instance == 'pumps':
-            # one example for v2_pumpstation =
-            # gr.pumps.filter(id=3).timeseries(indexes=slice(
-                # None)).Mesh1D_q_pump
-            # gr.pumps.timeseries(indexes=slice(None))
-            gr_model_instance_subset = \
-                gr_model_instance.timeseries(indexes=slice(None))
-
-            # tijdelijke hack omdat threedigrid indexerrors geeft op pumps
-            # normaalgesproken zou dit werken:
-            # gr.pumps.filter(id=1).timeseries(indexes=slice(None)).q_pump
-            # echter, dit geeft nu een: "IndexError: boolean index did not
-            # match indexed array along dimension 1; dimension is 20 but
-            # corresponding boolean dimension is 19"
-
-            # ter achtergrond info:
-            # v2_bergermeer heeft 18 v2_pumpstations
-            # v2_bergermeer heeft 19 pumplines (export functie is goed!)
-
-            # vanwege indexerror daarom tijdelijke hack:
-            # dit werkt: gr.pumps.q_pump[:,1:].shape --> (10, 19)
-            # echter dit werkt niet: gr.pumps.filter(id=1).q_pump[:,1:]
-            # dus de id array moeten we ook gaan slicen
-            # ff nieuwe array bouwen (v2_bergermeer id = {1, 2, .., 18, 19}
-            id_array = gr_model_instance_subset.id
-            # dan kunnen we vervolgens bijv doen:
-            # gr.pumps.timeseries(indexes=slice(None)).q_pump
-            subset_ncvar = getattr(gr_model_instance_subset, nc_variable)
-
-            # gr.pumps.timeseries(indexes=slice(None)).q_pump[:, 1:][:,
-            # id_array == 3]
-            ncvar_filter = subset_ncvar[:, 1:][:, id_array == object_id]
-            # flatten numpyarray
-            vals = ncvar_filter.flatten()
-            # Todo:
-            # wait for Jelle/Lars to fix this IndexError in threedigrid,
-            # so that we can do the normal way (maybe also using content_pk
-            # instead of id?
+            raise NotImplementedError("TODO")
         else:
             raise ValueError('object_type not available')
         return vals
@@ -234,52 +196,13 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         # gr.nodes / gr.lines / gr.pumps
         gr_model_instance = getattr(gridadmin_result, model_instance)
 
-        if model_instance in ['nodes', 'lines']:
-            # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-            filter_timeseries = gr_model_instance.filter(
-                id=object_id).timeseries(indexes=slice(None))
-            # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
-            filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
-            # flatten numpyarray
-            vals = filter_timeseries_ncvar.flatten()
-        elif model_instance == 'pumps':
-            # gr.pumps.timeseries(indexes=slice(None))
-            timeseries = gr_model_instance.timeseries(
-                indexes=slice(None))
-
-            # tijdelijke hack omdat threedigrid indexerrors geeft op pumps
-            # --------------------------------------------------
-            # normaalgesproken zou dit werken:
-            # gr.pumps.filter(id=1).timeseries(indexes=slice(None)).q_pump
-            # echter, dit geeft nu een: "IndexError: boolean index did not
-            # match indexed array along dimension 1; dimension is 20 but
-            # corresponding boolean dimension is 19"
-
-            # ter achtergrond info:
-            # v2_bergermeer heeft 18 v2_pumpstations
-            # v2_bergermeer heeft 19 pumplines (export functie is goed!)
-
-            # vanwege indexerror daarom tijdelijke hack:
-            # dit werkt: gr.pumps.q_pump[:,1:].shape --> (10, 19)
-            # echter dit werkt niet: gr.pumps.filter(id=1).q_pump[:,1:]
-            # dus de id array moeten we ook gaan slicen
-            # ff nieuwe array bouwen
-            # id_array = gr.pumps.id # --> is id 1 tm 19
-            id_array = gr_model_instance.id
-            # dan kunnen we vervolgens bijv doen:
-            # gr.pumps.timeseries(indexes=slice(None)).q_pump
-            timeseries_ncvar = getattr(timeseries, nc_variable)
-            # gr.pumps.timeseries(indexes=slice(None)).q_pump[:, 1:][:,
-            # id_array == 3]
-            filter = timeseries_ncvar[:, 1:][:, id_array == object_id]
-            # flatten numpyarray
-            vals = filter.flatten()
-            # Todo:
-            # wait for Jelle/Lars to fix this IndexError in threedigrid,
-            # so that we can do the normal way (maybe also using content_pk
-            # instead of id?
-        else:
-            raise ValueError('object_type not available')
+        # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
+        filter_timeseries = gr_model_instance.filter(
+            id=object_id).timeseries(indexes=slice(None))
+        # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
+        filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
+        # flatten numpyarray
+        vals = filter_timeseries_ncvar.flatten()
         return vals
 
     def get_timeseries(
