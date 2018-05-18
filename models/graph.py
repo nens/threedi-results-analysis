@@ -131,6 +131,8 @@ class LocationTimeseriesModel(BaseModel):
                 if absolute:
                     timeseries = np.abs(timeseries)
             except (KeyError, IndexError, ValueError, AttributeError):
+                # TODO: we're catching way too many errors here, maybe we need
+                # a custom type
                 logger.exception("Error getting timeseries table")
                 # Return an empty array so that the graph won't crash.
                 timeseries = EMPTY_TIMESERIES
