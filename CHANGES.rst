@@ -4,6 +4,7 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- improve feedback to user in case of graph tool with v2_pumpstation_view
 
 - Fix leakage name.
 

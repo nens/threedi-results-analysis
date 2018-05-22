@@ -174,10 +174,15 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
         elif model_instance == 'pumps':
-            raise NotImplementedError("TODO")
+            # TODO
+            # filtering on id still needs to be implemented in threedigrid
+            # prepare. For now, users need to use pumplines qgisvectorlayer
+            from ..utils.user_messages import messagebar_message
+            msg = "v2_pumpstation_view results are not implemented yet. Use " \
+                  "the 'pumplines' layer to get your results"
+            messagebar_message('Warning', msg, level=1, duration=6)
         else:
             raise ValueError('object_type not available')
-        return vals
 
     def _get_timeseries_result_layer(
             self, gridadmin_result, object_type, object_id, nc_variable):
