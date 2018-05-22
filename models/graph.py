@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+import logging
 from random import randint
 
 from .base import BaseModel
@@ -7,6 +8,9 @@ from .base_fields import ValueField, ColorField, CheckboxField
 
 import numpy as np
 import pyqtgraph as pg
+
+
+logger = logging.getLogger(__name__)
 
 
 COLOR_LIST = [
@@ -127,7 +131,9 @@ class LocationTimeseriesModel(BaseModel):
                 if absolute:
                     timeseries = np.abs(timeseries)
             except (KeyError, IndexError, ValueError, AttributeError):
+                # TODO: we're catching way too many errors here, maybe we need
+                # a custom type
+                logger.exception("Error getting timeseries table")
                 # Return an empty array so that the graph won't crash.
-                # The exceptions are already logged by the nc datasource.
                 timeseries = EMPTY_TIMESERIES
             return timeseries
