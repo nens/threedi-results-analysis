@@ -15,7 +15,7 @@ A QGIS plugin for working with 3Di models and netCDF results. Features include:
 
 `Take a look at the Wiki for information`_.
 
-.. _`Take a look at the Wiki for information`: https://github.com/nens/threedi-qgis-plugin/wiki
+.. _`Take a look at the Wiki for information`: https://github.com/nens/ThreeDiToolbox/wiki
 
 
 Installing requirements

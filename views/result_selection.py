@@ -6,7 +6,7 @@ import os
 import urllib2
 
 from lizard_connector.connector import Endpoint
-from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread
+from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
 from PyQt4.QtGui import QWidget, QFileDialog
 from PyQt4 import uic
 
@@ -174,6 +174,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.closingDialog.emit()
         self.on_close()
         event.accept()
+
+    def keyPressEvent(self, event):
+        """Handle key press events on the widget."""
+        # Close window if the Escape key is pressed
+        if event.key() == Qt.Key_Escape:
+            self.close()
 
     def select_ts_datasource(self):
         """
