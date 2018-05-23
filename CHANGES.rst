@@ -5,6 +5,8 @@ threedi-qgis-plugin changelog
 0.16 (unreleased)
 -----------------
 
+- Close result selection window when the Escape key is pressed.
+
 - Fix leakage name.
 
 - Implement ``get_timeseries`` for pumplines using the newest threedigrid.
