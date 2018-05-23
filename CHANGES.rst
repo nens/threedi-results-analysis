@@ -1,4 +1,4 @@
-ThreediToolBox changelog
+ThreeDiToolBox changelog
 ========================
 
 
