@@ -6,6 +6,8 @@ threedi-qgis-plugin changelog
 -----------------
 - Let netcdf_groundwater get_timeseries return NaN values instead of -9999
 
+- improve feedback to user in case of graph tool with v2_pumpstation_view
+
 - Fix leakage name.
 
 - Implement ``get_timeseries`` for pumplines using the newest threedigrid.
