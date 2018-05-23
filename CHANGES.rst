@@ -4,6 +4,7 @@ threedi-qgis-plugin changelog
 
 0.16 (unreleased)
 -----------------
+- Let netcdf_groundwater get_timeseries return NaN values instead of -9999
 
 - Fix leakage name.
 
