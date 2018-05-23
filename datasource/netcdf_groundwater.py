@@ -183,6 +183,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             messagebar_message('Warning', msg, level=1, duration=6)
         else:
             raise ValueError('object_type not available')
+        return vals
 
     def _get_timeseries_result_layer(
             self, gridadmin_result, object_type, object_id, nc_variable):
