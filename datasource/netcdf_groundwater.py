@@ -174,6 +174,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
+            return vals
         elif model_instance == 'pumps':
             # TODO
             # filtering on id still needs to be implemented in threedigrid
@@ -183,7 +184,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             messagebar_message('Warning', msg, level=1, duration=6)
         else:
             raise ValueError('object_type not available')
-        return vals
 
     def _get_timeseries_result_layer(
             self, gridadmin_result, object_type, object_id, nc_variable):
