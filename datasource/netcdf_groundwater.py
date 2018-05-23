@@ -174,6 +174,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
+            return vals
         elif model_instance == 'pumps':
             # TODO
             # filtering on id still needs to be implemented in threedigrid
@@ -234,15 +235,19 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
               "nc_variable={nc_variable}".format(object_id=object_id,
                                                  object_type=object_type,
                                                  nc_variable=nc_variable)
-        log.warning(msg)
+        log.debug(msg)
 
+        # eventually replace a nodata value by NaN
+        no_data = -9999
+        # get datatype of values
+        values_dtype = values.dtype
+        # create no_data_value and set its datatype to datatype of values
+        no_data_value = np.array([no_data]).astype(values_dtype)
+        if fill_value is not None and no_data_value in values:
+            # replace no_data_value with fill_value
+            np.place(values, values == no_data_value, [fill_value])
         # Zip timeseries together in (n,2) array
-        if fill_value is not None and type(values) == \
-                np.ma.core.MaskedArray:
-            filled_vals = values.filled(fill_value)
-            return np.vstack((ts, filled_vals)).T
-        else:
-            return np.vstack((ts, values)).T
+        return np.vstack((ts, values)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access

@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 0.16 (unreleased)
 -----------------
+- Let netcdf_groundwater get_timeseries return NaN values instead of -9999
+
 - improve feedback to user in case of graph tool with v2_pumpstation_view
 
 - Close result selection window when the Escape key is pressed.
