@@ -1,5 +1,5 @@
-threedi-qgis-plugin changelog
-=============================
+ThreediToolBox changelog
+========================
 
 
 0.16 (unreleased)
