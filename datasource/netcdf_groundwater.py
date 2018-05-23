@@ -7,6 +7,7 @@ from .netcdf import (
     SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES,
     find_h5_file, find_aggregation_netcdf
 )
+from ..utils.user_messages import messagebar_message
 
 # all possible var names from regular netcdf AND agg netcdf
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
@@ -177,7 +178,6 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # TODO
             # filtering on id still needs to be implemented in threedigrid
             # prepare. For now, users need to use pumplines qgisvectorlayer
-            from ..utils.user_messages import messagebar_message
             msg = "v2_pumpstation_view results are not implemented yet. Use " \
                   "the 'pumplines' layer to get your results"
             messagebar_message('Warning', msg, level=1, duration=6)
