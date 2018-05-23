@@ -239,7 +239,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         no_data_value = np.array([no_data]).astype(values_dtype)
         if fill_value is not None and no_data_value in values:
             # replace no_data_value with fill_value
-            np.place(values, values==no_data_value,[fill_value])
+            np.place(values, values == no_data_value, [fill_value])
         # Zip timeseries together in (n,2) array
         return np.vstack((ts, values)).T
 
