@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 0.16 (unreleased)
 -----------------
+- pumplines exporter now also ignores first element
+
 - Fix some nasty bugs in ``temp_get_value_by_timestep_nr_impl``: some
   variables (like ``qp``) only have a 1D or 2D component, and the previous
   implementation only returned that component. However, this will cause

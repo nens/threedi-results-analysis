@@ -82,8 +82,9 @@ def get_or_create_pumpline_layer(ds, output_path):
             from .gridadmin import QgisPumpsOgrExporter
             exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
             exporter.driver = ogr.GetDriverByName('SQLite')
-            exporter.save(output_path, PUMPLINES_LAYER_NAME, ga.pumps.data,
-                          ga.pumps.epsg_code, 4326)
+            sliced = ga.pumps.slice(IGNORE_FIRST)
+            exporter.save(output_path, PUMPLINES_LAYER_NAME, sliced.data,
+                          sliced.epsg_code, 4326)
     if ga.has_pumpstations:
         return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
 
