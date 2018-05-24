@@ -298,6 +298,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         else:
             log.error("Unsupported variable %s", variable)
 
+        # determine appropriate fill value from netCDF
         if var_2d in ds.variables.keys():
             fill_value_2d = ds.variables[var_2d]._FillValue
             fill_value = fill_value_2d
