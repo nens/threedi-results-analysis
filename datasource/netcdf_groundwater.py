@@ -174,6 +174,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # be splitted up in multiple flowlines. For now, we pick first:
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
+            return vals
         elif model_instance == 'pumps':
             # TODO
             # filtering on id still needs to be implemented in threedigrid
@@ -237,9 +238,11 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         log.warning(msg)
 
         # Zip timeseries together in (n,2) array
-        if fill_value is not None and type(values) == \
-                np.ma.core.MaskedArray:
-            filled_vals = values.filled(fill_value)
+        if fill_value is not None:
+            # transform np.array into np.MaskedArray
+            no_data_value = -9999
+            masked_array = np.ma.masked_values(values, no_data_value)
+            filled_vals = masked_array.filled(fill_value)
             return np.vstack((ts, filled_vals)).T
         else:
             return np.vstack((ts, values)).T
