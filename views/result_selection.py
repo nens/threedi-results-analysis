@@ -215,11 +215,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                 "core that is able to include groundwater"
                                 " calculations. The ThreeDiToolbox reads "
                                 "this netcdf together with an .h5 file, we "
-                                "could however not find this .h5 file. We "
-                                "searched in folder [../preprocessed]. Please "
-                                "add this file to the correct location and "
-                                "try again",
-                                title='Error')
+                                "could however not find this .h5 file. Please "
+                                "add this file next to the netcdf and try "
+                                "again", title='Error')
                     return False
             elif ds_type == 'netcdf':
                 try:
@@ -231,10 +229,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                                 "calculations. The ThreeDiToolbox reads this "
                                 "netcdf together with an id_mapping file, "
                                 "we could however not find this id_mapping "
-                                "file. We searched in folder "
-                                "[../input_generated]. Please add this "
-                                "file to the correct location and try again",
-                                title='Error')
+                                "file. Please add this file next to the "
+                                "netcdf and try again", title='Error')
                     return False
 
             items = [{
