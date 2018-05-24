@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 0.16 (unreleased)
 -----------------
+- pumplines exporter now also ignores first element
+
 - improve feedback to user in case of graph tool with v2_pumpstation_view
 
 - Close result selection window when the Escape key is pressed.
