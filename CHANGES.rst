@@ -7,10 +7,11 @@ ThreeDiToolBox changelog
 
 - Fix some nasty bugs in ``temp_get_value_by_timestep_nr_impl``: some
   variables (like ``qp``) only have a 1D or 2D component, and the previous
-  implmementation only returned that component. However, this will cause
+  implementation only returned that component. However, this will cause
   indexing errors, so the behavior is now changed such that the method now
   always returns a masked array that is 2D+1D long, if no index is passed
-  as argument.
+  as argument. Furthermore, ``np.zeros`` is changed to ``np.ma.zeros`` in
+  the if block when an index is passed.
 
 - improve feedback to user in case of graph tool with v2_pumpstation_view
 
