@@ -4,7 +4,10 @@ ThreeDiToolBox changelog
 
 0.16 (unreleased)
 -----------------
+
 - pumplines exporter now also ignores first element
+
+- let netcdf_groundwater get_timeseries return NaN istead of -9999
 
 - improve feedback to user in case of graph tool with v2_pumpstation_view
 
