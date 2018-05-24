@@ -4,6 +4,14 @@ ThreeDiToolBox changelog
 
 0.16 (unreleased)
 -----------------
+
+- Fix some nasty bugs in ``temp_get_value_by_timestep_nr_impl``: some
+  variables (like ``qp``) only have a 1D or 2D component, and the previous
+  implmementation only returned that component. However, this will cause
+  indexing errors, so the behavior is now changed such that the method now
+  always returns a masked array that is 2D+1D long, if no index is passed
+  as argument.
+
 - improve feedback to user in case of graph tool with v2_pumpstation_view
 
 - Close result selection window when the Escape key is pressed.
@@ -20,6 +28,7 @@ ThreeDiToolBox changelog
   available_subgrid_map_vars
 
 - Progressbar exporting to gridadmin.sqlite starts now at 0%
+
 - Add support for aggregate netcdf in NetcdfDataSourceGroundwater.
 
 - add leakage to subgrid_map variables
