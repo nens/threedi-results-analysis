@@ -237,17 +237,15 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
                                                  nc_variable=nc_variable)
         log.warning(msg)
 
-        # eventually replace a nodata value by NaN
-        no_data = -9999
-        # get datatype of values
-        values_dtype = values.dtype
-        # create no_data_value and set its datatype to datatype of values
-        no_data_value = np.array([no_data]).astype(values_dtype)
-        if fill_value is not None and no_data_value in values:
-            # replace no_data_value with fill_value
-            np.place(values, values == no_data_value, [fill_value])
         # Zip timeseries together in (n,2) array
-        return np.vstack((ts, values)).T
+        if fill_value is not None:
+            # transform np.array into np.MaskedArray
+            no_data_value = -9999
+            masked_array = np.ma.masked_values(values, no_data_value)
+            filled_vals = masked_array.filled(fill_value)
+            return np.vstack((ts, filled_vals)).T
+        else:
+            return np.vstack((ts, values)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
