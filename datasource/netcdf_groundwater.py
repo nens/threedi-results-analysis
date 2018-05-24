@@ -301,23 +301,50 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
         else:
             log.error("Unsupported variable %s", variable)
 
+        # determine appropriate fill value from netCDF
+        if var_2d in ds.variables.keys():
+            fill_value_2d = ds.variables[var_2d]._FillValue
+            fill_value = fill_value_2d
+        if var_1d in ds.variables.keys():
+            fill_value_1d = ds.variables[var_1d]._FillValue
+            fill_value = fill_value_1d
+
+        if var_2d in ds.variables.keys() and var_1d in ds.variables.keys():
+            assert fill_value_1d == fill_value_2d, \
+                "Difference in fill value, can't consolidate"
+
         if index is None:
             if variable.startswith('q_pump'):
                 return self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, :]
-            arrs = []
-            # Note: order is: 2D, then 1D
-            # Note 2: it's possible to only have 2D or 1D
+            elif variable in ALL_Q_TYPES:
+                n2d = self.nMesh2D_lines
+                n1d = self.nMesh1D_lines
+            elif variable in ALL_H_TYPES:
+                n2d = self.nMesh2D_nodes
+                n1d = self.nMesh1D_nodes
+            else:
+                raise ValueError(variable)
+
+            # Note: it's possible to only have 2D or 1D
             if var_2d in ds.variables.keys():
-                vals_2d = self._nc_from_mem(
+                a2d = self._nc_from_mem(
                     ds, var_2d, use_cache)[timestamp_idx, :]
-                arrs.append(vals_2d)
+            else:
+                a2d = np.ma.masked_all(n2d)
+
             if var_1d in ds.variables.keys():
-                vals_1d = self._nc_from_mem(
+                a1d = self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, :]
-                arrs.append(vals_1d)
-            assert len(arrs) > 0, "No 2D and 1D?"
-            res = np.hstack(tuple(arrs))
+            else:
+                a1d = np.ma.masked_all(n1d)
+
+            assert (
+                var_2d in ds.variables.keys() or var_1d in
+                ds.variables.keys()), "No 2D and 1D?"
+
+            # Note: order is: 2D, then 1D
+            res = np.ma.hstack([a2d, a1d])
         else:
             # in the groundwater version, the node index starts from 1 instead
             # of 0.
@@ -341,7 +368,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             # make index arrays that can be used on the nc variables
             iarr_2d = index[idx_2d]
             iarr_1d = index[idx_1d] - threshold
-            res = np.zeros(index.shape)
+            res = np.ma.zeros(index.shape, fill_value=fill_value)
             # Note sure if a netCDF bug or a known difference in behavior.
             # Indexing a numpy array using [], or np.array([], dtype=int)
             # works, but on a netCDF Variable it doesn't. Therefore we must
@@ -352,21 +379,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
             if iarr_1d.size > 0:
                 res[idx_1d] = self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, iarr_1d]
-
-        if var_2d in ds.variables.keys():
-            fill_value_2d = ds.variables[var_2d]._FillValue
-            fill_value = fill_value_2d
-        if var_1d in ds.variables.keys():
-            fill_value_1d = ds.variables[var_1d]._FillValue
-            fill_value = fill_value_1d
-
-        if var_2d in ds.variables.keys() and var_1d in ds.variables.keys():
-            assert fill_value_1d == fill_value_2d, \
-                "Difference in fill value, can't consolidate"
-        # res is a normal array, we need to mask the values again from the
-        # netcdf
-        masked_res = np.ma.masked_values(res, fill_value)
-        return masked_res
+        # note: res is a masked array
+        return res
 
     @property
     def gridadmin(self):

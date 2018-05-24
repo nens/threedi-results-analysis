@@ -264,6 +264,8 @@ class MapAnimator(QWidget):
             provider = layer.dataProvider()
 
             values = ds.get_values_by_timestep_nr(parameter, timestep_nr)
+            if isinstance(values, np.ma.MaskedArray):
+                values = values.filled(np.NaN)
             if stat == 'diff':
                 values = values - ds.get_values_by_timestep_nr(parameter, 0)
             # updated to act for actual, display actual value
