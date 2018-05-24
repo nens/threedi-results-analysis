@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.1 (unreleased)
+1.1 (2018-05-24)
 ----------------
 
 - Update new aggregate result name.
