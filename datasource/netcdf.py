@@ -232,9 +232,6 @@ def detect_netcdf_version(netcdf_file_path):
 def find_aggregation_netcdf(netcdf_file_path):
     """An ad-hoc way to find the aggregation netcdf file.
 
-    It is assumed that the file is called 'flow_aggregate.nc' and in the same
-    directory as the 'regular' result netcdf.
-
     Args:
         netcdf_file_path: path to the result netcdf
 
@@ -244,7 +241,7 @@ def find_aggregation_netcdf(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = 'flow_aggregate.nc'
+    pattern = 'aggregate_results_3di.nc'
     result_dir = os.path.dirname(netcdf_file_path)
     return glob.glob(os.path.join(result_dir, pattern))[0]
 

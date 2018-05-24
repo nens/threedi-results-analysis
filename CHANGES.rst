@@ -5,11 +5,12 @@ ThreeDiToolBox changelog
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Update new aggregate result name.
 
 
 1.0 (2018-05-24)
 ----------------
+
 - pumplines exporter now also ignores first element
 
 - Fix some nasty bugs in ``temp_get_value_by_timestep_nr_impl``: some
@@ -59,6 +60,7 @@ ThreeDiToolBox changelog
 
 - Disable the "Calculate statistics?" prompt if there are already csv files
   available.
+
 - Add caching of netcdf data in ``get_values_by_timestemp_nr``.
 
 - Enable PEP8 check in build process; fix remaining PEP8 errors.
