@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.2 (unreleased)
+1.2 (2018-05-24)
 ----------------
 
 - Fix the aggregate find function for realz.
