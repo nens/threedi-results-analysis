@@ -2,8 +2,8 @@ ThreeDiToolBox changelog
 ========================
 
 
-0.16 (unreleased)
------------------
+1.0 (2018-05-24)
+----------------
 - pumplines exporter now also ignores first element
 
 - Fix some nasty bugs in ``temp_get_value_by_timestep_nr_impl``: some
