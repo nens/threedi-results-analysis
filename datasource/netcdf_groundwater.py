@@ -1,11 +1,13 @@
+import glob
 import logging
+import os
 import numpy as np
 
 from .base import BaseDataSource
 from ..utils import cached_property
 from .netcdf import (
     SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES,
-    find_h5_file, find_aggregation_netcdf
+    find_h5_file
 )
 from ..utils.user_messages import messagebar_message
 
@@ -41,6 +43,24 @@ object_type_model_instance_subset = dict(
     [(a[0], a[2]) for a in layer_information])
 object_type_layer_source = dict(
     [(a[0], a[3]) for a in layer_information])
+
+
+def find_aggregation_netcdf_gw(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file for groundwater
+    results.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = 'aggregate_results_3di.nc'
+    result_dir = os.path.dirname(netcdf_file_path)
+    return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
 class NetcdfDataSourceGroundwater(BaseDataSource):
@@ -402,7 +422,7 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     def gridadmin_aggregate_result(self):
         from ..utils.patched_threedigrid import GridH5AggregateResultAdmin
         try:
-            agg_path = find_aggregation_netcdf(self.file_path)
+            agg_path = find_aggregation_netcdf_gw(self.file_path)
             h5 = find_h5_file(self.file_path)
             return GridH5AggregateResultAdmin(h5, agg_path)
         except IndexError:
@@ -419,7 +439,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
 
         # Load aggregation netcdf
         try:
-            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+            aggregation_netcdf_file = find_aggregation_netcdf_gw(
+                self.file_path)
         except IndexError:
             return None
         else:

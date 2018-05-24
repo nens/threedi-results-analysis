@@ -241,7 +241,7 @@ def find_aggregation_netcdf(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = 'aggregate_results_3di.nc'
+    pattern = 'flow_aggregate.nc'
     result_dir = os.path.dirname(netcdf_file_path)
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
