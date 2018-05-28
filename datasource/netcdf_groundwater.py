@@ -63,7 +63,7 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
-class NetcdfDataSourceGroundwater(BaseDataSource):
+class NetcdfGroundwaterDataSource(BaseDataSource):
     PREFIX_1D = 'Mesh1D_'
     PREFIX_2D = 'Mesh2D_'
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
@@ -107,8 +107,8 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
 
         Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
 
-        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfDataSourceGroundwater  # noqa
-        >>> ds = NetcdfDataSourceGroundwater()
+        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource  # noqa
+        >>> ds = NetcdfGroundwaterDataSource()
         >>> ds._strip_prefix('Mesh2D_s1')
         's1'
         >> ds._strip_prefix('Mesh1D_q')

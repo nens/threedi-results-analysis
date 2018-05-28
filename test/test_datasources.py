@@ -31,7 +31,7 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_aggregation_netcdf,
 )
 from ThreeDiToolbox.datasource.netcdf_groundwater import (
-    NetcdfDataSourceGroundwater,
+    NetcdfGroundwaterDataSource,
 )
 from .utilities import get_qgis_app
 
@@ -269,7 +269,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 1)
 
 
-class TestNetcdfDatasourceGroundwater(object):
+class TestNetcdfGroundwaterDataSource(object):
     def test_constructor(self):
         """Test empty constructor."""
-        NetcdfDataSourceGroundwater()
+        NetcdfGroundwaterDataSource()
