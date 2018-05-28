@@ -33,8 +33,9 @@ from ThreeDiToolbox.datasource.netcdf import (
 )
 from ThreeDiToolbox.datasource.netcdf_groundwater import (
     NetcdfGroundwaterDataSource,
+    find_aggregation_netcdf_gw
 )
-from .utilities import get_qgis_app
+from .utilities import get_qgis_app, TemporaryDirectory
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
@@ -275,9 +276,25 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         """Test empty constructor."""
         NetcdfGroundwaterDataSource()
 
-    def test_ts(self):
+    def test_sanity(self):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
         # sanity test
         self.assertEqual(nds.ds, m)
+        nds.get_timestamps()
+
+    def test_find_agg_fail(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            with self.assertRaises(IndexError):
+                find_aggregation_netcdf_gw(nc_path)
+
+    def test_find_agg_success(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            agg_path = os.path.join(tempdir, 'aggregate_results_3di.nc')
+            with open(agg_path, 'w') as aggfile:
+                aggfile.write('doesnt matter')
+            agg_path_found = find_aggregation_netcdf_gw(nc_path)
+            self.assertEqual(agg_path, agg_path_found)
