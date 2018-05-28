@@ -10,6 +10,8 @@ ThreeDiToolBox changelog
 
 - Add some data source tests.
 
+- Add ``mock`` dep.
+
 
 1.2 (2018-05-24)
 ----------------
