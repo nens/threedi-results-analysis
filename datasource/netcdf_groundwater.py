@@ -70,17 +70,37 @@ class NetcdfDataSourceGroundwater(BaseDataSource):
     PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
 
     def __init__(self, file_path=None, *args, **kwargs):
-        from netCDF4 import Dataset
         self.file_path = file_path
         self._ga = None
         self._ga_result = None
-        self.ds = Dataset(file_path)
-
-        self.nMesh2D_nodes = self.ds.dimensions['nMesh2D_nodes'].size
-        self.nMesh1D_nodes = self.ds.dimensions['nMesh1D_nodes'].size
-        self.nMesh2D_lines = self.ds.dimensions['nMesh2D_lines'].size
-        self.nMesh1D_lines = self.ds.dimensions['nMesh1D_lines'].size
+        self._ds = None
         self._cache = {}
+
+    @property
+    def ds(self):
+        from netCDF4 import Dataset
+        if self._ds is None:
+            try:
+                self._ds = Dataset(self.file_path)
+            except IOError:
+                pass
+        return self._ds
+
+    @property
+    def nMesh2D_nodes(self):
+        return self.ds.dimensions['nMesh2D_nodes'].size
+
+    @property
+    def nMesh1D_nodes(self):
+        return self.ds.dimensions['nMesh1D_nodes'].size
+
+    @property
+    def nMesh2D_lines(self):
+        return self.ds.dimensions['nMesh2D_lines'].size
+
+    @property
+    def nMesh1D_lines(self):
+        return self.ds.dimensions['nMesh1D_lines'].size
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.

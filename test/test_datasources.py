@@ -30,6 +30,9 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
+from ThreeDiToolbox.datasource.netcdf_groundwater import (
+    NetcdfDataSourceGroundwater,
+)
 from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
@@ -264,3 +267,9 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertIsNotNone(spl_layer)
         self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
         self.assertEqual(layer.featureCount(), 1)
+
+
+class TestNetcdfDatasourceGroundwater(object):
+    def test_constructor(self):
+        """Test empty constructor."""
+        NetcdfDataSourceGroundwater()
