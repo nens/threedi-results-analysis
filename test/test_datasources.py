@@ -1,4 +1,5 @@
 from distutils.version import LooseVersion
+import mock
 import os
 import platform
 import unittest
@@ -269,7 +270,14 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 1)
 
 
-class TestNetcdfGroundwaterDataSource(object):
+class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
         NetcdfGroundwaterDataSource()
+
+    def test_ts(self):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
+        # sanity test
+        self.assertEqual(nds.ds, m)
