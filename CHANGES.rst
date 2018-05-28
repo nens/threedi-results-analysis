@@ -6,6 +6,9 @@ ThreeDiToolBox changelog
 ----------------
 
 - Add new Lizard result types for downloading groundwater results.
+- Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.
+
+- Add some data source tests.
 
 
 1.2 (2018-05-24)
