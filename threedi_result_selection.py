@@ -172,7 +172,12 @@ class ThreeDiResultSelection(QObject):
 
     def handle_download(self):
         result_type_codes_download = [
-            'subgrid_map', 'flow-aggregate', 'id-mapping', 'logfiles']
+            'logfiles',
+            # non-groundwater codes
+            'subgrid_map', 'flow-aggregate', 'id-mapping',
+            # groundwater codes
+            'results-3di', 'aggregate-results-3di', 'grid-admin',
+        ]
         selection_model = self.dialog.downloadResultTableView.selectionModel()
         indexes = selection_model.selectedIndexes()
         if len(indexes) != 1:

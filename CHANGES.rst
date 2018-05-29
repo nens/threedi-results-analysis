@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add new Lizard result types for downloading groundwater results.
 
 
 1.2 (2018-05-24)
