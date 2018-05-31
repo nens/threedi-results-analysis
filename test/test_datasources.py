@@ -297,7 +297,23 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         nds._ds = m
         # sanity test
         self.assertEqual(nds.ds, m)
+
+    def test_get_timestamps(self):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
         nds.get_timestamps()
+
+    @mock.patch(
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars',  # noqa
+        ['s1'])
+    @mock.patch(
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result')  # noqa
+    def test_get_timeseries(self, gridadmin_result_mock):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
+        nds.get_timeseries('nodes', 3, 's1')
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
