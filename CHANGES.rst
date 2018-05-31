@@ -5,6 +5,12 @@ ThreeDiToolBox changelog
 1.3 (unreleased)
 ----------------
 
+- Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.
+
+- Add some data source tests.
+
+- Add ``mock`` dep.
+
 - Add new Lizard result types for downloading groundwater results.
 
 

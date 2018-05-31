@@ -1,8 +1,11 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
 
+from contextlib import contextmanager
 import logging
+import shutil
 import sys
+import tempfile
 
 LOGGER = logging.getLogger('QGIS')
 QGIS_APP = None  # Static variable used to hold hand to running QGIS app
@@ -58,3 +61,12 @@ def get_qgis_app():
         IFACE = QgisInterface(CANVAS)
 
     return QGIS_APP, CANVAS, IFACE, PARENT
+
+
+@contextmanager
+def TemporaryDirectory():
+    name = tempfile.mkdtemp()
+    try:
+        yield name
+    finally:
+        shutil.rmtree(name)

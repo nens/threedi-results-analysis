@@ -1,22 +1,11 @@
-from contextlib import contextmanager
 import os
-import tempfile
-import shutil
 import unittest
 
 from ThreeDiToolbox.stats.ncstats import NcStats
 from ThreeDiToolbox.stats.utils import get_default_csv_path
 from ThreeDiToolbox.stats.utils import get_csv_layer_cache_files
 from ThreeDiToolbox.stats.utils import STATS_CACHE_LAYER_POSTFIX
-
-
-@contextmanager
-def TemporaryDirectory():
-    name = tempfile.mkdtemp()
-    try:
-        yield name
-    finally:
-        shutil.rmtree(name)
+from ThreeDiToolbox.test.utilities import TemporaryDirectory
 
 
 class TestNcStats(unittest.TestCase):

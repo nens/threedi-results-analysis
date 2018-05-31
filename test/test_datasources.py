@@ -1,4 +1,5 @@
 from distutils.version import LooseVersion
+import mock
 import os
 import platform
 import unittest
@@ -30,7 +31,11 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
-from .utilities import get_qgis_app
+from ThreeDiToolbox.datasource.netcdf_groundwater import (
+    NetcdfGroundwaterDataSource,
+    find_aggregation_netcdf_gw
+)
+from .utilities import get_qgis_app, TemporaryDirectory
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
@@ -199,6 +204,21 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
         self.assertEqual(self.ncds.nFlowLine1dBounds, 0)
         self.assertEqual(self.ncds.nFlowLine2dBounds, 0)
 
+    def test_find_agg_fail(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            with self.assertRaises(IndexError):
+                find_aggregation_netcdf(nc_path)
+
+    def test_find_agg_success(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            agg_path = os.path.join(tempdir, 'flow_aggregate.nc')
+            with open(agg_path, 'w') as aggfile:
+                aggfile.write('doesnt matter')
+            agg_path_found = find_aggregation_netcdf(nc_path)
+            self.assertEqual(agg_path, agg_path_found)
+
 
 @unittest.skipIf(
     linux_dist == 'Ubuntu' and
@@ -264,3 +284,48 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertIsNotNone(spl_layer)
         self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
         self.assertEqual(layer.featureCount(), 1)
+
+
+class TestNetcdfGroundwaterDataSource(unittest.TestCase):
+    def test_constructor(self):
+        """Test empty constructor."""
+        NetcdfGroundwaterDataSource()
+
+    def test_sanity(self):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
+        # sanity test
+        self.assertEqual(nds.ds, m)
+
+    def test_get_timestamps(self):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
+        nds.get_timestamps()
+
+    @mock.patch(
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars',  # noqa
+        ['s1'])
+    @mock.patch(
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result')  # noqa
+    def test_get_timeseries(self, gridadmin_result_mock):
+        nds = NetcdfGroundwaterDataSource()
+        m = mock.MagicMock()
+        nds._ds = m
+        nds.get_timeseries('nodes', 3, 's1')
+
+    def test_find_agg_fail(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            with self.assertRaises(IndexError):
+                find_aggregation_netcdf_gw(nc_path)
+
+    def test_find_agg_success(self):
+        with TemporaryDirectory() as tempdir:
+            nc_path = os.path.join(tempdir, 'bla.nc')
+            agg_path = os.path.join(tempdir, 'aggregate_results_3di.nc')
+            with open(agg_path, 'w') as aggfile:
+                aggfile.write('doesnt matter')
+            agg_path_found = find_aggregation_netcdf_gw(nc_path)
+            self.assertEqual(agg_path, agg_path_found)

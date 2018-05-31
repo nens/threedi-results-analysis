@@ -2,7 +2,7 @@
 
 import os
 from PyQt4.QtCore import Qt, pyqtSignal
-from ..datasource.netcdf_groundwater import NetcdfDataSourceGroundwater
+from ..datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
@@ -67,7 +67,7 @@ class DataSourceLayerManager(object):
     """
     type_ds_mapping = {
         'netcdf': NetcdfDataSource,
-        'netcdf-groundwater': NetcdfDataSourceGroundwater,
+        'netcdf-groundwater': NetcdfGroundwaterDataSource,
     }
 
     def __init__(self, ds_type, file_path):
