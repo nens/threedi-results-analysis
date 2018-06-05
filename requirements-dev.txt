@@ -6,7 +6,7 @@ nose-exclude
 coverage==4.0
 pycodestyle
 
-# misc required deps on linux
+# misc required deps that are not included with QGIS on linux
 # numpy and cython may be needed for building netCDF4 (see netcdf4-python)
 numpy
 cython
