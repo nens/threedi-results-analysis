@@ -5,6 +5,8 @@ ThreeDiToolBox changelog
 1.3 (unreleased)
 ----------------
 
+- Include ThreeDiStatistics tool in plugin.
+
 - Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.
 
 - Add some data source tests.
