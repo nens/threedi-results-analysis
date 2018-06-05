@@ -4,18 +4,20 @@ ThreeDiToolbox
 .. image:: https://travis-ci.org/nens/ThreeDiToolbox.svg?branch=master
     :target: https://travis-ci.org/nens/ThreeDiToolbox
 
-A QGIS plugin for working with 3Di models and netCDF results. Features include:
+A QGIS plugin for working with 3Di models and netCDF results.
 
-- Importing spatialite and netCDF datasources
-- Visualization of 3Di network structure based on the netCDF
-- Visualization of datasource time series
+The main features are:
+
+- 3Di network structure visualization
+- Time series visualization
 - Sideviews
+- Visualize results spatially
 - An extensible toolbox with custom Python scripts (for e.g. statistical analysis)
-- import of sufhyd files
+- Import of sufhyd files
 
-`Take a look at the Wiki for information`_.
+Take a look at the `Wiki`_ for more information.
 
-.. _`Take a look at the Wiki for information`: https://github.com/nens/ThreeDiToolbox/wiki
+.. _`Wiki`: https://github.com/nens/ThreeDiToolbox/wiki
 
 
 Installing requirements
