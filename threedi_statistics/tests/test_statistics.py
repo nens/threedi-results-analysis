@@ -1,7 +1,7 @@
 import unittest
 import os.path
 
-from zThreeDiStatistics.tools.statistics import StatisticsTool
+from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 
 from pyspatialite import dbapi2 as dbapi
