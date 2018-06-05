@@ -43,6 +43,7 @@ from .utils.user_messages import log
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
+from .threedi_statistics import StatisticsTool
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
@@ -104,6 +105,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.cache_clearer = CacheClearer(iface, self.ts_datasource)
+        self.stats_tool = StatisticsTool(iface, self.ts_datasource)
 
         self.tools = [
             About(iface),
@@ -112,6 +114,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             ThreeDiToolbox(iface, self.ts_datasource),
             self.graph_tool,
             self.sideview_tool,
+            self.stats_tool,
         ]
 
         self.active_datasource = None
