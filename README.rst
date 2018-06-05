@@ -87,11 +87,7 @@ Manually copy to server::
 Tests
 -----
 
-Install test dependencies::
-
-    $ pip install nose nose-exclude coverage==4.0
-
-Run tests with::
+Make sure test deps from ``requirements-dev.txt`` are installed. Run tests with::
 
     $ make test
 
