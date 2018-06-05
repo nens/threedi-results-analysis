@@ -12,6 +12,7 @@ addons:
       - libhdf5-serial-dev
       - libnetcdf-dev
       - xvfb  # emulating X-server
+      - pyqt4-dev-tools
 
 before_install:
     - sudo apt-get -qq -y update
