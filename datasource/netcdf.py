@@ -603,7 +603,9 @@ class NetcdfDataSource(BaseDataSource):
         # Zip timeseries together in (n,2) array
         if fill_value is not None and type(vals) == np.ma.core.MaskedArray:
             vals = vals.filled(fill_value)
-        return np.vstack((timestamps, vals)).T
+        # values can contain masked values from netCDF, therefore we need
+        # np.ma.vstack
+        return np.ma.vstack((timestamps, vals)).T
 
     def get_values_by_ids(self, variable, object_type, object_ids,
                           caching=True):

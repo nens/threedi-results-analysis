@@ -285,7 +285,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             filled_vals = masked_array.filled(fill_value)
             return np.vstack((ts, filled_vals)).T
         else:
-            return np.vstack((ts, values)).T
+            # values can contain masked values from netCDF, therefore we need
+            # np.ma.vstack
+            return np.ma.vstack((ts, values)).T
 
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access

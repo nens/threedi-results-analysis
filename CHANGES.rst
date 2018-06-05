@@ -5,6 +5,8 @@ ThreeDiToolBox changelog
 1.3 (unreleased)
 ----------------
 
+- Fix unmasked arrays in ``get_timeseries`` methods.
+
 - Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.
 
 - Add some data source tests.
