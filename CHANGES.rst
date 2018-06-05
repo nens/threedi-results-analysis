@@ -6,6 +6,7 @@ ThreeDiToolBox changelog
 ----------------
 
 - Include ThreeDiStatistics tool in plugin.
+- Fix unmasked arrays in ``get_timeseries`` methods.
 
 - Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.
 
