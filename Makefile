@@ -156,6 +156,7 @@ zip: compile transcompile
 	@echo "Hack to install deps. Better idea: put all this in a new directive and let qgispluginreleaser call it."
 	cd /tmp/$(PLUGINNAME) && pip install -r requirements.txt --target=external --no-deps -U
 	rm -rf /tmp/$(PLUGINNAME)/test
+	rm -rf /tmp/$(PLUGINNAME)/threedi_statistics/tests
 	rm -rf /tmp/$(PLUGINNAME)/.git
 	rm -rf /tmp/$(PLUGINNAME)/*.zip
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
