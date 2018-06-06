@@ -11,8 +11,9 @@ from qgis.core import (
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
-from ..sql_models.statistics import (FlowlineStats, Node, ManholeStats, Flowline,
-                                                      PipeStats, WeirStats, PumplineStats, StatSource)
+from ..sql_models.statistics import (
+    FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
+    PumplineStats, StatSource)
 from ..utils.statistics_database import (
     StaticsticsDatabase)
 
@@ -107,7 +108,8 @@ class StatisticsTool:
                 'sqlite:///{0}'.format(
                     self.ts_datasource.model_spatialite_filepath),
                 module=dbapi2,
-                echo=True)
+                # this controls SQL logging
+                echo=False)
 
             self.modeldb_meta = MetaData()
             self.modeldb_meta.reflect(bind=self.modeldb_engine)
@@ -149,11 +151,13 @@ class StatisticsTool:
                                 'Add views?', )):
             self.add_modeldb_views()
 
-        calculate_stats = True
-        if (self.has_res_views() and not test and
-                not pop_up_question('Recalculate the statistics?',
-                                    'Recalculate?', )):
+        if test:
             calculate_stats = False
+        else:
+            calculate_stats = True
+            if self.has_res_views():
+                calculate_stats = pop_up_question(
+                    'Recalculate the statistics?', 'Recalculate?', )
 
         if calculate_stats:
             log.info('Create statistic models if needed.')

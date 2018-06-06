@@ -14,7 +14,8 @@ class DummyTimeseriesDatasourceModel(object):
     def __init__(self, modeldb_path, resultnc_path):
         self.model_spatialite_filepath = modeldb_path
         self.resultnc_path = resultnc_path
-        self.ds = NetcdfDataSource(resultnc_path)
+        self.ds = NetcdfDataSource(
+            resultnc_path, load_properties=False, ds='ignored')
         self.rows = [
             self
         ]
@@ -133,7 +134,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(pump['max_discharge'], 0.003993951, places=3)
         self.assertAlmostEqual(pump['perc_max_discharge'], 99.85, places=2)
         self.assertAlmostEqual(pump['perc_end_discharge'], 25.0, places=1)
-        self.assertAlmostEqual(pump['perc_cum_discharge'], 12.6584, places=2)
+        self.assertAlmostEqual(pump['perc_cum_discharge'], 20.22, places=2)
         self.assertAlmostEqual(pump['duration_pump_on_max'], 0.404313, places=3)
 
     def test_manholes(self):
