@@ -42,6 +42,12 @@ class TestStatistics(unittest.TestCase):
         cls.stat.get_modeldb_session()
         cls.stat.run(test=True)
 
+    def test_files_exist(self):
+        sqlite_path = os.path.join(test_data_dir, 'ds_jonas.sqlite')
+        sqlite1_path = os.path.join(test_data_dir, 'subgrid_map.sqlite1')
+        self.assertTrue(os.path.exists(sqlite_path))
+        self.assertTrue(os.path.exists(sqlite1_path))
+
     def test_flowlines(self):
         resultdb_path = self.stat.ts_datasource.spatialite_cache_filepath()
         con_res = dbapi.connect(resultdb_path)
