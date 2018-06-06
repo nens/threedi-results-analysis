@@ -33,7 +33,8 @@ class DummyTimeseriesDatasourceModel(object):
         return self.resultnc_path.replace('subgrid_map.nc', 'subgrid_map.sqlite1')
 
 
-@unittest.skipIf(SQLITE_TOO_OLD_PROBABLY)
+@unittest.skipIf(
+    SQLITE_TOO_OLD_PROBABLY, "Sqlite is probably too old on ubuntu 14.")
 class TestStatistics(unittest.TestCase):
 
     @classmethod
