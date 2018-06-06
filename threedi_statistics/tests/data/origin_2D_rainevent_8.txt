@@ -1,0 +1,1 @@
+This is a dummy file for logging the origin of the rain file\r\nThe original location is /mnt/3di-share/Data_Sources/work/A_vtVeld/buien/$6/rain.\ \ 1

@@ -1,0 +1,38 @@
+-----------------------------------------------
+-- LOG-FILE OF GENERATE_V2_MODEL_AND_RESULTS.SH
+-- Model          : ds_jonas_default
+-- Project        : DS
+-- Work-database  : work_test_av
+-- Scenario       : 2D_rainevent_8
+-- Time           : Thu Nov 9 18:00:31 CET 2017
+-- Gebruik op eigen risico                     
+-----------------------------------------------
+ 
+*** INPS ***
+RASTERS - DEM          : AVAILABLE : dem_DS.tif (2.7M)
+RASTERS - infiltration : FALSE
+RASTERS - friction     : FALSE
+SQLITE                 : AVAILABLE : ds_jonas.sqlite (4.7M)
+INPUT.  1              : AVAILABLE : input. 1 (8.0K)
+NETWORK.  1            : AVAILABLE : network. 1 (8.0K)
+ 
+*** CALCULATION GRID ***
+GRID 1D POINTS         : AVAILABLE : 77 points
+GRID 2D CELLS          : AVAILABLE : 2250 cells
+ 
+*** SCENARIO ***
+RAINFALL               : AVAILABLE : origin_2D_rainevent_8.txt (512)
+RAINFALL               : AVAILABLE : rain. 1 (512)
+INITIAL CONDITIONS     : NO
+BOUNDARY CONDITIONS    : NO
+ 
+*** RESULTS ***
+MAKE-GRID              : AVAILABLE : grid_data_k= 1_l= 20_i= 893_j= 1001. 1, 1 (12M)
+NET-CDF                : AVAILABLE : flow_aggregate.nc (520K)
+NET-CDF                : AVAILABLE : subgrid_map.nc (164M)
+FLOW_SUMMARY           : AVAILABLE : flow_summary.log (8.0K)
+ 
+*** POST-PROCESSING ***
+QGIS-FILE              : NO
+WATERDEPTH             : NO
+WATERDEPTH (int)       : NO
