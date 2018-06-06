@@ -51,18 +51,6 @@ EXTRAS = metadata.txt icon.png
 
 COMPILED_RESOURCE_FILES = resources.py
 
-# Exclude:
-# - utils/importer (legacy code)
-# - external (third-party libs)
-# - help (auto-generated)
-# - resources.py (auto-generated)
-# - ui (auto-generated, in principle)
-PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui,help,external,utils/importer
-
-# Ignore:
-# - E402 (because of sys.path modifications)
-PEP8IGNORED_CODES=E402
-
 
 #################################################
 # Normally you would not need to edit below here
