@@ -3,19 +3,18 @@ import os.path
 from collections import OrderedDict
 
 import numpy as np
-
-from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info
 from pyspatialite import dbapi2
 from qgis.core import (
     QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer)
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
+
+from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info
 from ..sql_models.statistics import (
     FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
     PumplineStats, StatSource)
-from ..utils.statistics_database import (
-    StaticsticsDatabase)
+from ..utils.statistics_database import StaticsticsDatabase
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +84,8 @@ class StatisticsTool:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon_statistical_analysis.png'
+        self.icon_path = \
+            ':/plugins/ThreeDiToolbox/icons/icon_statistical_analysis.png'
         self.menu_text = u'Statistical Tool'
 
         self.plugin_is_active = False
