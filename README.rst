@@ -4,11 +4,14 @@ ThreeDiToolbox
 .. image:: https://travis-ci.org/nens/ThreeDiToolbox.svg?branch=master
     :target: https://travis-ci.org/nens/ThreeDiToolbox
 
-A QGIS plugin for working with 3Di models and netCDF results.
+A QGIS plugin with tools for working with models and netCDF results from
+`3Di`_ hydraulic/hydrologic modelling software.
+
+.. _`3Di`: http://www.3di.nu/
 
 The main features are:
 
-- 3Di network structure visualization
+- Visualization of model network structure and discretization
 - Time series visualization
 - Sideviews
 - Visualize results spatially
