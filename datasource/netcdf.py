@@ -45,7 +45,9 @@ DISCHARGE_LATERAL = NcVar('q_lat', 'discharge lateral', 'm3/s')
 VELOCITY_INTERFLOW = NcVar('up1', 'velocity interflow', 'm/s')
 RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
+# before groundwater release only infiltration_rate exists on nodes
 INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
+INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple', 'infiltration_rate_simple', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
 
@@ -65,6 +67,7 @@ _H_TYPES = [
     WET_SURFACE_AREA,
     INFILTRATION,
     DISCHARGE_LATERAL,
+    INFILTRATION_RATE_SIMPLE,
     LEAKAGE_RATE,
 ]
 
