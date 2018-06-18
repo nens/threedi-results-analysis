@@ -4,8 +4,10 @@ ThreeDiToolBox changelog
 
 1.3 (unreleased)
 ----------------
+- Display 2d_vertical_infiltration in graph (not in animation)
 
 - Include ThreeDiStatistics tool in plugin.
+
 - Fix unmasked arrays in ``get_timeseries`` methods.
 
 - Rename NetcdfDataSourceGroundwater to NetcdfGroundwaterDataSource.

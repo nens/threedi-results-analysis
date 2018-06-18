@@ -168,7 +168,7 @@ class QgisKCUDescriptor(KCUDescriptor):
             58: '1d_2d_groundwater',
             100: '2d',
             101: '2d',
-            150: '2d',
+            150: '2d_vertical_infiltration',
             -150: '2d_groundwater',
             200: '2d_bound',
             300: '2d_bound',
@@ -290,8 +290,14 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
                              line_data['line_coords'][1][i])
-            line.AddPoint_2D(line_data['line_coords'][2][i],
-                             line_data['line_coords'][3][i])
+            # kcu 150=2d_vertical_infiltration (their start and end vertex
+            # are equal. To be able to display line we shift the end vertex
+            if line_data['kcu'][i] == 150:
+                line.AddPoint_2D(line_data['line_coords'][2][i]-5,
+                                 line_data['line_coords'][3][i]-5)
+            else:
+                line.AddPoint_2D(line_data['line_coords'][2][i],
+                                 line_data['line_coords'][3][i])
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
