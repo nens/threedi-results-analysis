@@ -290,8 +290,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
                              line_data['line_coords'][1][i])
-            #kcu 150 = 2d_vertical_infiltration (their start and end vertex
-            #are the same. To be able to display line we shift the end vertex
+            # kcu 150=2d_vertical_infiltration (their start and end vertex
+            # are equal. To be able to display line we shift the end vertex
             if line_data['kcu'][i] == 150:
                 line.AddPoint_2D(line_data['line_coords'][2][i]-5,
                                  line_data['line_coords'][3][i]-5)
