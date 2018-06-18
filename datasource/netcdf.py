@@ -47,7 +47,8 @@ RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
 WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
 # before groundwater release only infiltration_rate exists on nodes
 INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
-INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple', 'infiltration_rate_simple', 'm3/s')
+INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple',
+                                 'infiltration_rate_simple', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
 
@@ -89,6 +90,7 @@ AGGREGATION_VARIABLES = [
     RAIN_INTENSITY,
     WET_SURFACE_AREA,
     INFILTRATION,
+    INFILTRATION_RATE_SIMPLE,
     DISCHARGE_LATERAL,
     WET_CROSS_SECTION_AREA,
 ]
