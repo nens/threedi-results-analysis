@@ -10,7 +10,8 @@ from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 
-from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info,\
+    progress_bar
 from ..sql_models.statistics import (
     FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
     PumplineStats, StatSource)
@@ -167,16 +168,23 @@ class StatisticsTool:
             except dbapi2.OperationalError, e:
                 pop_up_info('Database error. You could try it again, in most cases this fix the problem.', 'ERROR')
 
-            # calculate the statistics
-            self.get_manhole_attributes_and_statistics()
-            self.create_node_views()
-
-            self.calc_flowline_statistics()
-            self.calc_pipe_and_weir_statistics()
-            self.create_line_views()
-
-            self.get_pump_attributes_and_statistics()
-            self.create_pump_views()
+            with progress_bar(self.iface) as pb:
+                # calculate the statistics
+                pb.setValue(10)
+                self.get_manhole_attributes_and_statistics()
+                pb.setValue(30)
+                self.create_node_views()
+                pb.setValue(40)
+                self.calc_flowline_statistics()
+                pb.setValue(50)
+                self.calc_pipe_and_weir_statistics()
+                pb.setValue(70)
+                self.create_line_views()
+                pb.setValue(80)
+                self.get_pump_attributes_and_statistics()
+                pb.setValue(90)
+                self.create_pump_views()
+                pb.setValue(100)
 
         # add layers to QGIS map
         if not test:
@@ -588,11 +596,11 @@ class StatisticsTool:
         self.set_stat_source('flowline_stats', 'end_velocity', False, param, avg_timestep)
 
         param = 's1'
-        if dh_max_calc:       
+        if dh_max_calc:
             self.set_stat_source('flowline_stats', 'max_head_difference', False, param, avg_timestep)
         else:
             self.set_stat_source('flowline_stats', 'max_head_difference', False, '-', None)
-        
+
         self.set_stat_source('flowline_stats', 'max_waterlevel_start', False, param, avg_timestep)
         self.set_stat_source('flowline_stats', 'max_waterlevel_end', False, param, avg_timestep)
         self.set_stat_source('flowline_stats', 'end_waterlevel_start', False, param, avg_timestep)
@@ -1258,37 +1266,39 @@ class StatisticsTool:
         # {layer_name: [(name, layer, field, style,), ...], ... }
 
         styled_layers = OrderedDict([
-            ('leidingen', [
-                ('debiet (max)', 'pipe_stats_view', 'max_discharge', 'leiding_1'),
-                ('stroomsnelheid (max)', 'pipe_stats_view', 'max_velocity', 'leiding_1'),
-                ('verhang [cm/m] (max)', 'pipe_stats_view', 'max_hydro_gradient', 'leiding_1'),
-                ('stroomsnelheid (end)', 'pipe_stats_view', 'end_velocity', 'leiding_2'),
-                ('stroomsnelheid DWA en Gemengd (end)', 'pipe_stats_dwa_mixed_view', 'end_velocity', 'leiding_2'),
-                ('stroomsnelheid RWA (end)', 'pipe_stats_rwa_view', 'end_velocity', 'leiding_2'),
+            ('pipes', [
+                ('discharge (max) [m3/s]', 'pipe_stats_view', 'max_discharge', 'leiding_1'),
+                ('velocity (max) [m/s]', 'pipe_stats_view', 'max_velocity', 'leiding_1'),
+                ('gradient (max) [cm/m]', 'pipe_stats_view', 'max_hydro_gradient', 'leiding_1'),
+                ('velocity (end)', 'pipe_stats_view', 'end_velocity', 'leiding_2'),
+                ('velocity DWF and CSF (end)', 'pipe_stats_dwa_mixed_view', 'end_velocity', 'leiding_2'),
+                ('velocity SWF (end)', 'pipe_stats_rwa_view', 'end_velocity', 'leiding_2'),
             ]),
-            ('putten', [
-                ('vullingsgraad (max)', 'manhole_stats_view', 'max_filling', 'vullingsgraad_put'),
-                ('vullingsgraad DWA en gemengd (end)', 'manhole_stats_dwa_mixed_view', 'end_filling',
+            ('manholes', [
+                ('fill level (max) [%]', 'manhole_stats_view', 'max_filling', 'vullingsgraad_put'),
+                ('fill level DWF and CSF (end) [%]', 'manhole_stats_dwa_mixed_view', 'end_filling',
                  'vullingsgraad_put'),
-                ('vullingsgraad RWA (end)', 'manhole_stats_rwa_view', 'end_filling', 'vullingsgraad_put'),
-                ('duur wos [uren]', 'manhole_stats_view', 'duration_water_on_surface', 'wos'),
-                ('waterstand op straat (max)', 'manhole_stats_view', 'max_waterdepth_surface', 'put_0'),
-                ('waterstand op straat DWA en gemengd(max)', 'manhole_stats_dwa_mixed_view',
+                ('fill level SWF (end) [%]', 'manhole_stats_rwa_view', 'end_filling', 'vullingsgraad_put'),
+                ('duration water on street [hr]', 'manhole_stats_view', 'duration_water_on_surface', 'wos'),
+                ('waterdepth (max) [m]', 'manhole_stats_view', 'max_waterdepth_surface', 'put_0'),
+                ('waterdepth DWF and CSF (max) [m]', 'manhole_stats_dwa_mixed_view',
                  'max_waterdepth_surface', 'put_0'),
-                ('waterstand op straat RWA (max)', 'manhole_stats_rwa_view', 'max_waterdepth_surface', 'put_0'),
+                ('waterdepth SWF (max) [m]', 'manhole_stats_rwa_view', 'max_waterdepth_surface', 'put_0'),
             ]),
             ('pumps', [
-                ('perc gemaalcapaciteit (max)', 'pump_stats_point_view', 'perc_max_discharge', 'pumps_100'),
-                ('perc gemaalcapaciteit (end)', 'pump_stats_point_view', 'perc_end_discharge', 'pumps_100'),
-                ('totaal verpompt volume [m3]', 'pump_stats_point_view', 'perc_cum_discharge', 'pumps_100'),
-                ('pompduur op maximale capaciteit [uren]', 'pump_stats_point_view', 'duration_pump_on_max', 'pumps_8'),
+                ('percentage of pump capacity in use (max) [%]', 'pump_stats_point_view', 'perc_max_discharge',
+                 'pumps_100'),
+                ('percentage of pump capacity in use (end) [%]', 'pump_stats_point_view', 'perc_end_discharge',
+                 'pumps_100'),
+                ('total pumped volume [m3]', 'pump_stats_point_view', 'perc_cum_discharge', 'pumps_100'),
+                ('pump duration on max capacity [hr]', 'pump_stats_point_view', 'duration_pump_on_max', 'pumps_8'),
             ]),
-            ('overstorten', [
-                ('overstortende straal (max)', 'weir_stats_view', 'max_overfall_height', 'overstort'),
-                ('overstortvolume perc tov max (cum)', 'weir_stats_view', 'perc_volume', 'overstort_perc'),
-                ('overstortvolume positief perc tov max (cum)', 'weir_stats_view', 'perc_volume_positive',
+            ('weirs', [
+                ('head difference (max)', 'weir_stats_view', 'max_overfall_height', 'overstort'),
+                ('overflow volume (cum) [% to max]', 'weir_stats_view', 'perc_volume', 'overstort_perc'),
+                ('positive overflow volume (cum) [% to max]', 'weir_stats_view', 'perc_volume_positive',
                  'overstort_perc'),
-                ('overstortvolume negatief perc tov max (cum)', 'weir_stats_view', 'perc_volume_negative',
+                ('negative overflow volume (cum) [% to max]', 'weir_stats_view', 'perc_volume_negative',
                  'overstort_perc'),
             ])
         ])
@@ -1307,7 +1317,7 @@ class StatisticsTool:
         uri.setDatabase(self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/'))
         uri.setDataSource('', 'stat_source', '')
 
-        vector_layer = QgsVectorLayer(uri.uri(), 'metadata statistiek bronnen', 'spatialite')
+        vector_layer = QgsVectorLayer(uri.uri(), 'metadata statistics', 'spatialite')
         QgsMapLayerRegistry.instance().addMapLayer(
             vector_layer,
             False)

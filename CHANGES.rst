@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 1.3 (unreleased)
 ----------------
+- Use progress bar during loading ThreeDiStatistics (+ dutch to english names)
+
 - Display 2d_vertical_infiltration in graph (not in animation)
 
 - Include ThreeDiStatistics tool in plugin.
