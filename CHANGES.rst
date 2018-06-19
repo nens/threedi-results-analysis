@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.3 (unreleased)
+1.3 (2018-06-19)
 ----------------
 - Use progress bar during loading ThreeDiStatistics (+ dutch to english names)
 
