@@ -342,6 +342,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             ds = self.ds_aggregation
         else:
             log.error("Unsupported variable %s", variable)
+            raise ValueError(variable)
 
         # determine appropriate fill value from netCDF
         if var_2d in ds.variables.keys():
