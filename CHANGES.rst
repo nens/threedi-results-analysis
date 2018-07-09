@@ -5,11 +5,12 @@ ThreeDiToolBox changelog
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Disable auto SI prefix on the vertical axis.
 
 
 1.3 (2018-06-19)
 ----------------
+
 - Use progress bar during loading ThreeDiStatistics (+ dutch to english names)
 
 - Display 2d_vertical_infiltration in graph (not in animation)

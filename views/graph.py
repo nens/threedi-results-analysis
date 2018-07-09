@@ -343,6 +343,9 @@ class GraphPlot(pg.PlotWidget):
         self.setLabel("left",
                       self.current_parameter['name'],
                       self.current_parameter['unit'])
+        # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
+        axis = self.getAxis('left')
+        axis.enableAutoSIPrefix(False)
 
 
 class LocationTimeseriesTable(QTableView):
