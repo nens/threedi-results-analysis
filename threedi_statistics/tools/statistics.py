@@ -560,6 +560,8 @@ class StatisticsTool:
                 res_session.query(Flowline.id,
                                   Flowline.the_geom.ST_Transform(28992).ST_Length().label('abs_length')
                                   ).order_by(Flowline.id)):
+            # CAUTION: qcum can contain np.nan values, which will be casted
+            # to None using ``round``
             fls = FlowlineStats(
                 id=flowline.id,
                 cum_discharge=round(qcum[i], 3),
@@ -759,20 +761,38 @@ class StatisticsTool:
             .query(func.max(FlowlineStats.cum_discharge_negative)) \
             .filter(FlowlineStats.id == WeirStats.id).scalar()
 
-        for weir in res_session.query(WeirStats).join(Flowline).join(FlowlineStats):
-            weir.perc_volume = None if max_cum_discharge == 0.0 else round(
-                100 * weir.flowline.stats.cum_discharge / max_cum_discharge, 2)
+        for weir in res_session.query(
+                WeirStats).join(Flowline).join(FlowlineStats):
+            # Note: the reason why cum_discharge etc. are sometimes None is
+            # because they get casted to None from np.nan when ``round``
+            # is called (see calc_flowline_statistics)
+            weir.perc_volume = (
+                None if max_cum_discharge == 0.0 or
+                weir.flowline.stats.cum_discharge is None else round(
+                    100 * weir.flowline.stats.cum_discharge /
+                    max_cum_discharge, 2)
+            )
 
-            weir.perc_volume_positive = None if max_cum_discharge_pos == 0.0 else round(
-                100 * weir.flowline.stats.cum_discharge_positive / max_cum_discharge_pos, 2)
+            weir.perc_volume_positive = (
+                None if max_cum_discharge_pos == 0.0 or
+                weir.flowline.stats.cum_discharge_positive is None else round(
+                    100 * weir.flowline.stats.cum_discharge_positive /
+                    max_cum_discharge_pos, 2)
+            )
 
-            weir.perc_volume_negative = None if max_cum_discharge_neg == 0.0 else round(
-                100 * weir.flowline.stats.cum_discharge_negative / max_cum_discharge_neg, 2)
+            weir.perc_volume_negative = (
+                None if max_cum_discharge_neg == 0.0 or
+                weir.flowline.stats.cum_discharge_negative is None else round(
+                    100 * weir.flowline.stats.cum_discharge_negative /
+                    max_cum_discharge_neg, 2)
+            )
 
-            weir.max_overfall_height = None if (weir.flowline.stats.max_waterlevel_start is None and
-                                                weir.flowline.stats.max_waterlevel_end is None) else round(
+            weir.max_overfall_height = None if (
+                    weir.flowline.stats.max_waterlevel_start is None and
+                    weir.flowline.stats.max_waterlevel_end is None) else round(
                 max(weir.flowline.stats.max_waterlevel_start,
-                    weir.flowline.stats.max_waterlevel_end) - weir.crest_level, 3)
+                    weir.flowline.stats.max_waterlevel_end)
+                        - weir.crest_level, 3)
 
         res_session.commit()
 

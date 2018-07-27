@@ -5,6 +5,9 @@ ThreeDiToolBox changelog
 1.4 (unreleased)
 ----------------
 
+- Add fix for ``None`` values in WeirStats calculation (caused by np.nan
+  casting to None)
+
 - Disable auto SI prefix on the vertical axis.
 
 
