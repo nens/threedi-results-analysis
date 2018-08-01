@@ -44,7 +44,7 @@ from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
 from .threedi_statistics import StatisticsTool
-
+from .water_balance import WaterBalanceTool
 
 class ThreeDiTools(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
@@ -106,6 +106,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.cache_clearer = CacheClearer(iface, self.ts_datasource)
         self.stats_tool = StatisticsTool(iface, self.ts_datasource)
+        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasource)
 
         self.tools = [
             About(iface),
@@ -115,6 +116,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.graph_tool,
             self.sideview_tool,
             self.stats_tool,
+            self.water_balance_tool,
         ]
 
         self.active_datasource = None
