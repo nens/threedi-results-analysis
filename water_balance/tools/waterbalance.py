@@ -9,7 +9,8 @@ from PyQt4.QtCore import Qt
 from qgis.core import QgsFeatureRequest, QgsPoint
 
 # Import the code for the DockWidget
-from ThreeDiToolbox.water_balance.views.waterbalance_widget import WaterBalanceWidget
+from ThreeDiToolbox.water_balance.views.waterbalance_widget \
+    import WaterBalanceWidget
 
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
@@ -81,9 +82,11 @@ class WaterBalanceCalculation(object):
             # test if lines are crossing boundary of polygon
             if line.geometry().crosses(wb_polygon):
                 geom = line.geometry().asPolyline()
-                # check if flow is in or out by testing if startpoint is inside polygon --> out
+                # check if flow is in or out by testing if startpoint
+                # is inside polygon --> out
                 outgoing = wb_polygon.contains(QgsPoint(geom[0]))
-                # check if flow is in or out by testing if endpoint is inside polygon --> in
+                # check if flow is in or out by testing if endpoint
+                # is inside polygon --> in
                 incoming = wb_polygon.contains(QgsPoint(geom[-1]))
 
                 if incoming and outgoing:
@@ -101,7 +104,8 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_out'].append(line['id'])
                     else:
-                        log.warning('line type not supported. type is %s.', line['type'])
+                        log.warning('line type not supported. type is %s.',
+                                    line['type'])
                 elif incoming:
                     if line['type'] in [
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
@@ -114,7 +118,8 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_in'].append(line['id'])
                     else:
-                        log.warning('line type not supported. type is %s.', line['type'])
+                        log.warning('line type not supported. type is %s.',
+                                    line['type'])
 
             elif line['type'] == '1d_2d' and line.geometry().within(
                     wb_polygon):
@@ -132,8 +137,10 @@ class WaterBalanceCalculation(object):
         for bound in points.getFeatures(request_filter):
             if wb_polygon.contains(QgsPoint(bound.geometry().asPoint())):
                 # find link connected to boundary
-                request_filter_bound = QgsFeatureRequest().setFilterExpression \
-                    (u'"start_node_idx" = \'{idx}\' or "end_node_idx" = \'{idx}\''.format(idx=bound['id']))
+                request_filter_bound = QgsFeatureRequest().\
+                    setFilterExpression(u'"start_node_idx" = '
+                                        u'\'{idx}\' or "end_node_idx" ='
+                                        u' \'{idx}\''.format(idx=bound['id']))
                 bound_lines = lines.getFeatures(request_filter_bound)
                 for bound_line in bound_lines:
                     if bound_line['start_node_idx'] == bound['id']:
@@ -152,16 +159,19 @@ class WaterBalanceCalculation(object):
         if pumps is None:
             f_pumps = []
         else:
-            request_filter = QgsFeatureRequest().setFilterRect(wb_polygon.geometry().boundingBox())
+            request_filter = QgsFeatureRequest().setFilterRect(
+                wb_polygon.geometry().boundingBox())
             f_pumps = pumps.getFeatures(request_filter)
 
         for pump in f_pumps:
             # test if lines are crossing boundary of polygon
             if pump.geometry().crosses(wb_polygon):
                 geom = pump.geometry().asPolyline()
-                # check if flow is in or out by testing if startpoint is inside polygon --> out
+                # check if flow is in or out by testing if startpoint
+                # is inside polygon --> out
                 outgoing = wb_polygon.contains(QgsPoint(geom[0]))
-                # check if flow is in or out by testing if endpoint is inside polygon --> in
+                # check if flow is in or out by testing if endpoint
+                # is inside polygon --> in
                 incoming = wb_polygon.contains(QgsPoint(geom[-1]))
 
                 if incoming and outgoing:
@@ -205,7 +215,8 @@ class WaterBalanceCalculation(object):
                 u'"type" = \'2d\' OR "type" = \'2d_groundwater\'')
         else:
             request_filter.setFilterExpression(
-                u'"type" = \'1d\' OR "type" = \'2d\' OR "type" = \'2d_groundwater\'')
+                u'"type" = \'1d\' OR "type" '
+                u'= \'2d\' OR "type" = \'2d_groundwater\'')
         # todo: check if boundary nodes could not have rain, infiltration, etc.
 
         for point in points.getFeatures(request_filter):
@@ -277,7 +288,8 @@ class WaterBalanceCalculation(object):
         for idx in link_ids['2d_groundwater_out']:
             tlink.append((idx, TYPE_2D_GROUNDWATER, -1))
 
-        # todo: these settings are strange- this is not what you expect from the direction of the lines
+        # todo: these settings are strange- this is not what you expect
+        # from the direction of the lines
         for idx in link_ids['1d_2d_in']:
             tlink.append((idx, TYPE_1D_2D_IN, -1))
         for idx in link_ids['1d_2d_out']:
@@ -329,7 +341,8 @@ class WaterBalanceCalculation(object):
         if np_link.size > 0:
             for ts_idx, t in enumerate(ts):
                 # (1) inflow and outflow through 1d and 2d
-                # vol = ds.get_values_by_timestep_nr('q', ts_idx, np_link['id']) * np_link['dir']  # * dt
+                # vol = ds.get_values_by_timestep_nr('q', ts_idx,
+                # np_link['id']) * np_link['dir']  # * dt
 
                 if source_nc == 'aggregation':
                     flow_pos = ds.get_values_by_timestep_nr(
@@ -408,7 +421,8 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # (2) inflow and outflow through pumps
                 if source_nc == 'aggregation':
-                    pump_flow = ds.get_values_by_timestep_nr('q_pump_cum', ts_idx, np_pump['id']) * np_pump['dir']
+                    pump_flow = ds.get_values_by_timestep_nr(
+                        'q_pump_cum', ts_idx, np_pump['id']) * np_pump['dir']
 
                     flow_dt = pump_flow - pump_pref
                     pump_pref = pump_flow
@@ -416,7 +430,8 @@ class WaterBalanceCalculation(object):
                     in_sum = flow_dt.clip(min=0)
                     out_sum = flow_dt.clip(max=0)
                 else:
-                    flow = ds.get_values_by_timestep_nr('q_pump', ts_idx, np_pump['id']) * np_pump['dir']
+                    flow = ds.get_values_by_timestep_nr(
+                        'q_pump', ts_idx, np_pump['id']) * np_pump['dir']
                     # todo: check unit
                     in_sum = flow.clip(min=0)
                     out_sum = flow.clip(max=0)
@@ -470,12 +485,14 @@ class WaterBalanceCalculation(object):
                 if source_nc == 'aggregation':
                     if parameter + '_cum' not in ds.get_available_variables():
                         skip = True
-                        log.warning('%s_cum niet beschikbaar! overslaan', parameter)
+                        log.warning('%s_cum niet beschikbaar! overslaan',
+                                    parameter)
                         # todo: fallback on not aggregated version
                 else:
                     if parameter not in ds.get_available_variables():
                         skip = True
-                        log.warning('%s_cum niet beschikbaar! overslaan', parameter)
+                        log.warning('%s_cum niet beschikbaar! overslaan',
+                                    parameter)
                 if not skip:
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
@@ -507,7 +524,8 @@ class WaterBalanceCalculation(object):
 
             for ts_idx, t in enumerate(ts):
                 if ts_idx == 0:
-                    # just to make sure machine precision distortion is reduced for the first timestamp (everything
+                    # just to make sure machine precision distortion
+                    # is reduced for the first timestamp (everything
                     # should be 0
                     total_time[ts_idx] = total_time[ts_idx] / (ts[1] - t)
                 else:

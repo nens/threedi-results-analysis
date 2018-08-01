@@ -46,6 +46,7 @@ from .utils.layer_tree_manager import LayerTreeManager
 from .threedi_statistics import StatisticsTool
 from .water_balance import WaterBalanceTool
 
+
 class ThreeDiTools(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
 

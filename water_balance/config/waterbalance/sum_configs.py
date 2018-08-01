@@ -123,19 +123,22 @@ serie_settings = [
             'default_method': 'gross',
             'order': 1,
             'def_color': '63,81,181',
-            'series': ['2d_in', '2d_out', '2d_bound_in', '2d_bound_out', '1d_2d_out'],
+            'series': ['2d_in', '2d_out', '2d_bound_in', '2d_bound_out',
+                       '1d_2d_out'],
         }, {
             'name': '1d flow',
             'default_method': 'gross',
             'order': 2,
             'def_color': '0,188,212',
-            'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in', '1d_bound_out', '1d_2d_in'],
+            'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
+                       '1d_bound_out', '1d_2d_in'],
         }, {
             'name': 'belasting (regen en lateralen)',
             'default_method': 'net',
             'order': 3,
             'def_color': '0,150,136',
-            'series': ['rain', 'lat_1d', 'lat_2d', 'inflow'],  # TODO: Add leakage?
+            'series': ['rain', 'lat_1d', 'lat_2d', 'inflow'],
+            # TODO: Add leakage?
         }, {
             'name': 'infiltratie',
             'default_method': 'net',

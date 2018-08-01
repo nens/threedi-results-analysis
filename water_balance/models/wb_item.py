@@ -4,7 +4,8 @@ from random import randint
 
 import numpy as np
 from ThreeDiToolbox.models.base import BaseModel
-from ThreeDiToolbox.models.base_fields import ValueField, ColorField, CheckboxField
+from ThreeDiToolbox.models.base_fields import ValueField, \
+    ColorField, CheckboxField
 
 COLOR_LIST = [
     (34, 34, 34),
@@ -88,9 +89,9 @@ class WaterbalanceItemModel(BaseModel):
                                column_width=20,
                                column_name='')
         color = ColorField(show=True,
-                              column_width=30,
-                              column_name='',
-                              default_value=select_default_color)
+                           column_width=30,
+                           column_name='',
+                           default_value=select_default_color)
         name = ValueField(show=True,
                           column_width=190,
                           column_name='name')

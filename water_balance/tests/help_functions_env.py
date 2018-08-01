@@ -9,7 +9,8 @@ NetcdfDataSource = ThreeDiToolbox.datasource.netcdf.NetcdfDataSource
 
 test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 model_dir = os.path.join(test_dir, 'bigdata', 'vecht_rekenen_tekenen_demo')
-nc_file = os.path.join(model_dir, 'vecht_s2_scenario', 'results', 'subgrid_map.nc')
+nc_file = os.path.join(model_dir, 'vecht_s2_scenario', 'results',
+                       'subgrid_map.nc')
 
 link_ids = {}
 nodes = {}
@@ -32,7 +33,8 @@ for l in link_ids['1d_in']:
 for l in link_ids['1d_out']:
     tnp_link.append((l, 1, -1))
 
-np_link = np.array(tnp_link,  dtype=[('id', int), ('type', int), ('in_out', int)])
+np_link = np.array(tnp_link,  dtype=[('id', int), ('type', int), (
+    'in_out', int)])
 print np_link
 # np_link = np_link.transpose()
 
@@ -44,7 +46,8 @@ neg = np.zeros(shape=(len(np_link[0])))
 ts = nc.timesteps
 for ts_idx, dt in enumerate(ts):
 
-    vol = nc.get_values_by_timestep_nr('q', ts_idx, np_link[0]) * np_link[2] * dt
+    vol = nc.get_values_by_timestep_nr('q', ts_idx, np_link[0]) * \
+          np_link[2] * dt
 
     pos += vol.clip(min=0)
     neg += vol.clip(max=0)

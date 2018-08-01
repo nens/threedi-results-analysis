@@ -22,16 +22,13 @@ log = logging.getLogger('DeltaresTdi.' + __name__)
 try:
     _encoding = QApplication.UnicodeUTF8
 
-
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
-
 serie_settings = {s['name']: s for s in serie_settings}
-
 
 INPUT_SERIES = [
     ('2d_in', 0, '2d'),
@@ -400,7 +397,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             pg.mkBrush(item.color.value))
                     if 'out' in item._plots:
                         item._plots['out'].setPen(color=item.color.value,
-                                                 width=1)
+                                                  width=1)
                     item._plots['outfill'].setBrush(
                         pg.mkBrush(item.color.value))
 
@@ -1038,13 +1035,16 @@ class WaterBalanceWidget(QDockWidget):
         for serie_setting in settings.get('items', []):
             serie_setting['active'] = True
             serie_setting['method'] = serie_setting['default_method']
-            serie_setting['color'] = [int(c) for c in serie_setting['def_color'].split(',')] + [150]
+            serie_setting['color'] = [int(c) for c in
+                                      serie_setting['def_color'].split(
+                                          ',')] + [150]
             serie_setting['ts_series'] = {}
             nrs_input_series = []
             for serie in serie_setting['series']:
                 if serie not in input_series:
                     # throw good error message
-                    log.warning('serie config error: %s is an unknown serie or is doubled in the config.', serie)
+                    log.warning('serie config error: %s is an unknown '
+                                'serie or is doubled in the config.', serie)
                 else:
                     nrs_input_series.append(input_series[serie])
                     del input_series[serie]
@@ -1063,18 +1063,23 @@ class WaterBalanceWidget(QDockWidget):
                 serie_setting['ts_series']['out'] = sum_neg
             else:
                 # throw config error
-                log.warning('aggregation %s method unknown.', serie_setting['default_method'])
+                log.warning('aggregation %s method unknown.',
+                            serie_setting['default_method'])
 
             if aggregation_type == 'm3 cumulative' or \
                     aggregation_type == 'm3 cumulative natural':
                 log.debug('aggregate')
                 diff = np.append([0], np.diff(ts))
 
-                serie_setting['ts_series']['in'] = serie_setting['ts_series']['in'] * diff
-                serie_setting['ts_series']['in'] = np.cumsum(serie_setting['ts_series']['in'], axis=0)
+                serie_setting['ts_series']['in'] = serie_setting['ts_series']
+                ['in'] * diff
+                serie_setting['ts_series']['in'] = np.cumsum(
+                    serie_setting['ts_series']['in'], axis=0)
 
-                serie_setting['ts_series']['out'] = serie_setting['ts_series']['out'] * diff
-                serie_setting['ts_series']['out'] = np.cumsum(serie_setting['ts_series']['out'], axis=0)
+                serie_setting['ts_series']['out'] = serie_setting['ts_series']
+                ['out'] * diff
+                serie_setting['ts_series']['out'] = np.cumsum(
+                    serie_setting['ts_series']['out'], axis=0)
 
         if len(input_series) > 0:
 
@@ -1082,8 +1087,10 @@ class WaterBalanceWidget(QDockWidget):
                 'name': 'Overige',
                 'default_method': settings['remnant_method'],
                 'order': 100,
-                'color': [int(c) for c in settings['remnant_def_color'].split(',')] + [150],
-                'def_color': settings['remnant_def_color'], #TODO: fix + [150],
+                'color': [int(c) for c in settings['remnant_def_color'].split(
+                    ',')] + [150],
+                'def_color': settings['remnant_def_color'],
+                # TODO: fix + [150],
                 'series': [key for key in input_series],
                 'ts_series': {}
             }
@@ -1104,14 +1111,16 @@ class WaterBalanceWidget(QDockWidget):
                 serie_setting['ts_series']['out'] = sum_neg
             else:
                 # throw config error
-                log.warning('aggregation %s method unknown.', serie_setting['default_method'])
+                log.warning('aggregation %s method unknown.', serie_setting[
+                    'default_method'])
 
             settings['items'].append(serie_setting)
 
         if model_part == '1d':
             total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
 
-        settings['items'] = sorted(settings['items'], key=lambda item: item['order'])
+        settings['items'] = sorted(settings['items'], key=lambda item: item[
+            'order'])
 
         return settings
 
