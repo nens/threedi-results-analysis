@@ -162,7 +162,6 @@ class PolygonDrawTool(QgsMapTool):
         """
         self.selection_vis.update(lines, points)
 
-
     # def activate(self):
     #     self.canvas.setCursor(QCursor(Qt.CrossCursor))
     #

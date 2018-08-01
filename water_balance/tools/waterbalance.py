@@ -131,7 +131,9 @@ class WaterBalanceCalculation(object):
         # find boundaries in polygon
         request_filter = QgsFeatureRequest().setFilterRect(
             wb_polygon.geometry().boundingBox()
-        ).setFilterExpression(u'"type" = \'1d_bound\' or "type" = \'2d_bound\'')
+        ).setFilterExpression(u'"type" = '
+                              u'\'1d_bound\' or "type" = '
+                              u'\'2d_bound\'')
 
         # all boundaries in polygon
         for bound in points.getFeatures(request_filter):
@@ -207,7 +209,8 @@ class WaterBalanceCalculation(object):
         lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
 
         # use bounding box and spatial index to prefilter lines
-        request_filter = QgsFeatureRequest().setFilterRect(wb_polygon.geometry().boundingBox())
+        request_filter = QgsFeatureRequest().setFilterRect(
+            wb_polygon.geometry().boundingBox())
         if model_part == '1d':
             request_filter.setFilterExpression(u'"type" = \'1d\'')
         elif model_part == '2d':
