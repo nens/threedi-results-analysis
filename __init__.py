@@ -24,6 +24,8 @@
 import imp
 import sys
 import os
+
+
 try:
     from .utils.user_messages import pop_up_info, log
 except ImportError:
@@ -138,5 +140,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     from .threedi_tools import ThreeDiTools
     from .utils.qlogging import setup_logging
+
     setup_logging(iface)
     return ThreeDiTools(iface)
