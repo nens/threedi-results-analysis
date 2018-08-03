@@ -24,10 +24,6 @@
 import imp
 import sys
 import os
-import logging
-
-log = logging.getLogger('DeltaresTdi')
-log.setLevel(logging.DEBUG)
 
 
 try:
