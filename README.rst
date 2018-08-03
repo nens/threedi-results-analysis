@@ -94,6 +94,7 @@ Tests
 
 Make sure test deps from ``requirements-dev.txt`` are installed. Run tests with::
 
+    $ source scripts/run-env-linux.sh /usr  # this should be automated (e.g. using Makefile)
     $ make test
 
 
