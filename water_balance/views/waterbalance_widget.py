@@ -1071,13 +1071,13 @@ class WaterBalanceWidget(QDockWidget):
                 log.debug('aggregate')
                 diff = np.append([0], np.diff(ts))
 
-                serie_setting['ts_series']['in'] = serie_setting['ts_series']
-                ['in'] * diff
+                serie_setting['ts_series']['in'] = serie_setting['ts_series'][
+                                                       'in'] * diff
                 serie_setting['ts_series']['in'] = np.cumsum(
                     serie_setting['ts_series']['in'], axis=0)
 
-                serie_setting['ts_series']['out'] = serie_setting['ts_series']
-                ['out'] * diff
+                serie_setting['ts_series']['out'] = serie_setting['ts_series'][
+                                                        'out'] * diff
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
 
