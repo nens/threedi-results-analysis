@@ -54,6 +54,6 @@ class WaterbalanceClassTest(unittest.TestCase):
 
     def test_flow_aggregation(self):
         calc = WaterBalanceCalculation(self.ts_datasource)
-        flow_links = calc.get_incoming_and_outcoming_link_ids(self.polygon, None)
-
+        flow_links = calc.get_incoming_and_outcoming_link_ids(
+            self.polygon, None)
         aggregated_flows = calc.get_aggregated_flows(flow_links)
