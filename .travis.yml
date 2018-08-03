@@ -28,6 +28,8 @@ install:
     - pip install -r requirements.txt --target=external --no-deps
 
 script:
+    # this script adds standard qgis plugins (like db_manager) to PYTHONPATH
+    - source scripts/run-env-linux.sh /usr
     - xvfb-run make test
     - make pep8
 
