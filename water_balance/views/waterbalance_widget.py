@@ -419,6 +419,12 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['1d_2d_out'],
             'type': '2d',
         }, {
+            'label_name': '1D-2D flow (all domains)',
+            # does this make sense?
+            'in': ['1d_2d_in', '1d_2d_out'],
+            'out': ['1d_2d_in', '1d_2d_out'],
+            'type': 'NETVOL',
+        }, {
             'label_name': 'net change in storage',
             'in': ['d_2d_vol'],
             'out': ['d_2d_vol'],
@@ -584,7 +590,8 @@ class WaterBalanceWidget(QDockWidget):
                 x['type'] in [
                     '2d', '1d_2d', '2d_vert', '2d_groundwater', '1d'] and
                 'storage' not in x['label_name'] and
-                'exchange' not in x['label_name']) or
+                'exchange' not in x['label_name'] and
+                x['label_name'] != '1D-2D flow') or
             x['type'] == 'NETVOL'
         ]
 
