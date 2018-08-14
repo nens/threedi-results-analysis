@@ -13,5 +13,5 @@ def apply_style(layer, style_name, stype='tools'):
     if os.path.exists(style):
         layer.loadNamedStyle(style)
     else:
-        log.error("Style not exist {0}".format(style))
+        log.info("Style not exist {0}".format(style))
     return
