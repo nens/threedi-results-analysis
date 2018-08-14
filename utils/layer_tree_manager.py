@@ -42,7 +42,8 @@ class LayerTreeManager(object):
     schematisation_boundary_group_name = 'boundary conditions'
     schematisation_lateral_group_name = 'laterals'
     schematisation_oned_group_name = '1d'
-    schematisation_additional_oned_group_name = 'additional tables for editing 1d' #noqa
+    schematisation_additional_oned_group_name = \
+        'additional tables for editing 1d'
     schematisation_obstacle_group_name = 'obstacles'
     schematisation_grid_refinement_group_name = 'grid refinements'
     schematisation_inflow_group_name = 'inflow'
@@ -255,7 +256,7 @@ class LayerTreeManager(object):
         #             'v2_groundwater', # no geom
         #             ]
         settings_layers = []
-        boundary_condition_layers = [# 'v2_1d_boundary_conditions', # no geom
+        boundary_condition_layers = [  # 'v2_1d_boundary_conditions', # no geom
                                      'v2_2d_boundary_conditions',
                                      ]
         lateral_layers = ['v2_1d_lateral',
@@ -287,7 +288,7 @@ class LayerTreeManager(object):
         inflow_layers = ['v2_impervious_surface',
                          'v2_surface',
                          ]
-        advanced_numerics_layers = [# 'v2_numerical_settings', # no geom
+        advanced_numerics_layers = [  # 'v2_numerical_settings', # no geom
                                     'v2_dem_average_area',
                                     ]
 
@@ -359,7 +360,6 @@ class LayerTreeManager(object):
             if table_layer.isValid():
                 QgsMapLayerRegistry.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
-
 
     def add_results(self, index, start_row, stop_row):
         # unique identifier?
