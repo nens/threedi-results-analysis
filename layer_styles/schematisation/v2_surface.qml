@@ -7,32 +7,43 @@
     <edittype widgetv2type="TextEdit" name="display_name">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="timeseries">
+    <edittype widgetv2type="TextEdit" name="code">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="boundary_type">
+    <edittype widgetv2type="TextEdit" name="zoom_category">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="nr_of_inhabitants">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="dry_weather_flow">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="function">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="area">
+      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="surface_parameters_id">
       <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
     </edittype>
   </edittypes>
   <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="0">
-        <layer pass="0" class="SimpleLine" locked="0">
-          <prop k="capstyle" v="square"/>
-          <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="customdash_unit" v="MM"/>
-          <prop k="draw_inside_polygon" v="0"/>
+      <symbol alpha="1" clip_to_extent="1" type="fill" name="0">
+        <layer pass="0" class="SimpleFill" locked="0">
+          <prop k="border_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="color" v="244,198,119,255"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="line_color" v="255,0,0,255"/>
-          <prop k="line_style" v="dash"/>
-          <prop k="line_width" v="0.66"/>
-          <prop k="line_width_unit" v="MM"/>
-          <prop k="offset" v="0"/>
+          <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_color" v="133,112,8,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0.26"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="style" v="solid"/>
         </layer>
       </symbol>
     </symbols>
@@ -103,7 +114,7 @@
     <property key="labeling/obstacleType" value="0"/>
     <property key="labeling/offsetType" value="0"/>
     <property key="labeling/placeDirectionSymbol" value="0"/>
-    <property key="labeling/placement" value="2"/>
+    <property key="labeling/placement" value="1"/>
     <property key="labeling/placementFlags" value="10"/>
     <property key="labeling/plussign" value="false"/>
     <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
@@ -185,7 +196,7 @@
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <layerTransparency>0</layerTransparency>
+  <layerTransparency>10</layerTransparency>
   <displayfield>display_name</displayfield>
   <label>0</label>
   <labelattributes>
@@ -235,23 +246,33 @@
       </layer>
     </symbol>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
   <annotationform></annotationform>
   <aliases>
     <alias field="id" index="0" name=""/>
     <alias field="display_name" index="1" name=""/>
-    <alias field="timeseries" index="2" name=""/>
-    <alias field="boundary_type" index="3" name=""/>
+    <alias field="code" index="2" name=""/>
+    <alias field="zoom_category" index="3" name=""/>
+    <alias field="nr_of_inhabitants" index="4" name=""/>
+    <alias field="dry_weather_flow" index="5" name=""/>
+    <alias field="function" index="6" name=""/>
+    <alias field="area" index="7" name=""/>
+    <alias field="surface_parameters_id" index="8" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="267878184">
     <columns>
       <column width="-1" hidden="0" type="field" name="id"/>
       <column width="-1" hidden="0" type="field" name="display_name"/>
-      <column width="-1" hidden="0" type="field" name="timeseries"/>
-      <column width="-1" hidden="0" type="field" name="boundary_type"/>
+      <column width="-1" hidden="0" type="field" name="code"/>
+      <column width="-1" hidden="0" type="field" name="zoom_category"/>
+      <column width="-1" hidden="0" type="field" name="nr_of_inhabitants"/>
+      <column width="-1" hidden="0" type="field" name="dry_weather_flow"/>
+      <column width="-1" hidden="0" type="field" name="function"/>
+      <column width="-1" hidden="0" type="field" name="area"/>
+      <column width="-1" hidden="0" type="field" name="surface_parameters_id"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -286,9 +307,14 @@ def my_form_open(dialog, layer, feature):
   <defaults>
     <default field="id" expression=""/>
     <default field="display_name" expression=""/>
-    <default field="timeseries" expression=""/>
-    <default field="boundary_type" expression=""/>
+    <default field="code" expression=""/>
+    <default field="zoom_category" expression=""/>
+    <default field="nr_of_inhabitants" expression=""/>
+    <default field="dry_weather_flow" expression=""/>
+    <default field="function" expression=""/>
+    <default field="area" expression=""/>
+    <default field="surface_parameters_id" expression=""/>
   </defaults>
   <previewExpression></previewExpression>
-  <layerGeometryType>1</layerGeometryType>
+  <layerGeometryType>2</layerGeometryType>
 </qgis>

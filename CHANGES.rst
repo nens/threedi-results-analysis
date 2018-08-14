@@ -11,6 +11,8 @@ ThreeDiToolBox changelog
 
 - Disable auto SI prefix on the vertical axis.
 
+- Update schematisation layer style (add a lot of non_geom tables)
+
 
 1.3 (2018-06-19)
 ----------------

@@ -1,62 +1,204 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.22" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.6-Essen" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="reference_level">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="ROWID">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="definition_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="channel_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_display_name">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="code">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_code">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="friction_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_profile_num">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="friction_value">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_sewerage_type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="bank_level">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_calculation_type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="pipe_invert_level_start_point">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_invert_level_end_point">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_cross_section_definition_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_friction_value">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_friction_type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_dist_calc_points">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_material">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_pipe_quality">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_original_length">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_zoom_category">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_connection_node_start_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="pipe_connection_node_end_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="def_id">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="def_shape">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="def_width">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="def_height">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
   </edittypes>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+  <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
+    <rules key="{1c4a4e03-d442-4bb0-8ffc-82b9a703e08f}">
+      <rule filter="pipe_sewerage_type = 0" key="{844e5e28-ad8f-43dc-ae9b-2eedeecde873}" symbol="0" label="Gemengd"/>
+      <rule filter="pipe_sewerage_type = 1" key="{3b41f70d-2dfe-4438-8b1a-3722a52ff82b}" symbol="1" label="RWA"/>
+      <rule filter="pipe_sewerage_type = 2" key="{c8833167-878e-49b2-bd37-5019aeea2451}" symbol="2" label="DWA"/>
+      <rule filter="pipe_sewerage_type = 3" key="{d62bccfa-4138-43ba-ab6d-51eae9f5b079}" symbol="3" label="Transport"/>
+      <rule filter="pipe_sewerage_type = 7" key="{8eb66a66-0335-4672-a78d-1aac6c4702ff}" symbol="4" label="Bergbezinkvoorziening"/>
+      <rule filter="pipe_sewerage_type = 4 OR pipe_sewerage_type = 5 OR pipe_sewerage_type = 6 OR pipe_sewerage_type > 10" key="{aa320dac-96a8-41e4-af30-3e9153ceaeae}" symbol="5" label="Overig"/>
+    </rules>
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
-        <layer pass="0" class="SimpleMarker" locked="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="31,120,180,255"/>
-          <prop k="horizontal_anchor_point" v="1"/>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="0">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
-          <prop k="name" v="square"/>
-          <prop k="offset" v="0,0"/>
+          <prop k="line_color" v="255,170,0,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.4"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,255"/>
-          <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="area"/>
-          <prop k="size" v="1.4"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="size_unit" v="MM"/>
-          <prop k="vertical_anchor_point" v="1"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="1">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="85,170,255,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.4"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="2">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="255,0,0,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.4"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="3">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="153,153,153,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.7"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="4">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="92,92,92,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="2"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="line" name="5">
+        <layer pass="0" class="SimpleLine" locked="0">
+          <prop k="capstyle" v="square"/>
+          <prop k="customdash" v="0"/>
+          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_unit" v="MM"/>
+          <prop k="draw_inside_polygon" v="0"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="line_color" v="211,211,211,255"/>
+          <prop k="line_style" v="solid"/>
+          <prop k="line_width" v="0.4"/>
+          <prop k="line_width_unit" v="MM"/>
+          <prop k="offset" v="0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="use_custom_dash" v="0"/>
+          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
         </layer>
       </symbol>
     </symbols>
-    <rotation/>
-    <sizescale scalemethod="diameter"/>
   </renderer-v2>
   <labeling type="simple"/>
   <customproperties>
-    <property key="embeddedWidgets/count" value="0"/>
     <property key="labeling" value="pal"/>
     <property key="labeling/addDirectionSymbol" value="false"/>
     <property key="labeling/angleOffset" value="0"/>
@@ -84,8 +226,8 @@
     <property key="labeling/distMapUnitMaxScale" value="0"/>
     <property key="labeling/distMapUnitMinScale" value="0"/>
     <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/drawLabels" value="false"/>
-    <property key="labeling/enabled" value="false"/>
+    <property key="labeling/drawLabels" value="true"/>
+    <property key="labeling/enabled" value="true"/>
     <property key="labeling/fieldName" value=""/>
     <property key="labeling/fitInPolygonOnly" value="false"/>
     <property key="labeling/fontBold" value="false"/>
@@ -127,8 +269,8 @@
     <property key="labeling/obstacleType" value="0"/>
     <property key="labeling/offsetType" value="0"/>
     <property key="labeling/placeDirectionSymbol" value="0"/>
-    <property key="labeling/placement" value="0"/>
-    <property key="labeling/placementFlags" value="0"/>
+    <property key="labeling/placement" value="2"/>
+    <property key="labeling/placementFlags" value="10"/>
     <property key="labeling/plussign" value="false"/>
     <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
     <property key="labeling/preserveRotation" value="true"/>
@@ -206,25 +348,23 @@
     <property key="labeling/shapeSizeY" value="0"/>
     <property key="labeling/shapeTransparency" value="0"/>
     <property key="labeling/shapeType" value="0"/>
-    <property key="labeling/substitutions" value="&lt;substitutions/>"/>
     <property key="labeling/textColorA" value="255"/>
     <property key="labeling/textColorB" value="0"/>
     <property key="labeling/textColorG" value="0"/>
     <property key="labeling/textColorR" value="0"/>
     <property key="labeling/textTransp" value="0"/>
     <property key="labeling/upsidedownLabels" value="0"/>
-    <property key="labeling/useSubstitutions" value="false"/>
     <property key="labeling/wrapChar" value=""/>
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames"/>
-    <property key="variableValues"/>
+    <property key="variableNames" value="_fields_"/>
+    <property key="variableValues" value=""/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>id</displayfield>
+  <displayfield>display_name</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Label"/>
@@ -246,76 +386,29 @@
     <multilineenabled fieldname="" on=""/>
     <selectedonly on=""/>
   </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie" sizeLegend="0" attributeLegend="1">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
+  <SingleCategoryDiagramRenderer diagramType="Pie">
+    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="0">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
       <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
-    <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
-      <layer pass="0" class="SimpleMarker" locked="0">
-        <prop k="angle" v="0"/>
-        <prop k="color" v="255,0,0,255"/>
-        <prop k="horizontal_anchor_point" v="1"/>
-        <prop k="joinstyle" v="bevel"/>
-        <prop k="name" v="circle"/>
-        <prop k="offset" v="0,0"/>
-        <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="offset_unit" v="MM"/>
-        <prop k="outline_color" v="0,0,0,255"/>
-        <prop k="outline_style" v="solid"/>
-        <prop k="outline_width" v="0"/>
-        <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="outline_width_unit" v="MM"/>
-        <prop k="scale_method" v="diameter"/>
-        <prop k="size" v="2"/>
-        <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="size_unit" v="MM"/>
-        <prop k="vertical_anchor_point" v="1"/>
-      </layer>
-    </symbol>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" showColumn="0" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
-  <annotationform>../../../OSGEO4~1/bin</annotationform>
-  <aliases>
-    <alias field="reference_level" index="0" name=""/>
-    <alias field="definition_id" index="1" name=""/>
-    <alias field="channel_id" index="2" name=""/>
-    <alias field="code" index="3" name=""/>
-    <alias field="friction_type" index="4" name=""/>
-    <alias field="friction_value" index="5" name=""/>
-    <alias field="bank_level" index="6" name=""/>
-    <alias field="id" index="7" name=""/>
-  </aliases>
+  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <annotationform>.</annotationform>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
-  <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
-    <columns>
-      <column width="-1" hidden="0" type="field" name="reference_level"/>
-      <column width="-1" hidden="0" type="field" name="definition_id"/>
-      <column width="-1" hidden="0" type="field" name="channel_id"/>
-      <column width="-1" hidden="0" type="field" name="code"/>
-      <column width="-1" hidden="0" type="field" name="friction_type"/>
-      <column width="-1" hidden="0" type="field" name="friction_value"/>
-      <column width="-1" hidden="0" type="field" name="bank_level"/>
-      <column width="-1" hidden="0" type="field" name="id"/>
-      <column width="-1" hidden="1" type="actions"/>
-    </columns>
-  </attributetableconfig>
-  <editform>../../../OSGEO4~1/bin</editform>
+  <attributeactions/>
+  <editform>.</editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
-  <editforminitfilepath>../../../OSGEO4~1/bin</editforminitfilepath>
+  <editforminitfilepath>.</editforminitfilepath>
   <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
 """
-QGIS forms can have a Python function that is called when the form is
-opened.
+Formulieren van QGIS mogen een functie van Python hebben die wordt aangeroepen wanneer het formulier wordt geopend.
 
-Use this function to add extra logic to your forms.
+Gebruik deze functie om extra logica aan uw formulieren toe te voegen.
 
-Enter the name of the function in the "Python Init function"
-field.
-An example follows:
+Voer de naam van de functie in in het veld "Python Init functie".
+Een voorbeeld volgt:
 """
 from PyQt4.QtGui import QWidget
 
@@ -330,16 +423,5 @@ def my_form_open(dialog, layer, feature):
     <rowstyles/>
     <fieldstyles/>
   </conditionalstyles>
-  <defaults>
-    <default field="reference_level" expression=""/>
-    <default field="definition_id" expression=""/>
-    <default field="channel_id" expression=""/>
-    <default field="code" expression=""/>
-    <default field="friction_type" expression=""/>
-    <default field="friction_value" expression=""/>
-    <default field="bank_level" expression=""/>
-    <default field="id" expression=""/>
-  </defaults>
-  <previewExpression></previewExpression>
-  <layerGeometryType>0</layerGeometryType>
+  <layerGeometryType>1</layerGeometryType>
 </qgis>

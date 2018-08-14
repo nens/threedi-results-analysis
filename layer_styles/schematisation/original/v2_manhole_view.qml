@@ -1,40 +1,75 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.18.22" simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+<qgis version="2.14.6-Essen" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
   <edittypes>
-    <edittype widgetv2type="TextEdit" name="reference_level">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="manhole_indicator">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="definition_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="channel_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="bottom_level">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="code">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="friction_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="display_name">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="friction_value">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="drain_level">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
-    <edittype widgetv2type="TextEdit" name="bank_level">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+    <edittype widgetv2type="TextEdit" name="zoom_category">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="postgres_pk">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="surface_level">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="sediment_level">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="shape">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="width">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="length">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="calculation_type">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="initial_waterlevel">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="the_geom_linestring">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
     <edittype widgetv2type="TextEdit" name="id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
+    </edittype>
+    <edittype widgetv2type="TextEdit" name="manhole_area">
+      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
     </edittype>
   </edittypes>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+  <renderer-v2 forceraster="0" symbollevels="0" type="RuleRenderer" enableorderby="0">
+    <rules key="{b164da8f-ded0-49c6-92f9-ccd58ff1bf6b}">
+      <rule scalemaxdenom="2500" filter="manhole_indicator = 0" key="{0c4b803a-52e6-4b4b-9839-dec47fc51b1f}" symbol="0" label="Inspectieput"/>
+      <rule scalemaxdenom="15000" filter="manhole_indicator = 1" key="{a1f90a2e-6345-4bd3-9a17-f18b6c8823d6}" symbol="1" label="Uitlaat - boundary"/>
+      <rule scalemaxdenom="15000" filter="calculation_type = 0" key="{10fd94e2-a036-4ff7-9fa1-45ef948c9402}" symbol="2" label="Uitlaat - connectie met 2d"/>
+      <rule filter="manhole_indicator = 2" key="{b6da6fa3-1a54-492b-954e-dd1441da5b49}" symbol="3" label="Gemaalkelder"/>
+      <rule filter="manhole_indicator = 3" key="{864af9aa-31f5-47a0-b43a-50355f5272fb}" symbol="4" label="Inprikpunt"/>
+      <rule filter="manhole_indicator = 4" key="{bd090f05-51e8-4839-8393-eb77508730e3}" symbol="5" label="rwzi"/>
+      <rule key="{01a4e335-21ab-4bc0-a59c-c937202f3218}" symbol="6" label="all"/>
+    </rules>
     <symbols>
       <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="31,120,180,255"/>
+          <prop k="color" v="85,255,127,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="joinstyle" v="bevel"/>
-          <prop k="name" v="square"/>
+          <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
@@ -44,19 +79,142 @@
           <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="area"/>
-          <prop k="size" v="1.4"/>
+          <prop k="size" v="1.5"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="1">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="170,0,255,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="rectangle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="1.8"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="2">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="254,0,199,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="rectangle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="1.8"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="3">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="255,170,0,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="pentagon"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="3"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="4">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="255,255,0,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="pentagon"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="5">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="85,170,255,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="6"/>
+          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_unit" v="MM"/>
+          <prop k="vertical_anchor_point" v="1"/>
+        </layer>
+      </symbol>
+      <symbol alpha="1" clip_to_extent="1" type="marker" name="6">
+        <layer pass="0" class="SimpleMarker" locked="0">
+          <prop k="angle" v="0"/>
+          <prop k="color" v="151,163,73,255"/>
+          <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="name" v="circle"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="0,0,0,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0"/>
+          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="scale_method" v="area"/>
+          <prop k="size" v="2"/>
           <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
         </layer>
       </symbol>
     </symbols>
-    <rotation/>
-    <sizescale scalemethod="diameter"/>
   </renderer-v2>
   <labeling type="simple"/>
   <customproperties>
-    <property key="embeddedWidgets/count" value="0"/>
     <property key="labeling" value="pal"/>
     <property key="labeling/addDirectionSymbol" value="false"/>
     <property key="labeling/angleOffset" value="0"/>
@@ -86,7 +244,7 @@
     <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
     <property key="labeling/drawLabels" value="false"/>
     <property key="labeling/enabled" value="false"/>
-    <property key="labeling/fieldName" value=""/>
+    <property key="labeling/fieldName" value="display_name"/>
     <property key="labeling/fitInPolygonOnly" value="false"/>
     <property key="labeling/fontBold" value="false"/>
     <property key="labeling/fontCapitals" value="0"/>
@@ -106,7 +264,7 @@
     <property key="labeling/fontWeight" value="50"/>
     <property key="labeling/fontWordSpacing" value="0"/>
     <property key="labeling/formatNumbers" value="false"/>
-    <property key="labeling/isExpression" value="true"/>
+    <property key="labeling/isExpression" value="false"/>
     <property key="labeling/labelOffsetInMapUnits" value="true"/>
     <property key="labeling/labelOffsetMapUnitMaxScale" value="0"/>
     <property key="labeling/labelOffsetMapUnitMinScale" value="0"/>
@@ -206,25 +364,23 @@
     <property key="labeling/shapeSizeY" value="0"/>
     <property key="labeling/shapeTransparency" value="0"/>
     <property key="labeling/shapeType" value="0"/>
-    <property key="labeling/substitutions" value="&lt;substitutions/>"/>
     <property key="labeling/textColorA" value="255"/>
     <property key="labeling/textColorB" value="0"/>
     <property key="labeling/textColorG" value="0"/>
     <property key="labeling/textColorR" value="0"/>
     <property key="labeling/textTransp" value="0"/>
     <property key="labeling/upsidedownLabels" value="0"/>
-    <property key="labeling/useSubstitutions" value="false"/>
     <property key="labeling/wrapChar" value=""/>
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames"/>
-    <property key="variableValues"/>
+    <property key="variableNames" value="_fields_"/>
+    <property key="variableValues" value=""/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>id</displayfield>
+  <displayfield>display_name</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Label"/>
@@ -246,76 +402,28 @@
     <multilineenabled fieldname="" on=""/>
     <selectedonly on=""/>
   </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie" sizeLegend="0" attributeLegend="1">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
+  <SingleCategoryDiagramRenderer diagramType="Pie">
+    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="0">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
-    <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
-      <layer pass="0" class="SimpleMarker" locked="0">
-        <prop k="angle" v="0"/>
-        <prop k="color" v="255,0,0,255"/>
-        <prop k="horizontal_anchor_point" v="1"/>
-        <prop k="joinstyle" v="bevel"/>
-        <prop k="name" v="circle"/>
-        <prop k="offset" v="0,0"/>
-        <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="offset_unit" v="MM"/>
-        <prop k="outline_color" v="0,0,0,255"/>
-        <prop k="outline_style" v="solid"/>
-        <prop k="outline_width" v="0"/>
-        <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="outline_width_unit" v="MM"/>
-        <prop k="scale_method" v="diameter"/>
-        <prop k="size" v="2"/>
-        <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
-        <prop k="size_unit" v="MM"/>
-        <prop k="vertical_anchor_point" v="1"/>
-      </layer>
-    </symbol>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" showColumn="0" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
-  <annotationform>../../../OSGEO4~1/bin</annotationform>
-  <aliases>
-    <alias field="reference_level" index="0" name=""/>
-    <alias field="definition_id" index="1" name=""/>
-    <alias field="channel_id" index="2" name=""/>
-    <alias field="code" index="3" name=""/>
-    <alias field="friction_type" index="4" name=""/>
-    <alias field="friction_value" index="5" name=""/>
-    <alias field="bank_level" index="6" name=""/>
-    <alias field="id" index="7" name=""/>
-  </aliases>
+  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+  <annotationform>.</annotationform>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
-  <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
-    <columns>
-      <column width="-1" hidden="0" type="field" name="reference_level"/>
-      <column width="-1" hidden="0" type="field" name="definition_id"/>
-      <column width="-1" hidden="0" type="field" name="channel_id"/>
-      <column width="-1" hidden="0" type="field" name="code"/>
-      <column width="-1" hidden="0" type="field" name="friction_type"/>
-      <column width="-1" hidden="0" type="field" name="friction_value"/>
-      <column width="-1" hidden="0" type="field" name="bank_level"/>
-      <column width="-1" hidden="0" type="field" name="id"/>
-      <column width="-1" hidden="1" type="actions"/>
-    </columns>
-  </attributetableconfig>
-  <editform>../../../OSGEO4~1/bin</editform>
+  <attributeactions/>
+  <editform>.</editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
-  <editforminitfilepath>../../../OSGEO4~1/bin</editforminitfilepath>
+  <editforminitfilepath>.</editforminitfilepath>
   <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
 """
-QGIS forms can have a Python function that is called when the form is
-opened.
+Formulieren van QGIS mogen een functie van Python hebben die wordt aangeroepen wanneer het formulier wordt geopend.
 
-Use this function to add extra logic to your forms.
+Gebruik deze functie om extra logica aan uw formulieren toe te voegen.
 
-Enter the name of the function in the "Python Init function"
-field.
-An example follows:
+Voer de naam van de functie in in het veld "Python Init functie".
+Een voorbeeld volgt:
 """
 from PyQt4.QtGui import QWidget
 
@@ -330,16 +438,5 @@ def my_form_open(dialog, layer, feature):
     <rowstyles/>
     <fieldstyles/>
   </conditionalstyles>
-  <defaults>
-    <default field="reference_level" expression=""/>
-    <default field="definition_id" expression=""/>
-    <default field="channel_id" expression=""/>
-    <default field="code" expression=""/>
-    <default field="friction_type" expression=""/>
-    <default field="friction_value" expression=""/>
-    <default field="bank_level" expression=""/>
-    <default field="id" expression=""/>
-  </defaults>
-  <previewExpression></previewExpression>
   <layerGeometryType>0</layerGeometryType>
 </qgis>

@@ -38,9 +38,15 @@ class LayerTreeManager(object):
 
     model_layergroup_basename = '3Di model: '
     schematisation_group_name = 'schematisation'
+    schematisation_settings_group_name = 'settings'
+    schematisation_boundary_group_name = 'boundary conditions'
+    schematisation_lateral_group_name = 'laterals'
     schematisation_oned_group_name = '1d'
-    schematisation_twod_group_name = '2d'
+    schematisation_additional_oned_group_name = 'additional tables for editing 1d' #noqa
+    schematisation_obstacle_group_name = 'obstacles'
+    schematisation_grid_refinement_group_name = 'grid refinements'
     schematisation_inflow_group_name = 'inflow'
+    schematisation_advanced_settings_group_name = 'advanced numerics'
     result_layergroup_basename = 'result: '
     statistic_layergroup_basename = 'statistics: '
 
@@ -199,11 +205,23 @@ class LayerTreeManager(object):
             self.schematisation_layergroup.removeAllChildren()
 
         self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_advanced_settings_group_name)
+        self.schematisation_layergroup.insertGroup(
             0, self.schematisation_inflow_group_name)
         self.schematisation_layergroup.insertGroup(
-            0, self.schematisation_twod_group_name)
+            0, self.schematisation_grid_refinement_group_name)
+        self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_obstacle_group_name)
+        self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_additional_oned_group_name)
         self.schematisation_layergroup.insertGroup(
             0, self.schematisation_oned_group_name)
+        self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_lateral_group_name)
+        self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_boundary_group_name)
+        self.schematisation_layergroup.insertGroup(
+            0, self.schematisation_settings_group_name)
 
         # add_schematisation layers
         self._add_model_schematisation_layers(filename)
@@ -230,41 +248,80 @@ class LayerTreeManager(object):
         Args:
             threedi_spatialite:
         """
-
+        # settings_layers = ['v2_global_settings', # no geom
+        #             'v2_aggregation_settings', # no geom
+        #             'v2_interflow', # no geom
+        #             'v2_simmple_infiltration', # no geom
+        #             'v2_groundwater', # no geom
+        #             ]
+        settings_layers = []
+        boundary_condition_layers = [# 'v2_1d_boundary_conditions', # no geom
+                                     'v2_2d_boundary_conditions',
+                                     ]
+        lateral_layers = ['v2_1d_lateral',
+                          'v2_2d_lateral',
+                          ]
         oned_layers = ['v2_pumpstation_view',
                        'v2_weir_view',
                        'v2_culvert_view',
                        'v2_orifice_view',
-                       'v2_cross_section_locations',
-                       'v2_outlet',
                        'v2_cross_section_location',
                        'v2_connection_nodes',
                        'v2_pipe_view',
                        'v2_channel',
                        ]
-        twod_layers = ['v2_grid_refinement',
-                       'v2_floodfill',
-                       'v2_2d_lateral',
-                       'v2_levee',
-                       'v2_obstacle',
-                       'v2_2d_boundary_conditions',
-                       ]
-        inflow_layers = ['v2_impervious_surface']
-        # not added: v2_windshielding, v2_pumped_drainage_area,
-        # v2_initial_waterlevel
+        # additional_oned_layers = ['v2_manhole', # no geom
+        #                           'v2_cross_section_definition', # no geom
+        #                           'v2_orifice', # no geom
+        #                           'v2_pumpstation', # no geom
+        #                           'v2_weir', # no geom
+        #                           'v2_windshielding', # no geom
+        #                           ]
+        additional_oned_layers = []
+        obstacle_layers = ['v2_obstacle',
+                           'v2_levee',
+                           ]
+        grid_refinement_layers = ['v2_grid_refinement',
+                                  'v2_grid_refinement_area'
+                                  ]
+        inflow_layers = ['v2_impervious_surface',
+                         'v2_surface',
+                         ]
+        advanced_numerics_layers = [# 'v2_numerical_settings', # no geom
+                                    'v2_dem_average_area',
+                                    ]
 
         # little bit administration: get all the groups
+        settings_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_settings_group_name)
+        boundary_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_boundary_group_name)
+        lateral_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_lateral_group_name)
         oned_group = self.schematisation_layergroup.findGroup(
             self.schematisation_oned_group_name)
-        twod_group = self.schematisation_layergroup.findGroup(
-            self.schematisation_twod_group_name)
+        additional_oned_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_additional_oned_group_name)
+        obstacle_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_obstacle_group_name)
+        grid_refinement_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_grid_refinement_group_name)
         inflow_group = self.schematisation_layergroup.findGroup(
             self.schematisation_inflow_group_name)
+        advanced_settings_group = self.schematisation_layergroup.findGroup(
+            self.schematisation_advanced_settings_group_name)
 
         # now make the layers and add them to the groups
-        for group, layers in [(oned_group, oned_layers),
-                              (twod_group, twod_layers),
+        for group, layers in [(settings_group, settings_layers),
+                              (boundary_group, boundary_condition_layers),
+                              (lateral_group, lateral_layers),
+                              (oned_group, oned_layers),
+                              (additional_oned_group, additional_oned_layers),
+                              (obstacle_group, obstacle_layers),
+                              (grid_refinement_group, grid_refinement_layers),
                               (inflow_group, inflow_layers),
+                              (advanced_settings_group,
+                               advanced_numerics_layers)
                               ]:
 
             for layer_name in layers:
@@ -280,10 +337,19 @@ class LayerTreeManager(object):
                     group.insertLayer(100, vector_layer)
 
         # tables without geometry
-        tables = [(oned_group, 'v2_cross_section_definition'),
-                  (self.schematisation_layergroup, 'v2_numerical_settings'),
-                  (self.schematisation_layergroup, 'v2_global_settings'),
-                  (twod_group, 'v2_manhole'),
+        tables = [(settings_group, 'v2_groundwater'),
+                  (settings_group, 'v2_simmple_infiltration'),
+                  (settings_group, 'v2_interflow'),
+                  (settings_group, 'v2_aggregation_settings'),
+                  (settings_group, 'v2_global_settings'),
+                  (boundary_group, 'v2_1d_boundary_conditions'),
+                  (additional_oned_group, 'v2_cross_section_definition'),
+                  (additional_oned_group, 'v2_windshielding'),
+                  (additional_oned_group, 'v2_pumpstation'),
+                  (additional_oned_group, 'v2_manhole'),
+                  (additional_oned_group, 'v2_orifice'),
+                  (additional_oned_group, 'v2_weir'),
+                  (advanced_settings_group, 'v2_numerical_settings'),
                   ]
 
         # add tables without geometry
@@ -293,6 +359,7 @@ class LayerTreeManager(object):
             if table_layer.isValid():
                 QgsMapLayerRegistry.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
+
 
     def add_results(self, index, start_row, stop_row):
         # unique identifier?
