@@ -662,14 +662,6 @@ class WaterBalanceTool:
         self.widget = None
         self.plugin_is_active = False
 
-    def pop_up_no_ds_selected(self):
-        header = 'Error: No datasource selected'
-        msg = "Please load '.sqlite' and 'results_3di.nc' before using the " \
-              "WaterBalanceTool. This tool will then automatically find the " \
-              "'aggregate_results_3di.nc'. This tool only works with an " \
-              "'aggregate_results_3di.nc' "
-        QMessageBox.warning(None, header, msg)
-
     def pop_up_no_agg_found(self):
         header = 'Error: No aggregation netcdf found'
         msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
@@ -683,14 +675,11 @@ class WaterBalanceTool:
         QMessageBox.warning(None, header, msg)
 
     def run(self):
-        if self.ts_datasource.rows == []:
-            self.pop_up_no_ds_selected()
+        selected_ds = self.ts_datasource.rows[0].datasource()
+        if not selected_ds.ds_aggregation:
+            self.pop_up_no_agg_found()
         else:
-            selected_ds = self.ts_datasource.rows[0].datasource()
-            if not selected_ds.ds_aggregation:
-                self.pop_up_no_agg_found()
-            else:
-                self.run_it()
+            self.run_it()
 
     def run_it(self):
         """Run_it method that loads and starts the plugin"""
