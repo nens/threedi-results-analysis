@@ -122,7 +122,7 @@ class RasterCheckerDialogWidget(QDialog):
 
             # this option may only be Checked when 'check_all_rasters' is..
             if self.improve_when_necessary.isChecked():
-             checks.append('improve when necessary')
+                checks.append('improve when necessary')
 
         self.command.run_it(checks, db_set, settings['db_type'])
 

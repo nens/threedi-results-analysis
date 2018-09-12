@@ -8,7 +8,8 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String, Float,
 from sqlalchemy import select
 from sqlalchemy import update
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.utils.user_messages import (pop_up_info, messagebar_message)
+from ThreeDiToolbox.utils.user_messages import (
+    pop_up_info, messagebar_message)
 from sqlalchemy.orm import create_session
 from sqlalchemy.ext.declarative import declarative_base
 import time
@@ -108,6 +109,7 @@ non_settings_tbl_with_rasters = [
     ['v2_interflow', 'interflow_settings_id']
 ]
 
+
 def _iter_block_row(band, offset_y, block_height, block_width, no_data_value):
     ncols = int(band.XSize / block_width)
     for i in range(ncols):
@@ -131,6 +133,7 @@ def _iter_block_row(band, offset_y, block_height, block_width, no_data_value):
 
         # offset_y + block_height), arr
 
+
 def iter_blocks(band, block_width=0, block_height=0):
     """ Iterate over native blocks in a GDal raster data band.
     Optionally, provide a minimum block dimension.
@@ -147,6 +150,7 @@ def iter_blocks(band, block_width=0, block_height=0):
         for block in _iter_block_row(band, nrows * block_height, height,
                                      block_width, no_data_value):
             yield block
+
 
 def optimize_blocksize(band, min_blocksize=256, max_blocksize=1024):
     raster_height = band.YSize
@@ -186,6 +190,7 @@ def optimize_blocksize(band, min_blocksize=256, max_blocksize=1024):
     print 'raster_area = ' + str(raster_area)
     print 'nr_blocks = ' + str(nr_blocks)
     return block_width, block_height, nr_blocks
+
 
 class DataModelSource(object):
     def __init__(self, metadata):
@@ -363,7 +368,7 @@ class RasterChecker(object):
                                 entrees_dict[entree_id].append(ref_raster_str)
             if dem_used is False:
                 msg = 'entree id %d does not (but must) include a ' \
-                      'dem_tif' %entree_id
+                      'dem_tif' % entree_id
                 del entrees_dict[entree_id]
         return entrees_dict
 
@@ -453,7 +458,7 @@ class RasterChecker(object):
 
         for key, value in entrees.iteritems():
             for rast_item in value:
-                if rast_item[-4:] <> '.tif':
+                if rast_item[-4:] != '.tif':
                     msg = "exetension of %s must be  .tif" % rast_item
                     check_tif_filename.append(False)
 
@@ -530,7 +535,7 @@ class RasterChecker(object):
                 # check4. is the raster singleband ?
                 try:
                     cnt_rasterband = src_ds.RasterCount
-                    if cnt_rasterband <> 1:
+                    if cnt_rasterband != 1:
                         msg = '%s.tif is not (but must be) a single-band ' \
                               'raster' % rast_item
                         self.check_singleband.append(False)
@@ -768,7 +773,8 @@ class RasterChecker(object):
 
         foreign_keys = self.get_foreign_keys()  # called only here
 
-        # get_unique_settings_ids  # only called in get_raster_ref_per_entrees()
+        # get_unique_settings_ids
+        # only called in get_raster_ref_per_entrees()
 
         entrees = self.get_raster_ref_per_entrees(all_raster_ref, foreign_keys)
         # called only here
@@ -803,7 +809,7 @@ class RasterChecker(object):
         fields.append(QgsField("x_coor", QVariant.String))
         fields.append(QgsField("y_coor", QVariant.String))
 
-        """ create an instance of vector file writer, which will create 
+        """ create an instance of vector file writer, which will create
         the vector file.
         Arguments:
         1. path to new file (will fail if exists already)
@@ -940,11 +946,10 @@ class RasterChecker(object):
 # [dothis for y_item in y for x_item in x if y_item == x_item]
 
 
-
 """
 sqlite_file_path = '/home/renier.kramer/Desktop/wezep/wezep2.sqlite'
-engine = create_engine('sqlite:///{0}'.format(sqlite_file_path), echo=False)  
-# echo=False will disable all the SQL logging
+engine = create_engine('sqlite:///{0}'.format(sqlite_file_path), echo=False)
+echo=False will disable all the SQL logging
 metadata = MetaData(bind=engine)
 
 # 1.  __init__

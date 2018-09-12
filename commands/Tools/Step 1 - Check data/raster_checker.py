@@ -52,5 +52,3 @@ class CustomCommand(CustomCommandBase):
 
         messagebar_message('Raster checker ready', msg, duration=20)
         log.info('Raster checker ready.\n' + msg)
-
-

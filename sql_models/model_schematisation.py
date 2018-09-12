@@ -69,9 +69,9 @@ class GroundWater(Base):
     infiltration_decay_period_file = Column(String(255), nullable=True)
     leakage_file = Column(String(255), nullable=True)
     initial_infiltration_rate_file = Column(String(255), nullable=True)
-    groundwater_impervious_layer_level_file = Column(String(255), nullable=True)
+    groundwater_impervious_layer_level_file = Column(
+        String(255), nullable=True)
     equilibrium_infiltration_rate_file = Column(String(255), nullable=True)
-    max_infiltration_capacity_file = Column(String(255), nullable=True)
 
 
 class CrossSectionDefinition(Base):
