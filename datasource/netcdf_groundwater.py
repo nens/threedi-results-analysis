@@ -238,10 +238,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """
         # get the gridadmin model instance (e.g. pumplines_view to pumps)
         model_instance = object_type_model_instance[object_type]
-
         # gr.nodes / gr.lines / gr.pumps
         gr_model_instance = getattr(gridadmin_result, model_instance)
-
         # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
         filter_timeseries = gr_model_instance.filter(
             id=object_id).timeseries(indexes=slice(None))

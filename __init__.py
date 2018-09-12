@@ -25,7 +25,6 @@ import imp
 import sys
 import os
 
-
 try:
     from .utils.user_messages import pop_up_info, log
 except ImportError:
