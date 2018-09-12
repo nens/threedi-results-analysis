@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- not able to start StatisticsTool before select sqlite and NetCDf
+
 - Include water balance tool (DeltaresTdiToolbox) in plugin.
 
 - Add fix for ``None`` values in WeirStats calculation (caused by np.nan
