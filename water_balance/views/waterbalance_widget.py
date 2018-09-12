@@ -566,7 +566,7 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.source_nc_combo_box.currentIndexChanged.connect(self.update_wb)
         self.source_nc_combo_box.currentIndexChanged.connect(
-            self.issue_warning)
+            self.issue_error)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(
@@ -832,8 +832,8 @@ class WaterBalanceWidget(QDockWidget):
                 "DockWidget", "Teken nieuw gebied", None))
 
             if not self.aggregation_warning_issued_on_start:
-                self.issue_warning()
-                self.aggregation_warning_issued_on_start = True
+                self.issue_error()
+                # self.aggregation_warning_issued_on_start = True
 
     def redraw_wb(self):
         pass
@@ -1161,19 +1161,19 @@ class WaterBalanceWidget(QDockWidget):
         self.closingWidget.emit()
         event.accept()
 
-    def issue_warning(self):
+    def issue_error(self):
         mode = self.source_nc_combo_box.currentText()
+        header = "No Aggregation NetCDF file found"
+        msg = "WaterBalanceTool only works with the 'aggregate_results_3di.nc'." \
+              " Please make sure you run your simulation using the " \
+              "v2_aggregation_settings' table with the following variables: " \
+              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
+              "\n- leakage\n- discharge\n- pump discharge " \
+              "\n\npositive cumulative:\n- discharge " \
+              "\n\nnegative cumulative:\n- discharge"
         if mode == 'normal':
-            QMessageBox.information(
-                None,
-                "Information",
-                "You're currently using the 'normal' NetCDF result file which "
-                "may result in a less accurate overall water balance "
-                "compared to the 'aggregation' NetCDF file, depending on the "
-                "output time step that was chosen. Proceed at your own "
-                "discretion. Please select the 'aggregation' option "
-                "for the most accurate results."
-            )
+            # QMessageBox.information(None, "Information", msg)
+            QMessageBox.warning(None, header, msg)
 
     def setup_ui(self, dock_widget):
         """

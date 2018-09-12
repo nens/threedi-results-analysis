@@ -3,8 +3,7 @@ import logging
 import os
 
 import ogr
-from ThreeDiToolbox.utils.threedi_database import (
-    ThreediDatabase)
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ..sql_models.statistics import Base
 
 log = logging.getLogger(__name__)

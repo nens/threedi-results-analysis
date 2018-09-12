@@ -6,6 +6,7 @@ import os.path
 import numpy as np
 import numpy.ma as ma
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPoint
 
 # Import the code for the DockWidget
@@ -622,6 +623,8 @@ class WaterBalanceCalculation(object):
 
 
 class WaterBalanceTool:
+    AggregationFileNotFoundError = AggregationFileNotFoundError
+
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -659,8 +662,38 @@ class WaterBalanceTool:
         self.widget = None
         self.plugin_is_active = False
 
+    def pop_up_no_ds_selected(self):
+        header = 'Error: No datasource selected'
+        msg = "Please load '.sqlite' and 'results_3di.nc' before using the " \
+              "WaterBalanceTool. This tool will then automatically find the " \
+              "'aggregate_results_3di.nc'. This tool only works with an " \
+              "'aggregate_results_3di.nc' "
+        QMessageBox.warning(None, header, msg)
+
+    def pop_up_no_agg_found(self):
+        header = 'Error: No aggregation netcdf found'
+        msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
+              "but this file could not be found. Please make sure you run " \
+              "your simulation using the 'v2_aggregation_settings' table " \
+              "with the following variables:" \
+              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
+              "\n- leakage\n- discharge\n- pump discharge " \
+              "\n\npositive cumulative:\n- discharge " \
+              "\n\nnegative cumulative:\n- discharge"
+        QMessageBox.warning(None, header, msg)
+
     def run(self):
-        """Run method that loads and starts the plugin"""
+        if self.ts_datasource.rows == []:
+            self.pop_up_no_ds_selected()
+        else:
+            selected_ds = self.ts_datasource.rows[0].datasource()
+            if not selected_ds.ds_aggregation:
+                self.pop_up_no_agg_found()
+            else:
+                self.run_it()
+
+    def run_it(self):
+        """Run_it method that loads and starts the plugin"""
 
         if not self.plugin_is_active:
             self.plugin_is_active = True
