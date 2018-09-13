@@ -1047,7 +1047,8 @@ class WaterBalanceWidget(QDockWidget):
         #         'name': 'Overige',
         #         'default_method': settings['remnant_method'],
         #         'order': 100,
-        #         'color': [int(c) for c in settings['remnant_def_color'].split(
+        #         'color': [int(c) for c in settings[
+        # 'remnant_def_color'].split(
         #             ',')] + [150],
         #         'def_color': settings['remnant_def_color'],
         #         # TODO: fix + [150],
