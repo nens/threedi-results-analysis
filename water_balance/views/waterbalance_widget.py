@@ -550,8 +550,8 @@ class WaterBalanceWidget(QDockWidget):
 
         self.agg_combo_box.insertItems(
             0,
-            ['m3/s natural', 'm3 cumulative natural', 'm3/s',
-             'm3 cumulative'])
+            ['m3/s natural', 'm3 cumulative natural'])
+            # ['m3/s natural', 'm3 cumulative natural', 'm3/s', 'm3 cumulative'])
 
         # add listeners
         self.select_polygon_button.toggled.connect(self.toggle_polygon_button)
@@ -837,14 +837,18 @@ class WaterBalanceWidget(QDockWidget):
         self.model.ts = ts
         self.model.insertRows(graph_series['items'])
 
-        if self.agg_combo_box.currentText() == 'm3/s':
-            self.plot_widget.setLabel("left", "Debiet", "m3/s")
-        elif self.agg_combo_box.currentText() == 'm3 cumulative':
-            self.plot_widget.setLabel("left", "Cumulatieve debiet", "m3")
-        elif self.agg_combo_box.currentText() == 'm3/s natural':
+        if self.agg_combo_box.currentText() == 'm3/s natural':
             self.plot_widget.setLabel("left", "Debiet", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative natural':
             self.plot_widget.setLabel("left", "Cumulatieve debiet", "m3")
+        # if self.agg_combo_box.currentText() == 'm3/s':
+        #     self.plot_widget.setLabel("left", "Debiet", "m3/s")
+        # elif self.agg_combo_box.currentText() == 'm3 cumulative':
+        #     self.plot_widget.setLabel("left", "Cumulatieve debiet", "m3")
+        # elif self.agg_combo_box.currentText() == 'm3/s natural':
+        #     self.plot_widget.setLabel("left", "Debiet", "m3/s")
+        # elif self.agg_combo_box.currentText() == 'm3 cumulative natural':
+        #     self.plot_widget.setLabel("left", "Cumulatieve debiet", "m3")
         else:
             self.plot_widget.setLabel("left", "-", "-")
 
@@ -867,14 +871,17 @@ class WaterBalanceWidget(QDockWidget):
         ts, ts_series = ts_total_time_tuple
         ts_series = ts_series.copy()
         # indices for dvol of 2d, 1d, and groundwater
-        if self.reverse_dvol_sign:
-            ts_series[:, [18, 19, 25]] = -1 * ts_series[:, [18, 19, 25]]
+
+        # renier: delete this, because always returns False
+        # if self.reverse_dvol_sign:
+        #    ts_series[:, [18, 19, 25]] = -1 * ts_series[:, [18, 19, 25]]
+
         self.__current_calc = (ts, ts_series)
 
-    @property
-    def reverse_dvol_sign(self):
-        aggregation_type = self.agg_combo_box.currentText()
-        return aggregation_type in ['m3/s', 'm3 cumulative']
+    # @property
+    # def reverse_dvol_sign(self):
+    #     aggregation_type = self.agg_combo_box.currentText()
+    #     return aggregation_type in ['m3/s', 'm3 cumulative']
 
     def calc_wb(self, model_part, aggregation_type, settings):
         poly_points = self.polygon_tool.points
@@ -891,8 +898,11 @@ class WaterBalanceWidget(QDockWidget):
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
         ts, total_time = self.calc.get_aggregated_flows(
-            link_ids, pump_ids, node_ids, model_part,
-            reverse_dvol_sign=self.reverse_dvol_sign)
+            link_ids, pump_ids, node_ids, model_part)
+        # renier
+        # ts, total_time = self.calc.get_aggregated_flows(
+        #     link_ids, pump_ids, node_ids, model_part,
+        #     reverse_dvol_sign=self.reverse_dvol_sign)
 
         # cache data for barchart
         self._current_calc = (ts, total_time)
@@ -1046,8 +1056,10 @@ class WaterBalanceWidget(QDockWidget):
                 log.warning('aggregation %s method unknown.',
                             serie_setting['default_method'])
 
-            if aggregation_type == 'm3 cumulative' or \
-                    aggregation_type == 'm3 cumulative natural':
+            if aggregation_type == 'm3 cumulative natural':
+            # if aggregation_type == 'm3 cumulative' or \
+            #         aggregation_type == 'm3 cumulative natural':
+
                 log.debug('aggregate')
                 diff = np.append([0], np.diff(ts))
 
