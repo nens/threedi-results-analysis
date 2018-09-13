@@ -544,10 +544,6 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.insertItems(
             0,
             ['1d 2d', '1d', '2d'])
-        #  self.modelpart_combo_box.setCurrentIndex(0)
-        self.source_nc_combo_box.insertItems(
-            0,
-            ['normal', 'aggregation'])
         self.sum_type_combo_box.insertItems(
             0,
             serie_settings.keys())
@@ -563,7 +559,6 @@ class WaterBalanceWidget(QDockWidget):
         self.chart_button.clicked.connect(self.show_chart)
         # self.polygon_tool.deactivated.connect(self.update_wb)
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.connect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(
@@ -835,7 +830,6 @@ class WaterBalanceWidget(QDockWidget):
 
         ts, graph_series = self.calc_wb(
             self.modelpart_combo_box.currentText(),
-            self.source_nc_combo_box.currentText(),
             self.agg_combo_box.currentText(),
             serie_settings[self.sum_type_combo_box.currentText()])
 
@@ -882,7 +876,7 @@ class WaterBalanceWidget(QDockWidget):
         aggregation_type = self.agg_combo_box.currentText()
         return aggregation_type in ['m3/s', 'm3 cumulative']
 
-    def calc_wb(self, model_part, source_nc, aggregation_type, settings):
+    def calc_wb(self, model_part, aggregation_type, settings):
         poly_points = self.polygon_tool.points
         wb_polygon = QgsGeometry.fromPolygon([poly_points])
 
@@ -1130,7 +1124,6 @@ class WaterBalanceWidget(QDockWidget):
         self.polygon_tool.close()
 
         self.modelpart_combo_box.currentIndexChanged.disconnect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.disconnect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.disconnect(self.update_wb)
         self.wb_item_table.hoverEnterRow.disconnect(
             self.hover_enter_map_visualization)
@@ -1169,8 +1162,6 @@ class WaterBalanceWidget(QDockWidget):
 
         self.modelpart_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.modelpart_combo_box)
-        self.source_nc_combo_box = QComboBox(self)
-        self.button_bar_hlayout.addWidget(self.source_nc_combo_box)
         self.sum_type_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.sum_type_combo_box)
 

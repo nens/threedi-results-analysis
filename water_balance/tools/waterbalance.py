@@ -468,7 +468,17 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
+                        
+                        # if parameter == 'q_lat':
+                        #     import qtdb; qtdb.set_trace()
+                        #     total_time[ts_idx, pnr] = ma.masked_array(
+                        #         values_dt, mask=mask_2d_nodes).sum()
+                        #     total_time[ts_idx, pnr + 1] = ma.masked_array(
+                        #         values_dt, mask=mask_1d_nodes).sum()
+                        # else:
+                        #     total_time[ts_idx, pnr] = values_dt * factor
                         total_time[ts_idx, pnr] = values_dt * factor
+
         t_pref = 0
 
         for ts_idx, t in enumerate(ts):
@@ -496,7 +506,6 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # delta volume
                 if ts_idx == 0:
-
                     total_time[ts_idx, 18] = 0
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
@@ -511,10 +520,6 @@ class WaterBalanceCalculation(object):
                     t_pref = t
                 else:
                     vol_ts_idx = ts_idx
-                    # if source_nc == 'aggregation':
-                    #     # get timestep of corresponding with the aggregation
-                    #     ts_normal = ds.get_timestamps(parameter='q')
-                    #     vol_ts_idx = np.nonzero(ts_normal == t)[0]
                     # get timestep of corresponding with the aggregation
                     ts_normal = ds.get_timestamps(parameter='q')
                     vol_ts_idx = np.nonzero(ts_normal == t)[0]
@@ -537,7 +542,7 @@ class WaterBalanceCalculation(object):
                         dvol_sign * (od_vol - od_vol_pref) / dt
                     total_time[ts_idx, 25] = \
                         dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
-
+                    
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
