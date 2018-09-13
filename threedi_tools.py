@@ -276,8 +276,12 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         if (self.ts_datasource.rowCount() > 0 and
                 self.ts_datasource.model_spatialite_filepath is not None):
             self.sideview_tool.action_icon.setEnabled(True)
+            self.stats_tool.action_icon.setEnabled(True)
+            self.water_balance_tool.action_icon.setEnabled(True)
         else:
             self.sideview_tool.action_icon.setEnabled(False)
+            self.stats_tool.action_icon.setEnabled(False)
+            self.water_balance_tool.action_icon.setEnabled(False)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

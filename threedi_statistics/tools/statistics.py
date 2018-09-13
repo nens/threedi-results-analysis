@@ -120,21 +120,7 @@ class StatisticsTool:
     def get_modeldb_table(self, name):
         return self.modeldb_meta.tables[name]
 
-    def pop_up_not_ready_to_start(self):
-        QMessageBox.information(None,
-                            "Information",
-                            "Please load sqlite and NetCDF first before using "
-                            "the StatisticsTool")
-
     def run(self, *args, **kwargs):
-        try:
-            self.ts_datasource.rows[-1].datasource()
-        except IndexError:
-            self.pop_up_not_ready_to_start()
-        else:
-            self.run_it(self, *args, **kwargs)
-
-    def run_it(self, *args, **kwargs):
         """Start processing on first selected model result (netcdf).
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """

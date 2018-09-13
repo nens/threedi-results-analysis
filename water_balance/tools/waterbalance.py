@@ -6,6 +6,7 @@ import os.path
 import numpy as np
 import numpy.ma as ma
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPoint
 
 # Import the code for the DockWidget
@@ -15,13 +16,7 @@ from ThreeDiToolbox.water_balance.views.waterbalance_widget \
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
 
-# TODO: move this exception to ThreeDiToolbox
-class AggregationFileNotFoundError(Exception):
-    pass
-
-
 class WaterBalanceCalculation(object):
-    AggregationFileNotFoundError = AggregationFileNotFoundError
 
     def __init__(self, ts_datasource):
         self.ts_datasource = ts_datasource
@@ -231,7 +226,7 @@ class WaterBalanceCalculation(object):
         return nodes
 
     def get_aggregated_flows(
-            self, link_ids, pump_ids, node_ids, model_part, source_nc,
+            self, link_ids, pump_ids, node_ids, model_part,
             reverse_dvol_sign=True):
         """
         Returns a tuple (ts, total_time) defined as:
@@ -322,16 +317,8 @@ class WaterBalanceCalculation(object):
 
         ds = self.ts_datasource.rows[0].datasource()
 
-        if source_nc == 'aggregation':
-            if not ds.ds_aggregation:
-                raise self.AggregationFileNotFoundError(
-                    "No aggregation NetCDF file found.")
-
         # get all flows through incoming and outgoing flows
-        if source_nc == 'aggregation':
-            ts = ds.get_timestamps(parameter='q_cum')
-        else:
-            ts = ds.get_timestamps(parameter='q')
+        ts = ds.get_timestamps(parameter='q_cum')
 
         len_input_series = len(WaterBalanceWidget.INPUT_SERIES)
         total_time = np.zeros(shape=(np.size(ts, 0), len_input_series))
@@ -347,26 +334,18 @@ class WaterBalanceCalculation(object):
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
-                if source_nc == 'aggregation':
-                    flow_pos = ds.get_values_by_timestep_nr(
-                        'q_cum_positive', ts_idx, np_link['id']) * np_link[
-                        'dir']
-                    flow_neg = ds.get_values_by_timestep_nr(
-                        'q_cum_negative', ts_idx, np_link['id']) * np_link[
-                        'dir'] * -1
+                flow_pos = ds.get_values_by_timestep_nr(
+                    'q_cum_positive', ts_idx, np_link['id']) * np_link[
+                    'dir']
+                flow_neg = ds.get_values_by_timestep_nr(
+                    'q_cum_negative', ts_idx, np_link['id']) * np_link[
+                    'dir'] * -1
 
-                    in_sum = flow_pos - pos_pref
-                    out_sum = flow_neg - neg_pref
+                in_sum = flow_pos - pos_pref
+                out_sum = flow_neg - neg_pref
 
-                    pos_pref = flow_pos
-                    neg_pref = flow_neg
-
-                else:
-                    flow = ds.get_values_by_timestep_nr(
-                        'q', ts_idx, np_link['id']) * np_link['dir']
-                    # todo: check unit
-                    in_sum = flow.clip(min=0)
-                    out_sum = flow.clip(max=0)
+                pos_pref = flow_pos
+                neg_pref = flow_neg
 
                 total_time[ts_idx, 0] = \
                     ma.masked_array(in_sum, mask=mask_2d).sum()
@@ -423,21 +402,14 @@ class WaterBalanceCalculation(object):
             pump_pref = 0
             for ts_idx, t in enumerate(ts):
                 # (2) inflow and outflow through pumps
-                if source_nc == 'aggregation':
-                    pump_flow = ds.get_values_by_timestep_nr(
-                        'q_pump_cum', ts_idx, np_pump['id']) * np_pump['dir']
+                pump_flow = ds.get_values_by_timestep_nr(
+                    'q_pump_cum', ts_idx, np_pump['id']) * np_pump['dir']
 
-                    flow_dt = pump_flow - pump_pref
-                    pump_pref = pump_flow
+                flow_dt = pump_flow - pump_pref
+                pump_pref = pump_flow
 
-                    in_sum = flow_dt.clip(min=0)
-                    out_sum = flow_dt.clip(max=0)
-                else:
-                    flow = ds.get_values_by_timestep_nr(
-                        'q_pump', ts_idx, np_pump['id']) * np_pump['dir']
-                    # todo: check unit
-                    in_sum = flow.clip(min=0)
-                    out_sum = flow.clip(max=0)
+                in_sum = flow_dt.clip(min=0)
+                out_sum = flow_dt.clip(max=0)
 
                 total_time[ts_idx, 12] = in_sum.sum()
                 total_time[ts_idx, 13] = out_sum.sum()
@@ -485,32 +457,17 @@ class WaterBalanceCalculation(object):
 
             if node.size > 0:
                 skip = False
-                if source_nc == 'aggregation':
-                    if parameter + '_cum' not in ds.get_available_variables():
-                        skip = True
-                        log.warning('%s_cum niet beschikbaar! overslaan',
-                                    parameter)
-                        # todo: fallback on not aggregated version
-                else:
-                    if parameter not in ds.get_available_variables():
-                        skip = True
-                        log.warning('%s_cum niet beschikbaar! overslaan',
-                                    parameter)
+                if parameter + '_cum' not in ds.get_available_variables():
+                    skip = True
+                    log.warning('%s_cum not available! skip it', parameter)
+                    # todo: fallback on not aggregated version
                 if not skip:
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
-                        if source_nc == 'aggregation':
-                            values = ds.get_values_by_timestep_nr(
-                                parameter + '_cum',
-                                ts_idx,
-                                node).sum()  # * dt
-                            values_dt = values - values_pref
-                            values_pref = values
-                        else:
-                            values_dt = ds.get_values_by_timestep_nr(
-                                parameter,
-                                ts_idx,
-                                node).sum()  # * dt
+                        values = ds.get_values_by_timestep_nr(
+                            parameter + '_cum', ts_idx, node).sum()  # * dt
+                        values_dt = values - values_pref
+                        values_pref = values
 
                         # if parameter == 'q_lat':
                         #     import qtdb; qtdb.set_trace()
@@ -522,18 +479,16 @@ class WaterBalanceCalculation(object):
                         #     total_time[ts_idx, pnr] = values_dt * factor
                         total_time[ts_idx, pnr] = values_dt * factor
 
-        if source_nc == 'aggregation':
-            t_pref = 0
-
-            for ts_idx, t in enumerate(ts):
-                if ts_idx == 0:
-                    # just to make sure machine precision distortion
-                    # is reduced for the first timestamp (everything
-                    # should be 0
-                    total_time[ts_idx] = total_time[ts_idx] / (ts[1] - t)
-                else:
-                    total_time[ts_idx] = total_time[ts_idx] / (t - t_pref)
-                    t_pref = t
+        t_pref = 0
+        for ts_idx, t in enumerate(ts):
+            if ts_idx == 0:
+                # just to make sure machine precision distortion
+                # is reduced for the first timestamp (everything
+                # should be 0
+                total_time[ts_idx] = total_time[ts_idx] / (ts[1] - t)
+            else:
+                total_time[ts_idx] = total_time[ts_idx] / (t - t_pref)
+                t_pref = t
 
         # NOTE: the -1 is for visualizing the dVOLUME graph as a negative
         # for balancing against the positive fluxes (which makes for nice
@@ -550,7 +505,6 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # delta volume
                 if ts_idx == 0:
-
                     total_time[ts_idx, 18] = 0
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
@@ -565,12 +519,22 @@ class WaterBalanceCalculation(object):
                     t_pref = t
                 else:
                     vol_ts_idx = ts_idx
-                    if source_nc == 'aggregation':
-                        # get timestep of corresponding with the aggregation
-                        ts_normal = ds.get_timestamps(parameter='q')
-                        vol_ts_idx = np.nonzero(ts_normal == t)[0]
+                    # get timestep of corresponding with the aggregation
+                    ts_normal = ds.get_timestamps(parameter='q')
+                    vol_ts_idx = np.nonzero(ts_normal == t)[0]
+
                     vol = ds.get_values_by_timestep_nr(
                         'vol', vol_ts_idx, np_node['id'])
+
+                    # jacki made this, but the td_vol_pref, od_vol_pref and
+                    # td_vol_pref_gw were referenced before assignment, so I
+                    # defined them here again
+                    td_vol_pref = ma.masked_array(
+                        vol, mask=mask_2d_nodes).sum()
+                    od_vol_pref = ma.masked_array(
+                        vol, mask=mask_1d_nodes).sum()
+                    td_vol_pref_gw = ma.masked_array(
+                        vol, mask=mask_2d_groundwater_nodes).sum()
 
                     td_vol = ma.masked_array(vol, mask=mask_2d_nodes).sum()
                     od_vol = ma.masked_array(vol, mask=mask_1d_nodes).sum()
@@ -585,6 +549,7 @@ class WaterBalanceCalculation(object):
                     total_time[ts_idx, 25] = \
                         dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
 
+                    # I dont know why Jacki defines them again..
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
@@ -622,6 +587,7 @@ class WaterBalanceCalculation(object):
 
 
 class WaterBalanceTool:
+
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -659,8 +625,27 @@ class WaterBalanceTool:
         self.widget = None
         self.plugin_is_active = False
 
+    def pop_up_no_agg_found(self):
+        header = 'Error: No aggregation netcdf found'
+        msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
+              "but this file could not be found. Please make sure you run " \
+              "your simulation using the 'v2_aggregation_settings' table " \
+              "with the following variables:" \
+              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
+              "\n- leakage\n- discharge\n- pump discharge " \
+              "\n\npositive cumulative:\n- discharge " \
+              "\n\nnegative cumulative:\n- discharge"
+        QMessageBox.warning(None, header, msg)
+
     def run(self):
-        """Run method that loads and starts the plugin"""
+        selected_ds = self.ts_datasource.rows[0].datasource()
+        if not selected_ds.ds_aggregation:
+            self.pop_up_no_agg_found()
+        else:
+            self.run_it()
+
+    def run_it(self):
+        """Run_it method that loads and starts the plugin"""
 
         if not self.plugin_is_active:
             self.plugin_is_active = True

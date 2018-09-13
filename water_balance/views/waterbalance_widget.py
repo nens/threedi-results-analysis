@@ -524,7 +524,6 @@ class WaterBalanceWidget(QDockWidget):
         """Constructor."""
         super(WaterBalanceWidget, self).__init__(parent)
 
-        self.aggregation_warning_issued_on_start = False
         self.iface = iface
         self.ts_datasource = ts_datasource
         self.calc = wb_calc
@@ -545,10 +544,6 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.insertItems(
             0,
             ['1d 2d', '1d', '2d'])
-        #  self.modelpart_combo_box.setCurrentIndex(0)
-        self.source_nc_combo_box.insertItems(
-            0,
-            ['normal', 'aggregation'])
         self.sum_type_combo_box.insertItems(
             0,
             serie_settings.keys())
@@ -564,9 +559,6 @@ class WaterBalanceWidget(QDockWidget):
         self.chart_button.clicked.connect(self.show_chart)
         # self.polygon_tool.deactivated.connect(self.update_wb)
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.connect(
-            self.issue_warning)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(
@@ -831,36 +823,17 @@ class WaterBalanceWidget(QDockWidget):
             self.select_polygon_button.setText(_translate(
                 "DockWidget", "Teken nieuw gebied", None))
 
-            if not self.aggregation_warning_issued_on_start:
-                self.issue_warning()
-                self.aggregation_warning_issued_on_start = True
-
     def redraw_wb(self):
         pass
 
     def update_wb(self):
 
-        try:
-            ts, graph_series = self.calc_wb(
-                self.modelpart_combo_box.currentText(),
-                self.source_nc_combo_box.currentText(),
-                self.agg_combo_box.currentText(),
-                serie_settings[self.sum_type_combo_box.currentText()])
-        except self.calc.AggregationFileNotFoundError:
-            QMessageBox.warning(
-                None,
-                "No aggregation file found",
-                "The 'aggregation' option requires an aggregation NetCDF "
-                "file with the following variables:"
-                "\n\ncumulative:\n- rain\n- infiltration\n- laterals"
-                "\n- leakage\n- discharge\n- pump discharge"
-                "\n\npositive cumulative:\n- discharge"
-                "\n\nnegative cumulative:\n- discharge"
-            )
-            return
+        ts, graph_series = self.calc_wb(
+            self.modelpart_combo_box.currentText(),
+            self.agg_combo_box.currentText(),
+            serie_settings[self.sum_type_combo_box.currentText()])
 
         self.model.removeRows(0, len(self.model.rows))
-
         self.model.ts = ts
         self.model.insertRows(graph_series['items'])
 
@@ -903,7 +876,7 @@ class WaterBalanceWidget(QDockWidget):
         aggregation_type = self.agg_combo_box.currentText()
         return aggregation_type in ['m3/s', 'm3 cumulative']
 
-    def calc_wb(self, model_part, source_nc, aggregation_type, settings):
+    def calc_wb(self, model_part, aggregation_type, settings):
         poly_points = self.polygon_tool.points
         wb_polygon = QgsGeometry.fromPolygon([poly_points])
 
@@ -918,7 +891,7 @@ class WaterBalanceWidget(QDockWidget):
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
         ts, total_time = self.calc.get_aggregated_flows(
-            link_ids, pump_ids, node_ids, model_part, source_nc,
+            link_ids, pump_ids, node_ids, model_part,
             reverse_dvol_sign=self.reverse_dvol_sign)
 
         # cache data for barchart
@@ -1151,7 +1124,6 @@ class WaterBalanceWidget(QDockWidget):
         self.polygon_tool.close()
 
         self.modelpart_combo_box.currentIndexChanged.disconnect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.disconnect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.disconnect(self.update_wb)
         self.wb_item_table.hoverEnterRow.disconnect(
             self.hover_enter_map_visualization)
@@ -1160,20 +1132,6 @@ class WaterBalanceWidget(QDockWidget):
 
         self.closingWidget.emit()
         event.accept()
-
-    def issue_warning(self):
-        mode = self.source_nc_combo_box.currentText()
-        if mode == 'normal':
-            QMessageBox.information(
-                None,
-                "Information",
-                "You're currently using the 'normal' NetCDF result file which "
-                "may result in a less accurate overall water balance "
-                "compared to the 'aggregation' NetCDF file, depending on the "
-                "output time step that was chosen. Proceed at your own "
-                "discretion. Please select the 'aggregation' option "
-                "for the most accurate results."
-            )
 
     def setup_ui(self, dock_widget):
         """
@@ -1204,8 +1162,6 @@ class WaterBalanceWidget(QDockWidget):
 
         self.modelpart_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.modelpart_combo_box)
-        self.source_nc_combo_box = QComboBox(self)
-        self.button_bar_hlayout.addWidget(self.source_nc_combo_box)
         self.sum_type_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.sum_type_combo_box)
 
