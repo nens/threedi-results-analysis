@@ -468,7 +468,7 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
-
+                        
                         # if parameter == 'q_lat':
                         #     import qtdb; qtdb.set_trace()
                         #     total_time[ts_idx, pnr] = ma.masked_array(
@@ -480,6 +480,7 @@ class WaterBalanceCalculation(object):
                         total_time[ts_idx, pnr] = values_dt * factor
 
         t_pref = 0
+
         for ts_idx, t in enumerate(ts):
             if ts_idx == 0:
                 # just to make sure machine precision distortion
@@ -526,21 +527,14 @@ class WaterBalanceCalculation(object):
                     vol = ds.get_values_by_timestep_nr(
                         'vol', vol_ts_idx, np_node['id'])
 
-                    # jacki made this, but the td_vol_pref, od_vol_pref and
-                    # td_vol_pref_gw were referenced before assignment, so I
-                    # defined them here again
-                    td_vol_pref = ma.masked_array(
-                        vol, mask=mask_2d_nodes).sum()
-                    od_vol_pref = ma.masked_array(
-                        vol, mask=mask_1d_nodes).sum()
-                    td_vol_pref_gw = ma.masked_array(
-                        vol, mask=mask_2d_groundwater_nodes).sum()
-
                     td_vol = ma.masked_array(vol, mask=mask_2d_nodes).sum()
                     od_vol = ma.masked_array(vol, mask=mask_1d_nodes).sum()
                     td_vol_gw = ma.masked_array(
                         vol, mask=mask_2d_groundwater_nodes).sum()
 
+                    # td_vol_pref, od_vol_pref, td_vol_pref_gw seem to be
+                    # referenced before assignment, but there are defined in
+                    # the first loop (when timestep index (ts_idx) == 0)
                     dt = t - t_pref
                     total_time[ts_idx, 18] = \
                         dvol_sign * (td_vol - td_vol_pref) / dt
@@ -548,8 +542,7 @@ class WaterBalanceCalculation(object):
                         dvol_sign * (od_vol - od_vol_pref) / dt
                     total_time[ts_idx, 25] = \
                         dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
-
-                    # I dont know why Jacki defines them again..
+                    
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
