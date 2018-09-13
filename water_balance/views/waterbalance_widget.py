@@ -541,16 +541,9 @@ class WaterBalanceWidget(QDockWidget):
                                             self.on_polygon_ready)
 
         # fill comboboxes with selections
-        self.modelpart_combo_box.insertItems(
-            0,
-            ['1d 2d', '1d', '2d'])
-        self.sum_type_combo_box.insertItems(
-            0,
-            serie_settings.keys())
-
-        self.agg_combo_box.insertItems(
-            0,
-            ['m3/s', 'm3 cumulative'])
+        self.modelpart_combo_box.insertItems(0, ['1d 2d', '1d', '2d'])
+        self.sum_type_combo_box.insertItems(0, serie_settings.keys())
+        self.agg_combo_box.insertItems(0, ['m3/s', 'm3 cumulative'])
 
         # add listeners
         self.select_polygon_button.toggled.connect(self.toggle_polygon_button)
@@ -1060,6 +1053,7 @@ class WaterBalanceWidget(QDockWidget):
                 'series': [key for key in input_series],
                 'ts_series': {}
             }
+
             for serie in input_series:
                 nrs_input_series.append(input_series[serie])
 
