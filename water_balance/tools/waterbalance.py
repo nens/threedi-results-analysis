@@ -466,7 +466,6 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
-                        
                         # if parameter == 'q_lat':
                         #     import qtdb; qtdb.set_trace()
                         #     total_time[ts_idx, pnr] = ma.masked_array(
@@ -534,7 +533,7 @@ class WaterBalanceCalculation(object):
                         dvol_sign * (od_vol - od_vol_pref) / dt
                     total_time[ts_idx, 25] = \
                         dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
-                    
+
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
