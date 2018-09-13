@@ -524,7 +524,6 @@ class WaterBalanceWidget(QDockWidget):
         """Constructor."""
         super(WaterBalanceWidget, self).__init__(parent)
 
-        self.aggregation_warning_issued_on_start = False
         self.iface = iface
         self.ts_datasource = ts_datasource
         self.calc = wb_calc
@@ -565,8 +564,6 @@ class WaterBalanceWidget(QDockWidget):
         # self.polygon_tool.deactivated.connect(self.update_wb)
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.source_nc_combo_box.currentIndexChanged.connect(self.update_wb)
-        self.source_nc_combo_box.currentIndexChanged.connect(
-            self.error_no_agg_nc_found)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(
@@ -831,36 +828,18 @@ class WaterBalanceWidget(QDockWidget):
             self.select_polygon_button.setText(_translate(
                 "DockWidget", "Teken nieuw gebied", None))
 
-            if not self.aggregation_warning_issued_on_start:
-                self.error_no_agg_nc_found()
-                # self.aggregation_warning_issued_on_start = True
-
     def redraw_wb(self):
         pass
 
     def update_wb(self):
 
-        try:
-            ts, graph_series = self.calc_wb(
-                self.modelpart_combo_box.currentText(),
-                self.source_nc_combo_box.currentText(),
-                self.agg_combo_box.currentText(),
-                serie_settings[self.sum_type_combo_box.currentText()])
-        except self.calc.AggregationFileNotFoundError:
-            QMessageBox.warning(
-                None,
-                "No aggregation file found",
-                "The 'aggregation' option requires an aggregation NetCDF "
-                "file with the following variables:"
-                "\n\ncumulative:\n- rain\n- infiltration\n- laterals"
-                "\n- leakage\n- discharge\n- pump discharge"
-                "\n\npositive cumulative:\n- discharge"
-                "\n\nnegative cumulative:\n- discharge"
-            )
-            return
+        ts, graph_series = self.calc_wb(
+            self.modelpart_combo_box.currentText(),
+            self.source_nc_combo_box.currentText(),
+            self.agg_combo_box.currentText(),
+            serie_settings[self.sum_type_combo_box.currentText()])
 
         self.model.removeRows(0, len(self.model.rows))
-
         self.model.ts = ts
         self.model.insertRows(graph_series['items'])
 
@@ -1160,20 +1139,6 @@ class WaterBalanceWidget(QDockWidget):
 
         self.closingWidget.emit()
         event.accept()
-
-    def error_no_agg_nc_found(self):
-        mode = self.source_nc_combo_box.currentText()
-        header = "No Aggregation NetCDF file found"
-        msg = "WaterBalanceTool only works with the 'aggregate_results_3di.nc'." \
-              " Please make sure you run your simulation using the " \
-              "v2_aggregation_settings' table with the following variables: " \
-              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
-              "\n- leakage\n- discharge\n- pump discharge " \
-              "\n\npositive cumulative:\n- discharge " \
-              "\n\nnegative cumulative:\n- discharge"
-        if mode == 'normal':
-            # QMessageBox.information(None, "Information", msg)
-            QMessageBox.warning(None, header, msg)
 
     def setup_ui(self, dock_widget):
         """
