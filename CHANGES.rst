@@ -4,11 +4,10 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
-- not able to start WaterBalanceTool without aggregation NetCDF
+- WaterBalanceTool now only works with aggregation NetCDF
 
-- not able to start WaterBalanceTool before select sqlite and NetCDf
-
-- not able to start StatisticsTool before select sqlite and NetCDf
+- not able to start StatisticsTool and WaterBalanceTool before select
+  sqlite and NetCDf
 
 - Include water balance tool (DeltaresTdiToolbox) in plugin.
 
