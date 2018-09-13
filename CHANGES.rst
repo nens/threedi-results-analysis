@@ -4,6 +4,7 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+
 - WaterBalanceTool now only works with aggregation NetCDF
 
 - not able to start StatisticsTool and WaterBalanceTool before select
