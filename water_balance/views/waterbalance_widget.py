@@ -897,7 +897,7 @@ class WaterBalanceWidget(QDockWidget):
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
         ts, total_time = self.calc.get_aggregated_flows(
-            link_ids, pump_ids, node_ids, model_part, source_nc,
+            link_ids, pump_ids, node_ids, model_part,
             reverse_dvol_sign=self.reverse_dvol_sign)
 
         # cache data for barchart
