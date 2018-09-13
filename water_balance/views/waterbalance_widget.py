@@ -566,7 +566,7 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.source_nc_combo_box.currentIndexChanged.connect(self.update_wb)
         self.source_nc_combo_box.currentIndexChanged.connect(
-            self.issue_error)
+            self.error_no_agg_nc_found)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(
@@ -832,7 +832,7 @@ class WaterBalanceWidget(QDockWidget):
                 "DockWidget", "Teken nieuw gebied", None))
 
             if not self.aggregation_warning_issued_on_start:
-                self.issue_error()
+                self.error_no_agg_nc_found()
                 # self.aggregation_warning_issued_on_start = True
 
     def redraw_wb(self):
@@ -1161,7 +1161,7 @@ class WaterBalanceWidget(QDockWidget):
         self.closingWidget.emit()
         event.accept()
 
-    def issue_error(self):
+    def error_no_agg_nc_found(self):
         mode = self.source_nc_combo_box.currentText()
         header = "No Aggregation NetCDF file found"
         msg = "WaterBalanceTool only works with the 'aggregate_results_3di.nc'." \
