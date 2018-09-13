@@ -4,6 +4,7 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- WaterBalanceTool get rid of non-natural options
 
 - WaterBalanceTool now only works with aggregation NetCDF
 

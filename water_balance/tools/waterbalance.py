@@ -225,9 +225,7 @@ class WaterBalanceCalculation(object):
 
         return nodes
 
-    def get_aggregated_flows(
-            self, link_ids, pump_ids, node_ids, model_part,
-            reverse_dvol_sign=True):
+    def get_aggregated_flows(self, link_ids, pump_ids, node_ids, model_part):
         """
         Returns a tuple (ts, total_time) defined as:
 
@@ -468,7 +466,6 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
-                        
                         # if parameter == 'q_lat':
                         #     import qtdb; qtdb.set_trace()
                         #     total_time[ts_idx, pnr] = ma.masked_array(
@@ -491,13 +488,7 @@ class WaterBalanceCalculation(object):
                 total_time[ts_idx] = total_time[ts_idx] / (t - t_pref)
                 t_pref = t
 
-        # NOTE: the -1 is for visualizing the dVOLUME graph as a negative
-        # for balancing against the positive fluxes (which makes for nice
-        # pictures)
-        if reverse_dvol_sign:
-            dvol_sign = -1
-        else:
-            dvol_sign = 1
+        dvol_sign = 1
 
         if np_node.size > 0:
             # delta volume
@@ -533,7 +524,7 @@ class WaterBalanceCalculation(object):
                         vol, mask=mask_2d_groundwater_nodes).sum()
 
                     # td_vol_pref, od_vol_pref, td_vol_pref_gw seem to be
-                    # referenced before assignment, but there are defined in
+                    # referenced before assignment, but they are defined in
                     # the first loop (when timestep index (ts_idx) == 0)
                     dt = t - t_pref
                     total_time[ts_idx, 18] = \
@@ -542,40 +533,12 @@ class WaterBalanceCalculation(object):
                         dvol_sign * (od_vol - od_vol_pref) / dt
                     total_time[ts_idx, 25] = \
                         dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
-                    
+
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
                     t_pref = t
-
         total_time = np.nan_to_num(total_time)
-
-        if reverse_dvol_sign:
-            # NOTE: the indices below should match the model_part indices in
-            # ``WaterBalanceWidget.make_graph_series``.
-
-            # calculate error 2d
-            idx_2d = tuple(
-                y for (x, y, z) in WaterBalanceWidget.INPUT_SERIES if z in
-                ['2d', '1d_2d'])
-            total_time[:, 20] = -1 * total_time[:, idx_2d].sum(axis=1)
-
-            # calculate error 1d
-            idx_1d = tuple(
-                y for (x, y, z) in WaterBalanceWidget.INPUT_SERIES if z in
-                ['1d'])
-            idx_1d_2d = tuple(
-                y for (x, y, z) in WaterBalanceWidget.INPUT_SERIES if z in
-                ['1d_2d'])
-            total_time[:, 21] = -1 * total_time[
-                :, idx_1d].sum(axis=1) + total_time[:, idx_1d_2d].sum(axis=1)
-
-            # calculate error 1d-2d
-            idx_1d_and_2d = tuple(
-                y for (x, y, z) in WaterBalanceWidget.INPUT_SERIES if z in
-                ['2d', '1d'])
-            total_time[:, 22] = -1 * total_time[:, idx_1d_and_2d].sum(axis=1)
-
         return ts, total_time
 
 
