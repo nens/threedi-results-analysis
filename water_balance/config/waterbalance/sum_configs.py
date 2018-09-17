@@ -84,12 +84,6 @@ serie_settings = [
             'def_color': '255,152,0',
             'series': ['d_1d_vol'],
         }, {
-            'name': 'error',
-            'default_method': 'net',
-            'order': 13,
-            'def_color': '62,69,81',
-            'series': ['error_1d_2d', 'error_1d', 'error_2d'],
-        }, {
             'name': '2d groundwater flow',
             'default_method': 'gross',
             'order': 2.5,
@@ -175,11 +169,20 @@ serie_settings = [
 
 # TODO: "error-term"  (also in views/waterbalance_widget)
 # to plot the diff (former 'error') or whatever you want to call it, then add
-# to serie_settings:
+# to serie_settings.hoofdstromen above
 # {
 #             'name': 'error',
 #             'default_method': 'net',
 #             'order': 6,
+#             'def_color': '62,69,81',
+#             'series': ['error_1d_2d', 'error_1d', 'error_2d'],
+#         }
+
+# and to serie_settings.hoofdstromen above
+# {
+#             'name': 'error',
+#             'default_method': 'net',
+#             'order': 13,
 #             'def_color': '62,69,81',
 #             'series': ['error_1d_2d', 'error_1d', 'error_2d'],
 #         }
