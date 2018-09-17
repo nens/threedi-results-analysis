@@ -593,10 +593,71 @@ class WaterBalanceTool:
               "\n\nnegative cumulative:\n- discharge"
         QMessageBox.warning(None, header, msg)
 
+    def pop_up_missing_agg_vars(self):
+        header = 'Error: Missing aggregation settings'
+        missing_vars = self.missing_agg_vars()
+        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but " \
+              "the file does not include all required aggregation variables. " \
+              "Please add them to the sqlite table 'v2_aggregation_settings' " \
+              "and run your simulation again. The required variables are:" \
+              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
+              "\n- leakage\n- discharge\n- pump discharge " \
+              "\n\npositive cumulative:\n- discharge " \
+              "\n\nnegative cumulative:\n- discharge"" \
+              ""\n\nYour aggregation .nc misses the following variables: " + \
+              ', '.join(missing_vars)
+        QMessageBox.warning(None, header, msg)
+
+    def missing_agg_vars(self):
+        selected_ds = self.ts_datasource.rows[0].datasource()
+        check_available_vars = selected_ds.get_available_variables()
+
+        from ThreeDiToolbox.datasource.netcdf import find_h5_file
+        from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        h5 = find_h5_file(nc_path)
+        ga = GridH5Admin(h5)
+
+        # we cannot check whether model used rain and/or laterals  with e.g.
+        # ga.has_rain so we just set it here as WaterBalanceTool requirement
+        minimum_agg_vars = [
+            ('q_cum_negative', 'negative cumulative discharge'),
+            ('q_cum_positive', 'negative cumulative discharge'),
+            ('q_cum', 'cumulative discharge'),
+            ('q_lat_cum', 'cumulative lateral discharge'),
+            ('rain_cum', 'cumulative rain'),
+            ]
+        if ga.has_pumpstations:
+            to_add = ('q_pump_cum', 'cumulative pump discharge')
+            minimum_agg_vars.append(to_add)
+
+        # TODO: does this work now? Also, is 'infilration_rate_cum' correct?
+        # (https://nelen-schuurmans.atlassian.net/browse/THREEDI-476)
+        # if ga.has_simple_infiltration:
+        #     to_add = ('infilration_rate_cum', 'cumulative infiltration rate')
+        #     minimum_agg_vars.append(to_add)
+
+        # TODO: does this work now? Also, is 'leakage_cum' correct?
+        # (https://nelen-schuurmans.atlassian.net/browse/THREEDI-476)
+        # if ga.has_groundwater:
+        #     to_add = ('leakage_cum', 'cumulative leakage')
+        #     minimum_agg_vars.append(to_add)
+
+        missing_vars = []
+        for required_var in minimum_agg_vars:
+            if required_var[0] not in check_available_vars:
+                msg = 'the aggregation nc misses aggregation: %s', \
+                      required_var[1]
+                log.error(msg)
+                missing_vars.append(required_var[1])
+        return missing_vars
+
     def run(self):
         selected_ds = self.ts_datasource.rows[0].datasource()
         if not selected_ds.ds_aggregation:
             self.pop_up_no_agg_found()
+        if self.missing_agg_vars():
+            self.pop_up_missing_agg_vars()
         else:
             self.run_it()
 
