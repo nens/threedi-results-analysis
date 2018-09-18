@@ -303,8 +303,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         super(WaterBalancePlotWidget, self).__init__(parent)
         self.name = name
         self.showGrid(True, True, 0.5)
-        self.setLabel("bottom", "tijd", "s")
-        self.setLabel("left", "Debiet", "m3/s")
+        self.setLabel("bottom", "time", "s")
+        self.setLabel("left", "flow", "m3/s")
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
         self.getAxis("left").enableAutoSIPrefix(False)
         self.series = {}
@@ -706,7 +706,7 @@ class WaterBalanceWidget(QDockWidget):
             '2d flow',
         ]
         types_2d_node = [
-            'volumeverandering 2d',
+            'volume change 2d',
         ]
         # TODO 1: generate this dict
 
@@ -719,49 +719,49 @@ class WaterBalanceWidget(QDockWidget):
         # anymore, and because we also catch the KeyErrors you won't even
         # notice. NEEDS TO BE FIXED
 
-        NAME_TO_LINE_TYPES_ALLES = {
+        NAME_TO_LINE_TYPES_EVERYTHING = {
             '2d flow': ['2d'],
             '2d boundaries': ['2d_bound'],
             '1d flow': ['1d'],
             '1d boundaries': ['1d_bound'],
-            '1d-2d uitwisseling': ['1d_2d'],
+            '1d-2d exchange': ['1d_2d'],
             # TODO: '1d_2d_intersected' and 'pump_or_whatever' are magic
             # strings that we ad-hoc created in the
             # prepare_and_visualize_selection function.
             # A better solution would be nice...
             '1d-2d flow': ['1d_2d_intersected'],
-            'pompen': ['pump_or_whatever'],
+            'pumps': ['pump_or_whatever'],
             '2d groundwater flow': ['2d_groundwater'],
         }
-        NAME_TO_LINE_TYPES_HOOFDSTROMEN = {
+        NAME_TO_LINE_TYPES_MAIN_FLOWS = {
             '2d flow': ['2d', '2d_bound', '1d_2d_intersected'],
             '1d flow': [
                 '1d', 'pump_or_whatever', '1d_bound', '1d_2d_intersected'],
-            '1d-2d uitwisseling': ['1d_2d'],
+            '1d-2d exchange': ['1d_2d'],
             '2d groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {
-            'volumeverandering': ['1d', '2d', '2d_groundwater'],
-            'volumeverandering 2d': ['2d'],
-            'volumeverandering 1d': ['1d'],
-            'volumeverandering 2d grondwater': ['2d_groundwater'],
-            'neerslag': ['2d'],
+            'volume change': ['1d', '2d', '2d_groundwater'],
+            'volume change 2d': ['2d'],
+            'volume change 1d': ['1d'],
+            'volume change 2d groundwater': ['2d_groundwater'],
+            'rain': ['2d'],
             'inflow 1d from rain': ['1d'],
-            'lateraal 1d': ['1d'],
-            'lateraal 2d': ['2d'],
+            'lateral 1d': ['1d'],
+            'lateral 2d': ['2d'],
             'leakage': ['2d'],
-            'infiltratie': ['2d'],
-            'belasting (regen en lateralen)': ['1d', '2d'],
+            'infiltration': ['2d'],
+            'external forcing (rain and laterals)': ['1d', '2d'],
         }
 
-        # more hackery to fix keys defined in both 'hoofdstromen'
-        # and 'alles'.
+        # more hackery to fix keys defined in both 'main flows'
+        # and 'everything'.
         sum_type = self.sum_type_combo_box.currentText()
-        assert sum_type in ['hoofdstromen', 'alles']
-        if sum_type == 'hoofdstromen':
-            name_to_line_type = NAME_TO_LINE_TYPES_HOOFDSTROMEN
-        elif sum_type == 'alles':
-            name_to_line_type = NAME_TO_LINE_TYPES_ALLES
+        assert sum_type in ['main flows', 'everything']
+        if sum_type == 'main flows':
+            name_to_line_type = NAME_TO_LINE_TYPES_MAIN_FLOWS
+        elif sum_type == 'everything':
+            name_to_line_type = NAME_TO_LINE_TYPES_EVERYTHING
         else:
             raise ValueError("Unknown type %s" % sum_type)
 
@@ -808,12 +808,12 @@ class WaterBalanceWidget(QDockWidget):
             self.iface.mapCanvas().setMapTool(self.polygon_tool)
 
             self.select_polygon_button.setText(_translate(
-                "DockWidget", "Gebied tekenen afronden", None))
+                "DockWidget", "Finalize polygon", None))
         else:
             self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
             self.update_wb()
             self.select_polygon_button.setText(_translate(
-                "DockWidget", "Teken nieuw gebied", None))
+                "DockWidget", "Draw new polygon", None))
 
     def redraw_wb(self):
         pass
@@ -830,9 +830,9 @@ class WaterBalanceWidget(QDockWidget):
         self.model.insertRows(graph_series['items'])
 
         if self.agg_combo_box.currentText() == 'm3/s':
-            self.plot_widget.setLabel("left", "Debiet", "m3/s")
+            self.plot_widget.setLabel("left", "flow", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative':
-            self.plot_widget.setLabel("left", "Cumulatieve debiet", "m3")
+            self.plot_widget.setLabel("left", "Cumulatieve flow", "m3")
         else:
             self.plot_widget.setLabel("left", "-", "-")
 
@@ -1040,7 +1040,9 @@ class WaterBalanceWidget(QDockWidget):
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
 
-        # TODO: "error-term"  (also in waterbalance/sum_configs)
+        # TODO: "error-term"  (to make it work also change in
+        # waterbalance/sum_configs):
+        #
         # if len(input_series) > 0:
         #
         #     serie_setting = {
@@ -1194,10 +1196,10 @@ class WaterBalanceWidget(QDockWidget):
     def retranslate_ui(self, dock_widget):
         pass
         dock_widget.setWindowTitle(_translate(
-            "DockWidget", "3Di waterbalans", None))
+            "DockWidget", "3Di water balance", None))
         self.select_polygon_button.setText(_translate(
-            "DockWidget", "Teken nieuw gebied", None))
+            "DockWidget", "Draw new polygon", None))
         self.chart_button.setText(_translate(
-            "DockWidget", "Toon totale balans", None))
+            "DockWidget", "Show total balance", None))
         self.reset_waterbalans_button.setText(_translate(
-            "DockWidget", "Verberg op kaart", None))
+            "DockWidget", "Hide on map", None))
