@@ -8,7 +8,8 @@ ThreeDiToolBox changelog
 
 - WaterBalanceTool get rid of non-natural options
 
-- WaterBalanceTool now only works with aggregation NetCDF
+- WaterBalanceTool now only works with aggregation NetCDF and only with
+  certain set of aggregation flow variables and aggregation methods
 
 - not able to start StatisticsTool and WaterBalanceTool before select
   sqlite and NetCDf
