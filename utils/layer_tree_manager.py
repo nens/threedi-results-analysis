@@ -326,8 +326,10 @@ class LayerTreeManager(object):
         grid_refinement_group = self.schematisation_layergroup.findGroup(
             self.schematisation_grid_refinement_group_name)
 
-        inflow_surface_subgroup = self.inflow_root.findGroup(self.inflow_surface_subgroup_name)
-        inflow_imp_surface_subgroup = self.inflow_root.findGroup(self.inflow_imp_surface_subgroup_name)
+        inflow_surface_subgroup = self.inflow_root.findGroup(
+            self.inflow_surface_subgroup_name)
+        inflow_imp_surface_subgroup = self.inflow_root.findGroup(
+            self.inflow_imp_surface_subgroup_name)
 
         advanced_settings_group = self.schematisation_layergroup.findGroup(
             self.schematisation_advanced_settings_group_name)
