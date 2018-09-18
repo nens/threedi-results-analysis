@@ -2,7 +2,7 @@
 
 serie_settings = [
     {
-        'name': 'alles',
+        'name': 'everything',
         'remnant_def_color': '50,50,255',
         'remnant_method': 'gross',
         'items': [{
@@ -30,7 +30,7 @@ serie_settings = [
             'def_color': '156,39,176',
             'series': ['1d_bound_in', '1d_bound_out'],
         }, {
-            'name': '1d-2d uitwisseling',
+            'name': '1d-2d exchange',
             'default_method': 'gross',
             'order': 5,
             'def_color': '205,220,5',
@@ -42,43 +42,43 @@ serie_settings = [
             'def_color': '205,220,55',
             'series': ['1d_2d_out', '1d_2d_in'],
         }, {
-            'name': 'pompen',
+            'name': 'pumps',
             'default_method': 'gross',
             'order': 6,
             'def_color': '255,235,59',
             'series': ['pump_in', 'pump_out'],
         }, {
-            'name': 'neerslag',
+            'name': 'rain',
             'default_method': 'net',
             'order': 7,
             'def_color': '0,150,136',
             'series': ['rain'],
         }, {
-            'name': 'lateraal 1d',
+            'name': 'lateral 1d',
             'default_method': 'net',
             'order': 8,
             'def_color': '76,175,80',
             'series': ['lat_1d'],
         }, {
-            'name': 'lateraal 2d',
+            'name': 'lateral 2d',
             'default_method': 'net',
             'order': 9,
             'def_color': '76,175,80',
             'series': ['lat_2d'],
         }, {
-            'name': 'infiltratie',
+            'name': 'infiltration',
             'default_method': 'net',
             'order': 10,
             'def_color': '121,85,72',
             'series': ['infiltration_rate_simple'],
         }, {
-            'name': 'volumeverandering 2d',
+            'name': 'volume change 2d',
             'default_method': 'net',
             'order': 11,
             'def_color': '244,67,54',
             'series': ['d_2d_vol'],
         }, {
-            'name': 'volumeverandering 1d',
+            'name': 'volume change 1d',
             'default_method': 'net',
             'order': 12,
             'def_color': '255,152,0',
@@ -90,7 +90,7 @@ serie_settings = [
             'def_color': '0,0,128',
             'series': ['2d_groundwater_in', '2d_groundwater_out'],
         }, {
-            'name': 'volumeverandering 2d grondwater',
+            'name': 'volume change 2d groundwater',
             'default_method': 'net',
             'order': 11.5,
             'def_color': '100,149,237',
@@ -109,7 +109,7 @@ serie_settings = [
             'series': ['inflow'],
         }]
     }, {
-        'name': 'hoofdstromen',
+        'name': 'main flows',
         'remnant_def_color': '50,50,255',
         'remnant_method': 'net',
         'items': [{
@@ -127,26 +127,26 @@ serie_settings = [
             'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
                        '1d_bound_out', '1d_2d_in'],
         }, {
-            'name': 'belasting (regen en lateralen)',
+            'name': 'external forcing (rain and laterals)',
             'default_method': 'net',
             'order': 3,
             'def_color': '0,150,136',
             'series': ['rain', 'lat_1d', 'lat_2d', 'inflow'],
             # TODO: Add leakage?
         }, {
-            'name': 'infiltratie',
+            'name': 'infiltration',
             'default_method': 'net',
             'order': 3,
             'def_color': '50,150,136',
             'series': ['infiltration_rate_simple'],
         }, {
-            'name': '1d-2d uitwisseling',
+            'name': '1d-2d exchange',
             'default_method': 'net',
             'order': 4,
             'def_color': '205,220,57',
             'series': ['2d_to_1d_pos', '2d_to_1d_neg'],
         }, {
-            'name': 'volumeverandering',
+            'name': 'volume change',
             'default_method': 'net',
             'order': 5,
             'def_color': '255,152,0',
@@ -169,7 +169,7 @@ serie_settings = [
 
 # TODO: "error-term"  (also in views/waterbalance_widget)
 # to plot the diff (former 'error') or whatever you want to call it, then add
-# to serie_settings.hoofdstromen above
+# to serie_settings.main flows above
 # {
 #             'name': 'error',
 #             'default_method': 'net',
@@ -178,7 +178,7 @@ serie_settings = [
 #             'series': ['error_1d_2d', 'error_1d', 'error_2d'],
 #         }
 
-# and to serie_settings.hoofdstromen above
+# and to serie_settings.main flows above
 # {
 #             'name': 'error',
 #             'default_method': 'net',
