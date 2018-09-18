@@ -8,10 +8,13 @@ import numpy.ma as ma
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPoint
+from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
 # Import the code for the DockWidget
 from ThreeDiToolbox.water_balance.views.waterbalance_widget \
     import WaterBalanceWidget
+
 
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
@@ -596,10 +599,11 @@ class WaterBalanceTool:
     def pop_up_missing_agg_vars(self):
         header = 'Error: Missing aggregation settings'
         missing_vars = self.missing_agg_vars()
-        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but " \
-              "the file does not include all required aggregation variables. " \
-              "Please add them to the sqlite table 'v2_aggregation_settings' " \
-              "and run your simulation again. The required variables are:" \
+        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
+              " the file does not include all required aggregation " \
+              "variables. Please add them to the sqlite table " \
+              "'v2_aggregation_settings' and run your simulation again. The " \
+              "required variables are:" \
               "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
               "\n- leakage\n- discharge\n- pump discharge " \
               "\n\npositive cumulative:\n- discharge " \
@@ -611,9 +615,6 @@ class WaterBalanceTool:
     def missing_agg_vars(self):
         selected_ds = self.ts_datasource.rows[0].datasource()
         check_available_vars = selected_ds.get_available_variables()
-
-        from ThreeDiToolbox.datasource.netcdf import find_h5_file
-        from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
         nc_path = self.ts_datasource.rows[0].datasource().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
