@@ -343,7 +343,8 @@ class LayerTreeManager(object):
                               (obstacle_group, obstacle_layers),
                               (grid_refinement_group, grid_refinement_layers),
                               (inflow_surface_subgroup, inflow_surface_layers),
-                              (inflow_imp_surface_subgroup, inflow_imp_surface_layers),
+                              (inflow_imp_surface_subgroup,
+                               inflow_imp_surface_layers),
                               (advanced_settings_group,
                                advanced_numerics_layers)
                               ]:
