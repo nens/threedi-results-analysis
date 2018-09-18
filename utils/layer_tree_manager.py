@@ -46,7 +46,11 @@ class LayerTreeManager(object):
         'additional tables for editing 1d'
     schematisation_obstacle_group_name = 'obstacles'
     schematisation_grid_refinement_group_name = 'grid refinements'
+
     schematisation_inflow_group_name = 'inflow'
+    inflow_imp_surface_subgroup_name = 'impervious_surface'
+    inflow_surface_subgroup_name = 'surface'
+
     schematisation_advanced_settings_group_name = 'advanced numerics'
     result_layergroup_basename = 'result: '
     statistic_layergroup_basename = 'statistics: '
@@ -199,7 +203,7 @@ class LayerTreeManager(object):
 
         if self.schematisation_layergroup is None:
             self.schematisation_layergroup = self.model_layergroup.insertGroup(
-                0, self.schematisation_group_name)
+                1, self.schematisation_group_name)
             self._mark(self.schematisation_layergroup,
                        tracer['schematisation_layergroup'])
         else:
@@ -207,8 +211,16 @@ class LayerTreeManager(object):
 
         self.schematisation_layergroup.insertGroup(
             0, self.schematisation_advanced_settings_group_name)
-        self.schematisation_layergroup.insertGroup(
-            0, self.schematisation_inflow_group_name)
+
+        # schematisation_inflow_group_name = 'inflow'
+        # inflow_imp_surface_subgroup_name = 'impervious_surface'
+        # inflow_surface_subgroup_name = 'surface'
+
+        self.inflow_root = self.schematisation_layergroup.insertGroup(
+            1, self.schematisation_inflow_group_name)
+        self.inflow_root.addGroup(self.inflow_imp_surface_subgroup_name)
+        self.inflow_root.addGroup(self.inflow_surface_subgroup_name)
+
         self.schematisation_layergroup.insertGroup(
             0, self.schematisation_grid_refinement_group_name)
         self.schematisation_layergroup.insertGroup(
@@ -262,12 +274,13 @@ class LayerTreeManager(object):
         lateral_layers = ['v2_1d_lateral',
                           'v2_2d_lateral',
                           ]
-        oned_layers = ['v2_pumpstation_view',
+        oned_layers = ['v2_connection_nodes',
+                       'v2_manhole_view',
+                       'v2_cross_section_location',
+                       'v2_pumpstation_view',
                        'v2_weir_view',
                        'v2_culvert_view',
                        'v2_orifice_view',
-                       'v2_cross_section_location',
-                       'v2_connection_nodes',
                        'v2_pipe_view',
                        'v2_channel',
                        ]
@@ -285,9 +298,14 @@ class LayerTreeManager(object):
         grid_refinement_layers = ['v2_grid_refinement',
                                   'v2_grid_refinement_area'
                                   ]
-        inflow_layers = ['v2_impervious_surface',
-                         'v2_surface',
-                         ]
+
+        inflow_imp_surface_layers = ['v2_impervious_surface']
+
+        inflow_surface_layers = ['v2_surface'
+                                 # 'v2_surface_map',  no geom
+                                 # 'v2_surface_parameters',  no geom
+                                 ]
+
         advanced_numerics_layers = [  # 'v2_numerical_settings', # no geom
                                     'v2_dem_average_area',
                                     ]
@@ -307,8 +325,12 @@ class LayerTreeManager(object):
             self.schematisation_obstacle_group_name)
         grid_refinement_group = self.schematisation_layergroup.findGroup(
             self.schematisation_grid_refinement_group_name)
-        inflow_group = self.schematisation_layergroup.findGroup(
-            self.schematisation_inflow_group_name)
+
+        inflow_surface_subgroup = self.inflow_root.findGroup(
+            self.inflow_surface_subgroup_name)
+        inflow_imp_surface_subgroup = self.inflow_root.findGroup(
+            self.inflow_imp_surface_subgroup_name)
+
         advanced_settings_group = self.schematisation_layergroup.findGroup(
             self.schematisation_advanced_settings_group_name)
 
@@ -320,7 +342,9 @@ class LayerTreeManager(object):
                               (additional_oned_group, additional_oned_layers),
                               (obstacle_group, obstacle_layers),
                               (grid_refinement_group, grid_refinement_layers),
-                              (inflow_group, inflow_layers),
+                              (inflow_surface_subgroup, inflow_surface_layers),
+                              (inflow_imp_surface_subgroup,
+                               inflow_imp_surface_layers),
                               (advanced_settings_group,
                                advanced_numerics_layers)
                               ]:
@@ -343,6 +367,7 @@ class LayerTreeManager(object):
                   (settings_group, 'v2_interflow'),
                   (settings_group, 'v2_aggregation_settings'),
                   (settings_group, 'v2_global_settings'),
+                  (lateral_group, 'v2_1d_lateral'),
                   (boundary_group, 'v2_1d_boundary_conditions'),
                   (additional_oned_group, 'v2_cross_section_definition'),
                   (additional_oned_group, 'v2_windshielding'),
@@ -351,6 +376,8 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),
                   (advanced_settings_group, 'v2_numerical_settings'),
+                  (inflow_surface_subgroup, 'v2_surface_map'),
+                  (inflow_surface_subgroup, 'v2_surface_parameters'),
                   ]
 
         # add tables without geometry
