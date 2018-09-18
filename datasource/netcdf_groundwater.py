@@ -23,6 +23,7 @@ layer_information = [
     ('v2_pipe_view', 'lines', 'pipes', 'schematized'),
     ('v2_channel', 'lines', 'channels', 'schematized'),
     ('v2_culvert_view', 'lines', 'culverts', 'schematized'),
+    ('v2_manhole_view', 'nodes', 'manholes', 'schematized'),
     # Todo:
     # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
     ('v2_pumpstation_view', 'pumps', 'pumps', 'schematized'),
