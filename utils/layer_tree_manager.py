@@ -378,6 +378,7 @@ class LayerTreeManager(object):
                   (advanced_settings_group, 'v2_numerical_settings'),
                   (inflow_surface_subgroup, 'v2_surface_map'),
                   (inflow_surface_subgroup, 'v2_surface_parameters'),
+                  (inflow_imp_surface_subgroup, 'v2_impervious_surface_map'),
                   ]
 
         # add tables without geometry
