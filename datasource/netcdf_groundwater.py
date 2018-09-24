@@ -165,6 +165,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # until it is fixed, we add simple_infiltration to known_vars
         if agg.has_simple_infiltration:
             available_known_vars.add(unicode('infiltration_rate_simple_cum'))
+        # TODO: a simulation with groundwater does not have leakage per-se
+        # (only when leakage is forced (global or raster) so
+        # agg.has_groundwater is not bullet-proof
         if agg.has_groundwater:
             available_known_vars.add(unicode('leak_cum'))
         return list(available_known_vars)
@@ -287,8 +290,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 except Exception as e:
                     log.error("temp work around infiltration_rate_simple_cum "
                               "does not work with this agg nc")
-                    pass
-            # TODO: a simulation wiht groundwater does not have leakage per-se
             elif nc_variable == 'leak_cum':
                 try:
                     values = self.ds_aggregation['Mesh2D_leak_cum'][
@@ -296,8 +297,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 except Exception as e:
                     log.error("temp work around leakage_cum does not work "
                               "with this agg nc")
-                    pass
-
             else:
                 values = self._get_timeseries_result_layer(
                 gr, object_type, object_id, nc_variable)

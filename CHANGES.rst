@@ -4,7 +4,7 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
-- Enable leakage and simple infiltration through aggregation NetCDF 
+- Enable leakage and simple infiltration through aggregation NetCDF
 
 - WaterBalanceTool translate terms Dutch to English
 
