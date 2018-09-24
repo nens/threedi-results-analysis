@@ -80,6 +80,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     for aggvarname in agg_vars:
         _varname, _agg_method = parse_aggvarname(aggvarname)
         varinfo = agg_vars_mapping[_varname]
+
         try:
             agg_method_display_name = verbose_agg_method[_agg_method]
         except KeyError:
