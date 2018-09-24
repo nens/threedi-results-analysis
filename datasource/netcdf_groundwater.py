@@ -299,7 +299,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                               "with this agg nc")
             else:
                 values = self._get_timeseries_result_layer(
-                gr, object_type, object_id, nc_variable)
+                    gr, object_type, object_id, nc_variable)
         elif object_type_layer_source[object_type] == 'schematized':
             values = self._get_timeseries_schematisation_layer(
                 gr, object_type, object_id, nc_variable)
