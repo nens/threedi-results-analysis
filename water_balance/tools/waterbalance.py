@@ -24,6 +24,47 @@ class WaterBalanceCalculation(object):
     def __init__(self, ts_datasource):
         self.ts_datasource = ts_datasource
 
+        # gridadmin
+        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        h5 = find_h5_file(nc_path)
+        ga = GridH5Admin(h5)
+
+        # total nr of x-dir (horizontal in topview) 2d lines
+        nr_2d_x_dir = ga.get_from_meta('liutot')
+        # total nr of y-dir (vertical in topview) 2d lines
+        nr_2d_y_dir = ga.get_from_meta('livtot')
+        # total nr of 2d lines
+        nr_2d = ga.get_from_meta('l2dtot')
+        # total nr of groundwater lines
+        start_gr = ga.get_from_meta('lgrtot')
+
+        x2d_surf_range_min = 1
+        x2d_surf_range_max = nr_2d_x_dir
+        self.x2d_surf_range = range(x2d_surf_range_min, x2d_surf_range_max + 1)
+
+        y2d_surf_range_min = x2d_surf_range_max + 1
+        y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
+        self.y2d_surf_range = range(y2d_surf_range_min, y2d_surf_range_max + 1)
+
+        # from surface to groundwater (vertical) flow
+        vert_flow_range_min = y2d_surf_range_max + 1
+        vert_flow_range_max = y2d_surf_range_max + nr_2d
+        self.vert_flow_range = range(
+            vert_flow_range_min, vert_flow_range_max + 1)
+
+        if ga.has_groundwater:
+            # total nr of x-dir (horizontal in topview) 2d groundwater lines
+            x_grndwtr_range_min = start_gr + 1
+            x_grndwtr_range_max = start_gr + nr_2d_x_dir
+            self.x_grndwtr_range = range(
+                x_grndwtr_range_min, x_grndwtr_range_max + 1)
+
+            # total nr of y-dir (vertical in topview) 2d groundwater lines
+            y_grndwtr_range_min = x_grndwtr_range_max + 1
+            y_grndwtr_range_max = x_grndwtr_range_max + nr_2d
+            self.y_grndwtr_range = range(
+                y_grndwtr_range_min, y_grndwtr_range_max + 1)
+
     def get_incoming_and_outcoming_link_ids(self, wb_polygon, model_part):
         """Returns a tuple of dictionaries with ids by category:
 
@@ -95,10 +136,6 @@ class WaterBalanceCalculation(object):
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
                             'v2_orifice', 'v2_weir']:
                         flow_lines['1d_out'].append(line['id'])
-                    elif line['type'] in ['2d']:
-                        flow_lines['2d_out'].append(line['id'])
-                    elif line['type'] in ['2d_groundwater']:
-                        flow_lines['2d_groundwater_out'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_out'].append(line['id'])
                     else:
@@ -109,15 +146,138 @@ class WaterBalanceCalculation(object):
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
                             'v2_orifice', 'v2_weir']:
                         flow_lines['1d_in'].append(line['id'])
-                    elif line['type'] in ['2d']:
-                        flow_lines['2d_in'].append(line['id'])
-                    elif line['type'] in ['2d_groundwater']:
-                        flow_lines['2d_groundwater_in'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_in'].append(line['id'])
                     else:
                         log.warning('line type not supported. type is %s.',
                                     line['type'])
+
+                if line['type'] in ['2d'] and not (incoming and outgoing):
+                    # 2d lines are a separate story: discharge on a 2d
+                    # link in the nc can be positive and negative - like
+                    # you would expect - but we also have to account for
+                    # 2d link direction. We have to determine two things:
+
+                    # A) is 2d link a vertical or horizontal one. Why?
+                    # vertical 2d lines (calc cells above each other):
+                    # when positive discharge then flow is to north, negative
+                    # discharge then flow southwards, while horizontal 2d lines
+                    # (calc cells next to each other) yields positive discharge
+                    # is flow to the east, negative is flow to west
+
+                    # B) how the start and endpoint are located with
+                    # reference to each other. Why? a positive discharge on
+                    # a vertical link in the north of your polygon DECREASES
+                    # the volume in the polygon, while a positive discharge on
+                    # a vertical link in the south of your polygon INCREASES
+                    # the volume in the polygon).
+
+                    # so why not only determine (B)?
+                    # because then a positive discharge on a diagonal 2d link
+                    # (in topview left up to right down) can mean flow to east.
+                    # But it can also mean flow to the north.
+
+                    start_x = geom[0][0]
+                    start_y = geom[0][1]
+                    end_x = geom[-1][0]
+                    end_y = geom[-1][1]
+
+                    # horizontal line?
+                    if line.id() in self.x2d_surf_range:
+                        # startpoint in polygon?
+                        if wb_polygon.contains(QgsPoint(geom[0])):
+                            # directed to east?
+                            # long coords increase going east, so:
+                            if end_x > start_x:
+                                # thus, positive q means flow to east.
+                                # Startpoint is in polygon. Endpoint is
+                                # located eastwards of startpoint, so positive
+                                # q means flow goes OUT!! of polygon
+                                flow_lines['2d_out'].append(line['id'])
+                            else:
+                                flow_lines['2d_in'].append(line['id'])
+                        # endpoint in polygon?
+                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                            # directed to east?
+                            # long coords increase going east
+                            if end_x > start_x:
+                                # positive q means flow to east. Endpoint is
+                                # inside polygon and located eastwards of
+                                # startpoint, so positive q means flow goes
+                                # INTO!! polygon
+                                flow_lines['2d_in'].append(line['id'])
+                            else:
+                                flow_lines['2d_out'].append(line['id'])
+
+                    # vertical line?
+                    if line.id() in self.y2d_surf_range:
+                        # startpoint in polygon?
+                        if wb_polygon.contains(QgsPoint(geom[0])):
+                            # directed to north?
+                            # lat coords increase going north, so:
+                            if end_y > start_y:
+                                # thus, positive q means flow to north.
+                                # Startpoint is in polygon. Endpoint is
+                                # located northwards of startpoint, so positive
+                                # q means flow goes OUT!! of polygon
+                                flow_lines['2d_out'].append(line['id'])
+                            else:
+                                flow_lines['2d_in'].append(line['id'])
+                        # endpoint in polygon?
+                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                            # directed to north?
+                            # lat coords increase going north, so:
+                            if end_y > start_y:
+                                # positive q means flow to north. Endpoint is
+                                # inside polygon and located northwards of
+                                # startpoint, so flow goes INTO!! polygon
+                                flow_lines['2d_in'].append(line['id'])
+                            else:
+                                flow_lines['2d_out'].append(line['id'])
+
+                elif line['type'] in ['2d_groundwater'] and not (
+                        incoming and outgoing):
+
+                    start_x = geom[0][0]
+                    start_y = geom[0][1]
+                    end_x = geom[-1][0]
+                    end_y = geom[-1][1]
+
+                    # horizontal line?
+                    if line.id() in self.x_grndwtr_range:
+                        # startpoint in polygon?
+                        if wb_polygon.contains(QgsPoint(geom[0])):
+                            if end_x > start_x:
+                                flow_lines['2d_groundwater_out'].append(
+                                    line['id'])
+                            else:
+                                flow_lines['2d_groundwater_in'].append(
+                                    line['id'])
+                        # endpoint in polygon?
+                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                            if end_x > start_x:
+                                flow_lines['2d_groundwater_in'].append(
+                                    line['id'])
+                            else:
+                                flow_lines['2d_groundwater_out'].append(
+                                    line['id'])
+                    # vertical line?
+                    if line.id() in self.y_grndwtr_range:
+                        # startpoint in polygon?
+                        if wb_polygon.contains(QgsPoint(geom[0])):
+                            if end_y > start_y:
+                                flow_lines['2d_groundwater_out'].append(
+                                    line['id'])
+                            else:
+                                flow_lines['2d_groundwater_in'].append(
+                                    line['id'])
+                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                            if end_y > start_y:
+                                flow_lines['2d_groundwater_in'].append(
+                                    line['id'])
+                            else:
+                                flow_lines['2d_groundwater_out'].append(
+                                    line['id'])
 
             elif line['type'] == '1d_2d' and line.geometry().within(
                     wb_polygon):
@@ -634,15 +794,19 @@ class WaterBalanceTool:
 
         # TODO: does this work now? Also, is 'infilration_rate_cum' correct?
         # (https://nelen-schuurmans.atlassian.net/browse/THREEDI-476)
-        # if ga.has_simple_infiltration:
-        #     to_add = ('infilration_rate_cum', 'cumulative infiltration rate')
-        #     minimum_agg_vars.append(to_add)
+        if ga.has_simple_infiltration:
+            to_add = ('infiltration_rate_simple_cum',
+                      'cumulative infiltration rate')
+            minimum_agg_vars.append(to_add)
 
-        # TODO: does this work now? Also, is 'leakage_cum' correct?
+        # TODO: does this work now? Also, is 'leak_cum' correct?
         # (https://nelen-schuurmans.atlassian.net/browse/THREEDI-476)
-        # if ga.has_groundwater:
-        #     to_add = ('leakage_cum', 'cumulative leakage')
-        #     minimum_agg_vars.append(to_add)
+        # a simulation with groundwater does not have leakage per-se
+        # (only when leakage is forced (global or raster) so
+        # agg.has_groundwater is not bullet-proof
+        if ga.has_groundwater:
+            to_add = ('leak_cum', 'cumulative leakage')
+            minimum_agg_vars.append(to_add)
 
         missing_vars = []
         for required_var in minimum_agg_vars:
