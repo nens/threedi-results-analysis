@@ -4,6 +4,9 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- Added QSortFilterProxyModel to the result_selection to enable sorting and
+  filtering of downloaded results.
+
 - WaterBalanceTool translate terms Dutch to English
 
 - WaterBalanceTool get rid of "error" term
