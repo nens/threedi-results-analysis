@@ -7,7 +7,7 @@ import urllib2
 
 from lizard_connector.connector import Endpoint
 from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
-from PyQt4.QtGui import QWidget, QFileDialog
+from PyQt4.QtGui import QWidget, QFileDialog, QSortFilterProxyModel
 from PyQt4 import uic
 
 from ..datasource.netcdf import (find_id_mapping_file,
@@ -104,10 +104,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.ts_datasource = ts_datasource
         self.resultTableView.setModel(self.ts_datasource)
         self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+
         self.download_result_model = download_result_model
-        self.downloadResultTableView.setModel(self.download_result_model)
-        self.download_result_model.set_column_sizes_on_view(
-            self.downloadResultTableView)
+        download_proxy_model = QSortFilterProxyModel()
+        download_proxy_model.setSourceModel(download_result_model)
+        download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.filterLineEdit.textChanged.connect(
+            download_proxy_model.setFilterFixedString)
+        self.downloadResultTableView.setModel(download_proxy_model)
 
         self.toggle_login_interface()
 
