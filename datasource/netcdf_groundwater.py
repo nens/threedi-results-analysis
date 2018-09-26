@@ -152,12 +152,24 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             agg.nodes.Meta.composite_fields.keys() +
             agg.pumps.Meta.composite_fields.keys()
         )
+
         # all available fields, including hdf5 fields
         available_vars = (
             agg.nodes._field_names | agg.lines._field_names |
             agg.pumps._field_names
         )
         available_known_vars = available_vars & known_vars
+
+        # TODO: this is a bug in threedigrid:
+        # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
+        # until it is fixed, we add simple_infiltration to known_vars
+        if agg.has_simple_infiltration:
+            available_known_vars.add(unicode('infiltration_rate_simple_cum'))
+        # TODO: a simulation with groundwater does not have leakage per-se
+        # (only when leakage is forced (global or raster) so
+        # agg.has_groundwater is not bullet-proof
+        if agg.has_groundwater:
+            available_known_vars.add(unicode('leak_cum'))
         return list(available_known_vars)
 
     def get_available_variables(self):
@@ -266,8 +278,28 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
-            values = self._get_timeseries_result_layer(
-                gr, object_type, object_id, nc_variable)
+
+            # TODO: this is a bug in threedigrid:
+            # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
+            # until it is fixed, we add simple_infiltration to known_vars
+            if nc_variable == 'infiltration_rate_simple_cum':
+                try:
+                    values = self.ds_aggregation[
+                                 'Mesh2D_infiltration_rate_simple_cum'][
+                             :, object_id].data
+                except Exception as e:
+                    log.error("temp work around infiltration_rate_simple_cum "
+                              "does not work with this agg nc")
+            elif nc_variable == 'leak_cum':
+                try:
+                    values = self.ds_aggregation['Mesh2D_leak_cum'][
+                             :, object_id].data
+                except Exception as e:
+                    log.error("temp work around leakage_cum does not work "
+                              "with this agg nc")
+            else:
+                values = self._get_timeseries_result_layer(
+                    gr, object_type, object_id, nc_variable)
         elif object_type_layer_source[object_type] == 'schematized':
             values = self._get_timeseries_schematisation_layer(
                 gr, object_type, object_id, nc_variable)

@@ -4,8 +4,11 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+
 - Added QSortFilterProxyModel to the result_selection to enable sorting and
   filtering of downloaded results.
+
+- Enable leakage and simple infiltration through aggregation NetCDF
 
 - WaterBalanceTool translate terms Dutch to English
 

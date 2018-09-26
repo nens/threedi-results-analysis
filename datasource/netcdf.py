@@ -24,6 +24,8 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'vol1': 'm3',
     'rain': 'm3',
     'infiltration_rate': 'm3',
+    'infiltration_rate_simple': 'm3',
+    'leak': 'm3',
     'su': '',
     'au': '',
 }
@@ -93,6 +95,7 @@ AGGREGATION_VARIABLES = [
     INFILTRATION_RATE_SIMPLE,
     DISCHARGE_LATERAL,
     WET_CROSS_SECTION_AREA,
+    LEAKAGE_RATE
 ]
 
 AGGREGATION_OPTIONS = {
