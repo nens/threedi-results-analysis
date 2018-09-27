@@ -523,7 +523,6 @@ class WaterBalanceCalculation(object):
                 pos_pref_2d = flow_2d_pos
                 neg_pref_2d = flow_2d_neg
 
-
                 total_time[ts_idx, 0] = in_sum_2d
                 total_time[ts_idx, 1] = out_sum_2d
 
