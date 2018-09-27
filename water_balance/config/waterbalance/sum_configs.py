@@ -127,7 +127,7 @@ serie_settings = [
             'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
                        '1d_bound_out', '1d_2d_in'],
         }, {
-            'name': 'external forcing (rain and laterals)',
+            'name': 'ext. (rain and laterals)',
             'default_method': 'net',
             'order': 3,
             'def_color': '0,150,136',

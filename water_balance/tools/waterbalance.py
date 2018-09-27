@@ -138,9 +138,6 @@ class WaterBalanceCalculation(object):
                         flow_lines['1d_out'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_out'].append(line['id'])
-                    else:
-                        log.warning('line type not supported. type is %s.',
-                                    line['type'])
                 elif incoming:
                     if line['type'] in [
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
@@ -148,15 +145,13 @@ class WaterBalanceCalculation(object):
                         flow_lines['1d_in'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
                         flow_lines['1d_2d_in'].append(line['id'])
-                    else:
-                        log.warning('line type not supported. type is %s.',
-                                    line['type'])
 
                 if line['type'] in ['2d'] and not (incoming and outgoing):
                     # 2d lines are a separate story: discharge on a 2d
-                    # link in the nc can be positive and negative - like
-                    # you would expect - but we also have to account for
-                    # 2d link direction. We have to determine two things:
+                    # link in the nc can be positive and negative during 1
+                    # simulation - like you would expect - but we also have
+                    # to account for 2d link direction. We have to determine
+                    # two things:
 
                     # A) is 2d link a vertical or horizontal one. Why?
                     # vertical 2d lines (calc cells above each other):
@@ -173,9 +168,11 @@ class WaterBalanceCalculation(object):
                     # the volume in the polygon).
 
                     # so why not only determine (B)?
-                    # because then a positive discharge on a diagonal 2d link
-                    # (in topview left up to right down) can mean flow to east.
-                    # But it can also mean flow to the north.
+                    # because then a positive discharge on a diagonal 2d link -
+                    # in topview e.g. left up to right down - can mean flow
+                    # to east. But it can also mean flow to the north. If we
+                    # know it is a vertical link we can be sure flow is to the
+                    # north (thats why we need to know (A)
 
                     start_x = geom[0][0]
                     start_y = geom[0][1]
@@ -485,9 +482,13 @@ class WaterBalanceCalculation(object):
         total_time = np.zeros(shape=(np.size(ts, 0), len_input_series))
         # total_location = np.zeros(shape=(np.size(np_link, 0), 2))
 
-        # links
+        # non-2d links
         pos_pref = 0
         neg_pref = 0
+
+        # 2d links
+        pos_pref_2d = 0
+        neg_pref_2d = 0
 
         if np_link.size > 0:
             for ts_idx, t in enumerate(ts):
@@ -495,23 +496,37 @@ class WaterBalanceCalculation(object):
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
+                # NON 2D FLOW
+                #############
                 flow_pos = ds.get_values_by_timestep_nr(
                     'q_cum_positive', ts_idx, np_link['id']) * np_link[
-                    'dir']
+                               'dir']
                 flow_neg = ds.get_values_by_timestep_nr(
                     'q_cum_negative', ts_idx, np_link['id']) * np_link[
-                    'dir'] * -1
+                               'dir'] * -1
 
                 in_sum = flow_pos - pos_pref
                 out_sum = flow_neg - neg_pref
-
                 pos_pref = flow_pos
                 neg_pref = flow_neg
 
-                total_time[ts_idx, 0] = \
-                    ma.masked_array(in_sum, mask=mask_2d).sum()
-                total_time[ts_idx, 1] = \
-                    ma.masked_array(out_sum, mask=mask_2d).sum()
+                # 2D FLOW
+                #############
+                flow_2d_pos = (flow_pos[np.where(flow_pos >= 0)]).sum() + \
+                              (flow_neg[np.where(flow_neg >= 0)]).sum()
+                flow_2d_neg = (flow_pos[np.where(flow_pos <= 0)]).sum() + \
+                              (flow_neg[np.where(flow_neg <= 0)]).sum()
+
+                in_sum_2d = flow_2d_pos - pos_pref_2d
+                out_sum_2d = flow_2d_neg - neg_pref_2d
+
+                pos_pref_2d = flow_2d_pos
+                neg_pref_2d = flow_2d_neg
+
+
+                total_time[ts_idx, 0] = in_sum_2d
+                total_time[ts_idx, 1] = out_sum_2d
+
                 total_time[ts_idx, 2] = \
                     ma.masked_array(in_sum, mask=mask_1d).sum()
                 total_time[ts_idx, 3] = \

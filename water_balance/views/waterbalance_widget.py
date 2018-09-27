@@ -130,7 +130,6 @@ class Bar(object):
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
-        # shape = (N_idxs, len(ts))
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
         self._balance_out = balance_tmp[:, ts_indices_sliced].sum()
 
@@ -606,10 +605,8 @@ class WaterBalanceWidget(QDockWidget):
 
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
         bm_2d.calc_balance(ts, ts_series, t1, t2)
-        bm_2d_groundwater.calc_balance(
-            ts, ts_series, t1, t2,
-            invert=['infiltration/exfiltration (domain exchange)']
-        )
+        bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
+            'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
 
         # init figure
@@ -726,9 +723,8 @@ class WaterBalanceWidget(QDockWidget):
             '1d boundaries': ['1d_bound'],
             '1d-2d exchange': ['1d_2d'],
             # TODO: '1d_2d_intersected' and 'pump_or_whatever' are magic
-            # strings that we ad-hoc created in the
-            # prepare_and_visualize_selection function.
-            # A better solution would be nice...
+            # strings that we ad-hoc created in the 'prepare_and_visualize_
+            # selection' function. A better solution would be nice...
             '1d-2d flow': ['1d_2d_intersected'],
             'pumps': ['pump_or_whatever'],
             '2d groundwater flow': ['2d_groundwater'],
@@ -751,7 +747,7 @@ class WaterBalanceWidget(QDockWidget):
             'lateral 2d': ['2d'],
             'leakage': ['2d'],
             'infiltration': ['2d'],
-            'external forcing (rain and laterals)': ['1d', '2d'],
+            'ext. forcing (rain and laterals)': ['1d', '2d'],
         }
 
         # more hackery to fix keys defined in both 'main flows'
