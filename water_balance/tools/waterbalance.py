@@ -486,18 +486,12 @@ class WaterBalanceCalculation(object):
         pos_pref = 0
         neg_pref = 0
 
-        # 2d links
-        pos_pref_2d = 0
-        neg_pref_2d = 0
-
         if np_link.size > 0:
             for ts_idx, t in enumerate(ts):
                 # (1) inflow and outflow through 1d and 2d
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
-                # NON 2D FLOW
-                #############
                 flow_pos = ds.get_values_by_timestep_nr(
                     'q_cum_positive', ts_idx, np_link['id']) * np_link[
                                'dir']
@@ -510,46 +504,71 @@ class WaterBalanceCalculation(object):
                 pos_pref = flow_pos
                 neg_pref = flow_neg
 
-                # 2D FLOW
-                #############
-                flow_2d_pos = (flow_pos[np.where(flow_pos >= 0)]).sum() + \
-                              (flow_neg[np.where(flow_neg >= 0)]).sum()
-                flow_2d_neg = (flow_pos[np.where(flow_pos <= 0)]).sum() + \
-                              (flow_neg[np.where(flow_neg <= 0)]).sum()
+                # 2d flow
+                total_time[ts_idx, 0] = ma.masked_array(
+                    in_sum, mask=mask_2d).clip(min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d).clip(min=0).sum()
+                total_time[ts_idx, 1] = ma.masked_array(
+                    in_sum, mask=mask_2d).clip(max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d).clip(max=0).sum()
 
-                in_sum_2d = flow_2d_pos - pos_pref_2d
-                out_sum_2d = flow_2d_neg - neg_pref_2d
+                # 1d flow
+                total_time[ts_idx, 2] = ma.masked_array(
+                    in_sum, mask=mask_1d).clip(min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d).clip(min=0).sum()
+                total_time[ts_idx, 3] = ma.masked_array(
+                    in_sum, mask=mask_1d).clip(max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d).clip(max=0).sum()
 
-                pos_pref_2d = flow_2d_pos
-                neg_pref_2d = flow_2d_neg
+                # 2d bound mask_2d_bound
+                total_time[ts_idx, 4] = ma.masked_array(
+                    in_sum, mask=mask_2d_bound).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_bound).clip(min=0).sum()
+                total_time[ts_idx, 5] = ma.masked_array(
+                    in_sum, mask=mask_2d_bound).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_bound).clip(max=0).sum()
 
-                total_time[ts_idx, 0] = in_sum_2d
-                total_time[ts_idx, 1] = out_sum_2d
+                # 1d bound mask_1d_bound
+                total_time[ts_idx, 6] = ma.masked_array(
+                    in_sum, mask=mask_1d_bound).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_bound).clip(min=0).sum()
+                total_time[ts_idx, 7] = ma.masked_array(
+                    in_sum, mask=mask_1d_bound).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_bound).clip(max=0).sum()
 
-                total_time[ts_idx, 2] = \
-                    ma.masked_array(in_sum, mask=mask_1d).sum()
-                total_time[ts_idx, 3] = \
-                    ma.masked_array(out_sum, mask=mask_1d).sum()
-                total_time[ts_idx, 4] = \
-                    ma.masked_array(in_sum, mask=mask_2d_bound).sum()
-                total_time[ts_idx, 5] = \
-                    ma.masked_array(out_sum, mask=mask_2d_bound).sum()
-                total_time[ts_idx, 6] = \
-                    ma.masked_array(in_sum, mask=mask_1d_bound).sum()
-                total_time[ts_idx, 7] = \
-                    ma.masked_array(out_sum, mask=mask_1d_bound).sum()
-                total_time[ts_idx, 8] = \
-                    ma.masked_array(in_sum, mask=mask_1d_2d_in_out).sum()
-                total_time[ts_idx, 9] = \
-                    ma.masked_array(out_sum, mask=mask_1d_2d_in_out).sum()
-                total_time[ts_idx, 10] = \
-                    ma.masked_array(in_sum, mask=mask_1d_2d).sum()
-                total_time[ts_idx, 11] = \
-                    ma.masked_array(out_sum, mask=mask_1d_2d).sum()
-                total_time[ts_idx, 23] = \
-                    ma.masked_array(in_sum, mask=mask_2d_groundwater).sum()
-                total_time[ts_idx, 24] = \
-                    ma.masked_array(out_sum, mask=mask_2d_groundwater).sum()
+                # 1d 2d in out mask_1d_2d_in_out
+                total_time[ts_idx, 8] = ma.masked_array(
+                    in_sum, mask=mask_1d_2d_in_out).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_2d_in_out).clip(min=0).sum()
+                total_time[ts_idx, 9] = ma.masked_array(
+                    in_sum, mask=mask_1d_2d_in_out).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_2d_in_out).clip(max=0).sum()
+
+                # 1d 2d mask_1d_2d
+                total_time[ts_idx, 10] = ma.masked_array(
+                    in_sum, mask=mask_1d_2d).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_2d).clip(min=0).sum()
+                total_time[ts_idx, 11] = ma.masked_array(
+                    in_sum, mask=mask_1d_2d).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d_2d).clip(max=0).sum()
+
+                # 2d groundwater mask_2d_groundwater
+                total_time[ts_idx, 23] = ma.masked_array(
+                    in_sum, mask=mask_2d_groundwater).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_groundwater).clip(min=0).sum()
+                total_time[ts_idx, 24] = ma.masked_array(
+                    in_sum, mask=mask_2d_groundwater).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_groundwater).clip(max=0).sum()
 
                 # NOTE: positive vertical infiltration is from surface to
                 # groundwater node. We make this negative because it's
@@ -557,9 +576,15 @@ class WaterBalanceCalculation(object):
                 # infiltration_rate_simple which also has a -1 multiplication
                 # factor.
                 total_time[ts_idx, 28] = -1 * ma.masked_array(
-                    in_sum, mask=mask_2d_vertical_infiltration).sum()
+                    in_sum, mask=mask_2d_vertical_infiltration).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_vertical_infiltration).clip(
+                    min=0).sum()
                 total_time[ts_idx, 29] = -1 * ma.masked_array(
-                    out_sum, mask=mask_2d_vertical_infiltration).sum()
+                    in_sum, mask=mask_2d_vertical_infiltration).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d_vertical_infiltration).clip(
+                    max=0).sum()
 
         # PUMPS
         #######
@@ -758,15 +783,25 @@ class WaterBalanceTool:
         self.widget = None
         self.plugin_is_active = False
 
+    # "\n\ncumulative:\n- rain\n- infiltration\n- laterals\n- " \
+    # "leakage\n- discharge\n- pump discharge " \
+    # "\n\npositive cumulative:\n- discharge " \
+    # "\n\nnegative cumulative:\n- discharge"
+
     def pop_up_no_agg_found(self):
         header = 'Error: No aggregation netcdf found'
         msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
               "but this file could not be found. Please make sure you run " \
               "your simulation using the 'v2_aggregation_settings' table " \
               "with the following variables:" \
-              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
-              "\n- leakage\n- discharge\n- pump discharge " \
-              "\n\npositive cumulative:\n- discharge " \
+              "\n\ncumulative:"\
+              "\n- rain"\
+              "\n- discharge"\
+              "\n- leakage (in case model has leakage)" \
+              "\n- laterals (in case model has laterals)"\
+              "\n- pump discharge (in case model has pumps)"\
+              "\n- infiltration (in case model has (simple_)infiltration)"\
+              "\n\npositive cumulative:\n- discharge"\
               "\n\nnegative cumulative:\n- discharge"
         QMessageBox.warning(None, header, msg)
 
@@ -778,11 +813,16 @@ class WaterBalanceTool:
               "variables. Please add them to the sqlite table " \
               "'v2_aggregation_settings' and run your simulation again. The " \
               "required variables are:" \
-              "\n\ncumulative:\n- rain\n- infiltration\n- laterals " \
-              "\n- leakage\n- discharge\n- pump discharge " \
-              "\n\npositive cumulative:\n- discharge " \
-              "\n\nnegative cumulative:\n- discharge"" \
-              ""\n\nYour aggregation .nc misses the following variables: " + \
+              "\n\ncumulative:"\
+              "\n- rain"\
+              "\n- discharge"\
+              "\n- leakage (in case model has leakage)" \
+              "\n- laterals (in case model has laterals)"\
+              "\n- pump discharge (in case model has pumps)"\
+              "\n- infiltration (in case model has (simple_)infiltration)"\
+              "\n\npositive cumulative:\n- discharge"\
+              "\n\nnegative cumulative:\n- discharge" \
+              "\n\nYour aggregation .nc misses the following variables: " + \
               ', '.join(missing_vars)
         QMessageBox.warning(None, header, msg)
 
@@ -835,7 +875,7 @@ class WaterBalanceTool:
         selected_ds = self.ts_datasource.rows[0].datasource()
         if not selected_ds.ds_aggregation:
             self.pop_up_no_agg_found()
-        if self.missing_agg_vars():
+        elif self.missing_agg_vars():
             self.pop_up_missing_agg_vars()
         else:
             self.run_it()
