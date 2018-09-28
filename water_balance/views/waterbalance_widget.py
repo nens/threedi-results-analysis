@@ -17,6 +17,9 @@ from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
 
+# Image required for adding TopwaterSector logo (.jpg) to chart (staafdiagramm)
+from PIL import Image
+
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
 try:
@@ -609,10 +612,21 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
 
+        # renier
+        path_logo = 'home/renier.kramer/Desktop/LogoTopsectorWater.jpg'
+        im = Image.open(path_logo)
+        height = im.size[1]
+        # We need a float array between 0-1, rather than
+        # a uint8 array between 0-255
+        im = np.array(im).astype(np.float) / 255
+
+
         # init figure
         plt.close()
-        plt.figure(1)  # TODO: what does this do?
+        fig = plt.figure(1)  # TODO: what does this do?
         plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
+
+
 
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
@@ -688,6 +702,16 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
+
+        # renier
+        # With newer (1.0) versions of matplotlib, you can
+        # use the "zorder" kwarg to make the image overlay
+        # the plot, rather than hide behind it... (e.g. zorder=10)
+        fig.figimage(im, 0, fig.bbox.ymax - height)
+        # (Saving with the same dpi as the screen default to
+        #  avoid displacing the logo image)
+        fig.savefig(path_logo, dpi=80)
+        
         plt.show()
 
     def hover_enter_map_visualization(self, name):
