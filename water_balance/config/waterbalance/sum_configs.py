@@ -127,7 +127,7 @@ serie_settings = [
             'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
                        '1d_bound_out', '1d_2d_in'],
         }, {
-            'name': 'ext. forcing (rain and laterals)',
+            'name': 'external forcing (rain and laterals)',
             'default_method': 'net',
             'order': 3,
             'def_color': '0,150,136',
@@ -166,3 +166,23 @@ serie_settings = [
         }]
     }
 ]
+
+# TODO: "error-term"  (also in views/waterbalance_widget)
+# to plot the diff (former 'error') or whatever you want to call it, then add
+# to serie_settings.main flows above
+# {
+#             'name': 'error',
+#             'default_method': 'net',
+#             'order': 6,
+#             'def_color': '62,69,81',
+#             'series': ['error_1d_2d', 'error_1d', 'error_2d'],
+#         }
+
+# and to serie_settings.main flows above
+# {
+#             'name': 'error',
+#             'default_method': 'net',
+#             'order': 13,
+#             'def_color': '62,69,81',
+#             'series': ['error_1d_2d', 'error_1d', 'error_2d'],
+#         }
