@@ -1036,46 +1036,6 @@ class WaterBalanceWidget(QDockWidget):
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
 
-        # TODO: "error-term"  (to make it work also change in
-        # waterbalance/sum_configs):
-        #
-        # if len(input_series) > 0:
-        #
-        #     serie_setting = {
-        #         'name': 'Overige',
-        #         'default_method': settings['remnant_method'],
-        #         'order': 100,
-        #         'color': [int(c) for c in settings[
-        # 'remnant_def_color'].split(
-        #             ',')] + [150],
-        #         'def_color': settings['remnant_def_color'],
-        #         # TODO: fix + [150],
-        #         'series': [key for key in input_series],
-        #         'ts_series': {}
-        #     }
-        #
-        #     for serie in input_series:
-        #         nrs_input_series.append(input_series[serie])
-        #
-        #     if serie_setting['default_method'] == 'net':
-        #         sum = total_time[:, nrs_input_series].sum(axis=1)
-        #         serie_setting['ts_series']['in'] = sum.clip(min=0)
-        #         serie_setting['ts_series']['out'] = sum.clip(max=0)
-        #     elif serie_setting['default_method'] == 'gross':
-        #         sum_pos = np.zeros(shape=(np.size(ts, 0),))
-        #         sum_neg = np.zeros(shape=(np.size(ts, 0),))
-        #         for nr in nrs_input_series:
-        #             sum_pos += total_time[:, nr].clip(min=0)
-        #             sum_neg += total_time[:, nr].clip(max=0)
-        #         serie_setting['ts_series']['in'] = sum_pos
-        #         serie_setting['ts_series']['out'] = sum_neg
-        #     else:
-        #         # throw config error
-        #         log.warning('aggregation %s method unknown.', serie_setting[
-        #             'default_method'])
-        #
-        #     settings['items'].append(serie_setting)
-
         if model_part == '1d':
             total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
 
