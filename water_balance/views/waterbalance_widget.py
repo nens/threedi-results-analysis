@@ -603,11 +603,15 @@ class WaterBalanceWidget(QDockWidget):
         bm_2d_groundwater = BarManager(io_series_2d_groundwater)
         bm_1d = BarManager(io_series_1d)
 
+        print 'break1'
+
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
         bm_2d.calc_balance(ts, ts_series, t1, t2)
         bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
+
+        print 'break2'
 
         # init figure
         plt.close()

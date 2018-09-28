@@ -783,11 +783,6 @@ class WaterBalanceTool:
         self.widget = None
         self.plugin_is_active = False
 
-    # "\n\ncumulative:\n- rain\n- infiltration\n- laterals\n- " \
-    # "leakage\n- discharge\n- pump discharge " \
-    # "\n\npositive cumulative:\n- discharge " \
-    # "\n\nnegative cumulative:\n- discharge"
-
     def pop_up_no_agg_found(self):
         header = 'Error: No aggregation netcdf found'
         msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
@@ -839,8 +834,9 @@ class WaterBalanceTool:
             ('q_cum_negative', 'negative cumulative discharge'),
             ('q_cum_positive', 'negative cumulative discharge'),
             ('q_cum', 'cumulative discharge'),
-            ('q_lat_cum', 'cumulative lateral discharge'),
-            ('rain_cum', 'cumulative rain'),
+            # renier deze q_lat en rain ff tmp weg
+            #  ('q_lat_cum', 'cumulative lateral discharge'),
+            # ('rain_cum', 'cumulative rain'),
             ]
         if ga.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
