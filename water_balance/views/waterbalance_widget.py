@@ -832,7 +832,7 @@ class WaterBalanceWidget(QDockWidget):
         if self.agg_combo_box.currentText() == 'm3/s':
             self.plot_widget.setLabel("left", "flow", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative':
-            self.plot_widget.setLabel("left", "Cumulatieve flow", "m3")
+            self.plot_widget.setLabel("left", "Cumulative flow", "m3")
         else:
             self.plot_widget.setLabel("left", "-", "-")
 
