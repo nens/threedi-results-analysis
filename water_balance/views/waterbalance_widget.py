@@ -18,7 +18,7 @@ from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
 
 # Image required for adding TopwaterSector logo (.jpg) to chart (staafdiagramm)
-from PIL import Image
+import matplotlib.image as im
 
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
@@ -612,20 +612,11 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
 
-        # renier
-        path_logo = 'home/renier.kramer/Desktop/LogoTopsectorWater.jpg'
-        im = Image.open(path_logo)
-        height = im.size[1]
-        # We need a float array between 0-1, rather than
-        # a uint8 array between 0-255
-        im = np.array(im).astype(np.float) / 255
-
 
         # init figure
         plt.close()
-        fig = plt.figure(1)  # TODO: what does this do?
+        plt.figure(1)  # TODO: what does this do?
         plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
-
 
 
         # prevent clipping of tick-labels, among others
@@ -639,6 +630,7 @@ class WaterBalanceWidget(QDockWidget):
         # #####
 
         plt.subplot(221)
+
         plt.axhline(color='black', lw=.5)
         bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In')
         bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out')
@@ -648,6 +640,24 @@ class WaterBalanceWidget(QDockWidget):
         plt.title('Net water balance')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        # ######
+        # Logo #
+        # ######
+
+        import matplotlib.image as im
+
+        plt.subplot(222)
+        path_logo = ':/plugins/ThreeDiToolbox/water_balance/media/deltares.png'
+        # path = ':/plugins/ThreeDiToolbox/icon.png'
+        # import os
+        # a = os.path.pardir('layer_styles', 'tools', 'flowlines.qml')
+
+        image = im.imread(path_logo)
+        # # We need a float array between 0-1, rather than
+        # # a uint8 array between 0-255
+        plt.imshow(image)
+        plt.axis('off')
 
         # ####
         # 2D #
@@ -702,16 +712,7 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
-
-        # renier
-        # With newer (1.0) versions of matplotlib, you can
-        # use the "zorder" kwarg to make the image overlay
-        # the plot, rather than hide behind it... (e.g. zorder=10)
-        fig.figimage(im, 0, fig.bbox.ymax - height)
-        # (Saving with the same dpi as the screen default to
-        #  avoid displacing the logo image)
-        fig.savefig(path_logo, dpi=80)
-        
+        # produce the .png
         plt.show()
 
     def hover_enter_map_visualization(self, name):
