@@ -4,8 +4,6 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
-- WaterbalanceTool account for flow directions 1d, 2d and groundwater
-
 - Enable leakage and simple infiltration through aggregation NetCDF
 
 - WaterBalanceTool translate terms Dutch to English
