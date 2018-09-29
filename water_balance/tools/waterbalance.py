@@ -886,7 +886,6 @@ class WaterBalanceTool:
         #     # TODO: check if leakge(timeseries) in .nc == 0. If so, then
         #     # add leak_cum to minimum_agg_vars
 
-
         missing_vars = []
         for required_var in minimum_agg_vars:
             if required_var[0] not in check_available_vars:
