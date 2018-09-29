@@ -137,6 +137,9 @@ class WaterBalanceCalculation(object):
                             'v2_orifice', 'v2_weir']:
                         flow_lines['1d_out'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
+                        # draw direction of 1d_2d is always from 2d node to
+                        # 1d node. So when 2d node is inside polygon (and 1d
+                        # node is not) then the 1d_2d link is '1d_2d_out'.
                         flow_lines['1d_2d_out'].append(line['id'])
                 elif incoming:
                     if line['type'] in [
@@ -144,6 +147,9 @@ class WaterBalanceCalculation(object):
                             'v2_orifice', 'v2_weir']:
                         flow_lines['1d_in'].append(line['id'])
                     elif line['type'] in ['1d_2d']:
+                        # draw direction of 1d_2d is always from 2d node to
+                        # 1d node. So when 1d node is inside polygon (and 2d
+                        # node is not) then the 1d_2d link is '1d_2d_in'.
                         flow_lines['1d_2d_in'].append(line['id'])
 
                 if line['type'] in ['2d'] and not (incoming and outgoing):
@@ -341,6 +347,8 @@ class WaterBalanceCalculation(object):
 
         log.info(str(flow_lines))
 
+        print 'break 2'
+
         return flow_lines, pump_selection
 
     def get_nodes(self, wb_polygon, model_part):
@@ -492,6 +500,11 @@ class WaterBalanceCalculation(object):
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
+                if t == 306.0955178098791:
+                    pass
+                if t == 606.0955178098791:
+                    pass
+
                 flow_pos = ds.get_values_by_timestep_nr(
                     'q_cum_positive', ts_idx, np_link['id']) * np_link[
                                'dir']
@@ -504,67 +517,74 @@ class WaterBalanceCalculation(object):
                 pos_pref = flow_pos
                 neg_pref = flow_neg
 
-                # 2d flow
+                # 2d flow (2d_in)
                 total_time[ts_idx, 0] = ma.masked_array(
                     in_sum, mask=mask_2d).clip(min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d).clip(min=0).sum()
+                # 2d flow (2d_out)
                 total_time[ts_idx, 1] = ma.masked_array(
                     in_sum, mask=mask_2d).clip(max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d).clip(max=0).sum()
 
-                # 1d flow
+                # 1d flow (1d_in)
                 total_time[ts_idx, 2] = ma.masked_array(
                     in_sum, mask=mask_1d).clip(min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d).clip(min=0).sum()
+                # 1d flow (1d_out)
                 total_time[ts_idx, 3] = ma.masked_array(
                     in_sum, mask=mask_1d).clip(max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d).clip(max=0).sum()
 
-                # 2d bound mask_2d_bound
+                # 2d bound (2d_bound_in)
                 total_time[ts_idx, 4] = ma.masked_array(
                     in_sum, mask=mask_2d_bound).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_bound).clip(min=0).sum()
+                # 2d bound (2d_bound_out)
                 total_time[ts_idx, 5] = ma.masked_array(
                     in_sum, mask=mask_2d_bound).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_bound).clip(max=0).sum()
 
-                # 1d bound mask_1d_bound
+                # 1d bound (1d_bound_in)
                 total_time[ts_idx, 6] = ma.masked_array(
                     in_sum, mask=mask_1d_bound).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_bound).clip(min=0).sum()
+                # 1d bound (1d_bound_out)
                 total_time[ts_idx, 7] = ma.masked_array(
                     in_sum, mask=mask_1d_bound).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_bound).clip(max=0).sum()
 
-                # 1d 2d in out mask_1d_2d_in_out
+                # 1d 2d in out (1d_2d_in)
                 total_time[ts_idx, 8] = ma.masked_array(
                     in_sum, mask=mask_1d_2d_in_out).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_2d_in_out).clip(min=0).sum()
+                # 1d 2d in out (1d_2d_out)
                 total_time[ts_idx, 9] = ma.masked_array(
                     in_sum, mask=mask_1d_2d_in_out).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_2d_in_out).clip(max=0).sum()
 
-                # 1d 2d mask_1d_2d
+                # 1d 2d (2d_to_1d_pos)
                 total_time[ts_idx, 10] = ma.masked_array(
                     in_sum, mask=mask_1d_2d).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_2d).clip(min=0).sum()
+                # 1d 2d (2d_to_1d_neg)
                 total_time[ts_idx, 11] = ma.masked_array(
                     in_sum, mask=mask_1d_2d).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_2d).clip(max=0).sum()
 
-                # 2d groundwater mask_2d_groundwater
+                # 2d groundwater (2d_groundwater_in)
                 total_time[ts_idx, 23] = ma.masked_array(
                     in_sum, mask=mask_2d_groundwater).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_groundwater).clip(min=0).sum()
+                # 2d groundwater (2d_groundwater_out)
                 total_time[ts_idx, 24] = ma.masked_array(
                     in_sum, mask=mask_2d_groundwater).clip(
                     max=0).sum() + ma.masked_array(
@@ -575,11 +595,13 @@ class WaterBalanceCalculation(object):
                 # 'sink-like', and to make it in line with the
                 # infiltration_rate_simple which also has a -1 multiplication
                 # factor.
+                # 2d_vertical_infiltration (2d_vertical_infiltration_pos)
                 total_time[ts_idx, 28] = -1 * ma.masked_array(
                     in_sum, mask=mask_2d_vertical_infiltration).clip(
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_vertical_infiltration).clip(
                     min=0).sum()
+                # 2d_vertical_infiltration (2d_vertical_infiltration_pos)
                 total_time[ts_idx, 29] = -1 * ma.masked_array(
                     in_sum, mask=mask_2d_vertical_infiltration).clip(
                     max=0).sum() + ma.masked_array(
