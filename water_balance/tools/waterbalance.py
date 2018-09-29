@@ -346,9 +346,6 @@ class WaterBalanceCalculation(object):
                     pump_selection['in'].append(pump['id'])
 
         log.info(str(flow_lines))
-
-        print 'break 2'
-
         return flow_lines, pump_selection
 
     def get_nodes(self, wb_polygon, model_part):
@@ -856,10 +853,16 @@ class WaterBalanceTool:
             ('q_cum_negative', 'negative cumulative discharge'),
             ('q_cum_positive', 'negative cumulative discharge'),
             ('q_cum', 'cumulative discharge'),
-            # renier deze q_lat en rain ff tmp weg
-            #  ('q_lat_cum', 'cumulative lateral discharge'),
+
+            # TODO: check if q_lat sum(timeseries) in .nc == 0. If so, then
+            # add q_lat_cum to minimum_agg_vars
+            # ('q_lat_cum', 'cumulative lateral discharge'),
+
+            # TODO: check if rain(timeseries) in .nc == 0. If so, then
+            # add rain_cum to minimum_agg_vars
             # ('rain_cum', 'cumulative rain'),
             ]
+
         if ga.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
             minimum_agg_vars.append(to_add)
@@ -876,9 +879,13 @@ class WaterBalanceTool:
         # a simulation with groundwater does not have leakage per-se
         # (only when leakage is forced (global or raster) so
         # agg.has_groundwater is not bullet-proof
-        if ga.has_groundwater:
-            to_add = ('leak_cum', 'cumulative leakage')
-            minimum_agg_vars.append(to_add)
+
+        # if ga.has_groundwater:
+        #     to_add = ('leak_cum', 'cumulative leakage')
+        #     minimum_agg_vars.append(to_add)
+        #     # TODO: check if leakge(timeseries) in .nc == 0. If so, then
+        #     # add leak_cum to minimum_agg_vars
+
 
         missing_vars = []
         for required_var in minimum_agg_vars:
