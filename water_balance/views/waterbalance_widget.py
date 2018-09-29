@@ -563,7 +563,6 @@ class WaterBalanceWidget(QDockWidget):
         # TODO: is this a good default?
         # initially turn on tool
         self.select_polygon_button.toggle()
-
         self.__current_calc = None  # cache the results of calculation
 
     def show_chart(self):
@@ -612,12 +611,10 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
 
-
         # init figure
         plt.close()
         plt.figure(1)  # TODO: what does this do?
         plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
-
 
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
@@ -646,16 +643,9 @@ class WaterBalanceWidget(QDockWidget):
         # ######
 
         import matplotlib.image as im
-
         plt.subplot(222)
-        path_logo = ':/plugins/ThreeDiToolbox/water_balance/media/deltares.png'
-        # path = ':/plugins/ThreeDiToolbox/icon.png'
-        # import os
-        # a = os.path.pardir('layer_styles', 'tools', 'flowlines.qml')
-
+        path_logo = '/home/renier.kramer/Desktop/LogoTopsectorWater.jpg'
         image = im.imread(path_logo)
-        # # We need a float array between 0-1, rather than
-        # # a uint8 array between 0-255
         plt.imshow(image)
         plt.axis('off')
 
