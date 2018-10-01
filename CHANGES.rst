@@ -5,6 +5,8 @@ ThreeDiToolBox changelog
 1.4 (unreleased)
 ----------------
 
+- Gracefully handle HTTPError thrown by ResultsWorker thread.
+
 - Added QSortFilterProxyModel to the result_selection to enable sorting and
   filtering of downloaded results.
 
