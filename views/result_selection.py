@@ -393,7 +393,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # start thread
             self.thread = ResultsWorker(
                 endpoint=endpoint, username=username, password=password)
-            self.thread.connection_failure.connect(self.handle_connection_failure)
+            self.thread.connection_failure.connect(
+                self.handle_connection_failure)
             self.thread.output.connect(self.update_download_result_model)
             self.thread.start()
 
