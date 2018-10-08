@@ -147,17 +147,27 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         if not agg:
             return []
         # hardcoded whitelist
-        known_vars = set(
-            agg.lines.Meta.composite_fields.keys() +
-            agg.nodes.Meta.composite_fields.keys() +
-            agg.pumps.Meta.composite_fields.keys()
-        )
+        if agg.has_pumpstations:
+            known_vars = set(
+                agg.lines.Meta.composite_fields.keys() +
+                agg.nodes.Meta.composite_fields.keys() +
+                agg.pumps.Meta.composite_fields.keys()
+            )
 
-        # all available fields, including hdf5 fields
-        available_vars = (
-            agg.nodes._field_names | agg.lines._field_names |
-            agg.pumps._field_names
-        )
+            # all available fields, including hdf5 fields
+            available_vars = (
+                    agg.nodes._field_names | agg.lines._field_names |
+                    agg.pumps._field_names
+            )
+        else:
+            known_vars = set(
+                agg.lines.Meta.composite_fields.keys() +
+                agg.nodes.Meta.composite_fields.keys()
+            )
+
+            # all available fields, including hdf5 fields
+            available_vars = (agg.nodes._field_names | agg.lines._field_names)
+
         available_known_vars = available_vars & known_vars
 
         # TODO: this is a bug in threedigrid:

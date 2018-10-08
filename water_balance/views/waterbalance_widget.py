@@ -130,7 +130,6 @@ class Bar(object):
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
-        # shape = (N_idxs, len(ts))
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
         self._balance_out = balance_tmp[:, ts_indices_sliced].sum()
 
@@ -606,10 +605,8 @@ class WaterBalanceWidget(QDockWidget):
 
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
         bm_2d.calc_balance(ts, ts_series, t1, t2)
-        bm_2d_groundwater.calc_balance(
-            ts, ts_series, t1, t2,
-            invert=['infiltration/exfiltration (domain exchange)']
-        )
+        bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
+            'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
 
         # init figure
@@ -726,9 +723,8 @@ class WaterBalanceWidget(QDockWidget):
             '1d boundaries': ['1d_bound'],
             '1d-2d exchange': ['1d_2d'],
             # TODO: '1d_2d_intersected' and 'pump_or_whatever' are magic
-            # strings that we ad-hoc created in the
-            # prepare_and_visualize_selection function.
-            # A better solution would be nice...
+            # strings that we ad-hoc created in the 'prepare_and_visualize_
+            # selection' function. A better solution would be nice...
             '1d-2d flow': ['1d_2d_intersected'],
             'pumps': ['pump_or_whatever'],
             '2d groundwater flow': ['2d_groundwater'],
@@ -751,7 +747,7 @@ class WaterBalanceWidget(QDockWidget):
             'lateral 2d': ['2d'],
             'leakage': ['2d'],
             'infiltration': ['2d'],
-            'external forcing (rain and laterals)': ['1d', '2d'],
+            'ext. forcing (rain and laterals)': ['1d', '2d'],
         }
 
         # more hackery to fix keys defined in both 'main flows'
@@ -832,7 +828,7 @@ class WaterBalanceWidget(QDockWidget):
         if self.agg_combo_box.currentText() == 'm3/s':
             self.plot_widget.setLabel("left", "flow", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative':
-            self.plot_widget.setLabel("left", "Cumulatieve flow", "m3")
+            self.plot_widget.setLabel("left", "Cumulative flow", "m3")
         else:
             self.plot_widget.setLabel("left", "-", "-")
 
@@ -1039,46 +1035,6 @@ class WaterBalanceWidget(QDockWidget):
                                                         'out'] * diff
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
-
-        # TODO: "error-term"  (to make it work also change in
-        # waterbalance/sum_configs):
-        #
-        # if len(input_series) > 0:
-        #
-        #     serie_setting = {
-        #         'name': 'Overige',
-        #         'default_method': settings['remnant_method'],
-        #         'order': 100,
-        #         'color': [int(c) for c in settings[
-        # 'remnant_def_color'].split(
-        #             ',')] + [150],
-        #         'def_color': settings['remnant_def_color'],
-        #         # TODO: fix + [150],
-        #         'series': [key for key in input_series],
-        #         'ts_series': {}
-        #     }
-        #
-        #     for serie in input_series:
-        #         nrs_input_series.append(input_series[serie])
-        #
-        #     if serie_setting['default_method'] == 'net':
-        #         sum = total_time[:, nrs_input_series].sum(axis=1)
-        #         serie_setting['ts_series']['in'] = sum.clip(min=0)
-        #         serie_setting['ts_series']['out'] = sum.clip(max=0)
-        #     elif serie_setting['default_method'] == 'gross':
-        #         sum_pos = np.zeros(shape=(np.size(ts, 0),))
-        #         sum_neg = np.zeros(shape=(np.size(ts, 0),))
-        #         for nr in nrs_input_series:
-        #             sum_pos += total_time[:, nr].clip(min=0)
-        #             sum_neg += total_time[:, nr].clip(max=0)
-        #         serie_setting['ts_series']['in'] = sum_pos
-        #         serie_setting['ts_series']['out'] = sum_neg
-        #     else:
-        #         # throw config error
-        #         log.warning('aggregation %s method unknown.', serie_setting[
-        #             'default_method'])
-        #
-        #     settings['items'].append(serie_setting)
 
         if model_part == '1d':
             total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
