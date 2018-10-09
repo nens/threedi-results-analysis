@@ -646,7 +646,8 @@ class WaterBalanceWidget(QDockWidget):
         plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
 
         # logo 1 (TopSectorWater)
-        logo1_path = os.path.join(plugin_dir, 'icons', 'LogoTopsectorWater.jpg')
+        logo1_path = os.path.join(
+            plugin_dir, 'icons', 'LogoTopsectorWater.jpg')
         logo1_img = plt.imread(logo1_path)
         # [left, bottom, width, height] as fractions of figure width and height
         logo1_rect = [0.76, 0.83, 0.07, 0.07]
