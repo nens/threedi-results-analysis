@@ -630,7 +630,6 @@ class WaterBalanceWidget(QDockWidget):
         # #####
 
         plt.subplot(221)
-
         plt.axhline(color='black', lw=.5)
         bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In')
         bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out')
@@ -645,12 +644,11 @@ class WaterBalanceWidget(QDockWidget):
         # Logo #
         # ######
 
-        import matplotlib.image as im
         plt.subplot(222)
         current_dir = os.path.dirname(__file__)
         plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
         path_logo = os.path.join(plugin_dir, 'ui', 'MyLogo.jpg')
-        image = im.imread(path_logo)
+        image = mpl.image.imread(path_logo)
         plt.imshow(image)
         plt.axis('off')
 
