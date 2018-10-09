@@ -341,13 +341,51 @@ class WaterBalancePlotWidget(pg.PlotWidget):
             prev_serie = zeros
             prev_pldi = zero_serie
             for item in self.model.rows:
-                if item.active.value:
+
+                if item.active.value is True and item.name.value in [
+                    'volume change',
+                    'volume change 2d',
+                    'volume change 2d groundwater',
+                    'volume change 1d']:
+                    not_cum_serie = item.ts_series.value[dir]
+                    plot_item = pg.PlotDataItem(
+                        x=ts,
+                        y=not_cum_serie,
+                        connect='finite',
+                        pen=pg.mkPen(color=QColor(
+                            *item.color.value), width=3, style=Qt.DotLine))
+
+                    # renier
+                    # print item.name.value
+                    # print ts
+                    # print not_cum_serie
+
+                    color = item.color.value
+                    fill = pg.FillBetweenItem(prev_pldi,
+                                              plot_item,
+                                              pg.mkBrush(*color))
+
+                    # keep reference
+                    item._plots[dir] = plot_item
+                    item._plots[dir + 'fill'] = fill
+                    prev_pldi = plot_item
+
+                elif item.active.value is True and item.name.value not in [
+                    'volume change',
+                    'volume change 2d',
+                    'volume change 2d groundwater',
+                    'volume change 1d']:
                     cum_serie = prev_serie + item.ts_series.value[dir]
                     plot_item = pg.PlotDataItem(
                         x=ts,
                         y=cum_serie,
                         connect='finite',
                         pen=pg.mkPen(color=QColor(*item.color.value), width=1))
+
+                    # renier
+                    # print item.name.value
+                    # print ts
+                    # print cum_serie
 
                     color = item.color.value
                     fill = pg.FillBetweenItem(prev_pldi,
