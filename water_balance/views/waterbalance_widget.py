@@ -637,9 +637,9 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
-        # #######
-        # Logos #
-        # #######
+        # ######
+        # Logo #
+        # ######
 
         current_dir = os.path.dirname(__file__)
         plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
