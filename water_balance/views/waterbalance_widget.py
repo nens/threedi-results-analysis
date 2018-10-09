@@ -1,7 +1,10 @@
 import copy
 import functools
 import logging
+import os
 
+import matplotlib as mpl
+mpl.use('Qt4Agg')  # to prevent pyplot from using Tkinter
 import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
@@ -644,7 +647,9 @@ class WaterBalanceWidget(QDockWidget):
 
         import matplotlib.image as im
         plt.subplot(222)
-        path_logo = '/home/renier.kramer/Desktop/LogoTopsectorWater.jpg'
+        current_dir = os.path.dirname(__file__)
+        plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
+        path_logo = os.path.join(plugin_dir, 'ui', 'MyLogo.jpg')
         image = im.imread(path_logo)
         plt.imshow(image)
         plt.axis('off')
