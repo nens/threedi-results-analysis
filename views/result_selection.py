@@ -4,10 +4,11 @@ from __future__ import division
 import logging
 import os
 import urllib2
+from urllib2 import HTTPError
 
 from lizard_connector.connector import Endpoint
 from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
-from PyQt4.QtGui import QWidget, QFileDialog
+from PyQt4.QtGui import QWidget, QFileDialog, QSortFilterProxyModel
 from PyQt4 import uic
 
 from ..datasource.netcdf import (find_id_mapping_file,
@@ -42,6 +43,7 @@ class ResultsWorker(QThread):
     """Thread for getting scenario results API data from Lizard."""
 
     output = pyqtSignal(object)
+    connection_failure = pyqtSignal(int, str)
 
     def __init__(
             self, parent=None, endpoint=None, username=None, password=None):
@@ -57,13 +59,19 @@ class ResultsWorker(QThread):
         self.stop()
 
     def run(self):
-        for results in self.endpoint:
-            if self.exiting:
-                print("Exiting...")
-                break
-            items = _reshape_scenario_results(results)
-            print("ResultsWorker - got new data")
-            self.output.emit(items)
+        try:
+            for results in self.endpoint:
+                if self.exiting:
+                    print("Exiting...")
+                    break
+                items = _reshape_scenario_results(results)
+                print("ResultsWorker - got new data")
+                self.output.emit(items)
+        except HTTPError as e:
+            message = "Something went wrong trying to connect to {0}. {1}: " \
+                      "{2}".format(e.url, e.code, e.reason)
+            log.info(message)
+            self.connection_failure.emit(e.code, e.reason)
 
     def stop(self):
         """Stop the thread gracefully."""
@@ -104,10 +112,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.ts_datasource = ts_datasource
         self.resultTableView.setModel(self.ts_datasource)
         self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+
         self.download_result_model = download_result_model
-        self.downloadResultTableView.setModel(self.download_result_model)
-        self.download_result_model.set_column_sizes_on_view(
-            self.downloadResultTableView)
+        download_proxy_model = QSortFilterProxyModel()
+        download_proxy_model.setSourceModel(download_result_model)
+        download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.filterLineEdit.textChanged.connect(
+            download_proxy_model.setFilterFixedString)
+        self.downloadResultTableView.setModel(download_proxy_model)
 
         self.toggle_login_interface()
 
@@ -381,6 +393,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # start thread
             self.thread = ResultsWorker(
                 endpoint=endpoint, username=username, password=password)
+            self.thread.connection_failure.connect(
+                self.handle_connection_failure)
             self.thread.output.connect(self.update_download_result_model)
             self.thread.start()
 
@@ -389,6 +403,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def update_download_result_model(self, items):
         self.download_result_model.insertRows(items)
+
+    def handle_connection_failure(self, status, reason):
+        pop_up_info("Something went wrong trying to connect to "
+                    "lizard: {0} {1}".format(status, reason))
+        self.handle_log_out()
 
     @property
     def username(self):
