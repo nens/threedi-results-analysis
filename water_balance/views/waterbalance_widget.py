@@ -20,9 +20,6 @@ from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
 
-# Image required for adding TopwaterSector logo (.jpg) to chart (staafdiagramm)
-import matplotlib.image as im
-
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
 try:
