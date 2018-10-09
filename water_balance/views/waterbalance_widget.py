@@ -6,7 +6,6 @@ import os
 import matplotlib as mpl
 mpl.use('Qt4Agg')  # to prevent pyplot from using Tkinter
 import matplotlib.pyplot as plt
-from scipy.misc import imresize
 import numpy as np
 import pyqtgraph as pg
 from PyQt4.QtCore import Qt, QSize, QEvent, QMetaObject
