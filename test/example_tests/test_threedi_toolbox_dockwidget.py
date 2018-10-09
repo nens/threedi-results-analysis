@@ -11,9 +11,10 @@ import unittest
 
 from PyQt4.QtGui import QDockWidget
 
-from threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
+from ThreeDiToolbox.views.threedi_toolbox_dockwidget import \
+    ThreeDiToolboxDockWidget
 
-from test.utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 

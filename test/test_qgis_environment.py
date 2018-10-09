@@ -17,7 +17,7 @@ import os
 import unittest
 from qgis.core import QgsProviderRegistry
 
-from utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
 
 

@@ -1,7 +1,10 @@
 import copy
 import functools
 import logging
+import os
 
+import matplotlib as mpl
+mpl.use('Qt4Agg')  # to prevent pyplot from using Tkinter
 import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
@@ -560,7 +563,6 @@ class WaterBalanceWidget(QDockWidget):
         # TODO: is this a good default?
         # initially turn on tool
         self.select_polygon_button.toggle()
-
         self.__current_calc = None  # cache the results of calculation
 
     def show_chart(self):
@@ -611,7 +613,7 @@ class WaterBalanceWidget(QDockWidget):
 
         # init figure
         plt.close()
-        plt.figure(1)  # TODO: what does this do?
+        fig = plt.figure(1)  # TODO: what does this do?
         plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
 
         # prevent clipping of tick-labels, among others
@@ -634,6 +636,32 @@ class WaterBalanceWidget(QDockWidget):
         plt.title('Net water balance')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        # ######
+        # Logo #
+        # ######
+
+        current_dir = os.path.dirname(__file__)
+        plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
+
+        # logo 1 (TopSectorWater)
+        logo1_path = os.path.join(
+            plugin_dir, 'icons', 'LogoTopsectorWater.jpg')
+        logo1_img = plt.imread(logo1_path)
+        # [left, bottom, width, height] as fractions of figure width and height
+        logo1_rect = [0.76, 0.83, 0.07, 0.07]
+        logo1_ax = fig.add_axes(logo1_rect, anchor='NE', zorder=-1)
+        logo1_ax.imshow(logo1_img, interpolation='none')
+        logo1_ax.axis('off')
+
+        # logo 2 (Deltares)
+        logo2_path = os.path.join(plugin_dir, 'icons', 'LogoDeltares.jpg')
+        logo2_img = plt.imread(logo2_path)
+        # [left, bottom, width, height] as fractions of figure width and height
+        logo2_rect = [0.83, 0.83, 0.07, 0.07]
+        logo2_ax = fig.add_axes(logo2_rect, anchor='NE', zorder=-1)
+        logo2_ax.imshow(logo2_img, interpolation='none')
+        logo2_ax.axis('off')
 
         # ####
         # 2D #
@@ -688,6 +716,7 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
+        # produce the .png
         plt.show()
 
     def hover_enter_map_visualization(self, name):
