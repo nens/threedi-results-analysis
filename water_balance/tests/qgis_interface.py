@@ -24,19 +24,28 @@ __copyright__ = (
 )
 
 import logging
+import sys
+
 from PyQt4.QtCore import QObject, pyqtSlot, pyqtSignal
+from qgis.core import QgsApplication
 from qgis.core import QgsMapLayerRegistry
 from qgis.gui import QgsMapCanvasLayer
+
+
 LOGGER = logging.getLogger('QGIS')
 
 
-from qgis.core import QgsApplication
+if 'linux' in sys.platform:
+    prefix_path = u'/usr'
+else:
+    prefix_path = 'c:/Users/basti/.qgis'
 
-QgsApplication.setPrefixPath("c:/Users/basti/.qgis")
-QgsApplication.initQgis()
+qgis = QgsApplication.setPrefixPath(u'/usr', True)  # linux
+qgis = QgsApplication([], True)
+qgis.initQgis()
 
 import atexit
-atexit.register(QgsApplication.exitQgis)
+atexit.register(qgis.exitQgis)
 
 
 # noinspection PyMethodMayBeStatic,PyPep8Naming
