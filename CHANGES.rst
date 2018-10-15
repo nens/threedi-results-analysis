@@ -11,7 +11,7 @@ ThreeDiToolBox changelog
 - Added QSortFilterProxyModel to the result_selection to enable sorting and
   filtering of downloaded results.
 
-- WaterbalanceTool account for flow directions 1d2d, 1d, 2d and groundwater
+- WaterbalanceTool account for flow directions (1d2d, 1d, 2d and groundwater)
 
 - Enable leakage and simple infiltration through aggregation NetCDF
 
