@@ -770,9 +770,8 @@ class WaterBalanceWidget(QDockWidget):
 
         # init figure
         plt.close()
-        fig = plt.figure(1)  # TODO: what does this do?
+        fig = plt.figure(1)
         plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
-
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
@@ -802,23 +801,30 @@ class WaterBalanceWidget(QDockWidget):
         plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
 
         # logo 1 (TopSectorWater)
-        logo1_path = os.path.join(
-            plugin_dir, 'icons', 'LogoTopsectorWater.jpg')
+        logo1_path = os.path.join(plugin_dir, 'icons', 'topsector_small.png')
         logo1_img = plt.imread(logo1_path)
         # [left, bottom, width, height] as fractions of figure width and height
-        logo1_rect = [0.76, 0.83, 0.07, 0.07]
+        logo1_rect = [0.83, 0.84, 0.04, 0.04]
         logo1_ax = fig.add_axes(logo1_rect, anchor='NE', zorder=-1)
         logo1_ax.imshow(logo1_img, interpolation='none')
         logo1_ax.axis('off')
 
         # logo 2 (Deltares)
-        logo2_path = os.path.join(plugin_dir, 'icons', 'LogoDeltares.jpg')
+        logo2_path = os.path.join(plugin_dir, 'icons', 'deltares_small.png')
         logo2_img = plt.imread(logo2_path)
-        # [left, bottom, width, height] as fractions of figure width and height
-        logo2_rect = [0.83, 0.83, 0.07, 0.07]
+        logo2_rect = [0.845, 0.83, 0.06, 0.06]
         logo2_ax = fig.add_axes(logo2_rect, anchor='NE', zorder=-1)
         logo2_ax.imshow(logo2_img, interpolation='none')
         logo2_ax.axis('off')
+
+        # logo text
+        text_rect = [0.905, 0.89, 0.1, 0.1]
+        text_ax = fig.add_axes(text_rect, anchor='NE', zorder=-1)
+        text_ax.text(0.0, 0.0, 'Powered by \n Topsector Water and Deltares',
+                     verticalalignment='bottom',
+                     horizontalalignment='right',
+                     fontsize=9)
+        text_ax.axis('off')
 
         # ####
         # 2D #
