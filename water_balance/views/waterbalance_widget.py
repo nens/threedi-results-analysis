@@ -285,7 +285,8 @@ class WaterbalanceItemTable(QTableView):
                 'volume change',
                 'volume change 2d',
                 'volume change 2d groundwater',
-                'volume change 1d']:
+                'volume change 1d',
+            ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
                 item.pen_color.value = item.pen_color.value[:3] + [180]
             else:
@@ -304,7 +305,8 @@ class WaterbalanceItemTable(QTableView):
                 'volume change',
                 'volume change 2d',
                 'volume change 2d groundwater',
-                'volume change 1d']:
+                'volume change 1d',
+            ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
                 item.pen_color.value = item.pen_color.value[:3] + [255]
             else:
@@ -369,7 +371,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     'volume change',
                     'volume change 2d',
                     'volume change 2d groundwater',
-                    'volume change 1d']:
+                    'volume change 1d',
+                ]:
                     pen_color = item.pen_color.value
                     not_cum_serie = item.ts_series.value[dir]
 
@@ -396,8 +399,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     'volume change',
                     'volume change 2d',
                     'volume change 2d groundwater',
-                    'volume change 1d']:
-
+                    'volume change 1d'
+                ]:
                     pen_color = item.pen_color.value
                     fill_color = item.fill_color.value
 
@@ -495,7 +498,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             'volume change',
                             'volume change 2d',
                             'volume change 2d groundwater',
-                            'volume change 1d']:
+                            'volume change 1d',
+                        ]:
                             item._plots['in'].setPen(
                                 color=item.pen_color.value,
                                 width=4,
@@ -513,7 +517,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             'volume change',
                             'volume change 2d',
                             'volume change 2d groundwater',
-                            'volume change 1d']:
+                            'volume change 1d',
+                        ]:
                             item._plots['out'].setPen(
                                 color=item.pen_color.value,
                                 width=4,
@@ -533,7 +538,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             'volume change',
                             'volume change 2d',
                             'volume change 2d groundwater',
-                            'volume change 1d']:
+                            'volume change 1d',
+                        ]:
                             item._plots['in'].setPen(
                                 color=item.pen_color.value,
                                 width=4,
@@ -551,7 +557,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             'volume change',
                             'volume change 2d',
                             'volume change 2d groundwater',
-                            'volume change 1d']:
+                            'volume change 1d',
+                        ]:
                             item._plots['out'].setPen(
                                 color=item.pen_color.value,
                                 width=4,
@@ -1181,10 +1188,10 @@ class WaterBalanceWidget(QDockWidget):
         for serie_setting in settings.get('items', []):
             serie_setting['active'] = True
             serie_setting['method'] = serie_setting['default_method']
-            serie_setting['fill_color'] = [int(c) for c in
-                                      serie_setting['def_fill_color'].split(',')]
-            serie_setting['pen_color'] = [int(c) for c in
-                                      serie_setting['def_pen_color'].split(',')]
+            serie_setting['fill_color'] = [
+                int(c) for c in serie_setting['def_fill_color'].split(',')]
+            serie_setting['pen_color'] = [
+                int(c) for c in serie_setting['def_pen_color'].split(',')]
             serie_setting['ts_series'] = {}
             nrs_input_series = []
             for serie in serie_setting['series']:
