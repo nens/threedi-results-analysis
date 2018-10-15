@@ -68,7 +68,7 @@ def select_default_color(item_field):
         return colors.values()[0]
 
     # predefined colors are all used, return random color
-    return (randint(0, 256), randint(0, 256), randint(0, 256), 180)
+    return (randint(0, 256), randint(0, 256), randint(0, 256), int(180))
 
 
 class WaterbalanceItemModel(BaseModel):
@@ -88,23 +88,20 @@ class WaterbalanceItemModel(BaseModel):
                                default_value=True,
                                column_width=20,
                                column_name='')
-        color = ColorField(show=True,
-                           column_width=30,
-                           column_name='',
-                           default_value=select_default_color)
+        fill_color = ColorField(show=False,
+                                column_width=30,
+                                column_name='',
+                                default_value=select_default_color)
+        pen_color = ColorField(show=True,
+                               column_width=30,
+                               column_name='',
+                               default_value=select_default_color)
         name = ValueField(show=True,
                           column_width=190,
                           column_name='name')
-        method = ValueField(show=True,
-                            column_width=40,
-                            column_name='method')
-
-        hover = ValueField(show=False,
-                           default_value=False)
-
+        hover = ValueField(show=False, default_value=False)
         order = ValueField(show=False)
         default_method = ValueField(show=False)
         series = ValueField(show=False)
-
         ts_series = ValueField(show=False)
         _plots = {}
