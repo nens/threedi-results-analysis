@@ -436,9 +436,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     # lines with a filled area in between), thus we only need 1
                     # line. However, item._plots[dir].yData returns always
                     # 2 np.arrays (most of the times a zeros and a non-zeros
-                    # line. Below we subract both lines so we end up with 1.
+                    # line. Below we substract both lines so we end up with 1.
                     # It's really ugly, but I don't get Jacki's logic and my
-                    # time is limited.
+                    # dev time is limited.
                     if item.name.value == 'volume change':
                         count_vol_change += 1
                         if count_vol_change == 1:
@@ -478,7 +478,6 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     else:
                         self.addItem(item._plots[dir])
                         self.addItem(item._plots[dir + 'fill'])
-
         self.autoRange()
 
     def data_changed(self, index):
