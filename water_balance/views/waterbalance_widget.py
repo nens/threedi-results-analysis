@@ -375,23 +375,12 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 ]:
                     pen_color = item.pen_color.value
                     not_cum_serie = item.ts_series.value[dir]
-
-                    if max(abs(not_cum_serie)) == 0:
-                        plot_item = pg.PlotDataItem(
-                            x=ts,
-                            y=not_cum_serie,
-                            connect='finite',
-                            pen=pg.mkPen(
-                                color=QColor(0, 0, 0, 0),
-                                width=4,
-                                style=Qt.DashDotLine))
-                    else:
-                        plot_item = pg.PlotDataItem(
-                            x=ts,
-                            y=not_cum_serie,
-                            connect='finite',
-                            pen=pg.mkPen(color=QColor(
-                                *pen_color), width=4, style=Qt.DashDotLine))
+                    plot_item = pg.PlotDataItem(
+                        x=ts,
+                        y=not_cum_serie,
+                        connect='finite',
+                        pen=pg.mkPen(color=QColor(
+                            *pen_color), width=4, style=Qt.DashDotLine))
 
                     item._plots[dir] = plot_item
 
