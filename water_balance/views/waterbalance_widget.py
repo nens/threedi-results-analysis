@@ -378,8 +378,8 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     'volume change 1d',
                 ]:
                     pen_color = item.pen_color.value
-                    not_cum_serie = item.ts_series.value['in'] + \
-                                    item.ts_series.value['out']
+                    not_cum_serie = item.ts_series.value[
+                                        'in'] + item.ts_series.value['out']
                     plot_item = pg.PlotDataItem(
                         x=ts,
                         y=not_cum_serie,
