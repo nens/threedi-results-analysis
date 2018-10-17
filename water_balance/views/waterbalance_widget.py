@@ -360,7 +360,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
             y=zeros,
             connect='finite',
             pen=pg.mkPen(color=QColor(0, 0, 0, 200), width=1))
-        self.addItem(zero_serie)
+        self.addItem(zero_serie, ignoreBounds=True)
 
         # all item.name.value (e.g. '1d-2d flow', 'pumps', 'rain') have both a
         # 'in' and 'out' flow: so two lines that together form a graph.
@@ -426,15 +426,18 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                         'volume change 2d groundwater',
                         'volume change 1d',
                     ]:
-                        self.addItem(item._plots['sum'])
+                        self.addItem(item._plots['sum'], ignoreBounds=True)
+
                         # determine PlotItem min and max for display range
                         y_min = min(y_min, min(item._plots['sum'].yData))
                         y_max = max(y_max, max(item._plots['sum'].yData))
                         x_min = min(x_min, min(item._plots['sum'].xData))
                         x_max = max(x_max, max(item._plots['sum'].xData))
                     else:
-                        self.addItem(item._plots[dir])
-                        self.addItem(item._plots[dir + 'fill'])
+                        self.addItem(item._plots[dir], ignoreBounds=True)
+                        self.addItem(
+                        item._plots[dir + 'fill'], ignoreBounds=True)
+
                         y_min = min(y_min, min(item._plots[dir].yData))
                         y_max = max(y_max, max(item._plots[dir].yData))
                         x_min = min(x_min, min(item._plots[dir].xData))
@@ -961,7 +964,7 @@ class WaterBalanceWidget(QDockWidget):
         # set labels for in and out fluxes
         text_upper = pg.TextItem(text="in", anchor=(0, 1), angle=-90)
         text_upper.setPos(0, 0)
-        text_lower = pg.TextItem(text="uit", anchor=(1, 1), angle=-90)
+        text_lower = pg.TextItem(text="out", anchor=(1, 1), angle=-90)
         text_lower.setPos(0, 0)
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
