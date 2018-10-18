@@ -350,41 +350,45 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         self.draw_timeseries()
 
     def draw_timeseries(self):
+
         self.clear()
 
         ts = self.model.ts
-
         zeros = np.zeros(shape=(np.size(ts, 0),))
         zero_serie = pg.PlotDataItem(
             x=ts,
             y=zeros,
             connect='finite',
-            pen=pg.mkPen(color=QColor(0, 0, 0, 0), width=1))
-        self.addItem(zero_serie)
+            pen=pg.mkPen(color=QColor(0, 0, 0, 200), width=1))
+        self.addItem(zero_serie, ignoreBounds=True)
 
+        # all item.name.value (e.g. '1d-2d flow', 'pumps', 'rain') have both a
+        # 'in' and 'out' flow: so two lines that together form a graph.
+        # However the volume change lines in item.name.value ('volume change',
+        # 'volume change 2d', 'volume change 2d groundwater', and
+        # 'volume change 1d' are summed into 1 line (so no out and in)
         for dir in ['in', 'out']:
             prev_serie = zeros
             prev_pldi = zero_serie
             for item in self.model.rows:
-
-                if item.active.value is True and item.name.value in [
+                if item.active.value and item.name.value in [
                     'volume change',
                     'volume change 2d',
                     'volume change 2d groundwater',
                     'volume change 1d',
                 ]:
                     pen_color = item.pen_color.value
-                    not_cum_serie = item.ts_series.value[dir]
+                    not_cum_serie = item.ts_series.value[
+                                        'in'] + item.ts_series.value['out']
                     plot_item = pg.PlotDataItem(
                         x=ts,
                         y=not_cum_serie,
                         connect='finite',
                         pen=pg.mkPen(color=QColor(
                             *pen_color), width=4, style=Qt.DashDotLine))
-
-                    item._plots[dir] = plot_item
-
-                elif item.active.value is True and item.name.value not in [
+                    # only get 1 line (the sum of 'in' and 'out')
+                    item._plots['sum'] = plot_item
+                elif item.active.value and item.name.value not in [
                     'volume change',
                     'volume change 2d',
                     'volume change 2d groundwater',
@@ -392,7 +396,6 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 ]:
                     pen_color = item.pen_color.value
                     fill_color = item.fill_color.value
-
                     cum_serie = prev_serie + item.ts_series.value[dir]
                     plot_item = pg.PlotDataItem(
                         x=ts,
@@ -400,74 +403,54 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                         connect='finite',
                         pen=pg.mkPen(color=QColor(*pen_color),
                                      width=1))
-
                     fill = pg.FillBetweenItem(prev_pldi,
                                               plot_item,
                                               pg.mkBrush(*fill_color))
-
                     # keep reference
                     item._plots[dir] = plot_item
                     item._plots[dir + 'fill'] = fill
                     prev_serie = cum_serie
                     prev_pldi = plot_item
 
-        count_vol_change = 0
-        count_vol_change_1d = 0
-        count_vol_change_2d = 0
-        count_vol_change_gw = 0
-
+        # add PlotItems to graph
+        y_min = 0
+        y_max = 0
+        x_min = 0
+        x_max = 0
         for dir in ['in', 'out']:
             for item in reversed(self.model.rows):
                 if item.active.value:
+                    if item.name.value in [
+                        'volume change',
+                        'volume change 2d',
+                        'volume change 2d groundwater',
+                        'volume change 1d',
+                    ]:
+                        self.addItem(item._plots['sum'], ignoreBounds=True)
 
-                    # TODO: improved this, get rid of ugly code below
-                    # a volume change line is a single line (instead of two
-                    # lines with a filled area in between), thus we only need 1
-                    # line. However, item._plots[dir].yData returns always
-                    # 2 np.arrays (most of the times a zeros and a non-zeros
-                    # line. Below we substract both lines so we end up with 1.
-                    # It's really ugly, but I don't get Jacki's logic and my
-                    # dev time is limited.
-                    if item.name.value == 'volume change':
-                        count_vol_change += 1
-                        if count_vol_change == 1:
-                            vol_change_1 = item._plots[dir]
-                        elif count_vol_change == 2:
-                            vol_change_2 = item._plots[dir]
-                            vol_change_1.yData = \
-                                vol_change_1.yData + vol_change_2.yData
-                            self.addItem(vol_change_1)
-                    elif item.name.value == 'volume change 1d':
-                        count_vol_change_1d += 1
-                        if count_vol_change_1d == 1:
-                            vol_change_1d_1 = item._plots[dir]
-                        elif count_vol_change_1d == 2:
-                            vol_change_1d_2 = item._plots[dir]
-                            vol_change_1d_1.yData = \
-                                vol_change_1d_1.yData + vol_change_1d_2.yData
-                            self.addItem(vol_change_1d_1)
-                    elif item.name.value == 'volume change 2d':
-                        count_vol_change_2d += 1
-                        if count_vol_change_2d == 1:
-                            vol_change_2d_1 = item._plots[dir]
-                        elif count_vol_change_2d == 2:
-                            vol_change_2d_2 = item._plots[dir]
-                            vol_change_2d_1.yData = \
-                                vol_change_2d_1.yData + vol_change_2d_2.yData
-                            self.addItem(vol_change_2d_1)
-                    elif item.name.value == 'volume change 2d groundwater':
-                        count_vol_change_gw += 1
-                        if count_vol_change_gw == 1:
-                            vol_change_gw_1 = item._plots[dir]
-                        elif count_vol_change_gw == 2:
-                            vol_change_gw_2 = item._plots[dir]
-                            vol_change_gw_1.yData = \
-                                vol_change_gw_1.yData + vol_change_gw_2.yData
-                            self.addItem(vol_change_gw_1)
+                        # determine PlotItem min and max for display range
+                        y_min = min(y_min, min(item._plots['sum'].yData))
+                        y_max = max(y_max, max(item._plots['sum'].yData))
+                        x_min = min(x_min, min(item._plots['sum'].xData))
+                        x_max = max(x_max, max(item._plots['sum'].xData))
                     else:
-                        self.addItem(item._plots[dir])
-                        self.addItem(item._plots[dir + 'fill'])
-        self.autoRange()
+                        self.addItem(item._plots[dir], ignoreBounds=True)
+                        self.addItem(
+                            item._plots[dir + 'fill'], ignoreBounds=True)
+
+                        y_min = min(y_min, min(item._plots[dir].yData))
+                        y_max = max(y_max, max(item._plots[dir].yData))
+                        x_min = min(x_min, min(item._plots[dir].xData))
+                        x_max = max(x_max, max(item._plots[dir].xData))
+        # http://www.pyqtgraph.org/documentation/graphicsItems/viewbox.html
+        # for some reason shows 'self.autoRange()' some weird behavior (each
+        # time draw_timeseries() is called, the x-axis is extended by a factor
+        # 4. With 'self.getPlotItem().viewRect()' one can follow this. So,
+        # instead of self.autoRange(), we set the min,max of the X- and YRange
+        # TODO: find out why autoRange() extends the x-axis by factor 4
+        # self.autoRange()
+        self.setYRange(y_min, y_max, padding=None, update=True)
+        self.setXRange(x_min, x_max, padding=None, update=True)
 
     def data_changed(self, index):
         """
@@ -479,86 +462,39 @@ class WaterBalancePlotWidget(pg.PlotWidget):
 
         elif self.model.columns[index.column()].name == 'hover':
             item = self.model.rows[index.row()]
+
             if item.hover.value:
                 if item.active.value:
                     if 'in' in item._plots:
-                        if item.name.value in [
-                            'volume change',
-                            'volume change 2d',
-                            'volume change 2d groundwater',
-                            'volume change 1d',
-                        ]:
-                            item._plots['in'].setPen(
-                                color=item.pen_color.value,
-                                width=4,
-                                style=Qt.DashDotLine)
-                            # item._plots['infill'].setBrush(
-                            #     pg.mkBrush(item.fill_color.value))
-                        else:
-                            item._plots['in'].setPen(
-                                color=item.pen_color.value,
-                                width=1)
-                            item._plots['infill'].setBrush(
-                                pg.mkBrush(item.fill_color.value))
+                        item._plots['in'].setPen(color=item.pen_color.value,
+                                                 width=1)
+                        item._plots['infill'].setBrush(
+                            pg.mkBrush(item.fill_color.value))
                     if 'out' in item._plots:
-                        if item.name.value in [
-                            'volume change',
-                            'volume change 2d',
-                            'volume change 2d groundwater',
-                            'volume change 1d',
-                        ]:
-                            item._plots['out'].setPen(
-                                color=item.pen_color.value,
-                                width=4,
-                                style=Qt.DashDotLine)
-                            # item._plots['outfill'].setBrush(
-                            #     pg.mkBrush(item.fill_color.value))
-                        else:
-                            item._plots['out'].setPen(
-                                color=item.pen_color.value,
-                                width=1)
-                            item._plots['outfill'].setBrush(
-                                pg.mkBrush(item.fill_color.value))
+                        item._plots['out'].setPen(color=item.pen_color.value,
+                                                  width=1)
+                        item._plots['outfill'].setBrush(
+                            pg.mkBrush(item.fill_color.value))
+                    if 'sum' in item._plots:
+                        item._plots['sum'].setPen(color=item.pen_color.value,
+                                                  width=4,
+                                                  style=Qt.DashDotLine)
             else:
                 if item.active.value:
                     if 'in' in item._plots:
-                        if item.name.value in [
-                            'volume change',
-                            'volume change 2d',
-                            'volume change 2d groundwater',
-                            'volume change 1d',
-                        ]:
-                            item._plots['in'].setPen(
-                                color=item.pen_color.value,
-                                width=4,
-                                style=Qt.DashDotLine)
-                            # item._plots['infill'].setBrush(
-                            #     pg.mkBrush(item.fill_color.value))
-                        else:
-                            item._plots['in'].setPen(
-                                color=item.pen_color.value,
-                                width=1)
-                            item._plots['infill'].setBrush(
-                                pg.mkBrush(item.fill_color.value))
+                        item._plots['in'].setPen(color=item.pen_color.value,
+                                                 width=1)
+                        item._plots['infill'].setBrush(
+                            pg.mkBrush(item.fill_color.value))
                     if 'out' in item._plots:
-                        if item.name.value in [
-                            'volume change',
-                            'volume change 2d',
-                            'volume change 2d groundwater',
-                            'volume change 1d',
-                        ]:
-                            item._plots['out'].setPen(
-                                color=item.pen_color.value,
-                                width=4,
-                                style=Qt.DashDotLine)
-                            # item._plots['outfill'].setBrush(
-                            #     pg.mkBrush(item.fill_color.value))
-                        else:
-                            item._plots['out'].setPen(
-                                color=item.pen_color.value,
-                                width=1)
-                            item._plots['outfill'].setBrush(
-                                pg.mkBrush(item.fill_color.value))
+                        item._plots['out'].setPen(color=item.pen_color.value,
+                                                  width=1)
+                        item._plots['outfill'].setBrush(
+                            pg.mkBrush(item.fill_color.value))
+                    if 'sum' in item._plots:
+                        item._plots['sum'].setPen(color=item.pen_color.value,
+                                                  width=4,
+                                                  style=Qt.DashDotLine)
 
 
 class WaterBalanceWidget(QDockWidget):
@@ -602,6 +538,7 @@ class WaterBalanceWidget(QDockWidget):
             'label_name': 'leakage',
             'in': ['leak'],
             'out': ['leak'],
+            'sum': ['leak'],
             'type': '2d_groundwater',
         }, {
             'label_name': 'simple infiltration',
@@ -1027,7 +964,7 @@ class WaterBalanceWidget(QDockWidget):
         # set labels for in and out fluxes
         text_upper = pg.TextItem(text="in", anchor=(0, 1), angle=-90)
         text_upper.setPos(0, 0)
-        text_lower = pg.TextItem(text="uit", anchor=(1, 1), angle=-90)
+        text_lower = pg.TextItem(text="out", anchor=(1, 1), angle=-90)
         text_lower.setPos(0, 0)
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
