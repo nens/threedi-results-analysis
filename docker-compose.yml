@@ -1,0 +1,22 @@
+version: '3.0'
+
+services:
+
+  qgis-desktop:
+    image: qgis-desktop:2.18
+    build:
+      context: Docker/qgis2
+      dockerfile: Dockerfile
+      args:
+        QGIS_VERSION: 2.18  # Not used currently
+    volumes:
+      - ${HOME}/.qgis2:/home/${USER}/.qgis2
+      - ${HOME}/.local/share/QGIS:/home/${USER}/.local/share/QGIS
+      - ${HOME}/.config/QGIS:/home/${USER}/.config
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - .:/home/${USER}/.qgis2/python/plugins/ThreeDiToolbox
+    environment:
+      - USER_NAME=${USER}
+      - USER_ID=${UID}
+      - GROUP_ID=${UID}
+      - DISPLAY=unix${DISPLAY}

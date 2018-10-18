@@ -1,0 +1,25 @@
+version: '3.0'
+
+services:
+
+  qgis-desktop:
+    image: qgis-desktop:3.4
+    build:
+      context: Docker/qgis3
+      dockerfile: Dockerfile
+      args:
+        QGIS_VERSION: 3.4  # Not used currently
+    volumes:
+      # - ${HOME}/.qgis2:/home/${USER}/.qgis2
+      # - ${HOME}/.config/QGIS:/home/${USER}/.config
+      - ${HOME}/.local/share/QGIS:/home/${USER}/.local/share/QGIS
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - .:/home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+    environment:
+      - USER_NAME=${USER}
+      - USER_ID=${UID}
+      - GROUP_ID=${UID}
+      - DISPLAY=unix${DISPLAY}
+
+# TODO: once we have a QGIS2 and QGIS3 (master) branch, we can have one
+#  docker-compose.yml file.
