@@ -436,7 +436,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     else:
                         self.addItem(item._plots[dir], ignoreBounds=True)
                         self.addItem(
-                        item._plots[dir + 'fill'], ignoreBounds=True)
+                            item._plots[dir + 'fill'], ignoreBounds=True)
 
                         y_min = min(y_min, min(item._plots[dir].yData))
                         y_max = max(y_max, max(item._plots[dir].yData))
