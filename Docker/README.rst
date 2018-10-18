@@ -6,16 +6,23 @@ the ThreeDiToolbox requirements.
 
 Developing
 ----------
-The two folders qgis2 and qgis3 define containers for QGIS 2 and for QGIS 3
-respectively. Make sure you are on the `QGIS2` branch when developing for QGIS
-2 (TODO). Development for QGIS 3 should continue on master.
+The two folders qgis2 and qgis3 define image for QGIS 2 and for QGIS 3
+respectively. Both depend on the base image `qgis-desktop:base`. Make sure you
+are on the `QGIS2` branch when developing for QGIS 2 (TODO). Development for
+QGIS 3 should continue on master.
 
-To build the image go to the project root and enter the following
-command:
+To build the image, first make sure you have the base image `qgis-desktop:base`.
+You can build it with the following command::
+
+    $ cd Docker/base
+    $ docker build -t qgis-desktop:base .
+
+
+Next go to the project root and enter the following command::
 
     $ docker-compose build
 
-To start the QGIS application:
+To start the QGIS application::
 
     $ docker-compose up
 

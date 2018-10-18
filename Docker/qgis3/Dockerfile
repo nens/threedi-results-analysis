@@ -1,33 +1,8 @@
-FROM ubuntu:xenial
+FROM qgis-desktop:base
 MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Inspired by https://hub.docker.com/r/timcera/qgis-desktop-ubuntu/~/dockerfile/
 
-## for apt to be noninteractive
-ENV DEBIAN_FRONTEND noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN true
-
-ENV TZ Europe/Amsterdam
-
-# Need to have apt-transport-https in-place before drawing from
-# https://qgis.org
-RUN echo $TZ > /etc/timezone \
-    && apt-get -y update \
-    && apt-get -y install --no-install-recommends \
-       tzdata \
-       dirmngr \
-       apt-transport-https \
-       python-software-properties \
-       software-properties-common \
-       wget \
-    && add-apt-repository ppa:ubuntugis/ubuntugis-unstable \
-    && rm /etc/localtime  \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata \
-    && apt-get clean \
-    && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# https://qgis.org/ubuntugis
+# QGIS 3 (TODO: specify the version somewhere)
 RUN echo "deb     https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list
 RUN echo "deb-src https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list
 
@@ -38,24 +13,11 @@ RUN gpg --export --armor CAEB3DC3BDF7FB45 | apt-key add -
 
 RUN apt-get -y update \
     && apt-get -y install --no-install-recommends \
-       python3-pip \
-       python-requests \
-       python-numpy \
-       python-pandas \
-       python-scipy \
-       python-matplotlib \
-       python-h5py \
-       python-pyside.qtwebkit \
-       gdal-bin \
-       qgis \
-       python-qgis \
-       qgis-provider-grass \
-       grass \
-       libhdf5-serial-dev \
-       libnetcdf-dev \
-       python-dev \
-       build-essential \
-       git \
+        gdal-bin \
+        qgis \
+        python-qgis \
+        qgis-provider-grass \
+        grass \
     && apt-get clean \
     && apt-get purge \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -64,4 +26,3 @@ RUN apt-get -y update \
 ADD start.sh /start.sh
 RUN chmod 0755 /start.sh
 CMD /start.sh
-
