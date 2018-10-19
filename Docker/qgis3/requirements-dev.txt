@@ -11,3 +11,7 @@ pycodestyle
 numpy
 cython
 netCDF4
+
+pytest-cov
+future
+qgis2to3

@@ -21,7 +21,6 @@ RUN apt-get -y update \
 
 RUN pip install --upgrade pip
 RUN pip install setuptools
-RUN pip install netCDF4
 
 ADD requirements-dev.txt .
 RUN pip install -r requirements-dev.txt -U
