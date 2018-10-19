@@ -38,15 +38,18 @@ class WaterBalanceCalculation(object):
         # total nr of groundwater lines
         start_gr = ga.get_from_meta('lgrtot')
 
+        # get range of horizontal (in top view) surface water line ids
         x2d_surf_range_min = 1
         x2d_surf_range_max = nr_2d_x_dir
         self.x2d_surf_range = range(x2d_surf_range_min, x2d_surf_range_max + 1)
 
+        # get range of vertical (in top view) surface water line ids
         y2d_surf_range_min = x2d_surf_range_max + 1
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
         self.y2d_surf_range = range(y2d_surf_range_min, y2d_surf_range_max + 1)
 
-        # from surface to groundwater (vertical) flow
+        # get range of vertical (in side view) line ids in the gridadmin.
+        # These lines represent surface-groundwater (vertical) flow
         vert_flow_range_min = y2d_surf_range_max + 1
         vert_flow_range_max = y2d_surf_range_max + nr_2d
         self.vert_flow_range = range(
@@ -127,6 +130,12 @@ class WaterBalanceCalculation(object):
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
                 incoming = wb_polygon.contains(QgsPoint(geom[-1]))
+
+                # renier
+                print line.id()
+                print line['type']
+                print 'outgoing: ' + str(outgoing)
+                print 'incoming: ' + str(incoming)
 
                 if incoming and outgoing:
                     # skip
@@ -497,12 +506,6 @@ class WaterBalanceCalculation(object):
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
-                # renier
-                if t == 306.0955178098791:
-                    pass
-                if t == 606.0955178098791:
-                    pass
-
                 flow_pos = ds.get_values_by_timestep_nr(
                     'q_cum_positive', ts_idx, np_link['id']) * np_link[
                                'dir']
@@ -576,6 +579,14 @@ class WaterBalanceCalculation(object):
                     in_sum, mask=mask_1d_2d).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_2d).clip(max=0).sum()
+
+                # renier
+                if t == 306.0955178098791:
+                    pass
+                if t == 606.0955178098791:
+                    pass
+                if t == 3607.623168601036:
+                    pass
 
                 # 2d groundwater (2d_groundwater_in)
                 total_time[ts_idx, 23] = ma.masked_array(
@@ -761,8 +772,66 @@ class WaterBalanceCalculation(object):
                     td_vol_pref_gw = td_vol_gw
                     t_pref = t
         total_time = np.nan_to_num(total_time)
+
+        # renier
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 2] * dt
+            cum_flow += flow
+            print '1d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 3] * dt
+            cum_flow += flow
+            print '1d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 8] * dt
+            cum_flow += flow
+            print '1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                        cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 9] * dt
+            cum_flow += flow
+            print '1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                        cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 10] * dt
+            cum_flow += flow
+            print '2d_to_1d_pos, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                        cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 11] * dt
+            cum_flow += flow
+            print '2d_to_1d_neg, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                        cum_flow)
+
         return ts, total_time
 
+# "'{0}' is longer than '{1}'".format(name1, name2)
 
 class WaterBalanceTool:
 
