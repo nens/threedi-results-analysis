@@ -42,8 +42,8 @@ INPUT_SERIES = [
     ('2d_bound_out', 5, '2d'),
     ('1d_bound_in', 6, '1d'),
     ('1d_bound_out', 7, '1d'),
-    ('1d_2d_in', 8, '1d'),
-    ('1d_2d_out', 9, '2d'),
+    ('1d__1d_2d_in', 8, '1d'),
+    ('1d__1d_2d_out', 9, '1d'),
     ('2d_to_1d_pos', 10, '1d_2d'),
     ('2d_to_1d_neg', 11, '1d_2d'),
     ('pump_in', 12, '1d'),
@@ -64,6 +64,8 @@ INPUT_SERIES = [
     ('inflow', 27, '1d'),
     ('2d_vertical_infiltration_pos', 28, '2d_vert'),
     ('2d_vertical_infiltration_neg', 29, '2d_vert'),
+    ('2d__1d_2d_in', 30, '2d'),
+    ('2d__1d_2d_out', 31, '2d'),
 ]
 
 
@@ -396,7 +398,14 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                             *pen_color), width=4, style=Qt.DashDotLine))
                     # only get 1 line (the sum of 'in' and 'out')
                     item._plots['sum'] = plot_item
-                elif item.active.value and item.name.value not in [
+
+                if item.active.value and item.name.value == '1d-2d flow':
+                    print 'renier 1d-2d flow'
+
+                if item.active.value and item.name.value == '1d flow':
+                    print 'renier 1d flow'
+
+                if item.active.value and item.name.value not in [
                     'volume change',
                     'volume change 2d',
                     'volume change 2d groundwater',
@@ -512,20 +521,20 @@ class WaterBalanceWidget(QDockWidget):
 
     IN_OUT_SERIES = [
         {
-            'label_name': '1D-2D flow',
-            'in': ['1d_2d_in'],
-            'out': ['1d_2d_in'],
+            'label_name': '1D: 1D-2D flow',
+            'in': ['1d__1d_2d_in'],
+            'out': ['1d__1d_2d_out'],
             'type': '1d',
         }, {
-            'label_name': '1D-2D flow',
-            'in': ['1d_2d_out'],
-            'out': ['1d_2d_out'],
+            'label_name': '2D: 1D-2D flow',
+            'in': ['2d__1d_2d_in'],
+            'out': ['2d__1d_2d_out'],
             'type': '2d',
         }, {
             'label_name': '1D-2D flow (all domains)',
             # does this make sense?
-            'in': ['1d_2d_in', '1d_2d_out'],
-            'out': ['1d_2d_in', '1d_2d_out'],
+            'in': ['1d__1d_2d_in', '2d__1d_2d_in'],
+            'out': ['1d__1d_2d_out', '2d__1d_2d_out'],
             'type': 'NETVOL',
         }, {
             'label_name': 'net change in storage',
@@ -678,7 +687,8 @@ class WaterBalanceWidget(QDockWidget):
                     '2d', '1d_2d', '2d_vert', '2d_groundwater', '1d'] and
                 'storage' not in x['label_name'] and
                 'exchange' not in x['label_name'] and
-                x['label_name'] != '1D-2D flow') or
+                x['label_name'] != '1D: 1D-2D flow' and
+                x['label_name'] != '2D: 1D-2D flow') or
             x['type'] == 'NETVOL'
         ]
 
@@ -701,6 +711,8 @@ class WaterBalanceWidget(QDockWidget):
         viewbox_state = self.plot_widget.getPlotItem().getViewBox().getState()
         view_range = viewbox_state['viewRange']
         t1, t2 = view_range[0]
+
+        print 'break00'
 
         bm_net = BarManager(io_series_net)
         bm_2d = BarManager(io_series_2d)
@@ -869,14 +881,15 @@ class WaterBalanceWidget(QDockWidget):
             # TODO: '1d_2d_intersected' and 'pump_or_whatever' are magic
             # strings that we ad-hoc created in the 'prepare_and_visualize_
             # selection' function. A better solution would be nice...
-            '1d-2d flow': ['1d_2d_intersected'],
+            '1d: 1d-2d flow': ['1d__1d_2d_intersected'],
+            '2d: 1d-2d flow': ['2d__1d_2d_intersected'],
             'pumps': ['pump_or_whatever'],
             '2d groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_LINE_TYPES_MAIN_FLOWS = {
-            '2d flow': ['2d', '2d_bound', '1d_2d_intersected'],
+            '2d flow': ['2d', '2d_bound', '2d__1d_2d_intersected'],
             '1d flow': [
-                '1d', 'pump_or_whatever', '1d_bound', '1d_2d_intersected'],
+                '1d', 'pump_or_whatever', '1d_bound', '1d__1d_2d_intersected'],
             '1d-2d exchange': ['1d_2d'],
             '2d groundwater flow': ['2d_groundwater'],
         }
@@ -1010,6 +1023,8 @@ class WaterBalanceWidget(QDockWidget):
             wb_polygon, model_part)
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
+        print 'break666'
+
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)
 
@@ -1040,8 +1055,10 @@ class WaterBalanceWidget(QDockWidget):
                 # we're not interested in in or out types, but for 1d_2d_in
                 # and 1d_2d_out we need to employ this hack because these
                 # types end in '_in'/'_out'
-                if _type == '1d_2d_in' or _type == '1d_2d_out':
-                    t = '1d_2d_intersected'
+                if _type == '1d__1d_2d_in' or _type == '1d__1d_2d_out':
+                    t = '1d__1d_2d_intersected'
+                elif _type == '2d__1d_2d_in' or _type == '2d__1d_2d_in':
+                    t = '2d__1d_2d_intersected'
                 else:
                     t = _type.rsplit('_out')[0].rsplit('_in')[0]
 
