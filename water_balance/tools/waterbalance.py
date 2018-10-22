@@ -197,6 +197,11 @@ class WaterBalanceCalculation(object):
                     # know it is a vertical link we can be sure flow is to the
                     # north (thats why we need to know (A)
 
+                    # TODO: after I made this code Martijn Siemerink adviced:
+                    # 2d links drawing direction is always from south to north
+                    # OR west to east, so it not required to get start- and
+                    # endpoint of a 2d link
+
                     start_x = geom[0][0]
                     start_y = geom[0][1]
                     end_x = geom[-1][0]
@@ -493,6 +498,17 @@ class WaterBalanceCalculation(object):
 
         np_link = np.array(
             tlink, dtype=[('id', int), ('ntype', NTYPE_DTYPE), ('dir', int)])
+
+        # renier
+        print np_link
+        # Out[16]:
+        # array([(16683, '1d_2d', 1), (16684, '1d_2d', 1), (16685, '1d_2d', 1),
+        #        ..., (18617, '1d_bound_in', 1), (18618, '1d_bound_in', -1),
+        #        (18619, '1d_bound_in', 1)],
+        #       dtype=[('id', '<i8'), ('ntype', 'S25'), ('dir', '<i8')])
+
+        #renier, maw: link id 18618 is de enige 1d bound die outgoing is (daarom is type '1d_bound_in' en sign is -1
+
         # sort for faster reading of netcdf
         np_link.sort(axis=0)
 
@@ -501,6 +517,12 @@ class WaterBalanceCalculation(object):
         mask_1d = np_link['ntype'] != TYPE_1D
         mask_2d_bound = np_link['ntype'] != TYPE_2D_BOUND_IN
         mask_1d_bound = np_link['ntype'] != TYPE_1D_BOUND_IN
+
+        # renier
+        unique, counts = np.unique(mask_1d_bound, return_counts=True)
+        print unique
+        print counts
+
         mask_1d__1d_2d = np_link['ntype'] != TYPE_1D__1D_2D
         mask_2d__1d_2d = np_link['ntype'] != TYPE_2D__1D_2D
         mask_1d_2d = np_link['ntype'] != TYPE_1D_2D
@@ -568,6 +590,14 @@ class WaterBalanceCalculation(object):
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_bound).clip(max=0).sum()
 
+                # renier
+                if t == 306.0955178098791:
+                    pass
+                if t == 606.0955178098791:
+                    pass
+                if t > 3600:
+                    pass
+
                 # 1d bound (1d_bound_in)
                 total_time[ts_idx, 6] = ma.masked_array(
                     in_sum, mask=mask_1d_bound).clip(
@@ -578,12 +608,6 @@ class WaterBalanceCalculation(object):
                     in_sum, mask=mask_1d_bound).clip(
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_bound).clip(max=0).sum()
-
-                # renier
-                if t == 306.0955178098791:
-                    pass
-                if t == 606.0955178098791:
-                    pass
 
                 # 1d__1d_2d_in
                 total_time[ts_idx, 8] = ma.masked_array(
@@ -804,7 +828,45 @@ class WaterBalanceCalculation(object):
                     t_pref = t
         total_time = np.nan_to_num(total_time)
 
+
         # renier
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 6] * dt
+            cum_flow += flow
+            print '1d_bound_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 7] * dt
+            cum_flow += flow
+            print '1d_bound_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 0] * dt
+            cum_flow += flow
+            print '2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 1] * dt
+            cum_flow += flow
+            print '2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+                                                       cum_flow)
+
         cum_flow = 0
         prev_t = 0
         for ts_idx, t in enumerate(ts):

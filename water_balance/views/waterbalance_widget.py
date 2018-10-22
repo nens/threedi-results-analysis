@@ -199,6 +199,8 @@ class BarManager(object):
                 pass
             if b.label_name == '1D-2D flow' and b.type == '1d':
                 pass
+            if b.label_name == '1D boundaries' and b.type == '1d':
+                pass
 
             b.calc_balance(ts, ts_series, t1=t1, t2=t2)
             if net:
@@ -405,6 +407,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 if item.active.value and item.name.value == '1d flow':
                     print 'renier 1d flow'
 
+                if item.active.value and item.name.value == '1d boundaries':
+                    print 'renier 1d boundaries'
+
                 if item.active.value and item.name.value not in [
                     'volume change',
                     'volume change 2d',
@@ -555,7 +560,6 @@ class WaterBalanceWidget(QDockWidget):
             'label_name': 'leakage',
             'in': ['leak'],
             'out': ['leak'],
-            'sum': ['leak'],
             'type': '2d_groundwater',
         }, {
             'label_name': 'simple infiltration',
