@@ -709,7 +709,7 @@ class WaterBalanceCalculation(object):
                 print 'in_sum: ' + str(in_sum)
                 print 'in_sum.sum(): ' + str(in_sum.sum())
                 print 'out_sum: ' + str(out_sum)
-                print 'out_sum.sum(): ' +  str(out_sum.sum())
+                print 'out_sum.sum(): ' + str(out_sum.sum())
 
                 total_time[ts_idx, 12] = in_sum.sum()
                 total_time[ts_idx, 13] = out_sum.sum()
@@ -966,7 +966,7 @@ class WaterBalanceCalculation(object):
         for ts_idx, t in enumerate(ts):
             dt = t - prev_t
             prev_t = t
-            flow = total_time[ts_idx, 32] * dt
+            flow = total_time[ts_idx, 33] * dt
             cum_flow += flow
             print '2d__1d_2d_exch_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
 

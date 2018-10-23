@@ -541,12 +541,12 @@ class WaterBalanceWidget(QDockWidget):
             'label_name': '1D: 1D-2D flow',
             'in': ['1d__1d_2d_flow_in'],
             'out': ['1d__1d_2d_flow_out'],
-            'type': '1d_2d',
+            'type': '2d',
         }, {
             'label_name': '2D: 1D-2D flow',
             'in': ['2d__1d_2d_flow_in'],
             'out': ['2d__1d_2d_flow_out'],
-            'type': '1d_2d',
+            'type': '2d',
         }, {
             'label_name': '1D-2D flow (all domains)',
             # does this make sense?
@@ -617,12 +617,12 @@ class WaterBalanceWidget(QDockWidget):
             'label_name': '1D: 1D-2D exchange',
             'in': ['1d__1d_2d_exch_in'],
             'out': ['1d__1d_2d_exch_out'],
-            'type': '1d_2d',
+            'type': '2d',
         }, {
             'label_name': '2D: 1D-2D exchange',
             'in': ['2d__1d_2d_exch_in'],
             'out': ['2d__1d_2d_exch_out'],
-            'type': '1d_2d',
+            'type': '2d',
         }, {
             'label_name': '1D inflow from rain',
             'in': ['inflow'],
@@ -899,12 +899,9 @@ class WaterBalanceWidget(QDockWidget):
             '2d boundaries': ['2d_bound'],
             '1d flow': ['1d'],
             '1d boundaries': ['1d_bound'],
-            '1d: 1d-2d exchange': ['1d_2d_exch'],
-            # '2d: 1d-2d exchange' will highlight same links as
-            # '1d: 1d-2d exchange'
-            '2d: 1d-2d exchange': ['1d_2d_exch'],
-            '1d: 1d-2d flow': ['1d__1d_2d_flow'],
-            '2d: 1d-2d flow': ['2d__1d_2d_flow'],
+            '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
+            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow',
+                                      '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
             # in the 'prepare_and_visualize_selection' function.
             # A better solution would be nice...
@@ -914,7 +911,8 @@ class WaterBalanceWidget(QDockWidget):
         NAME_TO_LINE_TYPES_MAIN_FLOWS = {
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1d flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
-            '1d-2d exchange': ['1d_2d_exch'],
+            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow',
+                                      '2d__1d_2d_flow'],
             '2d groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {
@@ -1080,8 +1078,7 @@ class WaterBalanceWidget(QDockWidget):
                 # and 1d_2d_out we need to employ this hack because these
                 # types end in '_in'/'_out'
 
-                # renier
-                # _type can be e.g.:
+                # renier: # _type can be e.g.:
                 # 2d_bound_out
                 # 2d_out
                 # 1d_out
