@@ -115,8 +115,12 @@ class Bar(object):
     def end_balance_in(self):
         return self._balance_in
 
-    def set_end_balance_in(self, ts, ts_series, t1=0, t2=None):
+    def set_end_balance_in(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.in_series]
+
+        # renier
+        print 'set_end_balance_in: ' + b_labelname + ' ' + name
+
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
@@ -129,8 +133,12 @@ class Bar(object):
     def end_balance_out(self):
         return self._balance_out
 
-    def set_end_balance_out(self, ts, ts_series, t1=0, t2=None):
+    def set_end_balance_out(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.out_series]
+
+        # renier
+        print 'set_end_balance_out: ' + b_labelname + ' ' + name
+
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
@@ -138,10 +146,10 @@ class Bar(object):
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
         self._balance_out = balance_tmp[:, ts_indices_sliced].sum()
 
-    def calc_balance(self, ts, ts_series, t1=0, t2=None):
+    def calc_balance(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
         """Calculate balance values."""
-        self.set_end_balance_in(ts, ts_series, t1, t2)
-        self.set_end_balance_out(ts, ts_series, t1, t2)
+        self.set_end_balance_in(ts, ts_series, t1, t2, b_labelname)
+        self.set_end_balance_out(ts, ts_series, t1, t2, b_labelname)
         if self.is_storage_like:
             self.convert_to_net()
 
@@ -194,15 +202,17 @@ class BarManager(object):
         for b in self.bars:
 
             # renier
-            print b.label_name
+            # print b.label_name
             if b.label_name == '1D-2D flow' and b.type == '2d':
                 pass
             if b.label_name == '1D-2D flow' and b.type == '1d':
                 pass
             if b.label_name == '1D boundaries' and b.type == '1d':
                 pass
+            b_labelname = b.label_name
+            b.calc_balance(ts, ts_series, t1=t1, t2=t2, b_labelname=b_labelname)
 
-            b.calc_balance(ts, ts_series, t1=t1, t2=t2)
+            # b.calc_balance(ts, ts_series, t1=t1, t2=t2
             if net:
                 b.convert_to_net()
             if b.label_name in invert:
@@ -401,14 +411,14 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     # only get 1 line (the sum of 'in' and 'out')
                     item._plots['sum'] = plot_item
 
-                if item.active.value and item.name.value == '1d-2d flow':
-                    print 'renier 1d-2d flow'
-
-                if item.active.value and item.name.value == '1d flow':
-                    print 'renier 1d flow'
-
-                if item.active.value and item.name.value == '1d boundaries':
-                    print 'renier 1d boundaries'
+                # if item.active.value and item.name.value == '1d-2d flow':
+                #     print 'renier 1d-2d flow'
+                #
+                # if item.active.value and item.name.value == '1d flow':
+                #     print 'renier 1d flow'
+                #
+                # if item.active.value and item.name.value == '1d boundaries':
+                #     print 'renier 1d boundaries'
 
                 if item.active.value and item.name.value not in [
                     'volume change',
@@ -685,6 +695,7 @@ class WaterBalanceWidget(QDockWidget):
             return
         ts, ts_series = self._current_calc
 
+        #renier
         io_series_net = [
             x for x in self.IN_OUT_SERIES if (
                 x['type'] in [
@@ -716,7 +727,8 @@ class WaterBalanceWidget(QDockWidget):
         view_range = viewbox_state['viewRange']
         t1, t2 = view_range[0]
 
-        print 'break00'
+        # renier
+        # print 'break00'
 
         bm_net = BarManager(io_series_net)
         bm_2d = BarManager(io_series_2d)
@@ -726,7 +738,7 @@ class WaterBalanceWidget(QDockWidget):
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
 
         # renier
-        print 'break0'
+        # print 'break0'
         
         bm_2d.calc_balance(ts, ts_series, t1, t2)
         bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
@@ -1027,7 +1039,7 @@ class WaterBalanceWidget(QDockWidget):
             wb_polygon, model_part)
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
-        print 'break666'
+        # print 'break666'
 
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)

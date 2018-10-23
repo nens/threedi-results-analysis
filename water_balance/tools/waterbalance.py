@@ -500,7 +500,7 @@ class WaterBalanceCalculation(object):
             tlink, dtype=[('id', int), ('ntype', NTYPE_DTYPE), ('dir', int)])
 
         # renier
-        print np_link
+        # print np_link
         # Out[16]:
         # array([(16683, '1d_2d', 1), (16684, '1d_2d', 1), (16685, '1d_2d', 1),
         #        ..., (18617, '1d_bound_in', 1), (18618, '1d_bound_in', -1),
@@ -519,9 +519,9 @@ class WaterBalanceCalculation(object):
         mask_1d_bound = np_link['ntype'] != TYPE_1D_BOUND_IN
 
         # renier
-        unique, counts = np.unique(mask_1d_bound, return_counts=True)
-        print unique
-        print counts
+        # unique, counts = np.unique(mask_1d_bound, return_counts=True)
+        # print unique
+        # print counts
 
         mask_1d__1d_2d = np_link['ntype'] != TYPE_1D__1D_2D
         mask_2d__1d_2d = np_link['ntype'] != TYPE_2D__1D_2D
@@ -830,117 +830,116 @@ class WaterBalanceCalculation(object):
 
 
         # renier
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 6] * dt
-            cum_flow += flow
-            print '1d_bound_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 7] * dt
-            cum_flow += flow
-            print '1d_bound_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 0] * dt
-            cum_flow += flow
-            print '2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 1] * dt
-            cum_flow += flow
-            print '2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 2] * dt
-            cum_flow += flow
-            print '1d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 3] * dt
-            cum_flow += flow
-            print '1d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                       cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 8] * dt
-            cum_flow += flow
-            print '1d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 9] * dt
-            cum_flow += flow
-            print '1d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 10] * dt
-            cum_flow += flow
-            print '2d_to_1d_pos, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 11] * dt
-            cum_flow += flow
-            print '2d_to_1d_neg, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 30] * dt
-            cum_flow += flow
-            print '2d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 31] * dt
-            cum_flow += flow
-            print '2d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-                                                        cum_flow)
-
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 6] * dt
+        #     cum_flow += flow
+        #     print '1d_bound_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 7] * dt
+        #     cum_flow += flow
+        #     print '1d_bound_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 0] * dt
+        #     cum_flow += flow
+        #     print '2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 1] * dt
+        #     cum_flow += flow
+        #     print '2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        #
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 2] * dt
+        #     cum_flow += flow
+        #     print '1d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 3] * dt
+        #     cum_flow += flow
+        #     print '1d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 8] * dt
+        #     cum_flow += flow
+        #     print '1d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 9] * dt
+        #     cum_flow += flow
+        #     print '1d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 10] * dt
+        #     cum_flow += flow
+        #     print '2d_to_1d_pos, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 11] * dt
+        #     cum_flow += flow
+        #     print '2d_to_1d_neg, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
+        #
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 30] * dt
+        #     cum_flow += flow
+        #     print '2d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 31] * dt
+        #     cum_flow += flow
+        #     print '2d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
+        #                                                 cum_flow)
 
         return ts, total_time
 
