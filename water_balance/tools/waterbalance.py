@@ -106,9 +106,12 @@ class WaterBalanceCalculation(object):
             '2d_out': [],
             '2d_bound_in': [],
             '2d_bound_out': [],
-            '1d__1d_2d': [],
-            '2d__1d_2d': [],
-            '1d_2d': [],  # direction is always from 2d to 1d
+            # 1d2d flow lines intersect polygon (1d is inside polygon)
+            '1d__1d_2d_flow': [],
+            # 1d2d flow lines intersect polygon (2d is inside polygon)
+            '2d__1d_2d_flow': [],
+            # 1d2d exchange lines are within polygon (both nodes inside)
+            '1d_2d_exch': [],
             '2d_groundwater_in': [],
             '2d_groundwater_out': [],
             '2d_vertical_infiltration': [],
@@ -155,9 +158,9 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 2d node is inside polygon (and 1d
-                        # node is not) we define it as a '2d__1d_2d' link
+                        # node is not) we define it as a '2d__1d_2d_flow' link
                         # because
-                        flow_lines['2d__1d_2d'].append(line['id'])
+                        flow_lines['2d__1d_2d_flow'].append(line['id'])
                 elif incoming:
                     if line['type'] in [
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
@@ -166,8 +169,8 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 1d node is inside polygon (and 2d
-                        # node is not) we define it as a '1d__1d_2d' link
-                        flow_lines['1d__1d_2d'].append(line['id'])
+                        # node is not) we define it as a '1d__1d_2d_flow' link
+                        flow_lines['1d__1d_2d_flow'].append(line['id'])
 
                 if line['type'] in ['2d'] and not (incoming and outgoing):
                     # 2d lines are a separate story: discharge on a 2d
@@ -306,7 +309,7 @@ class WaterBalanceCalculation(object):
 
             elif line['type'] == '1d_2d' and line.geometry().within(
                     wb_polygon):
-                flow_lines['1d_2d'].append(line['id'])
+                flow_lines['1d_2d_exch'].append(line['id'])
             elif line['type'] == '2d_vertical_infiltration' and line.geometry(
                     ).within(wb_polygon):
                 flow_lines['2d_vertical_infiltration'].append(line['id'])
@@ -427,14 +430,16 @@ class WaterBalanceCalculation(object):
         # links only
         TYPE_1D_BOUND_IN = '1d_bound_in'
         TYPE_2D_BOUND_IN = '2d_bound_in'
-        TYPE_1D_2D = '1d_2d'
-        TYPE_1D__1D_2D = '1d__1d_2d'
-        TYPE_2D__1D_2D = '2d__1d_2d'
+        TYPE_1D__1D_2D_EXCH = '1d__1d_2d_exch'
+        TYPE_2D__1D_2D_EXCH = '2d__1d_2d_exch'
+        TYPE_1D__1D_2D_FLOW = '1d__1d_2d_flow'
+        TYPE_2D__1D_2D_FLOW = '2d__1d_2d_flow'
         TYPE_2D_VERTICAL_INFILTRATION = '2d_vertical_infiltration'
 
         ALL_TYPES = [
             TYPE_1D, TYPE_2D, TYPE_2D_GROUNDWATER, TYPE_1D_BOUND_IN,
-            TYPE_2D_BOUND_IN, TYPE_1D_2D, TYPE_1D__1D_2D, TYPE_2D__1D_2D,
+            TYPE_2D_BOUND_IN, TYPE_1D__1D_2D_EXCH, TYPE_2D__1D_2D_EXCH,
+            TYPE_1D__1D_2D_FLOW, TYPE_2D__1D_2D_FLOW,
             TYPE_2D_VERTICAL_INFILTRATION,
         ]
 
@@ -473,41 +478,33 @@ class WaterBalanceCalculation(object):
         for idx in link_ids['2d_groundwater_out']:
             tlink.append((idx, TYPE_2D_GROUNDWATER, -1))
 
-        # 1d_2d that intersects the polygon
-        # for 1d_2d flow it is a different story:
-        #   - discharge from 1d to 2d is always positive in the .nc
-        #   - discharge from 2d to 1d is always negative in the .nc
-        # 1d__1d_2d: 1d node is inside polygon, 2d node is outside.
-        #   - positive discharge means flow outwards polygon
-        #   - negative discharge means flow inwards polygon
-        # 2d__1d_2d: 1d node is outside polygon, 2d node is inside
-        #   - positive discharge means flow inwards polygon
-        #   - negative discharge means flow outwards polygon
-        for idx in link_ids['1d__1d_2d']:
-           tlink.append((idx, TYPE_1D__1D_2D, -1))
-        # 1d_2d_out: 1d node is outside polygon, 2d node is inside
-        for idx in link_ids['2d__1d_2d']:
-            tlink.append((idx, TYPE_2D__1D_2D, 1))
-
-        # 1d_2d within the polygon
-        for idx in link_ids['1d_2d']:
-            tlink.append((idx, TYPE_1D_2D, 1))
-
         for idx in link_ids['2d_vertical_infiltration']:
             tlink.append((idx, TYPE_2D_VERTICAL_INFILTRATION, 1))
 
+        # 1d_2d flow intersects the polygon:
+        # the in- or out flow for 1d2d is different than flows dirs above:
+        #   - discharge from 1d to 2d is always positive in the .nc
+        #   - discharge from 2d to 1d is always negative in the .nc
+        # 1d__1d_2d_flow: 1d node is inside polygon, 2d node is outside.
+        #   - positive discharge means flow outwards polygon
+        #   - negative discharge means flow inwards polygon
+        # 2d__1d_2d_flow: 1d node is outside polygon, 2d node is inside
+        #   - positive discharge means flow inwards polygon
+        #   - negative discharge means flow outwards polygon
+        for idx in link_ids['1d__1d_2d_flow']:
+           tlink.append((idx, TYPE_1D__1D_2D_FLOW, -1))
+        # 1d_2d_out: 1d node is outside polygon, 2d node is inside
+        for idx in link_ids['2d__1d_2d_flow']:
+            tlink.append((idx, TYPE_2D__1D_2D_FLOW, 1))
+        # 1d_2d within the polygon (from 1d perspective so everything flipped)
+        for idx in link_ids['1d_2d_exch']:
+            tlink.append((idx, TYPE_1D__1D_2D_EXCH, -1))
+        # 1d_2d within the polygon (from 2d perspective)
+        for idx in link_ids['1d_2d_exch']:
+            tlink.append((idx, TYPE_2D__1D_2D_EXCH, 1))
+
         np_link = np.array(
             tlink, dtype=[('id', int), ('ntype', NTYPE_DTYPE), ('dir', int)])
-
-        # renier
-        # print np_link
-        # Out[16]:
-        # array([(16683, '1d_2d', 1), (16684, '1d_2d', 1), (16685, '1d_2d', 1),
-        #        ..., (18617, '1d_bound_in', 1), (18618, '1d_bound_in', -1),
-        #        (18619, '1d_bound_in', 1)],
-        #       dtype=[('id', '<i8'), ('ntype', 'S25'), ('dir', '<i8')])
-
-        #renier, maw: link id 18618 is de enige 1d bound die outgoing is (daarom is type '1d_bound_in' en sign is -1
 
         # sort for faster reading of netcdf
         np_link.sort(axis=0)
@@ -523,9 +520,10 @@ class WaterBalanceCalculation(object):
         # print unique
         # print counts
 
-        mask_1d__1d_2d = np_link['ntype'] != TYPE_1D__1D_2D
-        mask_2d__1d_2d = np_link['ntype'] != TYPE_2D__1D_2D
-        mask_1d_2d = np_link['ntype'] != TYPE_1D_2D
+        mask_1d__1d_2d_flow = np_link['ntype'] != TYPE_1D__1D_2D_FLOW
+        mask_2d__1d_2d_flow = np_link['ntype'] != TYPE_2D__1D_2D_FLOW
+        mask_1d__1d_2d_exch = np_link['ntype'] != TYPE_1D__1D_2D_EXCH
+        mask_2d__1d_2d_exch = np_link['ntype'] != TYPE_2D__1D_2D_EXCH
         mask_2d_groundwater = np_link['ntype'] != TYPE_2D_GROUNDWATER
         mask_2d_vertical_infiltration = np_link['ntype'] != \
             TYPE_2D_VERTICAL_INFILTRATION
@@ -609,39 +607,49 @@ class WaterBalanceCalculation(object):
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_bound).clip(max=0).sum()
 
-                # 1d__1d_2d_in
+                # 1d__1d_2d_flow_in
                 total_time[ts_idx, 8] = ma.masked_array(
-                    in_sum, mask=mask_1d__1d_2d).clip(
+                    in_sum, mask=mask_1d__1d_2d_flow).clip(
                     min=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d__1d_2d).clip(min=0).sum()
-                # 1d__1d_2d_out
+                    out_sum, mask=mask_1d__1d_2d_flow).clip(min=0).sum()
+                # 1d__1d_2d_flow_out
                 total_time[ts_idx, 9] = ma.masked_array(
-                    in_sum, mask=mask_1d__1d_2d).clip(
+                    in_sum, mask=mask_1d__1d_2d_flow).clip(
                     max=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d__1d_2d).clip(max=0).sum()
+                    out_sum, mask=mask_1d__1d_2d_flow).clip(max=0).sum()
 
-                # 2d__1d_2d_in
+                # 2d__1d_2d_flow_in
                 total_time[ts_idx, 30] = ma.masked_array(
-                    in_sum, mask=mask_2d__1d_2d).clip(
+                    in_sum, mask=mask_2d__1d_2d_flow).clip(
                     min=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_2d__1d_2d).clip(min=0).sum()
-                # 2d__1d_2d_out
+                    out_sum, mask=mask_2d__1d_2d_flow).clip(min=0).sum()
+                # 2d__1d_2d_flow_out
                 total_time[ts_idx, 31] = ma.masked_array(
-                    in_sum, mask=mask_2d__1d_2d).clip(
+                    in_sum, mask=mask_2d__1d_2d_flow).clip(
                     max=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d__1d_2d).clip(max=0).sum()
+                    out_sum, mask=mask_1d__1d_2d_flow).clip(max=0).sum()
 
-
-                # 1d 2d (2d_to_1d_pos)
+                # 1d (1d__1d_2d_exch_in)
                 total_time[ts_idx, 10] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d).clip(
+                    in_sum, mask=mask_1d__1d_2d_exch).clip(
                     min=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d).clip(min=0).sum()
-                # 1d 2d (2d_to_1d_neg)
+                    out_sum, mask=mask_1d__1d_2d_exch).clip(min=0).sum()
+                # 1d (1d__1d_2d_exch_out)
                 total_time[ts_idx, 11] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d).clip(
+                    in_sum, mask=mask_1d__1d_2d_exch).clip(
                     max=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d).clip(max=0).sum()
+                    out_sum, mask=mask_1d__1d_2d_exch).clip(max=0).sum()
+
+                # 2d (2d__1d_2d_exch_in)
+                total_time[ts_idx, 32] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_exch).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d__1d_2d_exch).clip(min=0).sum()
+                # 2d (2d__1d_2d_exch_out)
+                total_time[ts_idx, 33] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_exch).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d__1d_2d_exch).clip(max=0).sum()
 
                 # 2d groundwater (2d_groundwater_in)
                 total_time[ts_idx, 23] = ma.masked_array(
@@ -696,6 +704,12 @@ class WaterBalanceCalculation(object):
 
                 in_sum = flow_dt.clip(min=0)
                 out_sum = flow_dt.clip(max=0)
+
+                # renier
+                print 'in_sum: ' + str(in_sum)
+                print 'in_sum.sum(): ' + str(in_sum.sum())
+                print 'out_sum: ' + str(out_sum)
+                print 'out_sum.sum(): ' +  str(out_sum.sum())
 
                 total_time[ts_idx, 12] = in_sum.sum()
                 total_time[ts_idx, 13] = out_sum.sum()
@@ -828,125 +842,156 @@ class WaterBalanceCalculation(object):
                     t_pref = t
         total_time = np.nan_to_num(total_time)
 
-
         # renier
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 6] * dt
-        #     cum_flow += flow
-        #     print '1d_bound_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 7] * dt
-        #     cum_flow += flow
-        #     print '1d_bound_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 0] * dt
-        #     cum_flow += flow
-        #     print '2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 1] * dt
-        #     cum_flow += flow
-        #     print '2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 2] * dt
-        #     cum_flow += flow
-        #     print '1d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 3] * dt
-        #     cum_flow += flow
-        #     print '1d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 8] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 9] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 10] * dt
-        #     cum_flow += flow
-        #     print '2d_to_1d_pos, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 11] * dt
-        #     cum_flow += flow
-        #     print '2d_to_1d_neg, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 30] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 31] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow,
-        #                                                 cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 12] * dt
+            cum_flow += flow
+            print 'pump_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 13] * dt
+            cum_flow += flow
+            print 'pump_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+        cum_flow = 0
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 6] * dt
+            cum_flow += flow
+            print '1d_bound_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 7] * dt
+            cum_flow += flow
+            print '1d_bound_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+        cum_flow = 0
+
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 0] * dt
+            cum_flow += flow
+            print '2d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 1] * dt
+            cum_flow += flow
+            print '2d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 2] * dt
+            cum_flow += flow
+            print '1d_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 3] * dt
+            cum_flow += flow
+            print '1d_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 8] * dt
+            cum_flow += flow
+            print '1d__1d_2d_flow_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 9] * dt
+            cum_flow += flow
+            print '1d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 10] * dt
+            cum_flow += flow
+            print '1d__1d_2d_exch_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 11] * dt
+            cum_flow += flow
+            print '1d__1d_2d_exch_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 32] * dt
+            cum_flow += flow
+            print '2d__1d_2d_exch_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 32] * dt
+            cum_flow += flow
+            print '2d__1d_2d_exch_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 30] * dt
+            cum_flow += flow
+            print '2d__1d_2d_flow_in, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 31] * dt
+            cum_flow += flow
+            print '2d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(ts_idx, t, flow, cum_flow)
 
         return ts, total_time
 
-# "'{0}' is longer than '{1}'".format(name1, name2)
 
 class WaterBalanceTool:
-
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
