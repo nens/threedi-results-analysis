@@ -1,4 +1,5 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
+from builtins import range
 import os
 
 from osgeo import ogr
@@ -7,9 +8,9 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsCoordinateReferenceSystem
-from qgis.core import QGis
+from qgis.core import Qgis
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceUri
 
 from .user_messages import StatusProgressBar
 from ..datasource.spatialite import disable_sqlite_synchronous
@@ -37,7 +38,7 @@ def contains_layer(sqlite_path, layer_name):
 
 def _get_vec_lyr(sqlite_path, layer_name, geom_column='the_geom'):
     """Helper function to construct a QgsVectorLayer."""
-    uri = QgsDataSourceURI()
+    uri = QgsDataSourceUri()
     uri.setDatabase(sqlite_path)
     uri.setDataSource('', layer_name, geom_column)
     return QgsVectorLayer(uri.uri(), layer_name, 'spatialite')
@@ -139,7 +140,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     ]
 
     layer = spatialite.create_empty_layer(
-        FLOWLINES_LAYER_NAME, QGis.WKBLineString, fields, 'id')
+        FLOWLINES_LAYER_NAME, Qgis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -163,8 +164,8 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
                              "v2_orifice"):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in ds.id_mapping[
-                        feature_type].items():
+                for spatialite_id, inp_id in list(ds.id_mapping[
+                        feature_type].items()):
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -254,7 +255,7 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     ]
 
     layer = spatialite.create_empty_layer(
-        NODES_LAYER_NAME, QGis.WKBPoint, fields, 'id')
+        NODES_LAYER_NAME, QgsWkbTypes.Point, fields, 'id')
 
     pr = layer.dataProvider()
 
@@ -278,8 +279,8 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         for feature_type in ("v2_connection_nodes", "v2_manhole",
                              "v2_1d_boundary_conditions"):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in ds.id_mapping[
-                        feature_type].items():
+                for spatialite_id, inp_id in list(ds.id_mapping[
+                        feature_type].items()):
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -356,7 +357,7 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
     ]
 
     layer = spatialite.create_empty_layer(
-        PUMPLINES_LAYER_NAME, QGis.WKBLineString, fields, 'id')
+        PUMPLINES_LAYER_NAME, Qgis.WKBLineString, fields, 'id')
 
     pr = layer.dataProvider()
 

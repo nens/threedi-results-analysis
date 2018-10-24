@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import str
+from builtins import range
 import logging
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QAbstractItemView
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtGui import QTableWidget
-from PyQt4.QtGui import QTableWidgetItem
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QWidget
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QTableWidget
+from qgis.PyQt.QtWidgets import QTableWidgetItem
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
 
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
@@ -70,7 +72,7 @@ class CustomCommand(CustomCommandBase):
             Qt.BottomDockWidgetArea, self.dockwidget_controlled_structures)
         # Show active models
         self.dockwidget_controlled_structures.combobox_input_model.addItems(
-            self.databases.keys())
+            list(self.databases.keys()))
         self.dockwidget_controlled_structures.show()
 
     def update_dockwidget_ids(self):

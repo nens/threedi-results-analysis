@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from PyQt4.QtCore import pyqtSignal, QSettings
-from PyQt4.QtGui import QDialog
-from PyQt4.QtSql import QSqlDatabase
-from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
-from PyQt4.QtGui import (
-    QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout,
-    QCheckBox, QDialogButtonBox, QApplication)
+from qgis.PyQt.QtCore import pyqtSignal, QSettings
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
+from qgis.PyQt.QtWidgets import QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout, QCheckBox, QDialogButtonBox, QApplication
 
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
+from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
 from qgis.gui import QgsCredentialDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
@@ -47,7 +45,7 @@ class GuessIndicatorDialogWidget(QDialog):
         self.command = command
 
         self.databases = get_databases()
-        self.database_combo.addItems(self.databases.keys())
+        self.database_combo.addItems(list(self.databases.keys()))
 
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
@@ -75,7 +73,7 @@ class GuessIndicatorDialogWidget(QDialog):
 
             while not successful_connection:
 
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 uri.setConnection(db_set['host'],
                                   db_set['port'],
                                   db_set['database'],
@@ -209,10 +207,8 @@ class GuessIndicatorDialogWidget(QDialog):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                        self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                        self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):

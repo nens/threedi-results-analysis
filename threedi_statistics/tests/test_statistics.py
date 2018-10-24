@@ -1,3 +1,4 @@
+from builtins import object
 import unittest
 import os.path
 import platform
@@ -5,7 +6,8 @@ import platform
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
 
-from pyspatialite import dbapi2 as dbapi
+# from pyspatialite import dbapi2 as dbapi
+from sqlite3 import dbapi2 as dbapi
 
 test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 

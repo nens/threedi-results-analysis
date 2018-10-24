@@ -71,9 +71,9 @@ class TestBreachLocationDryRun(unittest.TestCase):
             [26, 27, 28, 29, 30, 31, 32]  # belongs to pipe 4
         ]
         calc_points_dict = self.breach_location.get_calc_points_by_content()
-        self.assertListEqual(calc_points_dict.keys(), expected_keys)
+        self.assertListEqual(list(calc_points_dict.keys()), expected_keys)
         self.assertListEqual(
-            calc_points_dict.values(), expected_calc_point_ids
+            list(calc_points_dict.values()), expected_calc_point_ids
         )
 
     def test_it_can_get_connected_points(self):
@@ -94,8 +94,8 @@ class TestBreachLocationDryRun(unittest.TestCase):
             {None: (3.3142242860395994, 47.974823241109604)}
         ]
         self.assertListEqual(
-            expected_connected_points[0].keys(),
-            connected_points_selection[0].keys()
+            list(expected_connected_points[0].keys()),
+            list(connected_points_selection[0].keys())
         )
 
     def test_it_wont_move_points_behind_levee(self):
@@ -195,7 +195,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         self.assertEqual(len(levee_intersections), 2)
 
         # one with levee 2, another with levee 3
-        self.assertListEqual(levee_intersections.keys(), [2, 3])
+        self.assertListEqual(list(levee_intersections.keys()), [2, 3])
 
     def test_it_can_calculate_new_positions(self):
         perp_line = calculate_perpendicular_line(

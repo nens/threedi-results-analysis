@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from __future__ import absolute_import
 import unittest
 import tempfile
 import os.path
 
 from qgis.core import QgsProject
-from PyQt4.QtCore import QObject, pyqtSignal, QFileInfo
+from qgis.PyQt.QtCore import QObject, pyqtSignal, QFileInfo
 
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from utilities import get_qgis_app
+from .utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 

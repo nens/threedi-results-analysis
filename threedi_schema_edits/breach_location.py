@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import str
+from builtins import zip
+from builtins import object
 import logging
 import itertools
 import collections
@@ -12,7 +15,7 @@ from qgis.core import QgsVectorLayer
 from qgis.core import QgsPoint
 from qgis.core import QgsField
 
-from PyQt4.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant
 
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import get_distance
@@ -111,9 +114,9 @@ class BreachLocation(object):
         for item in user_selection:
             # combine feature with field names
             conn_pnt = dict(
-                zip(
-                    self.fnames_conn_pnt.keys(), item.attributes()
-                )
+                list(zip(
+                    list(self.fnames_conn_pnt.keys()), item.attributes()
+                ))
             )
             self.selected_pnt_ids[item.id()].append(
                 conn_pnt['calculation_pnt_id']
@@ -145,7 +148,7 @@ class BreachLocation(object):
         connected_points = self.connected_pnt_lyr.getFeatures(
             connected_pnt_request
         )
-        selected_connected_pnt_ids = self.selected_pnt_ids.keys()
+        selected_connected_pnt_ids = list(self.selected_pnt_ids.keys())
         for feature in connected_points:
             if self.use_selection:
                 if feature.id() in selected_connected_pnt_ids:
@@ -161,8 +164,8 @@ class BreachLocation(object):
         # add a dummy point to be able to draw a line for the
         # last point
         extrapolated_point = get_extrapolated_point(
-            selected_points[INDEX_MAP[calc_type]].values()[0],  # xy tuple
-            selected_points[-1].values()[0],                    # xy tuple
+            list(selected_points[INDEX_MAP[calc_type]].values())[0],  # xy tuple
+            list(selected_points[-1].values())[0],                    # xy tuple
         )
         selected_points.append({None: extrapolated_point})
         return selected_points
@@ -192,16 +195,16 @@ class BreachLocation(object):
         )
         calc_pnt_features = self.calc_pnt_lyr.getFeatures(calc_pnt_request)
         selected_calc_pnt_ids = list(
-            itertools.chain(*self.selected_pnt_ids.values())
+            itertools.chain(*list(self.selected_pnt_ids.values()))
         )
         for calc_pnt_feature in calc_pnt_features:
             if any([calc_pnt_feature.id() in selected_calc_pnt_ids,
                     not self.use_selection]):
                 # combine feature with field names
                 calc_pnt = dict(
-                    zip(
+                    list(zip(
                         fnames_calc_pnt, calc_pnt_feature.attributes()
-                    )
+                    ))
                 )
                 user_ref = calc_pnt['user_ref']
                 calc_type = calc_pnt['calc_type']
@@ -238,15 +241,15 @@ class BreachLocation(object):
         # it is not of interest here
         for start_pnt, nxt_pnt in utils.pairwise(points):
 
-            connected_pnt_ids = start_pnt.keys()
-            start_pnt_xy = start_pnt.values()[0]
-            nxt_pnt_xy = nxt_pnt.values()[0]
+            connected_pnt_ids = list(start_pnt.keys())
+            start_pnt_xy = list(start_pnt.values())[0]
+            nxt_pnt_xy = list(nxt_pnt.values())[0]
             # skip this iteration, double connected point exists twice
             if start_pnt_xy == nxt_pnt_xy:
                 # we do need both ids for updating the geometry
                 _connected_pnt_ids = list(
                     itertools.chain(
-                        *(start_pnt.keys(), nxt_pnt.keys())
+                        *(list(start_pnt.keys()), list(nxt_pnt.keys()))
                     )
                 )
                 continue
@@ -298,12 +301,12 @@ class BreachLocation(object):
                 if _connected_pnt_ids is not None:
                     # new_position can contain just one entry if there
                     # wasn't an intersection on one side
-                    to_update = dict(itertools.izip_longest(
+                    to_update = dict(itertools.zip_longest(
                         _connected_pnt_ids, new_positions,
                         fillvalue=(None, None))
                     )
                 else:
-                    to_update = dict(zip(connected_pnt_ids, new_positions))
+                    to_update = dict(list(zip(connected_pnt_ids, new_positions)))
 
                 self.update_connected_point_layer(to_update)
             _connected_pnt_ids = None
@@ -349,9 +352,9 @@ class BreachLocation(object):
         for levee_feat in levee_features:
             # combine feature with field names
             levee = dict(
-                zip(
+                list(zip(
                     levee_field_names, levee_feat.attributes()
-                )
+                ))
             )
             levee_id = levee['id']
             if levee_feat.geometry().intersects(virtual_line):
@@ -384,7 +387,7 @@ class BreachLocation(object):
 
         # sort by distance
         intersections = sorted(
-            levee_intersections.values(), key=lambda x: (x[0]))
+            list(levee_intersections.values()), key=lambda x: (x[0]))
         dist, pnt, levee_id = intersections[0][0]
 
         pnt_to_use = end_point
@@ -462,11 +465,11 @@ class BreachLocation(object):
         """
         if self.is_dry_run:
             return
-        for conn_pnt_id, (geom, levee_id) in to_update.iteritems():
+        for conn_pnt_id, (geom, levee_id) in to_update.items():
             if any([geom is None, conn_pnt_id is None]):
                 continue
             req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
-            feat = self.connected_pnt_lyr.getFeatures(req).next()
+            feat = next(self.connected_pnt_lyr.getFeatures(req))
             feat['levee_id'] = levee_id
             feat.setGeometry(geom)
             self.connected_pnt_lyr.updateFeature(feat)

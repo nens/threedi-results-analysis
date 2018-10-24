@@ -1,3 +1,4 @@
+from builtins import str
 import glob
 import logging
 import os
@@ -149,9 +150,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # hardcoded whitelist
         if agg.has_pumpstations:
             known_vars = set(
-                agg.lines.Meta.composite_fields.keys() +
-                agg.nodes.Meta.composite_fields.keys() +
-                agg.pumps.Meta.composite_fields.keys()
+                list(agg.lines.Meta.composite_fields.keys()) +
+                list(agg.nodes.Meta.composite_fields.keys()) +
+                list(agg.pumps.Meta.composite_fields.keys())
             )
 
             # all available fields, including hdf5 fields
@@ -161,8 +162,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             )
         else:
             known_vars = set(
-                agg.lines.Meta.composite_fields.keys() +
-                agg.nodes.Meta.composite_fields.keys()
+                list(agg.lines.Meta.composite_fields.keys()) +
+                list(agg.nodes.Meta.composite_fields.keys())
             )
 
             # all available fields, including hdf5 fields
@@ -174,12 +175,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
         # until it is fixed, we add simple_infiltration to known_vars
         if agg.has_simple_infiltration:
-            available_known_vars.add(unicode('infiltration_rate_simple_cum'))
+            available_known_vars.add(str('infiltration_rate_simple_cum'))
         # TODO: a simulation with groundwater does not have leakage per-se
         # (only when leakage is forced (global or raster) so
         # agg.has_groundwater is not bullet-proof
         if agg.has_groundwater:
-            available_known_vars.add(unicode('leak_cum'))
+            available_known_vars.add(str('leak_cum'))
         return list(available_known_vars)
 
     def get_available_variables(self):
@@ -388,14 +389,14 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             raise ValueError(variable)
 
         # determine appropriate fill value from netCDF
-        if var_2d in ds.variables.keys():
+        if var_2d in list(ds.variables.keys()):
             fill_value_2d = ds.variables[var_2d]._FillValue
             fill_value = fill_value_2d
-        if var_1d in ds.variables.keys():
+        if var_1d in list(ds.variables.keys()):
             fill_value_1d = ds.variables[var_1d]._FillValue
             fill_value = fill_value_1d
 
-        if var_2d in ds.variables.keys() and var_1d in ds.variables.keys():
+        if var_2d in list(ds.variables.keys()) and var_1d in list(ds.variables.keys()):
             assert fill_value_1d == fill_value_2d, \
                 "Difference in fill value, can't consolidate"
 
@@ -413,21 +414,21 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 raise ValueError(variable)
 
             # Note: it's possible to only have 2D or 1D
-            if var_2d in ds.variables.keys():
+            if var_2d in list(ds.variables.keys()):
                 a2d = self._nc_from_mem(
                     ds, var_2d, use_cache)[timestamp_idx, :]
             else:
                 a2d = np.ma.masked_all(n2d)
 
-            if var_1d in ds.variables.keys():
+            if var_1d in list(ds.variables.keys()):
                 a1d = self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, :]
             else:
                 a1d = np.ma.masked_all(n1d)
 
             assert (
-                var_2d in ds.variables.keys() or var_1d in
-                ds.variables.keys()), "No 2D and 1D?"
+                var_2d in list(ds.variables.keys()) or var_1d in
+                list(ds.variables.keys())), "No 2D and 1D?"
 
             # Note: order is: 2D, then 1D
             res = np.ma.hstack([a2d, a1d])

@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 from collections import namedtuple
 import glob
 from itertools import (starmap, product)
@@ -137,7 +139,7 @@ layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 
 def normalized_object_type(current_layer_name):
     """Get a normalized object type for internal purposes."""
-    if current_layer_name in layer_object_type_mapping.keys():
+    if current_layer_name in list(layer_object_type_mapping.keys()):
         return layer_object_type_mapping[current_layer_name]
     else:
         msg = "Unsupported layer: %s." % current_layer_name
@@ -474,13 +476,13 @@ class NetcdfDataSource(BaseDataSource):
         if do_all or only_subgrid_map:
             possible_subgrid_map_vars = [v for v, _, _ in
                                          SUBGRID_MAP_VARIABLES]
-            subgrid_map_vars = self.ds.variables.keys()
+            subgrid_map_vars = list(self.ds.variables.keys())
             available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
                                           if v in subgrid_map_vars]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
             if self.ds_aggregation is not None:
-                agg_vars = self.ds_aggregation.variables.keys()
+                agg_vars = list(self.ds_aggregation.variables.keys())
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
@@ -639,7 +641,7 @@ class NetcdfDataSource(BaseDataSource):
         n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
-        netcdf_ids = range(len(object_ids))  # init a list
+        netcdf_ids = list(range(len(object_ids)))  # init a list
         for i, obj_id in enumerate(object_ids):
             netcdf_ids[i] = self.obj_to_netcdf_id(obj_id, n_object_type)
         # netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)

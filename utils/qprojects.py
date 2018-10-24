@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import str
+from builtins import object
 import os
+from io import IOBase
 from qgis.core import QgsProject
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -46,7 +49,7 @@ class ProjectStateMixin(object):
         - setting key
         - new value. The value is rapped in an extra list (is easier to
           support the different value types through the same signal (
-          overloading is supported from qt 4.11.x, so not in QGis)
+          overloading is supported from qt 4.11.x, so not in Qgis)
         The signal could be declared by adding the next line to the class (
         needs to be an QObject or simular):
 
@@ -122,8 +125,8 @@ class ProjectStateMixin(object):
                 # change
                 tool_name, description = tool.get_state_description()
                 name = self.get_tool_state_name(tool_name)
-                for key, value in description.items():
-                    if value == file:
+                for key, value in list(description.items()):
+                    if isinstance(value, IOBase):
                         tool_key = self.get_tool_state_name(tool_name)
                         if tool_key not in self.file_dict:
                             self.file_dict[tool_key] = {}
@@ -143,8 +146,8 @@ class ProjectStateMixin(object):
         # absolute,if setting is not set, popup the first time this functions
         # is called
         proj = QgsProject.instance()
-        for tool_key, key_dict in self.file_dict.items():
-            for setting_key in key_dict.keys():
+        for tool_key, key_dict in list(self.file_dict.items()):
+            for setting_key in list(key_dict.keys()):
                 value, valid = proj.readEntry(tool_key, 'abs_' + setting_key)
                 if valid and len(value) > 0:
                     rel_path = self._get_relative_path(value)
@@ -173,7 +176,7 @@ class ProjectStateMixin(object):
                 settings = {}
                 tool_name, description = tool.get_state_description()
                 name = self.get_tool_state_name(tool_name)
-                for key, value_type in description.items():
+                for key, value_type in list(description.items()):
                     # use string or list reader and transform values ourselves.
                     # QgsProject also has methods to read other value type, but
                     # because 'valid' is (seems to be) always True, it is not
@@ -195,7 +198,7 @@ class ProjectStateMixin(object):
                             elif value_type == bool:
                                 value, valid = QgsProject.instance(
                                 ).readBoolEntry(name, key)
-                            elif value_type == file:
+                            elif isinstance(file, IOBase):
                                 # TODO: change this code when starting to
                                 # work with 2.17 and up
                                 value, valid = QgsProject.instance().readEntry(

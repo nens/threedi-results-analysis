@@ -30,33 +30,37 @@
 #* initial date       :  2008-07-28
 #**********************************************************************
 
+from __future__ import absolute_import
+from builtins import map
+from builtins import range
+from builtins import object
 import types
 import unittest
 
-from turtleurbanclasses import Knoop
-from turtleurbanclasses import GeslotenLeiding
-from turtleurbanclasses import Gemaal
-from turtleurbanclasses import AlgemeneInformatie
-from turtleurbanclasses import DWALozingMetDagcyclus
-from turtleurbanclasses import DWAVerloopPerInwoner
-from turtleurbanclasses import Overstort
-from turtleurbanclasses import UitlaatMetKeerklep
-from turtleurbanclasses import Doorlaat
-from turtleurbanclasses import BergendOppervlakKnoop
-from turtleurbanclasses import AfvoerendOppervlak
-from turtleurbanclasses import InitieleLeidingWaarden
-from turtleurbanclasses import End
-from turtleurbanclasses import HydroObjectFactory
-from turtleurbanclasses import Gemaal_Knoop
-from turtleurbanclasses import Gemaal_Tak
-from turtleurbanclasses import Overstort_Knoop
-from turtleurbanclasses import Overstort_Tak
-from turtleurbanclasses import UitlaatMetKeerklep_Knoop
-from turtleurbanclasses import UitlaatMetKeerklep_Tak
-from turtleurbanclasses import AfvoerendOppervlak_Knoop
-from turtleurbanclasses import AfvoerendOppervlak_Tak
-from turtleurbanclasses import isSufHydKey
-from turtleurbanclasses import GmlElement
+from .turtleurbanclasses import Knoop
+from .turtleurbanclasses import GeslotenLeiding
+from .turtleurbanclasses import Gemaal
+from .turtleurbanclasses import AlgemeneInformatie
+from .turtleurbanclasses import DWALozingMetDagcyclus
+from .turtleurbanclasses import DWAVerloopPerInwoner
+from .turtleurbanclasses import Overstort
+from .turtleurbanclasses import UitlaatMetKeerklep
+from .turtleurbanclasses import Doorlaat
+from .turtleurbanclasses import BergendOppervlakKnoop
+from .turtleurbanclasses import AfvoerendOppervlak
+from .turtleurbanclasses import InitieleLeidingWaarden
+from .turtleurbanclasses import End
+from .turtleurbanclasses import HydroObjectFactory
+from .turtleurbanclasses import Gemaal_Knoop
+from .turtleurbanclasses import Gemaal_Tak
+from .turtleurbanclasses import Overstort_Knoop
+from .turtleurbanclasses import Overstort_Tak
+from .turtleurbanclasses import UitlaatMetKeerklep_Knoop
+from .turtleurbanclasses import UitlaatMetKeerklep_Tak
+from .turtleurbanclasses import AfvoerendOppervlak_Knoop
+from .turtleurbanclasses import AfvoerendOppervlak_Tak
+from .turtleurbanclasses import isSufHydKey
+from .turtleurbanclasses import GmlElement
 
 import logging
 import re
@@ -81,7 +85,7 @@ class MockWriter(file):
         self.buffer = []
 
     def write(self, s):
-        if isinstance(s, types.StringTypes):
+        if isinstance(s, str):
             self.buffer.append(s)
             for pattern, key, value in self.laws:
                 if s.find(pattern) != -1:
@@ -989,7 +993,7 @@ class ObjectCreateTest(unittest.TestCase):
 
     def test1CreationZ(self):
         "- batch testing creation"
-        for i in sum(sampleStrings['SUFHYD'].values(), []):
+        for i in sum(list(sampleStrings['SUFHYD'].values()), []):
             HydroObjectFactory.hydroObjectFromSUFHYD(i)
 
     def test2Fields(self):
@@ -1239,7 +1243,7 @@ class ObjectCreateTest(unittest.TestCase):
 
     def test70ObjectsHaveStartPointId(self):
         "- all objects have a get_start_pointId"
-        for thisClass in sampleStrings['SUFHYD'].keys():
+        for thisClass in list(sampleStrings['SUFHYD'].keys()):
             obj = HydroObjectFactory.hydroObjectFromSUFHYD(sampleStrings['SUFHYD'][thisClass][0])
             obj.get_start_pointId()
 
@@ -1370,9 +1374,9 @@ class GMLFileReadTest(unittest.TestCase):
         "- do we get a correctly sized sequence?"
         handler.flush()
         handler.setLevel(logging.ERROR)
-        fakeFile = '\n'.join(sum(sampleStrings['GML'].values(), []) * 4)
+        fakeFile = '\n'.join(sum(list(sampleStrings['GML'].values()), []) * 4)
         obj_list = HydroObjectFactory.hydroObjectListFromGML(fakeFile)
-        self.assertEqual(len(obj_list), len(sum(sampleStrings['GML'].values(), [])) * 4)
+        self.assertEqual(len(obj_list), len(sum(list(sampleStrings['GML'].values()), [])) * 4)
         self.assertEqual(handler.content, [])
         handler.setLevel(logging.DEBUG)
 
@@ -1836,7 +1840,7 @@ class GlueAreaAndLocation(unittest.TestCase):
         self.assertNotEqual(obj_list[0].get_start_pointId(), obj_list[1].get_start_pointId())
 
 
-class Bug02713:  # (unittest.TestCase):
+class Bug02713(object):  # (unittest.TestCase):
     """TODO: this test is not yet working, so it's not included
     """
     ticket_test = """\
@@ -1947,7 +1951,7 @@ class NetworkXIntegration(unittest.TestCase):
         for i in [1, 2, 4]:
             current = obj_list[i].toNxTuple()
             self.assertEqual((ids[i], ), current[:1])
-            common_keys = set(current[1].keys()).intersection(obj_list[i].fields.keys())
+            common_keys = set(current[1].keys()).intersection(list(obj_list[i].fields.keys()))
             self.assertEqual(set(obj_list[i].fields.keys()), common_keys)
 
     def test015(self):
@@ -1960,11 +1964,11 @@ class NetworkXIntegration(unittest.TestCase):
                 continue
             current = obj.toNxTuple()
             if current[-1]['ide_rec'] == '*KNP':
-                self.assertTrue('x' in current[-1].keys())
-                self.assertTrue('y' in current[-1].keys())
+                self.assertTrue('x' in list(current[-1].keys()))
+                self.assertTrue('y' in list(current[-1].keys()))
             else:
-                self.assertFalse('x' in current[-1].keys())
-                self.assertFalse('y' in current[-1].keys())
+                self.assertFalse('x' in list(current[-1].keys()))
+                self.assertFalse('y' in list(current[-1].keys()))
 
     def test020(self):
         "vertex represents itself in useful format for add_edges_from"

@@ -9,7 +9,7 @@
 """
 import unittest
 
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 
 
 class ThreeDiToolboxDialogTest(unittest.TestCase):

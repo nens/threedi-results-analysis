@@ -1,11 +1,14 @@
+from builtins import str
+from builtins import object
 import logging
 import os.path
 from collections import OrderedDict
 
 import numpy as np
-from pyspatialite import dbapi2
+# from pyspatialite import dbapi2
+from sqlite3 import dbapi2
 from qgis.core import (
-    QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer)
+    QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer)
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
@@ -16,7 +19,7 @@ from ..sql_models.statistics import (
     FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
     PumplineStats, StatSource)
 from ..utils.statistics_database import StaticsticsDatabase
-from PyQt4.QtGui import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox
 log = logging.getLogger(__name__)
 
 
@@ -68,7 +71,7 @@ class DataSourceAdapter(Proxy):
         return self._timestamps
 
 
-class StatisticsTool:
+class StatisticsTool(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -164,7 +167,7 @@ class StatisticsTool:
 
             try:
                 self.db.create_and_check_fields()
-            except dbapi2.OperationalError, e:
+            except dbapi2.OperationalError as e:
                 pop_up_info('Database error. You could try it again, in most cases this fix the problem.', 'ERROR')
 
             with progress_bar(self.iface) as pb:
@@ -1332,12 +1335,12 @@ class StatisticsTool:
         stat_group.removeAllChildren()
 
         # add source stat metadata
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setDatabase(self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/'))
         uri.setDataSource('', 'stat_source', '')
 
         vector_layer = QgsVectorLayer(uri.uri(), 'metadata statistics', 'spatialite')
-        QgsMapLayerRegistry.instance().addMapLayer(
+        QgsProject.instance().addMapLayer(
             vector_layer,
             False)
 
@@ -1345,12 +1348,12 @@ class StatisticsTool:
 
         legend = self.iface.legendInterface()
 
-        for group, layers in styled_layers.items():
+        for group, layers in list(styled_layers.items()):
             qgroup = stat_group.insertGroup(100, group)
             qgroup.setExpanded(False)
 
             for layer in layers:
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 uri.setDatabase(self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/'))
                 uri.setDataSource('', layer[1], 'the_geom')
 
@@ -1381,7 +1384,7 @@ class StatisticsTool:
 
                     vector_layer.loadNamedStyle(new_style_path)
 
-                    QgsMapLayerRegistry.instance().addMapLayer(
+                    QgsProject.instance().addMapLayer(
                         vector_layer,
                         False)
 

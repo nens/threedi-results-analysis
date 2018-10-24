@@ -20,16 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
 
 import os
 import os.path
 
-from PyQt4.QtCore import (QSettings, QTranslator, qVersion, QCoreApplication,
-                          QObject)
-from PyQt4.QtGui import QAction, QIcon, QLCDNumber
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QObject
+from qgis.PyQt.QtWidgets import QAction, QLCDNumber
+from qgis.PyQt.QtGui import QIcon
 
 # Initialize Qt resources from file resources.py
-import resources  # NoQa
+from . import resources  # NoQa
 
 # Import the code of the tools
 from .misc_tools import About, CacheClearer

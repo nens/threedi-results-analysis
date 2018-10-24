@@ -1,8 +1,16 @@
 import logging
 from qgis.core import QgsMessageLog
+from qgis.core import Qgis
+from qgis.core import QgsMessageLog
 
 
-class QGisHandler(logging.Handler):
+LOGGING_TO_QGIS = {
+    logging.INFO: Qgis.Info,
+    logging.WARNING: Qgis.Warning,
+    logging.CRITICAL: Qgis.Critical
+}
+
+class QgisHandler(logging.Handler):
 
     def __init__(self, iface, *args, **kwargs):
         logging.Handler.__init__(self, *args, **kwargs)
@@ -16,28 +24,23 @@ class QGisHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-
-        if record.levelno >= self.logging_ref.ERROR:
-            level = self.qgsMessageLog_ref.CRITICAL
-        elif record.levelno >= self.logging_ref.WARNING:
-            level = self.qgsMessageLog_ref.WARNING
-        else:
-            level = self.qgsMessageLog_ref.INFO
-
-        self.qgsMessageLog_ref.logMessage(msg, level=level)
-
-        if (record.levelno >= self.logging_ref.CRITICAL and
-                self.iface is not None):
-
+        if record.levelno >= logging.CRITICAL:
+            level = Qgis.Critical
             self.iface.messageBar().pushMessage(
                 record.funcName, msg, level, 0)
+        elif record.levelno >= logging.WARNING:
+            level = Qgis.Warning
+        else:
+            level = Qgis.Info
+
+        QgsMessageLog.logMessage(msg, level=level)
 
 
 def setup_logging(iface=None):
 
     log = logging.getLogger('')  # set up a root logger
 
-    ql = QGisHandler(iface)
+    ql = QgisHandler(iface)
     ql.setLevel(logging.INFO)
 
     # fh = logging.FileHandler('plugin_log.log')

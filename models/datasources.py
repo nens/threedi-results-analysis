@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import os
-from PyQt4.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtCore import Qt, pyqtSignal
 from ..datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
@@ -183,7 +184,7 @@ class TimeseriesDatasourceModel(BaseModel):
     model_spatialite_filepath = ValueWithChangeSignal(
         'model_schematisation_change', 'model_schematisation')
 
-    class Fields:
+    class Fields(object):
         active = CheckboxField(show=True, default_value=True, column_width=20,
                                column_name='')
         name = ValueField(show=True, column_width=130, column_name='Name')

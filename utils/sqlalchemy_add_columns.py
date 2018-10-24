@@ -4,6 +4,7 @@ Copied from stackoverflow:
 https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-and-create-corresponding-column-in-table  # noqa
 """
 
+from builtins import str
 import logging
 import re
 
@@ -100,4 +101,4 @@ def create_and_upgrade(engine, metadata):
 def _column_names(table):
     # Autoloaded columns return unicode column names - make sure we treat all
     # are equal
-    return set((unicode(i.name) for i in table.c))
+    return set((str(i.name) for i in table.c))

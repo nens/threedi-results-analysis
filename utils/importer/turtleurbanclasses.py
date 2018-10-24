@@ -22,7 +22,13 @@
 """this file contains a Python implementation of things defined in the
 *Green Book* of hydrological objects.
 """
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
+from builtins import object
 __revision__ = "$Rev$"[6:-2]
 
 import logging
@@ -34,7 +40,7 @@ import types
 
 
 def isSufHydKey(key):
-    if not isinstance(key, types.StringTypes):
+    if not isinstance(key, str):
         return False
     return (len(key) == 7 and key[3] == '_') or (len(key) == 10 and key[3] == key[6] == '_')
 
@@ -59,7 +65,7 @@ def fieldwise(obj, representation=None):
     return result
 
 
-class HydroObject:
+class HydroObject(object):
     types = {
         'aan_inw': (int, 4),
         'aan_won': (int, 4),
@@ -542,7 +548,7 @@ class BijzonderLeidingprofiel(HydroObject):
             ## if any profile point is empty, shift fields to the left
             ## TODO 2069
             while self.pro_br_000 == self.pro_no_000 == self.pro_nv_000 == self.pro_hs_000 == '':
-                for i, j in zip(range(0, 500), range(1, 501)):
+                for i, j in zip(list(range(0, 500)), list(range(1, 501))):
                     if not hasattr(self, "pro_br_%03d" % j):
                         delattr(self, "pro_br_%03d" % i)
                         delattr(self, "pro_no_%03d" % i)
@@ -861,9 +867,11 @@ class HydroObjectFactory(object):
         try:
             that_class = cls.WhichHydroObject[class_name][variant]
         except KeyError:
-            print "no class for such name (%s)" % class_name
+            # fix_print_with_import
+            print("no class for such name (%s)" % class_name)
             return
-        print '\n'.join(that_class.greenBookDef()[:trim_at])
+        # fix_print_with_import
+        print('\n'.join(that_class.greenBookDef()[:trim_at]))
 
     def hydroObjectFromSUFHYD(self, persid, strict=True):
         '''create object from string.

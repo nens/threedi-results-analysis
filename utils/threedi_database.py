@@ -1,10 +1,12 @@
+from builtins import object
 import os
 import copy
 
 import ogr
 import collections
-from pyspatialite import dbapi2
-from PyQt4.QtCore import QSettings
+# from pyspatialite import dbapi2
+from sqlite3 import dbapi2
+from qgis.PyQt.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text

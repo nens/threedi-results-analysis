@@ -1,5 +1,6 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
+from __future__ import absolute_import
 
 import logging
 import sys
@@ -24,8 +25,8 @@ def get_qgis_app():
     try:
         from qgis.core import QgsApplication
         from qgis.gui import QgsMapCanvas
-        from PyQt4 import QtGui, QtCore
-        from qgis_interface import QgisInterface
+        from qgis.PyQt import QtGui, QtCore
+        from .qgis_interface import QgisInterface
     except ImportError:
         return None, None, None, None
 

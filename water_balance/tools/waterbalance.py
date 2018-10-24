@@ -1,12 +1,16 @@
 from __future__ import division
 
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 import logging
 import os.path
 
 import numpy as np
 import numpy.ma as ma
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMessageBox
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPoint
 from ThreeDiToolbox.datasource.netcdf import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
@@ -40,30 +44,30 @@ class WaterBalanceCalculation(object):
 
         x2d_surf_range_min = 1
         x2d_surf_range_max = nr_2d_x_dir
-        self.x2d_surf_range = range(x2d_surf_range_min, x2d_surf_range_max + 1)
+        self.x2d_surf_range = list(range(x2d_surf_range_min, x2d_surf_range_max + 1))
 
         y2d_surf_range_min = x2d_surf_range_max + 1
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
-        self.y2d_surf_range = range(y2d_surf_range_min, y2d_surf_range_max + 1)
+        self.y2d_surf_range = list(range(y2d_surf_range_min, y2d_surf_range_max + 1))
 
         # from surface to groundwater (vertical) flow
         vert_flow_range_min = y2d_surf_range_max + 1
         vert_flow_range_max = y2d_surf_range_max + nr_2d
-        self.vert_flow_range = range(
-            vert_flow_range_min, vert_flow_range_max + 1)
+        self.vert_flow_range = list(range(
+            vert_flow_range_min, vert_flow_range_max + 1))
 
         if ga.has_groundwater:
             # total nr of x-dir (horizontal in topview) 2d groundwater lines
             x_grndwtr_range_min = start_gr + 1
             x_grndwtr_range_max = start_gr + nr_2d_x_dir
-            self.x_grndwtr_range = range(
-                x_grndwtr_range_min, x_grndwtr_range_max + 1)
+            self.x_grndwtr_range = list(range(
+                x_grndwtr_range_min, x_grndwtr_range_max + 1))
 
             # total nr of y-dir (vertical in topview) 2d groundwater lines
             y_grndwtr_range_min = x_grndwtr_range_max + 1
             y_grndwtr_range_max = x_grndwtr_range_max + nr_2d
-            self.y_grndwtr_range = range(
-                y_grndwtr_range_min, y_grndwtr_range_max + 1)
+            self.y_grndwtr_range = list(range(
+                y_grndwtr_range_min, y_grndwtr_range_max + 1))
 
     def get_incoming_and_outcoming_link_ids(self, wb_polygon, model_part):
         """Returns a tuple of dictionaries with ids by category:
@@ -415,7 +419,7 @@ class WaterBalanceCalculation(object):
             TYPE_2D_VERTICAL_INFILTRATION,
         ]
         NTYPE_MAXLEN = 25
-        assert max(map(len, ALL_TYPES)) <= NTYPE_MAXLEN, \
+        assert max(list(map(len, ALL_TYPES))) <= NTYPE_MAXLEN, \
             "NTYPE_MAXLEN insufficiently large for all values"
         NTYPE_DTYPE = 'S%s' % NTYPE_MAXLEN
 
@@ -763,7 +767,7 @@ class WaterBalanceCalculation(object):
         return ts, total_time
 
 
-class WaterBalanceTool:
+class WaterBalanceTool(object):
 
     """QGIS Plugin Implementation."""
 

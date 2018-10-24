@@ -1,7 +1,10 @@
 """Imported in __init__.py"""
+from builtins import next
+from builtins import map
+from builtins import object
 import math
 
-from itertools import izip
+
 from itertools import tee
 
 
@@ -34,7 +37,7 @@ def haversine(lon1, lat1, lon2, lat2):
     Source: http://gis.stackexchange.com/a/56589
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+    lon1, lat1, lon2, lat2 = list(map(math.radians, [lon1, lat1, lon2, lat2]))
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
@@ -51,7 +54,7 @@ def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = tee(iterable)
     next(b, None)
-    return izip(a, b)
+    return zip(a, b)
 
 
 def parse_db_source_info(source_info):

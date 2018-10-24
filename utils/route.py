@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox, QColor, QCursor
+from builtins import str
+from builtins import object
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
+from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, QDockWidget, QComboBox, QMessageBox
+from qgis.PyQt.QtGui import QColor, QCursor
 
 import numpy as np
 import os
-
-from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-    QgsDistanceArcProperter, QgsGraphAnalyzer
+# qgis.networkanalysis     QgsDistanceArcProperter -> 	QgsDistanceStrategy -> QgsNetworkDistanceStrategy
+from qgis.analysis import QgsGraphBuilder, QgsNetworkDistanceStrategy, \
+    QgsGraphAnalyzer, QgsNetworkStrategy
 
 from qgis.core import (
     QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest)
-from qgis.networkanalysis import QgsArcProperter
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message
 
 
-class AttributeProperter(QgsArcProperter):
+class AttributeProperter(QgsNetworkStrategy):
     """custom properter"""
 
     def __init__(self, attribute, attribute_index):
-        QgsArcProperter.__init__(self)
+        QgsNetworkStrategy.__init__(self)
         self.attribute = attribute
         self.attribute_index = attribute_index
 
@@ -43,8 +43,8 @@ class AttributeProperter(QgsArcProperter):
 class Route(object):
 
     def __init__(self, line_layer, director,
-                 weight_properter=QgsDistanceArcProperter(),
-                 distance_properter=QgsDistanceArcProperter(),
+                 weight_properter=QgsNetworkDistanceStrategy(),
+                 distance_properter=QgsNetworkDistanceStrategy(),
                  id_field="ROWID"):
 
         self.line_layer = line_layer
@@ -180,7 +180,7 @@ class Route(object):
 
             filt = u'"%s" = %s' % (self.id_field, str(id_line))
             request = QgsFeatureRequest().setFilterExpression(filt)
-            feature = self.line_layer.getFeatures(request).next()
+            feature = next(self.line_layer.getFeatures(request))
 
             if point == feature.geometry().vertexAt(0):
                 # current point on tree (end point of this line) is equal to

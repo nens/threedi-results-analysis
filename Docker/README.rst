@@ -32,6 +32,11 @@ localsettings. You might need to reload the ThreeDiToolbox plugin if you have
 never installed it before. Do this via the `plugins` --> `Manage and Install
 Plugins`.
 
+The building of the docker image takes the following arguments: USER_ID,
+GROUP_ID and USER_NAME. A user in the docker is created with these arguments and
+should correspond to your host UID, GID and USERNAME respectively if you want
+the GUI to work within Docker.
+
 Running tests
 TODO
 

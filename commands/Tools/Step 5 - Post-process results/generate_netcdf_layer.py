@@ -1,6 +1,6 @@
 """This script generates node and line layers from netCDF.
 """
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
@@ -37,4 +37,4 @@ class CustomCommand(CustomCommandBase):
         vlayers = self.datasource.get_result_layers()
 
         # add the layers
-        QgsMapLayerRegistry.instance().addMapLayers(vlayers)
+        QgsProject.instance().addMapLayers(vlayers)

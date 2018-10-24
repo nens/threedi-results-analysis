@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 from distutils.version import LooseVersion
 import mock
 import os
@@ -13,7 +15,7 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant
 
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite

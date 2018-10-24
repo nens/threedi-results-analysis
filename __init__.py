@@ -39,7 +39,7 @@ sys.path.insert(
 try:
     import sqlalchemy  # noqa
     import geoalchemy2  # noqa
-except ImportError, e:
+except ImportError as e:
     pop_up_info("Error loading sqlalchemy or geoalchemy2 from "
                 "'external' subdirectory. error %s" % e.message)
 
@@ -57,7 +57,7 @@ except Exception:
 
 try:
     import lizard_connector  # noqa
-except ImportError, e:
+except ImportError as e:
     pop_up_info("Error loading lizard_connector from "
                 "'external' subdirectory. error %s" % e.message)
 

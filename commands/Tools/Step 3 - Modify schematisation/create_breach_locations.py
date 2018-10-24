@@ -2,7 +2,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 import logging
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 from qgis.gui import QgsMessageBar
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -60,7 +60,7 @@ class CustomCommand(CustomCommandBase):
         cnt = 1
 
         with progress_bar(self.iface) as pb:
-            for key, values in calc_points_dict.iteritems():
+            for key, values in calc_points_dict.items():
                 calc_type = key[1]
                 connected_points_selection = \
                     breach_location.get_connected_points(values, calc_type)
@@ -75,7 +75,7 @@ class CustomCommand(CustomCommandBase):
             breach_location.pnt_layer.commitChanges()
             breach_location.pnt_layer.updateExtents()
             breach_location.line_layer.updateExtents()
-            QgsMapLayerRegistry.instance().addMapLayers(
+            QgsProject.instance().addMapLayers(
                 [breach_location.pnt_layer, breach_location.line_layer]
             )
 

@@ -1,18 +1,24 @@
 """
 Test geo utils.
 """
+from builtins import str
 import unittest
 
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsPoint
+from qgis.core import QgsPointXY
 
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import get_distance
 from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
 from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
+from ThreeDiToolbox.test.utilities import get_qgis_app
 
 
 class TestGeoUtils(unittest.TestCase):
+
+    def setUp(self):
+        self.QGIS_APP, self.CANVAS, self.IFACE, self.PARENT = get_qgis_app()
 
     def test_it_can_get_epsg_code_from_layer(self):
         crs = 'EPSG:28992'
@@ -28,13 +34,15 @@ class TestGeoUtils(unittest.TestCase):
         self.assertEqual(
             str(inst.__class__), "<class 'qgis._core.QgsCoordinateTransform'>"
         )
-        self.assertEqual(inst.destCRS().authid(), 'EPSG:28992')
+        self.assertTrue(inst.destinationCrs().isValid())
+        self.assertTrue(inst.sourceCrs().isValid())
+        self.assertEqual(inst.destinationCrs().authid(), 'EPSG:28992')
         src_epsg, dest_epsg = 28992, 4326
         inst_rev = get_coord_transformation_instance(src_epsg, dest_epsg)
-        self.assertEqual(inst_rev.destCRS().authid(), 'EPSG:4326')
+        self.assertEqual(inst_rev.destinationCrs().authid(), 'EPSG:4326')
 
     def test_it_can_get_distance_between_points(self):
-        pnt, pnt1 = QgsPoint(0, 0), QgsPoint(0, 10)
+        pnt, pnt1 = QgsPointXY(0, 0), QgsPointXY(0, 10)
         dist = get_distance(pnt, pnt1, 4326)
         self.assertEqual(dist, 1105854.8332357334)
         dist = get_distance(pnt, pnt1, 28992)

@@ -2,11 +2,11 @@
 import os
 import logging
 
-from PyQt4 import uic
-from PyQt4 import QtCore
-from PyQt4 import QtGui
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui import QApplication
+from qgis.PyQt import uic
+from qgis.PyQt import QtCore
+from qgis.PyQt import QtGui
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QApplication
 
 log = logging.getLogger(__name__)
 

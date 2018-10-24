@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import zip
 import logging
 
 from qgis.core import (
-    QgsMapLayerRegistry,
+    QgsProject,
     QgsFeatureRequest,
     QgsFeature,
     QgsGeometry
 )
-from PyQt4.QtCore import QPyNullVariant
+from qgis.PyQt.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils import constants
@@ -40,13 +41,13 @@ class CustomCommand(CustomCommandBase):
         self.table_name_connected = "v2_connected_pnt"
         self.table_name_calc_pnt = "v2_calculation_point"
         self.table_name_levees = "v2_levee"
-        connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        connected_pnt_lyr = QgsProject.instance().mapLayersByName(
             self.table_name_connected
         )
-        calc_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        calc_pnt_lyr = QgsProject.instance().mapLayersByName(
             self.table_name_calc_pnt
         )
-        levee_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        levee_lyr = QgsProject.instance().mapLayersByName(
             self.table_name_levees
         )
         if connected_pnt_lyr:
@@ -65,7 +66,7 @@ class CustomCommand(CustomCommandBase):
                     self.calc_pnt_lyr, self.connected_pnt_lyr
                 ) if lyr is not None
             ]
-            QgsMapLayerRegistry.instance().removeMapLayers(rm_list)
+            QgsProject.instance().removeMapLayers(rm_list)
             self.show_gui()
 
     def show_gui(self):
@@ -81,8 +82,8 @@ class CustomCommand(CustomCommandBase):
             uri, self.table_name_calc_pnt, 'the_geom')
         self.levee_lyr = predictor.get_layer_from_uri(
             uri, self.table_name_levees, 'the_geom')
-        QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnt_lyr)
-        QgsMapLayerRegistry.instance().addMapLayer(self.calc_pnt_lyr)
+        QgsProject.instance().addMapLayer(self.connected_pnt_lyr)
+        QgsProject.instance().addMapLayer(self.calc_pnt_lyr)
         msg = 'Loaded connected_pnt layer from {}!'.format(db_set['database'])
         self.supervising_user_input(msg)
 
@@ -175,7 +176,7 @@ class CustomCommand(CustomCommandBase):
             # feature set to get a count
             unique_ids = set()
             for item in selected_features:
-                _item = dict(zip(self.fnames_connected_pnt, item.attributes()))
+                _item = dict(list(zip(self.fnames_connected_pnt, item.attributes())))
                 unique_ids.add(_item['id'])
             thresh = constants.CONNECTED_PNTS_THRESHOLD[current_calc_type]
             if len(unique_ids) > thresh:
@@ -218,8 +219,8 @@ class CustomCommand(CustomCommandBase):
         calc_pnt_request = QgsFeatureRequest().setFilterExpression(
             u'"id" = {}'.format(calculation_pnt_id))
         try:
-            calc_pnt_feat = self.calc_pnt_lyr.getFeatures(
-                calc_pnt_request).next()
+            calc_pnt_feat = next(self.calc_pnt_lyr.getFeatures(
+                calc_pnt_request))
         except StopIteration:
             msg = 'The calculation point ID you provided does not exist.'
             messagebar_message(
@@ -228,9 +229,9 @@ class CustomCommand(CustomCommandBase):
             return None, None
 
         calc_pnt = dict(
-            zip(
+            list(zip(
                 self.fnames_calc_pnt, calc_pnt_feat.attributes()
-            )
+            ))
         )
         return calc_pnt, calc_pnt_feat
 
@@ -243,18 +244,18 @@ class CustomCommand(CustomCommandBase):
 
         """
         try:
-            feat = self.connected_pnt_lyr.getFeatures(
+            feat = next(self.connected_pnt_lyr.getFeatures(
                 QgsFeatureRequest(feature_id)
-            ).next()
+            ))
         except StopIteration:
             msg = 'The connected point... does not exist.'
             messagebar_message("Error", msg, level=2, duration=4)
             return None, None
 
         connected_pnt = dict(
-            zip(
+            list(zip(
                 self.fnames_connected_pnt, feat.attributes()
-            )
+            ))
         )
         return connected_pnt, feat
 

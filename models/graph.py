@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from builtins import str
+from builtins import object
 from collections import OrderedDict
 import logging
 from random import randint
@@ -55,7 +57,7 @@ def select_default_color(item_field):
             del colors[str(item.color.value)]
 
     if len(colors) >= 1:
-        return colors.values()[0]
+        return list(colors.values())[0]
 
     # predefined colors are all used, return random color
     return (randint(0, 256), randint(0, 256), randint(0, 256))
@@ -64,7 +66,7 @@ def select_default_color(item_field):
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
-    class Fields:
+    class Fields(object):
         """Fields and functions of ModelItem"""
 
         active = CheckboxField(show=True,

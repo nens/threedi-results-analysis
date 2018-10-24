@@ -1,6 +1,7 @@
 """This script calculates statistics on the selected layer for manholes and
 connection nodes and outputs it to csv.
 """
+from builtins import object
 import inspect
 import os
 

@@ -1,7 +1,11 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
 import os.path
 
 from qgis.core import (
-    QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer,
+    QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer,
     QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform)
 
 from ..utils.user_messages import pop_up_question
@@ -135,7 +139,7 @@ class LayerTreeManager(object):
             return None
 
         for node in tree_node.children():
-            if node.customProperty('legend/3di_tracer') == unicode(marker):
+            if node.customProperty('legend/3di_tracer') == str(marker):
                 return node
         return None
 
@@ -145,7 +149,7 @@ class LayerTreeManager(object):
         if display_name is None:
             display_name = layer_name
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setDatabase(db_path)
         uri.setDataSource('', layer_name, geometry_column)
         return QgsVectorLayer(uri.uri(), display_name, provider_type)
@@ -357,7 +361,7 @@ class LayerTreeManager(object):
                 if vector_layer.isValid():
                     styler.apply_style(vector_layer, layer_name,
                                        'schematisation')
-                    QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
+                    QgsProject.instance().addMapLayer(vector_layer,
                                                                False)
                     group.insertLayer(100, vector_layer)
 
@@ -386,7 +390,7 @@ class LayerTreeManager(object):
             table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
-                QgsMapLayerRegistry.instance().addMapLayer(table_layer, False)
+                QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
 
     def add_results(self, index, start_row, stop_row):
@@ -417,7 +421,7 @@ class LayerTreeManager(object):
                         os.path.dirname(os.path.realpath(__file__)),
                         os.path.pardir, 'layer_styles', 'tools', 'nodes.qml'))
 
-                    QgsMapLayerRegistry.instance().addMapLayers(
+                    QgsProject.instance().addMapLayers(
                         [line, node, pumpline], False)
 
                     tree_layer = group.insertLayer(0, line)
@@ -603,7 +607,7 @@ class StatsLayerInfo(object):
                     layer = _clone_vector_layer(lyr)
                     csv_join(filepath, layer, layer_id_name,
                              add_to_legend=False)
-                    QgsMapLayerRegistry.instance().addMapLayer(
+                    QgsProject.instance().addMapLayer(
                         layer, False)
                     tree_layer = group.insertLayer(100, layer)
                     LayerTreeManager._mark(tree_layer, lyr.name())
@@ -628,7 +632,7 @@ class StatsLayerInfo(object):
                     layernames = [
                         tl.layer().name() for tl in group.children()]
                     if layer.name() not in layernames:
-                        QgsMapLayerRegistry.instance().addMapLayer(
+                        QgsProject.instance().addMapLayer(
                             layer, False)
 
                         tree_layer = group.insertLayer(100, layer)

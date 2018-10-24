@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 import logging
-from PyQt4.QtCore import QSettings
-from PyQt4.QtGui import QDialog, QFileDialog
-from PyQt4.QtSql import QSqlDatabase
-from PyQt4 import uic
-from qgis.core import QgsDataSourceURI
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt import uic
+from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
 log = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.db_path = ts_datasource.model_spatialite_filepath
         self.databases = get_databases()
         self.database_combo.addItems(
-            self.databases.keys())
+            list(self.databases.keys()))
 
         self.file_button.clicked.connect(self.select_sufhyd_file)
 
@@ -57,7 +57,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileName(self,
+        filename, __ = QFileDialog.getOpenFileName(self,
                                                'Select import file',
                                                init_path,
                                                'Sufhyd (*.hyd)')
@@ -89,7 +89,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
             while not successful_connection:
 
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 uri.setConnection(db_set['host'],
                                   db_set['port'],
                                   db_set['database'],

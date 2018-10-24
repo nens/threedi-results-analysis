@@ -4,10 +4,11 @@
 Miscellaneous tools.
 """
 
+from builtins import object
 import logging
 import os
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 
 from .stats.utils import get_csv_layer_cache_files
 from .stats.utils import STATS_LAYER_IDENTIFIER
@@ -95,7 +96,7 @@ class CacheClearer(object):
         # visually.
         # The specific error message (for googling):
         # error 32 the process cannot access the file because it is being used by another process  # noqa
-        all_layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        all_layers = list(QgsProject.instance().mapLayers().values())
         loaded_layers = [
             l for l in all_layers if
             any(identifier in l.name() for identifier in IDENTIFIER_LIKE)
@@ -110,7 +111,7 @@ class CacheClearer(object):
 
         if yes:
             try:
-                QgsMapLayerRegistry.instance().removeMapLayers(
+                QgsProject.instance().removeMapLayers(
                     loaded_layer_ids)
             except RuntimeError:
                 log.exception("Failed to delete map layer")

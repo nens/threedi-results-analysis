@@ -1,5 +1,6 @@
+from builtins import range
 import unittest
-from PyQt4.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
 from ThreeDiToolbox.models.datasources import (
@@ -221,7 +222,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
     def test_init_with_values(self):
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**self.test_values)
-        for k, v in self.test_values.items():
+        for k, v in list(self.test_values.items()):
             itemvalue = getattr(item, k).value
             self.assertEqual(itemvalue, v)
 

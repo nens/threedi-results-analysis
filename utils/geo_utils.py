@@ -6,6 +6,7 @@ import math
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDistanceArea
+from qgis.core import QgsProject
 
 from ThreeDiToolbox.utils import constants
 
@@ -105,9 +106,9 @@ def get_distance(pnt1, pnt2, epsg_code):
     crs = QgsCoordinateReferenceSystem()
     # Sets this CRS by lookup of the given PostGIS SRID in the CRS database.
     crs.createFromSrid(epsg_code)
-    distance.setSourceCrs(crs)
+    context = QgsProject.instance().transformContext()
+    distance.setSourceCrs(crs, context)
     if epsg_code == constants.EPSG_WGS84:
-        distance.setEllipsoidalMode(True)
         distance.setEllipsoid('WGS84')
     return distance.measureLine(pnt1, pnt2)
 
@@ -119,4 +120,4 @@ def get_coord_transformation_instance(src_epsg, dest_epsg):
     """
     src_crs = QgsCoordinateReferenceSystem(int(src_epsg))
     dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
-    return QgsCoordinateTransform(src_crs, dest_crs)
+    return QgsCoordinateTransform(src_crs, dest_crs, QgsProject.instance())

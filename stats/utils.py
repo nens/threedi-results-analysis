@@ -4,8 +4,8 @@ import logging
 
 from qgis.core import (
     QgsVectorLayer,
-    QgsMapLayerRegistry,
-    QgsVectorJoinInfo,
+    QgsProject,
+    QgsVectorLayerJoinInfo,
 )
 
 from .ncstats import NcStats, NcStatsAgg
@@ -51,9 +51,9 @@ def csv_join(filepath, layer, view_layer_field, csv_field='id',
         "Error in hardcoded stuff needed to make cache clearer work")
     csv_uri = "file:///" + filepath
     csv_layer = QgsVectorLayer(csv_uri, csv_layer_name, "delimitedtext")
-    QgsMapLayerRegistry.instance().addMapLayer(csv_layer,
+    QgsProject.instance().addMapLayer(csv_layer,
                                                addToLegend=add_to_legend)
-    join_info = QgsVectorJoinInfo()
+    join_info = QgsVectorLayerJoinInfo()
     join_info.joinLayerId = csv_layer.id()
     join_info.joinFieldName = csv_field
     join_info.targetFieldName = view_layer_field
@@ -242,7 +242,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')
         writer.writeheader()
-        for fid, val_dict in result.items():
+        for fid, val_dict in list(result.items()):
             writer.writerow(val_dict)
     return filepath
 
@@ -319,7 +319,7 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')
         writer.writeheader()
-        for fid, val_dict in result.items():
+        for fid, val_dict in list(result.items()):
             writer.writerow(val_dict)
     return filepath
 
@@ -401,6 +401,6 @@ def generate_pump_stats(nds, result_dir, layer, layer_id_name,
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')
         writer.writeheader()
-        for fid, val_dict in result.items():
+        for fid, val_dict in list(result.items()):
             writer.writerow(val_dict)
     return filepath

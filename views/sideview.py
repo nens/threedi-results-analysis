@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox, QColor, QCursor
+from builtins import str
+from builtins import object
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
+from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, QDockWidget, QComboBox, QMessageBox
+from qgis.PyQt.QtGui import QColor, QCursor
 
 import numpy as np
 import os
 
-from qgis.networkanalysis import QgsArcProperter
-from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-    QgsDistanceArcProperter, QgsGraphAnalyzer
 import qgis
+# QgsLineVectorLayerDirector
+from qgis.analysis import QgsNetworkStrategy, QgsVectorLayerDirector
 from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, \
-    QGis, QgsFeatureRequest, QgsDistanceArea, QgsCoordinateReferenceSystem
+    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsProject, \
+    Qgis, QgsFeatureRequest, QgsDistanceArea, QgsCoordinateReferenceSystem
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 from collections import Counter
 
@@ -27,7 +27,8 @@ from ..utils.geo_processing import split_line_at_points
 
 
 import pyqtgraph as pg
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceUri
+from functools import reduce
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
@@ -849,11 +850,11 @@ class RouteTool(QgsMapTool):
         return False
 
 
-class CustomDistancePropeter(QgsArcProperter):
+class CustomDistancePropeter(QgsNetworkStrategy):
     """custom properter for graph layer"""
 
     def __init__(self):
-        QgsArcProperter.__init__(self)
+        QgsNetworkStrategy.__init__(self)
 
     def property(self, distance, feature):
         value = feature['real_length']
@@ -863,7 +864,7 @@ class CustomDistancePropeter(QgsArcProperter):
             d = QgsDistanceArea()
             value, unit = d.convertMeasurement(
                 feature.geometry().length(),
-                QGis.Degrees, QGis.Meters, False)
+                Qgis.Degrees, Qgis.Meters, False)
         return value
 
     def requiredAttributes(self):
@@ -958,7 +959,7 @@ class SideViewMapVisualisation(object):
 
                         length, unit_type = self.dist_calc.convertMeasurement(
                             distance_on_line,
-                            QGis.Meters, QGis.Degrees, False)  # QGis.Degrees
+                            Qgis.Meters, Qgis.Degrees, False)  # Qgis.Degrees
 
                         point = part[4].geometry().interpolate(length)
                         self.hover_marker.setCenter(
@@ -1070,7 +1071,7 @@ class SideViewDockWidget(QDockWidget):
             os.path.dirname(os.path.realpath(__file__)), os.pardir,
             'layer_styles', 'tools', 'tree.qml'))
 
-        QgsMapLayerRegistry.instance().addMapLayer(self.vl_tree_layer)
+        QgsProject.instance().addMapLayer(self.vl_tree_layer)
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 
@@ -1079,7 +1080,7 @@ class SideViewDockWidget(QDockWidget):
         #     model_line_layer = canvas.currentLayer()
 
         def get_layer(spatialite_path, table_name, geom_column=''):
-            uri2 = QgsDataSourceURI()
+            uri2 = QgsDataSourceUri()
             uri2.setDatabase(spatialite_path)
             uri2.setDataSource('', table_name, geom_column)
 
@@ -1404,10 +1405,10 @@ class SideViewDockWidget(QDockWidget):
                 # startpoint as well as an endpoint, so 2 occurances)
                 cpoint_count = dict(Counter(cpoints_idx))
                 calc_points = [key for key, value in
-                               cpoint_count.items() if value == 2]
+                               list(cpoint_count.items()) if value == 2]
 
                 calculation_points = [{'id': key, 'geom': value} for key, value
-                                      in cpoints.items() if key in calc_points]
+                                      in list(cpoints.items()) if key in calc_points]
 
                 channel_parts = split_line_at_points(
                     channel.geometry(),
@@ -1523,7 +1524,7 @@ class SideViewDockWidget(QDockWidget):
         pr.addFeatures(features)
         vl.updateExtents()
 
-        QgsMapLayerRegistry.instance().addMapLayer(vl)
+        QgsProject.instance().addMapLayer(vl)
 
         return vl, points, channel_profiles
 
@@ -1602,8 +1603,8 @@ class SideViewDockWidget(QDockWidget):
 
         # todo: find out how to unload layer from memory (done automic if
         # there are no references?)
-        QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer.id())
-        QgsMapLayerRegistry.instance().removeMapLayer(self.line_layer.id())
+        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+        QgsProject.instance().removeMapLayer(self.line_layer.id())
 
     def closeEvent(self, event):
         """

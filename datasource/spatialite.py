@@ -9,9 +9,9 @@ installation)
 from functools import wraps
 import os
 
-from qgis.core import QGis, QgsDataSourceURI, QgsVectorLayer
+from qgis.core import Qgis, QgsDataSourceUri, QgsVectorLayer, QgsWkbTypes
 from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
-from PyQt4.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant
 from osgeo import ogr
 from osgeo import gdal
 
@@ -67,7 +67,7 @@ class Spatialite(SpatiaLiteDBConnector):
         SpatiaLiteDBConnector.__init__(self, uri)
 
     def _get_uri(self, table_name=None, geom_field='the_geom'):
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setDatabase(self.path)
         if table_name is not None:
             schema = ''
@@ -122,7 +122,7 @@ class Spatialite(SpatiaLiteDBConnector):
 
         self.createTable(table_name, sql_fields, id_field)
 
-        geom_type = QGis.vectorGeometryType(layer.geometryType()).lstrip('WKB')
+        geom_type = Qgis.vectorGeometryType(layer.geometryType()).lstrip('WKB')
         self.addGeometryColumn(
             table_name, geom_field, geom_type=geom_type, srid=srid)
 
@@ -134,17 +134,17 @@ class Spatialite(SpatiaLiteDBConnector):
         return splayer
 
     def create_empty_layer(
-            self, table_name, wkb_type=QGis.WKBPoint, fields=None,
+            self, table_name, wkb_type=QgsWkbTypes.Point, fields=None,
             id_field='id', geom_field='the_geom', srid=4326):
         self.create_empty_layer_only(
             table_name, wkb_type, fields, id_field, geom_field, srid)
         return self.get_layer(table_name, None, geom_field)
 
     def create_empty_layer_only(
-            self, table_name, wkb_type=QGis.WKBPoint, fields=None,
+            self, table_name, wkb_type=QgsWkbTypes.Point, fields=None,
             id_field='id', geom_field='the_geom', srid=4326):
         self.createTable(table_name, fields, id_field)
-        geom_type = QGis.featureType(wkb_type).lstrip('WKB')
+        geom_type = Qgis.featureType(wkb_type).lstrip('WKB')
         self.addGeometryColumn(
             table_name, geom_field, geom_type=geom_type, srid=srid)
         self.createSpatialIndex(table_name, geom_field)

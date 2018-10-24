@@ -1,10 +1,10 @@
+from builtins import object
 import abc
 from ThreeDiToolbox.utils.user_messages import pop_up_info
+from future.utils import with_metaclass
 
 
-class CustomCommandBase(object):
-    __metaclass__ = abc.ABCMeta
-
+class CustomCommandBase(with_metaclass(abc.ABCMeta, object)):
     def load_defaults(self):
         """If you only want to use run_it without show_gui, you can try calling
         this method first to set some defaults.

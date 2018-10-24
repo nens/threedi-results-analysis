@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import str
 import logging
 import os
 import re
 import json
 
-from PyQt4.QtCore import Qt, pyqtSignal, QObject, QUrl
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtNetwork import (
-    QNetworkAccessManager, QNetworkRequest
-)
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QObject, QUrl
+from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.PyQt.QtNetwork import QNetworkRequest
+# QNetworkAccessManager
+from qgis.core import QgsNetworkAccessManager
+
+from qgis.PyQt.QtCore import QByteArray
+from qgis.PyQt.QtCore import QVariant
 
 from .views.result_selection import ThreeDiResultSelectionWidget
 from .models.result_downloader import DownloadResultModel
@@ -69,7 +73,7 @@ class ThreeDiResultSelection(QObject):
         self.password = None
 
         # download administration
-        self.network_manager = QNetworkAccessManager(self)
+        self.network_manager = QgsNetworkAccessManager(self)
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -160,9 +164,10 @@ class ThreeDiResultSelection(QObject):
                 self.ts_datasource.insertRows([result])
 
     def get_state_description(self):
+        from io import IOBase
         return (self.tool_name,
                 {
-                    'model_schematisation': file,
+                    'model_schematisation': IOBase,  # file,
                     'result_directories': list
                 })
 
@@ -219,8 +224,8 @@ class ThreeDiResultSelection(QObject):
         # the downloads are processed asynchronous using callbacks.
         for url in to_download_urls:
             request = QNetworkRequest(QUrl(url))
-            request.setRawHeader('username', self.username)
-            request.setRawHeader('password', self.password)
+            request.setRawHeader(b'username', bytes(self.username, 'utf-8'))
+            request.setRawHeader(b'password', bytes(self.password, 'utf-8'))
             request.setAttribute(
                 USER_DOWNLOAD_DIRECTORY, self.download_directory)
 
@@ -234,6 +239,7 @@ class ThreeDiResultSelection(QObject):
 
     def on_single_download_ready_to_read_chunk(self):
         """Process a chunk of the downloaded data."""
+        # TODO: do some exception handling if the download did not succeed
         reply = self.sender()
         raw_chunk = reply.readAll()  # QByteArray
         filename = reply.url().toString().split('/')[-1]

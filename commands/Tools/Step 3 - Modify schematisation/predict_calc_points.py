@@ -3,7 +3,7 @@
 
 import logging
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -78,7 +78,7 @@ class CustomCommand(CustomCommandBase):
         if succces:
             msg = 'Predicted {} calculation points'.format(len(features))
             level = 3
-            QgsMapLayerRegistry.instance().addMapLayer(calc_pnts_lyr)
+            QgsProject.instance().addMapLayer(calc_pnts_lyr)
         else:
             msg = 'Predicted calculation points failed! ' \
                   'Are you sure the table "v2_calculation_point" ' \
@@ -92,7 +92,7 @@ class CustomCommand(CustomCommandBase):
             cp_msg = 'Created {} connected points template'.format(
                 len(cp_features))
             cp_level = 3
-            QgsMapLayerRegistry.instance().addMapLayer(self.connected_pnts_lyr)
+            QgsProject.instance().addMapLayer(self.connected_pnts_lyr)
         else:
             cp_msg = 'Creating connected points failed!'
             cp_level = 1

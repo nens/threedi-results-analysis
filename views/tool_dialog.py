@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
-from PyQt4.QtCore import pyqtSignal, QSettings
-from PyQt4.QtGui import QDialog, QFileDialog, QMessageBox
-from PyQt4.QtSql import QSqlDatabase
-from PyQt4 import uic
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
+from qgis.PyQt.QtCore import pyqtSignal, QSettings
+from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt import uic
+from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(

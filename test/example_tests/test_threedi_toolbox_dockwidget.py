@@ -9,7 +9,7 @@
 """
 import unittest
 
-from PyQt4.QtGui import QDockWidget
+from qgis.PyQt.QtWidgets import QDockWidget
 
 from ThreeDiToolbox.views.threedi_toolbox_dockwidget import \
     ThreeDiToolboxDockWidget

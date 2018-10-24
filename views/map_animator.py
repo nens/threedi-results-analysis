@@ -1,13 +1,14 @@
+from __future__ import absolute_import
+from builtins import range
 import os
 import logging
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout,
-                         QPushButton, QApplication, QComboBox)
-from PyQt4.QtCore import (QVariant, )
-from qgis.core import (QgsField, QgsMapLayerRegistry)
+from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QPushButton, QApplication, QComboBox
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import (QgsField, QgsProject)
 import numpy as np
 
-from graph import generate_parameter_config
+from .graph import generate_parameter_config
 from ..utils.geo_processing import copy_layer_into_memory_layer
 from ..utils.user_messages import messagebar_message
 
@@ -109,8 +110,8 @@ class MapAnimator(QWidget):
                 combo_box.setCurrentIndex(0)
 
             nr_parameters_tot = combo_box.count()
-            for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                                    nr_parameters_tot)):
+            for i in reversed(list(range(nr_parameters_tot - nr_old_parameters,
+                                    nr_parameters_tot))):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
@@ -233,11 +234,11 @@ class MapAnimator(QWidget):
             os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
-        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(
+        QgsProject.instance().addMapLayer(self.line_layer, True)
+        QgsProject.instance().addMapLayer(
             self.line_layer_groundwater, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(
+        QgsProject.instance().addMapLayer(self.node_layer, True)
+        QgsProject.instance().addMapLayer(
             self.node_layer_groundwater, True)
 
     def update_results(self):

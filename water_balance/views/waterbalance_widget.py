@@ -1,18 +1,18 @@
+from builtins import object
 import copy
 import functools
 import logging
 import os
 
 import matplotlib as mpl
-mpl.use('Qt4Agg')  # to prevent pyplot from using Tkinter
+mpl.use('Qt5Agg')  # to prevent pyplot from using Tkinter
 import matplotlib.pyplot as plt
 import numpy as np
 import pyqtgraph as pg
-from PyQt4.QtCore import Qt, QSize, QEvent, QMetaObject
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QDockWidget,\
-    QComboBox, QColor, QMessageBox
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QDockWidget, QComboBox, QMessageBox
+from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsGeometry, QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
 
@@ -71,7 +71,7 @@ INPUT_SERIES = [
 #######################
 
 def _get_request_filter(ids):
-    ids_flat = list(set([i for j in ids.values() for i in j]))
+    ids_flat = list(set([i for j in list(ids.values()) for i in j]))
     return QgsFeatureRequest().setFilterFids(ids_flat)
 
 
@@ -544,7 +544,7 @@ class WaterBalanceWidget(QDockWidget):
 
         # fill comboboxes with selections
         self.modelpart_combo_box.insertItems(0, ['1d 2d', '1d', '2d'])
-        self.sum_type_combo_box.insertItems(0, serie_settings.keys())
+        self.sum_type_combo_box.insertItems(0, list(serie_settings.keys()))
         self.agg_combo_box.insertItems(0, ['m3/s', 'm3 cumulative'])
 
         # add listeners
@@ -920,7 +920,7 @@ class WaterBalanceWidget(QDockWidget):
         req_filter_nodes = _get_request_filter(node_ids)
 
         line_id_to_type = {}
-        for _type, id_list in link_ids.items():
+        for _type, id_list in list(link_ids.items()):
             for i in id_list:
                 # we're not interested in in or out types, but for 1d_2d_in
                 # and 1d_2d_out we need to employ this hack because these
@@ -946,7 +946,7 @@ class WaterBalanceWidget(QDockWidget):
         #     for i in id_list:
         #         pump_id_to_type[i] = 'all'
         node_id_to_type = {}
-        for _type, id_list in node_ids.items():
+        for _type, id_list in list(node_ids.items()):
             for i in id_list:
                 node_id_to_type[i] = _type
 
@@ -988,8 +988,8 @@ class WaterBalanceWidget(QDockWidget):
         # draw the lines/points immediately
         # TODO: probably need to throw this code away since we won't use it
         if draw_it:
-            qgs_lines_all = [j for i in qgs_lines.values() for j in i]
-            qgs_points_all = [j for i in qgs_points.values() for j in i]
+            qgs_lines_all = [j for i in list(qgs_lines.values()) for j in i]
+            qgs_points_all = [j for i in list(qgs_points.values()) for j in i]
 
             self.polygon_tool.update_line_point_selection(
                 qgs_lines_all, qgs_points_all)

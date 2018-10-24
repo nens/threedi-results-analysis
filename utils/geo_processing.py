@@ -1,6 +1,7 @@
+from builtins import str
 from qgis.core import (
-    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
-    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
+    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, Qgis,
+    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceUri,
     QgsCoordinateReferenceSystem)
 import math
 
@@ -101,7 +102,7 @@ def split_line_at_points(polyline_input, point_features,
 
             length, unit_type = d.convertMeasurement(
                 d.computeDistance(line_points),
-                QGis.Meters, QGis.Meters, False)  # QGis.Degrees
+                Qgis.Meters, Qgis.Meters, False)  # Qgis.Degrees
 
             # add line parts
             line_parts.append({
@@ -120,7 +121,7 @@ def split_line_at_points(polyline_input, point_features,
     geom = QgsGeometry.fromPolyline(line_points)
     length, something = d.convertMeasurement(
         d.computeDistance(line_points),
-        QGis.Meters, QGis.Meters, False)
+        Qgis.Meters, Qgis.Meters, False)
 
     line_parts.append({
         'geom': geom,
@@ -138,7 +139,7 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
-        QGis.featureType(source_provider.geometryType()).lstrip('WKB'),
+        Qgis.featureType(source_provider.geometryType()).lstrip('WKB'),
         str(source_provider.crs().postgisSrid()))
 
     dest_layer = QgsVectorLayer(uri, layer_name, "memory")

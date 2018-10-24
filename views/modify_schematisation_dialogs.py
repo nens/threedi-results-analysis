@@ -2,21 +2,21 @@
 import os
 import logging
 
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 
-from PyQt4 import uic
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtCore import QRect
-from PyQt4.QtCore import Qt
-from PyQt4.QtCore import QObject
-from PyQt4.QtCore import QMetaObject
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QGroupBox
-from PyQt4.QtGui import QComboBox
-from PyQt4.QtGui import QSizePolicy
-from PyQt4.QtGui import QDialogButtonBox
-from PyQt4.QtGui import QApplication
-from PyQt4.QtGui import QDialog
+from qgis.PyQt import uic
+
+from qgis.PyQt.QtCore import QRect
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import QMetaObject
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QGroupBox
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QDialogButtonBox
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
@@ -58,7 +58,7 @@ class PredictCalcPointsDialogWidget(QDialog):
         self.command = command
 
         self.databases = get_databases()
-        self.database_combo.addItems(self.databases.keys())
+        self.database_combo.addItems(list(self.databases.keys()))
 
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
@@ -138,10 +138,8 @@ class PredictCalcPointsDialogWidget(QDialog):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                        self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                        self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
@@ -169,7 +167,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         self.command = command
 
         self.databases = get_databases()
-        self.database_combo.addItems(self.databases.keys())
+        self.database_combo.addItems(list(self.databases.keys()))
 
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
@@ -253,10 +251,8 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                        self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                        self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
@@ -296,7 +292,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.help_text_browser.setText(
             tool_help.replace('        ', '').replace('\n', '').replace('\r', '')  # noqa
         )
-        connected_pnt_lyr = QgsMapLayerRegistry.instance().mapLayersByName(
+        connected_pnt_lyr = QgsProject.instance().mapLayersByName(
             'v2_connected_pnt'
         )
         # automatically pre-select the right layer if present

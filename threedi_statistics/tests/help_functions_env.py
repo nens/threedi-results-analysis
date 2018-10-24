@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os.path
 
 import numpy as np
@@ -33,7 +34,8 @@ for l in link_ids['1d_out']:
     tnp_link.append((l, 1, -1))
 
 np_link = np.array(tnp_link,  dtype=[('id', int), ('type', int), ('in_out', int)])
-print np_link
+# fix_print_with_import
+print(np_link)
 # np_link = np_link.transpose()
 
 nc = NetcdfDataSource(nc_file)
@@ -49,6 +51,9 @@ for ts_idx, dt in enumerate(ts):
     pos += vol.clip(min=0)
     neg += vol.clip(max=0)
 
-print pos.sum()
-print neg.sum()
-print pos.sum() + neg.sum()
+# fix_print_with_import
+print(pos.sum())
+# fix_print_with_import
+print(neg.sum())
+# fix_print_with_import
+print(pos.sum() + neg.sum())

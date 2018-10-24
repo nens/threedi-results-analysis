@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import logging
 import os
-import urllib2
-from urllib2 import HTTPError
+import urllib.request, urllib.error, urllib.parse
+from urllib.error import HTTPError
 
 from lizard_connector.connector import Endpoint
-from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
-from PyQt4.QtGui import QWidget, QFileDialog, QSortFilterProxyModel
-from PyQt4 import uic
+from qgis.PyQt.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
+from qgis.PyQt.QtWidgets import QWidget, QFileDialog
+from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.PyQt import uic
 
 from ..datasource.netcdf import (find_id_mapping_file,
                                  find_h5_file,
@@ -65,7 +70,7 @@ class ResultsWorker(QThread):
                     print("Exiting...")
                     break
                 items = _reshape_scenario_results(results)
-                print("ResultsWorker - got new data")
+                log.debug("ResultsWorker - got new data")
                 self.output.emit(items)
         except HTTPError as e:
             message = "Something went wrong trying to connect to {0}. {1}: " \
@@ -206,7 +211,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileName(self,
+        filename, __ = QFileDialog.getOpenFileName(self,
                                                'Open resultaten file',
                                                init_path,
                                                'NetCDF (*.nc)')
@@ -275,9 +280,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
 
         tdi_spatialites = []
-
-        for layer in self.iface.legendInterface().layers():
-            if layer.name() in layer_qh_type_mapping.keys() and \
+        for layer in self.iface.layerTreeView().selectedLayers():
+            if layer.name() in list(layer_qh_type_mapping.keys()) and \
                     layer.dataProvider().name() == 'spatialite':
                 source = layer.dataProvider().dataSourceUri().split("'")[1]
                 if source not in tdi_spatialites:
@@ -311,7 +315,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileName(
+        filename, __ = QFileDialog.getOpenFileName(
             self,
             'Open 3Di model spatialite file',
             init_path,
@@ -378,7 +382,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 endpoint='scenarios',
             )
             endpoint = scenarios_endpoint.download_paginated(page_size=10)
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
             else:

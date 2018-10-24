@@ -2,6 +2,7 @@
 This code was basically copied from python-flow with modifications to make
 it work with our own data sources.
 """
+from builtins import object
 import numpy as np
 import inspect
 
@@ -11,7 +12,7 @@ from ..utils.user_messages import log
 
 def tailored_args(f, **kwargs):
     """Filter and apply relevant kwargs to function."""
-    relevant_args = {k: v for (k, v) in kwargs.items() if k
+    relevant_args = {k: v for (k, v) in list(kwargs.items()) if k
                      in inspect.getargspec(f).args}
     return f(**relevant_args)
 
@@ -222,7 +223,7 @@ class NcStatsAgg(NcStats):
                 continue
 
         # Generate result statistics a priori
-        for k, v in self.variables.items():
+        for k, v in list(self.variables.items()):
             if k.endswith('_cum'):
                 # We can sum without integration because parameter is already
                 # an integrated variable.
@@ -234,7 +235,7 @@ class NcStatsAgg(NcStats):
             else:
                 raise ValueError("Unknown variable")
             self.variables[k] = calcd_array
-        self.variable_keys = self.variables.keys()
+        self.variable_keys = list(self.variables.keys())
 
     def get_value_from_parameter(self, structure_type, obj_id,
                                  parameter_name, **kwargs):

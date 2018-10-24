@@ -1,6 +1,9 @@
+from builtins import str
+from builtins import range
+from builtins import object
 import logging
 
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsMessageBar
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import OperationalError
@@ -23,7 +26,7 @@ class ControlledStructures(object):
 
     def get_uri(self, **kwargs):
         """
-        :returns an QgsDataSourceURI() instance
+        :returns an QgsDataSourceUri() instance
 
         kwargs :
             'host' --> network address (postgres) or
@@ -38,7 +41,7 @@ class ControlledStructures(object):
 
          """
 
-        self._uri = QgsDataSourceURI()
+        self._uri = QgsDataSourceUri()
         host = kwargs['host']
         port = kwargs['port']
         database = kwargs['database']
@@ -219,7 +222,7 @@ class ControlledStructures(object):
         """
         attribute_names = ""
         attribute_values = ""
-        for key, value in attributes.iteritems():
+        for key, value in attributes.items():
             if attribute_names != "":
                 attribute_names += ", '{}'".format(str(key))
             else:

@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
+from builtins import str
+from builtins import range
 import csv
 import os
 import logging
 
 
-from PyQt4 import QtCore
-from PyQt4 import uic
-from PyQt4.QtCore import QSettings
-from PyQt4.QtGui import QAbstractItemView
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtGui import QApplication
-from PyQt4.QtGui import QDialog
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QTableWidget
-from PyQt4.QtGui import QTableWidgetItem
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QWidget
+from qgis.PyQt import QtCore
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtWidgets import QAbstractItemView
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QTableWidget
+from qgis.PyQt.QtWidgets import QTableWidgetItem
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -212,7 +214,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
         if file_type == "csv":
-            filename = QFileDialog\
+            filename, __ = QFileDialog\
                 .getOpenFileName(None, 'Select import file', init_path,
                                  'Comma-seperated values (*.csv)')
         if filename:
