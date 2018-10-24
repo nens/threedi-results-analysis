@@ -659,7 +659,7 @@ class WaterBalanceCalculation(object):
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_vertical_infiltration).clip(
                     min=0).sum()
-                # 2d_vertical_infiltration (2d_vertical_infiltration_pos)
+                # 2d_vertical_infiltration (2d_vertical_infiltration_neg)
                 total_time[ts_idx, 29] = -1 * ma.masked_array(
                     in_sum, mask=mask_2d_vertical_infiltration).clip(
                     max=0).sum() + ma.masked_array(
@@ -690,12 +690,6 @@ class WaterBalanceCalculation(object):
 
                 in_sum = flow_dt.clip(min=0)
                 out_sum = flow_dt.clip(max=0)
-
-                # renier
-                # print 'in_sum: ' + str(in_sum)
-                # print 'in_sum.sum(): ' + str(in_sum.sum())
-                # print 'out_sum: ' + str(out_sum)
-                # print 'out_sum.sum(): ' + str(out_sum.sum())
 
                 total_time[ts_idx, 12] = in_sum.sum()
                 total_time[ts_idx, 13] = out_sum.sum()
@@ -754,14 +748,6 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
-                        # if parameter == 'q_lat':
-                        #     import qtdb; qtdb.set_trace()
-                        #     total_time[ts_idx, pnr] = ma.masked_array(
-                        #         values_dt, mask=mask_2d_nodes).sum()
-                        #     total_time[ts_idx, pnr + 1] = ma.masked_array(
-                        #         values_dt, mask=mask_1d_nodes).sum()
-                        # else:
-                        #     total_time[ts_idx, pnr] = values_dt * factor
                         total_time[ts_idx, pnr] = values_dt * factor
 
         t_pref = 0
@@ -834,157 +820,6 @@ class WaterBalanceCalculation(object):
         # for ts_idx, t in enumerate(ts):
         #     dt = t - prev_t
         #     prev_t = t
-        #     flow = total_time[ts_idx, 12] * dt
-        #     cum_flow += flow
-        #     print 'pump_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 13] * dt
-        #     cum_flow += flow
-        #     print 'pump_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        # cum_flow = 0
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 6] * dt
-        #     cum_flow += flow
-        #     print '1d_bound_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 7] * dt
-        #     cum_flow += flow
-        #     print '1d_bound_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        # cum_flow = 0
-        #
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 0] * dt
-        #     cum_flow += flow
-        #     print '2d_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 1] * dt
-        #     cum_flow += flow
-        #     print '2d_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 2] * dt
-        #     cum_flow += flow
-        #     print '1d_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 3] * dt
-        #     cum_flow += flow
-        #     print '1d_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 8] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_flow_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 9] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 10] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_exch_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 11] * dt
-        #     cum_flow += flow
-        #     print '1d__1d_2d_exch_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 32] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_exch_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 33] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_exch_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 30] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_flow_in, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
-        #
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
         #     flow = total_time[ts_idx, 31] * dt
         #     cum_flow += flow
         #     print '2d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(
@@ -1032,7 +867,7 @@ class WaterBalanceTool:
 
     def pop_up_no_agg_found(self):
         header = 'Error: No aggregation netcdf found'
-        ms1 = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
+        msg = "The WaterBalanceTool requires an 'aggregate_results_3di.nc' " \
               "but this file could not be found. Please make sure you run " \
               "your simulation using the 'v2_aggregation_settings' table " \
               "with the following variables:" \
@@ -1044,17 +879,17 @@ class WaterBalanceTool:
               "\n- pump discharge (in case model has pumps)"\
               "\n- infiltration (in case model has (simple_)infiltration)"\
               "\n\npositive cumulative:\n- discharge"\
-              "\n\nnegative cumulative:\n- discharge"
-        ms2 = "\n\nNOTE: for 100% closure of the balance, please make sure " \
+              "\n\nnegative cumulative:\n- discharge"\
+              "\n\nNOTE: for 100% closure of the balance, please make sure " \
               "that the v2_aggregation_settings' timestep for all " \
               "aggregation variables is a multiple of the v2_global_settings'"\
               " output_time_step"
-        QMessageBox.warning(None, header, ms1, ms2)
+        QMessageBox.warning(None, header, msg)
 
     def pop_up_missing_agg_vars(self):
         header = 'Error: Missing aggregation settings'
         missing_vars = self.missing_agg_vars()
-        ms1 = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
+        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
               " the file does not include all required aggregation " \
               "variables. Please add them to the sqlite table " \
               "'v2_aggregation_settings' and run your simulation again. The " \
@@ -1070,11 +905,7 @@ class WaterBalanceTool:
               "\n\nnegative cumulative:\n- discharge" \
               "\n\nYour aggregation .nc misses the following variables: " + \
               ', '.join(missing_vars)
-        ms2 = "\n\nNOTE: for 100% closure of the balance, please make sure " \
-              "that the v2_aggregation_settings' timestep for all " \
-              "aggregation variables is a multiple of the v2_global_settings'"\
-              " output_time_step"
-        QMessageBox.warning(None, header, ms1, ms2)
+        QMessageBox.warning(None, header, msg)
 
     def missing_agg_vars(self):
         selected_ds = self.ts_datasource.rows[0].datasource()

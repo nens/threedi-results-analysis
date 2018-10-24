@@ -1038,8 +1038,6 @@ class WaterBalanceWidget(QDockWidget):
             wb_polygon, model_part)
         node_ids = self.calc.get_nodes(wb_polygon, model_part)
 
-        # print 'break666'
-
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)
 
