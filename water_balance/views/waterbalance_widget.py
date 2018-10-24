@@ -900,6 +900,8 @@ class WaterBalanceWidget(QDockWidget):
             # A better solution would be nice...
             'pumps': ['pumps_hoover'],
             '2d groundwater flow': ['2d_groundwater'],
+            'vertical infiltration': ['2d_vertical_infiltration_pos',
+                                      '2d_vertical_infiltration_neg'],
         }
         NAME_TO_LINE_TYPES_MAIN_FLOWS = {
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
@@ -1133,15 +1135,18 @@ class WaterBalanceWidget(QDockWidget):
         if model_part == '1d 2d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '1d', 'error_1d_2d']])
+                if z in ['2d', '1d', '1d_2d']])
         elif model_part == '2d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '1d_2d', 'error_2d']])
+                if z in ['2d', '2d_vert', '1d_2d']])
         elif model_part == '1d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['1d', '1d_2d', 'error_1d']])
+                if z in ['1d', '1d_2d']])
+
+        # renier
+        print 'debug'
 
         # TODO: figure out why the hell np.clip is needed.
         for serie_setting in settings.get('items', []):
