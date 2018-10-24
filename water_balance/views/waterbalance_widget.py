@@ -117,12 +117,8 @@ class Bar(object):
     def end_balance_in(self):
         return self._balance_in
 
-    def set_end_balance_in(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
+    def set_end_balance_in(self, ts, ts_series, t1=0, t2=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.in_series]
-
-        # renier
-        print 'set_end_balance_in: ' + b_labelname + ' ' + name
-
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
@@ -135,12 +131,8 @@ class Bar(object):
     def end_balance_out(self):
         return self._balance_out
 
-    def set_end_balance_out(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
+    def set_end_balance_out(self, ts, ts_series, t1=0, t2=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.out_series]
-
-        # renier
-        print 'set_end_balance_out: ' + b_labelname + ' ' + name
-
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
         # NOTE: we're using np.clip to determine in/out for dvol (for flows
         # /discharges this shouldn't matter I THINK)
@@ -148,10 +140,10 @@ class Bar(object):
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
         self._balance_out = balance_tmp[:, ts_indices_sliced].sum()
 
-    def calc_balance(self, ts, ts_series, t1=0, t2=None, b_labelname=None):
+    def calc_balance(self, ts, ts_series, t1=0, t2=None):
         """Calculate balance values."""
-        self.set_end_balance_in(ts, ts_series, t1, t2, b_labelname)
-        self.set_end_balance_out(ts, ts_series, t1, t2, b_labelname)
+        self.set_end_balance_in(ts, ts_series, t1, t2)
+        self.set_end_balance_out(ts, ts_series, t1, t2)
         if self.is_storage_like:
             self.convert_to_net()
 
@@ -202,19 +194,7 @@ class BarManager(object):
     def calc_balance(
             self, ts, ts_series, t1, t2, net=False, invert=[]):
         for b in self.bars:
-
-            # renier
-            # print b.label_name
-            if b.label_name == '1D-2D flow' and b.type == '2d':
-                pass
-            if b.label_name == '1D-2D flow' and b.type == '1d':
-                pass
-            if b.label_name == '1D boundaries' and b.type == '1d':
-                pass
-            b_labelname = b.label_name
-            b.calc_balance(ts, ts_series, t1=t1, t2=t2, b_labelname=b_labelname)
-
-            # b.calc_balance(ts, ts_series, t1=t1, t2=t2
+            b.calc_balance(ts, ts_series, t1=t1, t2=t2)
             if net:
                 b.convert_to_net()
             if b.label_name in invert:
@@ -413,15 +393,6 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     # only get 1 line (the sum of 'in' and 'out')
                     item._plots['sum'] = plot_item
 
-                # if item.active.value and item.name.value == '1d-2d flow':
-                #     print 'renier 1d-2d flow'
-                #
-                # if item.active.value and item.name.value == '1d flow':
-                #     print 'renier 1d flow'
-                #
-                # if item.active.value and item.name.value == '1d boundaries':
-                #     print 'renier 1d boundaries'
-
                 if item.active.value and item.name.value not in [
                     'volume change',
                     'volume change 2d',
@@ -541,7 +512,7 @@ class WaterBalanceWidget(QDockWidget):
             'label_name': '1D: 1D-2D flow',
             'in': ['1d__1d_2d_flow_in'],
             'out': ['1d__1d_2d_flow_out'],
-            'type': '2d',
+            'type': '1d',
         }, {
             'label_name': '2D: 1D-2D flow',
             'in': ['2d__1d_2d_flow_in'],
@@ -553,6 +524,16 @@ class WaterBalanceWidget(QDockWidget):
             'in': ['1d__1d_2d_flow_in', '2d__1d_2d_flow_in'],
             'out': ['1d__1d_2d_flow_out', '2d__1d_2d_flow_out'],
             'type': 'NETVOL',
+        }, {
+            'label_name': '1D: 1D-2D exchange',
+            'in': ['1d__1d_2d_exch_in'],
+            'out': ['1d__1d_2d_exch_out'],
+            'type': '1d',
+        }, {
+            'label_name': '2D: 1D-2D exchange',
+            'in': ['2d__1d_2d_exch_in'],
+            'out': ['2d__1d_2d_exch_out'],
+            'type': '2d',
         }, {
             'label_name': 'net change in storage',
             'in': ['d_2d_vol'],
@@ -613,16 +594,6 @@ class WaterBalanceWidget(QDockWidget):
             'in': ['1d_bound_in'],
             'out': ['1d_bound_out'],
             'type': '1d',
-        }, {
-            'label_name': '1D: 1D-2D exchange',
-            'in': ['1d__1d_2d_exch_in'],
-            'out': ['1d__1d_2d_exch_out'],
-            'type': '2d',
-        }, {
-            'label_name': '2D: 1D-2D exchange',
-            'in': ['2d__1d_2d_exch_in'],
-            'out': ['2d__1d_2d_exch_out'],
-            'type': '2d',
         }, {
             'label_name': '1D inflow from rain',
             'in': ['inflow'],
@@ -702,11 +673,10 @@ class WaterBalanceWidget(QDockWidget):
             return
         ts, ts_series = self._current_calc
 
-        #renier
         io_series_net = [
             x for x in self.IN_OUT_SERIES if (
                 x['type'] in [
-                    '2d', '1d_2d', '2d_vert', '2d_groundwater', '1d'] and
+                    '2d', '2d_vert', '2d_groundwater', '1d'] and
                 'storage' not in x['label_name'] and
                 'exchange' not in x['label_name'] and
                 x['label_name'] != '1D: 1D-2D flow' and
@@ -718,7 +688,7 @@ class WaterBalanceWidget(QDockWidget):
 
         io_series_2d = [
             x for x in self.IN_OUT_SERIES if
-            x['type'] in ['2d', '1d_2d', '2d_vert'] and
+            x['type'] in ['2d', '2d_vert'] and
             x['label_name'] != '1D: 1D-2D flow' and
             x['label_name'] != '1D: 1D-2D exchange'
         ]
@@ -729,7 +699,7 @@ class WaterBalanceWidget(QDockWidget):
         ]
 
         io_series_1d = [
-            x for x in self.IN_OUT_SERIES if x['type'] in ['1d', '1d_2d'] and
+            x for x in self.IN_OUT_SERIES if x['type'] == '1d' and
             x['label_name'] != '2D: 1D-2D flow' and
             x['label_name'] != '2D: 1D-2D exchange'
         ]
@@ -739,27 +709,51 @@ class WaterBalanceWidget(QDockWidget):
         view_range = viewbox_state['viewRange']
         t1, t2 = view_range[0]
 
-        # renier
-        # print 'break00'
-
         bm_net = BarManager(io_series_net)
         bm_2d = BarManager(io_series_2d)
         bm_2d_groundwater = BarManager(io_series_2d_groundwater)
         bm_1d = BarManager(io_series_1d)
 
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
-
-        # renier
-        # print 'break0'
-        
         bm_2d.calc_balance(ts, ts_series, t1, t2)
         bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
             'infiltration/exfiltration (domain exchange)'])
-        #bm_1d.calc_balance(ts, ts_series, t1, t2, invert=['1D-2D exchange'])
-        # renier
         bm_1d.calc_balance(ts, ts_series, t1, t2)
-        # renier
-        print 'break1'
+
+
+        # debug code to find cause in case the waterbalance returns
+        # no 100% closure
+        # print '\n start_debug_sum '
+        # dict = {'bm_net': bm_net,
+        #         'bm_2d': bm_2d,
+        #         'bm_1d': bm_1d,
+        #         'bm_2d_groundwater': bm_2d_groundwater}
+        # for item in dict.iteritems():
+        #     print_name = str(item[0])
+        #     domain = item[1]
+        #     if print_name == 'bm_1d':
+        #         pass
+        #     if print_name == 'bm_2d':
+        #         pass
+        #     cum_sum = 0
+        #     for idx, label in enumerate(domain.xlabels):
+        #         in_flow = domain.end_balance_in[idx]
+        #         out_flow = domain.end_balance_out[idx]
+        #         if label in ['net change in storage', 'change in storage']:
+        #             sum_all = (in_flow + out_flow)
+        #         else:
+        #             sum_idx = in_flow + out_flow
+        #             cum_sum += sum_idx
+        #     print_sum_all = str(round(sum_all, 2))
+        #     print_cum_sum = str(round(cum_sum, 2))
+        #     if print_sum_all == print_cum_sum:
+        #         print 'okay ' + print_name + ' ' + print_sum_all + \
+        #               ' ' + print_cum_sum
+        #     else:
+        #         print 'not okay ' + print_name + ' ' + print_sum_all \
+        #               + ' ' + print_cum_sum
+        # print 'end_debug_sum '
+        # print '\n'
 
         # init figure
         plt.close()
@@ -1074,28 +1068,7 @@ class WaterBalanceWidget(QDockWidget):
         line_id_to_type = {}
         for _type, id_list in link_ids.items():
             for i in id_list:
-                # we're not interested in in or out types, but for 1d_2d_in
-                # and 1d_2d_out we need to employ this hack because these
-                # types end in '_in'/'_out'
-
-                # renier: # _type can be e.g.:
-                # 2d_bound_out
-                # 2d_out
-                # 1d_out
-                # 2d_vertical_infiltration
-                # 1d_bound_in
-                # 1d_bound_out
-                # 1d__1d_2d_flow
-                # 1d_2d_exch
-                # 2d__1d_2d_flow
-                # 2d_groundwater_in
-                # 2d_groundwater_out
-                # 2d_bound_in
-                # 2d_in
-                # 1d_in
-
                 t = _type.rsplit('_out')[0].rsplit('_in')[0]
-
                 if i not in line_id_to_type:
                     # business as usual
                     line_id_to_type[i] = t
@@ -1107,14 +1080,6 @@ class WaterBalanceWidget(QDockWidget):
                     else:
                         line_id_to_type[i] = [val, t]
 
-        # renier
-        print 'break'
-        print str(line_id_to_type)
-
-        # pump_id_to_type = {}
-        # for _, id_list in pump_ids.items():
-        #     for i in id_list:
-        #         pump_id_to_type[i] = 'all'
         node_id_to_type = {}
         for _type, id_list in node_ids.items():
             for i in id_list:
@@ -1180,11 +1145,6 @@ class WaterBalanceWidget(QDockWidget):
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
                 if z in ['1d', '1d_2d', 'error_1d']])
-            # renier: dit kan nu weg denk ik (van Jacki)
-            # idx_2d_to_1d_pos = input_series['2d_to_1d_pos']
-            # idx_2d_to_1d_neg = input_series['2d_to_1d_neg']
-            # idx_2d_to_1d = (idx_2d_to_1d_pos, idx_2d_to_1d_neg)
-            # total_time[:, idx_2d_to_1d] = total_time[:, idx_2d_to_1d] * -1
 
         # TODO: figure out why the hell np.clip is needed.
         for serie_setting in settings.get('items', []):

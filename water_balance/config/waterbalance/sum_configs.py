@@ -2,13 +2,6 @@
 # Qt linestyles, linecolors etc
 # http://pyqt.sourceforge.net/Docs/PyQt4/qpen.html
 
-# Qt.SolidLine
-# Qt.DashLine
-# Qt.DotLine
-# Qt.DashDotLine
-# Qt.DashDotDotLine
-# Qt.CustomDashLine
-
 # QColor constructed from the given CMYK color values:
 # c (cyan), m (magenta), y (yellow), k (black), and a (alpha-channel,
 # i.e. transparency (0=totally transparant)).
