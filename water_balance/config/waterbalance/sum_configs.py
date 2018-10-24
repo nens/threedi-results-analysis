@@ -130,7 +130,7 @@ serie_settings = [
             'def_pen_color': '221,160,221' + pen_transp,
             'series': ['leak'],
         }, {
-           'name': 'vertical infiltration',
+            'name': 'vertical infiltration',
             'default_method': 'gross',
             'order': 10.6,
             'def_fill_color': '121,160,191' + fill_transp,
