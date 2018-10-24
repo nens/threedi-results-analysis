@@ -13,6 +13,7 @@ from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsPoint
+from qgis.core import QgsPointXY
 from qgis.core import QgsField
 
 from qgis.PyQt.QtCore import QVariant
@@ -56,7 +57,7 @@ class BreachLocation(object):
         :param connected_pnt_lyr: the connected point layer
 
         """
-
+        # QgsMapLayer.dataProvider()
         self.search_distance = search_distance
         self.distance_to_levee = distance_to_levee
         self.use_selection = use_selection
@@ -67,7 +68,7 @@ class BreachLocation(object):
         self.connected_pnt_lyr = connected_pnt_lyr
         self.fnames_conn_pnt = {
             field.name(): i for i, field
-            in enumerate(self.connected_pnt_lyr.pendingFields())
+            in enumerate(self.connected_pnt_lyr.fields())
         }
         if not self.is_dry_run:
             self.connected_pnt_lyr.startEditing()
@@ -185,7 +186,7 @@ class BreachLocation(object):
         calc_points_dict = collections.defaultdict(list)
         # get the field names for easier lookup
         fnames_calc_pnt = [
-            field.name() for field in self.calc_pnt_lyr.pendingFields()
+            field.name() for field in self.calc_pnt_lyr.fields()
         ]
 
         calc_type_filter = [2, 5]
@@ -269,18 +270,18 @@ class BreachLocation(object):
                 )
                 if not perpendicular_line:
                     continue
-                line_start = QgsPoint(
+                line_start = QgsPointXY(
                     perpendicular_line[0], perpendicular_line[1]
                 )
-                line_end = QgsPoint(
+                line_end = QgsPointXY(
                     perpendicular_line[2], perpendicular_line[3]
                 )
 
-                org_start = QgsPoint(coords[0], coords[1])
-                org_end = QgsPoint(coords[2], coords[3])
+                org_start = QgsPointXY(coords[0], coords[1])
+                org_end = QgsPointXY(coords[2], coords[3])
 
                 if self.is_dry_run:
-                    org_line = QgsGeometry.fromPolyline([org_start, org_end])
+                    org_line = QgsGeometry.fromPolylineXY([org_start, org_end])
                     feat = QgsFeature()
                     feat.setGeometry(org_line)
                     self.provider_line.addFeatures([feat])
@@ -330,10 +331,10 @@ class BreachLocation(object):
         """
 
         levee_field_names = [
-            field.name() for field in self.levee_lyr.pendingFields()
+            field.name() for field in self.levee_lyr.fields()
         ]
 
-        virtual_line = QgsGeometry.fromPolyline([start_point, end_point])
+        virtual_line = QgsGeometry.fromPolylineXY([start_point, end_point])
         # filter levees by bbox of the virtual line
         virtual_line_bbox = virtual_line.boundingBox()
         levee_features = self.levee_lyr.getFeatures(
@@ -362,8 +363,8 @@ class BreachLocation(object):
                     virtual_line
                 )
                 intersection_pnt.convertToSingleType()
-                g = intersection_pnt.geometry()
-                pnt = QgsPoint(g.x(), g.y())
+                g = intersection_pnt.constGet()
+                pnt = QgsPointXY(g.x(), g.y())
                 dist = get_distance(centroid, pnt, epsg_code=self.epsg_code)
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
         return levee_intersections
@@ -406,7 +407,7 @@ class BreachLocation(object):
             pnt_to_use = pnt_dict[
                 min(end_pnt_dist, start_pnt_dist)
             ]
-        line_from_intersect = QgsGeometry.fromPolyline([pnt, pnt_to_use])
+        line_from_intersect = QgsGeometry.fromPolylineXY([pnt, pnt_to_use])
         line_length_from_intersect = line_from_intersect.length()
 
         # elongate the perpendicular line if it is too short to
@@ -415,10 +416,10 @@ class BreachLocation(object):
             extrapolated_point = get_extrapolated_point(
                 pnt, end_point, EXTRAPLORATION_RATIO
             )
-            exp_end_pnt = QgsPoint(
+            exp_end_pnt = QgsPointXY(
                 extrapolated_point[0], extrapolated_point[1]
             )
-            line_from_intersect = QgsGeometry.fromPolyline([pnt, exp_end_pnt])
+            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])
         new_position = line_from_intersect.interpolate(self.distance_to_levee)
         return new_position, levee_id
 

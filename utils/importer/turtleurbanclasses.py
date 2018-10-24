@@ -867,10 +867,8 @@ class HydroObjectFactory(object):
         try:
             that_class = cls.WhichHydroObject[class_name][variant]
         except KeyError:
-            # fix_print_with_import
             print("no class for such name (%s)" % class_name)
             return
-        # fix_print_with_import
         print('\n'.join(that_class.greenBookDef()[:trim_at]))
 
     def hydroObjectFromSUFHYD(self, persid, strict=True):

@@ -11,6 +11,7 @@ from qgis.core import (
     QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer)
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
+from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 
 from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info,\
@@ -70,6 +71,11 @@ class DataSourceAdapter(Proxy):
             self._timestamps = self.obj.get_timestamps()
         return self._timestamps
 
+# TODO: only works for Linux, need to find a solution for Windows!
+def load_spatialite(dbapi_conn, connection_record):
+    dbapi_conn.enable_load_extension(True)
+    dbapi_conn.load_extension('/usr/lib/x86_64-linux-gnu/mod_spatialite.so')
+
 
 class StatisticsTool(object):
     """QGIS Plugin Implementation."""
@@ -111,9 +117,10 @@ class StatisticsTool(object):
             self.modeldb_engine = create_engine(
                 'sqlite:///{0}'.format(
                     self.ts_datasource.model_spatialite_filepath),
-                module=dbapi2,
-                # this controls SQL logging
                 echo=False)
+            listen(self.modeldb_engine, 'connect', load_spatialite)
+
+            # activate the spatialite extension!
 
             self.modeldb_meta = MetaData()
             self.modeldb_meta.reflect(bind=self.modeldb_engine)

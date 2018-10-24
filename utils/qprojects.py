@@ -198,7 +198,7 @@ class ProjectStateMixin(object):
                             elif value_type == bool:
                                 value, valid = QgsProject.instance(
                                 ).readBoolEntry(name, key)
-                            elif isinstance(file, IOBase):
+                            elif isinstance(value_type, IOBase):
                                 # TODO: change this code when starting to
                                 # work with 2.17 and up
                                 value, valid = QgsProject.instance().readEntry(

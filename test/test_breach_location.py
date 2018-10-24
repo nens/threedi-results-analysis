@@ -8,7 +8,7 @@ import tempfile
 import shutil
 
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsPoint
+from qgis.core import QgsPoint, QgsPointXY
 
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
@@ -16,6 +16,7 @@ from ThreeDiToolbox.utils import constants
 
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
+from ThreeDiToolbox.test.utilities import get_qgis_app
 
 
 class TestBreachLocationDryRun(unittest.TestCase):
@@ -25,6 +26,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
     """
 
     def setUp(self):
+        self.QGIS_APP, self.CANVAS, self.IFACE, self.PARENT = get_qgis_app()
 
         # os.path.abspath(__file__)
         here = os.path.split(os.path.abspath(__file__))[0]
@@ -69,11 +71,13 @@ class TestBreachLocationDryRun(unittest.TestCase):
         expected_calc_point_ids = [
             [2, 3, 4, 5, 6, 7, 8],  # belongs to pipe 1
             [26, 27, 28, 29, 30, 31, 32]  # belongs to pipe 4
+
         ]
         calc_points_dict = self.breach_location.get_calc_points_by_content()
-        self.assertListEqual(list(calc_points_dict.keys()), expected_keys)
+        self.assertSetEqual(set(calc_points_dict.keys()), set(expected_keys))
         self.assertListEqual(
-            list(calc_points_dict.values()), expected_calc_point_ids
+            sorted(list(calc_points_dict.values())),
+            sorted(expected_calc_point_ids)
         )
 
     def test_it_can_get_connected_points(self):
@@ -167,7 +171,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
             6: [7],
             7: [8]
         }
-        self.breach_location.connected_pnt_lyr.setSelectedFeatures(
+        self.breach_location.connected_pnt_lyr.selectByIds(
             [1, 2, 3, 4, 5, 6, 7]
         )
         self.breach_location.set_selected_pnt_ids()
@@ -179,12 +183,12 @@ class TestBreachLocationDryRun(unittest.TestCase):
             [3.31369, 47.9748, 3.31376, 47.9748],
             distance=self.breach_location.search_distance,
         )
-        org_start = QgsPoint(3.31369, 47.9748)
+        org_start = QgsPointXY(3.31369, 47.9748)
 
-        line_start = QgsPoint(
+        line_start = QgsPointXY(
             perp_line[0], perp_line[1]
         )
-        line_end = QgsPoint(
+        line_end = QgsPointXY(
             perp_line[2], perp_line[3]
         )
         # line_start, line_end, org_start
@@ -203,15 +207,15 @@ class TestBreachLocationDryRun(unittest.TestCase):
             distance=self.breach_location.search_distance,
         )
 
-        line_start = QgsPoint(
+        line_start = QgsPointXY(
             perp_line[0], perp_line[1]
         )
-        line_end = QgsPoint(
+        line_end = QgsPointXY(
             perp_line[2], perp_line[3]
         )
         levee_intersections = collections.defaultdict()
-        levee_intersections[2] = [(12., QgsPoint(3.31369, 47.9747), 2)]
-        levee_intersections[3] = [(3., QgsPoint(3.31369, 47.9748), 3)]
+        levee_intersections[2] = [(12., QgsPointXY(3.31369, 47.9747), 2)]
+        levee_intersections[3] = [(3., QgsPointXY(3.31369, 47.9748), 3)]
         new_position, levee_id = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )
@@ -223,26 +227,26 @@ class TestBreachLocationDryRun(unittest.TestCase):
             distance=self.breach_location.search_distance,
         )
 
-        line_start = QgsPoint(
+        line_start = QgsPointXY(
             perp_line[0], perp_line[1]
         )
-        line_end = QgsPoint(
+        line_end = QgsPointXY(
             perp_line[2], perp_line[3]
         )
         levee_intersections = collections.defaultdict()
-        levee_intersections[2] = [(12., QgsPoint(3.31369, 47.9747), 2)]
-        levee_intersections[3] = [(3., QgsPoint(3.31369, 47.9748), 3)]
+        levee_intersections[2] = [(12., QgsPointXY(3.31369, 47.9747), 2)]
+        levee_intersections[3] = [(3., QgsPointXY(3.31369, 47.9748), 3)]
         new_position, _ = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )
-        xy = new_position.geometry().x(), new_position.geometry().y()
+        xy = new_position.constGet().x(), new_position.constGet().y()
 
         # set the distance to levee attribute to a high number
         self.breach_location.distance_to_levee = 20
         new_position2, _ = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )
-        xy2 = new_position2.geometry().x(), new_position2.geometry().y()
+        xy2 = new_position2.constGet().x(), new_position2.constGet().y()
         self.assertNotEqual(xy, xy2)
 
 

@@ -122,7 +122,8 @@ class Spatialite(SpatiaLiteDBConnector):
 
         self.createTable(table_name, sql_fields, id_field)
 
-        geom_type = Qgis.vectorGeometryType(layer.geometryType()).lstrip('WKB')
+        geom_type = QgsWkbTypes.geometryDisplayString(
+            layer.geometryType()).lstrip('WKB')
         self.addGeometryColumn(
             table_name, geom_field, geom_type=geom_type, srid=srid)
 
@@ -144,7 +145,7 @@ class Spatialite(SpatiaLiteDBConnector):
             self, table_name, wkb_type=QgsWkbTypes.Point, fields=None,
             id_field='id', geom_field='the_geom', srid=4326):
         self.createTable(table_name, fields, id_field)
-        geom_type = Qgis.featureType(wkb_type).lstrip('WKB')
+        geom_type = QgsWkbTypes.displayString(wkb_type).lstrip('WKB')
         self.addGeometryColumn(
             table_name, geom_field, geom_type=geom_type, srid=srid)
         self.createSpatialIndex(table_name, geom_field)

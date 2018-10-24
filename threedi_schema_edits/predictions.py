@@ -1,7 +1,7 @@
 from builtins import zip
 from builtins import range
 from builtins import object
-from qgis.PyQt.QtCore import QVariant, QPyNullVariant
+from qgis.PyQt.QtCore import QVariant
 
 from qgis.PyQt import QtSql
 from qgis.core import QgsFeature

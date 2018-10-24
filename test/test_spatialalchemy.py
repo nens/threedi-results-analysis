@@ -48,7 +48,7 @@ class GeoTable(Base):
         return "<User(geom='%s')>" % (
             self.geom)
 
-
+# TODO: only works on linux, fix this also for Windows.
 def load_spatialite(dbapi_conn, connection_record):
     dbapi_conn.enable_load_extension(True)
     dbapi_conn.load_extension('/usr/lib/x86_64-linux-gnu/mod_spatialite.so')

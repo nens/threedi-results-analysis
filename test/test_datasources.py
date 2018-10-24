@@ -11,7 +11,7 @@ import sys
 
 try:
     from qgis.core import (
-        QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
+        QgsVectorLayer, QgsFeature, QgsPoint, QgsPointXY, QgsField, QgsGeometry)
 except ImportError:
     pass
 
@@ -253,7 +253,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
 
         feat = QgsFeature()
         feat.setAttributes([1, 'test'])
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(1.0, 2.0)))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
 
         pr.addFeatures([feat])
         self.assertEqual(layer.featureCount(), 1)
@@ -278,7 +278,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
         pr = layer.dataProvider()
         feat = QgsFeature()
         feat.setAttributes([1, 'test'])
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(1.0, 2.0)))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
         pr.addFeatures([feat])
 
         spl_layer = spl.import_layer(layer, 'table_one', 'id')

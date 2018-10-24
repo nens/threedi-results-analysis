@@ -36,7 +36,6 @@ for l in link_ids['1d_out']:
 
 np_link = np.array(tnp_link,  dtype=[('id', int), ('type', int), (
     'in_out', int)])
-# fix_print_with_import
 print(np_link)
 # np_link = np_link.transpose()
 
@@ -54,9 +53,6 @@ for ts_idx, dt in enumerate(ts):
     pos += vol.clip(min=0)
     neg += vol.clip(max=0)
 
-# fix_print_with_import
 print(pos.sum())
-# fix_print_with_import
 print(neg.sum())
-# fix_print_with_import
 print(pos.sum() + neg.sum())

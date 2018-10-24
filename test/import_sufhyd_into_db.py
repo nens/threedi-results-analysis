@@ -110,7 +110,6 @@ class TestSelectGeometry(unittest.TestCase):
 
         statement = select([types.ST_GeomFromEWKT('POINT')])
 
-        # fix_print_with_import
         print(statement.compile(dialect=postgresql.dialect()))
 
 
