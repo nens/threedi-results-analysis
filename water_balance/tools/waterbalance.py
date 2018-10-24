@@ -486,7 +486,7 @@ class WaterBalanceCalculation(object):
         #   - positive discharge means flow inwards polygon
         #   - negative discharge means flow outwards polygon
         for idx in link_ids['1d__1d_2d_flow']:
-           tlink.append((idx, TYPE_1D__1D_2D_FLOW, -1))
+            tlink.append((idx, TYPE_1D__1D_2D_FLOW, -1))
         # 1d_2d_out: 1d node is outside polygon, 2d node is inside
         for idx in link_ids['2d__1d_2d_flow']:
             tlink.append((idx, TYPE_2D__1D_2D_FLOW, 1))

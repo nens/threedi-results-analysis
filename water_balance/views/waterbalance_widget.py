@@ -720,7 +720,6 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-
         # debug code to find cause in case the waterbalance returns
         # no 100% closure
         # print '\n start_debug_sum '
