@@ -2,13 +2,6 @@
 # Qt linestyles, linecolors etc
 # http://pyqt.sourceforge.net/Docs/PyQt4/qpen.html
 
-# Qt.SolidLine
-# Qt.DashLine
-# Qt.DotLine
-# Qt.DashDotLine
-# Qt.DashDotDotLine
-# Qt.CustomDashLine
-
 # QColor constructed from the given CMYK color values:
 # c (cyan), m (magenta), y (yellow), k (black), and a (alpha-channel,
 # i.e. transparency (0=totally transparant)).
@@ -52,20 +45,21 @@ serie_settings = [
             'def_pen_color': '156,39,176' + pen_transp,
             'series': ['1d_bound_in', '1d_bound_out'],
         }, {
-            'name': '1d-2d exchange',
+            'name': '1d-2d exchange (2d to 1d)',
             'default_method': 'gross',
             'order': 5,
-            'def_fill_color': '205,220,5' + fill_transp,
-            'def_pen_color': '205,220,5' + pen_transp,
-            'series': ['2d_to_1d_pos', '2d_to_1d_neg'],
+            'def_fill_color': '240,210,50' + fill_transp,
+            'def_pen_color': '240,210,50' + pen_transp,
+            'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
+         },  {
+            'name': '1d-2d flow (2d to 1d)',
+            'default_method': 'gross',
+            'order': 5,
+            'def_fill_color': '100,220,5' + fill_transp,
+            'def_pen_color': '100,220,5' + pen_transp,
+            'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
+                       '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
         },  {
-            'name': '1d-2d flow',
-            'default_method': 'gross',
-            'order': 5,
-            'def_fill_color': '205,220,55' + fill_transp,
-            'def_pen_color': '205,220,55' + pen_transp,
-            'series': ['1d_2d_out', '1d_2d_in'],
-        }, {
             'name': 'pumps',
             'default_method': 'gross',
             'order': 6,
@@ -90,8 +84,8 @@ serie_settings = [
             'name': 'lateral 2d',
             'default_method': 'net',
             'order': 9,
-            'def_fill_color': '76,175,80' + fill_transp,
-            'def_pen_color': '76,175,80' + pen_transp,
+            'def_fill_color': '176,175,80' + fill_transp,
+            'def_pen_color': '176,175,80' + pen_transp,
             'series': ['lat_2d'],
         }, {
             'name': 'infiltration',
@@ -139,8 +133,8 @@ serie_settings = [
             'name': 'inflow 1d from rain',
             'default_method': 'net',
             'order': 7.1,
-            'def_fill_color': '0,130,136' + fill_transp,
-            'def_pen_color': '0,130,136' + pen_transp,
+            'def_fill_color': '50,130,136' + fill_transp,
+            'def_pen_color': '50,130,136' + pen_transp,
             'series': ['inflow'],
         }]
     }, {
@@ -154,17 +148,18 @@ serie_settings = [
             'def_fill_color': '63,81,181' + fill_transp,
             'def_pen_color': '63,81,181' + pen_transp,
             'series': ['2d_in', '2d_out', '2d_bound_in', '2d_bound_out',
-                       '1d_2d_out'],
+                       '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
         }, {
             'name': '1d flow',
             'default_method': 'gross',
             'order': 2,
             'def_fill_color': '0,188,212' + fill_transp,
             'def_pen_color': '0,188,212' + pen_transp,
-            'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
-                       '1d_bound_out', '1d_2d_in'],
+            'series': ['1d_in', '1d_out', 'pump_in', 'pump_out',
+                       '1d_bound_in', '1d_bound_out',
+                       '1d__1d_2d_flow_in', '1d__1d_2d_flow_out'],
         }, {
-            'name': 'ext. forcing (rain and laterals)',
+            'name': 'external (rain and laterals)',
             'default_method': 'net',
             'order': 3,
             'def_fill_color': '0,150,136' + fill_transp,
@@ -179,12 +174,20 @@ serie_settings = [
             'def_pen_color': '50,150,136' + pen_transp,
             'series': ['infiltration_rate_simple'],
         }, {
-            'name': '1d-2d exchange',
-            'default_method': 'net',
-            'order': 4,
-            'def_fill_color': '205,220,57' + fill_transp,
-            'def_pen_color': '205,220,57' + pen_transp,
-            'series': ['2d_to_1d_pos', '2d_to_1d_neg'],
+            'name': '1d-2d exchange (2d to 1d)',
+            'default_method': 'gross',
+            'order': 5,
+            'def_fill_color': '240,210,50' + fill_transp,
+            'def_pen_color': '240,210,50' + pen_transp,
+            'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
+        }, {
+            'name': '1d-2d flow (2d to 1d)',
+            'default_method': 'gross',
+            'order': 5,
+            'def_fill_color': '100,220,5' + fill_transp,
+            'def_pen_color': '100,220,5' + pen_transp,
+            'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
+                       '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
         }, {
             'name': 'volume change',
             'default_method': 'net',

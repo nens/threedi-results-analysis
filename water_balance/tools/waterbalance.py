@@ -38,15 +38,18 @@ class WaterBalanceCalculation(object):
         # total nr of groundwater lines
         start_gr = ga.get_from_meta('lgrtot')
 
+        # get range of horizontal (in top view) surface water line ids
         x2d_surf_range_min = 1
         x2d_surf_range_max = nr_2d_x_dir
         self.x2d_surf_range = range(x2d_surf_range_min, x2d_surf_range_max + 1)
 
+        # get range of vertical (in top view) surface water line ids
         y2d_surf_range_min = x2d_surf_range_max + 1
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
         self.y2d_surf_range = range(y2d_surf_range_min, y2d_surf_range_max + 1)
 
-        # from surface to groundwater (vertical) flow
+        # get range of vertical (in side view) line ids in the gridadmin.
+        # These lines represent surface-groundwater (vertical) flow
         vert_flow_range_min = y2d_surf_range_max + 1
         vert_flow_range_max = y2d_surf_range_max + nr_2d
         self.vert_flow_range = range(
@@ -88,6 +91,12 @@ class WaterBalanceCalculation(object):
 
         log.info('polygon of wb area: %s', wb_polygon.exportToWkt())
 
+        # the '_out' and '_in' indicate the draw direction of the flow_line.
+        # a flow line can have in 1 simulation both positive and negative
+        # discharge (with extend to the draw direction). Later on, in
+        # get_aggregated_flows() this numpy timeserie is clipped with
+        # max=0 for flow in 1 direction and min=0 for flow in the opposite
+        # direction.
         flow_lines = {
             '1d_in': [],
             '1d_out': [],
@@ -97,9 +106,12 @@ class WaterBalanceCalculation(object):
             '2d_out': [],
             '2d_bound_in': [],
             '2d_bound_out': [],
-            '1d_2d_in': [],
-            '1d_2d_out': [],
-            '1d_2d': [],  # direction is always from 2d to 1d
+            # 1d2d flow lines intersect polygon (1d is inside polygon)
+            '1d__1d_2d_flow': [],
+            # 1d2d flow lines intersect polygon (2d is inside polygon)
+            '2d__1d_2d_flow': [],
+            # 1d2d exchange lines are within polygon (both nodes inside)
+            '1d_2d_exch': [],
             '2d_groundwater_in': [],
             '2d_groundwater_out': [],
             '2d_vertical_infiltration': [],
@@ -129,7 +141,8 @@ class WaterBalanceCalculation(object):
                 incoming = wb_polygon.contains(QgsPoint(geom[-1]))
 
                 if incoming and outgoing:
-                    # skip
+                    # skip lines that do have start- and end vertex outside of
+                    # polygon
                     pass
                 elif outgoing:
                     if line['type'] in [
@@ -139,8 +152,9 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 2d node is inside polygon (and 1d
-                        # node is not) then the 1d_2d link is '1d_2d_out'.
-                        flow_lines['1d_2d_out'].append(line['id'])
+                        # node is not) we define it as a '2d__1d_2d_flow' link
+                        # because
+                        flow_lines['2d__1d_2d_flow'].append(line['id'])
                 elif incoming:
                     if line['type'] in [
                             '1d', 'v2_pipe', 'v2_channel', 'v2_culvert',
@@ -149,8 +163,8 @@ class WaterBalanceCalculation(object):
                     elif line['type'] in ['1d_2d']:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 1d node is inside polygon (and 2d
-                        # node is not) then the 1d_2d link is '1d_2d_in'.
-                        flow_lines['1d_2d_in'].append(line['id'])
+                        # node is not) we define it as a '1d__1d_2d_flow' link
+                        flow_lines['1d__1d_2d_flow'].append(line['id'])
 
                 if line['type'] in ['2d'] and not (incoming and outgoing):
                     # 2d lines are a separate story: discharge on a 2d
@@ -179,6 +193,11 @@ class WaterBalanceCalculation(object):
                     # to east. But it can also mean flow to the north. If we
                     # know it is a vertical link we can be sure flow is to the
                     # north (thats why we need to know (A)
+
+                    # TODO: after I made this code Martijn Siemerink adviced:
+                    # 2d links drawing direction is always from south to north
+                    # OR west to east, so it not required to get start- and
+                    # endpoint of a 2d link
 
                     start_x = geom[0][0]
                     start_y = geom[0][1]
@@ -284,7 +303,7 @@ class WaterBalanceCalculation(object):
 
             elif line['type'] == '1d_2d' and line.geometry().within(
                     wb_polygon):
-                flow_lines['1d_2d'].append(line['id'])
+                flow_lines['1d_2d_exch'].append(line['id'])
             elif line['type'] == '2d_vertical_infiltration' and line.geometry(
                     ).within(wb_polygon):
                 flow_lines['2d_vertical_infiltration'].append(line['id'])
@@ -405,15 +424,19 @@ class WaterBalanceCalculation(object):
         # links only
         TYPE_1D_BOUND_IN = '1d_bound_in'
         TYPE_2D_BOUND_IN = '2d_bound_in'
-        TYPE_1D_2D = '1d_2d'
-        TYPE_1D_2D_IN = '1d_2d_in'
+        TYPE_1D__1D_2D_EXCH = '1d__1d_2d_exch'
+        TYPE_2D__1D_2D_EXCH = '2d__1d_2d_exch'
+        TYPE_1D__1D_2D_FLOW = '1d__1d_2d_flow'
+        TYPE_2D__1D_2D_FLOW = '2d__1d_2d_flow'
         TYPE_2D_VERTICAL_INFILTRATION = '2d_vertical_infiltration'
 
         ALL_TYPES = [
             TYPE_1D, TYPE_2D, TYPE_2D_GROUNDWATER, TYPE_1D_BOUND_IN,
-            TYPE_2D_BOUND_IN, TYPE_1D_2D, TYPE_1D_2D_IN,
+            TYPE_2D_BOUND_IN, TYPE_1D__1D_2D_EXCH, TYPE_2D__1D_2D_EXCH,
+            TYPE_1D__1D_2D_FLOW, TYPE_2D__1D_2D_FLOW,
             TYPE_2D_VERTICAL_INFILTRATION,
         ]
+
         NTYPE_MAXLEN = 25
         assert max(map(len, ALL_TYPES)) <= NTYPE_MAXLEN, \
             "NTYPE_MAXLEN insufficiently large for all values"
@@ -449,21 +472,34 @@ class WaterBalanceCalculation(object):
         for idx in link_ids['2d_groundwater_out']:
             tlink.append((idx, TYPE_2D_GROUNDWATER, -1))
 
-        # todo: these settings are strange- this is not what you expect
-        # from the direction of the lines
-        for idx in link_ids['1d_2d_in']:
-            tlink.append((idx, TYPE_1D_2D_IN, -1))
-        for idx in link_ids['1d_2d_out']:
-            tlink.append((idx, TYPE_1D_2D_IN, 1))
-
-        for idx in link_ids['1d_2d']:
-            tlink.append((idx, TYPE_1D_2D, 1))
-
         for idx in link_ids['2d_vertical_infiltration']:
             tlink.append((idx, TYPE_2D_VERTICAL_INFILTRATION, 1))
 
+        # 1d_2d flow intersects the polygon:
+        # the in- or out flow for 1d2d is different than flows dirs above:
+        #   - discharge from 1d to 2d is always positive in the .nc
+        #   - discharge from 2d to 1d is always negative in the .nc
+        # 1d__1d_2d_flow: 1d node is inside polygon, 2d node is outside.
+        #   - positive discharge means flow outwards polygon
+        #   - negative discharge means flow inwards polygon
+        # 2d__1d_2d_flow: 1d node is outside polygon, 2d node is inside
+        #   - positive discharge means flow inwards polygon
+        #   - negative discharge means flow outwards polygon
+        for idx in link_ids['1d__1d_2d_flow']:
+            tlink.append((idx, TYPE_1D__1D_2D_FLOW, -1))
+        # 1d_2d_out: 1d node is outside polygon, 2d node is inside
+        for idx in link_ids['2d__1d_2d_flow']:
+            tlink.append((idx, TYPE_2D__1D_2D_FLOW, 1))
+        # 1d_2d within the polygon (from 1d perspective so everything flipped)
+        for idx in link_ids['1d_2d_exch']:
+            tlink.append((idx, TYPE_1D__1D_2D_EXCH, -1))
+        # 1d_2d within the polygon (from 2d perspective)
+        for idx in link_ids['1d_2d_exch']:
+            tlink.append((idx, TYPE_2D__1D_2D_EXCH, 1))
+
         np_link = np.array(
             tlink, dtype=[('id', int), ('ntype', NTYPE_DTYPE), ('dir', int)])
+
         # sort for faster reading of netcdf
         np_link.sort(axis=0)
 
@@ -472,8 +508,16 @@ class WaterBalanceCalculation(object):
         mask_1d = np_link['ntype'] != TYPE_1D
         mask_2d_bound = np_link['ntype'] != TYPE_2D_BOUND_IN
         mask_1d_bound = np_link['ntype'] != TYPE_1D_BOUND_IN
-        mask_1d_2d_in_out = np_link['ntype'] != TYPE_1D_2D_IN
-        mask_1d_2d = np_link['ntype'] != TYPE_1D_2D
+
+        # renier
+        # unique, counts = np.unique(mask_1d_bound, return_counts=True)
+        # print unique
+        # print counts
+
+        mask_1d__1d_2d_flow = np_link['ntype'] != TYPE_1D__1D_2D_FLOW
+        mask_2d__1d_2d_flow = np_link['ntype'] != TYPE_2D__1D_2D_FLOW
+        mask_1d__1d_2d_exch = np_link['ntype'] != TYPE_1D__1D_2D_EXCH
+        mask_2d__1d_2d_exch = np_link['ntype'] != TYPE_2D__1D_2D_EXCH
         mask_2d_groundwater = np_link['ntype'] != TYPE_2D_GROUNDWATER
         mask_2d_vertical_infiltration = np_link['ntype'] != \
             TYPE_2D_VERTICAL_INFILTRATION
@@ -496,12 +540,6 @@ class WaterBalanceCalculation(object):
                 # (1) inflow and outflow through 1d and 2d
                 # vol = ds.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
-
-                # renier
-                if t == 306.0955178098791:
-                    pass
-                if t == 606.0955178098791:
-                    pass
 
                 flow_pos = ds.get_values_by_timestep_nr(
                     'q_cum_positive', ts_idx, np_link['id']) * np_link[
@@ -555,27 +593,49 @@ class WaterBalanceCalculation(object):
                     max=0).sum() + ma.masked_array(
                     out_sum, mask=mask_1d_bound).clip(max=0).sum()
 
-                # 1d 2d in out (1d_2d_in)
+                # 1d__1d_2d_flow_in
                 total_time[ts_idx, 8] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d_in_out).clip(
+                    in_sum, mask=mask_1d__1d_2d_flow).clip(
                     min=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d_in_out).clip(min=0).sum()
-                # 1d 2d in out (1d_2d_out)
+                    out_sum, mask=mask_1d__1d_2d_flow).clip(min=0).sum()
+                # 1d__1d_2d_flow_out
                 total_time[ts_idx, 9] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d_in_out).clip(
+                    in_sum, mask=mask_1d__1d_2d_flow).clip(
                     max=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d_in_out).clip(max=0).sum()
+                    out_sum, mask=mask_1d__1d_2d_flow).clip(max=0).sum()
 
-                # 1d 2d (2d_to_1d_pos)
-                total_time[ts_idx, 10] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d).clip(
+                # 2d__1d_2d_flow_in
+                total_time[ts_idx, 30] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_flow).clip(
                     min=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d).clip(min=0).sum()
-                # 1d 2d (2d_to_1d_neg)
-                total_time[ts_idx, 11] = ma.masked_array(
-                    in_sum, mask=mask_1d_2d).clip(
+                    out_sum, mask=mask_2d__1d_2d_flow).clip(min=0).sum()
+                # 2d__1d_2d_flow_out
+                total_time[ts_idx, 31] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_flow).clip(
                     max=0).sum() + ma.masked_array(
-                    out_sum, mask=mask_1d_2d).clip(max=0).sum()
+                    out_sum, mask=mask_2d__1d_2d_flow).clip(max=0).sum()
+
+                # 1d (1d__1d_2d_exch_in)
+                total_time[ts_idx, 10] = ma.masked_array(
+                    in_sum, mask=mask_1d__1d_2d_exch).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d__1d_2d_exch).clip(min=0).sum()
+                # 1d (1d__1d_2d_exch_out)
+                total_time[ts_idx, 11] = ma.masked_array(
+                    in_sum, mask=mask_1d__1d_2d_exch).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_1d__1d_2d_exch).clip(max=0).sum()
+
+                # 2d (2d__1d_2d_exch_in)
+                total_time[ts_idx, 32] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_exch).clip(
+                    min=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d__1d_2d_exch).clip(min=0).sum()
+                # 2d (2d__1d_2d_exch_out)
+                total_time[ts_idx, 33] = ma.masked_array(
+                    in_sum, mask=mask_2d__1d_2d_exch).clip(
+                    max=0).sum() + ma.masked_array(
+                    out_sum, mask=mask_2d__1d_2d_exch).clip(max=0).sum()
 
                 # 2d groundwater (2d_groundwater_in)
                 total_time[ts_idx, 23] = ma.masked_array(
@@ -599,7 +659,7 @@ class WaterBalanceCalculation(object):
                     min=0).sum() + ma.masked_array(
                     out_sum, mask=mask_2d_vertical_infiltration).clip(
                     min=0).sum()
-                # 2d_vertical_infiltration (2d_vertical_infiltration_pos)
+                # 2d_vertical_infiltration (2d_vertical_infiltration_neg)
                 total_time[ts_idx, 29] = -1 * ma.masked_array(
                     in_sum, mask=mask_2d_vertical_infiltration).clip(
                     max=0).sum() + ma.masked_array(
@@ -688,14 +748,6 @@ class WaterBalanceCalculation(object):
                             parameter + '_cum', ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
-                        # if parameter == 'q_lat':
-                        #     import qtdb; qtdb.set_trace()
-                        #     total_time[ts_idx, pnr] = ma.masked_array(
-                        #         values_dt, mask=mask_2d_nodes).sum()
-                        #     total_time[ts_idx, pnr + 1] = ma.masked_array(
-                        #         values_dt, mask=mask_1d_nodes).sum()
-                        # else:
-                        #     total_time[ts_idx, pnr] = values_dt * factor
                         total_time[ts_idx, pnr] = values_dt * factor
 
         t_pref = 0
@@ -761,11 +813,21 @@ class WaterBalanceCalculation(object):
                     td_vol_pref_gw = td_vol_gw
                     t_pref = t
         total_time = np.nan_to_num(total_time)
+
+        # # debug waterbalance
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 31] * dt
+        #     cum_flow += flow
+        #     print '2d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(
+        #         ts_idx, t, flow, cum_flow)
         return ts, total_time
 
 
 class WaterBalanceTool:
-
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -817,7 +879,11 @@ class WaterBalanceTool:
               "\n- pump discharge (in case model has pumps)"\
               "\n- infiltration (in case model has (simple_)infiltration)"\
               "\n\npositive cumulative:\n- discharge"\
-              "\n\nnegative cumulative:\n- discharge"
+              "\n\nnegative cumulative:\n- discharge"\
+              "\n\nNOTE: for 100% closure of the balance, please make sure " \
+              "that the v2_aggregation_settings' timestep for all " \
+              "aggregation variables is a multiple of the v2_global_settings'"\
+              " output_time_step"
         QMessageBox.warning(None, header, msg)
 
     def pop_up_missing_agg_vars(self):

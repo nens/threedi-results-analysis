@@ -454,6 +454,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # make index arrays that can be used on the nc variables
             iarr_2d = index[idx_2d]
             iarr_1d = index[idx_1d] - threshold
+
+            if 'fill_value' not in locals():
+                msg = "Your 3Di simulation result is too old to handle. " \
+                      "Please simulate again and try again"
+                raise AttributeError(msg)
+
             res = np.ma.zeros(index.shape, fill_value=fill_value)
             # Note sure if a netCDF bug or a known difference in behavior.
             # Indexing a numpy array using [], or np.array([], dtype=int)
