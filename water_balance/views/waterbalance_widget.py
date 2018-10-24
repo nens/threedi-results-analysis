@@ -920,7 +920,7 @@ class WaterBalanceWidget(QDockWidget):
             'lateral 2d': ['2d'],
             'leakage': ['2d'],
             'infiltration': ['2d'],
-            'ext. forcing (rain and laterals)': ['1d', '2d'],
+            'external (rain and laterals)': ['1d', '2d'],
         }
 
         # more hackery to fix keys defined in both 'main flows'

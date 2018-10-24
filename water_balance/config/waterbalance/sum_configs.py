@@ -55,8 +55,8 @@ serie_settings = [
             'name': '1d-2d flow (2d to 1d)',
             'default_method': 'gross',
             'order': 5,
-            'def_fill_color': '205,220,5' + fill_transp,
-            'def_pen_color': '205,220,5' + pen_transp,
+            'def_fill_color': '100,220,5' + fill_transp,
+            'def_pen_color': '100,220,5' + pen_transp,
             'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
                        '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
         },  {
@@ -84,8 +84,8 @@ serie_settings = [
             'name': 'lateral 2d',
             'default_method': 'net',
             'order': 9,
-            'def_fill_color': '76,175,80' + fill_transp,
-            'def_pen_color': '76,175,80' + pen_transp,
+            'def_fill_color': '176,175,80' + fill_transp,
+            'def_pen_color': '176,175,80' + pen_transp,
             'series': ['lat_2d'],
         }, {
             'name': 'infiltration',
@@ -133,8 +133,8 @@ serie_settings = [
             'name': 'inflow 1d from rain',
             'default_method': 'net',
             'order': 7.1,
-            'def_fill_color': '0,130,136' + fill_transp,
-            'def_pen_color': '0,130,136' + pen_transp,
+            'def_fill_color': '50,130,136' + fill_transp,
+            'def_pen_color': '50,130,136' + pen_transp,
             'series': ['inflow'],
         }]
     }, {
@@ -158,7 +158,7 @@ serie_settings = [
             'series': ['1d_in', '1d_out', 'pump_in', 'pump_out', '1d_bound_in',
                        '1d_bound_out', '1d__1d_2d_flow_in', '1d__1d_2d_flow_out'],
         }, {
-            'name': 'ext. forcing (rain and laterals)',
+            'name': 'external (rain and laterals)',
             'default_method': 'net',
             'order': 3,
             'def_fill_color': '0,150,136' + fill_transp,
@@ -183,8 +183,8 @@ serie_settings = [
             'name': '1d-2d flow (2d to 1d)',
             'default_method': 'gross',
             'order': 5,
-            'def_fill_color': '205,220,5' + fill_transp,
-            'def_pen_color': '205,220,5' + pen_transp,
+            'def_fill_color': '100,220,5' + fill_transp,
+            'def_pen_color': '100,220,5' + pen_transp,
             'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
                        '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
         }, {
