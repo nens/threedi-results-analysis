@@ -130,6 +130,14 @@ serie_settings = [
             'def_pen_color': '221,160,221' + pen_transp,
             'series': ['leak'],
         }, {
+           'name': 'vertical infiltration',
+            'default_method': 'gross',
+            'order': 10.6,
+            'def_fill_color': '121,160,191' + fill_transp,
+            'def_pen_color': '121,160,191' + pen_transp,
+            'series': ['2d_vertical_infiltration_pos',
+                       '2d_vertical_infiltration_neg'],
+        }, {
             'name': 'inflow 1d from rain',
             'default_method': 'net',
             'order': 7.1,

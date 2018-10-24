@@ -130,6 +130,14 @@ class WaterBalanceCalculation(object):
             wb_polygon.geometry().boundingBox())
         for line in lines.getFeatures(request_filter):
 
+            if line['type'] == '2d_vertical_infiltration':
+                geom = line.geometry().asPolyline()
+                # 2d vertical infiltration line is handmade diagonal (drawn
+                # from 2d point 15m towards south-west ). Thus, if at-least
+                # its startpoint is within polygon then include the line
+                if wb_polygon.contains(QgsPoint(geom[0])):
+                    flow_lines['2d_vertical_infiltration'].append(line['id'])
+
             # test if lines are crossing boundary of polygon
             if line.geometry().crosses(wb_polygon):
                 geom = line.geometry().asPolyline()
@@ -257,7 +265,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines['2d_out'].append(line['id'])
 
-                elif line['type'] in ['2d_groundwater'] and not (
+                if line['type'] in ['2d_groundwater'] and not (
                         incoming and outgoing):
 
                     start_x = geom[0][0]
@@ -304,9 +312,6 @@ class WaterBalanceCalculation(object):
             elif line['type'] == '1d_2d' and line.geometry().within(
                     wb_polygon):
                 flow_lines['1d_2d_exch'].append(line['id'])
-            elif line['type'] == '2d_vertical_infiltration' and line.geometry(
-                    ).within(wb_polygon):
-                flow_lines['2d_vertical_infiltration'].append(line['id'])
 
         # find boundaries in polygon
         request_filter = QgsFeatureRequest().setFilterRect(
@@ -815,15 +820,26 @@ class WaterBalanceCalculation(object):
         total_time = np.nan_to_num(total_time)
 
         # # debug waterbalance
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 31] * dt
-        #     cum_flow += flow
-        #     print '2d__1d_2d_flow_out, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 28] * dt
+            cum_flow += flow
+            print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
+                ts_idx, t, flow, cum_flow)
+
+        cum_flow = 0
+        prev_t = 0
+        for ts_idx, t in enumerate(ts):
+            dt = t - prev_t
+            prev_t = t
+            flow = total_time[ts_idx, 29] * dt
+            cum_flow += flow
+            print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
+                ts_idx, t, flow, cum_flow)
+
         return ts, total_time
 
 
