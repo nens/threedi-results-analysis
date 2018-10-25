@@ -720,8 +720,8 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        # debug code to find cause in case the waterbalance returns
-        # no 100% closure
+        ## debug waterbalance (to find cause when waterbalance has no 100%
+        ## closure
         # print '\n start_debug_sum '
         # dict = {'bm_net': bm_net,
         #         'bm_2d': bm_2d,
@@ -1144,9 +1144,6 @@ class WaterBalanceWidget(QDockWidget):
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
                 if z in ['1d', '1d_2d']])
-
-        # renier
-        print 'debug'
 
         # TODO: figure out why the hell np.clip is needed.
         for serie_setting in settings.get('items', []):
