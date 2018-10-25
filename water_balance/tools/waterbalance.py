@@ -514,11 +514,6 @@ class WaterBalanceCalculation(object):
         mask_2d_bound = np_link['ntype'] != TYPE_2D_BOUND_IN
         mask_1d_bound = np_link['ntype'] != TYPE_1D_BOUND_IN
 
-        # renier
-        # unique, counts = np.unique(mask_1d_bound, return_counts=True)
-        # print unique
-        # print counts
-
         mask_1d__1d_2d_flow = np_link['ntype'] != TYPE_1D__1D_2D_FLOW
         mask_2d__1d_2d_flow = np_link['ntype'] != TYPE_2D__1D_2D_FLOW
         mask_1d__1d_2d_exch = np_link['ntype'] != TYPE_1D__1D_2D_EXCH
@@ -819,26 +814,16 @@ class WaterBalanceCalculation(object):
                     t_pref = t
         total_time = np.nan_to_num(total_time)
 
-        # # debug waterbalance
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 28] * dt
-            cum_flow += flow
-            print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
-                ts_idx, t, flow, cum_flow)
-
-        cum_flow = 0
-        prev_t = 0
-        for ts_idx, t in enumerate(ts):
-            dt = t - prev_t
-            prev_t = t
-            flow = total_time[ts_idx, 29] * dt
-            cum_flow += flow
-            print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
-                ts_idx, t, flow, cum_flow)
+        # debug waterbalance
+        # cum_flow = 0
+        # prev_t = 0
+        # for ts_idx, t in enumerate(ts):
+        #     dt = t - prev_t
+        #     prev_t = t
+        #     flow = total_time[ts_idx, 28] * dt
+        #     cum_flow += flow
+        #     print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
+        #         ts_idx, t, flow, cum_flow)
 
         return ts, total_time
 
