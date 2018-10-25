@@ -9,10 +9,20 @@ from sqlite3 import dbapi2
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from sqlalchemy.event import listen
 from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
+from sqlalchemy.ext.declarative import declarative_base
 
 from ThreeDiToolbox.sql_models.model_schematisation import Base
+
+
+Base = declarative_base()
+
+# TODO: only works on linux, fix this also for Windows.
+def load_spatialite(dbapi_conn, connection_record):
+    dbapi_conn.enable_load_extension(True)
+    dbapi_conn.load_extension('/usr/lib/x86_64-linux-gnu/mod_spatialite.so')
 
 
 class ThreediDatabase(object):
@@ -50,6 +60,7 @@ class ThreediDatabase(object):
             drv = ogr.GetDriverByName('SQLite')
             db = drv.CreateDataSource(self.settings['db_file'],
                                       ["SPATIALITE=YES"])
+            Base.metadata.bind = self.engine
             Base.metadata.create_all(self.engine)
 
             # todo: add settings to improve database creation speed for older
@@ -65,8 +76,8 @@ class ThreediDatabase(object):
             if self.db_type == 'spatialite':
                 engine = create_engine('sqlite:///{0}'.format(
                     self.settings['db_path']),
-                    module=dbapi2,
                     echo=self.echo)
+                listen(engine, 'connect', load_spatialite)
                 if get_seperate_engine:
                     return engine
                 else:

@@ -8,17 +8,11 @@ sys.path.insert(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
 )
 
-from osgeo import ogr, gdal
-
-# from pyspatialite import dbapi2
-from sqlite3 import dbapi2
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, MetaData
-from sqlalchemy.event import listen
+from sqlalchemy import Column, Integer, String
 from geoalchemy2.types import Geometry
+
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
 Base = declarative_base()
 
@@ -60,26 +54,15 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
         self.tmp_directory = tempfile.mkdtemp()
         self.file_path = os.path.join(self.tmp_directory, 'testdb.sqlite')
 
-        drv = ogr.GetDriverByName('SQLite')
+        db = ThreediDatabase({'db_file': self.file_path,
+                              'db_path': self.file_path},
+                             echo=True)
+        db.create_db()
+        self.engine = db.get_engine()
+        self.session = db.get_session()
 
-        if int(gdal.VersionInfo()) < 2000000:
-            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'OFF')
-
-        db = drv.CreateDataSource(self.file_path, ["SPATIALITE=YES"])
-
-        if int(gdal.VersionInfo()) < 2000000:
-            gdal.SetConfigOption('OGR_SQLITE_SYNCHRONOUS', 'FULL')
-
-        del db
-
-        engine = create_engine('sqlite:///{0}'.format(self.file_path),
-                               echo=True)
-        listen(engine, 'connect', load_spatialite)
-
-        self.session = sessionmaker(bind=engine)()
-
-        Base.metadata.bind = engine
-        Base.metadata.create_all(engine)
+        Base.metadata.bind = self.engine
+        Base.metadata.create_all(self.engine)
 
     def test_insert_and_get_normal_table(self):
         user = User(name='test')
