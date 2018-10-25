@@ -814,7 +814,7 @@ class WaterBalanceCalculation(object):
                     t_pref = t
         total_time = np.nan_to_num(total_time)
 
-        ## debug waterbalance
+        # debug waterbalance
         # cum_flow = 0
         # prev_t = 0
         # for ts_idx, t in enumerate(ts):
