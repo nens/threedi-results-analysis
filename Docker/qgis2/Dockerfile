@@ -2,6 +2,10 @@ FROM qgis-desktop:base
 MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Inspired by https://hub.docker.com/r/timcera/qgis-desktop-ubuntu/~/dockerfile/
 
+ARG USER_ID
+ARG GROUP_ID
+ARG USERNAME
+
 # QGIS 2.18 (TODO: specify the version somewhere)
 RUN echo "deb     https://qgis.org/ubuntu xenial main" >> /etc/apt/sources.list
 RUN echo "deb-src https://qgis.org/ubuntu xenial main" >> /etc/apt/sources.list
@@ -13,6 +17,7 @@ RUN apt-get -y update \
        gdal-bin \
        qgis \
        python-qgis \
+       python-h5py \
        qgis-provider-grass \
        grass \
     && apt-get clean \
@@ -25,7 +30,10 @@ RUN pip install setuptools
 ADD requirements-dev.txt .
 RUN pip install -r requirements-dev.txt -U
 
-# Called when the Docker image is started in the container
-ADD start.sh /start.sh
-RUN chmod 0755 /start.sh
-CMD /start.sh
+RUN groupadd -g $GROUP_ID qgis
+RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
+RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
+
+USER $USERNAME
+
+CMD "/usr/bin/qgis"

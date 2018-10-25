@@ -4,7 +4,7 @@ MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 
 ARG USER_ID
 ARG GROUP_ID
-ARG USER_NAME
+ARG USERNAME
 
 # QGIS 3 (TODO: specify the version somewhere)
 RUN echo "deb     https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list
@@ -43,9 +43,9 @@ ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
 RUN groupadd -g $GROUP_ID qgis
-RUN useradd -m -d /home/$USER_NAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USER_NAME
-RUN chown $USER_ID:$GROUP_ID /home/$USER_NAME
+RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
+RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
 
-USER $USER_NAME
+USER $USERNAME
 
 CMD "/usr/bin/qgis"
