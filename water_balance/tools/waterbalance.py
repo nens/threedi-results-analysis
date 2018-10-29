@@ -721,6 +721,7 @@ class WaterBalanceCalculation(object):
 
         for parameter, node, pnr, factor in [
             ('rain', np_2d_node, 14, 1),
+            ('interception', np_2d_node, 34, 1),
             # NOTE: infiltration_rate_simple is only enabled if groundwater
             # is disabled
             # TODO: in old model results this parameter is called
@@ -933,6 +934,10 @@ class WaterBalanceTool:
 
         if ga.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
+            minimum_agg_vars.append(to_add)
+
+        if ga.has_interception:
+            to_add = ('interception_cum', 'cumulative interception')
             minimum_agg_vars.append(to_add)
 
         # TODO: does this work now? Also, is 'infilration_rate_cum' correct?

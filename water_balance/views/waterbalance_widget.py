@@ -68,6 +68,7 @@ INPUT_SERIES = [
     ('2d__1d_2d_flow_out', 31, '2d'),
     ('2d__1d_2d_exch_in', 32, '2d'),
     ('2d__1d_2d_exch_out', 33, '2d'),
+    ('interception', 34, '2d'),
 ]
 
 
@@ -621,6 +622,11 @@ class WaterBalanceWidget(QDockWidget):
             'in': ['rain'],
             'out': ['rain'],
             'type': '2d',
+        }, {
+            'label_name': 'interception',
+            'in': ['interception'],
+            'out': ['interception'],
+            'type': '2d',
         }
     ]
 
@@ -916,6 +922,7 @@ class WaterBalanceWidget(QDockWidget):
             'volume change 1d': ['1d'],
             'volume change 2d groundwater': ['2d_groundwater'],
             'rain': ['2d'],
+            'interception': ['2d'],
             'inflow 1d from rain': ['1d'],
             'lateral 1d': ['1d'],
             'lateral 2d': ['2d'],

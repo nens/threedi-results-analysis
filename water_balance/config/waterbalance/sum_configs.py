@@ -74,6 +74,13 @@ serie_settings = [
             'def_pen_color': '0,150,136' + pen_transp,
             'series': ['rain'],
         }, {
+            'name': 'interception',
+            'default_method': 'net',
+            'order': 7,
+            'def_fill_color': '90,19,196' + fill_transp,
+            'def_pen_color': '90,19,196' + pen_transp,
+            'series': ['interception'],
+        }, {
             'name': 'lateral 1d',
             'default_method': 'net',
             'order': 8,
