@@ -120,8 +120,6 @@ class Bar(object):
     def set_end_balance_in(self, ts, ts_series, t1=0, t2=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.in_series]
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
-        # NOTE: we're using np.clip to determine in/out for dvol (for flows
-        # /discharges this shouldn't matter I THINK)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
         # shape = (N_idxs, len(ts))
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(min=0)
@@ -134,8 +132,6 @@ class Bar(object):
     def set_end_balance_out(self, ts, ts_series, t1=0, t2=None):
         idxs = [self.SERIES_NAME_TO_INDEX[name] for name in self.out_series]
         ts_indices_sliced = self._get_time_indices(ts, t1, t2)
-        # NOTE: we're using np.clip to determine in/out for dvol (for flows
-        # /discharges this shouldn't matter I THINK)
         ts_deltas = np.concatenate(([0], np.diff(ts)))
         balance_tmp = (ts_deltas * ts_series[:, idxs].T).clip(max=0)
         self._balance_out = balance_tmp[:, ts_indices_sliced].sum()
@@ -988,8 +984,12 @@ class WaterBalanceWidget(QDockWidget):
     def redraw_wb(self):
         pass
 
-    def update_wb(self):
+    def get_modelpart_graph_layers(self, graph_layers):
+        modelpart_graph_series = [
+            x for x in graph_layers if x['active'] is True]
+        return modelpart_graph_series
 
+    def update_wb(self):
         ts, graph_series = self.calc_wb(
             self.modelpart_combo_box.currentText(),
             self.agg_combo_box.currentText(),
@@ -997,7 +997,8 @@ class WaterBalanceWidget(QDockWidget):
 
         self.model.removeRows(0, len(self.model.rows))
         self.model.ts = ts
-        self.model.insertRows(graph_series['items'])
+        self.model.insertRows(
+            self.get_modelpart_graph_layers(graph_series['items']))
 
         if self.agg_combo_box.currentText() == 'm3/s':
             self.plot_widget.setLabel("left", "flow", "m3/s")
@@ -1135,19 +1136,28 @@ class WaterBalanceWidget(QDockWidget):
         if model_part == '1d 2d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '1d', '1d_2d']])
+                if z in ['2d', '1d']])
         elif model_part == '2d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '2d_vert', '1d_2d']])
+                if z in ['2d', '2d_vert']])
         elif model_part == '1d':
             input_series = dict([
                 (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['1d', '1d_2d']])
+                if z in ['1d']])
 
         # TODO: figure out why the hell np.clip is needed.
         for serie_setting in settings.get('items', []):
-            serie_setting['active'] = True
+
+            serie_setting['active'] = False
+            for serie in serie_setting['series']:
+                if serie in input_series:
+                    # serie will be displayed in wb_item_table (right box
+                    # where one can tickle layer(s)
+                    serie_setting['active'] = True
+                    break
+
+            # serie_setting['active'] = True
             serie_setting['method'] = serie_setting['default_method']
             serie_setting['fill_color'] = [
                 int(c) for c in serie_setting['def_fill_color'].split(',')]
@@ -1156,14 +1166,13 @@ class WaterBalanceWidget(QDockWidget):
             serie_setting['ts_series'] = {}
             nrs_input_series = []
             for serie in serie_setting['series']:
-                if serie not in input_series:
+                if serie in input_series:
+                    nrs_input_series.append(input_series[serie])
+                    del input_series[serie]
+                else:
                     # throw good error message
                     log.warning('serie config error: %s is an unknown '
                                 'serie or is doubled in the config.', serie)
-                else:
-                    nrs_input_series.append(input_series[serie])
-                    del input_series[serie]
-
             if serie_setting['default_method'] == 'net':
                 sum = total_time[:, nrs_input_series].sum(axis=1)
                 serie_setting['ts_series']['in'] = sum.clip(min=0)
@@ -1195,6 +1204,9 @@ class WaterBalanceWidget(QDockWidget):
                                                         'out'] * diff
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
+
+        # renier
+        print 'hoi'
 
         if model_part == '1d':
             total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
