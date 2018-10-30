@@ -33,41 +33,42 @@ except AttributeError:
 
 serie_settings = {s['name']: s for s in serie_settings}
 
+# serie_name, index, modelpart for bars, modelpart for graph
 INPUT_SERIES = [
-    ('2d_in', 0, '2d'),
-    ('2d_out', 1, '2d'),
-    ('1d_in', 2, '1d'),
-    ('1d_out', 3, '1d'),
-    ('2d_bound_in', 4, '2d'),
-    ('2d_bound_out', 5, '2d'),
-    ('1d_bound_in', 6, '1d'),
-    ('1d_bound_out', 7, '1d'),
-    ('1d__1d_2d_flow_in', 8, '1d'),
-    ('1d__1d_2d_flow_out', 9, '1d'),
-    ('1d__1d_2d_exch_in', 10, '1d'),
-    ('1d__1d_2d_exch_out', 11, '1d'),
-    ('pump_in', 12, '1d'),
-    ('pump_out', 13, '1d'),
-    ('rain', 14, '2d'),
-    ('infiltration_rate_simple', 15, '2d'),
-    ('lat_2d', 16, '2d'),
-    ('lat_1d', 17, '1d'),
-    ('d_2d_vol', 18, '2d'),
-    ('d_1d_vol', 19, '1d'),
-    ('error_2d', 20, 'error_2d'),
-    ('error_1d', 21, 'error_1d'),
-    ('error_1d_2d', 22, 'error_1d_2d'),
-    ('2d_groundwater_in', 23, '2d'),
-    ('2d_groundwater_out', 24, '2d'),
-    ('d_2d_groundwater_vol', 25, '2d'),
-    ('leak', 26, '2d'),
-    ('inflow', 27, '1d'),
-    ('2d_vertical_infiltration_pos', 28, '2d_vert'),
-    ('2d_vertical_infiltration_neg', 29, '2d_vert'),
-    ('2d__1d_2d_flow_in', 30, '2d'),
-    ('2d__1d_2d_flow_out', 31, '2d'),
-    ('2d__1d_2d_exch_in', 32, '2d'),
-    ('2d__1d_2d_exch_out', 33, '2d'),
+    ('2d_in', 0, '2d', '2d'),
+    ('2d_out', 1, '2d', '2d'),
+    ('1d_in', 2, '1d', '1d'),
+    ('1d_out', 3, '1d', '1d'),
+    ('2d_bound_in', 4, '2d', '2d'),
+    ('2d_bound_out', 5, '2d', '2d'),
+    ('1d_bound_in', 6, '1d', '1d'),
+    ('1d_bound_out', 7, '1d', '1d'),
+    ('1d__1d_2d_flow_in', 8, '1d', '1d2d'),
+    ('1d__1d_2d_flow_out', 9, '1d', '1d2d'),
+    ('1d__1d_2d_exch_in', 10, '1d', '1d2d'),
+    ('1d__1d_2d_exch_out', 11, '1d', '1d2d'),
+    ('pump_in', 12, '1d', '1d'),
+    ('pump_out', 13, '1d', '1d'),
+    ('rain', 14, '2d', '2d'),
+    ('infiltration_rate_simple', 15, '2d', '2d'),
+    ('lat_2d', 16, '2d', '2d'),
+    ('lat_1d', 17, '1d', '2d'),
+    ('d_2d_vol', 18, '2d', '2d'),
+    ('d_1d_vol', 19, '1d', '1d'),
+    ('error_2d', 20, 'error_2d', '2d'),
+    ('error_1d', 21, 'error_1d', '2d'),
+    ('error_1d_2d', 22, 'error_1d_2d', '2d'),
+    ('2d_groundwater_in', 23, '2d', '2d'),
+    ('2d_groundwater_out', 24, '2d', '2d'),
+    ('d_2d_groundwater_vol', 25, '2d', '2d'),
+    ('leak', 26, '2d', '2d'),
+    ('inflow', 27, '1d', '1d'),
+    ('2d_vertical_infiltration_pos', 28, '2d_vert', '2d_vert'),
+    ('2d_vertical_infiltration_neg', 29, '2d_vert', '2d_vert'),
+    ('2d__1d_2d_flow_in', 30, '2d', '1d2d'),
+    ('2d__1d_2d_flow_out', 31, '2d', '1d2d'),
+    ('2d__1d_2d_exch_in', 32, '2d', '1d2d'),
+    ('2d__1d_2d_exch_out', 33, '2d', '1d2d'),
 ]
 
 
@@ -93,7 +94,7 @@ def _get_feature_iterator(layer, request_filter):
 class Bar(object):
     """Bar for waterbalance barchart with positive and negative components.
     """
-    SERIES_NAME_TO_INDEX = {name: idx for (name, idx, _) in INPUT_SERIES}
+    SERIES_NAME_TO_INDEX = {name: idx for (name, idx, _, part) in INPUT_SERIES}
 
     def __init__(self, label_name, in_series, out_series, type):
         self.label_name = label_name
@@ -642,7 +643,7 @@ class WaterBalanceWidget(QDockWidget):
                                             self.on_polygon_ready)
 
         # fill comboboxes with selections
-        self.modelpart_combo_box.insertItems(0, ['1d 2d', '1d', '2d'])
+        self.modelpart_combo_box.insertItems(0, ['1d and 2d', '1d', '2d'])
         self.sum_type_combo_box.insertItems(0, serie_settings.keys())
         self.agg_combo_box.insertItems(0, ['m3/s', 'm3 cumulative'])
 
@@ -889,8 +890,7 @@ class WaterBalanceWidget(QDockWidget):
             '1d flow': ['1d'],
             '1d boundaries': ['1d_bound'],
             '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
-            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow',
-                                      '2d__1d_2d_flow'],
+            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
             # in the 'prepare_and_visualize_selection' function.
             # A better solution would be nice...
@@ -902,8 +902,7 @@ class WaterBalanceWidget(QDockWidget):
         NAME_TO_LINE_TYPES_MAIN_FLOWS = {
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1d flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
-            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow',
-                                      '2d__1d_2d_flow'],
+            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             '2d groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {
@@ -1133,22 +1132,20 @@ class WaterBalanceWidget(QDockWidget):
             self, ts, total_time, model_part, aggregation_type, settings):
         settings = copy.deepcopy(settings)
 
-        if model_part == '1d 2d':
+        if model_part == '1d and 2d':
             input_series = dict([
-                (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '1d']])
+                (x, y) for (x, y, z, part) in self.INPUT_SERIES
+                if part in ['1d', '2d', '2d_vert', '1d2d']])
         elif model_part == '2d':
             input_series = dict([
-                (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['2d', '2d_vert']])
+                (x, y) for (x, y, z, part) in self.INPUT_SERIES
+                if part in ['2d', '2d_vert', '1d2d']])
         elif model_part == '1d':
             input_series = dict([
-                (x, y) for (x, y, z) in self.INPUT_SERIES
-                if z in ['1d']])
+                (x, y) for (x, y, z, part) in self.INPUT_SERIES
+                if part in ['1d', '1d2d']])
 
-        # TODO: figure out why the hell np.clip is needed.
         for serie_setting in settings.get('items', []):
-
             serie_setting['active'] = False
             for serie in serie_setting['series']:
                 if serie in input_series:
@@ -1157,7 +1154,6 @@ class WaterBalanceWidget(QDockWidget):
                     serie_setting['active'] = True
                     break
 
-            # serie_setting['active'] = True
             serie_setting['method'] = serie_setting['default_method']
             serie_setting['fill_color'] = [
                 int(c) for c in serie_setting['def_fill_color'].split(',')]

@@ -51,7 +51,7 @@ serie_settings = [
             'def_fill_color': '240,210,50' + fill_transp,
             'def_pen_color': '240,210,50' + pen_transp,
             'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
-         },  {
+        }, {
             'name': '1d-2d flow (2d to 1d)',
             'default_method': 'gross',
             'order': 5,
@@ -59,7 +59,7 @@ serie_settings = [
             'def_pen_color': '100,220,5' + pen_transp,
             'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
                        '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
-        },  {
+        }, {
             'name': 'pumps',
             'default_method': 'gross',
             'order': 6,
