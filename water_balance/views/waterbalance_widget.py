@@ -20,6 +20,7 @@ from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
 
+
 log = logging.getLogger('DeltaresTdi.' + __name__)
 
 try:
@@ -285,7 +286,7 @@ class WaterbalanceItemTable(QTableView):
             if name in [
                 'volume change',
                 'volume change 2d',
-                'volume change 2d groundwater',
+                'volume change groundwater',
                 'volume change 1d',
             ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
@@ -305,7 +306,7 @@ class WaterbalanceItemTable(QTableView):
             if name in [
                 'volume change',
                 'volume change 2d',
-                'volume change 2d groundwater',
+                'volume change groundwater',
                 'volume change 1d',
             ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
@@ -366,7 +367,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         # all item.name.value (e.g. '1d-2d flow', 'pumps', 'rain') have both a
         # 'in' and 'out' flow: so two lines that together form a graph.
         # However the volume change lines in item.name.value ('volume change',
-        # 'volume change 2d', 'volume change 2d groundwater', and
+        # 'volume change 2d', 'volume change groundwater', and
         # 'volume change 1d' are summed into 1 line (so no out and in)
         for dir in ['in', 'out']:
             prev_serie = zeros
@@ -375,7 +376,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 if item.active.value and item.name.value in [
                     'volume change',
                     'volume change 2d',
-                    'volume change 2d groundwater',
+                    'volume change groundwater',
                     'volume change 1d',
                 ]:
                     pen_color = item.pen_color.value
@@ -393,7 +394,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 if item.active.value and item.name.value not in [
                     'volume change',
                     'volume change 2d',
-                    'volume change 2d groundwater',
+                    'volume change groundwater',
                     'volume change 1d'
                 ]:
                     pen_color = item.pen_color.value
@@ -425,7 +426,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                     if item.name.value in [
                         'volume change',
                         'volume change 2d',
-                        'volume change 2d groundwater',
+                        'volume change groundwater',
                         'volume change 1d',
                     ]:
                         self.addItem(item._plots['sum'], ignoreBounds=True)
@@ -567,7 +568,7 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['1d_out'],
             'type': '1d',
         }, {
-            'label_name': '2D groundwater flow',
+            'label_name': 'groundwater flow',
             'in': ['2d_groundwater_in'],
             'out': ['2d_groundwater_out'],
             'type': '2d_groundwater',
@@ -895,7 +896,7 @@ class WaterBalanceWidget(QDockWidget):
             # in the 'prepare_and_visualize_selection' function.
             # A better solution would be nice...
             'pumps': ['pumps_hoover'],
-            '2d groundwater flow': ['2d_groundwater'],
+            'groundwater flow': ['2d_groundwater'],
             'vertical infiltration': ['2d_vertical_infiltration_pos',
                                       '2d_vertical_infiltration_neg'],
         }
@@ -903,13 +904,14 @@ class WaterBalanceWidget(QDockWidget):
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1d flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
             '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
-            '2d groundwater flow': ['2d_groundwater'],
+            '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
+            'groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {
             'volume change': ['1d', '2d', '2d_groundwater'],
             'volume change 2d': ['2d'],
             'volume change 1d': ['1d'],
-            'volume change 2d groundwater': ['2d_groundwater'],
+            'volume change groundwater': ['2d_groundwater'],
             'rain': ['2d'],
             'inflow 1d from rain': ['1d'],
             'lateral 1d': ['1d'],
@@ -1145,12 +1147,16 @@ class WaterBalanceWidget(QDockWidget):
                 (x, y) for (x, y, z, part) in self.INPUT_SERIES
                 if part in ['1d', '1d2d']])
 
+        # set layers to True (layer is tickled in wb_item_table (right box
+        # where one can tickle layer(s), but more important: based on this we
+        # add layer to to wb_item_table in get_modelpart_graph_layers()
+        # deepcopy input_series as Jacki deletes from it below
+        input_series_copy = copy.deepcopy(input_series)
         for serie_setting in settings.get('items', []):
             serie_setting['active'] = False
             for serie in serie_setting['series']:
-                if serie in input_series:
-                    # serie will be displayed in wb_item_table (right box
-                    # where one can tickle layer(s)
+                if serie in input_series_copy:
+                    # serie will be displayed in wb_item_table
                     serie_setting['active'] = True
                     break
 
