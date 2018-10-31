@@ -51,7 +51,7 @@ serie_settings = [
             'def_fill_color': '240,210,50' + fill_transp,
             'def_pen_color': '240,210,50' + pen_transp,
             'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
-         },  {
+        }, {
             'name': '1d-2d flow (2d to 1d)',
             'default_method': 'gross',
             'order': 5,
@@ -59,7 +59,7 @@ serie_settings = [
             'def_pen_color': '100,220,5' + pen_transp,
             'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
                        '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
-        },  {
+        }, {
             'name': 'pumps',
             'default_method': 'gross',
             'order': 6,
@@ -109,14 +109,14 @@ serie_settings = [
             'def_pen_color': '255,152,0' + pen_transp,
             'series': ['d_1d_vol'],
         }, {
-            'name': '2d groundwater flow',
+            'name': 'groundwater flow',
             'default_method': 'gross',
             'order': 2.5,
             'def_fill_color': '0,0,128' + fill_transp,
             'def_pen_color': '0,0,128' + pen_transp,
             'series': ['2d_groundwater_in', '2d_groundwater_out'],
         }, {
-            'name': 'volume change 2d groundwater',
+            'name': 'volume change groundwater',
             'default_method': 'net',
             'order': 11.5,
             'def_fill_color': '100,149,237' + fill_transp_vol_change,
@@ -191,7 +191,7 @@ serie_settings = [
         }, {
             'name': '1d-2d flow (2d to 1d)',
             'default_method': 'gross',
-            'order': 5,
+            'order': 5.1,
             'def_fill_color': '100,220,5' + fill_transp,
             'def_pen_color': '100,220,5' + pen_transp,
             'series': ['1d__1d_2d_flow_in', '1d__1d_2d_flow_out',
@@ -199,12 +199,12 @@ serie_settings = [
         }, {
             'name': 'volume change',
             'default_method': 'net',
-            'order': 5,
+            'order': 5.2,
             'def_fill_color': '255,152,0' + fill_transp_vol_change,
             'def_pen_color': '255,152,0' + pen_transp,
             'series': ['d_2d_vol', 'd_1d_vol', 'd_2d_groundwater_vol'],
         }, {
-            'name': '2d groundwater flow',
+            'name': 'groundwater flow',
             'default_method': 'gross',
             'order': 1.5,
             'def_fill_color': '0,0,128' + fill_transp,

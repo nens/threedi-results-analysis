@@ -206,7 +206,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename = QFileDialog.getOpenFileNames(
+        filename = QFileDialog.getOpenFileName(
             self,
             'Open results file',
             init_path,
