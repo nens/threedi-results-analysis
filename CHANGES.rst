@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- Remove old fashioned statistics (pop-up "do you want to calculate stats?")
+
 - Improve NetCDF result selection (disabled selection aggregation NetCDF)
 
 - Disable stacking of volume difference lines in the WaterBalance tool
