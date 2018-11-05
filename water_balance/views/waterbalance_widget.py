@@ -1150,7 +1150,6 @@ class WaterBalanceWidget(QDockWidget):
         # set layers to True (layer is tickled in wb_item_table (right box
         # where one can tickle layer(s), but more important: based on this we
         # add layer to to wb_item_table in get_modelpart_graph_layers()
-        # deepcopy input_series as Jacki deletes from it below
         input_series_copy = copy.deepcopy(input_series)
         for serie_setting in settings.get('items', []):
             serie_setting['active'] = False
@@ -1206,9 +1205,6 @@ class WaterBalanceWidget(QDockWidget):
                                                         'out'] * diff
                 serie_setting['ts_series']['out'] = np.cumsum(
                     serie_setting['ts_series']['out'], axis=0)
-
-        # renier
-        print 'hoi'
 
         if model_part == '1d':
             total_time[:, (10, 11)] = total_time[:, (10, 11)] * -1
