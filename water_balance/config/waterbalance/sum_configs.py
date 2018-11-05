@@ -155,17 +155,15 @@ serie_settings = [
             'order': 1,
             'def_fill_color': '63,81,181' + fill_transp,
             'def_pen_color': '63,81,181' + pen_transp,
-            'series': ['2d_in', '2d_out', '2d_bound_in', '2d_bound_out',
-                       '2d__1d_2d_flow_in', '2d__1d_2d_flow_out'],
+            'series': ['2d_in', '2d_out'],
         }, {
             'name': '1d flow',
             'default_method': 'gross',
             'order': 2,
             'def_fill_color': '0,188,212' + fill_transp,
             'def_pen_color': '0,188,212' + pen_transp,
-            'series': ['1d_in', '1d_out', 'pump_in', 'pump_out',
-                       '1d_bound_in', '1d_bound_out',
-                       '1d__1d_2d_flow_in', '1d__1d_2d_flow_out'],
+            'series': ['1d_in', '1d_out'],
+
         }, {
             'name': 'external (rain and laterals)',
             'default_method': 'net',
