@@ -669,6 +669,7 @@ class WaterBalanceWidget(QDockWidget):
     def show_chart(self):
         if not self._current_calc:
             return
+
         ts, ts_series = self._current_calc
 
         io_series_net = [
@@ -720,11 +721,15 @@ class WaterBalanceWidget(QDockWidget):
 
         # debug waterbalance (to find cause when waterbalance has no 100%
         # closure
-        # print '\n start_debug_sum '
+        # print '\n start_debug_sum'
         # dict = {'bm_net': bm_net,
         #         'bm_2d': bm_2d,
         #         'bm_1d': bm_1d,
         #         'bm_2d_groundwater': bm_2d_groundwater}
+        # lable_list = []
+        # flow_list_in = []
+        # flow_list_out = []
+        # domain_list = []
         # for item in dict.iteritems():
         #     print_name = str(item[0])
         #     domain = item[1]
@@ -736,11 +741,16 @@ class WaterBalanceWidget(QDockWidget):
         #     for idx, label in enumerate(domain.xlabels):
         #         in_flow = domain.end_balance_in[idx]
         #         out_flow = domain.end_balance_out[idx]
+        #         # print str(label) + str(out_flow)
         #         if label in ['net change in storage', 'change in storage']:
         #             sum_all = (in_flow + out_flow)
         #         else:
         #             sum_idx = in_flow + out_flow
         #             cum_sum += sum_idx
+        #         lable_list.append(str(label))
+        #         flow_list_in.append(str(in_flow))
+        #         flow_list_out.append(str(out_flow))
+        #         domain_list.append(print_name)
         #     print_sum_all = str(round(sum_all, 2))
         #     print_cum_sum = str(round(cum_sum, 2))
         #     if print_sum_all == print_cum_sum:
@@ -749,8 +759,11 @@ class WaterBalanceWidget(QDockWidget):
         #     else:
         #         print 'not okay ' + print_name + ' ' + print_sum_all \
         #               + ' ' + print_cum_sum
-        # print 'end_debug_sum '
         # print '\n'
+        # flow_zip = zip(domain_list, lable_list, flow_list_in, flow_list_out)
+        # for i in flow_zip:
+        #     print i
+        # print '\n end_debug_sum \n'
 
         # init figure
         plt.close()
@@ -1045,14 +1058,22 @@ class WaterBalanceWidget(QDockWidget):
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)
 
-        # cache data for barchart
-        self._current_calc = (ts, total_time)
-
         graph_series = self.make_graph_series(
             ts, total_time, model_part, aggregation_type, settings)
 
         self.prepare_and_visualize_selection(
             link_ids, pump_ids, node_ids, lines, pumps, points)
+
+        # cache data for barchart (bc)
+        # always use domain '1d and 2d' to get all flows in the bar charts
+        bc_model_part = unicode('1d and 2d')
+        bc_link_ids, bc_pump_ids = \
+            self.calc.get_incoming_and_outcoming_link_ids(
+                wb_polygon, bc_model_part)
+        bc_node_ids = self.calc.get_nodes(wb_polygon, bc_model_part)
+        bc_ts, bc_total_time = self.calc.get_aggregated_flows(
+            bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part)
+        self._current_calc = (bc_ts, bc_total_time)
 
         return ts, graph_series
 
