@@ -53,7 +53,7 @@ INPUT_SERIES = [
     ('rain', 14, '2d', '2d'),
     ('infiltration_rate_simple', 15, '2d', '2d'),
     ('lat_2d', 16, '2d', '2d'),
-    ('lat_1d', 17, '1d', '2d'),
+    ('lat_1d', 17, '1d', '1d'),
     ('d_2d_vol', 18, '2d', '2d'),
     ('d_1d_vol', 19, '1d', '1d'),
     ('error_2d', 20, 'error_2d', '2d'),
@@ -630,6 +630,9 @@ class WaterBalanceWidget(QDockWidget):
         self.iface = iface
         self.ts_datasource = ts_datasource
         self.calc = wb_calc
+        self.lines = None
+        self.points = None
+        self.pumps = None
 
         # setup ui
         self.setup_ui(self)
@@ -667,10 +670,10 @@ class WaterBalanceWidget(QDockWidget):
         self.__current_calc = None  # cache the results of calculation
 
     def show_chart(self):
-        if not self._current_calc:
-            return
 
-        ts, ts_series = self._current_calc
+        wb_polygon = self.get_wb_polygon()
+
+        ts, ts_series = self.calc_wb_chart(wb_polygon)
 
         io_series_net = [
             x for x in self.IN_OUT_SERIES if (
@@ -1004,7 +1007,7 @@ class WaterBalanceWidget(QDockWidget):
         return modelpart_graph_series
 
     def update_wb(self):
-        ts, graph_series = self.calc_wb(
+        ts, graph_series = self.calc_wb_graph(
             self.modelpart_combo_box.currentText(),
             self.agg_combo_box.currentText(),
             serie_settings[self.sum_type_combo_box.currentText()])
@@ -1029,31 +1032,43 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
 
-    @property
-    def _current_calc(self):
-        return self.__current_calc
+    # @property
+    # def _current_calc(self):
+    #     return self.__current_calc
+    #
+    # @_current_calc.setter
+    # def _current_calc(self, ts_total_time_tuple):
+    #     # NOTE: flips the sign on dvol to make things more intuitive for
+    #     # barcharts
+    #     ts, ts_series = ts_total_time_tuple
+    #     ts_series = ts_series.copy()
+    #     self.__current_calc = (ts, ts_series)
 
-    @_current_calc.setter
-    def _current_calc(self, ts_total_time_tuple):
-        # NOTE: flips the sign on dvol to make things more intuitive for
-        # barcharts
-        ts, ts_series = ts_total_time_tuple
-        ts_series = ts_series.copy()
-        self.__current_calc = (ts, ts_series)
+    def get_wb_result_layer(self):
+        lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
+        return lines, points, pumps
 
-    def calc_wb(self, model_part, aggregation_type, settings):
+    def get_wb_polygon_tr(self):
+        lines, points, pumps = self.get_wb_result_layer()
+
         poly_points = self.polygon_tool.points
+
         wb_polygon = QgsGeometry.fromPolygon([poly_points])
 
-        lines, points, pumps = \
-            self.ts_datasource.rows[0].get_result_layers()
         tr = QgsCoordinateTransform(
             self.iface.mapCanvas().mapRenderer().destinationCrs(), lines.crs())
-        wb_polygon.transform(tr)
+
+        wb_polygon_trans = wb_polygon.transform(tr)
+
+        return wb_polygon_trans
+
+    def calc_wb_graph(self, model_part, aggregation_type, settings):
+
+        wb_polygon_trans = self.get_wb_polygon_tr()
 
         link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
-            wb_polygon, model_part)
-        node_ids = self.calc.get_nodes(wb_polygon, model_part)
+            wb_polygon_trans, model_part)
+        node_ids = self.calc.get_nodes(wb_polygon_trans, model_part)
 
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)
@@ -1062,20 +1077,35 @@ class WaterBalanceWidget(QDockWidget):
             ts, total_time, model_part, aggregation_type, settings)
 
         self.prepare_and_visualize_selection(
-            link_ids, pump_ids, node_ids, lines, pumps, points)
-
-        # cache data for barchart (bc)
-        # always use domain '1d and 2d' to get all flows in the bar charts
-        bc_model_part = unicode('1d and 2d')
-        bc_link_ids, bc_pump_ids = \
-            self.calc.get_incoming_and_outcoming_link_ids(
-                wb_polygon, bc_model_part)
-        bc_node_ids = self.calc.get_nodes(wb_polygon, bc_model_part)
-        bc_ts, bc_total_time = self.calc.get_aggregated_flows(
-            bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part)
-        self._current_calc = (bc_ts, bc_total_time)
+            link_ids, pump_ids, node_ids, self.lines, self.pumps, self.points)
 
         return ts, graph_series
+
+    def calc_wb_chart(self):
+        bc_model_part = unicode('1d and 2d')
+        wb_polygon_trans = self.get_wb_polygon_tr()
+
+        bc_link_ids, bc_pump_ids = \
+            self.calc.get_incoming_and_outcoming_link_ids(
+                wb_polygon_trans, bc_model_part)
+
+        bc_node_ids = self.calc.get_nodes(wb_polygon_trans, bc_model_part)
+
+        bc_ts, bc_total_time = self.calc.get_aggregated_flows(
+            bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part)
+
+        return bc_ts, bc_total_time
+
+        # # cache data for barchart (bc)
+        # # always use domain '1d and 2d' to get all flows in the bar charts
+        # bc_model_part = unicode('1d and 2d')
+        # bc_link_ids, bc_pump_ids = \
+        #     self.calc.get_incoming_and_outcoming_link_ids(
+        #         wb_polygon, bc_model_part)
+        # bc_node_ids = self.calc.get_nodes(wb_polygon, bc_model_part)
+        # bc_ts, bc_total_time = self.calc.get_aggregated_flows(
+        #     bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part)
+        # self._current_calc = (bc_ts, bc_total_time)
 
     def prepare_and_visualize_selection(
             self, link_ids, pump_ids, node_ids, lines, pumps, points,
