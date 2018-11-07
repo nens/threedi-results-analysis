@@ -1002,7 +1002,7 @@ class WaterBalanceWidget(QDockWidget):
 
     def get_modelpart_graph_layers(self, graph_layers):
         modelpart_graph_series = [
-            x for x in graph_layers if x['active'] is True]
+            x for x in graph_layers if x['layer_in_table'] is True]
         return modelpart_graph_series
 
     def update_wb(self):
@@ -1162,10 +1162,11 @@ class WaterBalanceWidget(QDockWidget):
         # add layer to to wb_item_table in get_modelpart_graph_layers()
         input_series_copy = copy.deepcopy(input_series)
         for serie_setting in settings.get('items', []):
-            serie_setting['active'] = False
+            serie_setting['layer_in_table'] = False
             for serie in serie_setting['series']:
                 if serie in input_series_copy:
                     # serie will be displayed in wb_item_table
+                    serie_setting['layer_in_table'] = True
                     serie_setting['active'] = True
                     break
 
@@ -1306,7 +1307,7 @@ class WaterBalanceWidget(QDockWidget):
         sizePolicy.setHeightForWidth(
             self.plot_widget.sizePolicy().hasHeightForWidth())
         self.plot_widget.setSizePolicy(sizePolicy)
-        self.plot_widget.setMinimumSize(QSize(250, 250))
+        self.plot_widget.setMinimumSize(QSize(240, 250))
 
         self.contentLayout.addWidget(self.plot_widget)
 
@@ -1319,9 +1320,8 @@ class WaterBalanceWidget(QDockWidget):
             self.wb_item_table.sizePolicy().hasHeightForWidth())
         self.wb_item_table.setSizePolicy(sizePolicy)
         self.wb_item_table.setMinimumSize(QSize(300, 0))
-
+        self.wb_item_table.resizeColumnsToContents()
         self.contentLayout.addWidget(self.wb_item_table)
-
         self.main_vlayout.addLayout(self.contentLayout)
 
         # add dockwidget
