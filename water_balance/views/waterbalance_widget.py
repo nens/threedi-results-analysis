@@ -53,7 +53,7 @@ INPUT_SERIES = [
     ('rain', 14, '2d', '2d'),
     ('infiltration_rate_simple', 15, '2d', '2d'),
     ('lat_2d', 16, '2d', '2d'),
-    ('lat_1d', 17, '1d', '2d'),
+    ('lat_1d', 17, '1d', '1d'),
     ('d_2d_vol', 18, '2d', '2d'),
     ('d_1d_vol', 19, '1d', '1d'),
     ('error_2d', 20, 'error_2d', '2d'),
@@ -651,7 +651,7 @@ class WaterBalanceWidget(QDockWidget):
         # add listeners
         self.select_polygon_button.toggled.connect(self.toggle_polygon_button)
         self.reset_waterbalans_button.clicked.connect(self.reset_waterbalans)
-        self.chart_button.clicked.connect(self.show_chart)
+        self.chart_button.clicked.connect(self.show_barchart)
         # self.polygon_tool.deactivated.connect(self.update_wb)
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
@@ -666,10 +666,15 @@ class WaterBalanceWidget(QDockWidget):
         self.select_polygon_button.toggle()
         self.__current_calc = None  # cache the results of calculation
 
-    def show_chart(self):
-        if not self._current_calc:
+    def show_barchart(self):
+
+        # only possible to calculate bars when a polygon has been drawn
+        if self.select_polygon_button.text() == 'Finalize polygon':
             return
-        ts, ts_series = self._current_calc
+
+        # always use domain '1d and 2d' to get all flows in the barchart
+        wb_barchart_modelpart = unicode('1d and 2d')
+        ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
 
         io_series_net = [
             x for x in self.IN_OUT_SERIES if (
@@ -720,11 +725,15 @@ class WaterBalanceWidget(QDockWidget):
 
         # debug waterbalance (to find cause when waterbalance has no 100%
         # closure
-        # print '\n start_debug_sum '
+        # print '\n start_debug_sum'
         # dict = {'bm_net': bm_net,
         #         'bm_2d': bm_2d,
         #         'bm_1d': bm_1d,
         #         'bm_2d_groundwater': bm_2d_groundwater}
+        # lable_list = []
+        # flow_list_in = []
+        # flow_list_out = []
+        # domain_list = []
         # for item in dict.iteritems():
         #     print_name = str(item[0])
         #     domain = item[1]
@@ -736,11 +745,16 @@ class WaterBalanceWidget(QDockWidget):
         #     for idx, label in enumerate(domain.xlabels):
         #         in_flow = domain.end_balance_in[idx]
         #         out_flow = domain.end_balance_out[idx]
+        #         # print str(label) + str(out_flow)
         #         if label in ['net change in storage', 'change in storage']:
         #             sum_all = (in_flow + out_flow)
         #         else:
         #             sum_idx = in_flow + out_flow
         #             cum_sum += sum_idx
+        #         lable_list.append(str(label))
+        #         flow_list_in.append(str(in_flow))
+        #         flow_list_out.append(str(out_flow))
+        #         domain_list.append(print_name)
         #     print_sum_all = str(round(sum_all, 2))
         #     print_cum_sum = str(round(cum_sum, 2))
         #     if print_sum_all == print_cum_sum:
@@ -749,8 +763,11 @@ class WaterBalanceWidget(QDockWidget):
         #     else:
         #         print 'not okay ' + print_name + ' ' + print_sum_all \
         #               + ' ' + print_cum_sum
-        # print 'end_debug_sum '
         # print '\n'
+        # flow_zip = zip(domain_list, lable_list, flow_list_in, flow_list_out)
+        # for i in flow_zip:
+        #     print i
+        # print '\n end_debug_sum \n'
 
         # init figure
         plt.close()
@@ -875,8 +892,6 @@ class WaterBalanceWidget(QDockWidget):
             # highlighting when drawing the polygon doesn't look right.
             # this is the best solution I can think of atm...
             return
-        types_2d_line = ['2d flow']
-        types_2d_node = ['volume change 2d']
 
         # TODO 1: generate this dict
 
@@ -991,7 +1006,7 @@ class WaterBalanceWidget(QDockWidget):
         return modelpart_graph_series
 
     def update_wb(self):
-        ts, graph_series = self.calc_wb(
+        ts, graph_series = self.calc_wb_graph(
             self.modelpart_combo_box.currentText(),
             self.agg_combo_box.currentText(),
             serie_settings[self.sum_type_combo_box.currentText()])
@@ -1016,45 +1031,40 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
 
-    @property
-    def _current_calc(self):
-        return self.__current_calc
+    def get_wb_result_layers(self):
+        lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
+        return lines, points, pumps
 
-    @_current_calc.setter
-    def _current_calc(self, ts_total_time_tuple):
-        # NOTE: flips the sign on dvol to make things more intuitive for
-        # barcharts
-        ts, ts_series = ts_total_time_tuple
-        ts_series = ts_series.copy()
-        self.__current_calc = (ts, ts_series)
-
-    def calc_wb(self, model_part, aggregation_type, settings):
+    def get_wb_polygon(self):
+        lines, points, pumps = self.get_wb_result_layers()
         poly_points = self.polygon_tool.points
-        wb_polygon = QgsGeometry.fromPolygon([poly_points])
-
-        lines, points, pumps = \
-            self.ts_datasource.rows[0].get_result_layers()
+        self.wb_polygon = QgsGeometry.fromPolygon([poly_points])
         tr = QgsCoordinateTransform(
             self.iface.mapCanvas().mapRenderer().destinationCrs(), lines.crs())
-        wb_polygon.transform(tr)
+        self.wb_polygon.transform(tr)
 
+    def calc_wb_graph(self, model_part, aggregation_type, settings):
+        lines, pumps, points = self.get_wb_result_layers()
+        self.get_wb_polygon()
         link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
-            wb_polygon, model_part)
-        node_ids = self.calc.get_nodes(wb_polygon, model_part)
-
+            self.wb_polygon, model_part)
+        node_ids = self.calc.get_nodes(self.wb_polygon, model_part)
         ts, total_time = self.calc.get_aggregated_flows(
             link_ids, pump_ids, node_ids, model_part)
-
-        # cache data for barchart
-        self._current_calc = (ts, total_time)
-
         graph_series = self.make_graph_series(
             ts, total_time, model_part, aggregation_type, settings)
-
         self.prepare_and_visualize_selection(
             link_ids, pump_ids, node_ids, lines, pumps, points)
-
         return ts, graph_series
+
+    def calc_wb_barchart(self, bc_model_part):
+        bc_link_ids, bc_pump_ids = \
+            self.calc.get_incoming_and_outcoming_link_ids(
+                self.wb_polygon, bc_model_part)
+        bc_node_ids = self.calc.get_nodes(self.wb_polygon, bc_model_part)
+        bc_ts, bc_total_time = self.calc.get_aggregated_flows(
+            bc_link_ids, bc_pump_ids, bc_node_ids, bc_model_part)
+        return bc_ts, bc_total_time
 
     def prepare_and_visualize_selection(
             self, link_ids, pump_ids, node_ids, lines, pumps, points,
@@ -1228,7 +1238,7 @@ class WaterBalanceWidget(QDockWidget):
             self.toggle_polygon_button)
         self.reset_waterbalans_button.clicked.disconnect(
             self.reset_waterbalans)
-        self.chart_button.clicked.disconnect(self.show_chart)
+        self.chart_button.clicked.disconnect(self.show_barchart)
         # self.polygon_tool.deactivated.disconnect(self.update_wb)
         self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
         self.polygon_tool.close()
