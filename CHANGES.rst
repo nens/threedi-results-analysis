@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- Add '(de)activate all layers' buttons in Waterbalancetool
+
 - Remove old fashioned statistics (pop-up "do you want to calculate stats?")
 
 - Improve NetCDF result selection (disabled selection aggregation NetCDF)
