@@ -660,6 +660,8 @@ class WaterBalanceWidget(QDockWidget):
             self.hover_enter_map_visualization)
         self.wb_item_table.hoverExitAllRows.connect(
             self.hover_exit_map_visualization)
+        self.activate_all_button.clicked.connect(self.activate_layers)
+        self.deactivate_all_button.clicked.connect(self.deactivate_layers)
 
         # TODO: is this a good default?
         # initially turn on tool
@@ -997,12 +999,17 @@ class WaterBalanceWidget(QDockWidget):
             self.select_polygon_button.setText(_translate(
                 "DockWidget", "Draw new polygon", None))
 
-    def redraw_wb(self):
-        pass
+    def activate_layers(self):
+        for item in self.model.rows:
+            item.active.value = True
+
+    def deactivate_layers(self):
+        for item in self.model.rows:
+            item.active.value = False
 
     def get_modelpart_graph_layers(self, graph_layers):
         modelpart_graph_series = [
-            x for x in graph_layers if x['active'] is True]
+            x for x in graph_layers if x['layer_in_table'] is True]
         return modelpart_graph_series
 
     def update_wb(self):
@@ -1013,9 +1020,12 @@ class WaterBalanceWidget(QDockWidget):
 
         self.model.removeRows(0, len(self.model.rows))
         self.model.ts = ts
+
+        # self.layers_in_table = self.get_modelpart_graph_layers(
+        #     graph_series['items'])
+
         self.model.insertRows(
             self.get_modelpart_graph_layers(graph_series['items']))
-
         if self.agg_combo_box.currentText() == 'm3/s':
             self.plot_widget.setLabel("left", "flow", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative':
@@ -1162,10 +1172,11 @@ class WaterBalanceWidget(QDockWidget):
         # add layer to to wb_item_table in get_modelpart_graph_layers()
         input_series_copy = copy.deepcopy(input_series)
         for serie_setting in settings.get('items', []):
-            serie_setting['active'] = False
+            serie_setting['layer_in_table'] = False
             for serie in serie_setting['series']:
                 if serie in input_series_copy:
                     # serie will be displayed in wb_item_table
+                    serie_setting['layer_in_table'] = True
                     serie_setting['active'] = True
                     break
 
@@ -1249,6 +1260,8 @@ class WaterBalanceWidget(QDockWidget):
             self.hover_enter_map_visualization)
         self.wb_item_table.hoverExitAllRows.disconnect(
             self.hover_exit_map_visualization)
+        self.activate_all_button.clicked.disconnect(self.activate_layers)
+        self.deactivate_all_button.clicked.disconnect(self.deactivate_layers)
 
         self.closingWidget.emit()
         event.accept()
@@ -1288,11 +1301,22 @@ class WaterBalanceWidget(QDockWidget):
         self.agg_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.agg_combo_box)
 
+        # now first add a QSpacerItem so that the QPushButton (added sub-
+        # sequently) are aligned on the right-side of the button_bar_hlayout
         spacer_item = QSpacerItem(40,
                                   20,
                                   QSizePolicy.Expanding,
                                   QSizePolicy.Minimum)
         self.button_bar_hlayout.addItem(spacer_item)
+
+        self.activate_all_button = QPushButton(self)
+        self.button_bar_hlayout.addWidget(
+            self.activate_all_button, alignment=Qt.AlignRight)
+
+        self.deactivate_all_button = QPushButton(self)
+        self.button_bar_hlayout.addWidget(
+            self.deactivate_all_button, alignment=Qt.AlignRight)
+
         self.main_vlayout.addLayout(self.button_bar_hlayout)
 
         # add tabWidget for graphWidgets
@@ -1306,7 +1330,7 @@ class WaterBalanceWidget(QDockWidget):
         sizePolicy.setHeightForWidth(
             self.plot_widget.sizePolicy().hasHeightForWidth())
         self.plot_widget.setSizePolicy(sizePolicy)
-        self.plot_widget.setMinimumSize(QSize(250, 250))
+        self.plot_widget.setMinimumSize(QSize(240, 250))
 
         self.contentLayout.addWidget(self.plot_widget)
 
@@ -1319,9 +1343,8 @@ class WaterBalanceWidget(QDockWidget):
             self.wb_item_table.sizePolicy().hasHeightForWidth())
         self.wb_item_table.setSizePolicy(sizePolicy)
         self.wb_item_table.setMinimumSize(QSize(300, 0))
-
+        self.wb_item_table.resizeColumnsToContents()
         self.contentLayout.addWidget(self.wb_item_table)
-
         self.main_vlayout.addLayout(self.contentLayout)
 
         # add dockwidget
@@ -1339,3 +1362,7 @@ class WaterBalanceWidget(QDockWidget):
             "DockWidget", "Show total balance", None))
         self.reset_waterbalans_button.setText(_translate(
             "DockWidget", "Hide on map", None))
+        self.activate_all_button.setText(_translate(
+            "DockWidget", "activate all", None))
+        self.deactivate_all_button.setText(_translate(
+            "DockWidget", "deactivate all", None))
