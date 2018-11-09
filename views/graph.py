@@ -8,6 +8,7 @@ from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, Q
 from qgis.core import (QgsDataSourceUri, QgsFeatureRequest, Qgis,
                        QgsCoordinateTransform, QgsCoordinateReferenceSystem,
                        QgsWkbTypes)
+from qgis.core import QgsProject
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
 from ..datasource.netcdf import (
@@ -514,7 +515,8 @@ class GraphWidget(QWidget):
         # with QgsRubberband and/ or QgsVertexMarker
         transform = QgsCoordinateTransform(
             QgsCoordinateReferenceSystem(4326),
-            self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance())
 
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
@@ -771,7 +773,7 @@ class GraphDockWidget(QDockWidget):
         # add graph widgets
         self.q_graph_widget = GraphWidget(self, self.ts_datasource,
                                           parameter_config['q'], "Q graph",
-                                          Qgis.WKBLineString)
+                                          QgsWkbTypes.LineString)
         self.h_graph_widget = GraphWidget(self, self.ts_datasource,
                                           parameter_config['h'], "H graph",
                                           QgsWkbTypes.Point)

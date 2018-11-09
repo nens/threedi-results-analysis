@@ -56,13 +56,13 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds.dimensions['nMesh2D_lines'].size +
-                    self.obj.ds.dimensions['nMesh1D_lines'].size)
+                    self.obj.ds.get('nMesh2D_lines').size +
+                    self.obj.ds.get('nMesh1D_lines').size)
         return self._nflowlines
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSource'
+        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSourceH5py'
 
     @property
     def timestamps(self):
@@ -465,6 +465,7 @@ class StatisticsTool(object):
     def get_agg_cum_if_available(self, parameter_name, nr=None):
         if nr is None:
             nr = self.ds.nFlowLine
+            # self.ds.ds.get('nMesh2D_lines').size???
 
         if parameter_name in self.ds.get_available_variables():
             agg_cum = True
@@ -796,12 +797,14 @@ class StatisticsTool(object):
                     max_cum_discharge_neg, 2)
             )
 
-            weir.max_overfall_height = None if (
-                    weir.flowline.stats.max_waterlevel_start is None and
-                    weir.flowline.stats.max_waterlevel_end is None) else round(
-                max(weir.flowline.stats.max_waterlevel_start,
-                    weir.flowline.stats.max_waterlevel_end)
-                        - weir.crest_level, 3)
+            waterlevel_start = weir.flowline.stats.max_waterlevel_start
+            waterlevel_end = weir.flowline.stats.max_waterlevel_end
+            if waterlevel_start is not None and waterlevel_end is not None:
+                weir.max_overfall_height = \
+                    round(max(waterlevel_start, waterlevel_end)
+                          - weir.crest_level, 3)
+            else:
+                weir.max_overfall_height = waterlevel_start or waterlevel_end
 
         res_session.commit()
 
@@ -1353,7 +1356,7 @@ class StatisticsTool(object):
 
         stat_group.insertLayer(0, vector_layer)
 
-        legend = self.iface.legendInterface()
+        # legend = self.iface.legendInterface()
 
         for group, layers in list(styled_layers.items()):
             qgroup = stat_group.insertGroup(100, group)
@@ -1373,7 +1376,7 @@ class StatisticsTool(object):
                         'layer_styles',
                         'stats',
                         layer[3] + '.qml')
-                    style = file(style_path, 'r').read()
+                    style = open(style_path, 'r').read()
 
                     # replace by column name
                     style = style.replace('<<variable>>', layer[2])
@@ -1385,7 +1388,7 @@ class StatisticsTool(object):
                         'stats',
                         'cr_' + layer[3] + '_' + layer[2] + '.qml')
 
-                    new_style_file = file(new_style_path, 'w')
+                    new_style_file = open(new_style_path, 'w')
                     new_style_file.write(style)
                     new_style_file.close()
 
@@ -1396,4 +1399,5 @@ class StatisticsTool(object):
                         False)
 
                     qgroup.insertLayer(100, vector_layer)
-                    legend.setLayerVisible(vector_layer, False)
+
+                    # legend.setLayerVisible(vector_layer, False)

@@ -10,7 +10,7 @@ from qgis.core import QgsProject
 from qgis.PyQt.QtCore import QObject, pyqtSignal, QFileInfo
 
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from .utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 

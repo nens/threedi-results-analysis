@@ -72,14 +72,9 @@ class QgisInterface(QObject):
         LOGGER.debug('addLayers called on qgis_interface')
         LOGGER.debug('Number of layers being added: %s' % len(layers))
         LOGGER.debug('Layer Count Before: %s' % len(self.canvas.layers()))
-        current_layers = self.canvas.layers()
-        final_layers = []
-        for layer in current_layers:
-            final_layers.append(QgsMapCanvas(layer))
-        for layer in layers:
-            final_layers.append(QgsMapCanvas(layer))
-
-        self.canvas.setLayerSet(final_layers)
+        final_layers = self.canvas.layers()
+        final_layers.extend(layers)
+        self.canvas.setLayers(final_layers)
         LOGGER.debug('Layer Count After: %s' % len(self.canvas.layers()))
 
     @pyqtSlot('QgsMapLayer')

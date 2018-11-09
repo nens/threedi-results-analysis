@@ -230,15 +230,15 @@ def detect_netcdf_version(netcdf_file_path):
 
     """
 
-    from netCDF4 import Dataset
+    import h5py
 
-    dataset = Dataset(netcdf_file_path, mode='r')
+    dataset = h5py.File(netcdf_file_path, mode='r')
 
-    if "threedicore_version" in dataset.ncattrs():
-        return 'netcdf-groundwater'
+    if "threedicore_version" in dataset.attrs:
+        result = 'netcdf-groundwater'
     else:
-        return 'netcdf'
-
+        result = 'netcdf'
+    return result
 
 def find_aggregation_netcdf(netcdf_file_path):
     """An ad-hoc way to find the aggregation netcdf file.
@@ -350,6 +350,7 @@ class NetcdfDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
+        # TODO: replace with h5py
         from netCDF4 import Dataset
 
         self.file_path = file_path

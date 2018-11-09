@@ -5,8 +5,9 @@ from builtins import object
 import os.path
 
 from qgis.core import (
-    QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer,
-    QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform)
+    QgsProject, QgsDataSourceUri, QgsVectorLayer,
+    QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem)
 
 from ..utils.user_messages import pop_up_question
 from ..stats.utils import (
@@ -246,14 +247,21 @@ class LayerTreeManager(object):
         # zoom to model extent:
         extent = QgsRectangle()
         extent.setMinimal()
+
+        tree_layer = None
         for tree_layer in self.schematisation_layergroup.findLayers():
             extent.combineExtentWith(tree_layer.layer().extent())
 
         extent.scale(1.1)
 
+        if not tree_layer:
+            return
+
         transform = QgsCoordinateTransform(
             tree_layer.layer().crs(),
-            self.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance()
+        )
 
         self.iface.mapCanvas().setExtent(transform.transform(extent))
 

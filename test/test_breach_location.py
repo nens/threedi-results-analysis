@@ -242,7 +242,8 @@ class TestBreachLocationDryRun(unittest.TestCase):
         xy = new_position.constGet().x(), new_position.constGet().y()
 
         # set the distance to levee attribute to a high number
-        self.breach_location.distance_to_levee = 20
+        self.breach_location.distance_to_levee = \
+            self.breach_location.distance_to_levee * 2
         new_position2, _ = self.breach_location.calculate_new_position(
             levee_intersections, line_start, line_end, 2
         )

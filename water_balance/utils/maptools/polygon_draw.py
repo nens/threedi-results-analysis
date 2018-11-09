@@ -3,6 +3,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor, QCursor
 
 from qgis.core import Qgis, QgsGeometry
+from qgis.core import QgsLayerItem
+from qgis.core import QgsWkbTypes
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
 RGBA = 255, 0, 0
@@ -22,7 +24,7 @@ class SelectionVisualisation(object):
         self.points = []
 
     def _get_rubberband(self):
-        rb_line = QgsRubberBand(self.canvas, Qgis.Line)
+        rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
         rb_line.setColor(self.color)
         rb_line.setLineStyle(Qt.DotLine)
         rb_line.setWidth(3)
@@ -42,7 +44,7 @@ class SelectionVisualisation(object):
             self.vertex_markers.append(marker)
 
     def reset(self):
-        self.rb_line.reset(Qgis.Line)
+        self.rb_line.reset(QgsWkbTypes.LineGeometry)
         for m in self.vertex_markers:
             m.setVisible(False)
             # rubber bands are owned by the canvas, so we must explictly
@@ -73,7 +75,7 @@ class PolygonDrawMapVisualisation(object):
         self.points = []
 
         # temp layer for side profile trac
-        self.rb = QgsRubberBand(self.canvas, Qgis.Polygon)
+        self.rb = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
         self.rb.setColor(Qt.red)
         self.rb.setFillColor(QColor(255, 0, 0, 64))
         self.rb.setLineStyle(Qt.SolidLine)
@@ -99,7 +101,7 @@ class PolygonDrawMapVisualisation(object):
 
     def reset(self):
         self.points = []
-        self.rb.reset(Qgis.Polygon)
+        self.rb.reset(QgsWkbTypes.PolygonGeometry)
 
 
 class PolygonDrawTool(QgsMapTool):

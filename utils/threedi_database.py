@@ -4,8 +4,6 @@ import copy
 
 import ogr
 import collections
-# from pyspatialite import dbapi2
-from sqlite3 import dbapi2
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -18,6 +16,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 
 Base = declarative_base()
+
 
 # TODO: only works on linux, fix this also for Windows.
 def load_spatialite(dbapi_conn, connection_record):

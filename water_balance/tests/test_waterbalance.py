@@ -1,7 +1,7 @@
 import os.path
 import unittest
 
-from ThreeDiToolbox.water_balance.tests.utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import get_qgis_app
 from qgis.core import QgsPoint, QgsGeometry, QgsCoordinateTransform, \
     QgsCoordinateReferenceSystem
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel

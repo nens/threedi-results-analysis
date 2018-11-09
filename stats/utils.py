@@ -236,7 +236,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
 
     # Write to csv file
     filepath = get_default_csv_path(old_layer_name, result_dir)
-    with open(filepath, 'wb') as csvfile:
+    with open(filepath, 'w') as csvfile:
         fieldnames = ['id'] + parameters
 
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
@@ -314,7 +314,7 @@ def generate_structure_stats(nds, result_dir, layer, layer_id_name,
 
     # Write to csv file
     filepath = get_default_csv_path(layer_name, result_dir)
-    with open(filepath, 'wb') as csvfile:
+    with open(filepath, 'w') as csvfile:
         fieldnames = ['id'] + ncstats.AVAILABLE_STRUCTURE_PARAMETERS
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')
@@ -396,7 +396,7 @@ def generate_pump_stats(nds, result_dir, layer, layer_id_name,
 
     # Write to csv file
     filepath = get_default_csv_path(layer_name, result_dir)
-    with open(filepath, 'wb') as csvfile:
+    with open(filepath, 'w') as csvfile:
         fieldnames = ['id'] + ncstats.AVAILABLE_PUMP_PARAMETERS
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames,
                                 delimiter=',')

@@ -23,7 +23,7 @@ RUN echo $TZ > /etc/timezone \
        python-pip \
        python-pyside.qtwebkit \
        libhdf5-serial-dev \
-       libnetcdf-dev \
+       # libnetcdf-dev \
        python-dev \
        build-essential \
        git \

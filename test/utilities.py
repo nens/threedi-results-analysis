@@ -24,13 +24,12 @@ def get_qgis_app():
 
     If QGIS is already running the handle to that app will be returned.
     """
-
     try:
         from qgis.core import QgsApplication
+        from qgis.PyQt.QtWidgets import QApplication, QWidget
         from qgis.gui import QgsMapCanvas
         from qgis.PyQt import QtGui, QtCore
         from ThreeDiToolbox.test.qgis_interface import QgisInterface
-        # from .qgis_interface import QgisInterface
     except ImportError:
         return None, None, None, None
 

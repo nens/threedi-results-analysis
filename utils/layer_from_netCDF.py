@@ -6,6 +6,7 @@ from osgeo import ogr
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
+from qgis.core import QgsPointXY
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import Qgis
@@ -185,10 +186,10 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     for i in range(flowline_connection.shape[0]):
         feat = QgsFeature()
 
-        p1 = transform.transform(QgsPoint(x_p1[i], y_p1[i]))
-        p2 = transform.transform(QgsPoint(x_p2[i], y_p2[i]))
+        p1 = transform.transform(QgsPointXY(x_p1[i], y_p1[i]))
+        p2 = transform.transform(QgsPointXY(x_p2[i], y_p2[i]))
 
-        feat.setGeometry(QgsGeometry.fromPolyline([p1, p2]))
+        feat.setGeometry(QgsGeometry.fromPolylineXY([p1, p2]))
 
         inp_id = None
         spatialite_tbl = None
@@ -294,9 +295,9 @@ def make_node_layer(ds, spatialite, progress_bar=None):
     for i in range(flowelem_xcc.shape[0]):
         feat = QgsFeature()
 
-        p1 = transform.transform(QgsPoint(flowelem_xcc[i], flowelem_ycc[i]))
+        p1 = transform.transform(QgsPointXY(flowelem_xcc[i], flowelem_ycc[i]))
 
-        feat.setGeometry(QgsGeometry.fromPoint(p1))
+        feat.setGeometry(QgsGeometry.fromPointXY(p1))
 
         # Getting all node types, feature types, and whatnot:
         node_type = ds.node_type_of(i)
@@ -382,15 +383,15 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
             elif idx == 1:
                 start_coord = coord1
             # Give these pumps a special geometry
-            p1 = QgsPoint(start_coord[0], start_coord[1])
-            p2 = QgsPoint(start_coord[0] - 3, start_coord[1] + 5)
-            p3 = QgsPoint(start_coord[0] + 3, start_coord[1] + 10)
-            p4 = QgsPoint(start_coord[0], start_coord[1] + 15)
-            geom = QgsGeometry.fromPolyline([p1, p2, p3, p4])
+            p1 = QgsPointXY(start_coord[0], start_coord[1])
+            p2 = QgsPointXY(start_coord[0] - 3, start_coord[1] + 5)
+            p3 = QgsPointXY(start_coord[0] + 3, start_coord[1] + 10)
+            p4 = QgsPointXY(start_coord[0], start_coord[1] + 15)
+            geom = QgsGeometry.fromPolylineXY([p1, p2, p3, p4])
         except ValueError:
-            p1 = QgsPoint(coord1[0], coord1[1])
-            p2 = QgsPoint(coord2[0], coord2[1])
-            geom = QgsGeometry.fromPolyline([p1, p2])
+            p1 = QgsPointXY(coord1[0], coord1[1])
+            p2 = QgsPointXY(coord2[0], coord2[1])
+            geom = QgsGeometry.fromPolylineXY([p1, p2])
 
         node_idx1 = int(pumpline_p1[i])
         node_idx2 = int(pumpline_p2[i])
