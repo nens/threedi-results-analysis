@@ -5,15 +5,10 @@ MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 ARG USER_ID
 ARG GROUP_ID
 ARG USERNAME
-ARG RESET
 
 # QGIS 3 (TODO: specify the version somewhere)
 RUN echo "deb     https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list
 RUN echo "deb-src https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list
-
-# Key for qgis ubuntugis
-# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
-
 RUN wget -O - https://qgis.org/downloads/qgis-2017.gpg.key | gpg --import
 RUN gpg --export --armor CAEB3DC3BDF7FB45 | apt-key add -
 
@@ -53,6 +48,7 @@ RUN groupadd -g $GROUP_ID $GROUP_ID # qgis
 RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
 RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
 
-USER $USERNAME
+COPY docker-entrypoint.sh /
+RUN chmod u+x /docker-entrypoint.sh
 
-CMD "/usr/bin/qgis"
+CMD sh /docker-entrypoint.sh ${USERNAME} ${USER_ID}

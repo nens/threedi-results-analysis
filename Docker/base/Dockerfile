@@ -23,15 +23,17 @@ RUN echo $TZ > /etc/timezone \
        python-pip \
        python-pyside.qtwebkit \
        libhdf5-serial-dev \
-       # libnetcdf-dev \
        python-dev \
        build-essential \
        git \
+       gosu \
     && rm /etc/localtime  \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata \
     && apt-get clean \
     && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    # verify that the binary works
+    gosu nobody true
 
 RUN dbus-uuidgen > /var/lib/dbus/machine-id

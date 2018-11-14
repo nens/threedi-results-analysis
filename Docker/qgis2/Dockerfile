@@ -34,6 +34,7 @@ RUN groupadd -g $GROUP_ID qgis
 RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
 RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
 
-USER $USERNAME
+COPY docker-entrypoint.sh /
+RUN chmod u+x /docker-entrypoint.sh
 
-CMD "/usr/bin/qgis"
+CMD sh /docker-entrypoint.sh ${USERNAME} ${USER_ID}
