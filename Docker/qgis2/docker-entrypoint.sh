@@ -1,7 +1,11 @@
 #!/bin/sh
 
-cd /home/$1
+USERNAME=$(cut -d: -f1 /etc/passwd | tail -1)
+USER_ID=$(id -u ${USERNAME})
 
-chown $1:$2 . -R
+if [ "$1" = '/usr/bin/qgis' ]; then
+    chown $USERNAME:$USER_ID . -R
+    sh gosu $USERNAME:$USER_ID /usr/bin/qgis
+fi
 
-gosu $1:$2 /usr/bin/qgis
+gosu $USERNAME:$USER_ID "${@}"

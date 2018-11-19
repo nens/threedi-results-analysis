@@ -30,11 +30,13 @@ RUN pip install setuptools
 ADD requirements-dev.txt .
 RUN pip install -r requirements-dev.txt -U
 
-RUN groupadd -g $GROUP_ID qgis
+RUN groupadd -g $GROUP_ID $GROUP_ID
 RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
-RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
+
+WORKDIR /home/$USERNAME
 
 COPY docker-entrypoint.sh /
 RUN chmod u+x /docker-entrypoint.sh
 
-CMD sh /docker-entrypoint.sh ${USERNAME} ${USER_ID}
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/usr/bin/qgis"]

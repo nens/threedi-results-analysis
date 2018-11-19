@@ -44,11 +44,13 @@ RUN pip3 uninstall h5py -y
 ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
-RUN groupadd -g $GROUP_ID $GROUP_ID # qgis
+RUN groupadd -g $GROUP_ID $GROUP_ID
 RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
-RUN chown $USER_ID:$GROUP_ID /home/$USERNAME
+
+WORKDIR /home/$USERNAME
 
 COPY docker-entrypoint.sh /
 RUN chmod u+x /docker-entrypoint.sh
 
-CMD sh /docker-entrypoint.sh ${USERNAME} ${USER_ID}
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/usr/bin/qgis"]
