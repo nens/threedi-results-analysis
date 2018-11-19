@@ -1,22 +1,14 @@
 # -*- coding: utf-8 -*-
 from builtins import str
 from builtins import object
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, QDockWidget, QComboBox, QMessageBox
-from qgis.PyQt.QtGui import QColor, QCursor
+from qgis.PyQt.QtCore import QVariant
 
-import numpy as np
-import os
-# qgis.networkanalysis     QgsDistanceArcProperter -> 	QgsDistanceStrategy -> QgsNetworkDistanceStrategy
 from qgis.analysis import QgsGraphBuilder, QgsNetworkDistanceStrategy, \
     QgsGraphAnalyzer, QgsNetworkStrategy
 
 from qgis.core import (
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest)
-from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
-
-from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log, statusbar_message
+    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest,
+    QgsPoint)
 
 
 class AttributeProperter(QgsNetworkStrategy):
@@ -183,7 +175,7 @@ class Route(object):
             request = QgsFeatureRequest().setFilterExpression(filt)
             feature = next(self.line_layer.getFeatures(request))
 
-            if point == feature.geometry().vertexAt(0):
+            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
                 # current point on tree (end point of this line) is equal to
                 # begin of original feature, so direction is opposite: -1
                 route_direction_feature = -1

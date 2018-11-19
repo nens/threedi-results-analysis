@@ -1,29 +1,27 @@
 # -*- coding: utf-8 -*-
 from builtins import str
 from builtins import object
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, QDockWidget, QComboBox, QMessageBox
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QMetaObject, QVariant
+from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
+    QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, \
+    QDockWidget
 from qgis.PyQt.QtGui import QColor, QCursor
 
 import numpy as np
 import os
 
-import qgis
-# QgsLineVectorLayerDirector
 from qgis.analysis import QgsNetworkStrategy, QgsVectorLayerDirector
-from qgis.core import QgsPoint, QgsPointXY, QgsRectangle, \
+from qgis.core import QgsPointXY, QgsRectangle, \
     QgsCoordinateTransform, QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
-    QgsProject, Qgis, QgsFeatureRequest, QgsDistanceArea, QgsUnitTypes
+    QgsProject, QgsFeatureRequest, QgsDistanceArea, QgsUnitTypes, \
+    QgsWkbTypes
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 from collections import Counter
 
-from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log, statusbar_message
-
-from ..utils.route import Route
 from ..utils import haversine
-
 from ..utils.geo_processing import split_line_at_points
+from ..utils.route import Route
+from ..utils.user_messages import log, statusbar_message
 
 
 import pyqtgraph as pg
@@ -891,7 +889,8 @@ class SideViewMapVisualisation(object):
         self.source_crs = source_crs
 
         # temp layer for side profile trac
-        self.rb = QgsRubberBand(self.iface.mapCanvas())
+        self.rb = QgsRubberBand(self.iface.mapCanvas(),
+                                QgsWkbTypes.LineGeometry)
         self.rb.setColor(Qt.red)
         self.rb.setWidth(2)
 
