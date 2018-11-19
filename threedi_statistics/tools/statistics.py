@@ -30,13 +30,6 @@ class Proxy(object):
         # the desired behavior
         return getattr(self.obj, attr)
 
-        # renier
-        # try:
-        #     return getattr(self.obj, attr)
-        # except Exception as e:
-        #     print e
-        #     pass
-
 
 class DataSourceAdapter(Proxy):
     """Adapter or proxy-like for a BaseDataSource."""
@@ -59,8 +52,8 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds.dimensions['nMesh2D_lines'].size +
-                    self.obj.ds.dimensions['nMesh1D_lines'].size)
+                    self.obj.ds['nMesh2D_lines'].size +
+                    self.obj.ds['nMesh1D_lines'].size)
         return self._nflowlines
 
     @property
