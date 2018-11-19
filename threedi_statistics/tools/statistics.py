@@ -30,6 +30,13 @@ class Proxy(object):
         # the desired behavior
         return getattr(self.obj, attr)
 
+        # renier
+        # try:
+        #     return getattr(self.obj, attr)
+        # except Exception as e:
+        #     print e
+        #     pass
+
 
 class DataSourceAdapter(Proxy):
     """Adapter or proxy-like for a BaseDataSource."""
@@ -58,7 +65,7 @@ class DataSourceAdapter(Proxy):
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSource'
+        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSourceH5py'
 
     @property
     def timestamps(self):
