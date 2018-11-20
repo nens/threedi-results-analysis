@@ -176,6 +176,10 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
             # all available fields, including hdf5 fields
             available_vars = (agg.nodes._field_names | agg.lines._field_names)
 
+        # TODO: fix infiltration and leakage aggregation vars in threedigrid
+        known_vars.add('infiltration_rate_simple_cum')
+        known_vars.add('leak_cum')
+
         available_known_vars = available_vars & known_vars
 
         # renier: dit kan nu weg toch?

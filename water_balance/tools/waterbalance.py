@@ -879,7 +879,8 @@ class WaterBalanceTool:
               "\n- discharge"\
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
-              "\n- pump discharge (in case model has pumps)"\
+              "\n- pump discharge (in case model has pumps)" \
+              "\n- interception (in case model has interception)" \
               "\n- infiltration (in case model has (simple_)infiltration)"\
               "\n\npositive cumulative:\n- discharge"\
               "\n\nnegative cumulative:\n- discharge"\
@@ -891,7 +892,7 @@ class WaterBalanceTool:
 
     def pop_up_missing_agg_vars(self):
         header = 'Error: Missing aggregation settings'
-        missing_vars = self.missing_agg_vars()
+        missing_vars = self.get_missing_agg_vars()
         msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
               " the file does not include all required aggregation " \
               "variables. Please add them to the sqlite table " \
@@ -902,7 +903,8 @@ class WaterBalanceTool:
               "\n- discharge"\
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
-              "\n- pump discharge (in case model has pumps)"\
+              "\n- pump discharge (in case model has pumps)" \
+              "\n- interception (in case model has interception)" \
               "\n- infiltration (in case model has (simple_)infiltration)"\
               "\n\npositive cumulative:\n- discharge"\
               "\n\nnegative cumulative:\n- discharge" \
@@ -910,19 +912,18 @@ class WaterBalanceTool:
               ', '.join(missing_vars)
         QMessageBox.warning(None, header, msg)
 
-    def missing_agg_vars(self):
+    def get_missing_agg_vars(self):
         selected_ds = self.ts_datasource.rows[0].datasource()
         check_available_vars = selected_ds.get_available_variables()
         nc_path = self.ts_datasource.rows[0].datasource().file_path
         h5_path = find_h5_file(nc_path)
         ga = GridH5ResultAdmin(h5_path, nc_path)
-        # we cannot check whether model used rain and/or laterals  with e.g.
-        # ga.has_rain so we just set it here as WaterBalanceTool requirement
 
         minimum_agg_vars = [
             ('q_cum_negative', 'negative cumulative discharge'),
             ('q_cum_positive', 'negative cumulative discharge'),
             ('q_cum', 'cumulative discharge'),
+            ('vol_current', 'current volume')
             ]
 
         if ga.has_pumpstations:
@@ -934,26 +935,31 @@ class WaterBalanceTool:
                       'cumulative infiltration rate')
             minimum_agg_vars.append(to_add)
 
-        simulated_vars = ga.nodes._meta.get_fields(only_names=True)
+        if ga.has_interception:
+            to_add = ('intercepted_volume', 'cumulative interception')
+            minimum_agg_vars.append(to_add)
 
-        if 'q_lat' in simulated_vars:
-            # add q_lat_cum to minimum_agg_vars
+        # we cant check whether a simulation used rain (since this depends on
+        # user action during simulation). Moreover, threedigrid does not
+        # support e.g. ga.has_lateral, ga.has_leakage etc. For those fields,
+        # we read the threedigrid metadata
+        simulated_vars_nodes = ga.nodes._meta.get_fields(only_names=True)
+
+        # we do not check whether vertical_infiltration must be added to the
+        # minimum_agg_vars since this flow is covered in 'q_cum_negative',
+        # 'q_cum_positive', and 'q_cum'.
+
+        if 'q_lat' in simulated_vars_nodes:
             to_add = ('q_lat_cum', 'cumulative lateral discharge')
             minimum_agg_vars.append(to_add)
 
-        if 'rain' in simulated_vars:
-            # add rain to minimum_agg_vars
+        if 'rain' in simulated_vars_nodes:
             to_add = ('rain_cum', 'cumulative rain')
             minimum_agg_vars.append(to_add)
 
-        if 'leak' in simulated_vars:
-            # add rain to minimum_agg_vars
+        if 'leak' in simulated_vars_nodes:
             to_add = ('leak_cum', 'cumulative leakage')
             minimum_agg_vars.append(to_add)
-
-        # TODO: vertical_infiltration ?? in simulated_vars ??
-
-        # TODO: intercepted_volume ?? in simulated_vars ??
 
         missing_vars = []
         for required_var in minimum_agg_vars:
@@ -968,7 +974,7 @@ class WaterBalanceTool:
         selected_ds = self.ts_datasource.rows[0].datasource()
         if not selected_ds.ds_aggregation:
             self.pop_up_no_agg_found()
-        elif self.missing_agg_vars():
+        elif self.get_missing_agg_vars():
             self.pop_up_missing_agg_vars()
         else:
             self.run_it()
