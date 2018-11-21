@@ -735,23 +735,25 @@ class WaterBalanceCalculation(object):
             # NOTE: can be a source or sink depending on sign
             ('leak', np_2d_groundwater_node, 26, 1),
             ('rain', np_1d_node, 27, 1),
+            ('intercepted_volume', np_2d_node, 34, -1),
         ]:
 
             if node.size > 0:
-                skip = False
-                if parameter + '_cum' not in ds.get_available_variables():
-                    skip = True
-                    log.warning('%s_cum not available! skip it', parameter)
-                    # todo: fallback on not aggregated version
+                skip = True
+                if parameter + '_cum' in ds.get_available_variables():
+                    addition = '_cum'
+                    skip = False
+                elif parameter + '_current' in ds.get_available_variables():
+                    addition = '_current'
+                    skip = False
                 if not skip:
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
                         values = ds.get_values_by_timestep_nr(
-                            parameter + '_cum', ts_idx, node).sum()  # * dt
+                            parameter + addition, ts_idx, node).sum()  # * dt
                         values_dt = values - values_pref
                         values_pref = values
                         total_time[ts_idx, pnr] = values_dt * factor
-
         t_pref = 0
 
         for ts_idx, t in enumerate(ts):
@@ -874,45 +876,58 @@ class WaterBalanceTool:
               "but this file could not be found. Please make sure you run " \
               "your simulation using the 'v2_aggregation_settings' table " \
               "with the following variables:" \
+              "\n\ncurrent:" \
+              "\n- volume" \
+              "\n- interception (in case model has interception)" \
               "\n\ncumulative:"\
               "\n- rain"\
               "\n- discharge"\
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- interception (in case model has interception)" \
-              "\n- infiltration (in case model has (simple_)infiltration)"\
-              "\n\npositive cumulative:\n- discharge"\
-              "\n\nnegative cumulative:\n- discharge"\
-              "\n\nNOTE: for 100% closure of the balance, please make sure " \
-              "that the v2_aggregation_settings' timestep for all " \
-              "aggregation variables is a multiple of the v2_global_settings'"\
-              " output_time_step"
+              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n\npositive cumulative:" \
+              "\n- discharge"\
+              "\n\nnegative cumulative:" \
+              "\n- discharge"
         QMessageBox.warning(None, header, msg)
 
     def pop_up_missing_agg_vars(self):
         header = 'Error: Missing aggregation settings'
         missing_vars = self.get_missing_agg_vars()
-        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
-              " the file does not include all required aggregation " \
+        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but "\
+              "the file does not include all required aggregation " \
               "variables. Please add them to the sqlite table " \
               "'v2_aggregation_settings' and run your simulation again. The " \
               "required variables are:" \
+              "\n\ncurrent:" \
+              "\n- volume" \
+              "\n- interception (in case model has interception)" \
               "\n\ncumulative:"\
               "\n- rain"\
               "\n- discharge"\
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- interception (in case model has interception)" \
-              "\n- infiltration (in case model has (simple_)infiltration)"\
-              "\n\npositive cumulative:\n- discharge"\
-              "\n\nnegative cumulative:\n- discharge" \
-              "\n\nYour aggregation .nc misses the following variables: " + \
+              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n\npositive cumulative:" \
+              "\n- discharge"\
+              "\n\nnegative cumulative:" \
+              "\n- discharge" \
+              "\n\nYour aggregation .nc misses the following variables:\n" + \
               ', '.join(missing_vars)
         QMessageBox.warning(None, header, msg)
 
     def get_missing_agg_vars(self):
+        """Returns a list with tuples of aggregation vars (vol, discharge) +
+        methods (cum, current, etc) that are not (but should be) in the
+        v2_aggregation_settings
+
+        1.  some vars_methods are always required: minimum_agg_vars
+        2.  some vars methods are required when included in the model
+            schematisation (e.g. pumps, laterals).
+        """
+
         selected_ds = self.ts_datasource.rows[0].datasource()
         check_available_vars = selected_ds.get_available_variables()
         nc_path = self.ts_datasource.rows[0].datasource().file_path
@@ -926,28 +941,41 @@ class WaterBalanceTool:
             ('vol_current', 'current volume')
             ]
 
+        # some vars must be aggregated when included in the model
+        # schematisation (e.g. pumps, laterals). problem is that threedigrid
+        # does not support e.g. ga.has_lateral, ga.has_leakage etc. For those
+        # fields, we read the threedigrid metadata.
+        simulated_vars_nodes = ga.nodes._meta.get_fields(only_names=True)
+
         if ga.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
             minimum_agg_vars.append(to_add)
 
-        if ga.has_simple_infiltration:
-            to_add = ('infiltration_rate_simple_cum',
-                      'cumulative infiltration rate')
-            minimum_agg_vars.append(to_add)
+        # ga.has_simple_infiltration and ga.has_interception are added to
+        # threedigrid some months after groundwater release. To coop with the
+        # .h5 that has been created in that period we use the meta data
+        try:
+            if ga.has_simple_infiltration:
+                to_add = ('infiltration_rate_simple_cum',
+                          'cumulative infiltration rate')
+                minimum_agg_vars.append(to_add)
+        except AttributeError:
+            if 'infiltration' in simulated_vars_nodes:
+                to_add = ('infiltration_rate_simple_cum',
+                          'cumulative infiltration rate')
+                minimum_agg_vars.append(to_add)
 
-        if ga.has_interception:
-            to_add = ('intercepted_volume', 'cumulative interception')
-            minimum_agg_vars.append(to_add)
-
-        # we cant check whether a simulation used rain (since this depends on
-        # user action during simulation). Moreover, threedigrid does not
-        # support e.g. ga.has_lateral, ga.has_leakage etc. For those fields,
-        # we read the threedigrid metadata
-        simulated_vars_nodes = ga.nodes._meta.get_fields(only_names=True)
-
-        # we do not check whether vertical_infiltration must be added to the
-        # minimum_agg_vars since this flow is covered in 'q_cum_negative',
-        # 'q_cum_positive', and 'q_cum'.
+        try:
+            if ga.has_interception:
+                to_add = ('intercepted_volume', 'current interception')
+                minimum_agg_vars.append(to_add)
+        except AttributeError:
+            # ga.has_interception is added to threedigrid some months after
+            # groundwater release. To coop with .h5 that has been created in
+            # that period we read the simulated_vars_nodes
+            if 'intercepted_volume' in simulated_vars_nodes:
+                to_add = ('intercepted_volume', 'current interception')
+                minimum_agg_vars.append(to_add)
 
         if 'q_lat' in simulated_vars_nodes:
             to_add = ('q_lat_cum', 'cumulative lateral discharge')

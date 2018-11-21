@@ -176,23 +176,14 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
             # all available fields, including hdf5 fields
             available_vars = (agg.nodes._field_names | agg.lines._field_names)
 
-        # TODO: fix infiltration and leakage aggregation vars in threedigrid
+        # TODO: fix infiltration, leakage, and interception aggregation vars
+        # in threedigrid's agg.nodes.Meta.composite_fields.keys()
         known_vars.add('infiltration_rate_simple_cum')
         known_vars.add('leak_cum')
+        known_vars.add('intercepted_volume_current')
 
         available_known_vars = available_vars & known_vars
 
-        # renier: dit kan nu weg toch?
-        # # TODO: this is a bug in threedigrid:
-        # # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
-        # # until it is fixed, we add simple_infiltration to known_vars
-        # if agg.has_simple_infiltration:
-        #     available_known_vars.add(str('infiltration_rate_simple_cum'))
-        # # TODO: a simulation with groundwater does not have leakage per-se
-        # # (only when leakage is forced (global or raster) so
-        # # agg.has_groundwater is not bullet-proof
-        # if agg.has_groundwater:
-        #     available_known_vars.add(str('leak_cum'))
         return list(available_known_vars)
 
     def get_available_variables(self):

@@ -4,7 +4,9 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
-- Upgrade threedigrid from 0.2.6 to 1.0.6 (latest version)
+- Enable intercepted_volume through aggregation NetCDF
+
+- Upgrade threedigrid from 0.2.6 to 1.0.7 (current latest version)
 
 - Add '(de)activate all layers' buttons in Waterbalancetool
 
