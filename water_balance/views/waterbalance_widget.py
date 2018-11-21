@@ -742,8 +742,14 @@ class WaterBalanceWidget(QDockWidget):
         fig = plt.figure(1)
 
         t_start = max(0, t1)
-        plt.suptitle("Water balance from t=%.2f to t=%.2f\n Model name: %s" %
-                     (t_start, t2, ga.model_name))
+
+        try:
+            short_model_slug = ga.model_slug.rsplit('-', 1)[0]
+        except Exception as e:
+            short_model_slug = ga.model_name
+
+        plt.suptitle("Water balance from t=%.2f to t=%.2f \n Model name: %s"
+                     % (t_start, t2, short_model_slug))
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
@@ -894,7 +900,7 @@ class WaterBalanceWidget(QDockWidget):
         # anymore, and because we also catch the KeyErrors you won't even
         # notice. NEEDS TO BE FIXED
 
-        NAME_TO_LINE_TYPES_EVERYTHING = {
+        NAME_TO_LINE_TYPES_SHOW_ALL = {
             '2d flow': ['2d'],
             '2d boundaries': ['2d_bound'],
             '1d flow': ['1d'],
@@ -909,7 +915,7 @@ class WaterBalanceWidget(QDockWidget):
             'vertical infiltration': ['2d_vertical_infiltration_pos',
                                       '2d_vertical_infiltration_neg'],
         }
-        NAME_TO_LINE_TYPES_MAIN_FLOWS = {
+        NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW = {
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1d flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
             '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
@@ -931,14 +937,14 @@ class WaterBalanceWidget(QDockWidget):
             'external (rain and laterals)': ['1d', '2d'],
         }
 
-        # more hackery to fix keys defined in both 'main flows'
-        # and 'everything'.
+        # more hackery to fix keys defined in both 'show main flow' and
+        # 'show all'
         sum_type = self.sum_type_combo_box.currentText()
-        assert sum_type in ['main flows', 'everything']
-        if sum_type == 'main flows':
-            name_to_line_type = NAME_TO_LINE_TYPES_MAIN_FLOWS
-        elif sum_type == 'everything':
-            name_to_line_type = NAME_TO_LINE_TYPES_EVERYTHING
+        assert sum_type in ['show main flow', 'show all']
+        if sum_type == 'show main flow':
+            name_to_line_type = NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW
+        elif sum_type == 'show all':
+            name_to_line_type = NAME_TO_LINE_TYPES_SHOW_ALL
         else:
             raise ValueError("Unknown type %s" % sum_type)
 
@@ -1020,7 +1026,7 @@ class WaterBalanceWidget(QDockWidget):
         self.model.insertRows(
             self.get_modelpart_graph_layers(graph_series['items']))
         if self.agg_combo_box.currentText() == 'm3/s':
-            self.plot_widget.setLabel("left", "flow", "m3/s")
+            self.plot_widget.setLabel("left", "Flow", "m3/s")
         elif self.agg_combo_box.currentText() == 'm3 cumulative':
             self.plot_widget.setLabel("left", "Cumulative flow", "m3")
         else:
