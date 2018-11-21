@@ -19,6 +19,8 @@ from qgis.core import QgsFeatureRequest
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
+from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
 
 log = logging.getLogger('DeltaresTdi.' + __name__)
@@ -725,11 +727,15 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
+        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        h5 = find_h5_file(nc_path)
+        ga = GridH5Admin(h5)
 
         # init figure
         plt.close()
         fig = plt.figure(1)
-        plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
+        plt.suptitle("Water balance from t=%.2f to t=%.2f\n Model name: %s" %
+                     (t1, t2, ga.model_name))
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
@@ -745,7 +751,7 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out',
-                          color='orange')
+                          color='red')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
@@ -808,7 +814,7 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_2d.x, bm_2d.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_2d.x, bm_2d.end_balance_out, label='Out',
-                          color='orange')
+                          color='red')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
@@ -829,7 +835,7 @@ class WaterBalanceWidget(QDockWidget):
             color='blue')
         bar_out = plt.bar(
             bm_2d_groundwater.x, bm_2d_groundwater.end_balance_out,
-            label='Out', color='orange')
+            label='Out', color='red')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
@@ -850,7 +856,7 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_1d.x, bm_1d.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_1d.x, bm_1d.end_balance_out, label='Out',
-                          color='orange')
+                          color='red')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
