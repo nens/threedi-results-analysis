@@ -19,6 +19,8 @@ from qgis.core import QgsFeatureRequest
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
+from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
 
 log = logging.getLogger('DeltaresTdi.' + __name__)
@@ -725,56 +727,15 @@ class WaterBalanceWidget(QDockWidget):
             'infiltration/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        # debug waterbalance (to find cause when waterbalance has no 100%
-        # closure
-        # print '\n start_debug_sum'
-        # dict = {'bm_net': bm_net,
-        #         'bm_2d': bm_2d,
-        #         'bm_1d': bm_1d,
-        #         'bm_2d_groundwater': bm_2d_groundwater}
-        # lable_list = []
-        # flow_list_in = []
-        # flow_list_out = []
-        # domain_list = []
-        # for item in dict.iteritems():
-        #     print_name = str(item[0])
-        #     domain = item[1]
-        #     if print_name == 'bm_1d':
-        #         pass
-        #     if print_name == 'bm_2d':
-        #         pass
-        #     cum_sum = 0
-        #     for idx, label in enumerate(domain.xlabels):
-        #         in_flow = domain.end_balance_in[idx]
-        #         out_flow = domain.end_balance_out[idx]
-        #         # print str(label) + str(out_flow)
-        #         if label in ['net change in storage', 'change in storage']:
-        #             sum_all = (in_flow + out_flow)
-        #         else:
-        #             sum_idx = in_flow + out_flow
-        #             cum_sum += sum_idx
-        #         lable_list.append(str(label))
-        #         flow_list_in.append(str(in_flow))
-        #         flow_list_out.append(str(out_flow))
-        #         domain_list.append(print_name)
-        #     print_sum_all = str(round(sum_all, 2))
-        #     print_cum_sum = str(round(cum_sum, 2))
-        #     if print_sum_all == print_cum_sum:
-        #         print 'okay ' + print_name + ' ' + print_sum_all + \
-        #               ' ' + print_cum_sum
-        #     else:
-        #         print 'not okay ' + print_name + ' ' + print_sum_all \
-        #               + ' ' + print_cum_sum
-        # print '\n'
-        # flow_zip = zip(domain_list, lable_list, flow_list_in, flow_list_out)
-        # for i in flow_zip:
-        #     print i
-        # print '\n end_debug_sum \n'
+        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        h5 = find_h5_file(nc_path)
+        ga = GridH5Admin(h5)
 
         # init figure
         plt.close()
         fig = plt.figure(1)
-        plt.suptitle("Water balance from t=%.2f to t=%.2f" % (t1, t2))
+        plt.suptitle("Water balance from t=%.2f to t=%.2f\n Model name: %s" %
+                     (t1, t2, ga.model_name))
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
@@ -787,8 +748,12 @@ class WaterBalanceWidget(QDockWidget):
 
         plt.subplot(221)
         plt.axhline(color='black', lw=.5)
-        bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In')
-        bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out')
+        bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In',
+                         color='blue')
+        bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out',
+                          color='red')
+        bar_in[-1].set_color('gray')
+        bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
         bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_net.x, bm_net.xlabels, rotation=45, ha='right')
@@ -820,6 +785,14 @@ class WaterBalanceWidget(QDockWidget):
         logo2_ax.imshow(logo2_img, interpolation='none')
         logo2_ax.axis('off')
 
+        # logo 3 (3Di)
+        logo3_path = os.path.join(plugin_dir, 'icons', 'icon.png')
+        logo3_img = plt.imread(logo3_path)
+        logo3_rect = [0.815, 0.84, 0.03, 0.03]
+        logo3_ax = fig.add_axes(logo3_rect, anchor='NE', zorder=-1)
+        logo3_ax.imshow(logo3_img, interpolation='none')
+        logo3_ax.axis('off')
+
         # logo text
         text_rect = [0.905, 0.89, 0.1, 0.1]
         text_ax = fig.add_axes(text_rect, anchor='NE', zorder=-1)
@@ -838,8 +811,12 @@ class WaterBalanceWidget(QDockWidget):
         ax1 = plt.subplot(234)
 
         plt.axhline(color='black', lw=.5)
-        bar_in = plt.bar(bm_2d.x, bm_2d.end_balance_in, label='In')
-        bar_out = plt.bar(bm_2d.x, bm_2d.end_balance_out, label='Out')
+        bar_in = plt.bar(bm_2d.x, bm_2d.end_balance_in, label='In',
+                         color='blue')
+        bar_out = plt.bar(bm_2d.x, bm_2d.end_balance_out, label='Out',
+                          color='red')
+        bar_in[-1].set_color('gray')
+        bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
         bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_2d.x, bm_2d.xlabels, rotation=45, ha='right')
@@ -854,10 +831,13 @@ class WaterBalanceWidget(QDockWidget):
         plt.subplot(235, sharey=ax1)
         plt.axhline(color='black', lw=.5)
         bar_in = plt.bar(
-            bm_2d_groundwater.x, bm_2d_groundwater.end_balance_in, label='In')
+            bm_2d_groundwater.x, bm_2d_groundwater.end_balance_in, label='In',
+            color='blue')
         bar_out = plt.bar(
             bm_2d_groundwater.x, bm_2d_groundwater.end_balance_out,
-            label='Out')
+            label='Out', color='red')
+        bar_in[-1].set_color('gray')
+        bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
         bar_out[-1].set_hatch(pattern)
         plt.xticks(
@@ -873,8 +853,12 @@ class WaterBalanceWidget(QDockWidget):
 
         plt.subplot(236, sharey=ax1)
         plt.axhline(color='black', lw=.5)
-        bar_in = plt.bar(bm_1d.x, bm_1d.end_balance_in, label='In')
-        bar_out = plt.bar(bm_1d.x, bm_1d.end_balance_out, label='Out')
+        bar_in = plt.bar(bm_1d.x, bm_1d.end_balance_in, label='In',
+                         color='blue')
+        bar_out = plt.bar(bm_1d.x, bm_1d.end_balance_out, label='Out',
+                          color='red')
+        bar_in[-1].set_color('gray')
+        bar_out[-1].set_color('gray')
         bar_in[-1].set_hatch(pattern)
         bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_1d.x, bm_1d.xlabels, rotation=45, ha='right')
