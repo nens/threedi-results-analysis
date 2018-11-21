@@ -42,6 +42,8 @@ ThreeDiToolBox changelog
 
 - Update schematisation layer style (add a lot of non_geom tables)
 
+- Updated styling of waterbalance chart.
+
 
 1.3 (2018-06-19)
 ----------------
