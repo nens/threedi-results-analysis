@@ -138,6 +138,13 @@ serie_settings = [
             'series': ['2d_vertical_infiltration_pos',
                        '2d_vertical_infiltration_neg'],
         }, {
+            'name': 'intercepted volume',
+            'default_method': 'net',
+            'order': 10.7,
+            'def_fill_color': '181,60,221' + fill_transp,
+            'def_pen_color': '181,60,221' + pen_transp,
+            'series': ['intercepted_volume'],
+        }, {
             'name': 'inflow 1d from rain',
             'default_method': 'net',
             'order': 7.1,
@@ -208,6 +215,13 @@ serie_settings = [
             'def_fill_color': '0,0,128' + fill_transp,
             'def_pen_color': '0,0,128' + pen_transp,
             'series': ['2d_groundwater_in', '2d_groundwater_out'],
+        }, {
+            'name': 'intercepted volume',
+            'default_method': 'net',
+            'order': 1.6,
+            'def_fill_color': '181,60,221' + fill_transp,
+            'def_pen_color': '181,60,221' + pen_transp,
+            'series': ['intercepted_volume'],
         }, {
             'name': 'leakage',
             'default_method': 'net',

@@ -72,6 +72,7 @@ INPUT_SERIES = [
     ('2d__1d_2d_flow_out', 31, '2d', '1d2d'),
     ('2d__1d_2d_exch_in', 32, '2d', '1d2d'),
     ('2d__1d_2d_exch_out', 33, '2d', '1d2d'),
+    ('intercepted_volume', 34, '2d', '2d'),
 ]
 
 
@@ -621,6 +622,11 @@ class WaterBalanceWidget(QDockWidget):
             'in': ['rain'],
             'out': ['rain'],
             'type': '2d',
+        }, {
+            'label_name': 'intercepted_volume',
+            'in': ['intercepted_volume'],
+            'out': ['intercepted_volume'],
+            'type': '2d',
         }
     ]
 
@@ -734,8 +740,10 @@ class WaterBalanceWidget(QDockWidget):
         # init figure
         plt.close()
         fig = plt.figure(1)
+
+        t_start = max(0, t1)
         plt.suptitle("Water balance from t=%.2f to t=%.2f\n Model name: %s" %
-                     (t1, t2, ga.model_name))
+                     (t_start, t2, ga.model_name))
         # prevent clipping of tick-labels, among others
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
@@ -918,6 +926,7 @@ class WaterBalanceWidget(QDockWidget):
             'lateral 1d': ['1d'],
             'lateral 2d': ['2d'],
             'leakage': ['2d'],
+            'intercepted_volume': ['2d'],
             'infiltration': ['2d'],
             'external (rain and laterals)': ['1d', '2d'],
         }
