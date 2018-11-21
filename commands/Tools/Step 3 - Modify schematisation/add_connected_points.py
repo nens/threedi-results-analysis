@@ -10,7 +10,6 @@ from qgis.core import (
     QgsFeature,
     QgsGeometry
 )
-from qgis.PyQt.QtCore import QPyNullVariant
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils import constants
@@ -108,16 +107,11 @@ class CustomCommand(CustomCommandBase):
         )
 
         self.fnames_connected_pnt = [
-            field.name() for field in self.connected_pnt_lyr.pendingFields()
+            field.name() for field in self.connected_pnt_lyr.fields()
         ]
         self.fnames_calc_pnt = [
-            field.name() for field in self.calc_pnt_lyr.pendingFields()
+            field.name() for field in self.calc_pnt_lyr.fields()
         ]
-
-        # disable the id field for editing
-        self.connected_pnt_lyr.setFieldEditable(0, False)
-        # disable the levee_id field
-        self.connected_pnt_lyr.setFieldEditable(3, False)
 
     def add_feature(self, feature_id):
         """
@@ -189,7 +183,7 @@ class CustomCommand(CustomCommandBase):
             if feature_id < 0:
                 feat.setAttribute('id', self._feat_id)
             exchange_level = connected_pnt['exchange_level']
-            if isinstance(exchange_level, QPyNullVariant):
+            if exchange_level is None:  # isinstance(exchange_level, QPyNullVariant):
                 exchange_level = -9999
             feat.setAttribute('exchange_level', exchange_level)
             levee_id = self.find_levee_intersection(calc_pnt_feat, feat)

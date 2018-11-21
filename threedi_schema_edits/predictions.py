@@ -693,6 +693,7 @@ class Predictor(object):
             content_type, code, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
+        assert pnt_geom.isGeosValid()
         f = QgsFeature()
         if self._trans:
             pnt_geom.transform(self._trans)
@@ -734,7 +735,7 @@ class Predictor(object):
 
     def fill_connected_pnts_table(self, calc_pnts_lyr, connected_pnts_lyr):
         data_provider = connected_pnts_lyr.dataProvider()
-        connected_pnts_lyr_fields = connected_pnts_lyr.pendingFields()
+        connected_pnts_lyr_fields = connected_pnts_lyr.fields()
         field_names_connected_pnts_lyr = [
             field.name() for field in connected_pnts_lyr_fields
         ]
@@ -744,7 +745,7 @@ class Predictor(object):
         }
 
         field_names_calc_pnts = [
-            field.name() for field in calc_pnts_lyr.pendingFields()
+            field.name() for field in calc_pnts_lyr.fields()
         ]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():

@@ -4,9 +4,9 @@ import logging
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtCore
-from qgis.PyQt import QtGui
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QDockWidget
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     'control_structures_dockwidget.ui'))
 
 
-class ControlStructuresDockWidget(QtGui.QDockWidget, FORM_CLASS):
+class ControlStructuresDockWidget(QDockWidget, FORM_CLASS):
 
     closingWidget = pyqtSignal()
 

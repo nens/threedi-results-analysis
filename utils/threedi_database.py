@@ -152,9 +152,7 @@ class ThreediDatabase(object):
         with self.engine.begin() as connection:
             res = connection.execute(text(select_statement))
             result = res.fetchone()
-            if result:
-                is_empty = result[0]
-            return is_empty
+            return result is None
 
     def has_valid_spatial_index(self, table_name, geom_column):
         """

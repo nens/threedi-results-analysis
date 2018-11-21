@@ -5,6 +5,7 @@ import logging
 
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsMessageBar
+from qgis.core import Qgis
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import OperationalError
 
@@ -124,15 +125,15 @@ class ControlledStructures(object):
         except OperationalError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         return list_of_attributes
 
     def get_features_with_where_clause(
@@ -167,15 +168,15 @@ class ControlledStructures(object):
         except OperationalError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         return list_of_features
 
     def save_table_control(self, table_control):
@@ -241,15 +242,15 @@ class ControlledStructures(object):
         except OperationalError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
 
     def delete_from_database(self, table_name, where=""):
         """
@@ -269,15 +270,15 @@ class ControlledStructures(object):
         except OperationalError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL, duration=5)
+                "Error", msg, level=Qgis.Critical, duration=5)
 
     def delete_controls_and_control_groups(
             self, id_name, id_value, tabwidget):

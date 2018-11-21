@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import os
-from qgis.PyQt.QtCore import pyqtSignal, QSettings
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog, QMessageBox
-from qgis.PyQt.QtSql import QSqlDatabase
+
+from qgis.core import QgsProject
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
-from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -33,7 +32,8 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.command = command
 
         # Populate combo boxes
-        self.layers = self.iface.legendInterface().layers()
+        self.layers = QgsProject.instance().layerTreeRoot().findLayers()
+
         # Note: the order in the combo box is the same as in the QGIS layer
         # selection box, so there should be no ambiguity even if layers have
         # the same name because you know the order.
@@ -50,7 +50,7 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         # explicitly set the the first item as being implicitly selected
         # already because that's what most users would expect.
         try:
-            self.selected_layer = self.layers[0]
+            self.selected_layer = self.layers[0].layer()
         except IndexError:
             self.selected_layer = None
         try:
@@ -67,7 +67,7 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
 
     def on_layerbox_activate(self, idx):
         print(idx)
-        self.selected_layer = self.layers[idx]
+        self.selected_layer = self.layers[idx].layer()
         print("Selected layer: %s" % self.selected_layer.name())
 
     def on_datasourcebox_activate(self, idx):

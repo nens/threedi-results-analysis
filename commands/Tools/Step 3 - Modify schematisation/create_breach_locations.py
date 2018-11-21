@@ -3,7 +3,7 @@
 import logging
 
 from qgis.core import QgsProject
-from qgis.gui import QgsMessageBar
+from qgis.core import Qgis
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
@@ -49,7 +49,7 @@ class CustomCommand(CustomCommandBase):
         if not breach_location.has_valid_selection:
             msg = "You need to select at least two connection points"
             messagebar_message(
-                "Error", msg, level=QgsMessageBar.CRITICAL,
+                "Error", msg, level=Qgis.Critical,
                 duration=5
             )
             return
@@ -89,5 +89,5 @@ class CustomCommand(CustomCommandBase):
                 breach_location.cnt_moved_pnts
             )
             messagebar_message(
-                "Finished", msg, level=QgsMessageBar.SUCCESS, duration=8
+                "Finished", msg, level=Qgis.Success, duration=8
             )

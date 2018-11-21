@@ -604,7 +604,7 @@ class StatsLayerInfo(object):
                             include_2d=False)
                         print("Generated %s" % filepath)
                     except ValueError as e:
-                        print(e.message)
+                        print(e)
                         continue
 
                 # There *are* stats, but there is no entry in the

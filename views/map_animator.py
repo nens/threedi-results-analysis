@@ -274,7 +274,7 @@ class MapAnimator(QWidget):
                 values = values  # removed np.fabs(values) to get actual value
 
             update_dict = {}
-            field_index = layer.fieldNameIndex('result')
+            field_index = layer.fields().lookupField('result')
 
             for feature in layer.getFeatures():
                 ids = int(feature.id())
@@ -294,7 +294,7 @@ class MapAnimator(QWidget):
                     field_index: float(value)}
 
             provider.changeAttributeValues(update_dict)
-            layer.setCacheImage(None)
+            # layer.setCacheImage(None)
             layer.triggerRepaint()
 
     def activate_animator(self):

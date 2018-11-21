@@ -88,7 +88,7 @@ class CustomCommand(CustomCommandBase):
                 include_2d=include_2d)
         except ValueError as e:
             if interactive:
-                pop_up_info(e.message, title='Error')
+                pop_up_info(e, title='Error')
             return
 
         join_it = True

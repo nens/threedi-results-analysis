@@ -52,7 +52,7 @@ def csv_join(filepath, layer, view_layer_field, csv_field='id',
     csv_uri = "file:///" + filepath
     csv_layer = QgsVectorLayer(csv_uri, csv_layer_name, "delimitedtext")
     QgsProject.instance().addMapLayer(csv_layer,
-                                               addToLegend=add_to_legend)
+                                      addToLegend=add_to_legend)
     join_info = QgsVectorLayerJoinInfo()
     join_info.joinLayerId = csv_layer.id()
     join_info.joinFieldName = csv_field
@@ -158,7 +158,7 @@ def generate_manhole_stats(nds, result_dir, layer, layer_id_name,
 
     layer_name = layer.name()
     if not any(s in layer_name for s in NODE_OBJECTS):
-        raise ValueError("%s is not a valid node layer" % layer_name)
+        raise ValueError("%s is not a valid node layer" % (layer_name))
 
     # Caution: approaching HACK territory!
     # Motivation: This is a hack for v2_manholes. Manholes just have a

@@ -8,11 +8,14 @@ import logging
 from qgis.PyQt import QtGui
 from qgis.PyQt import QtCore
 from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QTableWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -264,11 +267,11 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         Create a tab for the measure group within the Measure group tab
         in the dockwidget.
         """
-        tab = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout(tab)
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
         tab.setLayout(layout)
 
-        table_measuring_group = QtGui.QTableWidget(tab)
+        table_measuring_group = QTableWidget(tab)
         table_measuring_group.setGeometry(10, 10, 741, 266)
         table_measuring_group.insertColumn(0)
         table_measuring_group.setHorizontalHeaderItem(
