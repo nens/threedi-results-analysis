@@ -471,17 +471,9 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
     @property
     def gridadmin_result(self):
         if not self._ga_result:
-            # from ..utils.patched_threedigrid import GridH5ResultAdmin
-            from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+            from ..utils.patched_threedigrid import GridH5ResultAdmin
             h5 = find_h5_file(self.file_path)
-
-            # this will fail, unless we first close the _dc file: self._ds.close()
-            # import h5py
-            # h5py.File('/home/richard/results/results_3di.nc', 'r')
-            # self.ds.close()
             self._ga_result = GridH5ResultAdmin(h5, self.file_path)
-
-
         return self._ga_result
 
     @cached_property

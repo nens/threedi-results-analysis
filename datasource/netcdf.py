@@ -240,6 +240,7 @@ def detect_netcdf_version(netcdf_file_path):
     else:
         return 'netcdf'
 
+
 def find_aggregation_netcdf(netcdf_file_path):
     """An ad-hoc way to find the aggregation netcdf file.
 
