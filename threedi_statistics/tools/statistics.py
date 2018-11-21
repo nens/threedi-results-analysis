@@ -52,13 +52,13 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds.dimensions['nMesh2D_lines'].size +
-                    self.obj.ds.dimensions['nMesh1D_lines'].size)
+                    self.obj.ds['nMesh2D_lines'].size +
+                    self.obj.ds['nMesh1D_lines'].size)
         return self._nflowlines
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSource'
+        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSourceH5py'
 
     @property
     def timestamps(self):

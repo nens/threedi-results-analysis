@@ -10,7 +10,6 @@ from lizard_connector.connector import Endpoint
 from PyQt4.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
 from PyQt4.QtGui import QWidget, QFileDialog, QSortFilterProxyModel
 from PyQt4 import uic
-
 from ..datasource.netcdf import (find_id_mapping_file,
                                  find_h5_file,
                                  layer_qh_type_mapping,

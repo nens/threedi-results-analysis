@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 
 1.4 (unreleased)
 ----------------
+- Upgrade threedigrid from 0.2.6 to 1.0.6 (latest version)
+
 - Add '(de)activate all layers' buttons in Waterbalancetool
 
 - Remove old fashioned statistics (pop-up "do you want to calculate stats?")

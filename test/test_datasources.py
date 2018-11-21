@@ -31,8 +31,8 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
-from ThreeDiToolbox.datasource.netcdf_groundwater import (
-    NetcdfGroundwaterDataSource,
+from ThreeDiToolbox.datasource.netcdf_groundwater_h5py import (
+    NetcdfGroundwaterDataSourceH5py,
     find_aggregation_netcdf_gw
 )
 from .utilities import get_qgis_app, TemporaryDirectory
@@ -286,31 +286,31 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 1)
 
 
-class TestNetcdfGroundwaterDataSource(unittest.TestCase):
+class TestNetcdfGroundwaterDataSourceH5py(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
-        NetcdfGroundwaterDataSource()
+        NetcdfGroundwaterDataSourceH5py()
 
     def test_sanity(self):
-        nds = NetcdfGroundwaterDataSource()
+        nds = NetcdfGroundwaterDataSourceH5py()
         m = mock.MagicMock()
         nds._ds = m
         # sanity test
         self.assertEqual(nds.ds, m)
 
     def test_get_timestamps(self):
-        nds = NetcdfGroundwaterDataSource()
+        nds = NetcdfGroundwaterDataSourceH5py()
         m = mock.MagicMock()
         nds._ds = m
         nds.get_timestamps()
 
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars',  # noqa
+        'ThreeDiToolbox.datasource.netcdf_groundwater_h5py.NetcdfGroundwaterDataSourceH5py.available_subgrid_map_vars',  # noqa
         ['s1'])
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result')  # noqa
+        'ThreeDiToolbox.datasource.netcdf_groundwater_h5py.NetcdfGroundwaterDataSourceH5py.gridadmin_result')  # noqa
     def test_get_timeseries(self, gridadmin_result_mock):
-        nds = NetcdfGroundwaterDataSource()
+        nds = NetcdfGroundwaterDataSourceH5py()
         m = mock.MagicMock()
         nds._ds = m
         nds.get_timeseries('nodes', 3, 's1')

@@ -28,6 +28,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'leak': 'm3',
     'su': '',
     'au': '',
+    'intercepted_volume': 'm3',
 }
 
 
@@ -53,6 +54,7 @@ INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple',
                                  'infiltration_rate_simple', 'm3/s')
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
+INTERCEPTION = NcVar('intercepted_volume', 'intercepted volume', 'm3')
 
 _Q_TYPES = [
     DISCHARGE,
@@ -72,6 +74,7 @@ _H_TYPES = [
     DISCHARGE_LATERAL,
     INFILTRATION_RATE_SIMPLE,
     LEAKAGE_RATE,
+    INTERCEPTION
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -95,11 +98,13 @@ AGGREGATION_VARIABLES = [
     INFILTRATION_RATE_SIMPLE,
     DISCHARGE_LATERAL,
     WET_CROSS_SECTION_AREA,
-    LEAKAGE_RATE
+    LEAKAGE_RATE,
+    INTERCEPTION,
 ]
 
 AGGREGATION_OPTIONS = {
-    'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative'}
+    'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative',
+    'current'}
 
 
 layer_information = [
@@ -227,12 +232,10 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf-groundwater'
 
     """
+    import h5py
+    dataset = h5py.File(netcdf_file_path, 'r')
 
-    from netCDF4 import Dataset
-
-    dataset = Dataset(netcdf_file_path, mode='r')
-
-    if "threedicore_version" in dataset.ncattrs():
+    if "threedicore_version" in dataset.attrs:
         return 'netcdf-groundwater'
     else:
         return 'netcdf'
