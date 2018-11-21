@@ -885,7 +885,7 @@ class WaterBalanceTool:
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- infiltration (in case model has (simple_)infiltration)"\
+              "\n- simple_infiltration (in case model has simple_infiltration"\
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
@@ -895,8 +895,8 @@ class WaterBalanceTool:
     def pop_up_missing_agg_vars(self):
         header = 'Error: Missing aggregation settings'
         missing_vars = self.get_missing_agg_vars()
-        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but" \
-              " the file does not include all required aggregation " \
+        msg = "The WaterBalanceTool found the 'aggregate_results_3di.nc' but "\
+              "the file does not include all required aggregation " \
               "variables. Please add them to the sqlite table " \
               "'v2_aggregation_settings' and run your simulation again. The " \
               "required variables are:" \
@@ -909,12 +909,12 @@ class WaterBalanceTool:
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- infiltration (in case model has (simple_)infiltration)"\
+              "\n- simple_infiltration (in case model has simple_infiltration"\
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
               "\n- discharge" \
-              "\n\nYour aggregation .nc misses the following variables: " + \
+              "\n\nYour aggregation .nc misses the following variables:\n" + \
               ', '.join(missing_vars)
         QMessageBox.warning(None, header, msg)
 
