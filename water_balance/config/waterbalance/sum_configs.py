@@ -13,7 +13,7 @@ fill_transp_vol_change = ',' + str(0)
 
 serie_settings = [
     {
-        'name': 'everything',
+        'name': 'show all',
         'remnant_fill_color': '50,50,255' + fill_transp,
         'remnant_method': 'gross',
         'items': [{
@@ -153,7 +153,7 @@ serie_settings = [
             'series': ['inflow'],
         }]
     }, {
-        'name': 'main flows',
+        'name': 'show main flow',
         'remnant_fill_color': '50,50,255' + fill_transp,
         'remnant_method': 'net',
         'items': [{
