@@ -967,14 +967,14 @@ class WaterBalanceTool:
 
         try:
             if ga.has_interception:
-                to_add = ('intercepted_volume', 'current interception')
+                to_add = ('intercepted_volume_current', 'current interception')
                 minimum_agg_vars.append(to_add)
         except AttributeError:
             # ga.has_interception is added to threedigrid some months after
             # groundwater release. To coop with .h5 that has been created in
             # that period we read the simulated_vars_nodes
             if 'intercepted_volume' in simulated_vars_nodes:
-                to_add = ('intercepted_volume', 'current interception')
+                to_add = ('intercepted_volume_current', 'current interception')
                 minimum_agg_vars.append(to_add)
 
         if 'q_lat' in simulated_vars_nodes:
