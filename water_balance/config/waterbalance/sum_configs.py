@@ -17,7 +17,7 @@ serie_settings = [
         'remnant_fill_color': '50,50,255' + fill_transp,
         'remnant_method': 'gross',
         'items': [{
-            'name': '2d flow',
+            'name': '2D flow',
             'default_method': 'gross',
             'order': 1,
             'def_fill_color': '63,81,181' + fill_transp,
@@ -31,7 +31,7 @@ serie_settings = [
             'def_pen_color': '156,39,176' + pen_transp,
             'series': ['2d_bound_in', '2d_bound_out'],
         }, {
-            'name': '1d flow',
+            'name': '1D flow',
             'default_method': 'gross',
             'order': 3,
             'def_fill_color': '0,188,212' + fill_transp,
@@ -157,14 +157,14 @@ serie_settings = [
         'remnant_fill_color': '50,50,255' + fill_transp,
         'remnant_method': 'net',
         'items': [{
-            'name': '2d flow',
+            'name': '2D flow',
             'default_method': 'gross',
             'order': 1,
             'def_fill_color': '63,81,181' + fill_transp,
             'def_pen_color': '63,81,181' + pen_transp,
             'series': ['2d_in', '2d_out'],
         }, {
-            'name': '1d flow',
+            'name': '1D flow',
             'default_method': 'gross',
             'order': 2,
             'def_fill_color': '0,188,212' + fill_transp,
