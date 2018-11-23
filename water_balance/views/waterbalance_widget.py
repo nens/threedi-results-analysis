@@ -556,7 +556,7 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['leak'],
             'type': '2d_groundwater',
         }, {
-            'label_name': 'simple infiltration',
+            'label_name': 'constant infiltration',
             'in': ['infiltration_rate_simple'],
             'out': ['infiltration_rate_simple'],
             'type': '2d',
@@ -576,32 +576,32 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['2d_groundwater_out'],
             'type': '2d_groundwater',
         }, {
-            'label_name': '2D laterals',
+            'label_name': 'lateral flow to 2D',
             'in': ['lat_2d'],
             'out': ['lat_2d'],
             'type': '2d',
         }, {
-            'label_name': '1D laterals',
+            'label_name': 'lateral flow to 1D',
             'in': ['lat_1d'],
             'out': ['lat_1d'],
             'type': '1d',
         }, {
-            'label_name': '2D boundaries',
+            'label_name': '2D boundary flow',
             'in': ['2d_bound_in'],
             'out': ['2d_bound_out'],
             'type': '2d',
         }, {
-            'label_name': '1D boundaries',
+            'label_name': '1D boundary flow',
             'in': ['1d_bound_in'],
             'out': ['1d_bound_out'],
             'type': '1d',
         }, {
-            'label_name': '1D inflow from rain',
+            'label_name': '0D rainfall runoff on 1D',
             'in': ['inflow'],
             'out': ['inflow'],
             'type': '1d',
         }, {
-            'label_name': 'infiltration/exfiltration (domain exchange)',
+            'label_name': 'in/exfiltration (domain exchange)',
             # NOTE: for the argument why pos is out and neg is in, see the
             # comment in ``WaterBalanceCalculation.get_aggregated_flows``
             'in': ['2d_vertical_infiltration_neg'],
@@ -618,12 +618,12 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['pump_out'],
             'type': '1d',
         }, {
-            'label_name': 'rain',
+            'label_name': 'rain on 2D',
             'in': ['rain'],
             'out': ['rain'],
             'type': '2d',
         }, {
-            'label_name': 'intercepted_volume',
+            'label_name': 'interception',
             'in': ['intercepted_volume'],
             'out': ['intercepted_volume'],
             'type': '2d',
@@ -730,7 +730,7 @@ class WaterBalanceWidget(QDockWidget):
         bm_net.calc_balance(ts, ts_series, t1, t2, net=True)
         bm_2d.calc_balance(ts, ts_series, t1, t2)
         bm_2d_groundwater.calc_balance(ts, ts_series, t1, t2, invert=[
-            'infiltration/exfiltration (domain exchange)'])
+            'in/exfiltration (domain exchange)'])
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
         nc_path = self.ts_datasource.rows[0].datasource().file_path
@@ -902,9 +902,9 @@ class WaterBalanceWidget(QDockWidget):
 
         NAME_TO_LINE_TYPES_SHOW_ALL = {
             '2d flow': ['2d'],
-            '2d boundaries': ['2d_bound'],
+            '2D boundary flow': ['2d_bound'],
             '1d flow': ['1d'],
-            '1d boundaries': ['1d_bound'],
+            '1D boundary flow': ['1d_bound'],
             '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
             '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
@@ -912,8 +912,9 @@ class WaterBalanceWidget(QDockWidget):
             # A better solution would be nice...
             'pumps': ['pumps_hoover'],
             'groundwater flow': ['2d_groundwater'],
-            'vertical infiltration': ['2d_vertical_infiltration_pos',
-                                      '2d_vertical_infiltration_neg'],
+            'in/exfiltration (domain exchange)': [
+                '2d_vertical_infiltration_pos',
+                '2d_vertical_infiltration_neg'],
         }
         NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW = {
             '2d flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
@@ -924,16 +925,16 @@ class WaterBalanceWidget(QDockWidget):
         }
         NAME_TO_NODE_TYPES = {
             'volume change': ['1d', '2d', '2d_groundwater'],
-            'volume change 2d': ['2d'],
-            'volume change 1d': ['1d'],
+            'volume change 2D': ['2d'],
+            'volume change 1D': ['1d'],
             'volume change groundwater': ['2d_groundwater'],
-            'rain': ['2d'],
-            'inflow 1d from rain': ['1d'],
-            'lateral 1d': ['1d'],
-            'lateral 2d': ['2d'],
+            'rain on 2D': ['2d'],
+            '0D rainfall runoff on 1D': ['1d'],
+            'lateral flow to 1D': ['1d'],
+            'lateral flow to 2D': ['2d'],
             'leakage': ['2d'],
-            'intercepted_volume': ['2d'],
-            'infiltration': ['2d'],
+            'interception': ['2d'],
+            'constant infiltration': ['2d'],
             'external (rain and laterals)': ['1d', '2d'],
         }
 
