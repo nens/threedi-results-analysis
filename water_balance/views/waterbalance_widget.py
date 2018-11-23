@@ -759,6 +759,17 @@ class WaterBalanceWidget(QDockWidget):
         plt.subplots_adjust(
             bottom=.3, top=.9, left=.125, right=.9, hspace=1, wspace=.4)
 
+        def get_keyword_indexes(input_list, keyword):
+            """Return a list of indexes from `input_list` which contain the
+            `keyword`"""
+            bar_indexes_to_mark = []
+            for index, label in enumerate(input_list):
+                if keyword in label:
+                    bar_indexes_to_mark.append(index)
+            return bar_indexes_to_mark
+
+        # We want to 'hatch' all bars with the following keyword:
+        domain_exchange_key = '(domain exchange)'
         pattern = '//'
 
         # #####
@@ -770,15 +781,18 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_net.x, bm_net.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_net.x, bm_net.end_balance_out, label='Out',
-                          color='red')
+                          color='orange')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
-        bar_in[-1].set_hatch(pattern)
-        bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_net.x, bm_net.xlabels, rotation=45, ha='right')
         plt.title('Net water balance')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        bars_to_hatch = get_keyword_indexes(bm_net.xlabels, domain_exchange_key)
+        for b in bars_to_hatch:
+            bar_in[b].set_hatch(pattern)
+            bar_out[b].set_hatch(pattern)
 
         # ######
         # Logo #
@@ -833,15 +847,19 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_2d.x, bm_2d.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_2d.x, bm_2d.end_balance_out, label='Out',
-                          color='red')
+                          color='orange')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
-        bar_in[-1].set_hatch(pattern)
-        bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_2d.x, bm_2d.xlabels, rotation=45, ha='right')
         plt.title('2D surface water domain')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        bars_to_hatch = get_keyword_indexes(bm_2d.xlabels, domain_exchange_key)
+        for b in bars_to_hatch:
+            bar_in[b].set_hatch(pattern)
+            bar_out[b].set_hatch(pattern)
+
 
         # ################
         # 2D groundwater #
@@ -854,17 +872,21 @@ class WaterBalanceWidget(QDockWidget):
             color='blue')
         bar_out = plt.bar(
             bm_2d_groundwater.x, bm_2d_groundwater.end_balance_out,
-            label='Out', color='red')
+            label='Out', color='orange')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
-        bar_in[-1].set_hatch(pattern)
-        bar_out[-1].set_hatch(pattern)
         plt.xticks(
             bm_2d_groundwater.x, bm_2d_groundwater.xlabels, rotation=45,
             ha='right')
         plt.title('2D groundwater domain')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        bars_to_hatch = get_keyword_indexes(bm_2d_groundwater.xlabels,
+                                         domain_exchange_key)
+        for b in bars_to_hatch:
+            bar_in[b].set_hatch(pattern)
+            bar_out[b].set_hatch(pattern)
 
         # ####
         # 1D #
@@ -875,15 +897,18 @@ class WaterBalanceWidget(QDockWidget):
         bar_in = plt.bar(bm_1d.x, bm_1d.end_balance_in, label='In',
                          color='blue')
         bar_out = plt.bar(bm_1d.x, bm_1d.end_balance_out, label='Out',
-                          color='red')
+                          color='orange')
         bar_in[-1].set_color('gray')
         bar_out[-1].set_color('gray')
-        bar_in[-1].set_hatch(pattern)
-        bar_out[-1].set_hatch(pattern)
         plt.xticks(bm_1d.x, bm_1d.xlabels, rotation=45, ha='right')
         plt.title('1D network domain')
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
+
+        bars_to_hatch = get_keyword_indexes(bm_1d.xlabels, domain_exchange_key)
+        for b in bars_to_hatch:
+            bar_in[b].set_hatch(pattern)
+            bar_out[b].set_hatch(pattern)
 
         # produce the .png
         plt.show()
