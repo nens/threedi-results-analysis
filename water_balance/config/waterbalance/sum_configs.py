@@ -45,7 +45,8 @@ serie_settings = [
             'def_pen_color': '156,39,176' + pen_transp,
             'series': ['1d_bound_in', '1d_bound_out'],
         }, {
-            'name': '1d-2d exchange (2d to 1d)',
+            # 'name': '1d-2d exchange (2d to 1d)',
+            'name': '2D flow to 1D (domain exchange)',
             'default_method': 'gross',
             'order': 5,
             'def_fill_color': '240,210,50' + fill_transp,
@@ -188,7 +189,8 @@ serie_settings = [
             'def_pen_color': '50,150,136' + pen_transp,
             'series': ['infiltration_rate_simple'],
         }, {
-            'name': '1d-2d exchange (2d to 1d)',
+            # 'name': '1d-2d exchange (2d to 1d)',
+            'name': '2D flow to 1D (domain exchange)',
             'default_method': 'gross',
             'order': 5,
             'def_fill_color': '240,210,50' + fill_transp,

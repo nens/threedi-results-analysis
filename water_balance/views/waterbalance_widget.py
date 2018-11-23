@@ -288,9 +288,9 @@ class WaterbalanceItemTable(QTableView):
 
             if name in [
                 'volume change',
-                'volume change 2d',
+                'volume change 2D',
                 'volume change groundwater',
-                'volume change 1d',
+                'volume change 1D',
             ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
                 item.pen_color.value = item.pen_color.value[:3] + [180]
@@ -308,9 +308,9 @@ class WaterbalanceItemTable(QTableView):
 
             if name in [
                 'volume change',
-                'volume change 2d',
+                'volume change 2D',
                 'volume change groundwater',
-                'volume change 1d',
+                'volume change 1D',
             ]:
                 item.fill_color.value = item.fill_color.value[:3] + [0]
                 item.pen_color.value = item.pen_color.value[:3] + [255]
@@ -378,9 +378,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
             for item in self.model.rows:
                 if item.active.value and item.name.value in [
                     'volume change',
-                    'volume change 2d',
+                    'volume change 2D',
                     'volume change groundwater',
-                    'volume change 1d',
+                    'volume change 1D',
                 ]:
                     pen_color = item.pen_color.value
                     not_cum_serie = item.ts_series.value[
@@ -396,9 +396,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
 
                 if item.active.value and item.name.value not in [
                     'volume change',
-                    'volume change 2d',
+                    'volume change 2D',
                     'volume change groundwater',
-                    'volume change 1d'
+                    'volume change 1D'
                 ]:
                     pen_color = item.pen_color.value
                     fill_color = item.fill_color.value
@@ -428,9 +428,9 @@ class WaterBalancePlotWidget(pg.PlotWidget):
                 if item.active.value:
                     if item.name.value in [
                         'volume change',
-                        'volume change 2d',
+                        'volume change 2D',
                         'volume change groundwater',
-                        'volume change 1d',
+                        'volume change 1D',
                     ]:
                         self.addItem(item._plots['sum'], ignoreBounds=True)
 
@@ -529,12 +529,14 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['1d__1d_2d_flow_out', '2d__1d_2d_flow_out'],
             'type': 'NETVOL',
         }, {
-            'label_name': '1D: 1D-2D exchange',
+            # 'label_name': '1D: 1D-2D exchange',
+            'label_name': '1D: 2D flow to 1D (domain exchange)',
             'in': ['1d__1d_2d_exch_in'],
             'out': ['1d__1d_2d_exch_out'],
             'type': '1d',
         }, {
-            'label_name': '2D: 1D-2D exchange',
+            # 'label_name': '2D: 1D-2D exchange',
+            'label_name': '2D: 2D flow to 1D (domain exchange)',
             'in': ['2d__1d_2d_exch_in'],
             'out': ['2d__1d_2d_exch_out'],
             'type': '2d',
@@ -697,8 +699,8 @@ class WaterBalanceWidget(QDockWidget):
                 'exchange' not in x['label_name'] and
                 x['label_name'] != '1D: 2D flow to 1D' and
                 x['label_name'] != '2D: 2D flow to 1D' and
-                x['label_name'] != '1D: 1D-2D exchange' and
-                x['label_name'] != '2D: 1D-2D exchange') or
+                x['label_name'] != '1D: 2D flow to 1D (domain exchange)' and
+                x['label_name'] != '2D: 2D flow to 1D (domain exchange)') or
             x['type'] == 'NETVOL'
         ]
 
@@ -706,7 +708,7 @@ class WaterBalanceWidget(QDockWidget):
             x for x in self.IN_OUT_SERIES if
             x['type'] in ['2d', '2d_vert'] and
             x['label_name'] != '1D: 2D flow to 1D' and
-            x['label_name'] != '1D: 1D-2D exchange'
+            x['label_name'] != '1D: 2D flow to 1D (domain exchange)'
         ]
 
         io_series_2d_groundwater = [
@@ -717,7 +719,7 @@ class WaterBalanceWidget(QDockWidget):
         io_series_1d = [
             x for x in self.IN_OUT_SERIES if x['type'] == '1d' and
             x['label_name'] != '2D: 2D flow to 1D' and
-            x['label_name'] != '2D: 1D-2D exchange'
+            x['label_name'] != '2D: 2D flow to 1D (domain exchange)'
         ]
 
         # get timeseries x range in plot widget
@@ -908,7 +910,7 @@ class WaterBalanceWidget(QDockWidget):
             '2D boundary flow': ['2d_bound'],
             '1D flow': ['1d'],
             '1D boundary flow': ['1d_bound'],
-            '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
+            '2D to 1D flow (domain exchange)': ['1d_2d_exch'],
             '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
             # in the 'prepare_and_visualize_selection' function.
@@ -923,7 +925,7 @@ class WaterBalanceWidget(QDockWidget):
             '2D flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1D flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
             '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
-            '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
+            '2D to 1D flow (domain exchange)': ['1d_2d_exch'],
             'groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {
