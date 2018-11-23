@@ -510,17 +510,20 @@ class WaterBalanceWidget(QDockWidget):
 
     IN_OUT_SERIES = [
         {
-            'label_name': '1D: 1D-2D flow',
+            # 'label_name': '1D: 1D-2D flow',
+            'label_name': '1D: 2D flow to 1D',
             'in': ['1d__1d_2d_flow_in'],
             'out': ['1d__1d_2d_flow_out'],
             'type': '1d',
         }, {
-            'label_name': '2D: 1D-2D flow',
+            # 'label_name': '2D: 1D-2D flow',
+            'label_name': '2D: 2D flow to 1D',
             'in': ['2d__1d_2d_flow_in'],
             'out': ['2d__1d_2d_flow_out'],
             'type': '2d',
         }, {
-            'label_name': '1D-2D flow (all domains)',
+            # 'label_name': '1D-2D flow (all domains)',
+            'label_name': '2D flow to 1D (all domains)',
             # does this make sense?
             'in': ['1d__1d_2d_flow_in', '2d__1d_2d_flow_in'],
             'out': ['1d__1d_2d_flow_out', '2d__1d_2d_flow_out'],
@@ -692,8 +695,8 @@ class WaterBalanceWidget(QDockWidget):
                     '2d', '2d_vert', '2d_groundwater', '1d'] and
                 'storage' not in x['label_name'] and
                 'exchange' not in x['label_name'] and
-                x['label_name'] != '1D: 1D-2D flow' and
-                x['label_name'] != '2D: 1D-2D flow' and
+                x['label_name'] != '1D: 2D flow to 1D' and
+                x['label_name'] != '2D: 2D flow to 1D' and
                 x['label_name'] != '1D: 1D-2D exchange' and
                 x['label_name'] != '2D: 1D-2D exchange') or
             x['type'] == 'NETVOL'
@@ -702,7 +705,7 @@ class WaterBalanceWidget(QDockWidget):
         io_series_2d = [
             x for x in self.IN_OUT_SERIES if
             x['type'] in ['2d', '2d_vert'] and
-            x['label_name'] != '1D: 1D-2D flow' and
+            x['label_name'] != '1D: 2D flow to 1D' and
             x['label_name'] != '1D: 1D-2D exchange'
         ]
 
@@ -713,7 +716,7 @@ class WaterBalanceWidget(QDockWidget):
 
         io_series_1d = [
             x for x in self.IN_OUT_SERIES if x['type'] == '1d' and
-            x['label_name'] != '2D: 1D-2D flow' and
+            x['label_name'] != '2D: 2D flow to 1D' and
             x['label_name'] != '2D: 1D-2D exchange'
         ]
 
@@ -906,7 +909,7 @@ class WaterBalanceWidget(QDockWidget):
             '1D flow': ['1d'],
             '1D boundary flow': ['1d_bound'],
             '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
-            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
+            '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
             # in the 'prepare_and_visualize_selection' function.
             # A better solution would be nice...
@@ -919,7 +922,7 @@ class WaterBalanceWidget(QDockWidget):
         NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW = {
             '2D flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
             '1D flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
-            '1d-2d flow (2d to 1d)': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
+            '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             '1d-2d exchange (2d to 1d)': ['1d_2d_exch'],
             'groundwater flow': ['2d_groundwater'],
         }

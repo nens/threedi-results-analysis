@@ -52,7 +52,8 @@ serie_settings = [
             'def_pen_color': '240,210,50' + pen_transp,
             'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
         }, {
-            'name': '1d-2d flow (2d to 1d)',
+            # 'name': '1d-2d flow (2d to 1d)',
+            'name': '2D flow to 1D',
             'default_method': 'gross',
             'order': 5,
             'def_fill_color': '100,220,5' + fill_transp,
@@ -194,7 +195,8 @@ serie_settings = [
             'def_pen_color': '240,210,50' + pen_transp,
             'series': ['1d__1d_2d_exch_in', '1d__1d_2d_exch_out'],
         }, {
-            'name': '1d-2d flow (2d to 1d)',
+            # 'name': '1d-2d flow (2d to 1d)',
+            'name': '2D flow to 1D',
             'default_method': 'gross',
             'order': 5.1,
             'def_fill_color': '100,220,5' + fill_transp,
