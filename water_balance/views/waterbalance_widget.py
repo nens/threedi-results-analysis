@@ -789,7 +789,8 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
-        bars_to_hatch = get_keyword_indexes(bm_net.xlabels, domain_exchange_key)
+        bars_to_hatch = get_keyword_indexes(
+            bm_net.xlabels, domain_exchange_key)
         for b in bars_to_hatch:
             bar_in[b].set_hatch(pattern)
             bar_out[b].set_hatch(pattern)
@@ -860,7 +861,6 @@ class WaterBalanceWidget(QDockWidget):
             bar_in[b].set_hatch(pattern)
             bar_out[b].set_hatch(pattern)
 
-
         # ################
         # 2D groundwater #
         # ################
@@ -882,8 +882,8 @@ class WaterBalanceWidget(QDockWidget):
         plt.ylabel(r'volume ($m^3$)')
         plt.legend()
 
-        bars_to_hatch = get_keyword_indexes(bm_2d_groundwater.xlabels,
-                                         domain_exchange_key)
+        bars_to_hatch = get_keyword_indexes(
+            bm_2d_groundwater.xlabels, domain_exchange_key)
         for b in bars_to_hatch:
             bar_in[b].set_hatch(pattern)
             bar_out[b].set_hatch(pattern)
