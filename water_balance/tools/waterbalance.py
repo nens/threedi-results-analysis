@@ -764,7 +764,7 @@ class WaterBalanceCalculation(object):
             vol_pref = 0
             for ts_idx, t in enumerate(ts):
                 # delta volume
-                if ts_idx == 0
+                if ts_idx == 0:
                     # volume difference first timestep is always 0
                     total_time[ts_idx, 18] = 0
                     total_time[ts_idx, 19] = 0
