@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.5 (unreleased)
+1.5 (2018-11-26)
 ----------------
 
 - Add v2_culvert to layer_tree_manager
