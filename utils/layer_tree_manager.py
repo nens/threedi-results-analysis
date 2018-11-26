@@ -353,6 +353,7 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_cross_section_definition'),
                   (additional_oned_group, 'v2_windshielding'),
                   (additional_oned_group, 'v2_pumpstation'),
+                  (additional_oned_group, 'v2_culvert'),
                   (additional_oned_group, 'v2_manhole'),
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),
