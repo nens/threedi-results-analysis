@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.4 (unreleased)
+1.4 (2018-11-26)
 ----------------
 - Enable intercepted_volume through aggregation NetCDF
 
