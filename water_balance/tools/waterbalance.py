@@ -707,12 +707,14 @@ class WaterBalanceCalculation(object):
         for idx in node_ids['2d_groundwater']:
             tnode.append((idx, TYPE_2D_GROUNDWATER))
 
-        np_node = np.array(tnode, dtype=[('id', int), ('ntype', NTYPE_DTYPE)])
+        np_node = np.array(tnode,
+                           dtype=[('id', int), ('ntype', NTYPE_DTYPE)])
         np_node.sort(axis=0)
 
         mask_2d_nodes = np_node['ntype'] != TYPE_2D
         mask_1d_nodes = np_node['ntype'] != TYPE_1D
-        mask_2d_groundwater_nodes = np_node['ntype'] != TYPE_2D_GROUNDWATER
+        mask_2d_groundwater_nodes = np_node[
+                                        'ntype'] != TYPE_2D_GROUNDWATER
 
         np_2d_node = ma.masked_array(
             np_node['id'], mask=mask_2d_nodes).compressed()
@@ -721,36 +723,26 @@ class WaterBalanceCalculation(object):
         np_2d_groundwater_node = ma.masked_array(
             np_node['id'], mask=mask_2d_groundwater_nodes).compressed()
 
-        for parameter, node, pnr, factor in [
-            ('rain', np_2d_node, 14, 1),
-            # NOTE: infiltration_rate_simple is only enabled if groundwater
-            # is disabled
+        for parameter, agg_method, node, pnr, factor in [
+            ('rain', '_cum', np_2d_node, 14, 1),
             # TODO: in old model results this parameter is called
             # 'infiltration_rate', thus it is not backwards compatible right
             # now
-            ('infiltration_rate_simple', np_2d_node, 15, -1),
+            ('infiltration_rate_simple', '_cum', np_2d_node, 15, -1),
             # TODO: inefficient because we look up q_lat data twice
-            ('q_lat', np_2d_node, 16, 1),
-            ('q_lat', np_1d_node, 17, 1),
-            # NOTE: can be a source or sink depending on sign
-            ('leak', np_2d_groundwater_node, 26, 1),
-            ('rain', np_1d_node, 27, 1),
-            ('intercepted_volume', np_2d_node, 34, -1),
+            ('q_lat', '_cum', np_2d_node, 16, 1),
+            ('q_lat', '_cum', np_1d_node, 17, 1),
+            ('leak', '_cum', np_2d_groundwater_node, 26, 1),
+            ('rain', '_cum', np_1d_node, 27, 1),
+            ('intercepted_volume', '_current', np_2d_node, 34, -1),
         ]:
 
             if node.size > 0:
-                skip = True
-                if parameter + '_cum' in ds.get_available_variables():
-                    addition = '_cum'
-                    skip = False
-                elif parameter + '_current' in ds.get_available_variables():
-                    addition = '_current'
-                    skip = False
-                if not skip:
+                if parameter + agg_method in ds.get_available_variables():
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
                         values = ds.get_values_by_timestep_nr(
-                            parameter + addition, ts_idx, node).sum()  # * dt
+                            parameter + agg_method, ts_idx, node).sum()
                         values_dt = values - values_pref
                         values_pref = values
                         total_time[ts_idx, pnr] = values_dt * factor
@@ -766,8 +758,6 @@ class WaterBalanceCalculation(object):
                 total_time[ts_idx] = total_time[ts_idx] / (t - t_pref)
                 t_pref = t
 
-        dvol_sign = 1
-
         if np_node.size > 0:
             # delta volume
             t_pref = 0
@@ -775,59 +765,56 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # delta volume
                 if ts_idx == 0:
+                    # volume difference first timestep is always 0
                     total_time[ts_idx, 18] = 0
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
-                    vol = ds.get_values_by_timestep_nr(
+
+                    # TODO: use:
+                    # vol_current = ds.get_values_by_timestep_nr(
+                    # 'vol_current', ts_idx, np_node['id'])
+                    # when calc_core bug is fixed (THREEDI-599: vol_current's
+                    # first timestep is incorrect, so for the first timestep
+                    # we read the 'vol' (from the .nc instead of the agg .nc)
+                    # for now
+                    vol_current = ds.get_values_by_timestep_nr(
                         'vol', ts_idx, np_node['id'])
                     td_vol_pref = ma.masked_array(
-                        vol, mask=mask_2d_nodes).sum()
+                        vol_current, mask=mask_2d_nodes).sum()
                     od_vol_pref = ma.masked_array(
-                        vol, mask=mask_1d_nodes).sum()
+                        vol_current, mask=mask_1d_nodes).sum()
                     td_vol_pref_gw = ma.masked_array(
-                        vol, mask=mask_2d_groundwater_nodes).sum()
+                        vol_current,
+                        mask=mask_2d_groundwater_nodes).sum()
                     t_pref = t
                 else:
                     vol_ts_idx = ts_idx
-                    # get timestep of corresponding with the aggregation
-                    ts_normal = ds.get_timestamps(parameter='q')
+
+                    ts_normal = ds.get_timestamps(
+                        parameter='vol_current')
                     vol_ts_idx = np.nonzero(ts_normal == t)[0]
 
-                    vol = ds.get_values_by_timestep_nr(
-                        'vol', vol_ts_idx, np_node['id'])
+                    vol_current = ds.get_values_by_timestep_nr(
+                        'vol_current', vol_ts_idx, np_node['id'])
 
-                    td_vol = ma.masked_array(vol, mask=mask_2d_nodes).sum()
-                    od_vol = ma.masked_array(vol, mask=mask_1d_nodes).sum()
+                    td_vol = ma.masked_array(
+                        vol_current, mask=mask_2d_nodes).sum()
+                    od_vol = ma.masked_array(
+                        vol_current, mask=mask_1d_nodes).sum()
                     td_vol_gw = ma.masked_array(
-                        vol, mask=mask_2d_groundwater_nodes).sum()
+                        vol_current,
+                        mask=mask_2d_groundwater_nodes).sum()
 
-                    # td_vol_pref, od_vol_pref, td_vol_pref_gw seem to be
-                    # referenced before assignment, but they are defined in
-                    # the first loop (when timestep index (ts_idx) == 0)
                     dt = t - t_pref
-                    total_time[ts_idx, 18] = \
-                        dvol_sign * (td_vol - td_vol_pref) / dt
-                    total_time[ts_idx, 19] = \
-                        dvol_sign * (od_vol - od_vol_pref) / dt
-                    total_time[ts_idx, 25] = \
-                        dvol_sign * (td_vol_gw - td_vol_pref_gw) / dt
+                    total_time[ts_idx, 18] = (td_vol - td_vol_pref) / dt
+                    total_time[ts_idx, 19] = (od_vol - od_vol_pref) / dt
+                    total_time[ts_idx, 25] = (td_vol_gw - td_vol_pref_gw) / dt
 
                     td_vol_pref = td_vol
                     od_vol_pref = od_vol
                     td_vol_pref_gw = td_vol_gw
                     t_pref = t
         total_time = np.nan_to_num(total_time)
-
-        # debug waterbalance
-        # cum_flow = 0
-        # prev_t = 0
-        # for ts_idx, t in enumerate(ts):
-        #     dt = t - prev_t
-        #     prev_t = t
-        #     flow = total_time[ts_idx, 28] * dt
-        #     cum_flow += flow
-        #     print '2d_vertical_infiltration_pos, {0}, {1} {2}, {3}'.format(
-        #         ts_idx, t, flow, cum_flow)
 
         return ts, total_time
 
