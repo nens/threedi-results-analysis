@@ -27,8 +27,15 @@ RUN apt-get -y update \
 RUN pip install --upgrade pip
 RUN pip install setuptools
 
+ADD requirements.txt .
 ADD requirements-dev.txt .
+RUN pip install -r requirements.txt -U
 RUN pip install -r requirements-dev.txt -U
+
+# Make sure the h5py is compiled with the same HDF5 version of QGIS.
+RUN pip uninstall h5py -y
+ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
+RUN pip install --no-binary=h5py h5py
 
 RUN groupadd -g $GROUP_ID $GROUP_ID
 RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
