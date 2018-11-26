@@ -513,9 +513,6 @@ initPatternFromFields(AfvoerendOppervlakMetBijzondereKenmerken_Tak)
 
 
 class BijzonderLeidingprofiel(HydroObject):
-    field_names = ['ide_rec', 'pro_num', 'pro_com', ]
-    for i in range(50):
-        field_names.extend([k % i for k in ['pro_nv_%03d', 'pro_no_%03d', 'pro_hs_%03d', 'pro_br_%03d', ]])
 
     def parseSufHydLine(self, persid):
         lead = self.field_names[:4]
@@ -544,6 +541,11 @@ class BijzonderLeidingprofiel(HydroObject):
 
     def __init__(self, *args):
         HydroObject.__init__(self, *args)
+        self.field_names = ['ide_rec', 'pro_num', 'pro_com', ]
+        for i in range(50):
+            self.field_names.extend([k % i for k in
+                                ['pro_nv_%03d', 'pro_no_%03d', 'pro_hs_%03d',
+                                 'pro_br_%03d', ]])
         try:
             ## if any profile point is empty, shift fields to the left
             ## TODO 2069
