@@ -2,7 +2,9 @@ from builtins import str
 import glob
 import logging
 import os
+
 import numpy as np
+import h5py
 
 from .base import BaseDataSource
 from ..utils import cached_property
@@ -11,6 +13,9 @@ from .netcdf import (
     find_h5_file
 )
 from ..utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
 # all possible var names from regular netcdf AND agg netcdf
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
@@ -80,29 +85,29 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def ds(self):
-        from netCDF4 import Dataset
         if self._ds is None:
             try:
-                self._ds = Dataset(self.file_path)
-            except IOError:
-                pass
+                self._ds = h5py.File(self.file_path, 'r')
+            except IOError as e:
+                log.error(e)
         return self._ds
 
     @property
     def nMesh2D_nodes(self):
-        return self.ds.dimensions['nMesh2D_nodes'].size
+        # return self.ds.dimensions['nMesh2D_nodes'].size
+        return self.ds.get('nMesh2D_nodes').size
 
     @property
     def nMesh1D_nodes(self):
-        return self.ds.dimensions['nMesh1D_nodes'].size
+        return self.ds.get('nMesh1D_nodes').size
 
     @property
     def nMesh2D_lines(self):
-        return self.ds.dimensions['nMesh2D_lines'].size
+        return self.ds.get('nMesh2D_lines').size
 
     @property
     def nMesh1D_lines(self):
-        return self.ds.dimensions['nMesh1D_lines'].size
+        return self.ds.get('nMesh1D_lines').size
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -336,9 +341,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
         if parameter is None:
-            return self.ds.variables['time'][:]
+            return self.ds.get('time')[:]
         elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.ds.variables['time'][:]
+            return self.ds.get('time')[:]
         else:
             # determine the grid type from the parameter alone
             if parameter.startswith('q_pump'):
@@ -367,11 +372,11 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             except KeyError:
                 # Keep the whole netCDF array for a variable in memory for
                 # performance
-                data = ds.variables[variable][:]  # make copy
+                data = ds.get(variable)[:]
                 self._cache[variable] = data
         else:
             # this returns a netCDF Variable, which behaves like a np array
-            data = ds.variables[variable]
+            data = ds.get(variable)
         return data
 
     def temp_get_values_by_timestep_nr_impl(
@@ -389,14 +394,14 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             raise ValueError(variable)
 
         # determine appropriate fill value from netCDF
-        if var_2d in list(ds.variables.keys()):
-            fill_value_2d = ds.variables[var_2d]._FillValue
+        if var_2d in ds.keys():
+            fill_value_2d = ds.get(var_2d).fillvalue
             fill_value = fill_value_2d
-        if var_1d in list(ds.variables.keys()):
-            fill_value_1d = ds.variables[var_1d]._FillValue
+        if var_1d in ds.keys():
+            fill_value_1d = ds.get(var_1d).fillvalue
             fill_value = fill_value_1d
 
-        if var_2d in list(ds.variables.keys()) and var_1d in list(ds.variables.keys()):
+        if var_2d in ds.keys() and var_1d in ds.keys():
             assert fill_value_1d == fill_value_2d, \
                 "Difference in fill value, can't consolidate"
 
@@ -414,21 +419,21 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 raise ValueError(variable)
 
             # Note: it's possible to only have 2D or 1D
-            if var_2d in list(ds.variables.keys()):
+            if var_2d in ds.keys():
                 a2d = self._nc_from_mem(
                     ds, var_2d, use_cache)[timestamp_idx, :]
             else:
                 a2d = np.ma.masked_all(n2d)
 
-            if var_1d in list(ds.variables.keys()):
+            if var_1d in ds.keys():
                 a1d = self._nc_from_mem(
                     ds, var_1d, use_cache)[timestamp_idx, :]
             else:
                 a1d = np.ma.masked_all(n1d)
 
             assert (
-                var_2d in list(ds.variables.keys()) or var_1d in
-                list(ds.variables.keys())), "No 2D and 1D?"
+                var_2d in ds.keys() or var_1d in
+                ds.keys()), "No 2D and 1D?"
 
             # Note: order is: 2D, then 1D
             res = np.ma.hstack([a2d, a1d])
@@ -472,7 +477,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     @property
     def gridadmin(self):
         if not self._ga:
-            from ..utils.patched_threedigrid import GridH5Admin
             h5 = find_h5_file(self.file_path)
             self._ga = GridH5Admin(h5)
         return self._ga
@@ -480,14 +484,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     @property
     def gridadmin_result(self):
         if not self._ga_result:
-            from ..utils.patched_threedigrid import GridH5ResultAdmin
             h5 = find_h5_file(self.file_path)
             self._ga_result = GridH5ResultAdmin(h5, self.file_path)
         return self._ga_result
 
     @cached_property
     def gridadmin_aggregate_result(self):
-        from ..utils.patched_threedigrid import GridH5AggregateResultAdmin
         try:
             agg_path = find_aggregation_netcdf_gw(self.file_path)
             h5 = find_h5_file(self.file_path)
@@ -502,16 +504,14 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
-        from netCDF4 import Dataset
 
         # Load aggregation netcdf
         try:
             aggregation_netcdf_file = find_aggregation_netcdf_gw(
                 self.file_path)
         except IndexError:
+            log.error("Could not find the aggregation netcdf.")
             return None
         else:
-            log.info(
-                "Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-            return Dataset(aggregation_netcdf_file, mode='r',
-                           format='NETCDF4')
+            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            return h5py.File(aggregation_netcdf_file, mode='r')

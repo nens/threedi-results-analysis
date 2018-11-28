@@ -62,7 +62,7 @@ class DataSourceAdapter(Proxy):
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSourceH5py'
+        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSource'
 
     @property
     def timestamps(self):
