@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 1.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Enable ThreeDiToolbox besides NETCDF4 also for NETCDF3_CLASSIC (old results)
 
 
 1.5 (2018-11-26)
