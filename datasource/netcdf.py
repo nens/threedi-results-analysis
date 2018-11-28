@@ -242,7 +242,7 @@ def detect_netcdf_version(netcdf_file_path):
         dataset.close()
         import h5py
         dataset = h5py.File(netcdf_file_path, mode='r')
-        if "threedicore_version" in dataset:
+        if "threedicore_version" in dataset.attrs:
             return 'netcdf-groundwater'
         else:
             return 'netcdf'
