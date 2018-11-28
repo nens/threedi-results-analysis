@@ -22,11 +22,11 @@
 """
 from builtins import str
 from builtins import object
-import imp
+from importlib.machinery import SourceFileLoader
 import logging
 import os.path
+import types
 
-from qgis.PyQt import QtGui
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 
@@ -139,7 +139,9 @@ class ThreeDiToolbox(object):
             log.debug(module_path)
             log.debug(name)
 
-            mod = imp.load_source(name, module_path)
+            loader = SourceFileLoader(name, module_path)
+            mod = types.ModuleType(loader.name)
+            loader.exec_module(mod)
             log.debug(str(mod))
 
             self.command = mod.CustomCommand(
