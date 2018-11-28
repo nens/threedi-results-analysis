@@ -2,7 +2,9 @@ from builtins import str
 import glob
 import logging
 import os
+
 import numpy as np
+import h5py
 
 from .base import BaseDataSource
 from ..utils import cached_property
@@ -11,6 +13,9 @@ from .netcdf import (
     find_h5_file
 )
 from ..utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
 # all possible var names from regular netcdf AND agg netcdf
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
@@ -80,18 +85,11 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
 
     @property
     def ds(self):
-        import h5py
-        # now we can open with h5py, but then lines below will give a IOError
         if self._ds is None:
             try:
-                logging.info("LOADING netcdf for first time")
-                # import time
-                # time.sleep(2)
                 self._ds = h5py.File(self.file_path, 'r')
             except IOError as e:
-                log.error("ERROR LOADING NETCDF FOR FIRST TIME")
                 log.error(e)
-        # Now we cannot open with h5py anymore.
         return self._ds
 
     @property
@@ -484,7 +482,6 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
     @property
     def gridadmin(self):
         if not self._ga:
-            from ..utils.patched_threedigrid import GridH5Admin
             h5 = find_h5_file(self.file_path)
             self._ga = GridH5Admin(h5)
         return self._ga
@@ -492,22 +489,12 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
     @property
     def gridadmin_result(self):
         if not self._ga_result:
-            # from ..utils.patched_threedigrid import GridH5ResultAdmin
-            from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
             h5 = find_h5_file(self.file_path)
-
-            # this will fail, unless we first close the _dc file: self._ds.close()
-            # import h5py
-            # h5py.File('/home/richard/results/results_3di.nc', 'r')
-            # self.ds.close()
             self._ga_result = GridH5ResultAdmin(h5, self.file_path)
-
-
         return self._ga_result
 
     @cached_property
     def gridadmin_aggregate_result(self):
-        from ..utils.patched_threedigrid import GridH5AggregateResultAdmin
         try:
             agg_path = find_aggregation_netcdf_gw(self.file_path)
             h5 = find_h5_file(self.file_path)
@@ -522,9 +509,6 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
-        # from netCDF4 import Dataset
-        # pass
-        import h5py
 
         # Load aggregation netcdf
         try:
@@ -534,8 +518,5 @@ class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
             log.error("Could not found the aggregation netcdf.")
             return None
         else:
-            log.info(
-                "!!!Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode='r')
-
-        # raise Exception("MY exception")
