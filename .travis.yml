@@ -23,12 +23,12 @@ install:
     - sudo sh -c 'echo "deb-src https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list'
     - sudo add-apt-repository -y ${QGIS_REPO}
     - sudo apt-get update
-    - sudo apt-get install -y --force-yes qgis python-qgis
+    - sudo apt-get install -y --force-yes qgis python-qgis python3-dev python3-pip
     - pip3 install --no-binary=h5py h5py
     # linux requirements
-    - sudo pip install -r requirements-dev.txt
+    - sudo pip3 install -r requirements-dev.txt
     # required pure python packages
-    - pip install -r requirements.txt --target=external --no-deps
+    - pip3 install -r requirements.txt --target=external --no-deps
 
 script:
     # this script adds standard qgis plugins (like db_manager) to PYTHONPATH
