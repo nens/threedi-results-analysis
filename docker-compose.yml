@@ -3,20 +3,35 @@ version: '3.0'
 services:
 
   qgis-desktop:
-    image: qgis-desktop:2.18
+    image: qgis-desktop:3.4
     build:
-      context: Docker/qgis2
+      context: Docker/qgis3
       dockerfile: Dockerfile
       args:
-        QGIS_VERSION: 2.18  # Not used currently
+        USER_ID: ${UID}
+        GROUP_ID: ${UID}
+        USERNAME: ${USER}
     volumes:
-      - ${HOME}/.qgis2:/home/${USER}/.qgis2
-      - ${HOME}/.local/share/QGIS:/home/${USER}/.local/share/QGIS
-      - ${HOME}/.config/QGIS:/home/${USER}/.config
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - .:/home/${USER}/.qgis2/python/plugins/ThreeDiToolbox
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
+      - ${HOME}/.local/share/QGIS:/home/${USER}/.local/share/QGIS  # Qgis data
+      - .:/home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox # source code
+      - ${HOME}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/:/home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/  # Qgis data
+
+       # Personal config:
+      - /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/  # To safe the coverage file
+      - /home/richard/Programs/pycharm-2018.1.2/debug-eggs/:/srv/eggs/debug-eggs/
+      - /home/richard/dev/results/:/home/richard/results
+      - /home/richard/dev/models/:/home/richard/models
+      - /home/richard/.PyCharm2018.2/config/scratches/:/home/richard/.PyCharm2018.2/config/scratches/
     environment:
-      - USER_NAME=${USER}
+      - USERNAME=${USER}
       - USER_ID=${UID}
       - GROUP_ID=${UID}
       - DISPLAY=unix${DISPLAY}
+    working_dir: /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+    command: /usr/bin/qgis
+
+  db_qgis:
+    image: threedi_db
+    volumes:
+      - ./../../volumes/db_data:/var/lib/postgresql/data
