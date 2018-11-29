@@ -3,8 +3,7 @@ sudo: required
 dist: xenial
 
 env:
-    - QGIS_REPO=ppa:ubuntugis/ubuntugis-unstable
-    - HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/
+    - QGIS_REPO=ppa:ubuntugis/ubuntugis-unstable HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/
 
 addons:
   apt:
