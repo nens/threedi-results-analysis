@@ -1,9 +1,10 @@
 language: generic
 sudo: required
-dist: trusty
+dist: xenial
 
 env:
-    - QGIS_REPO=http://qgis.org/debian-ltr
+    - QGIS_REPO=ppa:ubuntugis/ubuntugis-unstable
+    - HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/
 
 addons:
   apt:
@@ -19,9 +20,13 @@ before_install:
 
 install:
     # See: https://github.com/tomchadwin/qgis2web/blob/master/.travis.yml
+    - sudo sh -c 'echo "deb https://qgis.org/ubuntugis  xenial main" >> /etc/apt/sources.list'
+    - sudo sh -c 'echo "deb-src https://qgis.org/ubuntugis xenial main" >> /etc/apt/sources.list'
+    - sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
     - sudo add-apt-repository ${QGIS_REPO}
     - sudo apt-get update
     - sudo apt-get install -y --force-yes qgis python-qgis
+    - pip3 install --no-binary=h5py h5py
     # linux requirements
     - sudo pip install -r requirements-dev.txt
     # required pure python packages
