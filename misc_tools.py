@@ -24,7 +24,6 @@ IDENTIFIER_LIKE = [
     FLOWLINES_LAYER_NAME,
     NODES_LAYER_NAME,
     PUMPLINES_LAYER_NAME,
-    STATS_LAYER_IDENTIFIER,
 ]
 
 log = logging.getLogger(__name__)
@@ -80,10 +79,9 @@ class CacheClearer(object):
             os.path.dirname(item.file_path.value) for
             item in self.ts_datasource.rows
         ]
-        csv_filepaths = get_csv_layer_cache_files(*result_dirs)
         # Note: convert to set because duplicates are possible if the same
         # datasource is loaded multiple times
-        cached = set(spatialite_filepaths + csv_filepaths)
+        cached = set(spatialite_filepaths)
         if not cached:
             pop_up_info("No cached files found.")
             return

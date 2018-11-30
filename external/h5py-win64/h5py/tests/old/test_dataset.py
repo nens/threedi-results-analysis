@@ -24,7 +24,7 @@ import six
 
 import numpy as np
 
-from .common import ut, TestCase
+from ..common import ut, TestCase
 from h5py.highlevel import File, Group, Dataset
 from h5py._hl.base import is_empty_dataspace
 from h5py import h5t
@@ -176,7 +176,7 @@ class TestCreateRequire(BaseDataset):
         with self.assertRaises(TypeError):
             self.f.require_dataset('foo', (10, 4), 'f')
 
-    def test_type_confict(self):
+    def test_type_conflict(self):
         """ require_dataset with object type conflict yields TypeError """
         self.f.create_group('foo')
         with self.assertRaises(TypeError):
@@ -418,7 +418,7 @@ class TestCreateShuffle(BaseDataset):
 @ut.skipIf('fletcher32' not in h5py.filters.encode, "FLETCHER32 is not installed")
 class TestCreateFletcher32(BaseDataset):
     """
-        Feature: Datases can use the fletcher32 filter
+        Feature: Datasets can use the fletcher32 filter
     """
 
     def test_fletcher32(self):
@@ -532,7 +532,7 @@ class TestCreateScaleOffset(BaseDataset):
 class TestAutoCreate(BaseDataset):
 
     """
-        Feauture: Datasets auto-created from data produce the correct types
+        Feature: Datasets auto-created from data produce the correct types
     """
 
     def test_vlen_bytes(self):
@@ -546,7 +546,7 @@ class TestAutoCreate(BaseDataset):
 
     def test_vlen_unicode(self):
         """ Assignment of a unicode string produces a vlen unicode dataset """
-        self.f['x'] = six.u("Hello there") + six.unichr(0x2034)
+        self.f['x'] = u"Hello there" + six.unichr(0x2034)
         ds = self.f['x']
         tid = ds.id.get_type()
         self.assertEqual(type(tid), h5py.h5t.TypeStringID)
@@ -554,7 +554,7 @@ class TestAutoCreate(BaseDataset):
         self.assertEqual(tid.get_cset(), h5py.h5t.CSET_UTF8)
 
     def test_string_fixed(self):
-        """ Assignement of fixed-length byte string produces a fixed-length
+        """ Assignment of fixed-length byte string produces a fixed-length
         ascii dataset """
         self.f['x'] = np.string_("Hello there")
         ds = self.f['x']
@@ -728,7 +728,7 @@ class TestStrings(BaseDataset):
         """
         dt = h5py.special_dtype(vlen=six.text_type)
         ds = self.f.create_dataset('x', (100,), dtype=dt)
-        data = six.u("Hello") + six.unichr(0x2034)
+        data = u"Hello" + six.unichr(0x2034)
         ds[0] = data
         out = ds[0]
         self.assertEqual(type(out), six.text_type)
@@ -760,7 +760,7 @@ class TestStrings(BaseDataset):
         """
         dt = h5py.special_dtype(vlen=six.text_type)
         ds = self.f.create_dataset('x', (100,), dtype=dt)
-        data = six.u("Hello there") + six.unichr(0x2034)
+        data = u"Hello there" + six.unichr(0x2034)
         ds[0] = data.encode('utf8')
         out = ds[0]
         self.assertEqual(type(out), six.text_type)

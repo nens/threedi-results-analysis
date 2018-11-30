@@ -16,9 +16,7 @@ from __future__ import absolute_import
 import sys
 import os
 
-from .compat import fspath
-from .compat import fsencode
-from .compat import fsdecode
+from .compat import filename_decode, filename_encode
 
 import six
 
@@ -41,6 +39,53 @@ libver_dict = {'earliest': h5f.LIBVER_EARLIEST, 'latest': h5f.LIBVER_LATEST}
 libver_dict_r = dict((y, x) for x, y in six.iteritems(libver_dict))
 
 
+def _set_fapl_mpio(plist, **kwargs):
+    kwargs.setdefault('info', mpi4py.MPI.Info())
+    plist.set_fapl_mpio(**kwargs)
+
+
+_drivers = {
+    'sec2': lambda plist, **kwargs: plist.set_fapl_sec2(**kwargs),
+    'stdio': lambda plist, **kwargs: plist.set_fapl_stdio(**kwargs),
+    'core': lambda plist, **kwargs: plist.set_fapl_core(**kwargs),
+    'family': lambda plist, **kwargs: plist.set_fapl_family(
+        memb_fapl=plist.copy(),
+        **kwargs
+    ),
+    'mpio': _set_fapl_mpio,
+}
+
+
+def register_driver(name, set_fapl):
+    """Register a custom driver.
+
+    Parameters
+    ----------
+    name : str
+        The name of the driver.
+    set_fapl : callable[PropFAID, **kwargs] -> NoneType
+        The function to set the fapl to use your custom driver.
+    """
+    _drivers[name] = set_fapl
+
+
+def unregister_driver(name):
+    """Unregister a custom driver.
+
+    Parameters
+    ----------
+    name : str
+        The name of the driver.
+    """
+    del _drivers[name]
+
+
+def registered_drivers():
+    """Return a frozenset of the names of all of the registered drivers.
+    """
+    return frozenset(_drivers)
+
+
 def make_fapl(driver, libver, **kwds):
     """ Set up a file access property list """
     plist = h5p.create(h5p.FILE_ACCESS)
@@ -51,7 +96,10 @@ def make_fapl(driver, libver, **kwds):
             high = h5f.LIBVER_LATEST
         else:
             low, high = (libver_dict[x] for x in libver)
-        plist.set_libver_bounds(low, high)
+    else:
+        # we default to earliest
+        low, high = h5f.LIBVER_EARLIEST, h5f.LIBVER_LATEST
+    plist.set_libver_bounds(low, high)
 
     if driver is None or (driver == 'windows' and sys.platform == 'win32'):
         # Prevent swallowing unused key arguments
@@ -61,19 +109,12 @@ def make_fapl(driver, libver, **kwds):
             raise TypeError(msg)
         return plist
 
-    if driver == 'sec2':
-        plist.set_fapl_sec2(**kwds)
-    elif driver == 'stdio':
-        plist.set_fapl_stdio(**kwds)
-    elif driver == 'core':
-        plist.set_fapl_core(**kwds)
-    elif driver == 'family':
-        plist.set_fapl_family(memb_fapl=plist.copy(), **kwds)
-    elif driver == 'mpio':
-        kwds.setdefault('info', mpi4py.MPI.Info())
-        plist.set_fapl_mpio(**kwds)
-    else:
+    try:
+        set_fapl = _drivers[driver]
+    except KeyError:
         raise ValueError('Unknown driver type "%s"' % driver)
+    else:
+        set_fapl(plist, **kwds)
 
     return plist
 
@@ -146,19 +187,19 @@ class File(Group):
     """
 
     @property
-    @with_phil
     def attrs(self):
         """ Attributes attached to this object """
         # hdf5 complains that a file identifier is an invalid location for an
         # attribute. Instead of self, pass the root group to AttributeManager:
         from . import attrs
-        return attrs.AttributeManager(self['/'])
+        with phil:
+            return attrs.AttributeManager(self['/'])
 
     @property
     @with_phil
     def filename(self):
         """File name on disk"""
-        return fsdecode(h5f.get_name(self.fid))
+        return filename_decode(h5f.get_name(self.fid))
 
     @property
     @with_phil
@@ -261,12 +302,12 @@ class File(Group):
         if swmr and not swmr_support:
             raise ValueError("The SWMR feature is not available in this version of the HDF5 library")
 
-        with phil:
-            if isinstance(name, _objects.ObjectID):
+        if isinstance(name, _objects.ObjectID):
+            with phil:
                 fid = h5i.get_file_id(name)
-            else:
-                name = fsencode(fspath(name))
-
+        else:
+            name = filename_encode(name)
+            with phil:
                 fapl = make_fapl(driver, libver, **kwds)
                 fid = make_fid(name, mode, userblock_size, fapl, swmr=swmr)
 
@@ -275,31 +316,33 @@ class File(Group):
                     if swmr and mode == 'r':
                         self._swmr_mode = True
 
-            Group.__init__(self, fid)
+        Group.__init__(self, fid)
 
     def close(self):
         """ Close the file.  All open objects become invalid """
         with phil:
-            # We have to explicitly murder all open objects related to the file
+            # Check that the file is still open, otherwise skip
+            if self.id.valid:
+                # We have to explicitly murder all open objects related to the file
 
-            # Close file-resident objects first, then the files.
-            # Otherwise we get errors in MPI mode.
-            id_list = h5f.get_obj_ids(self.id, ~h5f.OBJ_FILE)
-            file_list = h5f.get_obj_ids(self.id, h5f.OBJ_FILE)
+                # Close file-resident objects first, then the files.
+                # Otherwise we get errors in MPI mode.
+                id_list = h5f.get_obj_ids(self.id, ~h5f.OBJ_FILE)
+                file_list = h5f.get_obj_ids(self.id, h5f.OBJ_FILE)
 
-            id_list = [x for x in id_list if h5i.get_file_id(x).id == self.id.id]
-            file_list = [x for x in file_list if h5i.get_file_id(x).id == self.id.id]
+                id_list = [x for x in id_list if h5i.get_file_id(x).id == self.id.id]
+                file_list = [x for x in file_list if h5i.get_file_id(x).id == self.id.id]
 
-            for id_ in id_list:
-                while id_.valid:
-                    h5i.dec_ref(id_)
+                for id_ in id_list:
+                    while id_.valid:
+                        h5i.dec_ref(id_)
 
-            for id_ in file_list:
-                while id_.valid:
-                    h5i.dec_ref(id_)
+                for id_ in file_list:
+                    while id_.valid:
+                        h5i.dec_ref(id_)
 
-            self.id.close()
-            _objects.nonlocal_close()
+                self.id.close()
+                _objects.nonlocal_close()
 
     def flush(self):
         """ Tell the HDF5 library to flush its buffers.
@@ -319,14 +362,14 @@ class File(Group):
     @with_phil
     def __repr__(self):
         if not self.id:
-            r = six.u('<Closed HDF5 file>')
+            r = u'<Closed HDF5 file>'
         else:
             # Filename has to be forced to Unicode if it comes back bytes
             # Mode is always a "native" string
             filename = self.filename
             if isinstance(filename, bytes):  # Can't decode fname
                 filename = filename.decode('utf8', 'replace')
-            r = six.u('<HDF5 file "%s" (mode %s)>') % (os.path.basename(filename),
+            r = u'<HDF5 file "%s" (mode %s)>' % (os.path.basename(filename),
                                                  self.mode)
 
         if six.PY2:

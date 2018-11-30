@@ -70,7 +70,7 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
-class NetcdfGroundwaterDataSource(BaseDataSource):
+class NetcdfGroundwaterDataSourceH5py(BaseDataSource):
     PREFIX_1D = 'Mesh1D_'
     PREFIX_2D = 'Mesh2D_'
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
@@ -85,11 +85,26 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def ds(self):
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
         if self._ds is None:
             try:
                 self._ds = h5py.File(self.file_path, 'r')
             except IOError as e:
                 log.error(e)
+=======
+        import h5py
+        # now we can open with h5py, but then lines below will give a IOError
+        if self._ds is None:
+            try:
+                logging.info("LOADING netcdf for first time")
+                # import time
+                # time.sleep(2)
+                self._ds = h5py.File(self.file_path, 'r')
+            except IOError as e:
+                log.error("ERROR LOADING NETCDF FOR FIRST TIME")
+                log.error(e)
+        # Now we cannot open with h5py anymore.
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
         return self._ds
 
     @property
@@ -174,8 +189,15 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # all available fields, including hdf5 fields
             available_vars = (agg.nodes._field_names | agg.lines._field_names)
 
+        # TODO: fix infiltration, leakage, and interception aggregation vars
+        # in threedigrid's agg.nodes.Meta.composite_fields.keys()
+        known_vars.add('infiltration_rate_simple_cum')
+        known_vars.add('leak_cum')
+        known_vars.add('intercepted_volume_current')
+
         available_known_vars = available_vars & known_vars
 
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
         # TODO: this is a bug in threedigrid:
         # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
         # until it is fixed, we add simple_infiltration to known_vars
@@ -186,6 +208,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # agg.has_groundwater is not bullet-proof
         if agg.has_groundwater:
             available_known_vars.add(str('leak_cum'))
+=======
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
         return list(available_known_vars)
 
     def get_available_variables(self):
@@ -294,37 +318,11 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
-
-            # TODO: this is a bug in threedigrid:
-            # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
-            # until it is fixed, we add simple_infiltration to known_vars
-            if nc_variable == 'infiltration_rate_simple_cum':
-                try:
-                    values = self.ds_aggregation[
-                                 'Mesh2D_infiltration_rate_simple_cum'][
-                             :, object_id].data
-                except Exception as e:
-                    log.error("temp work around infiltration_rate_simple_cum "
-                              "does not work with this agg nc")
-            elif nc_variable == 'leak_cum':
-                try:
-                    values = self.ds_aggregation['Mesh2D_leak_cum'][
-                             :, object_id].data
-                except Exception as e:
-                    log.error("temp work around leakage_cum does not work "
-                              "with this agg nc")
-            else:
-                values = self._get_timeseries_result_layer(
-                    gr, object_type, object_id, nc_variable)
+            values = self._get_timeseries_result_layer(
+                gr, object_type, object_id, nc_variable)
         elif object_type_layer_source[object_type] == 'schematized':
             values = self._get_timeseries_schematisation_layer(
                 gr, object_type, object_id, nc_variable)
-
-        msg = "object_id={object_id} and object_type={object_type} and " \
-              "nc_variable={nc_variable}".format(object_id=object_id,
-                                                 object_type=object_type,
-                                                 nc_variable=nc_variable)
-        log.warning(msg)
 
         # Zip timeseries together in (n,2) array
         if fill_value is not None:
@@ -342,6 +340,10 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # TODO: use cached property to limit file access
         if parameter is None:
             return self.ds.get('time')[:]
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
+=======
+            # return self.ds.variables['time'][:]
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
         elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.ds.get('time')[:]
         else:
@@ -373,10 +375,18 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 # Keep the whole netCDF array for a variable in memory for
                 # performance
                 data = ds.get(variable)[:]
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
+=======
+                # data = ds.variables[variable][:]  # make copy
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
                 self._cache[variable] = data
         else:
             # this returns a netCDF Variable, which behaves like a np array
             data = ds.get(variable)
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
+=======
+            # data = ds.variables[variable]
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
         return data
 
     def temp_get_values_by_timestep_nr_impl(
@@ -396,9 +406,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # determine appropriate fill value from netCDF
         if var_2d in ds.keys():
             fill_value_2d = ds.get(var_2d).fillvalue
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
             fill_value = fill_value_2d
         if var_1d in ds.keys():
             fill_value_1d = ds.get(var_1d).fillvalue
+=======
+            # fill_value_2d = ds.variables[var_2d]._FillValue
+            fill_value = fill_value_2d
+        if var_1d in ds.keys():
+            fill_value_1d = ds.get(var_1d).fillvalue
+            # fill_value_1d = ds.variables[var_1d]._FillValue
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
             fill_value = fill_value_1d
 
         if var_2d in ds.keys() and var_1d in ds.keys():
@@ -504,14 +522,28 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
+=======
+        # from netCDF4 import Dataset
+        # pass
+        import h5py
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
 
         # Load aggregation netcdf
         try:
             aggregation_netcdf_file = find_aggregation_netcdf_gw(
                 self.file_path)
         except IndexError:
+<<<<<<< HEAD:datasource/netcdf_groundwater.py
             log.error("Could not find the aggregation netcdf.")
             return None
         else:
             log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+=======
+            log.error("Could not found the aggregation netcdf.")
+            return None
+        else:
+            log.info(
+                "!!!Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+>>>>>>> b1e1a8d8bf25fd21334c4079681980dea10d7510:datasource/netcdf_groundwater_h5py.py
             return h5py.File(aggregation_netcdf_file, mode='r')

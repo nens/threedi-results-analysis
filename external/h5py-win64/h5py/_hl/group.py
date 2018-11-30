@@ -17,9 +17,7 @@ import posixpath as pp
 import six
 import numpy
 
-from .compat import fsdecode
-from .compat import fsencode
-from .compat import fspath
+from .compat import filename_decode, filename_encode
 
 from .. import h5g, h5i, h5o, h5r, h5t, h5l, h5p
 from . import base
@@ -41,15 +39,25 @@ class Group(HLObject, MutableMappingHDF5):
                 raise ValueError("%s is not a GroupID" % bind)
             HLObject.__init__(self, bind)
 
-    def create_group(self, name):
+
+    _gcpl_crt_order = h5p.create(h5p.GROUP_CREATE)
+    _gcpl_crt_order.set_link_creation_order(
+        h5p.CRT_ORDER_TRACKED | h5p.CRT_ORDER_INDEXED)
+
+
+    def create_group(self, name, track_order=False):
         """ Create and return a new subgroup.
 
         Name may be absolute or relative.  Fails if the target name already
         exists.
+
+        track_order
+            Track dataset/group creation order under this group if True.
         """
         with phil:
             name, lcpl = self._e(name, lcpl=True)
-            gid = h5g.create(self.id, name, lcpl=lcpl)
+            gcpl = Group._gcpl_crt_order if track_order else None
+            gid = h5g.create(self.id, name, lcpl=lcpl, gcpl=gcpl)
             return Group(gid)
 
     def create_dataset(self, name, shape=None, dtype=None, data=None, **kwds):
@@ -232,20 +240,21 @@ class Group(HLObject, MutableMappingHDF5):
                         return SoftLink
                     linkbytes = self.id.links.get_val(self._e(name))
                     return SoftLink(self._d(linkbytes))
-                    
+
                 elif typecode == h5l.TYPE_EXTERNAL:
                     if getclass:
                         return ExternalLink
                     filebytes, linkbytes = self.id.links.get_val(self._e(name))
-                    return ExternalLink(fsdecode(filebytes), self._d(linkbytes))
-                    
+                    return ExternalLink(
+                        filename_decode(filebytes), self._d(linkbytes)
+                    )
+
                 elif typecode == h5l.TYPE_HARD:
                     return HardLink if getclass else HardLink()
-                    
+
                 else:
                     raise TypeError("Unknown link type")
 
-    @with_phil
     def __setitem__(self, name, obj):
         """ Add an object to the group.  The name must not already be in use.
 
@@ -270,26 +279,33 @@ class Group(HLObject, MutableMappingHDF5):
             values are stored as scalar datasets. Raise ValueError if we
             can't understand the resulting array dtype.
         """
-        name, lcpl = self._e(name, lcpl=True)
+        do_link = False
+        with phil:
+            name, lcpl = self._e(name, lcpl=True)
 
-        if isinstance(obj, HLObject):
-            h5o.link(obj.id, self.id, name, lcpl=lcpl, lapl=self._lapl)
+            if isinstance(obj, HLObject):
+                h5o.link(obj.id, self.id, name, lcpl=lcpl, lapl=self._lapl)
 
-        elif isinstance(obj, SoftLink):
-            self.id.links.create_soft(name, self._e(obj.path),
-                          lcpl=lcpl, lapl=self._lapl)
+            elif isinstance(obj, SoftLink):
+                self.id.links.create_soft(name, self._e(obj.path),
+                              lcpl=lcpl, lapl=self._lapl)
 
-        elif isinstance(obj, ExternalLink):
-            self.id.links.create_external(name, fsencode(obj.filename),
-                          self._e(obj.path), lcpl=lcpl, lapl=self._lapl)
+            elif isinstance(obj, ExternalLink):
+                do_link = True
 
-        elif isinstance(obj, numpy.dtype):
-            htype = h5t.py_create(obj, logical=True)
-            htype.commit(self.id, name, lcpl=lcpl)
+            elif isinstance(obj, numpy.dtype):
+                htype = h5t.py_create(obj, logical=True)
+                htype.commit(self.id, name, lcpl=lcpl)
 
-        else:
-            ds = self.create_dataset(None, data=obj, dtype=base.guess_dtype(obj))
-            h5o.link(ds.id, self.id, name, lcpl=lcpl)
+            else:
+                ds = self.create_dataset(None, data=obj, dtype=base.guess_dtype(obj))
+                h5o.link(ds.id, self.id, name, lcpl=lcpl)
+
+        if do_link:
+            fn = filename_encode(obj.filename)
+            with phil:
+                self.id.links.create_external(name, fn, self._e(obj.path),
+                                              lcpl=lcpl, lapl=self._lapl)
 
     @with_phil
     def __delitem__(self, name):
@@ -416,7 +432,7 @@ class Group(HLObject, MutableMappingHDF5):
 
         Returning None continues iteration, returning anything else stops
         and immediately returns that value from the visit method.  No
-        particular order of iteration within groups is guranteed.
+        particular order of iteration within groups is guaranteed.
 
         Example:
 
@@ -442,7 +458,7 @@ class Group(HLObject, MutableMappingHDF5):
 
         Returning None continues iteration, returning anything else stops
         and immediately returns that value from the visit method.  No
-        particular order of iteration within groups is guranteed.
+        particular order of iteration within groups is guaranteed.
 
         Example:
 
@@ -465,12 +481,12 @@ class Group(HLObject, MutableMappingHDF5):
     @with_phil
     def __repr__(self):
         if not self:
-            r = six.u("<Closed HDF5 group>")
+            r = u"<Closed HDF5 group>"
         else:
             namestr = (
-                six.u('"%s"') % self.name
-            ) if self.name is not None else six.u("(anonymous)")
-            r = six.u('<HDF5 group %s (%d members)>') % (namestr, len(self))
+                u'"%s"' % self.name
+            ) if self.name is not None else u"(anonymous)"
+            r = u'<HDF5 group %s (%d members)>' % (namestr, len(self))
 
         if six.PY2:
             return r.encode('utf8')
@@ -525,8 +541,8 @@ class ExternalLink(object):
         return self._filename
 
     def __init__(self, filename, path):
-        self._filename = fspath(filename)
-        self._path = str(path)
+        self._filename = filename_decode(filename_encode(filename))
+        self._path = path
 
     def __repr__(self):
         return '<ExternalLink to "%s" in file "%s"' % (self.path, self.filename)

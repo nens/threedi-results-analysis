@@ -3,4 +3,4 @@ GeoAlchemy2
 SQLAlchemy==1.1.0b3
 pyqtgraph
 git+https://github.com/lizardsystem/lizard-connector.git@0.6#egg=lizard_connector
-threedigrid
+threedigrid==1.0.7

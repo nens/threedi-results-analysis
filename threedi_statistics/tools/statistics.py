@@ -465,7 +465,6 @@ class StatisticsTool(object):
     def get_agg_cum_if_available(self, parameter_name, nr=None):
         if nr is None:
             nr = self.ds.nFlowLine
-            # self.ds.ds.get('nMesh2D_lines').size???
 
         if parameter_name in self.ds.get_available_variables():
             agg_cum = True
@@ -1356,8 +1355,6 @@ class StatisticsTool(object):
 
         stat_group.insertLayer(0, vector_layer)
 
-        # legend = self.iface.legendInterface()
-
         for group, layers in list(styled_layers.items()):
             qgroup = stat_group.insertGroup(100, group)
             qgroup.setExpanded(False)
@@ -1399,5 +1396,3 @@ class StatisticsTool(object):
                         False)
 
                     qgroup.insertLayer(100, vector_layer)
-
-                    # legend.setLayerVisible(vector_layer, False)

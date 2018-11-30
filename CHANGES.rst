@@ -2,15 +2,44 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.4 (unreleased)
+1.7 (unreleased)
 ----------------
+
+- Nothing changed yet.
+
+
+1.6 (2018-11-28)
+----------------
+
+- Enable ThreeDiToolbox besides NETCDF4 also for NETCDF3_CLASSIC (old results)
+
+
+1.5 (2018-11-26)
+----------------
+
+- Add v2_culvert to layer_tree_manager
+
+
+1.4 (2018-11-26)
+----------------
+- Enable intercepted_volume through aggregation NetCDF
+
+- Upgrade threedigrid from 0.2.6 to 1.0.7 (current latest version)
+
+- Add '(de)activate all layers' buttons in Waterbalancetool
+
+- Remove old fashioned statistics (pop-up "do you want to calculate stats?")
+
+- Improve NetCDF result selection (disabled selection aggregation NetCDF)
+
+- Disable stacking of volume difference lines in the WaterBalance tool
 
 - Gracefully handle HTTPError thrown by ResultsWorker thread.
 
 - Added QSortFilterProxyModel to the result_selection to enable sorting and
   filtering of downloaded results.
 
-- WaterbalanceTool account for flow directions 1d2d, 1d, 2d and groundwater
+- WaterbalanceTool account for flow directions (1d2d, 1d, 2d and groundwater)
 
 - Enable leakage and simple infiltration through aggregation NetCDF
 
@@ -34,6 +63,8 @@ ThreeDiToolBox changelog
 - Disable auto SI prefix on the vertical axis.
 
 - Update schematisation layer style (add a lot of non_geom tables)
+
+- Updated styling of waterbalance chart.
 
 
 1.3 (2018-06-19)

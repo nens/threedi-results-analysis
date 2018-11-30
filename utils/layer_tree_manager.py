@@ -58,7 +58,6 @@ class LayerTreeManager(object):
 
     schematisation_advanced_settings_group_name = 'advanced numerics'
     result_layergroup_basename = 'result: '
-    statistic_layergroup_basename = 'statistics: '
 
     def __init__(self, iface, model_results_model):
 
@@ -86,10 +85,7 @@ class LayerTreeManager(object):
             self._on_set_schematisation)
         # self.model.dataChanged.connect(self.on_change)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_statistics)
         self.model.rowsInserted.connect(self.add_results)
-        self.model.rowsInserted.connect(self.add_statistic_layers)
-
         self.init_references_from_layer_tree()
 
     @property
@@ -119,9 +115,7 @@ class LayerTreeManager(object):
         self.model.model_schematisation_change.disconnect(
             self._on_set_schematisation)
         self.model.rowsAboutToBeRemoved.connect(self.remove_results)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_statistics)
         self.model.rowsInserted.connect(self.add_results)
-        self.model.rowsInserted.connect(self.add_statistic_layers)
 
     @staticmethod
     def _mark(tree_node, marker):
@@ -384,6 +378,7 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_cross_section_definition'),
                   (additional_oned_group, 'v2_windshielding'),
                   (additional_oned_group, 'v2_pumpstation'),
+                  (additional_oned_group, 'v2_culvert'),
                   (additional_oned_group, 'v2_manhole'),
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),
@@ -452,105 +447,6 @@ class LayerTreeManager(object):
                 layers.append(new_layer)
         return layers
 
-    def add_statistic_layers(self, result_row_nr, start_row, stop_row):
-        result_dirs = [
-            os.path.dirname(self.model.rows[row_nr].file_path.value)
-            for row_nr in range(start_row, stop_row + 1)]
-        csv_files_exist = bool(get_csv_layer_cache_files(*result_dirs))
-
-        # only bother with a prompt if there are no csv files at all. If there
-        # are files we assume we can load them
-        if not csv_files_exist and not pop_up_question(
-                'Do you want to calculate statistics (in this '
-                'version it can still take forever with large '
-                'netcdf files)?',
-                'Calculate statistics?'):
-            return
-
-        for row_nr in range(start_row, stop_row + 1):
-            result = self.model.rows[row_nr]
-            name = "%s%s" % (self.statistic_layergroup_basename,
-                             result.name.value)
-            marker = 'statistic_%s' % result.file_path.value
-
-            # TODO: not sure if I am doing things twice by calling this
-            # function again... Layers are cached in sqlite right, so it
-            # should be okay? --> yes, they are cached
-            line, node, pumpline = result.get_result_layers()
-
-            node_layer_names = ['v2_manhole']
-            line_layer_names = ['v2_weir_view',
-                                'v2_culvert_view',
-                                'v2_orifice_view',
-                                'v2_pipe_view',
-                                ]
-            pump_layer_names = ['v2_pumpstation_view']
-
-            styled_layers = {
-                # {layer_name: [(name, style, field), ...], ... }
-                'v2_manhole': [
-                    ('Manhole statistieken', '', None),
-                ],
-                'v2_weir_view': [
-                    ('Totaal overstort volume positief [tot_vol_positive]',
-                     'totaal overstort volume positief',
-                     'tot_vol_positive'),
-                    ('Totaal overstort volume negatief [tot_vol_negative]',
-                     'totaal overstort volume negatief',
-                     'tot_vol_negative'),
-                    ('Overstort max positief debiet [q_max]',
-                     'overstort max positief debiet',
-                     'q_max'),
-                ],
-                'v2_orifice_view': [
-                    ('orifice statistieken', '', None),
-                ],
-                'v2_pipe_view': [
-                    ('pipe max debiet [q_max]', 'pipe max debiet', 'q_max'),
-                ],
-                'nodes': [
-                    ('node statistieken', '', None),
-                ],
-                'flowlines': [
-                    ('line statistieken', '', None),
-                ],
-                'v2_culvert_view': [
-                    ('culvert statistieken', '', None),
-                ],
-            }
-
-            # output dir of the csvs (= model result dir)
-            output_dir = os.path.dirname(result.file_path.value)
-
-            if self.model_layergroup is not None:
-                group = self._find_marked_child(self.model_layergroup, marker)
-
-                if group is None:
-                    group = self.model_layergroup.insertGroup(3, name)
-                    self._mark(group, marker)
-
-                node_layers = [node] + self._create_layers(
-                    self.model.model_spatialite_filepath,
-                    group, node_layer_names, geometry_column='')
-                line_layers = [line] + self._create_layers(
-                    self.model.model_spatialite_filepath,
-                    group, line_layer_names, geometry_column='the_geom')
-                pump_layers = [pumpline] + self._create_layers(
-                    self.model.model_spatialite_filepath,
-                    group, pump_layer_names, geometry_column='the_geom')
-
-                sli1 = StatsLayerInfo(node_layers,
-                                      get_manhole_layer_id_name,
-                                      generate_manhole_stats)
-                sli2 = StatsLayerInfo(line_layers,
-                                      get_structure_layer_id_name,
-                                      generate_structure_stats)
-                sli3 = StatsLayerInfo(pump_layers,
-                                      get_pump_layer_id_name,
-                                      generate_pump_stats)
-                for s in [sli1, sli2, sli3]:
-                    s.generate_layers(output_dir, result, group, styled_layers)
-
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
             result = self.model.rows[row_nr]
@@ -559,89 +455,3 @@ class LayerTreeManager(object):
             if group is not None:
                 group.removeAllChildren()
                 self.model_layergroup.removeChildNode(group)
-
-    def remove_statistics(self, index, start_row, stop_row):
-        for row_nr in range(start_row, stop_row + 1):
-            result = self.model.rows[row_nr]
-            group = self._find_marked_child(
-                self.model_layergroup, 'statistic_' + result.file_path.value)
-            if group is not None:
-                group.removeAllChildren()
-                self.model_layergroup.removeChildNode(group)
-
-
-class StatsLayerInfo(object):
-    """Small wrapper for grouping functions used to generate statistics
-    for some types of layers (node-like, line-like, pump-like)."""
-
-    def __init__(self, layers, layer_id_name_func, generate_stats_func):
-        self.layers = layers
-        self.layer_id_name_func = layer_id_name_func
-        self.generate_stats_func = generate_stats_func
-
-    def generate_layers(self, output_dir, result, group, styled_layers):
-        for lyr in self.layers:
-            if not lyr:
-                continue
-            if lyr.isValid():
-                # Generate stats, join the csv with layer, and
-                # insert the csv as layer
-                layer_id_name = self.layer_id_name_func(
-                    lyr.name())
-                _filepath = get_default_csv_path(
-                    lyr.name(), output_dir)
-                if os.path.exists(_filepath):
-                    # The csv was already generated, reuse it
-                    print("Reusing existing statistics csv: %s" %
-                          _filepath)
-                    filepath = _filepath
-                else:
-                    # No stats; generate it
-                    try:
-                        filepath = self.generate_stats_func(
-                            result.datasource(), output_dir,
-                            lyr, layer_id_name,
-                            include_2d=False)
-                        print("Generated %s" % filepath)
-                    except ValueError as e:
-                        print(e)
-                        continue
-
-                # There *are* stats, but there is no entry in the
-                # styled_layers dict, either because there is no styling, or
-                # because it hasn't been added yet. Either way, We still want
-                # to show the layer.
-                if lyr.name() not in styled_layers:
-                    layer = _clone_vector_layer(lyr)
-                    csv_join(filepath, layer, layer_id_name,
-                             add_to_legend=False)
-                    QgsProject.instance().addMapLayer(
-                        layer, False)
-                    tree_layer = group.insertLayer(100, layer)
-                    LayerTreeManager._mark(tree_layer, lyr.name())
-                    continue
-
-                # There is an entry in the styled_layers dict, so apply the
-                # corresponding style if possible. If not possible, just
-                # add the joined layer.
-                for name, style, field in styled_layers[lyr.name()]:
-                    layer = _clone_vector_layer(lyr)
-                    csv_layer = csv_join(
-                        filepath, layer, layer_id_name,
-                        add_to_legend=False)
-
-                    # IMPORTANT: the style will only be applied if the field
-                    # name is present in the layer:
-                    fieldnames = [f.name() for f in csv_layer.fields()]
-                    if field in fieldnames:
-                        styler.apply_style(layer, style, 'stats')
-                        layer.setLayerName(name)
-
-                    layernames = [
-                        tl.layer().name() for tl in group.children()]
-                    if layer.name() not in layernames:
-                        QgsProject.instance().addMapLayer(
-                            layer, False)
-
-                        tree_layer = group.insertLayer(100, layer)
-                        LayerTreeManager._mark(tree_layer, lyr.name())

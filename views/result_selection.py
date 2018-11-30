@@ -211,10 +211,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename, __ = QFileDialog.getOpenFileName(self,
-                                               'Open resultaten file',
-                                               init_path,
-                                               'NetCDF (*.nc)')
+        filename, __ = QFileDialog.getOpenFileName(
+            self,
+            'Open resultaten file',
+            init_path,
+            'NetCDF (subgrid_map.nc results_3di.nc)')
 
         if filename:
             # Little test for checking if there is an id mapping file available

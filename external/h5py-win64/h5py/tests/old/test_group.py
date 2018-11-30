@@ -28,17 +28,17 @@ from tempfile import mkdtemp
 
 import six
 
-from .common import ut, TestCase
+from ..common import ut, TestCase
 import h5py
 from h5py.highlevel import File, Group, SoftLink, HardLink, ExternalLink
 from h5py.highlevel import Dataset, Datatype
 from h5py import h5t
-from h5py._hl.compat import fsencode
+from h5py._hl.compat import filename_encode
 
 # If we can't encode unicode filenames, there's not much point failing tests
 # which must fail
 try:
-    fsencode(u"α")
+    filename_encode(u"α")
 except UnicodeEncodeError:
     NO_FS_UNICODE = True
 else:
@@ -91,7 +91,7 @@ class TestCreate(BaseGroup):
 
     def test_unicode(self):
         """ Unicode names are correctly stored """
-        name = six.u("/Name") + six.unichr(0x4500)
+        name = u"/Name" + six.unichr(0x4500)
         group = self.f.create_group(name)
         self.assertEqual(group.name, name)
         self.assertEqual(group.id.links.get_info(name.encode('utf8')).cset, h5t.CSET_UTF8)
@@ -99,7 +99,7 @@ class TestCreate(BaseGroup):
     def test_unicode_default(self):
         """ Unicode names convertible to ASCII are stored as ASCII (issue 239)
         """
-        name = six.u("/Hello, this is a name")
+        name = u"/Hello, this is a name"
         group = self.f.create_group(name)
         self.assertEqual(group.name, name)
         self.assertEqual(group.id.links.get_info(name.encode('utf8')).cset, h5t.CSET_ASCII)
@@ -304,40 +304,40 @@ class TestLen(BaseMapping):
 class TestContains(BaseGroup):
 
     """
-        Feature: The Python "in" builtin tests for containership
+        Feature: The Python "in" builtin tests for membership
     """
 
     def test_contains(self):
-        """ "in" builtin works for containership (byte and Unicode) """
+        """ "in" builtin works for membership (byte and Unicode) """
         self.f.create_group('a')
         self.assertIn(b'a', self.f)
-        self.assertIn(six.u('a'), self.f)
+        self.assertIn(u'a', self.f)
         self.assertIn(b'/a', self.f)
-        self.assertIn(six.u('/a'), self.f)
+        self.assertIn(u'/a', self.f)
         self.assertNotIn(b'mongoose', self.f)
-        self.assertNotIn(six.u('mongoose'), self.f)
+        self.assertNotIn(u'mongoose', self.f)
 
     def test_exc(self):
         """ "in" on closed group returns False (see also issue 174) """
         self.f.create_group('a')
         self.f.close()
         self.assertFalse(b'a' in self.f)
-        self.assertFalse(six.u('a') in self.f)
+        self.assertFalse(u'a' in self.f)
 
     def test_empty(self):
         """ Empty strings work properly and aren't contained """
-        self.assertNotIn(six.u(''), self.f)
+        self.assertNotIn(u'', self.f)
         self.assertNotIn(b'', self.f)
 
     def test_dot(self):
         """ Current group "." is always contained """
         self.assertIn(b'.', self.f)
-        self.assertIn(six.u('.'), self.f)
+        self.assertIn(u'.', self.f)
 
     def test_root(self):
         """ Root group (by itself) is contained """
         self.assertIn(b'/', self.f)
-        self.assertIn(six.u('/'), self.f)
+        self.assertIn(u'/', self.f)
 
     def test_trailing_slash(self):
         """ Trailing slashes are unconditionally ignored """
@@ -394,6 +394,20 @@ class TestIter(BaseMapping):
             self.assertEqual(lst, [])
         finally:
             hfile.close()
+
+class TestTrackOrder(BaseGroup):
+    def test_track_order(self):
+        g = self.f.create_group('order', track_order=True)
+        for i in range(100):
+            # Mix group and dataset creation.
+            if i % 10 == 0:
+                g.create_group(str(i))
+            else:
+                g[str(i)] = [i]
+
+        objs = [str(i) for i in range(100)]
+        objs2 = [o for o in g]
+        self.assertEqual(objs, objs2)
 
 @ut.skipIf(sys.version_info[0] != 2, "Py2")
 class TestPy2Dict(BaseMapping):
@@ -767,6 +781,18 @@ class TestExternalLinks(TestCase):
             ext_file.create_group('external')
             ext_file["external"].attrs["ext_attr"] = "test"
         self.f['ext'] = ExternalLink(ext_filename, '/external')
+        self.assertEqual(self.f["ext"].attrs["ext_attr"], "test")
+
+    def test_unicode_hdf5_path(self):
+        """
+        Check that external links handle unicode hdf5 paths properly
+        Testing issue #333
+        """
+        ext_filename = os.path.join(mkdtemp(), "external.hdf5")
+        with File(ext_filename, "w") as ext_file:
+            ext_file.create_group(u'α')
+            ext_file[u"α"].attrs["ext_attr"] = "test"
+        self.f['ext'] = ExternalLink(ext_filename, u'/α')
         self.assertEqual(self.f["ext"].attrs["ext_attr"], "test")
 
 class TestExtLinkBugs(TestCase):

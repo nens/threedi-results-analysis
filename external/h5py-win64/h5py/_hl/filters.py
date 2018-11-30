@@ -154,7 +154,7 @@ def generate_dcpl(shape, dtype, chunks, compression, compression_opts,
                             'and floating-point types')
         
         # Scale/offset following fletcher32 in the filter chain will (almost?)
-        # always triggera a read error, as most scale/offset settings are
+        # always triggers a read error, as most scale/offset settings are
         # lossy. Since fletcher32 must come first (see comment below) we
         # simply prohibit the combination of fletcher32 and scale/offset.
         if fletcher32:
@@ -174,10 +174,6 @@ def generate_dcpl(shape, dtype, chunks, compression, compression_opts,
     if chunks is not None:
         plist.set_chunk(chunks)
         plist.set_fill_time(h5d.FILL_TIME_ALLOC)  # prevent resize glitch
-
-    # MUST be first, to prevent 1.6/1.8 compatibility glitch
-    if fletcher32:
-        plist.set_fletcher32()
 
     # scale-offset must come before shuffle and compression
     if scaleoffset is not None:
@@ -201,6 +197,12 @@ def generate_dcpl(shape, dtype, chunks, compression, compression_opts,
             raise ValueError("Unknown compression filter number: %s" % compression)
 
         plist.set_filter(compression, h5z.FLAG_OPTIONAL, compression_opts)
+
+    # `fletcher32` must come after `compression`, otherwise, if `compression`
+    # is "szip" and the data is 64bit, the fletcher32 checksum will be wrong
+    # (see GitHub issue #953).
+    if fletcher32:
+        plist.set_fletcher32()
 
     return plist
 
