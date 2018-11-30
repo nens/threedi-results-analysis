@@ -33,11 +33,10 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
-from ThreeDiToolbox.datasource.netcdf_groundwater import (
-    NetcdfGroundwaterDataSource,
+from ThreeDiToolbox.datasource.netcdf_groundwater import \
+    NetcdfGroundwaterDataSource, \
     find_aggregation_netcdf_gw
-)
-from .utilities import get_qgis_app, TemporaryDirectory
+from ThreeDiToolbox.test.utilities import get_qgis_app, TemporaryDirectory
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()

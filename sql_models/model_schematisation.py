@@ -67,12 +67,14 @@ class ConnectionNode(Base):
     initial_waterlevel = Column(Float)
     the_geom = Column(Geometry(geometry_type='POINT',
                                srid=4326,
-                               spatial_index=True),
+                               spatial_index=True,
+                               use_st_prefix=False),
                       nullable=False)
 
     the_geom_linestring = Column(Geometry(geometry_type='POINT',
                                           srid=4326,
-                                          spatial_index=False),
+                                          spatial_index=False,
+                                          use_st_prefix=False),
                                  nullable=True)
 
     # extra fields:
