@@ -10,8 +10,6 @@ import os
 
 from qgis.core import QgsProject
 
-from .stats.utils import get_csv_layer_cache_files
-from .stats.utils import STATS_LAYER_IDENTIFIER
 from .utils.user_messages import pop_up_info, pop_up_question
 from .utils.layer_from_netCDF import (
     FLOWLINES_LAYER_NAME, NODES_LAYER_NAME, PUMPLINES_LAYER_NAME

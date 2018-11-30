@@ -10,17 +10,6 @@ from qgis.core import (
     QgsCoordinateReferenceSystem)
 
 from ..utils.user_messages import pop_up_question
-from ..stats.utils import (
-    generate_structure_stats,
-    generate_manhole_stats,
-    generate_pump_stats,
-    get_csv_layer_cache_files,
-    get_structure_layer_id_name,
-    get_manhole_layer_id_name,
-    get_pump_layer_id_name,
-    get_default_csv_path,
-    csv_join,
-)
 from . import styler
 from .threedi_database import ThreediDatabase
 
