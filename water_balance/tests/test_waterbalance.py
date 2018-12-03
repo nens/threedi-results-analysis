@@ -3,7 +3,7 @@ import unittest
 
 from ThreeDiToolbox.test.utilities import get_qgis_app
 from qgis.core import QgsPoint, QgsGeometry, QgsCoordinateTransform, \
-    QgsCoordinateReferenceSystem
+    QgsCoordinateReferenceSystem, QgsProject
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.water_balance.tools.waterbalance \
     import WaterBalanceCalculation
@@ -36,13 +36,14 @@ class WaterbalanceClassTest(unittest.TestCase):
                           QgsPoint(216210, 502371),
                           QgsPoint(216210, 502444),
                           QgsPoint(216196, 502444)]
-        self.polygon = QgsGeometry.fromPolygon([polygon_points])
+        self.polygon = QgsGeometry.fromPolygonXY([polygon_points])
 
         tr = QgsCoordinateTransform(
             QgsCoordinateReferenceSystem(
                 28992, QgsCoordinateReferenceSystem.PostgisCrsId),
             QgsCoordinateReferenceSystem(
-                4326, QgsCoordinateReferenceSystem.PostgisCrsId))
+                4326, QgsCoordinateReferenceSystem.PostgisCrsId),
+            QgsProject.instance())
         self.polygon.transform(tr)
 
     def test_link_selection(self):

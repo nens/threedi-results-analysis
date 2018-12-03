@@ -14,7 +14,7 @@ from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QDockWidget, QComboBox, QMessageBox
 from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsGeometry, QgsCoordinateTransform
-from qgis.core import QgsFeatureRequest
+from qgis.core import QgsFeatureRequest, QgsProject
 
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
@@ -1078,9 +1078,12 @@ class WaterBalanceWidget(QDockWidget):
     def get_wb_polygon(self):
         lines, points, pumps = self.get_wb_result_layers()
         poly_points = self.polygon_tool.points
-        self.wb_polygon = QgsGeometry.fromPolygon([poly_points])
+        self.wb_polygon = QgsGeometry.fromPolygonXY([poly_points])
         tr = QgsCoordinateTransform(
-            self.iface.mapCanvas().mapRenderer().destinationCrs(), lines.crs())
+            self.iface.mapCanvas().mapSettings().destinationCrs(),
+            lines.crs(),
+            QgsProject.instance()
+        )
         self.wb_polygon.transform(tr)
 
     def calc_wb_graph(self, model_part, aggregation_type, settings):
@@ -1140,7 +1143,8 @@ class WaterBalanceWidget(QDockWidget):
         qgs_points = {}
         tr_reverse = QgsCoordinateTransform(
             lines.crs(),
-            self.iface.mapCanvas().mapRenderer().destinationCrs(),
+            self.iface.mapCanvas().mapSettings().destinationCrs(),
+            QgsProject.instance()
         )
 
         # NOTE: getting all features again isn't efficient because they're

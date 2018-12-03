@@ -32,7 +32,7 @@ class SelectionVisualisation(object):
 
     def show(self):
         # visualize lines
-        multiline = QgsGeometry().fromMultiPolyline(self.lines)
+        multiline = QgsGeometry().fromMultiPolylineXY(self.lines)
         self.rb_line.setToGeometry(multiline, None)
         # visualize points
         for p in self.points:

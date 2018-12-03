@@ -11,7 +11,7 @@ import numpy as np
 import numpy.ma as ma
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsFeatureRequest, QgsPoint
+from qgis.core import QgsFeatureRequest, QgsPointXY
 from ThreeDiToolbox.datasource.netcdf import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
@@ -95,7 +95,7 @@ class WaterBalanceCalculation(object):
         # this implemented is that the on hover map highlight selects all
         # links, even when the 2D or 1D modelpart is selected in the combo box.
 
-        log.info('polygon of wb area: %s', wb_polygon.exportToWkt())
+        log.info('polygon of wb area: %s', wb_polygon.asWkt())
 
         # the '_out' and '_in' indicate the draw direction of the flow_line.
         # a flow line can have in 1 simulation both positive and negative
@@ -133,7 +133,7 @@ class WaterBalanceCalculation(object):
         # all links in and out
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox())
+            wb_polygon.get().boundingBox())
         for line in lines.getFeatures(request_filter):
 
             if line['type'] == '2d_vertical_infiltration':
@@ -141,7 +141,7 @@ class WaterBalanceCalculation(object):
                 # 2d vertical infiltration line is handmade diagonal (drawn
                 # from 2d point 15m towards south-west ). Thus, if at-least
                 # its startpoint is within polygon then include the line
-                if wb_polygon.contains(QgsPoint(geom[0])):
+                if wb_polygon.contains(QgsPointXY(geom[0])):
                     flow_lines['2d_vertical_infiltration'].append(line['id'])
 
             # test if lines are crossing boundary of polygon
@@ -149,10 +149,10 @@ class WaterBalanceCalculation(object):
                 geom = line.geometry().asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPoint(geom[0]))
+                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPoint(geom[-1]))
+                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
 
                 if incoming and outgoing:
                     # skip lines that do have start- and end vertex outside of
@@ -221,7 +221,7 @@ class WaterBalanceCalculation(object):
                     # horizontal line?
                     if line.id() in self.x2d_surf_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             # directed to east?
                             # long coords increase going east, so:
                             if end_x > start_x:
@@ -233,7 +233,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines['2d_in'].append(line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             # directed to east?
                             # long coords increase going east
                             if end_x > start_x:
@@ -248,7 +248,7 @@ class WaterBalanceCalculation(object):
                     # vertical line?
                     if line.id() in self.y2d_surf_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             # directed to north?
                             # lat coords increase going north, so:
                             if end_y > start_y:
@@ -260,7 +260,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines['2d_in'].append(line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             # directed to north?
                             # lat coords increase going north, so:
                             if end_y > start_y:
@@ -282,7 +282,7 @@ class WaterBalanceCalculation(object):
                     # horizontal line?
                     if line.id() in self.x_grndwtr_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             if end_x > start_x:
                                 flow_lines['2d_groundwater_out'].append(
                                     line['id'])
@@ -290,7 +290,7 @@ class WaterBalanceCalculation(object):
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             if end_x > start_x:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
@@ -300,14 +300,14 @@ class WaterBalanceCalculation(object):
                     # vertical line?
                     if line.id() in self.y_grndwtr_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             if end_y > start_y:
                                 flow_lines['2d_groundwater_out'].append(
                                     line['id'])
                             else:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             if end_y > start_y:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
@@ -321,14 +321,14 @@ class WaterBalanceCalculation(object):
 
         # find boundaries in polygon
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox()
+            wb_polygon.get().boundingBox()
         ).setFilterExpression(u'"type" = '
                               u'\'1d_bound\' or "type" = '
                               u'\'2d_bound\'')
 
         # all boundaries in polygon
         for bound in points.getFeatures(request_filter):
-            if wb_polygon.contains(QgsPoint(bound.geometry().asPoint())):
+            if wb_polygon.contains(QgsPointXY(bound.geometry().asPoint())):
                 # find link connected to boundary
                 request_filter_bound = QgsFeatureRequest().\
                     setFilterExpression(u'"start_node_idx" = '
@@ -353,7 +353,7 @@ class WaterBalanceCalculation(object):
             f_pumps = []
         else:
             request_filter = QgsFeatureRequest().setFilterRect(
-                wb_polygon.geometry().boundingBox())
+                wb_polygon.get().boundingBox())
             f_pumps = pumps.getFeatures(request_filter)
 
         for pump in f_pumps:
@@ -362,10 +362,10 @@ class WaterBalanceCalculation(object):
                 geom = pump.geometry().asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPoint(geom[0]))
+                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPoint(geom[-1]))
+                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
 
                 if incoming and outgoing:
                     # skip
@@ -388,7 +388,7 @@ class WaterBalanceCalculation(object):
         }
         """
 
-        log.info('polygon of wb area: %s', wb_polygon.exportToWkt())
+        log.info('polygon of wb area: %s', wb_polygon.asWkt())
 
         nodes = {
             '1d': [],
@@ -400,7 +400,7 @@ class WaterBalanceCalculation(object):
 
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox())
+            wb_polygon.get().boundingBox())
         if model_part == '1d':
             request_filter.setFilterExpression(u'"type" = \'1d\'')
         elif model_part == '2d':
@@ -451,7 +451,7 @@ class WaterBalanceCalculation(object):
         NTYPE_MAXLEN = 25
         assert max(list(map(len, ALL_TYPES))) <= NTYPE_MAXLEN, \
             "NTYPE_MAXLEN insufficiently large for all values"
-        NTYPE_DTYPE = 'S%s' % NTYPE_MAXLEN
+        NTYPE_DTYPE = 'U%s' % NTYPE_MAXLEN
 
         # LINKS
         #######
@@ -710,7 +710,7 @@ class WaterBalanceCalculation(object):
             tnode.append((idx, TYPE_1D))
         for idx in node_ids['2d_groundwater']:
             tnode.append((idx, TYPE_2D_GROUNDWATER))
-
+        NTYPE_DTYPE
         np_node = np.array(tnode,
                            dtype=[('id', int), ('ntype', NTYPE_DTYPE)])
         np_node.sort(axis=0)
