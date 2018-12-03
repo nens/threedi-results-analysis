@@ -49,7 +49,7 @@ RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_
 
 WORKDIR /home/$USERNAME
 
-COPY docker-entrypoint.sh /
+COPY Docker/qgis3/docker-entrypoint.sh /
 RUN chmod u+x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
