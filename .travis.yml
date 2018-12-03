@@ -6,7 +6,8 @@ services:
 
 before_install:
   - cd Docker/base
-  - docker build -t qgis:base
+  - ls -la
+  - docker build -t qgis-desktop:base .
   - cd ../..
   - docker-compose build
 
