@@ -1,6 +1,9 @@
 language: generic
 dist: xenial
 
+env:
+    - USER_ID=1000 GROUP_ID=1000 USERNAME=qgis_user
+
 services:
   - docker
 
