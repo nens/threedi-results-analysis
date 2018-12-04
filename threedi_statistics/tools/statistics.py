@@ -398,6 +398,7 @@ class StatisticsTool(object):
             's1',
             len(self.ds.timestamps) - 1,
             index=manhole_idx)
+        h_end = h_end.filled(-9999.0)
 
         manhole_stats = []
 
@@ -582,8 +583,10 @@ class StatisticsTool(object):
         vend = ds.get_values_by_timestep_nr('u1', len(ds.timestamps) - 1)
         hend_start = ds.get_values_by_timestep_nr(
             's1', len(ds.timestamps) - 1, index=start_idx)
+        hend_start = hend_start.filled(-9999.0)
         hend_end = ds.get_values_by_timestep_nr(
             's1', len(ds.timestamps) - 1, index=end_idx)
+        hend_end = hend_end.filled(-9999.0)
 
         # save stats to the database
         log.info('prepare flowline statistics for database')

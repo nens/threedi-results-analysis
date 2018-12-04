@@ -234,16 +234,23 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf-groundwater'
 
     """
-
-    import h5py
-
-    dataset = h5py.File(netcdf_file_path, mode='r')
-
-    if "threedicore_version" in dataset.attrs:
-        result = 'netcdf-groundwater'
+    # first detect netcdf file format
+    # then detect netcdf file format
+    from netCDF4 import Dataset
+    dataset = Dataset(netcdf_file_path, mode='r', format='NETCDF4')
+    if dataset.file_format == 'NETCDF3_CLASSIC':
+        return 'netcdf'
+    elif dataset.file_format == 'NETCDF4':
+        dataset.close()
+        import h5py
+        dataset = h5py.File(netcdf_file_path, mode='r')
+        if "threedicore_version" in dataset.attrs:
+            return 'netcdf-groundwater'
+        else:
+            return 'netcdf'
     else:
-        result = 'netcdf'
-    return result
+        return
+
 
 def find_aggregation_netcdf(netcdf_file_path):
     """An ad-hoc way to find the aggregation netcdf file.
