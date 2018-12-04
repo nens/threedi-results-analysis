@@ -7,6 +7,7 @@ ThreeDiToolBox changelog
 
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation
+- Get rid of NetCDF4 lib
 
 
 1.6 (2018-11-28)
