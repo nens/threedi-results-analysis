@@ -15,10 +15,8 @@ before_install:
   - docker-compose build
 
 script:
-    # this script adds standard qgis plugins (like db_manager) to PYTHONPATH
-    # - source scripts/run-env-linux.sh /usr
-    - docker run qgis:3.4 make test
-    - docker run qgis:3.4 make pep8
+    - docker-compose run qgis-desktop make test
+    - docker-compose run qgis-desktop make pep8
 
 notifications:
     email: false
