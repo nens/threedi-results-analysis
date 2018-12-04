@@ -115,9 +115,7 @@ class BreachLocation(object):
         for item in user_selection:
             # combine feature with field names
             conn_pnt = dict(
-                list(zip(
-                    list(self.fnames_conn_pnt.keys()), item.attributes()
-                ))
+                zip(item.fields().names(), item.attributes())
             )
             self.selected_pnt_ids[item.id()].append(
                 conn_pnt['calculation_pnt_id']

@@ -162,7 +162,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         self.assertTrue(all([x in (4, 5) for x in levee_ids]))
 
     def test_it_can_set_selected_pnt_ids(self):
-        expected = {
+        expected = collections.defaultdict(list, {
             1: [2],
             2: [3],
             3: [4],
@@ -170,7 +170,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
             5: [6],
             6: [7],
             7: [8]
-        }
+        })
         self.breach_location.connected_pnt_lyr.selectByIds(
             [1, 2, 3, 4, 5, 6, 7]
         )
