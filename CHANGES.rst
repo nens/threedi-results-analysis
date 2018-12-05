@@ -5,8 +5,6 @@ ThreeDiToolBox changelog
 1.7 (unreleased)
 ----------------
 
-- Enable ThreeDiToolbox besides NETCDF4 also for NETCDF3_CLASSIC (old results)
-
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation
 
