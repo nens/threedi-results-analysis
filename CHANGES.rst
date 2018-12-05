@@ -12,6 +12,8 @@ ThreeDiToolBox changelog
 
 - Add v2_culvert to layer_tree_manager
 
+- Add raster checker tool to toolbox
+
 
 1.6 (2018-11-28)
 ----------------
