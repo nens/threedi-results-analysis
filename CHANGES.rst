@@ -4,7 +4,6 @@ ThreeDiToolBox changelog
 
 1.7 (unreleased)
 ----------------
-- test
 
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation
