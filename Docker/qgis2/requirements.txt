@@ -1,5 +1,0 @@
-git+https://github.com/nens/geoalchemy2.git#egg=geoalchemy2
-SQLAlchemy==1.1.0b3
-pyqtgraph==0.9.10
-git+https://github.com/lizardsystem/lizard-connector.git@0.6#egg=lizard_connector
-threedigrid==1.0.7

@@ -4,7 +4,7 @@ USERNAME=$(cut -d: -f1 /etc/passwd | tail -1)
 USER_ID=$(id -u ${USERNAME})
 
 if [ "$1" = 'bash' ]; then
-    exec bash
+    exec "${@}"
 fi
 
 exec gosu $USERNAME:$USER_ID "${@}"
