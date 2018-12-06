@@ -19,11 +19,6 @@ before_install:
   - cd ../..
   - docker-compose build
 
-before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
-
 script:
   - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
   - docker-compose run qgis-desktop make pep8
