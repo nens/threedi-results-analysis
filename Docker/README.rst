@@ -8,7 +8,7 @@ Developing
 ----------
 The two folders qgis2 and qgis3 define image for QGIS 2 and for QGIS 3
 respectively. Both depend on the base image `qgis-desktop:base`. Make sure you
-are on the `QGIS2` branch when developing for QGIS 2 (TODO). Development for
+are on the `QGIS2` branch when developing for QGIS 2. Development for
 QGIS 3 should continue on master.
 
 To build the image, first make sure you have the base image `qgis-desktop:base`.
@@ -16,7 +16,6 @@ You can build it with the following command::
 
     $ cd Docker/base
     $ docker build -t qgis-desktop:base .
-
 
 Next go to the project root and enter the following command::
 
@@ -37,9 +36,16 @@ GROUP_ID and USER_NAME. A user in the docker is created with these arguments and
 should correspond to your host UID, GID and USERNAME respectively if you want
 the GUI to work within Docker.
 
-Running tests
-TODO
+Running tests::
 
-How to upload images
-TODO
+    $ docker-compose run qgis-desktop make test
+    $ docker-compose run qgis-desktop make pep8
 
+You might want to persist qgis settings when restarting docker images. Qgis
+saves these settings in the following locations:
+
+    - /home/${USER}/.local/share/QGIS  # Qgis3
+    - /home/${USER}/.qgis2/  # Qgis2
+
+Create a `docker-compose.override.yml` and mount these volumes to persist the
+settings.

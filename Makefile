@@ -148,6 +148,7 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/water_balance/tests
 	rm -rf /tmp/$(PLUGINNAME)/.git
 	rm -rf /tmp/$(PLUGINNAME)/*.zip
+	rm -rf /tmp/$(PLUGINNAME)/Docker
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
