@@ -1,4 +1,6 @@
 from builtins import object
+
+
 def reversed_dict(d):
     """Create a reverse lookup dictionary"""
     return dict([(b, a) for a, b in d])

@@ -749,7 +749,7 @@ class Predictor(object):
         ]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))
+            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))  # noqa
             calc_type = calc_pnt['calc_type']
             pnts_to_add = 1 if calc_type != 5 else 2
             if calc_type < 2:

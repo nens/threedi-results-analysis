@@ -5,16 +5,18 @@ import logging
 import os
 
 import matplotlib as mpl
-mpl.use('Qt5Agg')  # to prevent pyplot from using Tkinter
+mpl.use('Qt5Agg')  # to prevent pyplot from using Tkinter  # noqa
 import matplotlib.pyplot as plt
 import numpy as np
+
 import pyqtgraph as pg
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject
-from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QDockWidget, QComboBox, QMessageBox
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject, pyqtSignal
+from qgis.PyQt.QtWidgets import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
+                                 QSizePolicy, QPushButton, QSpacerItem,
+                                 QApplication, QDockWidget, QComboBox)
 from qgis.PyQt.QtGui import QColor
-from qgis.core import QgsGeometry, QgsCoordinateTransform
-from qgis.core import QgsFeatureRequest, QgsProject
+from qgis.core import (QgsGeometry, QgsCoordinateTransform, QgsFeatureRequest,
+                       QgsProject)
 
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
@@ -688,7 +690,7 @@ class WaterBalanceWidget(QDockWidget):
             return
 
         # always use domain '1d and 2d' to get all flows in the barchart
-        wb_barchart_modelpart = unicode('1d and 2d')
+        wb_barchart_modelpart = '1d and 2d'
         ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
 
         io_series_net = [

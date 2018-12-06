@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from qgis.PyQt.QtCore import pyqtSignal, QSettings
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtSql import QSqlDatabase
-from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
-from qgis.PyQt.QtWidgets import QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout, QCheckBox, QDialogButtonBox, QApplication
-
-from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsProject
+from qgis.PyQt.QtCore import QRect, Qt, QMetaObject
+from qgis.PyQt.QtWidgets import (QVBoxLayout, QGroupBox, QComboBox,
+                                 QSizePolicy, QCheckBox, QDialogButtonBox,
+                                 QApplication)
+from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases

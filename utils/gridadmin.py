@@ -275,8 +275,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QgsWkbTypes.LineString, fields=self.TABLE_FIELDS,
-            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+            layer_name, wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
+            srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -401,8 +402,9 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QgsWkbTypes.LineString, fields=self.TABLE_FIELDS,
-            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+            layer_name, wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
+            srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)

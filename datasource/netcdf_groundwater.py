@@ -509,5 +509,5 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             log.error("Could not find the aggregation netcdf.")
             return None
         else:
-            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)  # noqa
             return h5py.File(aggregation_netcdf_file, mode='r')

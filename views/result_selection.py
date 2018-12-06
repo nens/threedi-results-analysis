@@ -3,11 +3,10 @@ from __future__ import division
 from __future__ import print_function
 
 from future import standard_library
-standard_library.install_aliases()
+standard_library.install_aliases()  # noqa
 from builtins import str
 import logging
 import os
-import urllib.request, urllib.error, urllib.parse
 from urllib.error import HTTPError
 
 from lizard_connector.connector import Endpoint
@@ -383,7 +382,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 endpoint='scenarios',
             )
             endpoint = scenarios_endpoint.download_paginated(page_size=10)
-        except urllib.error.HTTPError as e:
+        except HTTPError as e:
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
             else:

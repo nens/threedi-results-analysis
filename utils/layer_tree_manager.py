@@ -352,8 +352,7 @@ class LayerTreeManager(object):
                 if vector_layer.isValid():
                     styler.apply_style(vector_layer, layer_name,
                                        'schematisation')
-                    QgsProject.instance().addMapLayer(vector_layer,
-                                                               False)
+                    QgsProject.instance().addMapLayer(vector_layer, False)
                     group.insertLayer(100, vector_layer)
 
         # tables without geometry

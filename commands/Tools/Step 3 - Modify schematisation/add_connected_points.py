@@ -170,7 +170,8 @@ class CustomCommand(CustomCommandBase):
             # feature set to get a count
             unique_ids = set()
             for item in selected_features:
-                _item = dict(list(zip(self.fnames_connected_pnt, item.attributes())))
+                _item = dict(list(zip(self.fnames_connected_pnt,
+                                      item.attributes())))
                 unique_ids.add(_item['id'])
             thresh = constants.CONNECTED_PNTS_THRESHOLD[current_calc_type]
             if len(unique_ids) > thresh:
@@ -183,7 +184,7 @@ class CustomCommand(CustomCommandBase):
             if feature_id < 0:
                 feat.setAttribute('id', self._feat_id)
             exchange_level = connected_pnt['exchange_level']
-            if exchange_level is None:  # isinstance(exchange_level, QPyNullVariant):
+            if exchange_level is None:
                 exchange_level = -9999
             feat.setAttribute('exchange_level', exchange_level)
             levee_id = self.find_levee_intersection(calc_pnt_feat, feat)

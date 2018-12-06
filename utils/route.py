@@ -42,7 +42,7 @@ class Route(object):
         self.line_layer = line_layer
         self.director = director
         self.id_field = id_field
-        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
+        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)  # noqa
 
         # build graph for network
         properter_1 = weight_properter
@@ -164,7 +164,7 @@ class Route(object):
         cur_pos = id_end_point
         while cur_pos != id_start_point:
             point = self.graph.vertex(self.graph.edge(
-                self.tree[cur_pos]).toVertex()).point()  # toVertex()
+                self.tree[cur_pos]).toVertex()).point()
             p.append(point)
 
             dist = self.graph.edge(self.tree[cur_pos]).strategies()[1]
@@ -175,7 +175,7 @@ class Route(object):
             request = QgsFeatureRequest().setFilterExpression(filt)
             feature = next(self.line_layer.getFeatures(request))
 
-            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
+            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):  # noqa
                 # current point on tree (end point of this line) is equal to
                 # begin of original feature, so direction is opposite: -1
                 route_direction_feature = -1
@@ -185,7 +185,7 @@ class Route(object):
             path_props.insert(
                 0, [None, None, dist, route_direction_feature, feature])
 
-            cur_pos = self.graph.edge(self.tree[cur_pos]).fromVertex()  #fromVertex
+            cur_pos = self.graph.edge(self.tree[cur_pos]).fromVertex()
 
         for path in path_props:
             path[0] = cum_dist

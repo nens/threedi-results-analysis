@@ -250,8 +250,7 @@ class Importer(object):
                         else:
                             used_outlets[code] = 1
         # 0
-        not_connected_outlets = [outl for cod, outl in list(outlet_dict.items()) if
-                                 cod not in used_outlets]
+        not_connected_outlets = [outl for cod, outl in list(outlet_dict.items()) if cod not in used_outlets]  # noqa
 
         if len(not_connected_outlets) > 0:
             data['outlets'] = [outlet for outlet in data['outlets'] if

@@ -1,32 +1,29 @@
 # -*- coding: utf-8 -*-
 from builtins import str
 from builtins import object
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QMetaObject, QVariant
-from qgis.PyQt.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget
-from qgis.PyQt.QtGui import QColor, QCursor
+from collections import Counter
+from functools import reduce
 
 import numpy as np
 import os
-
+import pyqtgraph as pg
 from qgis.analysis import QgsNetworkStrategy, QgsVectorLayerDirector
-from qgis.core import QgsPointXY, QgsRectangle, \
-    QgsCoordinateTransform, QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, \
-    QgsProject, QgsFeatureRequest, QgsDistanceArea, QgsUnitTypes, \
-    QgsWkbTypes
+from qgis.core import (QgsPointXY, QgsRectangle, QgsCoordinateTransform,
+                       QgsVectorLayer, QgsField, QgsFeature, QgsGeometry,
+                       QgsProject, QgsFeatureRequest, QgsDistanceArea,
+                       QgsUnitTypes, QgsWkbTypes, QgsDataSourceUri)
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
-from collections import Counter
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QMetaObject, QVariant
+from qgis.PyQt.QtGui import QColor, QCursor
+from qgis.PyQt.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
+                                 QSizePolicy, QPushButton, QLabel, QSpacerItem,
+                                 QApplication, QTabWidget, QDockWidget)
 
 from ..utils import haversine
 from ..utils.geo_processing import split_line_at_points
 from ..utils.route import Route
 from ..utils.user_messages import log, statusbar_message
 
-
-import pyqtgraph as pg
-from qgis.core import QgsDataSourceUri
-from functools import reduce
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
@@ -974,11 +971,6 @@ class SideViewMapVisualisation(object):
                             QgsUnitTypes.DistanceDegrees
                         )
                         length = distance_on_line * conversion_factor
-
-                        # length, unit_type = self.dist_calc.convertMeasurement(
-                        #     distance_on_line,
-                        #     Qgis.Meters, Qgis.Degrees, False)  # Qgis.Degrees
-
                         point = part[4].geometry().interpolate(length)
                         self.hover_marker.setCenter(
                             transform.transform(point.asPoint()))
@@ -1427,8 +1419,9 @@ class SideViewDockWidget(QDockWidget):
                 calc_points = [key for key, value in
                                list(cpoint_count.items()) if value == 2]
 
-                calculation_points = [{'id': key, 'geom': value} for key, value
-                                      in list(cpoints.items()) if key in calc_points]
+                calculation_points = \
+                    [{'id': key, 'geom': value} for key, value
+                     in list(cpoints.items()) if key in calc_points]
 
                 channel_parts = split_line_at_points(
                     channel.geometry(),

@@ -3,7 +3,8 @@ from builtins import range
 import os
 import logging
 
-from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QPushButton, QApplication, QComboBox
+from qgis.PyQt.QtWidgets import (QWidget, QHBoxLayout, QPushButton,
+                                 QApplication, QComboBox)
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsField, QgsProject)
 import numpy as np
@@ -111,7 +112,7 @@ class MapAnimator(QWidget):
 
             nr_parameters_tot = combo_box.count()
             for i in reversed(list(range(nr_parameters_tot - nr_old_parameters,
-                                    nr_parameters_tot))):
+                                         nr_parameters_tot))):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):

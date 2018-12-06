@@ -1,5 +1,5 @@
 import logging
-from qgis.core import QgsMessageLog
+
 from qgis.core import Qgis
 from qgis.core import QgsMessageLog
 
@@ -9,6 +9,7 @@ LOGGING_TO_QGIS = {
     logging.WARNING: Qgis.Warning,
     logging.CRITICAL: Qgis.Critical
 }
+
 
 class QgisHandler(logging.Handler):
 

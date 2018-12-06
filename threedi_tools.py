@@ -25,7 +25,8 @@ from __future__ import absolute_import
 import os
 import os.path
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QObject
+from qgis.PyQt.QtCore import (QSettings, QTranslator, qVersion,
+                              QCoreApplication, QObject)
 from qgis.PyQt.QtWidgets import QAction, QLCDNumber
 from qgis.PyQt.QtGui import QIcon
 

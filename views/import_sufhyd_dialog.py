@@ -58,9 +58,9 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(self,
-                                               'Select import file',
-                                               init_path,
-                                               'Sufhyd (*.hyd)')
+                                                   'Select import file',
+                                                   init_path,
+                                                   'Sufhyd (*.hyd)')
 
         if filename:
             self.filename = filename

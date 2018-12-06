@@ -10,8 +10,8 @@ import shutil
 import sys
 
 try:
-    from qgis.core import (
-        QgsVectorLayer, QgsFeature, QgsPoint, QgsPointXY, QgsField, QgsGeometry)
+    from qgis.core import (QgsVectorLayer, QgsFeature, QgsPoint, QgsPointXY,
+                           QgsField, QgsGeometry)
 except ImportError:
     pass
 

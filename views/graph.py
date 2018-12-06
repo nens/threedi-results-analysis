@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 from builtins import str
 from builtins import range
-import pyqtgraph as pg
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
-from qgis.PyQt.QtWidgets import QTableView, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, QDockWidget, QComboBox, QMessageBox, QCheckBox
 
-from qgis.core import (QgsDataSourceUri, QgsFeatureRequest, Qgis,
+import pyqtgraph as pg
+
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
+from qgis.PyQt.QtWidgets import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
+                                 QSizePolicy, QPushButton, QSpacerItem,
+                                 QApplication, QTabWidget, QDockWidget,
+                                 QComboBox, QMessageBox, QCheckBox)
+from qgis.core import (QgsDataSourceUri, QgsFeatureRequest,
                        QgsCoordinateTransform, QgsCoordinateReferenceSystem,
-                       QgsWkbTypes)
-from qgis.core import QgsProject
+                       QgsWkbTypes, QgsProject)
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
-from ..datasource.netcdf import (
-    layer_qh_type_mapping, normalized_object_type)
+from ..datasource.netcdf import (layer_qh_type_mapping, normalized_object_type)
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message, messagebar_message
-from ..datasource.netcdf import (
-    SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES, AGGREGATION_VARIABLES,
-)
-from ..datasource.netcdf import (
-    CUMULATIVE_AGGREGATION_UNITS)
+from ..datasource.netcdf import (SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES,
+                                 AGGREGATION_VARIABLES,
+                                 CUMULATIVE_AGGREGATION_UNITS)
 
 
 def parse_aggvarname(aggvarname):
@@ -437,8 +437,8 @@ class LocationTimeseriesTable(QTableView):
 
 class GraphWidget(QWidget):
 
-    def __init__(self, parent=None, ts_datasource=None,
-                 parameter_config=[], name="", geometry_type=QgsWkbTypes.Point):
+    def __init__(self, parent=None, ts_datasource=None, parameter_config=[],
+                 name="", geometry_type=QgsWkbTypes.Point):
         super(GraphWidget, self).__init__(parent)
 
         self.name = name
@@ -485,7 +485,7 @@ class GraphWidget(QWidget):
 
         nr_parameters_tot = self.parameter_combo_box.count()
         for i in reversed(list(range(nr_parameters_tot - nr_old_parameters,
-                                nr_parameters_tot))):
+                                     nr_parameters_tot))):
             self.parameter_combo_box.removeItem(i)
 
         # self.graph_plot.set_parameter(self.current_parameter)
