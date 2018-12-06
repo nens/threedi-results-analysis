@@ -234,22 +234,18 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf-groundwater'
 
     """
-    # first detect netcdf file format
-    # then detect netcdf file format
-    from netCDF4 import Dataset
-    dataset = Dataset(netcdf_file_path, mode='r', format='NETCDF4')
-    if dataset.file_format == 'NETCDF3_CLASSIC':
-        return 'netcdf'
-    elif dataset.file_format == 'NETCDF4':
-        dataset.close()
-        import h5py
+    import h5py
+    try:
         dataset = h5py.File(netcdf_file_path, mode='r')
         if "threedicore_version" in dataset.attrs:
             return 'netcdf-groundwater'
         else:
             return 'netcdf'
-    else:
-        return
+    except IOError as e:
+        # old 3Di results cannot be opened with h5py. The can be opened with
+        # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
+        # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
+        return 'netcdf'
 
 
 def find_aggregation_netcdf(netcdf_file_path):

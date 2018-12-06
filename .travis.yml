@@ -25,7 +25,7 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
-  - docker-compose run qgis-desktop make test
+  - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
   - docker-compose run qgis-desktop make pep8
 
 notifications:
