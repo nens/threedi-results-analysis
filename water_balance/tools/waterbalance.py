@@ -942,6 +942,13 @@ class WaterBalanceTool(object):
             to_add = ('q_pump_cum', 'cumulative pump discharge')
             minimum_agg_vars.append(to_add)
 
+        # TODO: wait for threedigrid's e.g. 'ga.has_rained')
+        # u'rain' is always in simulated_vars_nodes. So it does not make sense
+        # to check there. Thus, we're gonna read the nc's rain data
+        if np.nanmax(ga.nodes.rain) > 0:
+            to_add = ('rain_cum', 'cumulative rain')
+            minimum_agg_vars.append(to_add)
+
         # ga.has_simple_infiltration and ga.has_interception are added to
         # threedigrid some months after groundwater release. To coop with the
         # .h5 that has been created in that period we use the meta data
@@ -970,10 +977,6 @@ class WaterBalanceTool(object):
 
         if 'q_lat' in simulated_vars_nodes:
             to_add = ('q_lat_cum', 'cumulative lateral discharge')
-            minimum_agg_vars.append(to_add)
-
-        if 'rain' in simulated_vars_nodes:
-            to_add = ('rain_cum', 'cumulative rain')
             minimum_agg_vars.append(to_add)
 
         if 'leak' in simulated_vars_nodes:

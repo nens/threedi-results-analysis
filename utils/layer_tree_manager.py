@@ -277,6 +277,7 @@ class LayerTreeManager(object):
                        'v2_culvert_view',
                        'v2_orifice_view',
                        'v2_pipe_view',
+                       'v2_culvert',
                        'v2_channel',
                        ]
         # additional_oned_layers = ['v2_manhole', # no geom
@@ -366,7 +367,6 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_cross_section_definition'),
                   (additional_oned_group, 'v2_windshielding'),
                   (additional_oned_group, 'v2_pumpstation'),
-                  (additional_oned_group, 'v2_culvert'),
                   (additional_oned_group, 'v2_manhole'),
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),

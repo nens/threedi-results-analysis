@@ -5,7 +5,12 @@ ThreeDiToolBox changelog
 1.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Waterbalance tool now correctly checks whether rain has been aplied to
+  simulation
+
+- Get rid of NetCDF4 lib
+
+- Add v2_culvert to layer_tree_manager
 
 
 1.6 (2018-11-28)
@@ -17,7 +22,7 @@ ThreeDiToolBox changelog
 1.5 (2018-11-26)
 ----------------
 
-- Add v2_culvert to layer_tree_manager
+- Add v2_culvert_view to layer_tree_manager
 
 
 1.4 (2018-11-26)
