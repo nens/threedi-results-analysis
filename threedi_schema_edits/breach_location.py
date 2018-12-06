@@ -163,8 +163,8 @@ class BreachLocation(object):
         # add a dummy point to be able to draw a line for the
         # last point
         extrapolated_point = get_extrapolated_point(
-            list(selected_points[INDEX_MAP[calc_type]].values())[0],  # xy tuple
-            list(selected_points[-1].values())[0],                    # xy tuple
+            list(selected_points[INDEX_MAP[calc_type]].values())[0],
+            list(selected_points[-1].values())[0],
         )
         selected_points.append({None: extrapolated_point})
         return selected_points
@@ -305,7 +305,8 @@ class BreachLocation(object):
                         fillvalue=(None, None))
                     )
                 else:
-                    to_update = dict(list(zip(connected_pnt_ids, new_positions)))
+                    to_update = dict(list(zip(connected_pnt_ids,
+                                              new_positions)))
 
                 self.update_connected_point_layer(to_update)
             _connected_pnt_ids = None
@@ -417,7 +418,7 @@ class BreachLocation(object):
             exp_end_pnt = QgsPointXY(
                 extrapolated_point[0], extrapolated_point[1]
             )
-            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])
+            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])  # noqa
         new_position = line_from_intersect.interpolate(self.distance_to_levee)
         return new_position, levee_id
 
