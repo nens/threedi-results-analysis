@@ -182,13 +182,13 @@ def optimize_blocksize(band, min_blocksize=256, max_blocksize=1024):
     block_area = block_height * block_width
     raster_area = raster_width * raster_height
     nr_blocks = raster_area / block_area
-    print 'block_height = ' + str(block_height)
-    print 'block_width = ' + str(block_width)
-    print 'block_area = ' + str(block_area)
-    print 'raster_height = ' + str(raster_height)
-    print 'raster_width = ' + str(raster_width)
-    print 'raster_area = ' + str(raster_area)
-    print 'nr_blocks = ' + str(nr_blocks)
+    # print 'block_height = ' + str(block_height)
+    # print 'block_width = ' + str(block_width)
+    # print 'block_area = ' + str(block_area)
+    # print 'raster_height = ' + str(raster_height)
+    # print 'raster_width = ' + str(raster_width)
+    # print 'raster_area = ' + str(raster_area)
+    # print 'nr_blocks = ' + str(nr_blocks)
     return block_width, block_height, nr_blocks
 
 
@@ -282,7 +282,6 @@ class RasterChecker(object):
                 return all_raster_ref
             except Exception as e:
                 log.error(e)
-                pass
 
     def get_foreign_keys(self):
         """
@@ -316,7 +315,6 @@ class RasterChecker(object):
             return foreign_keys
         except Exception as e:
             log.error(e)
-            pass
 
     def get_unique_settings_ids(self, ds):
         """
@@ -331,14 +329,15 @@ class RasterChecker(object):
             return unique_ids
         except Exception as e:
             log.error(e)
-            pass
 
-    def get_raster_ref_per_entrees(self, all_raster_ref, foreign_keys):
+    def get_entrees(self, all_raster_ref, foreign_keys):
         """
         group raster_ref per model_entree_id
         :param all_raster_ref:
         :param foreign_keys:
-        :return: entrees_dict
+        :return: entree_dict: a dictionary with
+            - keys = global_settings_id
+            - values = list with raster reference ['test1.tif, test2.tif]
         """
         entrees_dict = {}
 
@@ -369,7 +368,18 @@ class RasterChecker(object):
             if dem_used is False:
                 msg = 'entree id %d does not (but must) include a ' \
                       'dem_tif' % entree_id
+                self.messages.append("[Error]: {}. \n".format(msg))
                 del entrees_dict[entree_id]
+
+        # Perhaps change order of entrees.value() (=list of raster_path
+        # strings), so that the dem_raster is on the first index. The dem is
+        # the leading model raster when comparing two rasters
+        for settings_id, rasters in entrees_dict.iteritems():
+            dem = self.get_dem_per_entree(
+                entrees_dict, settings_id, all_raster_ref)
+            dem_index = rasters.index(dem)
+            if dem_index <> 0:
+                rasters[0], rasters[dem_index] = rasters[dem_index], rasters[0]
         return entrees_dict
 
     def get_dem_per_entree(self, entrees, entree_id, all_raster_ref):
@@ -381,13 +391,15 @@ class RasterChecker(object):
                             dem_per_entree = raster
             return dem_per_entree
 
-    def check_sqlite_exists(self):
+    def check0_sqlite_exists(self):
         # if sqlite exists, then return True, otherwise False
         if os.path.isfile(self.sqlite_path):
             msg = "found sqlite on your machine"
+            self.messages.append("[Info]: {}. \n".format(msg))
             return True
         else:
             msg = "could not find sqlite on your machine"
+            self.messages.append("[Error]: {}. \n".format(msg))
             return False
 
     def check1_entrees(self, entrees):
@@ -398,15 +410,16 @@ class RasterChecker(object):
         :return:
         """
         check_entrees = []
-        for key, value in entrees.iteritems():
-            if key and value:
-                msg = 'raster checker will check global settings entree ' \
-                      'id %d that includes rasters: %s' % (key, str(value))
+        for settings_id, rasters in entrees.iteritems():
+            if settings_id and rasters:
+                msg = 'raster checker will check global settings ' \
+                      'entree id %d that includes ' \
+                      'rasters: %s' % (settings_id, str(rasters))
                 self.messages.append("[Info]: {}. \n".format(msg))
                 check_entrees.append(True)
-            elif value is None:
+            elif rasters is None:
                 msg = 'no raster references found for global settings ' \
-                      'entree %d \n' % key
+                      'entree %d \n' % settings_id
                 self.messages.append("[Warning]: {}. \n".format(msg))
                 check_entrees.append(False)
 
@@ -458,6 +471,7 @@ class RasterChecker(object):
             for rast_item in value:
                 if rast_item[-4:] != '.tif':
                     msg = "exetension of %s must be  .tif" % rast_item
+                    self.messages.append("[Error]: {}. \n".format(msg))
                     check_tif_filename.append(False)
 
                 count_forward_slash = 0
@@ -476,8 +490,10 @@ class RasterChecker(object):
             # list is not empty
             if count_forward_slash > 1 or count_dot > 1:
                 msg = "only one '.' and '/' is allowed in relative path"
+                self.messages.append("[Error]: {}. \n".format(msg))
             msg = 'Invalid filename, please remove the special chars: ' + str(
                 invalid_chars_in_filename)
+            self.messages.append("[Error]: {}. \n".format(msg))
 
         if all(check_tif_filename):
             return True
@@ -518,12 +534,11 @@ class RasterChecker(object):
 
             dem = self.get_dem_per_entree(entrees, key, all_raster_ref)
             dem_index = value.index(dem)
-            if dem_index == 0:
-                pass
-            else:
+            if dem_index <> 0:
                 # change order of raster list 'value' so that the dem_raster
                 # becomes first to analyse. The dem is the leading model raster
                 value[0], value[dem_index] = value[dem_index], value[0]
+
             for raster_index, rast_item in enumerate(value):
                 raster_path = os.path.join(self.sqlite_dir, rast_item)
                 src_ds = gdal.Open(raster_path, GA_ReadOnly)
@@ -535,12 +550,14 @@ class RasterChecker(object):
                     if cnt_rasterband != 1:
                         msg = '%s.tif is not (but must be) a single-band ' \
                               'raster' % rast_item
+                        self.messages.append("[Error]: {}. \n".format(msg))
                         self.check_singleband.append(False)
                     elif cnt_rasterband == 1:
                         self.check_singleband.append(True)
                 except Exception as e:
                     log.error(e)
                     msg = 'unable to get raster bands'
+                    self.messages.append("[Warning]: {}. \n".format(msg))
                     self.check_singleband.append(False)
 
                 # check5. is the raster nodata -9999 ?
@@ -552,6 +569,7 @@ class RasterChecker(object):
                         self.check_nodata.append(False)
                         msg = 'no_data value %s.tif is not (but must be) ' \
                               '-9999' % rast_item
+                        self.messages.append("[Error]: {}. \n".format(msg))
                 except Exception as e:
                     log.error(e)
                     self.check_nodata.append(False)
@@ -567,6 +585,7 @@ class RasterChecker(object):
                     elif unit == 'degree':
                         msg = 'projection %s.tif is not (but must be) in ' \
                               'meters' % rast_item
+                        self.messages.append("[Error]: {}. \n".format(msg))
                         self.check_projectn.append(False)
                 except Exception as e:
                     log.error(e)
@@ -581,6 +600,7 @@ class RasterChecker(object):
                     else:
                         msg = 'datatype %s.tif is not (but must be) float_32' \
                               % rast_item
+                        self.messages.append("[Error]: {}. \n".format(msg))
                         self.check_flt32.append(False)
                 except Exception as e:
                     log.error(e)
@@ -596,10 +616,12 @@ class RasterChecker(object):
                         msg = "%s.tif is not (but should be) compressed " \
                               "please use gdal_translate -co " \
                               "'COMPRESS=DEFLATE'" % rast_item
+                        self.messages.append("[Error]: {}. \n".format(msg))
                         self.check_copmress.append(False)
                 except Exception as e:
                     msg = 'unable to get compression method for ' \
                           '%s.tif' % rast_item
+                    self.messages.append("[Error]: {}. \n".format(msg))
                     log.error(e)
                     self.check_flt32.append(False)
 
@@ -614,77 +636,59 @@ class RasterChecker(object):
                     cnt_decimal_yres = str(yres)[::-1].find('.')
 
                     if cnt_decimal_xres > 3 or cnt_decimal_yres > 3:
-                        msg = 'watch out! %s.tif has a pixel resolution with' \
-                              ' more than 3 decimals' % rast_item
+                        msg = '%s.tif has a pixel resolution with more than ' \
+                              'three decimals' % rast_item
+                        self.messages.append("[Warning]: {}. \n".format(msg))
                     if xres == yres:
                         self.check_square_pixels.append(True)
                     else:
                         self.check_square_pixels.append(False)
                 except Exception as e:
-                    msg = 'unable to get pixel resolution for %s.tif'\
+                    msg = 'unable to get pixel resolution for %s.tif' \
                           % rast_item
+                    self.messages.append("[Error]: {}. \n".format(msg))
                     log.error(e)
                     self.check_square_pixels.append(False)
 
-    # def get_src_ds(self, entrees):
-    #     for key, value in entrees.iteritems():
-    #         for rast_item in value:
-    #             raster_path = os.path.join(self.sqlite_dir, rast_item)
-    #             src_ds = gdal.Open(raster_path, GA_ReadOnly)
-    #             srcband = src_ds.GetRasterBand(1)
-    #     for raster in [rast_item for rast_item in value for key, value in
-    #      entrees_dict.iteritems()]:
-    #         raster_path = os.path.join(self.sqlite_dir, raster)
-    #         src_ds = gdal.Open(raster_path, GA_ReadOnly)
-    #         return src_ds
+    # def get_rasters_per_entree(self, settings_id, ):
     #
-    # def check4_singleband(self, src_ds):
-    #     # check4. is the raster singleband ?
-    #     check_singleband = []
-    #     try:
-    #         cnt_rasterband = src_ds.RasterCount
-    #         if cnt_rasterband <> 1:
-    #             msg = '%s.tif is not (but must be) a single-band ' \
-    #                   'raster' % rast_item
-    #             check_singleband.append(False)
-    #         elif cnt_rasterband == 1:
-    #             check_singleband.append(True)
-    #     except Exception as e:
-    #         log.error(e)
-    #         msg = 'unable to get raster bands'
-    #         check_singleband.append(False)
+    #     check_pixels(self, entrees, settings_id):
+    #     order_entrees = self.order_entrees_dem_first(entrees, all_raster_ref)
     #
-    #     if all(check_singleband):
-    #         return True
-    #     else:
-    #         return False
+    #     # string
+    #     dem_path = order_entrees.get('1')
     #
-    # a get_src_ds(entrees)
+    #     dict = {'Name': 'Zabra', 'Age': 7}
+    #     print "Value : %s" % dict.get('Age')
+    #
+    #
+    #     # string
+    #     dem_path
+    #
+    #     # list with strings
+    #     other_rasters
+    #
+    #     for settings_id, rasters in entrees.iteritems():
+    #         # the rasters are ordered (get_entrees() last part) so that the
+    #         # dem_file is at the first index
+    #         nr_rasters = len(rasters)
+    #         if nr_rasters == 0 or nr_rasters == 1:
+    #             # only a dem in settings_id, so skip this check for this entree
+    #             continue
+    #         else:
+    #             for other_raster in rasters[1:]:
+    #                 dem_path = os.path.join(self.sqlite_dir, rasters[0])
+    #                 other_tif_path = os.path.join(self.sqlite_dir, other_raster)
 
-    def check_pixels(self):
 
-        raster_path1 = '/home/renier.kramer/jupyter_notebook/rasterchecker' \
-                       '/dem_3di_logo.tif'
-        raster_path2 = '/home/renier.kramer/jupyter_notebook/rasterchecker' \
-                       '/dem_3di_logo_edit.tif'
 
-        raster_path1 = '/home/renier.kramer/jupyter_notebook/rasterchecker' \
-                       '/test1.tif'
-        raster_path2 = '/home/renier.kramer/jupyter_notebook/rasterchecker' \
-                       '/test2.tif'
+    def check_pixels(self, entree_id, dem, other_tif):
 
-        # raster_path1 = '/home/renier.kramer/jupyter_notebook/rasterchecker
-        # /wezep_dem_wezep5.tif'
-        # raster_path2 = '/home/renier.kramer/jupyter_notebook/rasterchecker
-        # /wezep_inf87_24_0.tif'
+        dem_path = os.path.join(self.sqlite_dir, dem)
+        other_tif_path = os.path.join(self.sqlite_dir, other_tif)
 
-        # raster_path1 = '/home/renier.kramer/jupyter_notebook/rasterchecker
-        # /bergermeer_5m.tif'
-        # raster_path2 = '/home/renier.kramer/jupyter_notebook/rasterchecker
-        # /bergermeer_5m_copy.tif'
-
-        raster1 = gdal.Open(raster_path1, GA_ReadOnly)
-        raster2 = gdal.Open(raster_path2, GA_ReadOnly)
+        raster1 = gdal.Open(dem_path, GA_ReadOnly)
+        raster2 = gdal.Open(other_tif_path, GA_ReadOnly)
 
         band1 = raster1.GetRasterBand(1)
         band2 = raster2.GetRasterBand(1)
@@ -693,8 +697,10 @@ class RasterChecker(object):
         w, h, nr_blocks = optimize_blocksize(band1)
 
         # create generators
-        raster1_generator = iter_blocks(band1, block_width=w, block_height=h)
-        raster2_generator = iter_blocks(band2, block_width=w, block_height=h)
+        raster1_generator = iter_blocks(band1, block_width=w,
+                                        block_height=h)
+        raster2_generator = iter_blocks(band2, block_width=w,
+                                        block_height=h)
 
         ulx, xres, xskew, uly, yskew, yres = raster1.GetGeoTransform()
         pixelsize = abs(min(xres, yres))
@@ -705,7 +711,8 @@ class RasterChecker(object):
         self.dem_nd_other_d_coor = []
         self.dem_d_other_nd_coor = []
 
-        for data1, data2 in izip(raster1_generator, raster2_generator):
+        for data1, data2 in izip(raster1_generator,
+                                 raster2_generator):
             bbox1, dem = data1
             data1 = None
             idx_nodata_dem = np.argwhere(dem == -9999.)
@@ -718,7 +725,8 @@ class RasterChecker(object):
             if len(idx_nodata_dem) > 1 and len(idx_nodata_b) > 1 and \
                     np.all(idx_nodata_dem == idx_nodata_b):
                 pass
-            elif len(idx_nodata_dem) < 1 and len(idx_nodata_b) < 1 and \
+            elif len(idx_nodata_dem) < 1 and len(
+                    idx_nodata_b) < 1 and \
                     np.array_equal(idx_nodata_dem, idx_nodata_b):
                 pass
             else:
@@ -737,7 +745,8 @@ class RasterChecker(object):
                         loc_row = l_up_row + bbox_row
                         x_coor = ulx + pixelsize * loc_col
                         y_coor = uly - pixelsize * loc_row
-                        self.dem_nd_other_d_coor.append([x_coor, y_coor])
+                        self.dem_nd_other_d_coor.append(
+                            [x_coor, y_coor])
                 for pixel in idx_nodata_b.tolist():
                     if pixel not in idx_nodata_dem.tolist():
                         bbox_row = pixel[0]
@@ -746,7 +755,8 @@ class RasterChecker(object):
                         loc_row = l_up_row + bbox_row
                         x_coor = ulx + pixelsize * loc_col
                         y_coor = uly - pixelsize * loc_row
-                        self.dem_d_other_nd_coor.append([x_coor, y_coor])
+                        self.dem_d_other_nd_coor.append(
+                            [x_coor, y_coor])
         print 'dem_nd_other_d_coor = ' + str(self.dem_nd_other_d_coor)
         print 'dem_d_other_nd_coor = ' + str(self.dem_d_other_nd_coor)
 
@@ -761,30 +771,43 @@ class RasterChecker(object):
         1.  check_raster_ref(self, entrees):
         """
 
-        if self.check_sqlite_exists():
-            pass
-        else:
-            raise Exception('could not find sqlite')
+        skip_all_checks = True
 
-        all_raster_ref = self.get_all_raster_ref()  # called only here
+        if self.check0_sqlite_exists():
+            skip_all_checks = False
 
-        foreign_keys = self.get_foreign_keys()  # called only here
+        if skip_all_checks == False:
+            all_raster_ref = self.get_all_raster_ref()  # called only here
+            foreign_keys = self.get_foreign_keys()  # called only here
 
         # get_unique_settings_ids
         # only called in get_raster_ref_per_entrees()
 
-        entrees = self.get_raster_ref_per_entrees(all_raster_ref, foreign_keys)
+        entrees = self.get_entrees(all_raster_ref, foreign_keys)
         # called only here
 
-        check_1 = self.check1_entrees(entrees)
-        check_2 = self.check2_tif_exists(entrees)
-        check_3 = self.check3_tif_filename(entrees)
+        # now loop over all entrees
+        for settings_id in entrees:
+            check_1 = self.check1_entrees(entrees)
+            check_2 = self.check2_tif_exists(entrees)
+            check_3 = self.check3_tif_filename(entrees)
+            if not all([check_1, check_2, check_3]):
+                msg = 'check 1 till 3 did not succeed for global settings ' \
+                      'entree %d. Therefore, the successive checks for this' \
+                      'global settings entree can not be executed. Please ' \
+                      'fix and try again \n' % settings_id
+                self.messages.append("[Error]: {}. \n".format(msg))
+            else:
+                msg = 'check 1 till 3 succeeded for global settings ' \
+                      'entree %d. Successive checks for this global settings ' \
+                      'entree will be executed \n' % settings_id
+                self.messages.append("[Info]: {}. \n".format(msg))
 
-        # checks456789
-        self.checks4_to_9(entrees, all_raster_ref)
+                # checks456789
+                self.checks4_to_9(entrees, all_raster_ref)
 
         # check 10
-        self.check_pixels()
+        self.check_pixels(entrees, all_raster_ref)
 
     def create_log(self):
         timestr = time.strftime("_%Y%m%d_%H%M%S")
@@ -869,12 +892,7 @@ class RasterChecker(object):
         # """Run the raster checks."""
         self.reset_messages()  # start with no messages
 
-        try:
-            self.all_checks()
-        except Exception as e:
-            msg = "all checks lukt niet jongen"
-            log.error(msg)
-            log.error(e)
+        self.all_checks()
 
         try:
             self.close_session()
@@ -910,37 +928,6 @@ class RasterChecker(object):
             return " ".join(self.messages)
         else:
             return "no messages"
-
-# foreign_keys = [
-#     ('v2_global_settings', 3, 'interflow_settings_id', 1),
-#     ('v2_global_settings', 3, 'simple_infiltration_settings_id', 1)
-# ]
-#
-# all_raster_ref = [
-#     ('v2_global_settings', 3, 'dem_file', u'rasters/dem_wezep5.tif'),
-#     ('v2_global_settings', 3, 'frict_coef_file', u'rasters/
-# friction_wezep7.tif'),
-#     ('v2_global_settings', 3, 'initial_waterlevel_file', u'rasters/
-# ini05.tif')
-# ]
-#
-# entrees_dict = {3: [u'rasters/dem_wezep5.tif',
-#                     u'rasters/friction_wezep7.tif',
-#                     u'rasters/ini05.tif']
-#                 }
-#
-# for key, value in entrees_dict.iteritems():
-#     for rast_item in value:
-#         print rast_item
-
-# list comprehension syntax (double for loop in 1 line)
-# if you want to avoid multiple for loops below eachother, like this:
-# for x_item in x:
-#     for y_item in y:
-#         if y_item == x_item:
-#             dothis
-# # you can do that in 1 line, like this:
-# [dothis for y_item in y for x_item in x if y_item == x_item]
 
 
 """
