@@ -45,10 +45,8 @@ class CustomCommand(CustomCommandBase):
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, action_list, db_set, db_type):
-
         db = ThreediDatabase(db_set, db_type)
         checker = RasterChecker(db)
         msg = checker.run(action_list)
-
-        messagebar_message('Raster checker ready', msg, duration=20)
-        log.info('Raster checker ready.\n' + msg)
+        messagebar_message('Raster checker ready', msg, duration=2)
+        log.info('Raster checker ready')  # .\n' + msg)

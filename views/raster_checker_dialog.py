@@ -116,12 +116,17 @@ class RasterCheckerDialogWidget(QDialog):
 
         checks = []
 
+        # TODO: check_all_rasters always runs. Enable check per model entree
         if self.check_all_rasters.isChecked():
             checks.append('check all rasters')
-
-            # this option may only be Checked when 'check_all_rasters' is..
-            if self.improve_when_necessary.isChecked():
-                checks.append('improve when necessary')
+            # check_pixels may only be checked when 'check_all_rasters' is
+            # checked
+            if self.check_pixels.isChecked():
+                checks.append('check pixels')
+                # improve_when_necessary may only be checked when
+                # 'check_all_rasters' is checked
+                if self.improve_when_necessary.isChecked():
+                    checks.append('improve when necessary')
 
         self.command.run_it(checks, db_set, settings['db_type'])
 
@@ -137,7 +142,6 @@ class RasterCheckerDialogWidget(QDialog):
         Close widget, called by Qt on close
         :param event: QEvent, close event
         """
-
         self.buttonBox.accepted.disconnect(self.on_accept)
         self.buttonBox.rejected.disconnect(self.on_reject)
 
@@ -179,21 +183,19 @@ class RasterCheckerDialogWidget(QDialog):
 
         self.check_all_rasters = QCheckBox(self.groupBox)
         self.check_all_rasters.setChecked(True)
+        self.check_all_rasters.setDisabled(True)
         self.verticalLayoutBox.addWidget(self.check_all_rasters)
 
+        self.check_pixels = QCheckBox(self.groupBox)
+        self.check_pixels.setChecked(False)
+        self.verticalLayoutBox.addWidget(self.check_pixels)
+
         self.improve_when_necessary = QCheckBox(self.groupBox)
-        self.improve_when_necessary.setChecked(True)
+        self.improve_when_necessary.setChecked(False)
+        self.improve_when_necessary.setDisabled(True)
         self.verticalLayoutBox.addWidget(self.improve_when_necessary)
-        #
-        # self.check_tif_extension = QCheckBox(self.groupBox)
-        # self.check_tif_extension.setChecked(True)
-        # self.verticalLayoutBox.addWidget(self.check_tif_extension)
 
         self.verticalLayout.addWidget(self.groupBox)
-        #
-        # self.check_all_tifs = QCheckBox(self)
-        # self.check_all_tifs.setChecked(True)
-        # self.verticalLayout.addWidget(self.check_all_tifs)
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
@@ -203,10 +205,8 @@ class RasterCheckerDialogWidget(QDialog):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                        self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                        self.reject)
+        QObject.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
+        QObject.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
@@ -217,16 +217,17 @@ class RasterCheckerDialogWidget(QDialog):
         self.groupBox.setTitle(_translate("Import_dialog", "Options", None))
 
         self.check_all_rasters.setText(_translate(
-            "Import_dialog", "1. Check all rasters of your model ", None))
+            "Import_dialog",
+            "1. Check all rasters of all v2_global_settings rows",
+            None))
 
-        self.improve_when_necessary.setText(
-            _translate("Import_dialog",
-                       "2. Improve when necessary (only in combination "
-                       "with option 1)",
-                       None))
+        self.check_pixels.setText(_translate(
+            "Import_dialog",
+            "2. Compare rasters per pixel (may take long! "
+            "(only in combination with option 1)",
+            None))
 
-        # self.check_tif_extension.setText(
-        #     _translate("Import_dialog", "Extension correct?", None))
-        #
-        # self.check_all_tifs.setText(
-        #     _translate("Import_dialog", "Check all tifs", None))
+        self.improve_when_necessary.setText(_translate(
+            "Import_dialog",
+            "3. Improve when necessary (only in combination with option 2)",
+            None))
