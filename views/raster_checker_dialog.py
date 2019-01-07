@@ -223,8 +223,7 @@ class RasterCheckerDialogWidget(QDialog):
 
         self.check_pixels.setText(_translate(
             "Import_dialog",
-            "2. Compare rasters per pixel (may take long! "
-            "(only in combination with option 1)",
+            "2. Compare pixel alignment (only in combination with option 1)",
             None))
 
         self.improve_when_necessary.setText(_translate(
