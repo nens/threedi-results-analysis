@@ -13,6 +13,7 @@ from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
 from qgis.gui import QgsCredentialDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
+import os
 
 log = logging.getLogger(__name__)
 
@@ -42,91 +43,45 @@ class RasterCheckerDialogWidget(QDialog):
         super(RasterCheckerDialogWidget, self).__init__(parent)
         self.checks = checks
         self.setupUi(checks)
-
         self.command = command
 
-        self.databases = get_databases()
+        # rasterchecker only works on spatialte db (and not also postgres db)
+        self.databases = {}
+        self.all_databases = get_databases()
+        for k, v in self.all_databases.iteritems():
+            if 'spatialite' in k:
+                if v['db_name']:
+                    self.databases[k] = v
+
         self.database_combo.addItems(self.databases.keys())
 
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
 
-        self.filename = None
-
     def on_accept(self):
         """Accept and run the Command.run_it method."""
-
         db_key = self.database_combo.currentText()
-
         settings = self.databases[db_key]
         db_set = settings['db_settings']
 
-        if settings['db_type'] == 'spatialite':
-            pass
-        else:  # postgres
-
-            successful_connection = False
-
-            uname = db_set['username']
-            passwd = db_set['password']
-            msg = 'Log in'
-
-            while not successful_connection:
-
-                uri = QgsDataSourceURI()
-                uri.setConnection(db_set['host'],
-                                  db_set['port'],
-                                  db_set['database'],
-                                  db_set['username'],
-                                  db_set['password'])
-
-                # try to connect
-                # create a PostgreSQL connection using QSqlDatabase
-                db = QSqlDatabase.addDatabase('QPSQL')
-                # check to see if it is valid
-
-                db.setHostName(uri.host())
-                db.setDatabaseName(uri.database())
-                try:
-                    # port can be an empty string, e.g. for spatialite db's
-                    db.setPort(int(uri.port()))
-                except ValueError:
-                    pass
-                db.setUserName(uri.username())
-                db.setPassword(uri.password())
-
-                # open (create) the connection
-                if db.open():
-                    successful_connection = True
-                    break
-                else:
-                    # todo - provide feedback what is wrong
-                    pass
-
-                connInfo = uri.connectionInfo()
-                (success, uname, passwd) = QgsCredentialDialog.instance().get(
-                    connInfo, uname, passwd, msg)
-
-                if success:
-                    db_set['username'] = passwd
-                    db_set['password'] = uname
-                else:
-                    return
-
-        checks = []
+        if not os.path.isfile(db_set['db_path']):
+            msg = 'sqlite %s not found' % str(db_set['db_path'])
+            raise Exception(msg)
 
         # TODO: check_all_rasters always runs. Enable check per model entree
+        checks = []
         if self.check_all_rasters.isChecked():
             checks.append('check all rasters')
             # check_pixels may only be checked when 'check_all_rasters' is
             # checked
             if self.check_pixels.isChecked():
                 checks.append('check pixels')
+                # TODO: write improve first
                 # improve_when_necessary may only be checked when
                 # 'check_all_rasters' is checked
-                if self.improve_when_necessary.isChecked():
-                    checks.append('improve when necessary')
+                # if self.improve_when_necessary.isChecked():
+                #     checks.append('improve when necessary')
 
         self.command.run_it(checks, db_set, settings['db_type'])
 
@@ -151,19 +106,6 @@ class RasterCheckerDialogWidget(QDialog):
 
         self.resize(515, 250)
         self.verticalLayout = QVBoxLayout(self)
-
-        # self.file_combo = QComboBox(self.horizontalLayoutWidget)
-        # sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.file_combo.sizePolicy().hasHeightForWidth())
-        # self.file_combo.setSizePolicy(sizePolicy)
-        # self.file_combo.setObjectName("file_combo")
-        # self.horizontalLayout.addWidget(self.file_combo)
-        #
-        # self.file_button = QPushButton(self.horizontalLayoutWidget)
-        # self.file_button.setObjectName("file_button")
-        # self.horizontalLayout.addWidget(self.file_button)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
@@ -190,10 +132,11 @@ class RasterCheckerDialogWidget(QDialog):
         self.check_pixels.setChecked(False)
         self.verticalLayoutBox.addWidget(self.check_pixels)
 
-        self.improve_when_necessary = QCheckBox(self.groupBox)
-        self.improve_when_necessary.setChecked(False)
-        self.improve_when_necessary.setDisabled(True)
-        self.verticalLayoutBox.addWidget(self.improve_when_necessary)
+        # TODO: write improve function first
+        # self.improve_when_necessary = QCheckBox(self.groupBox)
+        # self.improve_when_necessary.setChecked(False)
+        # self.improve_when_necessary.setDisabled(True)
+        # self.verticalLayoutBox.addWidget(self.improve_when_necessary)
 
         self.verticalLayout.addWidget(self.groupBox)
 
@@ -226,7 +169,8 @@ class RasterCheckerDialogWidget(QDialog):
             "2. Compare pixel alignment (only in combination with option 1)",
             None))
 
-        self.improve_when_necessary.setText(_translate(
-            "Import_dialog",
-            "3. Improve when necessary (only in combination with option 2)",
-            None))
+        # TODO: write improve function first
+        # self.improve_when_necessary.setText(_translate(
+        #     "Import_dialog",
+        #     "3. Improve when necessary (only in combination with option 2)",
+        #     None))

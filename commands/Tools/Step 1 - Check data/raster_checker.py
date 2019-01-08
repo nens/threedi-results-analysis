@@ -23,9 +23,7 @@ class CustomCommand(CustomCommandBase):
         name = "Raster Checker script"
         value = 1
 
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+    def __init__(self, **kwargs):
         self._fields = sorted(
             [(name, cl) for name, cl in
              inspect.getmembers(self.Fields,

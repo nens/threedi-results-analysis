@@ -115,7 +115,7 @@ class DataModelSource(object):
 class RasterChecker(object):
     """
     Class for checking all rasters in a sqlie we create abstract models of
-    each table in the datasource (sqlite/ postgres) that contains possible
+    each table in the datasource sqlite that contains possible
     raster reference links. We do this as:
     1. the datasource tablestructure has been modified a lot the last
     years;
@@ -149,8 +149,6 @@ class RasterChecker(object):
         self.sqlite_dir, self.sqltname_with_ext = os.path.split(
             self.sqlite_path)
         self.sqltname_without_ext = os.path.splitext(self.sqltname_with_ext)[0]
-        self.a = None
-        self.b = None
 
     def reset_messages(self):
         """Reset messages."""
@@ -425,18 +423,6 @@ class RasterChecker(object):
             count_nodata += add_cnt_nodata
             count_data += add_cnt_data
         return count_data, count_nodata
-
-    def check0_sqlite_exists(self):
-        # if sqlite exists return True, otherwise False
-        if os.path.isfile(self.sqlite_path):
-            msg = "found sqlite %s on your machine" % self.sqlite_path
-            self.messages.append("[Info]: {}. \n".format(msg))
-            return True
-        else:
-            header = 'File not found'
-            msg = "could not find %s on your machine" % self.sqlite_path
-            pop_up_info(msg, header)
-            return False
 
     def check1_entrees(self, setting_id, rasters):
         """
@@ -1078,28 +1064,20 @@ class RasterChecker(object):
         if np.any(compare_mask):
             self.get_wrong_pixel(setting_id, other_tif, bbox1, compare_mask)
 
-    def run_all_checks(self, pixel_checker=False):
+    def run_all_checks(self, run_pixel_checker=False):
 
-        self.found_sqlite = False
         self.id_track_1_3 = []
         self.id_track_4_10 = []
         self.id_track_11_13 = []
         self.id_track_14_15 = []
 
-        if self.check0_sqlite_exists():
-            all_raster_ref = self.get_all_raster_ref()  # called only here
-            foreign_keys = self.get_foreign_keys()  # called only here
-            entrees = self.get_entrees(all_raster_ref, foreign_keys)
-            self.found_sqlite = True
-        else:
-            # sqlite selected could not be found, so checks stop here
-            self.found_sqlite = False
-            return
+        all_raster_ref = self.get_all_raster_ref()  # called only here
+        foreign_keys = self.get_foreign_keys()  # called only here
+        entrees = self.get_entrees(all_raster_ref, foreign_keys)
 
         # check 1 - 3
         for setting_id, rasters in entrees.iteritems():
-            if self.found_sqlite:
-                self.run_checks1_to_3(setting_id, rasters)
+            self.run_checks1_to_3(setting_id, rasters)
 
         # check 4 - 10
         for setting_id, rasters in entrees.iteritems():
@@ -1118,7 +1096,7 @@ class RasterChecker(object):
                     self.run_checks11_to_15(setting_id, rasters)
 
         # check 16
-        if pixel_checker:
+        if run_pixel_checker:
             for setting_id, rasters in entrees.iteritems():
                 if setting_id in self.id_track_14_15:
                     self.input_data_shp = []
@@ -1222,16 +1200,15 @@ class RasterChecker(object):
         :return:
         """
 
-        # renier ff voor de demo gecopied naar andere plek
         self.reset_messages()  # start with no messages
         self.init_messages()  # enter some (general) explaining lines
 
         # TODO: now checks are done for all entrees. Enable checks for 1 entree
         if 'check all rasters' in checks:
             if 'check pixels' in checks:
-                self.run_all_checks(pixel_checker=True)
+                self.run_all_checks(run_pixel_checker=True)
             else:
-                self.run_all_checks(pixel_checker=False)
+                self.run_all_checks(run_pixel_checker=False)
 
         if 'improve when necessary' in checks:
             pass  # TODO: write improvement function
