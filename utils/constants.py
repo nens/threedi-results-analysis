@@ -65,3 +65,58 @@ DICT_ACTION_TYPES = {
     "pumpstation": ["set_capacity"],
     "weir": ["set_crest_level", "set_discharge_coefficient"]
 }
+
+
+v2_tables_list = [
+    'v2_1d_boundary_conditions',
+    'v2_1d_lateral',
+    'v2_2d_boundary_conditions',
+    'v2_2d_lateral',
+    'v2_aggregation_settings',
+    'v2_calculation_point',
+    'v2_channel',
+    'v2_connected_pnt',
+    'v2_connection_nodes',
+    'v2_control',
+    'v2_control_delta',
+    'v2_control_group',
+    'v2_control_measure_group',
+    'v2_control_measure_map',
+    'v2_control_memory',
+    'v2_control_pid',
+    'v2_control_table',
+    'v2_control_timed',
+    'v2_cross_section_definition',
+    'v2_cross_section_location',
+    'v2_cross_section_view',
+    'v2_culvert',
+    'v2_culvert_view',
+    'v2_dem_average_area',
+    'v2_global_settings',
+    'v2_grid_refinement',
+    'v2_grid_refinement_area',
+    'v2_groundwater',
+    'v2_impervious_surface',
+    'v2_impervious_surface_map',
+    'v2_interflow',
+    'v2_levee',
+    'v2_manhole',
+    'v2_manhole_view',
+    'v2_numerical_settings',
+    'v2_obstacle',
+    'v2_orifice',
+    'v2_pipe',
+    'v2_pumpstation',
+    'v2_simple_infiltration',
+    'v2_surface',
+    'v2_surface_map',
+    'v2_surface_parameters',
+    'v2_weir',
+    'v2_windshielding',
+]
+
+non_settings_tbl_with_rasters = [
+    ['v2_simple_infiltration', 'simple_infiltration_setting_id'],
+    ['v2_groundwater', 'groundwater_setting_id'],
+    ['v2_interflow', 'interflow_setting_id']
+]

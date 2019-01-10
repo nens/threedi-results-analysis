@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from sqlalchemy import (Table, MetaData, select)
+from sqlalchemy import MetaData
 
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info, messagebar_message)
+
+from ThreeDiToolbox.utils.raster_checker_prework import (
+    DataModelSource, RasterCheckerEntrees)
+
+from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
+
 from sqlalchemy.ext.declarative import declarative_base
 import time
 import os
@@ -24,109 +31,33 @@ from itertools import (izip, chain)
 log = logging.getLogger(__name__)
 Base = declarative_base()
 
-"""
-Module that checks the rasters of a threedi model on multiple requirements:
-1: Does the model entree refer to at least one raster?
-2: Do these referenced rasters exists?
-3: Is the raster filename valid?
-4: Is the raster single band?
-5: Is the nodata value -9999?
-6: Does raster have UTM projection (unit in meters)?
-7: Is the data type float 32?
-8: Is the raster compressed (compression=deflate)?
-9: Are the pixels square?
-10: No extreme pixel values?
-11: Cumulative pixel count of all rasters in one model entree < 1 billion?
-12: Is the projection equal to the dem projection?
-13: Is the pixel size equal to the dem pixel size?
-14: Is the number of data/nodata pixels equal to the dem?
-15: Is the number of rows-colums equal to the dem?
-16: Are pixels correctly aligned when comparing the dem with another raster?
-"""
-
-v2_tables_list = [
-    'v2_1d_boundary_conditions',
-    'v2_1d_lateral',
-    'v2_2d_boundary_conditions',
-    'v2_2d_lateral',
-    'v2_aggregation_settings',
-    'v2_calculation_point',
-    'v2_channel',
-    'v2_connected_pnt',
-    'v2_connection_nodes',
-    'v2_control',
-    'v2_control_delta',
-    'v2_control_group',
-    'v2_control_measure_group',
-    'v2_control_measure_map',
-    'v2_control_memory',
-    'v2_control_pid',
-    'v2_control_table',
-    'v2_control_timed',
-    'v2_cross_section_definition',
-    'v2_cross_section_location',
-    'v2_cross_section_view',
-    'v2_culvert',
-    'v2_culvert_view',
-    'v2_dem_average_area',
-    'v2_global_settings',
-    'v2_grid_refinement',
-    'v2_grid_refinement_area',
-    'v2_groundwater',
-    'v2_impervious_surface',
-    'v2_impervious_surface_map',
-    'v2_interflow',
-    'v2_levee',
-    'v2_manhole',
-    'v2_manhole_view',
-    'v2_numerical_settings',
-    'v2_obstacle',
-    'v2_orifice',
-    'v2_pipe',
-    'v2_pumpstation',
-    'v2_simple_infiltration',
-    'v2_surface',
-    'v2_surface_map',
-    'v2_surface_parameters',
-    'v2_weir',
-    'v2_windshielding',
-]
-
-non_settings_tbl_with_rasters = [
-    ['v2_simple_infiltration', 'simple_infiltration_setting_id'],
-    ['v2_groundwater', 'groundwater_setting_id'],
-    ['v2_interflow', 'interflow_setting_id']
-]
-
-class DataModelSource(object):
-    def __init__(self, metadata):
-        self.dms_metatdata = metadata
-        for tblname in v2_tables_list:
-            try:
-                __table__ = Table(tblname, metadata, autoload=True)
-                setattr(self, tblname, __table__)
-            except Exception as e:
-                msg = "table {tbl_xx} could not be converted into a " \
-                      "SQLAlchemy Table".format(tbl_xx=tblname)
-                log.error(msg)
-                log.error(e)
-
+# 3 Classes
+    # 1. DataModelSource (in module raster_checker_prework):
+        # gets all tables from the sqlite)
+    # 2. RasterCheckerPreWork (in module raster_checker_prework):
+        # get all raster references per entree from DataModelSource
+    # 3. RasterChecker (in this module):
+        # checks all references (16 checks eventually)
 
 class RasterChecker(object):
     """
-    Class for checking all rasters in a sqlie we create abstract models of
-    each table in the datasource sqlite that contains possible
-    raster reference links. We do this as:
-    1. the datasource tablestructure has been modified a lot the last
-    years;
-    2. the raster checker should work for all sqlites (also those of 3
-    years ago);
-    3. users should not have to migrate the sqlite before they can use the
-    checker;
-    4: the models in sql_models/model_schematisation are outdated;
-    5. we do not want to care about all the possilbe combinations of table
-    content;
-    6. luckly enough the column names did not change the last years;
+    class that checks the rasters of a threedi model on multiple requirements:
+    1: Does the model entree refer to at least one raster?
+    2: Do these referenced rasters exists?
+    3: Is the raster filename valid?
+    4: Is the raster single band?
+    5: Is the nodata value -9999?
+    6: Does raster have UTM projection (unit in meters)?
+    7: Is the data type float 32?
+    8: Is the raster compressed (compression=deflate)?
+    9: Are the pixels square?
+    10: No extreme pixel values?
+    11: Cumulative pixel count of all rasters in one model entree < 1 billion?
+    12: Is the projection equal to the dem projection?
+    13: Is the pixel size equal to the dem pixel size?
+    14: Is the number of data/nodata pixels equal to the dem?
+    15: Is the number of rows-colums equal to the dem?
+    16: Are pixels correctly aligned when comparing the dem with another raster?
     """
 
     def __init__(self, threedi_database):
@@ -140,15 +71,15 @@ class RasterChecker(object):
         # datamodel required for dynamic creation of ORM models
         self.engine = self.db.get_engine()
         self.metadata = MetaData(bind=self.engine)
-        self.datamodel = DataModelSource(self.metadata)
-        # user messages in Qgis
-        self.messages = []
 
-        self.sqlite_path = str(self.db.settings['db_path'])
-        # e.g. '/home/renier.kramer/Desktop/wezep/wezep2.sqlite'
-        self.sqlite_dir, self.sqltname_with_ext = os.path.split(
-            self.sqlite_path)
-        self.sqltname_without_ext = os.path.splitext(self.sqltname_with_ext)[0]
+        datamodel = DataModelSource(self.metadata)
+        self.entrees = RasterCheckerEntrees(
+            datamodel, self.session).get_entrees()
+
+        sqlite_path = str(self.db.settings['db_path'])
+        self.sqlite_dir =  os.path.split(sqlite_path)[0]
+
+        self.results = RasterCheckerResults(sqlite_path)
 
     def reset_messages(self):
         """Reset messages."""
@@ -184,7 +115,8 @@ class RasterChecker(object):
               '-- Pixel comparison: -- \n' \
               'check 16: Are pixels correctly aligned when comparing the ' \
               'dem with another raster: ?\n\n ' \
-              '-- Report: --\n'
+              '-- Report: --\n' \
+              'Level, setting_id, raster, check, message \n'
         self.messages.append("{}".format(msg))
 
     def close_session(self):
@@ -193,156 +125,12 @@ class RasterChecker(object):
         except Exception as e:
             log.error(e)
 
-    def get_all_raster_ref(self):
-        """
-        get all raster references from the datamodel (and their
-        # tablename, columnname, rowid)
-        :param :
-        :return:
-        """
-        table_list = [a for a in dir(self.datamodel) if a.startswith('v2_')]
-        file_tbl = []
-        file_id = []
-        file_column = []
-        file_name = []
-        for tbl in set(table_list):
-            try:
-                all_columns = getattr(self.datamodel, tbl).columns.keys()
-                for column in all_columns:
-                    if '_file' in column:
-                        get_table = getattr(self.datamodel, tbl).c
-                        get_column = getattr(get_table, column)
-                        q = select([get_column, get_table.id])
-                        res = self.session.execute(q)
-                        for row in res:
-                            if row[column]:  # e.g. row['dem_file'] not None:
-                                file_tbl.append(tbl)
-                                file_id.append(row['id'])
-                                file_column.append(column)
-                                file_name.append(row[column])
-                all_raster_ref = zip(file_tbl, file_id, file_column, file_name)
-                return all_raster_ref
-            except Exception as e:
-                log.error(e)
-
-    def get_foreign_keys(self):
-        """
-        get all foreign keys from v2_global_settings to other tables that may
-        contain raster references
-        :param :
-        :return:
-        """
-        file_tbl = []
-        file_id = []
-        file_column = []
-        file_name = []
-        tbl_settings = 'v2_global_settings'
-        all_settings_columns = getattr(
-            self.datamodel, tbl_settings).columns.keys()
-        try:
-            for column in all_settings_columns:
-                for tbl_xxx, fk_column in non_settings_tbl_with_rasters:
-                    if fk_column == column:
-                        get_table = getattr(self.datamodel, tbl_settings).c
-                        get_column = getattr(get_table, fk_column)
-                        q = select([get_column, get_table.id])
-                        res = self.session.execute(q)
-                        for row in res:
-                            if row[column]:
-                                file_tbl.append(tbl_settings)
-                                file_id.append(row['id'])
-                                file_column.append(column)
-                                file_name.append(row[column])
-            foreign_keys = zip(file_tbl, file_id, file_column, file_name)
-            return foreign_keys
-        except Exception as e:
-            log.error(e)
-
-    def get_unique_setting_ids(self, ds):
-        """
-        get all uniqe_ids from v2_global_settings
-        item[0] = tbl, item[1] = id, item[2] = clm_name, item[3] = file_name
-        :param ds:
-        :return:
-        """
-        try:
-            unique_ids = list(set([item[1] for item in
-                                   ds if item[0] == 'v2_global_settings']))
-            return unique_ids
-        except Exception as e:
-            log.error(e)
-
-    def get_entrees(self, all_raster_ref, foreign_keys):
-        """
-        group raster_ref per model_entree_id
-        :param all_raster_ref:
-        :param foreign_keys:
-        :return: entree_dict: a dictionary with
-            - keys = global_setting_id
-            - values = list with raster reference ['test1.tif, test2.tif]
-        """
-        entrees_dict = {}
-
-        model_entree_ids = self.get_unique_setting_ids(all_raster_ref)
-        for entree_id in model_entree_ids:
-            entrees_dict.setdefault(entree_id, [])
-            dem_used = False
-            for ref_item in all_raster_ref:
-                ref_tbl_name = ref_item[0]
-                ref_setting_id = ref_item[1]
-                ref_column_name = ref_item[2]
-                ref_raster_str = ref_item[3]
-                if ref_column_name == 'dem_file':
-                    dem_used = True
-                if ref_setting_id == entree_id and \
-                        ref_tbl_name == 'v2_global_settings':
-                    entrees_dict[entree_id].append(ref_raster_str)
-                for tbl, column in non_settings_tbl_with_rasters:
-                    if ref_tbl_name == tbl:
-                        for fk_item in foreign_keys:
-                            fk_setting_id = fk_item[1]
-                            fk_column_name = fk_item[2]
-                            fk_id = fk_item[3]
-                            if fk_setting_id == entree_id \
-                                    and fk_column_name == column \
-                                    and fk_id == ref_setting_id:
-                                entrees_dict[entree_id].append(ref_raster_str)
-            if dem_used is False:
-                msg = 'entree id %d does not (but must) include an elevation' \
-                      ' raster' % entree_id
-                self.messages.append("[Error]: {}. \n".format(msg))
-                del entrees_dict[entree_id]
-
-        # Change order of entrees.value() (=list of raster_path strings), so
-        # that the dem_raster is on the first index. The dem is the leading
-        # model raster when comparing two rasters
-        for setting_id, rasters in entrees_dict.iteritems():
-            dem = self.get_dem_per_entree(
-                entrees_dict, setting_id, all_raster_ref)
-            dem_index = rasters.index(dem)
-            if dem_index <> 0:
-                rasters[0], rasters[dem_index] = rasters[dem_index], rasters[0]
-        return entrees_dict
-
-    def get_dem_per_entree(self, entrees, entree_id, all_raster_ref):
-        for entree_id_item, rasters in entrees.iteritems():
-            if entree_id_item == entree_id:
-                for raster in rasters:
-                    for item in all_raster_ref:
-                        if raster == item[3] and item[2] == 'dem_file':
-                            dem_per_entree = raster
-            return dem_per_entree
-
-    def _iter_block_row(self, band, offset_y, block_height, block_width,
+    def iter_block_row(self, band, offset_y, block_height, block_width,
                         no_data_value):
         ncols = int(band.XSize / block_width)
         for i in range(ncols):
             arr = band.ReadAsArray(i * block_width, offset_y, block_width,
                                    block_height)
-            # if no_data_value is not None:
-            #     arr[arr == no_data_value] = -9999.
-            # idx_nodata = np.argwhere(arr == -9999.)
-            # arr = None
             yield (i * block_width, offset_y, (i + 1) * block_width, offset_y +
                    block_height), arr
         # possible leftover block
@@ -350,9 +138,6 @@ class RasterChecker(object):
         if width > 0:
             arr = band.ReadAsArray(i * block_width, offset_y, width,
                                    block_height)
-            # if no_data_value is not None:
-            #     arr[arr == no_data_value] = -9999.
-            # idx_nodata = np.argwhere(arr == no_data_value)
             yield (ncols * block_width, offset_y, ncols * block_width + width,
                    offset_y + block_height), arr
             # offset_y + block_height), arr
@@ -364,14 +149,14 @@ class RasterChecker(object):
         nrows = int(band.YSize / block_height)
         no_data_value = band.GetNoDataValue()
         for j in range(nrows):
-            for block in self._iter_block_row(band, j * block_height,
+            for block in self.iter_block_row(band, j * block_height,
                                               block_height, block_width,
                                               no_data_value):
                 yield block
         # possible leftover row
         height = band.YSize - (nrows * block_height)
         if height > 0:
-            for block in self._iter_block_row(band, nrows * block_height,
+            for block in self.iter_block_row(band, nrows * block_height,
                                               height, block_width,
                                               no_data_value):
                 yield block
@@ -424,31 +209,27 @@ class RasterChecker(object):
             count_data += add_cnt_data
         return count_data, count_nodata
 
-    def check1_entrees(self, setting_id, rasters):
+    def check_entrees(self, setting_id, rasters, check_id):
         """
         check 1. does a global settings entrees exists with references
         to raster(s)?
         :param entrees:
         :return:
         """
-        check_entrees = []
         if setting_id and rasters:
-            msg = 'raster checker will check v2_global_settings id %d that ' \
-                  'includes rasters: %s' % (setting_id, str(rasters))
-            self.messages.append("[Info]: {}. \n".format(msg))
-            check_entrees.append(True)
-        elif rasters is None:
-            msg = 'no raster references found for v2_global_settings id ' \
-                  '%d \n' % setting_id
-            self.messages.append("[Warning]: {}. \n".format(msg))
-            check_entrees.append(False)
-
-        if all(check_entrees):
+            # msg = 'raster checker will check v2_global_settings id %d that ' \
+            #       'includes rasters: %s' % (setting_id, str(rasters))
+            self.results.add(setting_id=setting_id, raster=rasters, check=check_id,
+                             result=True)
             return True
-        else:
+        elif rasters is None:
+            # msg = 'no raster references found for v2_global_settings id ' \
+            #       '%d \n' % setting_id
+            self.results.add(setting_id=setting_id, raster='', check=check_id,
+                             result=False)
             return False
 
-    def check2_tif_exists(self, setting_id, rasters):
+    def check_tif_exists(self, setting_id, rasters, check_id):
         """
         check 2. does the raster (reference from the model) really exists?
         :param entrees:
@@ -459,21 +240,22 @@ class RasterChecker(object):
             raster_path = os.path.join(self.sqlite_dir, rast_item)
             if os.path.isfile(raster_path):
                 check_tif_exists.append(True)
-                msg = 'raster %s found for global settings id %d' \
-                      % (raster_path, setting_id)
-                self.messages.append("[Info]: {}. \n".format(msg))
+                # msg = 'raster %s found for global settings id %d' \
+                #       % (raster_path, setting_id)
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=check_id, result=True)
             else:
                 check_tif_exists.append(False)
-                msg = 'raster %s not found for global settings id %d. Please' \
-                      ' check the reference' % (raster_path, setting_id)
-                self.messages.append("[Error]: {}. \n".format(msg))
-
+                # msg = 'raster %s not found for global settings id %d. Please' \
+                #       ' check the reference' % (raster_path, setting_id)
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=check_id, result=False)
         if all(check_tif_exists):
             return True
         else:
             return False
 
-    def check3_tif_filename(self, setting_id, rasters):
+    def check_tif_filename(self, setting_id, rasters, check_id):
         """
         check 3. does the raster filename have valid chars (also space is not
         allowed)
@@ -485,7 +267,7 @@ class RasterChecker(object):
             - and on Windows machine (os.name = 'nt')
         c) The dot ('.') is a invalideChars but we exept only one occurence
             in the relative reference
-        :param entrees:
+        :param setting_id, rasters:
         :return:
         """
         check_tif_filename = []
@@ -495,9 +277,9 @@ class RasterChecker(object):
 
         for rast_item in rasters:
             if not (rast_item[-4:] == '.tif' or rast_item[-5:] == '.tiff'):
-                msg = "exetension of raster %s must be  .tif or .tiff" \
-                      % rast_item
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = "exetension of raster %s must be  .tif or .tiff" \
+                #       % rast_item
+                # self.messages.append("[Error]: {}. \n".format(msg))
                 check_tif_filename.append(False)
 
             count_forward_slash = 0
@@ -515,54 +297,71 @@ class RasterChecker(object):
         if invalid_chars_in_filename:
             # list is not empty
             if count_forward_slash > 1 or count_dot > 1:
-                msg = "only one '.' and '/' is allowed in relative path"
-                self.messages.append("[Error]: {}. \n".format(msg))
-            msg = 'Invalid filename, please remove the special chars: ' + str(
-                invalid_chars_in_filename)
-            self.messages.append("[Error]: {}. \n".format(msg))
+                pass
+                # msg = "only one '.' and '/' is allowed in relative path"
+                # self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'Invalid filename, please remove the special chars: ' + str(
+            #     invalid_chars_in_filename)
+            # self.messages.append("[Error]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rasters, check=check_id,
+                             result=False)
 
         if all(check_tif_filename):
-            msg = 'all rasters for v2_global_settings id %d have valid ' \
-                  'filenames' % setting_id
-            self.messages.append("[Info]: {}. \n".format(msg))
+            # msg = 'all rasters for v2_global_settings id %d have valid ' \
+            #       'filenames' % setting_id
+            # self.messages.append("[Info]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rasters, check=check_id,
+                             result=True)
             return True
         else:
             return False
 
-    def check4_singleband(self, src_ds, rast_item):
+    def check_singleband(self, setting_id, src_ds, rast_item, check_id):
         # check4. is the raster singleband ?
         try:
             cnt_rasterband = src_ds.RasterCount
             if cnt_rasterband != 1:
-                msg = 'raster %s is not (but must be) a single-band raster' \
-                      % rast_item
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = 'raster %s is not (but must be) a single-band raster' \
+                #       % rast_item
+                # self.messages.append("[Error]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=check_id, result=False)
                 return False
             elif cnt_rasterband == 1:
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=check_id, result=True)
                 return True
         except Exception as e:
             log.error(e)
-            msg = 'unable to get raster bands of raster %s' % rast_item
-            self.messages.append("[Warning]: {}. \n".format(msg))
+            # msg = 'unable to get raster bands of raster %s' % rast_item
+            # self.messages.append("[Warning]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item, check=check_id,
+                             result=False)
             return False
 
-    def check5_nodata(self, src_ds, rast_item):
+    def check_nodata(self, setting_id, src_ds, rast_item, check_id):
         # check5. is the raster nodata -9999 ?
         try:
             srcband = src_ds.GetRasterBand(1)
             nodata = srcband.GetNoDataValue()
             if nodata == -9999:
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=5, result=True)
                 return True
             else:
-                msg = 'no_data value of raster %s is %s, but must be -9999' \
-                      % (rast_item, str(nodata))
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = 'no_data value of raster %s is %s, but must be -9999' \
+                #       % (rast_item, str(nodata))
+                # self.messages.append("[Error]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=5, result=False)
                 return False
         except Exception as e:
             log.error(e)
+            self.results.add(setting_id=setting_id, raster=rast_item, check=5,
+                             result=False)
             return False
 
-    def check6_utm(self, src_ds, rast_item):
+    def check_utm(self, setting_id, src_ds, rast_item, check_id):
         # check 6 is the raster projection in meters ?
         try:
             proj = src_ds.GetProjection()
@@ -570,53 +369,71 @@ class RasterChecker(object):
             spat_ref.ImportFromWkt(proj)
             unit = spat_ref.GetLinearUnitsName()
             if unit == 'metre':
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=6, result=True)
                 return True
             elif unit == 'degree':
-                msg = 'projection raster %s has unit degree, but must be in ' \
-                      'meters. Please us UTM projection' % rast_item
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = 'projection raster %s has unit degree, but must be in ' \
+                #       'meters. Please us UTM projection' % rast_item
+                # self.messages.append("[Error]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=6, result=False)
                 return False
         except Exception as e:
             log.error(e)
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=6, result=False)
             return False
 
-    def check7_flt32(self, src_ds, rast_item):
+    def check_flt32(self, setting_id, src_ds, rast_item, check_id):
         # check 7 is the raster datatype float32 ?
         try:
             srcband = src_ds.GetRasterBand(1)
             data_type = srcband.DataType
             data_type_name = gdal.GetDataTypeName(data_type)
             if data_type_name == 'Float32':
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=7, result=True)
                 return True
             else:
-                msg = 'datatype raster %s is not (but must be) float_32' \
-                      % rast_item
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = 'datatype raster %s is not (but must be) float_32' \
+                #       % rast_item
+                # self.messages.append("[Error]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=7, result=False)
                 return False
         except Exception as e:
             log.error(e)
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=7, result=False)
             return False
 
-    def check8_compress(self, src_ds, rast_item):
+    def check_compress(self, setting_id, src_ds, rast_item, check_id):
         # check 8 is the raster compressed ?
         try:
             compr_method = src_ds.GetMetadata('IMAGE_STRUCTURE')[
                 'COMPRESSION']
             if compr_method == 'DEFLATE':
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=8, result=True)
                 return True
             else:
-                msg = "raster %s is not (but should be) compressed " \
-                      "please use gdal_translate -co " \
-                      "'COMPRESS=DEFLATE'" % rast_item
-                self.messages.append("[Error]: {}. \n".format(msg))
+                # msg = "raster %s is not (but should be) compressed " \
+                #       "please use gdal_translate -co " \
+                #       "'COMPRESS=DEFLATE'" % rast_item
+                # self.messages.append("[Error]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=8, result=False)
                 return False
         except Exception as e:
-            msg = 'unable to get compression method for raster %s' % rast_item
-            self.messages.append("[Waring]: {}. \n".format(msg))
+            # msg = 'unable to get compression method for raster %s' % rast_item
+            # self.messages.append("[Waring]: {}. \n".format(msg))
             log.error(e)
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=8, result=False)
             return False
 
-    def check9_square_pixel(self, src_ds, rast_item):
+    def check_square_pixel(self, setting_id, src_ds, rast_item, check_id):
         # check 9 has the raster square pixels?
         try:
             geotransform = src_ds.GetGeoTransform()
@@ -628,21 +445,29 @@ class RasterChecker(object):
             cnt_decimal_yres = str(yres)[::-1].find('.')
 
             if cnt_decimal_xres > 3 or cnt_decimal_yres > 3:
-                msg = 'raster %s has a pixel resolution with more than ' \
-                      'three decimals' % rast_item
-                self.messages.append("[Warning]: {}. \n".format(msg))
+                # msg = 'raster %s has a pixel resolution with more than ' \
+                #       'three decimals' % rast_item
+                # self.messages.append("[Warning]: {}. \n".format(msg))
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=9, result=False)
             if xres == yres:
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=9, result=True)
                 return True
             else:
+                self.results.add(setting_id=setting_id, raster=rast_item,
+                                 check=9, result=False)
                 return False
         except Exception as e:
-            msg = 'unable to get pixel resolution for raster %s' \
-                  % rast_item
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'unable to get pixel resolution for raster %s' \
+            #       % rast_item
+            # self.messages.append("[Error]: {}. \n".format(msg))
             log.error(e)
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=9, result=False)
             return False
 
-    def check10_extreme_value(self, src_ds, rast_item):
+    def check_extreme_value(self, setting_id, src_ds, rast_item, check_id):
         # check 10 are there no extreme values?
         srcband = src_ds.GetRasterBand(1)
         stats = srcband.GetStatistics(True, True)
@@ -651,14 +476,18 @@ class RasterChecker(object):
         min_allow = -10000
         max_allow = 10000
         if min_allow < min < max_allow and min_allow < max < max_allow:
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=10, result=True)
             return True
         else:
-            msg = 'raster %s has a an extreme minimum: %d or maximum: %d' \
-                  % (rast_item, min, max)
-            self.messages.append("[Warning]: {}. \n".format(msg))
+            # msg = 'raster %s has a an extreme minimum: %d or maximum: %d' \
+            #       % (rast_item, min, max)
+            # self.messages.append("[Warning]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=10, result=False)
             return False
 
-    def check11_cum_pixel_cnt(self, cols, rows, setting_id):
+    def check_cum_pixel_cnt(self, rast_item, cols, rows, setting_id):
         """
         check11: cummulative pixel count
         :param cols: (int)
@@ -670,15 +499,19 @@ class RasterChecker(object):
         pixelcount = cols * rows
         cum_pixelcount =+ pixelcount
         if cum_pixelcount > max_pixels_allow:
-            msg = 'setting_id %d: all rasters together have %d pixels. ' \
-                  'This is probably more than 3Di can handle: %d ' \
-                  'pixels' % (setting_id, pixelcount, max_pixels_allow)
-            self.messages.append("[Warning]: {}. \n".format(msg))
+            # msg = 'setting_id %d: all rasters together have %d pixels. ' \
+            #       'This is probably more than 3Di can handle: %d ' \
+            #       'pixels' % (setting_id, pixelcount, max_pixels_allow)
+            # self.messages.append("[Warning]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=11, result=False)
             return False
         else:
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=11, result=True)
             return True
 
-    def check12_proj(self, *args):
+    def check_proj(self, *args):
         """
         check12: compare projection of dem with another raster
         :param args: dem_projcs (str), projcs (str), setting_id (int),
@@ -687,15 +520,19 @@ class RasterChecker(object):
         """
         (dem_projcs, projcs, setting_id, dem, rast_item) = args
         if dem_projcs == projcs:
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=12, result=True)
             return True
         else:
-            msg = 'setting_id %d: raster %s has projection= %s, ' \
-                  'while raster %s has projection %s (must be equal)'\
-                  %(setting_id, dem, dem_projcs, rast_item, projcs)
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'setting_id %d: raster %s has projection= %s, ' \
+            #       'while raster %s has projection %s (must be equal)'\
+            #       %(setting_id, dem, dem_projcs, rast_item, projcs)
+            # self.messages.append("[Error]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=12, result=False)
             return False
 
-    def check13_pixelsize(self, *args):
+    def check_pixelsize(self, *args):
         """
         check13: compare pixelsize of dem with another raster
         :param args: dem_xres (float), dem_yres (float), xres (float),
@@ -704,15 +541,19 @@ class RasterChecker(object):
         """
         (dem_xres, dem_yres, xres, yres, setting_id, dem, rast_item) = args
         if (dem_xres, dem_yres) == (xres, yres):
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=13, result=True)
             return True
         else:
-            msg = 'setting_id %d: raster %s has pixelsize= %s, while raster ' \
-                  '%s has pixelsize %s (must be equal)' % (
-                setting_id, dem, (dem_xres, dem_yres), rast_item, (xres, yres))
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'setting_id %d: raster %s has pixelsize= %s, while raster ' \
+            #       '%s has pixelsize %s (must be equal)' % (
+            #     setting_id, dem, (dem_xres, dem_yres), rast_item, (xres, yres))
+            # self.messages.append("[Error]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=13, result=False)
             return False
 
-    def check14_cnt_nodata(self, *args):
+    def check_cnt_nodata(self, *args):
         """
         check14: compare data/nodata count of dem with another raster
         :param args: dem_cnt_data (int), dem_cnt_nodata (int), cnt_data (int),
@@ -722,17 +563,21 @@ class RasterChecker(object):
         (dem_cnt_data, dem_cnt_nodata, cnt_data, cnt_nodata, setting_id,
          dem, rast_item) = args
         if (dem_cnt_data, dem_cnt_nodata) == (cnt_data, cnt_nodata):
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=14, result=True)
             return True
         else:
-            msg = 'setting_id %d: raster %s has %d data pixels ' \
-                  'and %d nodata pixels, while raster %s has %d data ' \
-                  'pixels and %d nodata pixels' \
-                  % (setting_id, dem, dem_cnt_data, dem_cnt_nodata,
-                     rast_item, cnt_data, cnt_nodata)
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'setting_id %d: raster %s has %d data pixels ' \
+            #       'and %d nodata pixels, while raster %s has %d data ' \
+            #       'pixels and %d nodata pixels' \
+            #       % (setting_id, dem, dem_cnt_data, dem_cnt_nodata,
+            #          rast_item, cnt_data, cnt_nodata)
+            # self.messages.append("[Error]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=14, result=False)
             return False
 
-    def check15_ext(self, *args):
+    def check_extent(self, *args):
         """
         check15: compare extent (number rows/colums) of dem with another raster
         :param args: dem_cols (int), dem_rows (int), cols (int), rows (int),
@@ -741,16 +586,20 @@ class RasterChecker(object):
         """
         (dem_cols, dem_rows, cols, rows, setting_id, dem, rast_item) = args
         if (dem_cols, dem_rows) == (cols, rows):
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=15, result=True)
             return True
         else:
-            msg = 'setting_id %d: raster %s has %s colums-rows, ' \
-                  'while raster %s has %s colums-rows (must be equal)' \
-                  % (setting_id, dem, (dem_cols, dem_rows), rast_item,
-                     (cols, rows))
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'setting_id %d: raster %s has %s colums-rows, ' \
+            #       'while raster %s has %s colums-rows (must be equal)' \
+            #       % (setting_id, dem, (dem_cols, dem_rows), rast_item,
+            #          (cols, rows))
+            # self.messages.append("[Error]: {}. \n".format(msg))
+            self.results.add(setting_id=setting_id, raster=rast_item,
+                             check=15, result=False)
             return False
 
-    def check16_pixel_aligned(self, setting_id, rasters):
+    def check_pixel_aligned(self, setting_id, rasters):
 
         # TODO: No need to check a raster multiple times...
         # if this is the case then 1 (or more) raster(s) have been refered
@@ -774,33 +623,33 @@ class RasterChecker(object):
         """ Check raster on multiple aspects (1 to 3)
         :param setting_id: int
         :param rasters: list
-        :return: updates id_track_1_3 with setting_id if checks succeeds
+        :return: updates id_passed_check_1_3 with setting_id if checks succeeds
         """
-        check1 = self.check1_entrees(setting_id, rasters)
-        check2 = self.check2_tif_exists(setting_id, rasters)
-        check3 = self.check3_tif_filename(setting_id, rasters)
+        check1 = self.check_entrees(setting_id, rasters)
+        check2 = self.check_tif_exists(setting_id, rasters)
+        check3 = self.check_tif_filename(setting_id, rasters)
 
         if all([check1, check2, check3]):
-            msg = 'check 1 to 3 succeeded for v2_global_settings id ' \
-                  '%d. Successive checks for this id will be executed' \
-                  % setting_id
-            self.messages.append("[Info]: {}. \n".format(msg))
-            self.id_track_1_3.append(setting_id)
+            # msg = 'check 1 to 3 succeeded for v2_global_settings id ' \
+            #       '%d. Successive checks for this id will be executed' \
+            #       % setting_id
+            # self.messages.append("[Info]: {}. \n".format(msg))
+            self.id_passed_check_1_3.append(setting_id)
         else:
-            msg = 'check 1 to 3 did not succeed for v2_global_settings ' \
-                  'id %d. Therefore, successive checks for this id ' \
-                  'can not be executed. ' \
-                  'Please fix and try again' % setting_id
-            self.messages.append("[Error]: {}. \n".format(msg))
+            # msg = 'check 1 to 3 did not succeed for v2_global_settings ' \
+            #       'id %d. Therefore, successive checks for this id ' \
+            #       'can not be executed. ' \
+            #       'Please fix and try again' % setting_id
+            # self.messages.append("[Error]: {}. \n".format(msg))
             return False
 
-    def run_checks4_to_10(self, setting_id, rasters):
+    def run_checks4_to_10(self, setting_id, rasters, check_id):
         """ Check raster on multiple aspects (4 to 10)
         This method calls 7 checks so that the raster has to be opened
         and closed only 1 time per raster
         :param setting_id: int
         :param rasters: list
-        :return: updates id_track_4_10 with setting_id (int) if checks succes
+        :return: updates id_passed_check_4_10 with setting_id (int) if checks succes
         for that setting id
         """
 
@@ -809,13 +658,14 @@ class RasterChecker(object):
         for rast_item in rasters:
             raster_path = os.path.join(self.sqlite_dir, rast_item)
             src_ds = gdal.Open(raster_path, GA_ReadOnly)
-            check4 = self.check4_singleband(src_ds, rast_item)
-            check5 = self.check5_nodata(src_ds, rast_item)
-            check6 = self.check6_utm(src_ds, rast_item)
-            check7 = self.check7_flt32(src_ds, rast_item)
-            check8 = self.check8_compress(src_ds, rast_item)
-            check9 = self.check9_square_pixel(src_ds, rast_item)
-            check10 = self.check10_extreme_value(src_ds, rast_item)
+            check4 = self.check_singleband(setting_id, src_ds, rast_item, check_id)
+            check5 = self.check_nodata(setting_id, src_ds, rast_item, check_id)
+            check6 = self.check_utm(setting_id, src_ds, rast_item, check_id)
+            check7 = self.check_flt32(setting_id, src_ds, rast_item, check_id)
+            check8 = self.check_compress(setting_id, src_ds, rast_item, check_id)
+            check9 = self.check_square_pixel(setting_id, src_ds, rast_item, check_id)
+            check10 = self.check_extreme_value(setting_id, src_ds, rast_item, check_id)
+
             # close raster dataset
             src_ds = None
 
@@ -837,7 +687,7 @@ class RasterChecker(object):
                   'v2_global_settings id %d. Successive checks for this id ' \
                   'will be executed' % setting_id
             self.messages.append("[Info]: {}. \n".format(msg))
-            self.id_track_4_10.append(setting_id)
+            self.id_passed_check_4_10.append(setting_id)
         else:
             msg = 'check 4 to 10 did not succeed for all rasters in ' \
                   'v2_global_settings id %d. Therefore, successive checks ' \
@@ -853,7 +703,7 @@ class RasterChecker(object):
           rasters consistent?
         :param setting_id: int
         :param rasters: list
-        :return: updates id_track_4_10 with setting_id if checks succeeds
+        :return: updates id_passed_check_4_10 with setting_id if checks succeeds
         """
 
         dem = rasters[0]
@@ -864,7 +714,7 @@ class RasterChecker(object):
 
         dem_cols = dem_src_ds.RasterXSize
         dem_rows = dem_src_ds.RasterYSize
-        self.check11_cum_pixel_cnt(dem_cols, dem_rows, setting_id)
+        self.check_cum_pixel_cnt(dem, dem_cols, dem_rows, setting_id)
 
         dem_src_srs = osr.SpatialReference()
         dem_src_srs.ImportFromWkt(dem_src_ds.GetProjection())
@@ -888,20 +738,21 @@ class RasterChecker(object):
             projcs = src_srs.GetAttrValue('projcs')
             src_ds = None
 
-            check11 = self.check11_cum_pixel_cnt(cols, rows, setting_id)
+            check11 = self.check_cum_pixel_cnt(
+                rast_item, cols, rows, setting_id)
 
             args = dem_projcs, projcs, setting_id, dem, rast_item
-            check12 = self.check12_proj(*args)
+            check12 = self.check_proj(*args)
 
             args = dem_xres, dem_yres, xres, yres, setting_id, dem, rast_item
-            check13 = self.check13_pixelsize(*args)
+            check13 = self.check_pixelsize(*args)
 
             args = dem_cnt_data, dem_cnt_nodata, cnt_data, cnt_nodata, \
                    setting_id, dem, rast_item
-            check14 = self.check14_cnt_nodata(*args)
+            check14 = self.check_cnt_nodata(*args)
 
             args = dem_cols, dem_rows, cols, rows, setting_id, dem, rast_item
-            check15 = self.check15_ext(*args)
+            check15 = self.check_extent(*args)
 
             # check (11, 12, 13) per raster
             if all([check11, check12, check13]):
@@ -933,7 +784,7 @@ class RasterChecker(object):
                   'Pixel check (if selected by user) can be executed for ' \
                   'this id' % setting_id
             self.messages.append("[Info]: {}. \n".format(msg))
-            self.id_track_11_13.append(setting_id)
+            self.id_passed_check_11_13.append(setting_id)
         else:
             msg = 'check 11 to 13 did not succeed for v2_global_settings id ' \
                   '%d. Pixel check (if selected by user) can not be executed ' \
@@ -952,43 +803,7 @@ class RasterChecker(object):
                   'for this id' % setting_id
             self.messages.append("[Error]: {}. \n".format(msg))
             # append settings id. Pixel Checker can only run for these ids
-            self.id_track_14_15.append(setting_id)
-
-    def get_entrees_to_check(self):
-        """
-        :return: entrees_to_check (dict) with
-        keys = setting_id (int)
-        values = rasters (list of strings)
-        e.g. [(1, [u'rasters/test1.tif', u'rasters/test2.tif'])]
-        """
-        all_raster_ref = self.get_all_raster_ref()  # called only here
-        foreign_keys = self.get_foreign_keys()  # called only here
-        entrees = self.get_entrees(all_raster_ref, foreign_keys)
-
-        entrees_to_check = {}
-        for setting_id, rasters in entrees.iteritems():
-            if len(rasters) < 2:
-                msg = 'setting_id %d: no pixels to compare for this ' \
-                      'v2_global_settings id as only one raster is ' \
-                      'used in this id' % setting_id
-                self.messages.append("[Warning]: {}. \n".format(msg))
-            elif setting_id in self.id_track_14_15:
-                msg = 'setting_id %d: we skip the pixel check for this ' \
-                      'setting_id as checks 14 and 15 succeeded for ' \
-                      'this setting_id' % setting_id
-                self.messages.append("[Info]: {}. \n".format(msg))
-            elif setting_id in self.id_track_11_13:
-                    msg = 'setting_id %d: pixel check will be done for ' \
-                          'this setting_id as checks 1 to 13 succeeded for ' \
-                          'this setting_id' % setting_id
-                    self.messages.append("[Info]: {}. \n".format(msg))
-                    entrees_to_check[setting_id] = rasters
-            else:
-                msg = 'setting_id %d: we skip the pixel check for this ' \
-                      'setting_id as checks 1 to 13 did not ' \
-                      'succeed' % setting_id
-                self.messages.append("[Warning]: {}. \n".format(msg))
-        return entrees_to_check
+            self.id_passed_check_14_15.append(setting_id)
 
     def create_generator(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
@@ -1017,8 +832,6 @@ class RasterChecker(object):
         # bbox_row increases. Going right bbox_col increases
         l_up_col = bbox1[0]
         l_up_row = bbox1[1]
-        # r_down_col = bbox1[2]
-        # r_down_row = bbox1[3]
 
         # get indices of True
         true_idx = np.where(compare_mask)
@@ -1064,29 +877,130 @@ class RasterChecker(object):
         if np.any(compare_mask):
             self.get_wrong_pixel(setting_id, other_tif, bbox1, compare_mask)
 
+    def run_multiple_checks(self, setting_id, rasters, check_phase=None):
+        # check_phase = list with int
+        check_ids_list = self.map_phase_checkids[check_phase]
+
+        # phase 1 does check over multiple rasters, then next check
+        if check_phase == 1:
+            for check_id in check_ids_list:
+                funct_name = self.map_function.get(check_id)
+                funct_name(setting_id, rasters, check_id)
+
+        # phase 2 does multiple checks over one raster, then next raster
+        elif check_phase == 2:
+            for rast_item in rasters:
+                raster_path = os.path.join(self.sqlite_dir, rast_item)
+                src_ds = gdal.Open(raster_path, GA_ReadOnly)
+                for check_id in check_ids_list:
+                    funct_name = self.map_function.get(check_id)
+                    funct_name(setting_id, src_ds, rast_item, check_id)
+
     def run_all_checks(self, run_pixel_checker=False):
 
-        self.id_track_1_3 = []
-        self.id_track_4_10 = []
-        self.id_track_11_13 = []
-        self.id_track_14_15 = []
+        # we do checks in phases (aggregated multiple checks). If first phase
+        # succeeded, then those raster can go to the next phase
+        self.map_phase_checkids = {
+            1: [1, 2, 3],
+            2: [4, 5, 6, 7, 8, 9, 10],
+            3: [11, 12, 13, 14, 15],
+            4: [16]
+        }
 
-        all_raster_ref = self.get_all_raster_ref()  # called only here
-        foreign_keys = self.get_foreign_keys()  # called only here
-        entrees = self.get_entrees(all_raster_ref, foreign_keys)
+        self.map_function = {
+            # first phase
+            1: self.check_entrees,
+            2: self.check_tif_exists,
+            3: self.check_tif_filename,
+            # second phase
+            4: self.check_singleband,
+            5: self.check_nodata,
+            6: self.check_utm,
+            7: self.check_flt32,
+            8: self.check_compress,
+            9: self.check_square_pixel,
+            10: self.check_extreme_value,
+            # third phase
+            11: self.check_cum_pixel_cnt,
+            12: self.check_proj,
+            13: self.check_pixelsize,
+            14: self.check_cnt_nodata,
+            15: self.check_extent,
+            # fourth phase
+            16: self.check_pixel_aligned,
+        }
 
-        # check 1 - 3
-        for setting_id, rasters in entrees.iteritems():
-            self.run_checks1_to_3(setting_id, rasters)
+        # check_func_list = self.map_function(
+        #
+        # self.type_ds_layer_func_mapping = {
+        #     'netcdf': self._get_result_layers_regular,
+        #     'netcdf-groundwater': self._get_result_layers_groundwater,
+        # }
+        #
+        # f = self.type_ds_layer_func_mapping[self.ds_type]
 
-        # check 4 - 10
-        for setting_id, rasters in entrees.iteritems():
-            if setting_id in self.id_track_1_3:
-                self.run_checks4_to_10(setting_id, rasters)
+        # dispatcher = {'foobar': [foo, bar], 'bazcat': [baz, cat]}
+        #
+        # def fire_all(func_list):
+        #     for f in func_list:
+        #         f()
+        #
+        # fire_all(dispatcher['foobar'])
+
+
+
+        self.id_passed_check_1_3 = []
+        self.id_passed_check_4_10 = []
+        self.id_passed_check_11_13 = []
+        self.id_passed_check_14_15 = []
+
+        # phase 1 = check 1 - 3
+        for setting_id, rasters in self.entrees.iteritems():
+            self.run_multiple_checks(setting_id, rasters, check_phase=1)
+            # self.run_checks1_to_3(setting_id, rasters)
+
+        # phase 2 = check 4 - 10
+        for setting_id, rasters in self.entrees.iteritems():
+            self.run_multiple_checks(setting_id, rasters, check_phase=2)
+            # TODO: check of setting_id wel in self.results.result_list zit
+            # [{'check': 1,
+            #   'level': 'Info',
+            #   'raster': ['rasters/test1.tif', 'rasters/test2.tif', 'rasters/test3.tif'],
+            #   'result': True,
+            #   'setting_id': 1},
+            #  {'check': 2,
+            #   'level': 'Info',
+            #   'raster': ['rasters/test1.tif'],
+            #   'result': True,
+            #   'setting_id': 1},
+            #  {'check': 2,
+            #   'level': 'Info',
+            #   'raster': ['rasters/test2.tif'],
+            #   'result': True,
+            #   'setting_id': 1},
+            #  {'check': 2,
+            #   'level': 'Info',
+            #   'raster': ['rasters/test3.tif'],
+            #   'result': True,
+            #   'setting_id': 1},
+            #  {'check': 3,
+            #   'level': 'Info',
+            #   'raster': ['rasters/test1.tif', 'rasters/test2.tif', 'rasters/test3.tif'],
+            #   'result': True,
+            #   'setting_id': 1}]
+
+        {k: v for k, v in points.iteritems() if v[0] < 5 and v[1] < 5}
+
+
+        #
+        # # check 4 - 10
+        # for setting_id, rasters in self.entrees.iteritems():
+        #     if setting_id in self.id_passed_check_1_3:
+        #         self.run_checks4_to_10(setting_id, rasters)
 
         # check 11 - 15
-        for setting_id, rasters in entrees.iteritems():
-            if setting_id in self.id_track_4_10:
+        for setting_id, rasters in self.entrees.iteritems():
+            if setting_id in self.id_passed_check_4_10:
                 if len(rasters) < 2:
                     msg = 'no rasters to compare for v2_global_settings id ' \
                           '%d as only one raster is used' % setting_id
@@ -1097,23 +1011,25 @@ class RasterChecker(object):
 
         # check 16
         if run_pixel_checker:
-            for setting_id, rasters in entrees.iteritems():
-                if setting_id in self.id_track_14_15:
+            for setting_id, rasters in self.entrees.iteritems():
+                if setting_id not in self.id_passed_check_14_15:
+                    # 'not' since only need to check pixel alignment if check
+                    # 14 and 15 did not succeed
                     self.input_data_shp = []
-                    self.check16_pixel_aligned(setting_id, rasters)
+                    self.check_pixel_aligned(setting_id, rasters)
 
-    def create_log(self):
-        timestr = time.strftime("_%Y%m%d_%H%M%S")
-        log_with_ext = self.sqltname_without_ext + timestr + '.log'
-        self.log_path = os.path.join(self.sqlite_dir, log_with_ext)
-        # write to log
-        try:
-            log_file = open(self.log_path, 'w')
-            for message_row in self.messages:
-                log_file.write(message_row)
-            log_file.close()
-        except Exception as e:
-            log.error(e)
+    # def create_log(self):
+    #     timestr = time.strftime("_%Y%m%d_%H%M%S")
+    #     log_with_ext = self.sqltname_without_ext + timestr + '.log'
+    #     self.log_path = os.path.join(self.sqlite_dir, log_with_ext)
+    #     # write to log
+    #     try:
+    #         log_file = open(self.log_path, 'w')
+    #         for message_row in self.messages:
+    #             log_file.write(message_row)
+    #         log_file.close()
+    #     except Exception as e:
+    #         log.error(e)
 
     def create_shp(self):
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
@@ -1176,17 +1092,14 @@ class RasterChecker(object):
         # delete the writer to flush features to disk
         del writer
 
-    def pop_up_finished(self, logfile=True, shpfile=False):
+    def pop_up_finished(self, shpfile=False):
         header = 'Raster checker is finished'
-        if logfile and shpfile:
+        if shpfile:
             msg = 'The check results have been written to: \n %s \n ' \
                   'The coordinates of wrong pixels are written to: \n' \
                   '%s' % (self.log_path, self.shape_path)
-        elif logfile:
-            msg = 'The check results have been written to: \n %s \n ' \
-                  % self.log_path
         else:
-            msg = 'no check results have been written, this is not okay'
+            msg = 'The check results have been written to:\n%s' % self.log_path
         pop_up_info(msg, header)
 
     def progress_bar(self):
@@ -1214,13 +1127,22 @@ class RasterChecker(object):
             pass  # TODO: write improvement function
 
         self.close_session()
-        self.create_log()
+
+        # sort logging for better readability
+        self.results.sort()
+
+        # save log file
+        self.results.save()
+        self.log_path = self.results.log_path
 
         if 'check pixels' in checks:
             self.create_shp()
-            self.pop_up_finished(logfile=True, shpfile=True)
+            self.pop_up_finished(shpfile=True)
         else:
-            self.pop_up_finished(logfile=True, shpfile=False)
+            self.pop_up_finished(shpfile=False)
+
+
+
 
 
 """
