@@ -69,7 +69,7 @@ class RasterCheckerEntrees(object):
                                 file_tbl.append(tbl)
                                 file_id.append(row['id'])
                                 file_column.append(column)
-                                file_name.append(row[column])
+                                file_name.append(str(row[column]))
                 all_raster_ref = zip(file_tbl, file_id, file_column, file_name)
                 return all_raster_ref
             except Exception as e:
@@ -122,9 +122,9 @@ class RasterCheckerEntrees(object):
         except Exception as e:
             log.error(e)
 
-    def get_dem_per_entree(self, entrees, entree_id, all_raster_ref):
-        for entree_id_item, rasters in entrees.iteritems():
-            if entree_id_item == entree_id:
+    def get_dem_per_entree(self, entrees, setting_id, all_raster_ref):
+        for id, rasters in entrees.iteritems():
+            if id == setting_id:
                 for raster in rasters:
                     for item in all_raster_ref:
                         if raster == item[3] and item[2] == 'dem_file':
