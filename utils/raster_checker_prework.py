@@ -1,6 +1,6 @@
 from sqlalchemy import (Table, select)
 from ThreeDiToolbox.utils.constants import (
-    v2_tables_list, non_settings_tbl_with_rasters)
+    V2_TABLES, NON_SETTINGS_TBL_WITH_RASTERS, RASTER_CHECKER_MAPPER)
 
 import logging
 log = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class DataModelSource(object):
     """
     def __init__(self, metadata):
         self.dms_metatdata = metadata
-        for tblname in v2_tables_list:
+        for tblname in V2_TABLES:
             try:
                 __table__ = Table(tblname, metadata, autoload=True)
                 setattr(self, tblname, __table__)
@@ -91,10 +91,10 @@ class RasterCheckerEntrees(object):
             self.datamodel_pre, tbl_settings).columns.keys()
         try:
             for column in all_settings_columns:
-                for tbl_xxx, fk_column in non_settings_tbl_with_rasters:
-                    if fk_column == column:
+                for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.iteritems():
+                    if col == column:
                         get_table = getattr(self.datamodel_pre, tbl_settings).c
-                        get_column = getattr(get_table, fk_column)
+                        get_column = getattr(get_table, col)
                         q = select([get_column, get_table.id])
                         res = self.session_pre.execute(q)
                         for row in res:
@@ -159,20 +159,20 @@ class RasterCheckerEntrees(object):
                 if ref_setting_id == entree_id and \
                         ref_tbl_name == 'v2_global_settings':
                     entrees_dict[entree_id].append(ref_raster_str)
-                for tbl, column in non_settings_tbl_with_rasters:
+
+                for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.iteritems():
                     if ref_tbl_name == tbl:
                         for fk_item in foreign_keys:
                             fk_setting_id = fk_item[1]
                             fk_column_name = fk_item[2]
                             fk_id = fk_item[3]
                             if fk_setting_id == entree_id \
-                                    and fk_column_name == column \
+                                    and fk_column_name == col \
                                     and fk_id == ref_setting_id:
                                 entrees_dict[entree_id].append(ref_raster_str)
             if dem_used is False:
                 msg = 'entree id %d does not (but must) include an elevation' \
                       ' raster' % entree_id
-
                 self.messages.append("[Error]: {}. \n".format(msg))
                 del entrees_dict[entree_id]
 

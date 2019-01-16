@@ -9,15 +9,10 @@ from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
-# create_session and MetaData needed at this location??
-from sqlalchemy.orm import create_session
-from sqlalchemy import MetaData
+
 log = logging.getLogger(__name__)
 
-
 class CustomCommand(CustomCommandBase):
-    """
-    """
 
     class Fields(object):
         name = "Raster Checker script"
@@ -47,4 +42,4 @@ class CustomCommand(CustomCommandBase):
         checker = RasterChecker(db)
         msg = checker.run(action_list)
         messagebar_message('Raster checker ready', msg, duration=2)
-        log.info('Raster checker ready')  # .\n' + msg)
+        log.info('Raster checker ready')

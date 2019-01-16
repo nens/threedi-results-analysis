@@ -1,7 +1,10 @@
 import time
 import os
-
 import logging
+from jinja2 import Template
+
+from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+
 log = logging.getLogger(__name__)
 
 class RasterCheckerResults(object):
@@ -16,134 +19,146 @@ class RasterCheckerResults(object):
     def __contains__(self, item):
         return item in self.__dict__
 
-    def get_level(self, result):
-        if result:
-            level = 'Info'
-        else:
-            level = 'Error'
-        return level
-
-    def add(self, **kwargs):
-
+    def check_incomming(self, **kwargs):
         setting_id = kwargs.get('setting_id')
         if not setting_id: raise AssertionError("setting_id unknown")
 
         raster = kwargs.get('raster')
         if not raster: raise AssertionError("raster unknown")
 
-        check = kwargs.get('check')
+        check_id = kwargs.get('check_id')
         # TODO: let this range below depend on the map dict keys
-        if not check: raise AssertionError("check unknown")
-        assert check in range(1, 16)
+        if not check_id: raise AssertionError("check unknown")
+        if not check_id in range(1, 17): raise AssertionError(
+            "check_id unknown")
 
         result = kwargs.get('result')
         if not isinstance(result, bool): raise AssertionError("result unknown")
 
-        # level = kwargs.get('level')
-        # if not level: raise AssertionError("level unknown")
-        level = self.get_level(result)
-        assert level in ['Error', 'Warning', 'Info', 'Debug']
-
         add_result = {
-            'level': level,
             'setting_id': setting_id,
             'raster': raster,
-            'check': check,
+            'check_id': check_id,
             'result': result
         }
 
         if add_result in self.result_list:
             raise AssertionError("result already exists")
         else:
-            self.result_list.append(add_result)
+            return add_result
 
-    def sort(self):
-        # sorts a list with dicts based on 3 keys so that when we transfer
-        # these dicts into a log file, the log file is more user-friendly
+    def _add(self, **kwargs):
+        result = self.check_incomming(**kwargs)
+        self.result_list.append(result)
+
+    def _sort(self):
+        # sorts a list with dicts based on 3 keys (setting_id, raster filename,
+        # check nr) so that log file becomes easier to read
         self.result_list = sorted(
-            self.result_list, key=lambda elem: "%d %s %s" % (
-                int(elem['setting_id']), elem['raster'], int(elem['check'])))
-        print 'hallo'
-        for i in self.result_list:
-            print i
+            self.result_list, key=lambda elem: "%02d %s %02d" % (
+                int(elem['setting_id']), elem['raster'], int(elem['check_id'])))
 
-        self.result_list = sorted(
-            self.result_list, key=lambda elem: "%d %s %s" % (
-                int(elem['setting_id']), elem['raster'], int(elem['check'])))
-        print 'hallo'
-        for i in self.result_list:
-            print i
+    def get_feedback_level(self, feedback_dict, result):
+        if result:
+            feedback_level = 'info'
+        else:
+            if feedback_dict.get('error'):
+                feedback_level = 'error'
+            elif feedback_dict.get('warning'):
+                feedback_level = 'warning'
+            else:
+                raise AssertionError('feedback dict cannot have both warning '
+                                     'and error message')
+        return feedback_level
 
+    def get_template_feedback(self, feedback_dict, feedback_level):
+        feedback = feedback_dict.get(feedback_level)
+        template_feedback = Template(feedback)
+        return template_feedback
 
-    def add_messages(self):
-        pass
+    def get_feedback_dict(self, check_id):
+        # Each method (raster_check) has its own user feedback
+        feedback_dict = [chck.get('feedback') for chck in RASTER_CHECKER_MAPPER
+                         if check_id == chck.get('check_id')]
+        if len(feedback_dict) != 1:
+            raise AssertionError("too little/many rows")
+        return feedback_dict[0]
 
-    def result_row_to_log_row(self, result_line):
-        """
-        go from dict to list (to add in the .log file) and add a message
-        :param result_line: dict
-        :return: string
-        """
-        level = result_line.get('level')
-        setting_id = str(result_line.get('setting_id'))
-        raster = result_line.get('raster')
-        check = str(result_line.get('check'))
-        msg = 'check_message_blabla'
-        msg_return = '%s, %s, %s, %s, %s \n' % (
-            level, setting_id, check, raster, msg)
-        return msg_return
+    def get_rendered_feedback(self, raster, template_feedback):
+        rendered_feedback = template_feedback.render(
+            raster=raster, result=template_feedback)
+        return rendered_feedback
+
+    def result_row_to_msg(self, result_row):
+        setting_id = result_row.get('setting_id')
+        check_id = result_row.get('check_id')
+        raster = result_row.get('raster')
+        result = result_row.get('result')
+        feedback_dict = self.get_feedback_dict(check_id)
+        feedback_level = self.get_feedback_level(feedback_dict, result)
+        template_feedback = self.get_template_feedback(
+            feedback_dict, feedback_level)
+        rendered_feedback = self.get_rendered_feedback(
+            raster, template_feedback)
+        msg = '%s, %s, %02d, %s \n' % (
+            feedback_level, setting_id, check_id, rendered_feedback)
+        return msg
+
+    def get_intro_lines(self, check_phase):
+        checkid_description = [(chck.get('check_id'), chck.get('description'))
+                               for chck in RASTER_CHECKER_MAPPER if
+                               chck.get('phase') in check_phase]
+        return checkid_description
+
+    def write_intro_lines(self, checkid_description):
+        for (check_id, check_description) in checkid_description:
+            temp_msg = Template(check_description)
+            render_msg = temp_msg.render(check_id=check_id)
+            self.log_file.write(render_msg + '\n')
 
     def add_intro(self):
         """enters some (general) explaining lines."""
         msg = '-- Intro: --\n' \
               'The RasterChecker checks your rasters based on the raster ' \
               'references in your sqlite. \n' \
-              'This is done per v2_global_settings id. The following ' \
-              'checks are executed: \n\n' \
-              '-- Per individual raster: -- \n' \
-              'check 1: Does the referenced rasters (in all v2_tables) ' \
-              'exist on your machine?\n' \
-              'check 2: Is the extension .tif or .tiff? \n' \
-              'check 3: Is the raster filename valid? \n' \
-              'check 4: Is the raster single band? \n' \
-              'check 5: Is the nodata value -9999? \n' \
-              'check 6: Does raster have UTM projection (unit: meters)? \n' \
-              'check 7: Is the data type float 32? \n' \
-              'check 8: Is the raster compressed? (compression=deflate) \n' \
-              'check 9: Are the pixels square? \n' \
-              'check 10: Does the pixelsize have max 3 decimal places? \n' \
-              'check 11: No extreme pixel values? (dem: -10kmMSL<x<10kmMSL,' \
-              ' other rasters: 0<x<10k) \n\n' \
-              '-- Raster comparison: -- \n' \
-              'check 12: Is the projection equal to the dem projection? \n' \
-              'check 13: Is the pixel size equal to the dem pixel size? \n' \
-              'check 14: Is the number of data/nodata pixels equal to the ' \
-              'dem? \n' \
-              'check 15: Is the number of rows-colums equal to the dem? \n\n' \
-              '-- Pixel comparison: -- \n' \
-              'check 16: Are pixels correctly aligned when comparing the ' \
-              'dem with another raster:?\n\n ' \
-              '-- Report: --\n' \
-              'Level, setting_id, check_nr, raster, message \n'
-        self.log_file = open(self.log_path, 'w')
+              'This is done for all v2_global_setting rows. The following ' \
+              'checks are executed: \n'
         self.log_file.write(msg)
-        self.log_file.close()
 
-    def save(self):
+        msg = '\n-- Per individual raster: -- \n'
+        self.log_file.write(msg)
+        checkid_description = self.get_intro_lines(check_phase=[1, 2])
+        self.write_intro_lines(checkid_description)
+
+        msg = '\n-- Raster comparison: -- \n'
+        self.log_file.write(msg)
+        checkid_description = self.get_intro_lines(check_phase=[3])
+        self.write_intro_lines(checkid_description)
+
+        msg = '\n-- Pixel allignment: -- \n'
+        self.log_file.write(msg)
+        checkid_description = self.get_intro_lines(check_phase=[4])
+        self.write_intro_lines(checkid_description)
+
+        msg = '\n-- Report: -- \n' \
+              'level, setting_id, check_id, feedback \n'
+        self.log_file.write(msg)
+
+    def write_log(self):
         timestr = time.strftime("_%Y%m%d_%H%M%S")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
         self.log_path = log_dir + '/' + sqltname_without_ext + timestr + '.log'
 
-        # write to log
         try:
-            self.add_intro()
             self.log_file = open(self.log_path, 'a+')
-            for result_row in self.result_list:
-                log_row = self.result_row_to_log_row(result_row)
-                self.log_file.write(log_row)
-            self.log_file.close()
         except Exception as e:
             log.error(e)
-            raise Exception ('RasterChecker succeeded, but can not write '
-                             'logfile to dir %s' % self.log_path)
+            raise Exception('RasterChecker can not write to logfile '
+                            'directory %s' % self.log_path)
+
+        self.add_intro()
+        for result_row in self.result_list:
+            log_row = self.result_row_to_msg(result_row)
+            self.log_file.write(log_row)
+
