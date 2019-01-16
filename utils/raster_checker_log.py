@@ -36,16 +36,22 @@ class RasterCheckerResults(object):
         result = kwargs.get('result')
         if not isinstance(result, bool): raise AssertionError("result unknown")
 
-        add_result = {
-            'setting_id': setting_id,
-            'raster': raster,
-            'check_id': check_id,
-            'result': result
-        }
+        detail = kwargs.get('detail')
+        if not isinstance(detail, str):
+            raise AssertionError(
+            "details wrong type")
 
+        # on purpose exclude 'result' and 'details' as we do not want to
+        # do a check only 1 time per raster
+        add_result = {'setting_id': setting_id,
+                      'raster': raster,
+                      'check_id': check_id,
+                      }
         if add_result in self.result_list:
             raise AssertionError("result already exists")
         else:
+            add_result['result'] = result
+            add_result['detail'] = detail
             return add_result
 
     def _add(self, **kwargs):
@@ -95,14 +101,16 @@ class RasterCheckerResults(object):
         check_id = result_row.get('check_id')
         raster = result_row.get('raster')
         result = result_row.get('result')
+        detail = result_row.get('detail')
+
         feedback_dict = self.get_feedback_dict(check_id)
         feedback_level = self.get_feedback_level(feedback_dict, result)
         template_feedback = self.get_template_feedback(
             feedback_dict, feedback_level)
         rendered_feedback = self.get_rendered_feedback(
             raster, template_feedback)
-        msg = '%s, %s, %02d, %s \n' % (
-            feedback_level, setting_id, check_id, rendered_feedback)
+        msg = '%s, %s, %02d, %s %s \n' % (
+            feedback_level, setting_id, check_id, rendered_feedback, detail)
         return msg
 
     def get_intro_lines(self, check_phase):

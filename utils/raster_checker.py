@@ -137,34 +137,42 @@ class RasterChecker(object):
 
     def check_tif_exists(self, setting_id, rast_item, check_id):
         # Does the raster (reference from the model) really exists?
+        detail = str()
         raster_path = os.path.join(self.sqlite_dir, rast_item)
         if os.path.isfile(raster_path):
             result = True
         else:
             result = False
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_extension(self, setting_id, rast_item, check_id):
-        # exetension of raster %s must be  .tif or .tiff
-        if not (rast_item[-4:] == '.tif' or rast_item[-5:] == '.tiff'):
+        # exetension of raster must be  .tif or .tiff
+        detail = str()
+        extension = rast_item.split('.')[-1]
+        if extension not in ['tif', 'tiff']:
             result = False
+            detail = 'found extension: %s' % extension
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_filename(self, setting_id, rast_item, check_id):
+        # what is the purpose ??
+        # TODO: lars suggest to use just 'os' to check its 1 folder deep
+
         # Does the raster filename have valid chars (also space is not allowed)
-        invalidChars = set(string.punctuation.replace("_", ""))
-        invalidChars.add(' ')
+        detail = str()
+        invalid_chars = set(string.punctuation.replace("_", ""))
+        invalid_chars.add(' ')
         invalid_chars_in_filename = []
 
         # only one '.' and '/' is allowed in relative path
         count_forward_slash = 0
         count_dot = 0
         for char in rast_item:
-            if char in invalidChars:
+            if char in invalid_chars:
                 if char == '/' and count_forward_slash < 1:
                     count_forward_slash += 1
                 elif char == '.' and count_dot < 1:
@@ -173,28 +181,32 @@ class RasterChecker(object):
                     invalid_chars_in_filename.append(char)
         if invalid_chars_in_filename:
             result = False
+            detail = invalid_chars_in_filename
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_singleband(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster singleband ?
+        detail = str()
         try:
             cnt_rasterband = src_ds.RasterCount
             if cnt_rasterband == 1:
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'found %d rasterbands' % cnt_rasterband
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_nodata(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster nodata -9999 ?
+        detail = str()
         try:
             srcband = src_ds.GetRasterBand(1)
             nodata = srcband.GetNoDataValue()
@@ -202,15 +214,17 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'nodata value is %d' % nodata
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_utm(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster projection in meters ?
+        detail = str()
         try:
             proj = src_ds.GetProjection()
             spat_ref = osr.SpatialReference()
@@ -220,15 +234,17 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'unit is %s' % unit
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_flt32(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster datatype float32 ?
+        detail = str()
         try:
             srcband = src_ds.GetRasterBand(1)
             data_type = srcband.DataType
@@ -237,15 +253,17 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'data_type is %s' % data_type_name
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_compress(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster compressed ?
+        detail = str()
         try:
             compr_method = src_ds.GetMetadata('IMAGE_STRUCTURE')[
                 'COMPRESSION']
@@ -253,15 +271,17 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'compression_method is %s' %compr_method
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_pixel_decimal(self, setting_id, rast_item, check_id, src_ds):
         # Has the pixel resolution less than three decimal places?
+        detail = str()
         try:
             geotransform = src_ds.GetGeoTransform()
             # horizontal pixel resolution
@@ -273,17 +293,21 @@ class RasterChecker(object):
 
             if cnt_decimal_xres > 3 or cnt_decimal_yres > 3:
                 result = False
+                detail = 'found %d and %d decimal places for x- and ' \
+                         'y- resolution respectively' % (
+                    cnt_decimal_xres, cnt_decimal_yres)
             else:
                 result = True
-        except Exception as e:
-            log.error(e)
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_square_pixel(self, setting_id, rast_item, check_id, src_ds):
         # check 10 has the raster square pixels?
+        detail = str()
         try:
             geotransform = src_ds.GetGeoTransform()
             # horizontal pixel resolution
@@ -295,27 +319,36 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-        except Exception as e:
-            log.error(e)
+                detail = 'we found %d and %d for x- and y-resolution. Must ' \
+                         'be equal' % (xres, yres)
+        except Exception as detail:
+            log.error(detail)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_extreme_value(self, setting_id, rast_item, check_id, src_ds):
         # are there no extreme values?
-        srcband = src_ds.GetRasterBand(1)
-        stats = srcband.GetStatistics(True, True)
-        min = stats[0]
-        max = stats[1]
-        min_allow = -10000
-        max_allow = 10000
-        if min_allow < min < max_allow and min_allow < max < max_allow:
-            result = True
-        else:
+        detail = str()
+        try:
+            srcband = src_ds.GetRasterBand(1)
+            stats = srcband.GetStatistics(True, True)
+            min = stats[0]
+            max = stats[1]
+            min_allow = -10000
+            max_allow = 10000
+            if min_allow < min < max_allow and min_allow < max < max_allow:
+                result = True
+            else:
+                result = False
+                detail = 'found extreme values: min=%d, max=%d' % (min, max)
+        except Exception as detail:
+            log.error(detail)
             result = False
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+        finally:
+            self.results._add(setting_id=setting_id, raster=rast_item,
+                              check_id=check_id, result=result, detail=detail)
 
     # TODO: deze check weer werkend krijgen
     # def check_cum_pixel_cnt(self, rast_item, cols, rows, setting_id):
@@ -344,24 +377,33 @@ class RasterChecker(object):
 
     def check_proj(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         # compare projection of dem with another raster
-        dem_src_srs = osr.SpatialReference()
-        dem_src_srs.ImportFromWkt(dem_src_ds.GetProjection())
-        dem_projcs = dem_src_srs.GetAttrValue('projcs')
+        detail = str()
+        try:
+            dem_src_srs = osr.SpatialReference()
+            dem_src_srs.ImportFromWkt(dem_src_ds.GetProjection())
+            dem_projcs = dem_src_srs.GetAttrValue('projcs')
 
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(src_ds.GetProjection())
-        projcs = src_srs.GetAttrValue('projcs')
+            src_srs = osr.SpatialReference()
+            src_srs.ImportFromWkt(src_ds.GetProjection())
+            projcs = src_srs.GetAttrValue('projcs')
 
-        if dem_projcs == projcs:
-            result = True
-        else:
+            if dem_projcs == projcs:
+                result = True
+            else:
+                result = False
+                detail = 'found dem projection=%s, while %s projection=%s' % (
+                    dem_projcs, rast_item, projcs)
+        except Exception as detail:
+            log.error(detail)
             result = False
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+        finally:
+            self.results._add(setting_id=setting_id, raster=rast_item,
+                          check_id=check_id, result=result, detail=detail)
 
     def check_pixelsize(self, setting_id, rast_item, check_id, src_ds,
                         dem_src_ds):
         # compare pixelsize of dem with another raster
+        detail = str()
         dem_ext = dem_src_ds.GetGeoTransform()
         dem_ulx, dem_xres, dem_xskew, dem_uly, dem_yskew, dem_yres = dem_ext
         ext = src_ds.GetGeoTransform()
@@ -371,12 +413,16 @@ class RasterChecker(object):
             result = True
         else:
             result = False
+            detail = 'dem has pixel size x:%d y:%d, while %s has pixel ' \
+                     'size x:%d y:%d' % (
+                dem_xres, dem_yres, rast_item, xres, yres)
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds,
                         dem_src_ds):
         # compare data/nodata count of dem with another raster
+        detail = str()
         dem_cnt_data, dem_cnt_nodata = self.count_data_nodata(dem_src_ds)
         cnt_data, cnt_nodata = self.count_data_nodata(src_ds)
 
@@ -384,12 +430,16 @@ class RasterChecker(object):
             result = True
         else:
             result = False
+            detail = 'dem has %d data- and %d nodata pixels, while %s has ' \
+                     '%d data- and %d nodata pixels' % (
+                dem_cnt_data, dem_cnt_nodata, rast_item, cnt_data, cnt_nodata)
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_extent(self, setting_id, rast_item, check_id, src_ds,
                      dem_src_ds):
         # compare extent (number rows/colums) of dem with another raster
+        detail = str()
         dem_cols = dem_src_ds.RasterXSize
         dem_rows = dem_src_ds.RasterYSize
         cols = src_ds.RasterXSize
@@ -398,11 +448,14 @@ class RasterChecker(object):
             result = True
         else:
             result = False
+            detail = 'dem has %d columns and % d rows, while %s has ' \
+                     '%d columns and %d rows' % (
+                dem_cols, dem_rows, rast_item, cols, rows)
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def check_pixel_alignment(self, setting_id, rast_item, check_id, dem):
-
+        detail = str()
         dem_path = os.path.join(self.sqlite_dir, dem)
         generator_dem = self.create_generator(dem_path)
         self.pixel_specs = self.get_pixel_specs(dem_path)
@@ -421,7 +474,7 @@ class RasterChecker(object):
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result)
+                          check_id=check_id, result=result, detail=detail)
 
     def create_generator(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
