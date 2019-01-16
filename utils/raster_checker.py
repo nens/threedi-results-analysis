@@ -26,12 +26,9 @@ from qgis.core import (QgsFields, QgsField, QgsVectorFileWriter, QGis,
 log = logging.getLogger(__name__)
 Base = declarative_base()
 
+
 class RasterChecker(object):
     def __init__(self, threedi_database):
-        """Init method.
-        :param threedi_database - ThreediDatabase instance
-        :return:
-        """
         self.db = threedi_database
         # session required for SqlAlchemy queries
         self.session = self.db.get_session()
@@ -44,10 +41,8 @@ class RasterChecker(object):
             datamodel, self.session).get_entrees()
 
         sqlite_path = str(self.db.settings['db_path'])
-        self.sqlite_dir =  os.path.split(sqlite_path)[0]
-
+        self.sqlite_dir = os.path.split(sqlite_path)[0]
         self.results = RasterCheckerResults(sqlite_path)
-
         self.check_constants()
 
     def close_session(self):
@@ -135,7 +130,6 @@ class RasterChecker(object):
             bbox, arr = data
             total_size = arr.size
             add_cnt_nodata = np.count_nonzero(arr == nodata_value)
-            arr = None
             add_cnt_data = (total_size - add_cnt_nodata)
             count_nodata += add_cnt_nodata
             count_data += add_cnt_data
@@ -442,7 +436,6 @@ class RasterChecker(object):
         dem = gdal.Open(dem_path, GA_ReadOnly)
         ulx, xres, xskew, uly, yskew, yres = dem.GetGeoTransform()
         pixelsize = abs(min(xres, yres))
-        dem = None
         pixel_specs = (ulx, xres, xskew, uly, yskew, yres, pixelsize)
         return pixel_specs
 
@@ -481,18 +474,14 @@ class RasterChecker(object):
 
     def compare_pixel_bbox(self, setting_id, other_tif, data1, data2):
         bbox1, arr1 = data1
-        data1 = None
         bbox2, arr2 = data2
-        data2 = None
 
-        # create masks (without data fill_value, but only mask)
+        # create masks (without data and fill_value. Only mask)
         mask1 = (arr1[:] == -9999.)
         mask2 = (arr2[:] == -9999.)
 
         # xor gives array with trues for wrong pixels
         compare_mask = np.logical_xor(mask1, mask2)
-        mask1 = None
-        mask2 = None
 
         # is there any True in the compare mask? then there is at least
         # one wrong pixel
@@ -505,12 +494,6 @@ class RasterChecker(object):
         check_name = prefix + base_check_name
         return getattr(self, check_name)(**kwargs)
 
-    def has_raster_check(self, base_check_name):
-        prefix = "check_"
-        check_name = prefix + base_check_name
-        if not hasattr(self, check_name):
-            raise AttributeError('RasterChecker has no attr ' + check_name)
-
     def get_check_ids(self, check_phase):
         # returns: set with int e.g {1, 2}
         return [chck.get('check_id') for chck in RASTER_CHECKER_MAPPER
@@ -521,17 +504,19 @@ class RasterChecker(object):
         return [(chck.get('check_id'), chck.get('base_check_name')) for chck
                 in RASTER_CHECKER_MAPPER if chck.get('phase') == check_phase]
 
-    def run_phase_checks(self, setting_id, rasters, check_phase=None):
+    def run_phase_checks(self, setting_id, rasters, check_phase):
 
         check_ids_names = self.get_check_ids_names(check_phase)
 
         # phase 1 does check over multiple rasters, then next check
         if check_phase == 1:
-            if setting_id and rasters:
-                for rast_item in rasters:
-                    for check_id, base_check_name in check_ids_names:
-                        self.run_check(base_check_name, setting_id=setting_id,
-                                       rast_item=rast_item, check_id=check_id)
+            if not all([setting_id, rasters]):
+                return
+            for rast_item in rasters:
+                for check_id, base_check_name in check_ids_names:
+                    self.run_check(base_check_name, setting_id=setting_id,
+                                   rast_item=rast_item, check_id=check_id)
+
         # phase 2 does multiple checks over one raster, then next raster
         elif check_phase == 2:
             for rast_item in rasters:
@@ -568,7 +553,14 @@ class RasterChecker(object):
                 chck.get('blocking') is True and
                 chck.get('phase') == check_phase]
 
-    def get_ready_rasters(self, rasters, setting_id, check_phase=None):
+    def get_ready_rasters(self, rasters, setting_id, check_phase):
+        """
+
+        :param rasters:
+        :param setting_id:
+        :param check_phase:
+        :return:
+        """
         # get the check_ids for this check_phase
         check_ids_list = self.get_check_ids(check_phase)
         # get all blocking check_ids for this check_phase
@@ -604,48 +596,45 @@ class RasterChecker(object):
             note that not all checks are blocking (written in
             RASTER_CHECKER_MAPPER)
         """
-        # phase 1
+        phase = 1
         for setting_id, rasters in self.entrees.iteritems():
-            self.run_phase_checks(setting_id, rasters, check_phase=1)
+            self.run_phase_checks(setting_id, rasters, phase)
 
-        # phase 2
+        phase = 2
         for setting_id, rasters in self.entrees.iteritems():
             # we only check only rasters that passed previous phase
             rasters_ready = self.get_ready_rasters(
-                rasters, setting_id, check_phase=1)
+                rasters, setting_id, (phase-1))
             if rasters_ready:
-                self.run_phase_checks(
-                    setting_id, rasters_ready, check_phase=2)
+                self.run_phase_checks(setting_id, rasters_ready, phase)
 
-        # phase 3
+        phase = 3
         for setting_id, rasters in self.entrees.iteritems():
             # we only check rasters that passed the previous phase
             rasters_ready = self.get_ready_rasters(
-                rasters, setting_id, check_phase=2)
+                rasters, setting_id, (phase-1))
             # We will compare the dem with other rasters. We need:
             # - at least two rasters per entree and
             # - the dem_file (which is the first value (rasters[0])
             if len(rasters_ready) >= 2 and rasters[0] in rasters_ready:
-                self.run_phase_checks(
-                    setting_id, rasters_ready, check_phase=3)
+                self.run_phase_checks(setting_id, rasters_ready, phase)
 
-        # phase 4 (pixel alignment)
+        phase = 4
         if run_pixel_checker:
             self.input_data_shp = []
             for setting_id, rasters in self.entrees.iteritems():
                 rasters_ready = self.get_ready_rasters(
-                    rasters, setting_id, check_phase=3)
-                # Note that the dem always passed the previous phase as we then
-                # compared the dem with other rasters. If other raster was
+                    rasters, setting_id, (phase-1))
+                # Note that the dem always passed the previous phase (as we then
+                # compared the dem with other rasters). If other raster was
                 # dem alike (extent, pixelsize, etc) then that raster was
-                # added to self.results.
+                # added to self.results. However (!!) the dem was not added
+                # to self.results
                 # From now we only continue if there is at least 1 raster
                 if len(rasters_ready) >= 1:
-                    # Still need to add the dem (rasters[0]) to list
+                    # Still need to add the dem (rasters[0]) to rasters_ready
                     rasters_ready.insert(0, rasters[0])
-                    self.run_phase_checks(
-                        setting_id, rasters_ready, check_phase=4)
-
+                    self.run_phase_checks(setting_id, rasters_ready, phase)
 
     def create_shp(self):
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
@@ -738,32 +727,22 @@ class RasterChecker(object):
                                  'RASTER_CHECKER_MAPPER')
 
     def run(self, checks):
-        # TODO: now checks are done for all entrees. Enable checks for 1 entree
+        run_pixels_bool = 'check pixels' in checks
         if 'check all rasters' in checks:
-            if 'check pixels' in checks:
-                self.run_all_checks(run_pixel_checker=True)
-            else:
-                self.run_all_checks(run_pixel_checker=False)
-
-        if 'improve when necessary' in checks:
-            pass  # TODO: write improvement function
-
+            self.run_all_checks(run_pixel_checker=run_pixels_bool)
+        # if 'improve when necessary' in checks:
+        # TODO: write improvement function
+        # TODO: now checks are done for all entrees. Enable checks for 1 entree
         self.close_session()
-
         # sort logging for better readability
         # private function since .sort() is built-in
         self.results._sort()
-
         # write and save log file
         self.results.write_log()
         self.log_path = self.results.log_path
-
-        if 'check pixels' in checks:
+        if run_pixels_bool:
             self.create_shp()
-            self.pop_up_finished(shpfile=True)
-        else:
-            self.pop_up_finished(shpfile=False)
-
+        self.pop_up_finished(shpfile=run_pixels_bool)
 
 
 """

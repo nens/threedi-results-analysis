@@ -7,6 +7,7 @@ from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 
 log = logging.getLogger(__name__)
 
+
 class RasterCheckerResults(object):
     def __init__(self, sqlite_path):
         self.sqlite_path = sqlite_path
