@@ -57,6 +57,7 @@ class LayerTreeManager(object):
         self._model_layergroup = None
         self._model_layergroup_connected = False
 
+        # The 4 variables below seem to be never used anywhere
         self.result_layergroups = []
         self.results_layers = []
 
@@ -84,19 +85,23 @@ class LayerTreeManager(object):
     @model_layergroup.setter
     def model_layergroup(self, value):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # What is QgsLayerTreeGroup.destroyed???
+            # No information anywhere on the internet
+            # Not on the Qgis api documentation 2.18 and 3.4
+
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = value
         if isinstance(value, QgsLayerTreeNode):
-            self._model_layergroup.destroyed.connect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.connect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = True
 
     def _on_delete_model_layergroup(self):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = None
 
