@@ -350,30 +350,28 @@ class RasterChecker(object):
             self.results._add(setting_id=setting_id, raster=rast_item,
                               check_id=check_id, result=result, detail=detail)
 
-    # TODO: deze check weer werkend krijgen
-    # def check_cum_pixel_cnt(self, rast_item, cols, rows, setting_id):
-    #     """
-    #     check12: cummulative pixel count
-    #     :param cols: (int)
-    #     :param rows: (int)
-    #     :param setting_id: (int)
-    #     :return: updates list: check11_cum_pixel_cnt_list
-    #     """
-    #     max_pixels_allow = 1000000000  # 1 billion for all rasters 1 entree
-    #     pixelcount = cols * rows
-    #     cum_pixelcount =+ pixelcount
-    #     if cum_pixelcount > max_pixels_allow:
-    #         # msg = 'setting_id %d: all rasters together have %d pixels. ' \
-    #         #       'This is probably more than 3Di can handle: %d ' \
-    #         #       'pixels' % (setting_id, pixelcount, max_pixels_allow)
-    #         # self.messages.append("[Warning]: {}. \n".format(msg))
-    #         self.results._add(setting_id=setting_id, raster=rast_item,
-    #                          check=11, result=False)
-    #         return False
-    #     else:
-    #         self.results._add(setting_id=setting_id, raster=rast_item,
-    #                          check=11, result=True)
-    #         return True
+    def check_cum_pixel_cnt(self, rasters, setting_id, check_id):
+        # cummulative pixel count
+        detail = str()
+        max_pixels_allow = 1000000000  # 1 billion for all rasters 1 entree
+        cum_pixelcount = 0
+        for rast_item in rasters:
+            raster_path = os.path.join(self.sqlite_dir, rast_item)
+            src_ds = gdal.Open(raster_path, GA_ReadOnly)
+            cols = src_ds.RasterXSize
+            rows = src_ds.RasterYSize
+            pixelcount = cols * rows
+            cum_pixelcount =+ pixelcount
+        if cum_pixelcount > max_pixels_allow:
+            result = False
+            detail = 'cumulative pixelcount= %d for all rasters in ' \
+                     'setting_id %d. This is more than 3Di can handle ' \
+                     '1.000.000.000' % (cum_pixelcount, setting_id)
+        else:
+            result = True
+        for rast_item in rasters:
+            self.results._add(setting_id=setting_id, raster=rast_item,
+                              check_id=check_id, result=result, detail=detail)
 
     def check_proj(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         # compare projection of dem with another raster
@@ -547,11 +545,6 @@ class RasterChecker(object):
         check_name = prefix + base_check_name
         return getattr(self, check_name)(**kwargs)
 
-    def get_check_ids(self, check_phase):
-        # returns: set with int e.g {1, 2}
-        return [chck.get('check_id') for chck in RASTER_CHECKER_MAPPER
-                if chck.get('phase') == check_phase]
-
     def get_check_ids_names(self, check_phase=None):
         # returns lst with tuples e.g [(1, 'tif_exists'), (2, 'tif_extension')]
         return [(chck.get('check_id'), chck.get('base_check_name')) for chck
@@ -579,8 +572,16 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds)
-        # phase 3
+
+        # pixel cumulative
+        # phase 3 does check over multiple rasters at once, then next check
         elif check_phase == 3:
+            for check_id, base_check_name in check_ids_names:
+                self.run_check(base_check_name, setting_id=setting_id,
+                               rasters=rasters, check_id=check_id)
+
+        # phase 4 (compare with dem)
+        elif check_phase == 4:
             dem = rasters[0]
             dem_path = os.path.join(self.sqlite_dir, dem)
             dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
@@ -591,8 +592,8 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds, dem_src_ds=dem_src_ds)
-        # phase 4
-        elif check_phase == 4:
+        # phase 5
+        elif check_phase == 5:
             dem = rasters[0]
             for rast_item in rasters[1:]:
                 for check_id, base_check_name in check_ids_names:
@@ -600,46 +601,6 @@ class RasterChecker(object):
                                    rast_item=rast_item, check_id=check_id,
                                    dem=dem)
 
-    def get_blockers_phase(self, check_phase=None):
-        # get a set of check ids that are blocking
-        return [chck.get('check_id') for chck in RASTER_CHECKER_MAPPER if
-                chck.get('blocking') is True and
-                chck.get('phase') == check_phase]
-
-    def get_ready_rasters(self, rasters, setting_id, check_phase):
-        """
-
-        :param rasters:
-        :param setting_id:
-        :param check_phase:
-        :return:
-        """
-        # get the check_ids for this check_phase
-        check_ids_list = self.get_check_ids(check_phase)
-        # get all blocking check_ids for this check_phase
-        check_ids_block = self.get_blockers_phase(check_phase=check_phase)
-
-        if len(check_ids_block) == 0:
-            # no blocking checks this phase, so all rasters passed the phase
-            return rasters
-        else:
-            rasters_ready = []
-            for rast_item in rasters:
-                succes = [result for result in self.results.result_list
-                          if result['result'] is True and
-                          result['check_id'] in check_ids_list and
-                          result['check_id'] in check_ids_block and
-                          result['setting_id'] == setting_id and
-                          result['raster'] == rast_item]
-                no_succes = [result for result in self.results.result_list
-                             if result['result'] is False and
-                             result['check_id'] in check_ids_list and
-                             result['check_id'] in check_ids_block and
-                             result['setting_id'] == setting_id and
-                             result['raster'] == rast_item]
-                if len(succes) > 0 and len(no_succes) == 0:
-                    rasters_ready.append(rast_item)
-            return rasters_ready
 
     def run_all_checks(self, run_pixel_checker=False):
         """
@@ -652,42 +613,52 @@ class RasterChecker(object):
         phase = 1
         for setting_id, rasters in self.entrees.iteritems():
             self.run_phase_checks(setting_id, rasters, phase)
+        self.results.update_result_per_phase(setting_id, rasters, phase)
 
         phase = 2
         for setting_id, rasters in self.entrees.iteritems():
-            # we only check only rasters that passed previous phase
-            rasters_ready = self.get_ready_rasters(
-                rasters, setting_id, (phase-1))
+            # we only check rasters that passed blocking checks previous phase
+            rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
+        self.results.update_result_per_phase(setting_id, rasters, phase)
 
         phase = 3
+        # cumulative pixels
         for setting_id, rasters in self.entrees.iteritems():
-            # we only check rasters that passed the previous phase
-            rasters_ready = self.get_ready_rasters(
-                rasters, setting_id, (phase-1))
+            # we only check rasters that passed blocking checks previous phase
+            rasters_ready = self.results.get_rasters_ready(setting_id, phase)
+            self.run_phase_checks(setting_id, rasters_ready, phase)
+
+        phase = 4
+        # compare with dem
+        for setting_id, rasters in self.entrees.iteritems():
+            # we only check rasters that passed blocking checks of phase 2
+            rasters_ready = self.results.get_rasters_ready(setting_id, 3)
             # We will compare the dem with other rasters. We need:
             # - at least two rasters per entree and
             # - the dem_file (which is the first value (rasters[0])
             if len(rasters_ready) >= 2 and rasters[0] in rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
+        self.results.update_result_per_phase(setting_id, rasters, phase)
 
-        phase = 4
-        if run_pixel_checker:
-            self.input_data_shp = []
-            for setting_id, rasters in self.entrees.iteritems():
-                rasters_ready = self.get_ready_rasters(
-                    rasters, setting_id, (phase-1))
-                # Note that the dem always passed the previous phase (as we then
-                # compared the dem with other rasters). If other raster was
-                # dem alike (extent, pixelsize, etc) then that raster was
-                # added to self.results. However (!!) the dem was not added
-                # to self.results
-                # From now we only continue if there is at least 1 raster
-                if len(rasters_ready) >= 1:
-                    # Still need to add the dem (rasters[0]) to rasters_ready
-                    rasters_ready.insert(0, rasters[0])
-                    self.run_phase_checks(setting_id, rasters_ready, phase)
+        phase = 5
+        if not run_pixel_checker:
+            return
+        self.input_data_shp = []
+        for setting_id, rasters in self.entrees.iteritems():
+            rasters_ready = self.results.get_rasters_ready(setting_id, phase)
+            # Note that the dem always passed the previous phase (as we then
+            # compared the dem with other rasters). If other raster was
+            # dem alike (extent, pixelsize, etc) then that raster was added
+            # to self.results. However (!!) the dem was not added to
+            # self.results. From now we only continue if there is at least
+            # 1 raster
+            if len(rasters_ready) >= 1:
+                # Still need to add the dem (rasters[0]) to rasters_ready
+                rasters_ready.insert(0, rasters[0])
+                self.run_phase_checks(setting_id, rasters_ready, phase)
+        self.results.update_result_per_phase(setting_id, rasters, phase)
 
     def create_shp(self):
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
@@ -755,9 +726,10 @@ class RasterChecker(object):
         if shpfile:
             msg = 'The check results have been written to: \n %s \n ' \
                   'The coordinates of wrong pixels are written to: \n' \
-                  '%s' % (self.log_path, self.shape_path)
+                  '%s' % (self.results.log_path, self.shape_path)
         else:
-            msg = 'The check results have been written to:\n%s' % self.log_path
+            msg = 'The check results have been written to:\n%s' % \
+                  self.results.log_path
         pop_up_info(msg, header)
 
     def progress_bar(self):
@@ -787,12 +759,9 @@ class RasterChecker(object):
         # TODO: write improvement function
         # TODO: now checks are done for all entrees. Enable checks for 1 entree
         self.close_session()
-        # sort logging for better readability
-        # private function since .sort() is built-in
-        self.results._sort()
-        # write and save log file
+        self.results.sort_results()
+        # write and save log file (here the self.results.log_path is created)
         self.results.write_log()
-        self.log_path = self.results.log_path
         if run_pixels_bool:
             self.create_shp()
         self.pop_up_finished(shpfile=run_pixels_bool)

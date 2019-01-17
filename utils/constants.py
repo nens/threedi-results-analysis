@@ -255,6 +255,19 @@ RASTER_CHECKER_MAPPER = [
      },
     {'check_id': 12,
      'phase': 3,
+     'base_check_name': 'cum_pixel_cnt',
+     'description': '{{check_id}}: Is the cumulative number of pixels of all'
+                    'rasters per setting_id lower than 1.000.000.000?',
+     'blocking': False,
+     'feedback': {
+         'info': 'not too high cumulative pixelcount of all rasters',
+         'warning': 'probably not too high cumulative pixelcount of all '
+                    'rasters',
+         'error': '',
+        },
+     },
+    {'check_id': 13,
+     'phase': 4,
      'base_check_name': 'proj',
      'description': '{{check_id}}: Is the projection equal to the dem '
                     'projection?',
@@ -265,8 +278,8 @@ RASTER_CHECKER_MAPPER = [
         'error': '{{raster}} projection differs from dem projection',
         },
      },
-    {'check_id': 13,
-     'phase': 3,
+    {'check_id': 14,
+     'phase': 4,
      'base_check_name': 'pixelsize',
      'description': '{{check_id}}: Is the pixel size equal to the dem pixel '
                     'size?',
@@ -277,8 +290,8 @@ RASTER_CHECKER_MAPPER = [
         'error': '{{raster}} pixel size differs from dem pixel size',
         },
      },
-    {'check_id': 14,
-     'phase': 3,
+    {'check_id': 15,
+     'phase': 4,
      'base_check_name': 'cnt_nodata',
      'blocking': False,
      'description': '{{check_id}}: Is the number of data/nodata pixels equal '
@@ -289,8 +302,8 @@ RASTER_CHECKER_MAPPER = [
         'error': '{{raster}} count of data/nodata pixels differs from dem'
         },
      },
-    {'check_id': 15,
-     'phase': 3,
+    {'check_id': 16,
+     'phase': 4,
      'base_check_name': 'extent',
      'description': '{{check_id}}: Is the number of rows-colums equal to '
                     'the dem?',
@@ -301,8 +314,8 @@ RASTER_CHECKER_MAPPER = [
         'error': '{{raster}} extent differs from dem extent',
         },
      },
-    {'check_id': 16,
-     'phase': 4,
+    {'check_id': 17,
+     'phase': 5,
      'base_check_name': 'pixel_alignment',
      'blocking': True,
      'description': '{{check_id}}: Are pixels correctly aligned (data and '
