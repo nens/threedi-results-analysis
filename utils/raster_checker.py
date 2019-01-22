@@ -615,7 +615,6 @@ class RasterChecker(object):
             note that not all checks are blocking (written in
             RASTER_CHECKER_MAPPER)
         """
-
         progress_bar = StatusProgressBar(100, 'raster_checker: ')
 
         progress_bar.increase_progress(20, "phase 1")

@@ -271,13 +271,13 @@ class RasterCheckerResults(object):
 
         for result_row in self.result_per_phase:
             if result_row.get('result') is False:
-                added_something = True
-                raster = result_row.get('raster')
                 phase = result_row.get('phase')
-                check_ids = self.get_block_check_ids(phase)
                 setting_id = result_row.get('setting_id')
+                raster = result_row.get('raster')
                 if phase in [1, 2] and \
                         (setting_id, raster) not in skip_raster_id:
+                    added_something = True
+                    check_ids = self.get_block_check_ids(phase)
                     msg = 'setting_id %d: %s failed on at least one of ' \
                           'checks %s. Therefore we could not continue ' \
                           'with this raster \n' % (
@@ -286,6 +286,8 @@ class RasterCheckerResults(object):
                     skip_raster_id.append((setting_id, raster))
                 elif phase in [3, 4] and \
                         (setting_id, raster) not in skip_raster_id:
+                    added_something = True
+                    check_ids = self.get_block_check_ids(phase)
                     msg = 'setting_id %d: either %s failed on at least one of ' \
                           'checks %s, or dem of this setting_id did not ' \
                           'reach these checks. Therefore we could not ' \
