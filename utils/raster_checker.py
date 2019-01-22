@@ -9,6 +9,7 @@ from ThreeDiToolbox.utils.raster_checker_prework import (
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
 from sqlalchemy.ext.declarative import declarative_base
+from ..utils.user_messages import StatusProgressBar
 
 import os
 import string
@@ -37,8 +38,12 @@ class RasterChecker(object):
         self.metadata = MetaData(bind=self.engine)
 
         datamodel = DataModelSource(self.metadata)
+
         self.entrees = RasterCheckerEntrees(
             datamodel, self.session).get_entrees()
+
+        self.all_raster_ref = RasterCheckerEntrees(
+            datamodel, self.session).get_all_raster_ref()
 
         sqlite_path = str(self.db.settings['db_path'])
         self.sqlite_dir = os.path.split(sqlite_path)[0]
@@ -274,11 +279,11 @@ class RasterChecker(object):
                 detail = 'compression_method is %s' %compr_method
         except Exception as detail:
             log.error(detail)
+            detail = str()
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
                               check_id=check_id, result=result, detail=detail)
-
     def check_pixel_decimal(self, setting_id, rast_item, check_id, src_ds):
         # Has the pixel resolution less than three decimal places?
         detail = str()
@@ -610,11 +615,16 @@ class RasterChecker(object):
             note that not all checks are blocking (written in
             RASTER_CHECKER_MAPPER)
         """
+
+        progress_bar = StatusProgressBar(100, 'raster_checker: ')
+
+        progress_bar.increase_progress(20, "phase 1")
         phase = 1
         for setting_id, rasters in self.entrees.iteritems():
             self.run_phase_checks(setting_id, rasters, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
+        progress_bar.increase_progress(20, "phase 2")
         phase = 2
         for setting_id, rasters in self.entrees.iteritems():
             # we only check rasters that passed blocking checks previous phase
@@ -623,6 +633,7 @@ class RasterChecker(object):
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
+        progress_bar.increase_progress(20, "phase 3")
         phase = 3
         # cumulative pixels
         for setting_id, rasters in self.entrees.iteritems():
@@ -630,6 +641,7 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
 
+        progress_bar.increase_progress(20, "phase 4")
         phase = 4
         # compare with dem
         for setting_id, rasters in self.entrees.iteritems():
@@ -639,9 +651,11 @@ class RasterChecker(object):
             # - at least two rasters per entree and
             # - the dem_file (which is the first value (rasters[0])
             if len(rasters_ready) >= 2 and rasters[0] in rasters_ready:
+                rasters_ready = self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
+        progress_bar.increase_progress(20, "phase 5")
         phase = 5
         if not run_pixel_checker:
             return
@@ -659,6 +673,15 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
+
+    def dem_to_first_index(self, rasters_orig, rasters_ready):
+        # assumes dem is in both arguments !!
+        dem = rasters_orig[0]
+        dem_index = rasters_ready.index(dem)
+        if dem_index <> 0:
+            rasters_ready[0], rasters_ready[dem_index] = \
+                rasters_ready[dem_index], rasters_ready[0]
+        return rasters_ready
 
     def create_shp(self):
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
@@ -689,18 +712,16 @@ class RasterChecker(object):
         dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
         transform = QgsCoordinateTransform(source_crs, dest_crs)
 
-        self.shape_path = '/home/renier.kramer/Desktop/my_shapes26_' \
-                          + str(source_epsg) + '.shp'
+        self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
 
         writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
                                      QGis.WKBPoint, None, "ESRI Shapefile")
-
         try:
             if writer.hasError() != QgsVectorFileWriter.NoError:
-                msg = 'Error when creating shapefile: ' + \
+                msg = 'Error while creating shapefile: ' + \
                       str(writer.errorMessage())
                 log.error(msg)
-                self.messages.append("[Error]: {}. \n".format(msg))
+                raise Exception (msg)
             else:
                 for pixel_check_dict in self.input_data_shp:
                     raster = pixel_check_dict.get('raster')
@@ -761,7 +782,7 @@ class RasterChecker(object):
         self.close_session()
         self.results.sort_results()
         # write and save log file (here the self.results.log_path is created)
-        self.results.write_log()
+        self.results.write_log(self.all_raster_ref)
         if run_pixels_bool:
             self.create_shp()
         self.pop_up_finished(shpfile=run_pixels_bool)

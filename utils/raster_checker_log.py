@@ -185,8 +185,17 @@ class RasterCheckerResults(object):
             feedback_level, setting_id, check_id, rendered_feedback, detail)
         return msg
 
-    def result_per_phase_to_msg(sefl, result_row):
-        pass
+    def add_found_rasters(self, all_raster_ref):
+        msg = '\n-- Found following raster references: -- \n'
+        self.log_file.write(msg)
+        for xx in all_raster_ref:
+            table = xx[0]
+            setting_id = xx[1]
+            column = xx[2]
+            raster = xx[3]
+            msg = 'table:%s, id:%d, column:%s, raster:%s \n' % (
+                table, setting_id, column, raster)
+            self.log_file.write(msg)
 
     def get_intro_lines(self, check_phase):
         """
@@ -243,12 +252,11 @@ class RasterCheckerResults(object):
         checkid_description = self.get_intro_lines(check_phase=[5])
         self.write_intro_lines(checkid_description)
 
+    def result_per_check_to_log(self):
+        # add self.result_per_check to log_file
         msg = '\n-- Report: -- \n' \
               'level, setting_id, check_id, feedback \n'
         self.log_file.write(msg)
-
-    def result_per_check_to_log(self):
-        # add self.result_per_check to log_file
         for result_row in self.result_per_check:
             log_row = self.result_per_check_to_msg(result_row)
             self.log_file.write(log_row)
@@ -258,23 +266,38 @@ class RasterCheckerResults(object):
         msg = '\n -- Sequence details: -- \n'
         self.log_file.write(msg)
         added_something = False
+
+        skip_raster_id = []
+
         for result_row in self.result_per_phase:
-            if result_row.get('result') is False and result_row.get(
-                    'phase') != self.last_check_phase:
+            if result_row.get('result') is False:
                 added_something = True
                 raster = result_row.get('raster')
                 phase = result_row.get('phase')
                 check_ids = self.get_block_check_ids(phase)
                 setting_id = result_row.get('setting_id')
-                msg = 'setting_id %d: %s failed on at least on of checks %s.' \
-                      ' Therefore we could not continue with this raster\n' % (
-                    setting_id, raster, str(check_ids))
-                self.log_file.write(msg)
+                if phase in [1, 2] and \
+                        (setting_id, raster) not in skip_raster_id:
+                    msg = 'setting_id %d: %s failed on at least one of ' \
+                          'checks %s. Therefore we could not continue ' \
+                          'with this raster \n' % (
+                        setting_id, raster, str(check_ids))
+                    self.log_file.write(msg)
+                    skip_raster_id.append((setting_id, raster))
+                elif phase in [3, 4] and \
+                        (setting_id, raster) not in skip_raster_id:
+                    msg = 'setting_id %d: either %s failed on at least one of ' \
+                          'checks %s, or dem of this setting_id did not ' \
+                          'reach these checks. Therefore we could not ' \
+                          'continue with this raster \n' % (
+                              setting_id, raster, str(check_ids))
+                    self.log_file.write(msg)
+                    skip_raster_id.append((setting_id, raster))
         if not added_something:
             msg = 'all checks have been done on all rasters'
             self.log_file.write(msg)
 
-    def write_log(self):
+    def write_log(self, all_raster_ref):
         timestr = time.strftime("_%Y%m%d_%H%M")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
@@ -288,6 +311,7 @@ class RasterCheckerResults(object):
                             'directory %s' % self.log_path)
 
         self.add_intro()
+        self.add_found_rasters(all_raster_ref)
         self.result_per_check_to_log()
         self.result_per_phase_to_log()
         self.log_file.close()
