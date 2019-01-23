@@ -12,6 +12,8 @@ ThreeDiToolBox changelog
 
 - Add v2_culvert to layer_tree_manager
 
+- ResultSelectionWidget now correctly downloads the selected result.
+
 
 1.6 (2018-11-28)
 ----------------
