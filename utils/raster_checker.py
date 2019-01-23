@@ -7,9 +7,10 @@ from ThreeDiToolbox.utils.user_messages import (
 from ThreeDiToolbox.utils.raster_checker_prework import (
     DataModelSource, RasterCheckerEntrees)
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
+from ThreeDiToolbox.utils.raster_checker_log import (
+    RasterCheckerResults, RasterCheckerProgressBar)
+
 from sqlalchemy.ext.declarative import declarative_base
-from ..utils.user_messages import StatusProgressBar
 
 import os
 import string
@@ -463,21 +464,41 @@ class RasterChecker(object):
         generator_dem = self.create_generator(dem_path)
         self.pixel_specs = self.get_pixel_specs(dem_path)
 
+        current_status = self.progress_bar.get_current_status()
+
+        progress_per_raster = self.progress_bar.get_progress_per_raster(
+            self.entrees, self.results, current_status)
+        self.progress_bar.increase_progress(progress_per_raster)
+
         other_tif_path = os.path.join(self.sqlite_dir, rast_item)
         generator_other = self.create_generator(other_tif_path)
 
         self.found_wrong_pixel = False
+        self.wrong_pixels = []
+
         # compare two rasters blockwise
         for data1, data2 in izip(
                 generator_dem.next(), generator_other.next()):
             self.compare_pixel_bbox(setting_id, rast_item, data1, data2)
 
         if self.found_wrong_pixel:
+            self.input_data_shp.append(
+                {'setting_id': setting_id,
+                 'raster': rast_item,
+                 'coords': self.wrong_pixels}
+            )
             result = False
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
+
+    def get_nr_blocks(self, raster_path):
+        raster = gdal.Open(raster_path, GA_ReadOnly)
+        band = raster.GetRasterBand(1)
+        # optimize_blocksize
+        w, h, nr_blocks = self.optimize_blocksize(band)
+        return nr_blocks
 
     def create_generator(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
@@ -496,7 +517,7 @@ class RasterChecker(object):
         return pixel_specs
 
     def get_wrong_pixel(self, setting_id, other_tif, bbox1, compare_mask):
-        wrong_pixels = []
+
         ulx, xres, xskew, uly, yskew, yres, pixelsize = self.pixel_specs
 
         # (0,0) is (x,y) left-upper corner of first bbox. Going down
@@ -504,29 +525,42 @@ class RasterChecker(object):
         l_up_col = bbox1[0]
         l_up_row = bbox1[1]
 
-        # get indices of True
-        true_idx = np.where(compare_mask)
-        x_coords = true_idx[0]
-        y_coords = true_idx[1]
-        # (array([1, 1, 2, 2]), array([2, 3, 0, 1]))
-        for pixel in zip(x_coords, y_coords):
-            bbox_row = pixel[0]
-            bbox_column = pixel[1]
-            loc_col = l_up_col + bbox_column
-            loc_row = l_up_row + bbox_row
-            # times 0.5 because we want centre coord and not left up corner
-            x_coor = ulx + pixelsize * loc_col + 0.5 * pixelsize
-            y_coor = uly - pixelsize * loc_row - 0.5 * pixelsize
-            wrong_pixels.append([x_coor, y_coor])
+        true_idx = np.argwhere(compare_mask)
+        # x = true_idx_test[0][0]
+        # y = true_idx_test[0][1]
+        bbox_idx = true_idx + [l_up_row, l_up_col]
+        raster_centre_coor = [uly, ulx] + (bbox_idx * [-pixelsize, pixelsize]) + [-0.5 * pixelsize, 0.5 * pixelsize]
+        # somehow x and y flipped ??
+        # y = raster_lu_coor[0][0]
+        # x = raster_lu_coor[0][1]
+        # times 0.5 because we want centre coord and not left up corner
 
-        # create row in .shp for dem nodata where other raster is data
-        self.input_data_shp.append(
-            {'setting_id': setting_id,
-             'cause': 'dem_nodata',
-             'raster': str(other_tif),
-             'coords': wrong_pixels
-             }
-        )
+        self.wrong_pixels.append(raster_centre_coor.tolist())
+
+        # wrong_pixels = []
+        # # get indices of True
+        # true_idx = np.where(compare_mask)
+        # x_coords = true_idx[0]
+        # y_coords = true_idx[1]
+        # # (array([1, 1, 2, 2]), array([2, 3, 0, 1]))
+        # for pixel in zip(x_coords, y_coords):
+        #     bbox_row = pixel[0]
+        #     bbox_column = pixel[1]
+        #     loc_col = l_up_col + bbox_column
+        #     loc_row = l_up_row + bbox_row
+        #     # times 0.5 because we want centre coord and not left up corner
+        #     x_coor = ulx + pixelsize * loc_col + 0.5 * pixelsize
+        #     y_coor = uly - pixelsize * loc_row - 0.5 * pixelsize
+        #     wrong_pixels.append((x_coor, y_coor))
+        #
+        # # create row in .shp for dem nodata where other raster is data
+        # self.input_data_shp.append(
+        #     {'geom_type': 'point',
+        #      'setting_id': setting_id,
+        #      'raster': str(other_tif),
+        #      'coords': wrong_pixels
+        #      }
+        # )
 
     def compare_pixel_bbox(self, setting_id, other_tif, data1, data2):
         bbox1, arr1 = data1
@@ -606,6 +640,12 @@ class RasterChecker(object):
                                    rast_item=rast_item, check_id=check_id,
                                    dem=dem)
 
+    def get_nr_phases(self, run_pixel_checker):
+        nr_phases  = max([chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
+        if run_pixel_checker:
+            return nr_phases
+        else:
+            return nr_phases - 1
 
     def run_all_checks(self, run_pixel_checker=False):
         """
@@ -615,16 +655,23 @@ class RasterChecker(object):
             note that not all checks are blocking (written in
             RASTER_CHECKER_MAPPER)
         """
-        progress_bar = StatusProgressBar(100, 'raster_checker: ')
 
-        progress_bar.increase_progress(20, "phase 1")
+        nr_phases = self.get_nr_phases(run_pixel_checker)
+
+        self.progress_bar = RasterCheckerProgressBar(
+            nr_phases, run_pixel_checker, maximum=100,
+            message_title='Raster Checker')
+
+        progress_per_phase = self.progress_bar.get_progress_per_phase()
+
         phase = 1
+        self.progress_bar.increase_progress(0, 'phase 1')
         for setting_id, rasters in self.entrees.iteritems():
             self.run_phase_checks(setting_id, rasters, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
-        progress_bar.increase_progress(20, "phase 2")
         phase = 2
+        self.progress_bar.increase_progress(progress_per_phase, 'phase 2')
         for setting_id, rasters in self.entrees.iteritems():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
@@ -632,16 +679,16 @@ class RasterChecker(object):
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
-        progress_bar.increase_progress(20, "phase 3")
         phase = 3
+        self.progress_bar.increase_progress(progress_per_phase, 'phase 3')
         # cumulative pixels
         for setting_id, rasters in self.entrees.iteritems():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
 
-        progress_bar.increase_progress(20, "phase 4")
         phase = 4
+        self.progress_bar.increase_progress(progress_per_phase, 'phase 4')
         # compare with dem
         for setting_id, rasters in self.entrees.iteritems():
             # we only check rasters that passed blocking checks of phase 2
@@ -654,8 +701,8 @@ class RasterChecker(object):
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
-        progress_bar.increase_progress(20, "phase 5")
         phase = 5
+        self.progress_bar.increase_progress(progress_per_phase, 'phase 5')
         if not run_pixel_checker:
             return
         self.input_data_shp = []
@@ -673,6 +720,9 @@ class RasterChecker(object):
                 self.run_phase_checks(setting_id, rasters_ready, phase)
         self.results.update_result_per_phase(setting_id, rasters, phase)
 
+        # delete progress bar
+        self.progress_bar.__del__()
+
     def dem_to_first_index(self, rasters_orig, rasters_ready):
         # assumes dem is in both arguments !!
         dem = rasters_orig[0]
@@ -688,7 +738,6 @@ class RasterChecker(object):
         # define fields for feature attributes. A QgsFields object is needed
         fields = QgsFields()
         fields.append(QgsField("setting_id", QVariant.String))
-        fields.append(QgsField("cause", QVariant.String))
         fields.append(QgsField("raster", QVariant.String))
         fields.append(QgsField("x centre", QVariant.String))
         fields.append(QgsField("y centre", QVariant.String))
@@ -704,12 +753,12 @@ class RasterChecker(object):
            QgsCoordinateReferenceSystem) - optional
         6. driver name for the output file """
 
-        # TODO enable transformation (test buitenland modellen!!)
-        source_epsg = 28992
-        dest_epsg = 28992
-        source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
-        dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
-        transform = QgsCoordinateTransform(source_crs, dest_crs)
+        # # TODO enable transformation (test buitenland modellen!!)
+        # source_epsg = 28992
+        # dest_epsg = 28992
+        # source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+        # dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
+        # transform = QgsCoordinateTransform(source_crs, dest_crs)
 
         self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
 
@@ -722,20 +771,21 @@ class RasterChecker(object):
                 log.error(msg)
                 raise Exception (msg)
             else:
+
                 for pixel_check_dict in self.input_data_shp:
                     raster = pixel_check_dict.get('raster')
-                    cause = pixel_check_dict.get('cause')
                     setting_id = pixel_check_dict.get('setting_id')
                     coords = pixel_check_dict.get('coords')
-                    for point in coords:
-                        point_x = point[0]
-                        point_y = point[1]
-                        feat = QgsFeature()
-                        feat.setGeometry(QgsGeometry.fromPoint(
-                            QgsPoint(point_x, point_y)))
-                        feat.setAttributes([
-                            setting_id, cause, raster, point_x, point_y])
-                        writer.addFeature(feat)
+                    for row in coords:
+                        for point in row:
+                            point_x = point[0]
+                            point_y = point[1]
+                            feat = QgsFeature()
+                            feat.setGeometry(QgsGeometry.fromPoint(
+                                QgsPoint(point_x, point_y)))
+                            feat.setAttributes([
+                                setting_id, raster, point_x, point_y])
+                            writer.addFeature(feat)
         except Exception as e:
             log.error(e)
         # delete the writer to flush features to disk
@@ -751,10 +801,6 @@ class RasterChecker(object):
             msg = 'The check results have been written to:\n%s' % \
                   self.results.log_path
         pop_up_info(msg, header)
-
-    def progress_bar(self):
-        pass
-        # TODO: create progressbar for all checks
 
     def check_constants(self):
         method_names = [chck.get('base_check_name') for chck in

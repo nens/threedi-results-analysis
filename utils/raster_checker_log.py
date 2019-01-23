@@ -2,7 +2,7 @@ import time
 import os
 import logging
 from jinja2 import Template
-
+from ..utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 
 log = logging.getLogger(__name__)
@@ -318,3 +318,55 @@ class RasterCheckerResults(object):
         self.result_per_phase_to_log()
         self.log_file.close()
 
+# class Person:
+#
+#     def __init__(self, first, last):
+#         self.firstname = first
+#         self.lastname = last
+#
+#     def Name(self):
+#         return self.firstname + " " + self.lastname
+#
+# class Employee(Person):
+#
+#     def __init__(self, first, last, staffnum):
+#         Person.__init__(self,first, last)
+#         self.staffnumber = staffnum
+
+class RasterCheckerProgressBar(StatusProgressBar):
+    def __init__(self, nr_phases, run_pixel_checker=False, maximum=100,
+                 message_title=''):
+        StatusProgressBar.__init__(self, maximum=100, message_title='')
+        self.nr_phases = nr_phases
+        self.run_pixel_checker = run_pixel_checker
+        self.maximum = maximum
+
+    def get_progress_per_raster(self, entrees, results, current_status):
+        """
+        if pixel_alignment has been chose by user, then the progress_bar is
+        filled up to e.g 80% at the start of that last phase (pixel alignment)
+        Each time a raster will be checked on pixels we add some progress,
+        so that the bar remaining is filled up. To estimate per raster, we
+        need to know how many rasters will be checked.
+        :param:
+        :return: progress_per_raster (int): estimate progress (int 0-100) to
+        add to the progress_bar each time a raster has been checked on
+        pixel alignment
+        """
+        if not self.run_pixel_checker:
+            raise AssertionError('do not call this function when you dont run'
+                                 'pixel_checker')
+        count_rasters = 0
+        for setting_id, rasters in entrees.iteritems():
+            rasters_ready = results.get_rasters_ready(setting_id, 5)
+            if len(rasters_ready) >= 1:
+                count_rasters += len(rasters_ready)
+        progress_per_raster = int(
+            (self.maximum - current_status) / count_rasters)
+        return progress_per_raster
+
+    def get_progress_per_phase(self):
+        return int(self.maximum / self.nr_phases)
+
+    def get_current_status(self):
+        return self.progress
