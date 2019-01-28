@@ -13,6 +13,7 @@ class RasterCheckerResults(object):
         self.sqlite_path = sqlite_path
         self.result_per_check = []
         self.result_per_phase = []
+        self.store_cnt_data_nodata = []
         self.log_path = None
         self._last_phase = None
 
@@ -65,6 +66,8 @@ class RasterCheckerResults(object):
             return True
 
     def _add(self, **kwargs):
+        # this function only add result per check (no result per phase and
+        # store_cnt_data_nodata)
         result = self.check_incomming(**kwargs)
         self.result_per_check.append(result)
 
@@ -318,20 +321,6 @@ class RasterCheckerResults(object):
         self.result_per_phase_to_log()
         self.log_file.close()
 
-# class Person:
-#
-#     def __init__(self, first, last):
-#         self.firstname = first
-#         self.lastname = last
-#
-#     def Name(self):
-#         return self.firstname + " " + self.lastname
-#
-# class Employee(Person):
-#
-#     def __init__(self, first, last, staffnum):
-#         Person.__init__(self,first, last)
-#         self.staffnumber = staffnum
 
 class RasterCheckerProgressBar(StatusProgressBar):
     def __init__(self, nr_phases, run_pixel_checker=False, maximum=100,

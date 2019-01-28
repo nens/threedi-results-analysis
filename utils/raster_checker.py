@@ -366,6 +366,7 @@ class RasterChecker(object):
             src_ds = gdal.Open(raster_path, GA_ReadOnly)
             cols = src_ds.RasterXSize
             rows = src_ds.RasterYSize
+            src_ds = None
             pixelcount = cols * rows
             cum_pixelcount =+ pixelcount
         if cum_pixelcount > max_pixels_allow:
@@ -423,6 +424,11 @@ class RasterChecker(object):
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 
+    def store_cnt_data_nodata(self, setting_id, rast_item, dem_cnt_data,
+                              dem_cnt_nodata, cnt_data, cnt_nodata):
+        self.store_cnt_data_nodata
+
+
     def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds,
                         dem_src_ds):
         # compare data/nodata count of dem with another raster
@@ -430,12 +436,21 @@ class RasterChecker(object):
         dem_cnt_data, dem_cnt_nodata = self.count_data_nodata(dem_src_ds)
         cnt_data, cnt_nodata = self.count_data_nodata(src_ds)
 
+        # store the counts as we use it later before pixel alignment check
+        self.results.store_cnt_data_nodata.append({
+            'setting_id': setting_id,
+            'raster': rast_item,
+            'dem_cnt_data': dem_cnt_data,
+            'dem_cnt_nodata': dem_cnt_nodata,
+            'cnt_data': cnt_data,
+            'cnt_nodata': cnt_nodata,
+        })
+
         if (dem_cnt_data, dem_cnt_nodata) == (cnt_data, cnt_nodata):
             result = True
         else:
             result = False
-            detail = 'dem has %d data- and %d nodata pixels, while %s has ' \
-                     '%d data- and %d nodata pixels' % (
+            detail = 'dem: %d/%d data/nodata, while %s: %d/%d data/nodata' % (
                 dem_cnt_data, dem_cnt_nodata, rast_item, cnt_data, cnt_nodata)
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
@@ -460,19 +475,44 @@ class RasterChecker(object):
 
     def check_pixel_alignment(self, setting_id, rast_item, check_id, dem):
         detail = str()
+
+        [(dem_cnt_data, dem_cnt_nodata, cnt_data, cnt_nodata)] = [
+            (chck.get('dem_cnt_data'), chck.get('dem_cnt_nodata'),
+             chck.get('cnt_data'), chck.get('cnt_nodata'))
+            for chck in self.results.store_cnt_data_nodata if
+            chck.get('raster') == rast_item and
+            chck.get('setting_id') == setting_id]
+
+        # we will check pixel alignment for raster A and B only if:
+        # - diff between nr data pixels A and nr data pixels B < 50000, and
+        # - diff between nr nodata pixels A and nr nodata pixels B < 50000
+        # Otherwise it likely that this check takes too long. So before
+        # starting blockwise pixel alignment we compare count data/nodata of
+        # both rasters
+
+        diff_data = abs(dem_cnt_data - cnt_data)
+        diff_nodata = abs(dem_cnt_nodata - cnt_nodata)
+        max_wrong_pixels = 50000
+        if diff_data > max_wrong_pixels or diff_nodata > max_wrong_pixels:
+            detail = 'Wrong pixels are not written too .shp as too many ' \
+                     'wrong pixels were found'
+            result = False
+            self.results._add(setting_id=setting_id, raster=rast_item,
+                              check_id=check_id, result=result, detail=detail)
+            return
+
         dem_path = os.path.join(self.sqlite_dir, dem)
+        other_tif_path = os.path.join(self.sqlite_dir, rast_item)
+
         generator_dem = self.create_generator(dem_path)
-        self.pixel_specs = self.get_pixel_specs(dem_path)
+        generator_other = self.create_generator(other_tif_path)
 
         current_status = self.progress_bar.get_current_status()
-
         progress_per_raster = self.progress_bar.get_progress_per_raster(
             self.entrees, self.results, current_status)
         self.progress_bar.increase_progress(progress_per_raster)
 
-        other_tif_path = os.path.join(self.sqlite_dir, rast_item)
-        generator_other = self.create_generator(other_tif_path)
-
+        self.pixel_specs = self.get_pixel_specs(dem_path)
         self.found_wrong_pixel = False
         self.wrong_pixels = []
 
@@ -488,6 +528,7 @@ class RasterChecker(object):
                  'coords': self.wrong_pixels}
             )
             result = False
+            detail = 'the mismatch locations have been written to .shp file',
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
@@ -496,6 +537,7 @@ class RasterChecker(object):
     def get_nr_blocks(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
         band = raster.GetRasterBand(1)
+        raster = None
         # optimize_blocksize
         w, h, nr_blocks = self.optimize_blocksize(band)
         return nr_blocks
@@ -503,6 +545,7 @@ class RasterChecker(object):
     def create_generator(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
         band = raster.GetRasterBand(1)
+        raster = None
         # optimize_blocksize
         w, h, nr_blocks = self.optimize_blocksize(band)
         # create generators
@@ -512,14 +555,13 @@ class RasterChecker(object):
     def get_pixel_specs(self, dem_path):
         dem = gdal.Open(dem_path, GA_ReadOnly)
         ulx, xres, xskew, uly, yskew, yres = dem.GetGeoTransform()
+        dem = None
         pixelsize = abs(min(xres, yres))
         pixel_specs = (ulx, xres, xskew, uly, yskew, yres, pixelsize)
         return pixel_specs
 
     def get_wrong_pixel(self, setting_id, other_tif, bbox1, compare_mask):
-
         ulx, xres, xskew, uly, yskew, yres, pixelsize = self.pixel_specs
-
         # (0,0) is (x,y) left-upper corner of first bbox. Going down
         # bbox_row increases. Going right bbox_col increases
         l_up_col = bbox1[0]
@@ -536,31 +578,6 @@ class RasterChecker(object):
         # times 0.5 because we want centre coord and not left up corner
 
         self.wrong_pixels.append(raster_centre_coor.tolist())
-
-        # wrong_pixels = []
-        # # get indices of True
-        # true_idx = np.where(compare_mask)
-        # x_coords = true_idx[0]
-        # y_coords = true_idx[1]
-        # # (array([1, 1, 2, 2]), array([2, 3, 0, 1]))
-        # for pixel in zip(x_coords, y_coords):
-        #     bbox_row = pixel[0]
-        #     bbox_column = pixel[1]
-        #     loc_col = l_up_col + bbox_column
-        #     loc_row = l_up_row + bbox_row
-        #     # times 0.5 because we want centre coord and not left up corner
-        #     x_coor = ulx + pixelsize * loc_col + 0.5 * pixelsize
-        #     y_coor = uly - pixelsize * loc_row - 0.5 * pixelsize
-        #     wrong_pixels.append((x_coor, y_coor))
-        #
-        # # create row in .shp for dem nodata where other raster is data
-        # self.input_data_shp.append(
-        #     {'geom_type': 'point',
-        #      'setting_id': setting_id,
-        #      'raster': str(other_tif),
-        #      'coords': wrong_pixels
-        #      }
-        # )
 
     def compare_pixel_bbox(self, setting_id, other_tif, data1, data2):
         bbox1, arr1 = data1
@@ -611,6 +628,7 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds)
+                src_ds = None
 
         # pixel cumulative
         # phase 3 does check over multiple rasters at once, then next check
@@ -631,6 +649,9 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds, dem_src_ds=dem_src_ds)
+            dem_src_ds = None
+            src_ds = None
+
         # phase 5
         elif check_phase == 5:
             dem = rasters[0]
@@ -828,175 +849,9 @@ class RasterChecker(object):
         self.results.sort_results()
         # write and save log file (here the self.results.log_path is created)
         self.results.write_log(self.all_raster_ref)
-        if run_pixels_bool:
+
+        # only create shp if 1) selected by user and 2) wrong pixels found
+        need_to_create_shp = run_pixels_bool and bool(self.input_data_shp)
+        if need_to_create_shp:
             self.create_shp()
-        self.pop_up_finished(shpfile=run_pixels_bool)
-
-
-"""
-# example
-import numpy as np
-a = np.array([True, False, False, True, False, True], dtype=bool)
-b = np.array([False, True, True, True, False, False], dtype=bool)
-c_and = np.logical_and(a, b)
-c_or = np.logical_or(a, b)
-c_xor = np.logical_xor(a, b)
-print c_and
-print c_or
-print c_xor
-# [False False False  True False False]
-# [ True  True  True  True False  True]
-# [ True  True  True False False  True]
-
-
-import numpy as np
-import numpy.ma as ma
-
-arr1 = np.array([
-    [0., 0., 0., 0.],
-    [1., 2., 3., -9999.],
-    [5., 6., 7., -9999.],
-    [9., -9999., 11., 12.]
-])
-
-arr2 = np.array([
-    [1., 2., 3., -9999.],
-    [5., 6., -9999, 8.],
-    [-9999., 10., 11., 12.]
-])  
-
-# create masks (with data and mask and fill_value)
-# mask1 = ma.masked_values(arr1, -9999.)
-# mask2 = ma.masked_values(arr2, -9999.)        
-
-# create masks (without data fill_value, but only mask)
-mask1 = (arr1[:] == -9999.)
-mask2 = (arr2[:] == -9999.)
-
-# mask1
-# array([[False, False, False,  True],
-#        [False, False, False,  True],
-#        [False,  True, False, False]])
-
-# mask2
-# array([[False, False, False,  True],
-#        [False, False,  True, False],
-#        [ True, False, False, False]])
-
-# xor ("one or the other but not both") geeft een true daar waar pixels 
-# fout zijn  
-mask1 en mask2 van elkaar verschillen
-compare_mask = np.logical_xor(mask1, mask2)
-
-# compare_mask
-# array([[False, False, False, False],
-#        [False, False,  True,  True],
-#        [ True,  True, False, False]])
-
-# daar waar compare_mask = True, daar is een probleem      
-
-# now get indices of true (with np.where or np.argwhere: serveral test 
-# with %timeit showed that .where is faster
-
-    # %timeit for pixel in np.argwhere(compare_mask): print pixel
-    # 1000 loops, best of 3: 167 µs per loop
-    # 
-    # %timeit for pixel in zip(np.where(compare_mask)[0], np.where(compare_mask)[1]): print pixel
-    # The slowest run took 5.90 times longer than the fastest. 
-    # This could mean that an intermediate result is being cached.
-    # 10000 loops, best of 3: 21.8 µs per loop
-
-
-# np.where is faster than np.argwhere, but where output has to be modified..  
-true_idx = np.where(compare_mask)
-# (array([1, 1, 2, 2]), array([2, 3, 0, 1]))
-for pixel in zip(true_idx[0], true_idx[1]):
-    print pixel
-# (1, 2)
-# (1, 3)
-# (2, 0)
-# (2, 1)
-"""
-
-
-
-
-
-"""
-from sqlalchemy import (create_engine, Table, Column, Integer, String, Float,
-                        MetaData, Boolean, ForeignKey, select, update)
-                        
-sqlite_file_path = '/home/renier.kramer/Desktop/wezep/wezep2.sqlite'
-engine = create_engine('sqlite:///{0}'.format(sqlite_file_path), echo=False)
-echo=False will disable all the SQL logging
-metadata = MetaData(bind=engine)
-# 1.  __init__
-db = ThreediDatabase({'db_path': u'/home/renier.kramer/Desktop/wezep/
-wezep2.sqlite'}, 'spatialite')
-session = db.get_session()
-# 2. reset_messages
-messages = []
-# now we can do:
-datamodel = DataModelSource()
-# to get all data from v2_weir, just do:
-datamodel.v2_weir
-# to get column names from v2_weir, just do:
-datamodel.v2_weir.columns.keys()
-# get all columns with content from 1 table
-q = select([datamodel.v2_weir])
-# with getattr this becomes
-tbl = 'v2_weir'
-q = select([getattr(datamodel,tbl)])
-result = session.execute(q)
-for row in result:
-    print row
-# do you want the column names of result?
-result.keys
-# get 1 column with content from 1 table
-q = select([datamodel.v2_weir.c.id])
-# with getattr this becomes
-tbl = 'v2_weir'
-q = select([getattr(datamodel,tbl).c.id])
-result = session.execute(q)
-for row in result:
-    print row
-# get the integers right away:
-for row in result:
-    print row['id']
-# do you want the column names of result?
-result.keys()
-# get 1 column with content from 1 table (more sophistic)
-tbl = 'v2_global_settings'
-column = 'frict_coef_file'
-get_table = getattr(datamodel, tbl).c
-get_column = getattr(get_table, column)
-q = select([get_column])
-res = session.execute(q)
-for row in res:
-    print row[column]
-# select 2 columns from 1 table
-q = select([datamodel.v2_weir.c.id, datamodel.v2_weir.c.crest_level])
-res = session.execute(q)
-res = session.execute(q)
-for row in res:
-    print row['id']
-    print row['crest_level']
-# select 2 columns from 1 table (more sophistic)
-tbl = 'v2_global_settings'
-column = 'frict_coef_file'
-get_table = getattr(datamodel, tbl).c
-get_column = getattr(get_table, column)
-q = select([get_column, get_table.id])
-res = session.execute(q)
-for row in res:
-    print row['id']
-    print row[column]
-# filter out the special methods by using a list comprehension
-[a for a in dir(datamodel) if not a.startswith('__')]
-# filter out the methods, you can use the builtin callable as a check.
-[a for a in dir(datamodel) if not a.startswith('__') and not callable(
-getattr(datamodel,a))]
-# all tables from the datamodel
-for tbl in [a for a in dir(datamodel) if a.startswith('v2_')]:
-    print tbl
-"""
+        self.pop_up_finished(shpfile=need_to_create_shp)

@@ -299,7 +299,7 @@ RASTER_CHECKER_MAPPER = [
      'feedback': {
         'info': '{{raster}} count of data/nodata pixels equals dem',
         'warning': '',
-        'error': '{{raster}} count of data/nodata pixels differs from dem'
+        'error': '{{raster}} count of data/nodata pixels differs from dem.'
         },
      },
     {'check_id': 16,
@@ -323,8 +323,8 @@ RASTER_CHECKER_MAPPER = [
      'feedback': {
         'info': '{{raster}} data and nodata is aligned with the dem',
         'warning': '',
-        'error': '{{raster}} data and nodata are not aligned with the dem. '
-                 'The mismatch locations have been written to .shp file',
+        'error': '{{raster}} data and nodata are not aligned with the dem.',
+
         },
      }
 ]
