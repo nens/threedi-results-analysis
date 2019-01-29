@@ -186,3 +186,4 @@ class RasterCheckerEntrees(object):
             if dem_index <> 0:
                 rasters[0], rasters[dem_index] = rasters[dem_index], rasters[0]
         return entrees_dict
+

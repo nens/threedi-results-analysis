@@ -57,8 +57,7 @@ class RasterChecker(object):
         except Exception as e:
             log.error(e)
 
-    def iter_block_row(self, band, offset_y, block_height, block_width,
-                        no_data_value):
+    def iter_block_row(self, band, offset_y, block_height, block_width):
         ncols = int(band.XSize / block_width)
         for i in range(ncols):
             arr = band.ReadAsArray(i * block_width, offset_y, block_width,
@@ -79,18 +78,15 @@ class RasterChecker(object):
         Optionally, provide a minimum block dimension.
         Returns a tuple of bbox (x1, y1, x2, y2) and the data as ndarray. """
         nrows = int(band.YSize / block_height)
-        no_data_value = band.GetNoDataValue()
         for j in range(nrows):
             for block in self.iter_block_row(band, j * block_height,
-                                              block_height, block_width,
-                                              no_data_value):
+                                              block_height, block_width):
                 yield block
         # possible leftover row
         height = band.YSize - (nrows * block_height)
         if height > 0:
             for block in self.iter_block_row(band, nrows * block_height,
-                                              height, block_width,
-                                              no_data_value):
+                                              height, block_width):
                 yield block
 
     def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=256):
@@ -125,7 +121,7 @@ class RasterChecker(object):
 
     def count_data_nodata(self, src_ds):
         band = src_ds.GetRasterBand(1)
-        src_ds = None
+        src_ds = None  # close raster
         w, h, nr_blocks = self.optimize_blocksize(band)
         raster_generator = self.iter_blocks(
             band, block_width=w, block_height=h)
@@ -366,11 +362,11 @@ class RasterChecker(object):
             src_ds = gdal.Open(raster_path, GA_ReadOnly)
             cols = src_ds.RasterXSize
             rows = src_ds.RasterYSize
-            src_ds = None
+            src_ds = None  # close raster
             pixelcount = cols * rows
             cum_pixelcount =+ pixelcount
         if cum_pixelcount > max_pixels_allow:
-            result = False
+            result = False  # close raster
             detail = 'cumulative pixelcount= %d for all rasters in ' \
                      'setting_id %d. This is more than 3Di can handle ' \
                      '1.000.000.000' % (cum_pixelcount, setting_id)
@@ -424,19 +420,13 @@ class RasterChecker(object):
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 
-    def store_cnt_data_nodata(self, setting_id, rast_item, dem_cnt_data,
-                              dem_cnt_nodata, cnt_data, cnt_nodata):
-        self.store_cnt_data_nodata
-
-
     def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds,
                         dem_src_ds):
-        # compare data/nodata count of dem with another raster
+        """ compare data/nodata count of dem with another raster and store the
+        counts as we use it later before pixel alignment check """
         detail = str()
         dem_cnt_data, dem_cnt_nodata = self.count_data_nodata(dem_src_ds)
         cnt_data, cnt_nodata = self.count_data_nodata(src_ds)
-
-        # store the counts as we use it later before pixel alignment check
         self.results.store_cnt_data_nodata.append({
             'setting_id': setting_id,
             'raster': rast_item,
@@ -455,9 +445,8 @@ class RasterChecker(object):
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 
-    def check_extent(self, setting_id, rast_item, check_id, src_ds,
-                     dem_src_ds):
-        # compare extent (number rows/colums) of dem with another raster
+    def check_extent(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
+        """ compare extent (number rows/colums) of dem with another raster """
         detail = str()
         dem_cols = dem_src_ds.RasterXSize
         dem_rows = dem_src_ds.RasterYSize
@@ -476,20 +465,16 @@ class RasterChecker(object):
     def check_pixel_alignment(self, setting_id, rast_item, check_id, dem):
         detail = str()
 
+        # we will check pixel alignment for raster A and B only if:
+        # - diff between nr data pixels A and nr data pixels B < 50000, and
+        # - diff between nr nodata pixels A and nr nodata pixels B < 50000
+        # Otherwise it likely that this check takes too long.
         [(dem_cnt_data, dem_cnt_nodata, cnt_data, cnt_nodata)] = [
             (chck.get('dem_cnt_data'), chck.get('dem_cnt_nodata'),
              chck.get('cnt_data'), chck.get('cnt_nodata'))
             for chck in self.results.store_cnt_data_nodata if
             chck.get('raster') == rast_item and
             chck.get('setting_id') == setting_id]
-
-        # we will check pixel alignment for raster A and B only if:
-        # - diff between nr data pixels A and nr data pixels B < 50000, and
-        # - diff between nr nodata pixels A and nr nodata pixels B < 50000
-        # Otherwise it likely that this check takes too long. So before
-        # starting blockwise pixel alignment we compare count data/nodata of
-        # both rasters
-
         diff_data = abs(dem_cnt_data - cnt_data)
         diff_nodata = abs(dem_cnt_nodata - cnt_nodata)
         max_wrong_pixels = 50000
@@ -502,10 +487,15 @@ class RasterChecker(object):
             return
 
         dem_path = os.path.join(self.sqlite_dir, dem)
-        other_tif_path = os.path.join(self.sqlite_dir, rast_item)
+        dem_raster = gdal.Open(dem_path, GA_ReadOnly)
+        dem_band = dem_raster.GetRasterBand(1)
 
-        generator_dem = self.create_generator(dem_path)
-        generator_other = self.create_generator(other_tif_path)
+        other_tif_path = os.path.join(self.sqlite_dir, rast_item)
+        other_tif_raster = gdal.Open(other_tif_path, GA_ReadOnly)
+        other_tif_band = other_tif_raster.GetRasterBand(1)
+
+        generator_dem = self.create_generator(dem_band)
+        generator_other = self.create_generator(other_tif_band)
 
         current_status = self.progress_bar.get_current_status()
         progress_per_raster = self.progress_bar.get_progress_per_raster(
@@ -521,6 +511,9 @@ class RasterChecker(object):
                 generator_dem.next(), generator_other.next()):
             self.compare_pixel_bbox(setting_id, rast_item, data1, data2)
 
+        dem_raster = None  # close raster
+        other_tif_raster = None  # close raster
+
         if self.found_wrong_pixel:
             self.input_data_shp.append(
                 {'setting_id': setting_id,
@@ -528,7 +521,7 @@ class RasterChecker(object):
                  'coords': self.wrong_pixels}
             )
             result = False
-            detail = 'the mismatch locations have been written to .shp file',
+            detail = 'the mismatch locations have been written to .shp file'
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
@@ -537,16 +530,12 @@ class RasterChecker(object):
     def get_nr_blocks(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
         band = raster.GetRasterBand(1)
-        raster = None
+        raster = None  # close raster
         # optimize_blocksize
         w, h, nr_blocks = self.optimize_blocksize(band)
         return nr_blocks
 
-    def create_generator(self, raster_path):
-        raster = gdal.Open(raster_path, GA_ReadOnly)
-        band = raster.GetRasterBand(1)
-        raster = None
-        # optimize_blocksize
+    def create_generator(self, band):
         w, h, nr_blocks = self.optimize_blocksize(band)
         # create generators
         while True:
@@ -555,46 +544,75 @@ class RasterChecker(object):
     def get_pixel_specs(self, dem_path):
         dem = gdal.Open(dem_path, GA_ReadOnly)
         ulx, xres, xskew, uly, yskew, yres = dem.GetGeoTransform()
-        dem = None
         pixelsize = abs(min(xres, yres))
         pixel_specs = (ulx, xres, xskew, uly, yskew, yres, pixelsize)
         return pixel_specs
 
-    def get_wrong_pixel(self, setting_id, other_tif, bbox1, compare_mask):
+    def get_wrong_pixel(self, bbox1, compare_mask):
+        """
+        The function finds the x,y coordinates (in same projection as the dem)
+        of wrong pixels:
+        - where dem is data and other raster nodata
+        - where dem is nodata and other raster data
+        We dont analyse whole raster at once, but blockwise (per boundingbox).
+        Each pixel is represented by a column nr (in the end used to get x-coor)
+        and a row nr (in the end used to get y-coor).
+        :param setting_id: int (v2_global_setting id of model_entree)
+        :param bbox1:
+        :param compare_mask:
+        :return: coords
+        """
         ulx, xres, xskew, uly, yskew, yres, pixelsize = self.pixel_specs
-        # (0,0) is (x,y) left-upper corner of first bbox. Going down
-        # bbox_row increases. Going right bbox_col increases
-        l_up_col = bbox1[0]
-        l_up_row = bbox1[1]
 
-        true_idx = np.argwhere(compare_mask)
-        # x = true_idx_test[0][0]
-        # y = true_idx_test[0][1]
-        bbox_idx = true_idx + [l_up_row, l_up_col]
-        raster_centre_coor = [uly, ulx] + (bbox_idx * [-pixelsize, pixelsize]) + [-0.5 * pixelsize, 0.5 * pixelsize]
-        # somehow x and y flipped ??
-        # y = raster_lu_coor[0][0]
-        # x = raster_lu_coor[0][1]
+        # get the column and row nr of the left upper pixel of bounding box
+        # the left upper pixel of whole rasters has column = 0 and row = 0
+        # Going south row nr increases. Going right column nr increases
+        ul_col = bbox1[0]
+        ul_row = bbox1[1]
+
+        # indices in the bbox of wrong (True) pixels
+        bbox_idx = np.argwhere(compare_mask)
+        # bbox_idx is 2D np.array:
+        # 1st element = nth column (in west-east direction) in bbox
+        # 2nd element = nth row (in north-south direction) in bbox
+
+        """
+        # indices in the whole raster of wrong (True) pixels
+        raster_idx = bbox_idx + [ul_row, ul_col]
+        # 1st element = nth column (in west-east direction) in whole raster
+        # 2nd element = nth row (in north-south direction) in whole raster
+
+        # distance from whole raster's lup corner to wrong pixels
+        distance = raster_idx * pixelsize
+
+        # now get the centre coords (remember: row=y, col=x) of wrong pixels
+        coords = [uly, ulx] + (distance * [-1, 1]) + \
+                        [-0.5 * pixelsize, 0.5 * pixelsize]
+        # 1st element (y-dir) is "distance *-1" as we substract to go south
+        # 2nd element (x-dir) is "distance -1" as we add to go east
         # times 0.5 because we want centre coord and not left up corner
-
-        self.wrong_pixels.append(raster_centre_coor.tolist())
+        """
+        # all-in-one:
+        coords = [uly, ulx] + ((bbox_idx + [ul_row, ul_col]) * [-1, 1]) + \
+                 [-0.5 * pixelsize, 0.5 * pixelsize]
+        # x = coords[:][0]
+        # y = coords[:][1]
+        return coords
 
     def compare_pixel_bbox(self, setting_id, other_tif, data1, data2):
         bbox1, arr1 = data1
         bbox2, arr2 = data2
-
         # create masks (without data and fill_value. Only mask)
         mask1 = (arr1[:] == -9999.)
         mask2 = (arr2[:] == -9999.)
-
         # xor gives array with trues for wrong pixels
         compare_mask = np.logical_xor(mask1, mask2)
-
         # is there any True in the compare mask? then there is at least
         # one wrong pixel
         if np.any(compare_mask):
             self.found_wrong_pixel = True
-            self.get_wrong_pixel(setting_id, other_tif, bbox1, compare_mask)
+            coords = self.get_wrong_pixel(bbox1, compare_mask)
+            self.wrong_pixels.append(coords.tolist())
 
     def run_check(self, base_check_name, **kwargs):
         prefix = "check_"
@@ -606,8 +624,23 @@ class RasterChecker(object):
         return [(chck.get('check_id'), chck.get('base_check_name')) for chck
                 in RASTER_CHECKER_MAPPER if chck.get('phase') == check_phase]
 
-    def run_phase_checks(self, setting_id, rasters, check_phase):
+    def get_nr_phases(self, run_pixel_checker):
+        nr_phases = max([chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
+        if run_pixel_checker:
+            return nr_phases
+        else:
+            return nr_phases - 1
 
+    def dem_to_first_index(self, rasters_orig, rasters_ready):
+        # assumes dem is in both arguments !!
+        dem = rasters_orig[0]
+        dem_index = rasters_ready.index(dem)
+        if dem_index <> 0:
+            rasters_ready[0], rasters_ready[dem_index] = \
+                rasters_ready[dem_index], rasters_ready[0]
+        return rasters_ready
+
+    def run_phase_checks(self, setting_id, rasters, check_phase):
         check_ids_names = self.get_check_ids_names(check_phase)
 
         # phase 1 does check over multiple rasters, then next check
@@ -628,7 +661,7 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds)
-                src_ds = None
+                src_ds = None  # close raster
 
         # pixel cumulative
         # phase 3 does check over multiple rasters at once, then next check
@@ -649,8 +682,8 @@ class RasterChecker(object):
                     self.run_check(base_check_name, setting_id=setting_id,
                                    rast_item=rast_item, check_id=check_id,
                                    src_ds=src_ds, dem_src_ds=dem_src_ds)
-            dem_src_ds = None
-            src_ds = None
+            dem_src_ds = None  # close raster
+            src_ds = None  # close raster
 
         # phase 5
         elif check_phase == 5:
@@ -661,24 +694,22 @@ class RasterChecker(object):
                                    rast_item=rast_item, check_id=check_id,
                                    dem=dem)
 
-    def get_nr_phases(self, run_pixel_checker):
-        nr_phases  = max([chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
-        if run_pixel_checker:
-            return nr_phases
-        else:
-            return nr_phases - 1
-
     def run_all_checks(self, run_pixel_checker=False):
         """
-        -   We run checks in phases (multiple checks per phase over 1 raster),
-            so that we do not have to open and close a raster that often.
-        -   If a raster succeeds a phase that it goes to the next phase, but
-            note that not all checks are blocking (written in
-            RASTER_CHECKER_MAPPER)
+        - We run checks in phases. Each phase consists of 1 or more checks:
+        - Phase 1 has e.g. a check: "can the .tif be found on machine?"
+        - Not all checks are blocking (written in RASTER_CHECKER_MAPPER)
+        - If a raster succeeds (the blocking checks of) a phase then the
+          raster goes to the next phase
+        - the last phase is the pixel_checker (pixel_alignment pixel by pixel)
+          This is optional (must be selected by user).
+        Basically, we do two types of checks:
+        - we check individual raster (e.g. "is data_type correct?")
+        - we compare raster with dem in same setting_id (dem is always leading)
+        ps: adding or deleting a check can be done via RASTER_CHECKER_MAPPER
         """
 
         nr_phases = self.get_nr_phases(run_pixel_checker)
-
         self.progress_bar = RasterCheckerProgressBar(
             nr_phases, run_pixel_checker, maximum=100,
             message_title='Raster Checker')
@@ -744,15 +775,6 @@ class RasterChecker(object):
         # delete progress bar
         self.progress_bar.__del__()
 
-    def dem_to_first_index(self, rasters_orig, rasters_ready):
-        # assumes dem is in both arguments !!
-        dem = rasters_orig[0]
-        dem_index = rasters_ready.index(dem)
-        if dem_index <> 0:
-            rasters_ready[0], rasters_ready[dem_index] = \
-                rasters_ready[dem_index], rasters_ready[0]
-        return rasters_ready
-
     def create_shp(self):
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
         # vector.html#writing-vector-layers
@@ -774,15 +796,7 @@ class RasterChecker(object):
            QgsCoordinateReferenceSystem) - optional
         6. driver name for the output file """
 
-        # # TODO enable transformation (test buitenland modellen!!)
-        # source_epsg = 28992
-        # dest_epsg = 28992
-        # source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
-        # dest_crs = QgsCoordinateReferenceSystem(int(dest_epsg))
-        # transform = QgsCoordinateTransform(source_crs, dest_crs)
-
         self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
-
         writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
                                      QGis.WKBPoint, None, "ESRI Shapefile")
         try:
@@ -792,15 +806,14 @@ class RasterChecker(object):
                 log.error(msg)
                 raise Exception (msg)
             else:
-
                 for pixel_check_dict in self.input_data_shp:
                     raster = pixel_check_dict.get('raster')
                     setting_id = pixel_check_dict.get('setting_id')
                     coords = pixel_check_dict.get('coords')
                     for row in coords:
                         for point in row:
-                            point_x = point[0]
-                            point_y = point[1]
+                            point_y = point[0]
+                            point_x = point[1]
                             feat = QgsFeature()
                             feat.setGeometry(QgsGeometry.fromPoint(
                                 QgsPoint(point_x, point_y)))
