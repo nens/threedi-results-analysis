@@ -156,7 +156,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         if agg.has_pumpstations:
             known_vars = set(
                 list(agg.lines.Meta.composite_fields.keys()) +
+                list(agg.lines.Meta.subset_fields.keys()) +
                 list(agg.nodes.Meta.composite_fields.keys()) +
+                list(agg.nodes.Meta.subset_fields.keys()) +
                 list(agg.pumps.Meta.composite_fields.keys())
             )
 
@@ -168,20 +170,15 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             known_vars = set(
                 list(agg.lines.Meta.composite_fields.keys()) +
-                list(agg.nodes.Meta.composite_fields.keys())
+                list(agg.lines.Meta.subset_fields.keys()) +
+                list(agg.nodes.Meta.composite_fields.keys()) +
+                list(agg.nodes.Meta.subset_fields.keys())
             )
 
             # all available fields, including hdf5 fields
             available_vars = (agg.nodes._field_names | agg.lines._field_names)
 
-        # TODO: fix infiltration, leakage, and interception aggregation vars
-        # in threedigrid's agg.nodes.Meta.composite_fields.keys()
-        known_vars.add('infiltration_rate_simple_cum')
-        known_vars.add('leak_cum')
-        known_vars.add('intercepted_volume_current')
-
         available_known_vars = available_vars & known_vars
-
         return list(available_known_vars)
 
     def get_available_variables(self):
