@@ -115,9 +115,9 @@ V2_TABLES = [
 ]
 
 NON_SETTINGS_TBL_WITH_RASTERS = {
-    'v2_simple_infiltration':   'simple_infiltration_setting_id',
-    'v2_groundwater':           'groundwater_setting_id',
-    'v2_interflow':             'interflow_setting_id'
+    'v2_simple_infiltration':   'simple_infiltration_settings_id',
+    'v2_groundwater':           'groundwater_settings_id',
+    'v2_interflow':             'interflow_settings_id'
 }
 
 RASTER_CHECKER_MAPPER = [

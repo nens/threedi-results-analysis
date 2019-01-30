@@ -49,7 +49,6 @@ class RasterChecker(object):
         sqlite_path = str(self.db.settings['db_path'])
         self.sqlite_dir = os.path.split(sqlite_path)[0]
         self.results = RasterCheckerResults(sqlite_path)
-        self.check_constants()
 
     def close_session(self):
         try:
@@ -89,7 +88,7 @@ class RasterChecker(object):
                                               height, block_width):
                 yield block
 
-    def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=256):
+    def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=1024):
         raster_height = band.YSize
         raster_width = band.XSize
         block_height, block_width = band.GetBlockSize()
@@ -183,7 +182,7 @@ class RasterChecker(object):
                     invalid_chars_in_filename.append(char)
         if invalid_chars_in_filename:
             result = False
-            detail = invalid_chars_in_filename
+            detail = str(invalid_chars_in_filename)
         else:
             result = True
         self.results._add(setting_id=setting_id, raster=rast_item,
@@ -835,21 +834,6 @@ class RasterChecker(object):
             msg = 'The check results have been written to:\n%s' % \
                   self.results.log_path
         pop_up_info(msg, header)
-
-    def check_constants(self):
-        method_names = [chck.get('base_check_name') for chck in
-                          RASTER_CHECKER_MAPPER]
-        prefix = "check_"
-        for base_check_name in method_names:
-            check_name = prefix + base_check_name
-            if not hasattr(self, check_name):
-                raise AttributeError('RasterChecker has no attr ' + check_name)
-
-        method_ids = [chck.get('check_id') for chck in RASTER_CHECKER_MAPPER]
-
-        if len(method_ids) != len(list(set(method_ids))):
-            raise AttributeError('Not all unique check_ids in '
-                                 'RASTER_CHECKER_MAPPER')
 
     def run(self, checks):
         run_pixels_bool = 'check pixels' in checks
