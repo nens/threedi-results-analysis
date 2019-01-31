@@ -878,7 +878,8 @@ class WaterBalanceTool(object):
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration)"\
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
               "\n- sources and sinks (in case model has sources and sinks)"\
               "\n\npositive cumulative:" \
               "\n- discharge"\
@@ -903,7 +904,8 @@ class WaterBalanceTool(object):
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration)" \
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
               "\n- sources and sinks (in case model has sources and sinks)" \
               "\n\npositive cumulative:" \
               "\n- discharge"\
