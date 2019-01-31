@@ -17,6 +17,8 @@ ThreeDiToolBox changelog
 
 - Added surface sources and sinks to the waterbalance.
 
+- Bumped threedigrid to 1.0.10.
+
 
 1.6 (2018-11-28)
 ----------------
