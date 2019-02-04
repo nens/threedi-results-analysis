@@ -8,8 +8,10 @@ from gdal import GA_ReadOnly
 from osgeo import gdal
 
 
-import mock  # python 2
+# import mock  # python 2
+from mock import patch, Mock
 # import unittest.mock  # python 3
+
 
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
@@ -288,16 +290,118 @@ class TestRasterChecker(unittest.TestCase):
         result = self.get_result()
         self.assertTrue(result)
 
-    def test_xxx(self):
+    def test_check_proj(self):
+        dem = 'rasters/test1.tif'
+        rast_item = 'rasters/test2.tif'
+        dem_path = os.path.join(self.test_sqlite_dir, dem)
+        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
+        src_ds = gdal.Open(other_path, GA_ReadOnly)
+        setting_id = 2; check_id = 12
+        self.checker.results.result_per_check = []
+        self.checker.check_proj(
+            setting_id, rast_item, check_id, src_ds, dem_src_ds)
+        dem_src_ds = None
+        src_ds = None
+        result = self.get_result()
+        self.assertTrue(result)
+
+    def test_check_pixelsize(self):
+        dem = 'rasters/test1.tif'
+        rast_item = 'rasters/test2.tif'
+        dem_path = os.path.join(self.test_sqlite_dir, dem)
+        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
+        src_ds = gdal.Open(other_path, GA_ReadOnly)
+        setting_id = 2; check_id = 12
+        self.checker.results.result_per_check = []
+        self.checker.check_pixelsize(
+            setting_id, rast_item, check_id, src_ds, dem_src_ds)
+        dem_src_ds = None
+        src_ds = None
+        result = self.get_result()
+        self.assertTrue(result)
+
+    def test_check_cnt_nodata(self):
+        # this test updates appends two lists (with dicts). Test both lists!
+        self.checker.results.result_per_check = []
+        self.checker.results.store_cnt_data_nodata = []
+
+        dem = 'rasters/test1.tif'
+        rast_item = 'rasters/test2.tif'
+        dem_path = os.path.join(self.test_sqlite_dir, dem)
+        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
+        src_ds = gdal.Open(other_path, GA_ReadOnly)
+        setting_id = 2; check_id = 12
+        self.checker.check_cnt_nodata(
+            setting_id, rast_item, check_id, src_ds, dem_src_ds)
+        dem_src_ds = None
+        src_ds = None
+        result = self.get_result()
+        store_cnt_data_nodata_expect = [{
+            'cnt_data': 97,
+            'cnt_nodata': 3,
+            'dem_cnt_data': 96,
+            'dem_cnt_nodata': 4,
+            'raster': 'rasters/test2.tif',
+            'setting_id': 2}]
+        self.assertEqual(self.checker.results.store_cnt_data_nodata,
+                         store_cnt_data_nodata_expect)
+        self.assertFalse(result) # False as counts are not equal of 2 rasters
+
+    def test_check_extent(self):
+        dem = 'rasters/test1.tif'
+        rast_item = 'rasters/test2.tif'
+        dem_path = os.path.join(self.test_sqlite_dir, dem)
+        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
+        src_ds = gdal.Open(other_path, GA_ReadOnly)
+        setting_id = 2; check_id = 12
+        self.checker.results.result_per_check = []
+        self.checker.check_extent(
+            setting_id, rast_item, check_id, src_ds, dem_src_ds)
+        dem_src_ds = None
+        src_ds = None
+        result = self.get_result()
+        self.assertTrue(result)
+
+    # @patch('ThreeDiToolbox.utils.raster_checker.progress_bar', return_value=1)
+    def test_pixel_alignment(self):
+
+        # this test updates appends two lists (with dicts). Test both lists!
+        self.checker.results.result_per_check = []
+        self.input_data_shp = []
+
+        dem = 'rasters/test1.tif'
+        rast_item = 'rasters/test2.tif'
+        setting_id = 2; check_id = 12
+
+        print 'hoi'
+
+        self.checker.results.store_cnt_data_nodata = [{
+            'cnt_data': 97, 'cnt_nodata': 3, 'dem_cnt_data': 96,
+            'dem_cnt_nodata': 4, 'raster': 'rasters/test2.tif',
+            'setting_id': 2}]
+
+        self.checker.check_pixel_alignment(
+            setting_id, rast_item, check_id, dem)
+        dem_src_ds = None
+        src_ds = None
+        result = self.get_result()
+        self.assertFalse(result)
+        self.input_data_shp
+
+
+
+    def check_id(self):
         pass
+        # check_id groter dan 0 ?
+        # check_id opeenvolgend ?
+        # check_id unique ?
+        # elke phase minimaal 1 check ?
+        #
 
-
-
-
-
-
-
-        # attributes
         # check_cnt_nodata
         # ##teamcity[testStdOut timestamp='2019-01-29T17:40:30.856' flowId='ThreeDiToolbox.test.test_raster_checker.TestRasterCheckerDryRun.test_all_raster_references' locationHint='python</home/renier.kramer/git/ThreeDiToolbox/test>://ThreeDiToolbox.test.test_raster_checker.TestRasterCheckerDryRun.test_all_raster_references' name='test_all_raster_references' nodeId='5' out='check_compress|n' parentNodeId='4']
         # check_constants

@@ -32,9 +32,10 @@ class RasterCheckerResults(object):
 
         check_id = kwargs.get('check_id')
         # TODO: let this range below depend on the map dict keys
-        if not check_id: raise AssertionError("check unknown")
-        if not check_id in range(1, 18): raise AssertionError(
-            "check_id unknown")
+        if not check_id:
+            raise AssertionError("check unknown")
+        if not check_id in range(1, 19):
+            raise AssertionError("check_id unknown")
 
         result = kwargs.get('result')
         if not isinstance(result, bool): raise AssertionError("result unknown")
@@ -160,9 +161,9 @@ class RasterCheckerResults(object):
             raise AssertionError("too little/many rows")
         return feedback_dict[0]
 
-    def get_rendered_feedback(self, raster, template_feedback):
+    def get_rendered_feedback(self, raster, setting_id, template_feedback):
         rendered_feedback = template_feedback.render(
-            raster=raster, result=template_feedback)
+            raster=raster, result=template_feedback, setting_id=setting_id)
         return rendered_feedback
 
     def result_per_check_to_msg(self, result_row):
@@ -178,26 +179,37 @@ class RasterCheckerResults(object):
         result = result_row.get('result')
         detail = result_row.get('detail')
 
-        feedback_dict = self.get_feedback_dict(check_id)
+        self.dict = self.get_feedback_dict(check_id)
+        feedback_dict = self.dict
         feedback_level = self.get_feedback_level(feedback_dict, result)
+
+        # info, 01, 02, rasters/test1.tif found for setting_id .
+        if feedback_level == 'info' and setting_id == 1 and check_id == 2:
+            pass
+
         template_feedback = self.get_template_feedback(
             feedback_dict, feedback_level)
         rendered_feedback = self.get_rendered_feedback(
-            raster, template_feedback)
-        msg = '%s, %s, %02d, %s %s \n' % (
+            raster, setting_id, template_feedback)
+        msg = '%s, %02d, %02d, %s %s \n' % (
             feedback_level, setting_id, check_id, rendered_feedback, detail)
         return msg
 
-    def add_found_rasters(self, all_raster_ref):
+    def add_found_rasters(self, entrees_metadata):
+        """ write some log file lines about which rasters have been checked
+        :param entrees_metadata: tuple with tuples e.g:
+        ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'))
+        :return: none
+        """
         msg = '\n-- Found following raster references: -- \n'
         self.log_file.write(msg)
-        for xx in all_raster_ref:
-            table = xx[0]
-            setting_id = xx[1]
-            column = xx[2]
-            raster = xx[3]
-            msg = 'table:%s, id:%d, column:%s, raster:%s \n' % (
-                table, setting_id, column, raster)
+        for rast_tuple in entrees_metadata:
+            setting_id = rast_tuple[0]
+            tbl = rast_tuple[1]
+            column = rast_tuple[2]
+            raster_name = rast_tuple[3]
+            msg = 'setting_id:%d, table:%s, column:%s, raster:%s \n' % (
+                setting_id, tbl, column, raster_name)
             self.log_file.write(msg)
 
     def get_intro_lines(self, check_phase):
@@ -302,7 +314,7 @@ class RasterCheckerResults(object):
             msg = 'all checks have been done on all rasters'
             self.log_file.write(msg)
 
-    def write_log(self, all_raster_ref):
+    def write_log(self, entrees_metadata):
         timestr = time.strftime("_%Y%m%d_%H%M")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
@@ -316,7 +328,7 @@ class RasterCheckerResults(object):
                             'directory %s' % self.log_path)
 
         self.add_intro()
-        self.add_found_rasters(all_raster_ref)
+        self.add_found_rasters(entrees_metadata)
         self.result_per_check_to_log()
         self.result_per_phase_to_log()
         self.log_file.close()
@@ -357,5 +369,11 @@ class RasterCheckerProgressBar(StatusProgressBar):
     def get_progress_per_phase(self):
         return int(self.maximum / self.nr_phases)
 
-    def get_current_status(self):
+    @property
+    def current_status(self):
         return self.progress
+
+    def set_progress(self, progress):
+        if progress > self.maximum or progress < 0:
+            raise AssertionError('not possible to set progress')
+        self.progress = progress
