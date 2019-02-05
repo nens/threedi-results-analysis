@@ -28,7 +28,7 @@ class TestRasterCheckerEntrees(unittest.TestCase):
 
     def setUp(self):
         here = os.path.split(os.path.abspath(__file__))[0]
-        sqlite_filename = 'small_2019_01_2entree_4tiff.sqlite'
+        sqlite_filename = '2entree_4tiff.sqlite'
         self.test_sqlite_path = os.path.join(here, 'data', sqlite_filename)
         db_type = 'spatialite'
         db_set = {'db_path': self.test_sqlite_path}
