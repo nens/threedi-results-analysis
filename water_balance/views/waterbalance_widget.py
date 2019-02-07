@@ -636,7 +636,7 @@ class WaterBalanceWidget(QDockWidget):
             'out': ['intercepted_volume'],
             'type': '2d',
         }, {
-            'label_name': 'Surface sources and sinks',
+            'label_name': 'surface sources and sinks',
             'in': ['q_sss'],
             'out': ['q_sss'],
             'type': '2d',
@@ -974,6 +974,7 @@ class WaterBalanceWidget(QDockWidget):
             'interception': ['2d'],
             'constant infiltration': ['2d'],
             'external (rain and laterals)': ['1d', '2d'],
+            'surface sources and sinks': ['2d'],
         }
 
         # more hackery to fix keys defined in both 'show main flow' and
