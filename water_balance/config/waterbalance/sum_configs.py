@@ -157,7 +157,7 @@ serie_settings = [
             'order': 7.2,
             'def_fill_color': '204,255,51' + fill_transp,
             'def_pen_color': '204,255,51' + pen_transp,
-            'series': ['q_sss_in', 'q_sss_out'],
+            'series': ['q_sss'],
         }]
     }, {
         'name': 'show main flow',
@@ -242,7 +242,7 @@ serie_settings = [
             'order': 7.2,
             'def_fill_color': '204,255,51' + fill_transp,
             'def_pen_color': '204,255,51' + pen_transp,
-            'series': ['q_sss_in', 'q_sss_out'],
+            'series': ['q_sss'],
         }]
     }
 ]

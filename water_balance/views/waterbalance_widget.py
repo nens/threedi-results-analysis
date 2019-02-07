@@ -75,8 +75,7 @@ INPUT_SERIES = [
     ('2d__1d_2d_exch_in', 32, '2d', '1d2d'),
     ('2d__1d_2d_exch_out', 33, '2d', '1d2d'),
     ('intercepted_volume', 34, '2d', '2d'),
-    ('q_sss_in', 35, '2d', '2d'),
-    ('q_sss_out', 36, '2d', '2d'),
+    ('q_sss', 35, '2d', '2d'),
 ]
 
 
@@ -638,8 +637,8 @@ class WaterBalanceWidget(QDockWidget):
             'type': '2d',
         }, {
             'label_name': 'Surface sources and sinks',
-            'in': ['q_sss_in'],
-            'out': ['q_sss_out'],
+            'in': ['q_sss'],
+            'out': ['q_sss'],
             'type': '2d',
         }
     ]
