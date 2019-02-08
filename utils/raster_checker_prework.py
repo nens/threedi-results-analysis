@@ -88,7 +88,9 @@ class RasterCheckerEntrees(object):
                     file_id.append(row['id'])
                     file_column.append(column)
                     file_name.append(str(row[column]))
-        self._all_raster_ref = zip(file_tbl, file_id, file_column, file_name)
+        # in python3 zip returns iterator so return the list of zip object
+        self._all_raster_ref = list(
+            zip(file_tbl, file_id, file_column, file_name))
         return self._all_raster_ref
 
     @property
@@ -113,7 +115,7 @@ class RasterCheckerEntrees(object):
         all_settings_columns = getattr(
             self.datamodel_pre, tbl_settings).columns.keys()
         for column in all_settings_columns:
-            for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.iteritems():
+            for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.items():
                 if col == column:
                     sql_tbl = getattr(self.datamodel_pre, tbl_settings).c
                     sql_column = getattr(sql_tbl, col)
@@ -125,7 +127,9 @@ class RasterCheckerEntrees(object):
                         file_id.append(row['id'])
                         file_column.append(column)
                         file_name.append(row[column])
-        self._foreign_keys = zip(file_tbl, file_id, file_column, file_name)
+        # in python3 zip returns iterator so return the list of zip object
+        self._foreign_keys = list(
+            zip(file_tbl, file_id, file_column, file_name))
         return self._foreign_keys
 
     @property
@@ -211,7 +215,7 @@ class RasterCheckerEntrees(object):
                 ref_setting_id = ref_item[1]
                 ref_column_name = ref_item[2]
                 ref_raster_str = ref_item[3]
-                for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.iteritems():
+                for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.items():
                     if ref_tbl_name == tbl:
                         for fk_item in self.foreign_keys:
                             fk_setting_id = fk_item[1]

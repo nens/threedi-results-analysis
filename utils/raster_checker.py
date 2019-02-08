@@ -33,11 +33,11 @@ from qgis.PyQt.QtCore import QVariant
 #                       QgsCoordinateReferenceSystem, QgsCoordinateTransform)
 
 from qgis.core import (QgsField, QgsVectorFileWriter, QgsFeature, QgsGeometry, QgsPoint,
-                       QgsCoordinateReferenceSystem, QgsCoordinateTransform)
+                       QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsWkbTypes)
 
 # WKBPoint is niet meer.. (QgsPoint bestaat nog wel)
 # QGis.WKBPoint is nu QgsWkbTypes.Point
-from QgsWkbTypes import Point
+# from qgis.core import QgsWkbTypes
 
 log = logging.getLogger(__name__)
 Base = declarative_base()
@@ -541,8 +541,8 @@ class RasterChecker(object):
         # compare two rasters blockwise
         # renier
         # for data1, data2 in izip(
-        for data1, data2 in zip(
-                generator_dem.next(), generator_other.next()):
+        for data1, data2 in list(zip(
+                generator_dem.__next__(), generator_other.__next__())):
             self.compare_pixel_bbox(setting_id, rast_item, data1, data2)
 
         dem_raster = None  # close raster
@@ -756,14 +756,14 @@ class RasterChecker(object):
 
         phase = 1
         self.progress_bar.set_progress(0)
-        for setting_id, rasters in self.entrees.iteritems():
+        for setting_id, rasters in self.entrees.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
         self.progress_bar.increase_progress(progress_per_phase, 'done phase 1')
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
-        for setting_id, rasters in self.entrees.iteritems():
+        for setting_id, rasters in self.entrees.items():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             if rasters_ready:
@@ -773,7 +773,7 @@ class RasterChecker(object):
 
         phase = 3
         # cumulative pixels of all rasters in 1 entree not too much?
-        for setting_id, rasters in self.entrees.iteritems():
+        for setting_id, rasters in self.entrees.items():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
@@ -782,7 +782,7 @@ class RasterChecker(object):
 
         phase = 4
         # compare rasters with dem in same entree
-        for setting_id, rasters in self.entrees.iteritems():
+        for setting_id, rasters in self.entrees.items():
             # we only check rasters that passed blocking checks of phase 2
             rasters_ready = self.results.get_rasters_ready(setting_id, 3)
             # We will compare the dem with other rasters. We need:
@@ -799,7 +799,7 @@ class RasterChecker(object):
         if not self.run_pixel_checker:
             return
         self.input_data_shp = []
-        for setting_id, rasters in self.entrees.iteritems():
+        for setting_id, rasters in self.entrees.items():
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             # Note that the dem always passed the previous phase (as we then
             # compared the dem with other rasters). If other raster was

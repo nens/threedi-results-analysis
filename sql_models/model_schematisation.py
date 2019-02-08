@@ -27,6 +27,34 @@ def prettify(value, postfix, value_format='%0.2f'):
         value_str = value_format % value
     return '%s %s' % (value_str, postfix)
 
+class Interflow(Base):
+    __tablename__ = 'v2_interflow'
+    id = Column(Integer, primary_key=True)
+    porosity_file = Column(String(255), nullable=True)
+    hydraulic_conductivity_file = Column(String(255), nullable=True)
+
+
+class SimpleInfiltration(Base):
+    __tablename__ = 'v2_simple_infiltration'
+    id = Column(Integer, primary_key=True)
+    infiltration_rate_file = Column(String(255), nullable=True)
+    max_infiltration_capacity_file = Column(String(255), nullable=True)
+
+
+class GroundWater(Base):
+    __tablename__ = 'v2_groundwater'
+    id = Column(Integer, primary_key=True)
+    infiltration_rate_file = Column(String(255), nullable=True)
+    max_infiltration_capacity_file = Column(String(255), nullable=True)
+    phreatic_storage_capacity_file = Column(String(255), nullable=True)
+    groundwater_hydro_connectivity_file = Column(String(255), nullable=True)
+    infiltration_decay_period_file = Column(String(255), nullable=True)
+    leakage_file = Column(String(255), nullable=True)
+    initial_infiltration_rate_file = Column(String(255), nullable=True)
+    groundwater_impervious_layer_level_file = Column(
+        String(255), nullable=True)
+    equilibrium_infiltration_rate_file = Column(String(255), nullable=True)
+
 
 class GlobalSetting(Base):
     __tablename__ = 'v2_global_settings'
@@ -39,10 +67,6 @@ class GlobalSetting(Base):
     kmax = Column(Integer)
     nr_timesteps = Column(Integer)
     sim_time_step = Column(Float)
-
-    def __str__(self):
-        return u'Global setting [dem_file=%s, frict_coef_file=%s]' % (
-            self.dem_file, self.frict_coef_file)
 
 
 class CrossSectionDefinition(Base):

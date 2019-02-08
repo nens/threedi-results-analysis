@@ -60,7 +60,7 @@ class RasterCheckerResults(object):
         #   raster=abc.tif, and check_id=2
         check_keys = ['setting_id', 'raster', 'check_id']
         check_dict = dict((key, value) for key, value in
-                          add_result.iteritems() if key in check_keys)
+                          add_result.items() if key in check_keys)
         if check_dict in self.result_per_check:
             raise AssertionError("result already exists")
         else:
@@ -358,7 +358,7 @@ class RasterCheckerProgressBar(StatusProgressBar):
             raise AssertionError('do not call this function when you dont run'
                                  'pixel_checker')
         count_rasters = 0
-        for setting_id, rasters in entrees.iteritems():
+        for setting_id, rasters in entrees.items():
             rasters_ready = results.get_rasters_ready(setting_id, 5)
             if len(rasters_ready) >= 1:
                 count_rasters += len(rasters_ready)

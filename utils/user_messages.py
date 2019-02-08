@@ -19,7 +19,6 @@ try:
 except Exception:
     iface = None
 
-
 def log(msg, level='INFO'):
     """Shortcut for QgsMessageLog.logMessage function."""
     if level not in ['INFO', 'CRITICAL', 'WARNING']:

@@ -16,6 +16,9 @@ from qgis.PyQt.QtSql import QSqlDatabase
 # renier
 # qgis2 from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
 from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
+# dit is wellicht handiger... alles in 1x
+# from qgis.PyQt import QtCore
+
 # SIGNAL not supported in qt5
 # http://pyqt.sourceforge.net/Docs/PyQt5/pyqt4_differences.html
 
@@ -53,7 +56,6 @@ import os
 
 log = logging.getLogger(__name__)
 
-
 try:
     _encoding = QApplication.UnicodeUTF8
 
@@ -64,6 +66,7 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
+# based on "class GuessIndicatorDialogWidget(QDialog)" as example
 class RasterCheckerDialogWidget(QDialog):
 
     def __init__(self, parent=None, checks=[],
@@ -84,7 +87,7 @@ class RasterCheckerDialogWidget(QDialog):
         # rasterchecker only works on spatialte db (and not also postgres db)
         self.databases = {}
         self.all_databases = get_databases()
-        for k, v in self.all_databases.iteritems():
+        for k, v in self.all_databases.items():
             if 'spatialite' in k:
                 if v['db_name']:
                     self.databases[k] = v
@@ -183,9 +186,27 @@ class RasterCheckerDialogWidget(QDialog):
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
+        #renier
+        #qgis2
+        # self.retranslateUi()
+        # QObject.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
+        # QObject.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+        # QMetaObject.connectSlotsByName(self)
+        #qgis3
+        # self.retranslateUi()
+        # QObject.connect(self.buttonBox.accepted.connect(self.accept))
+        # QObject.connect(self.buttonBox.rejected.connect(self.reject))
+        # QMetaObject.connectSlotsByName(self)
+
+        #   File "/home/renier.kramer/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox/views/raster_checker_dialog.py", line 81, in __init__
+        #     self.setupUi(checks)
+        #   File "/home/renier.kramer/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox/views/raster_checker_dialog.py", line 194, in setupUi
+        #     QObject.connect(self.buttonBox.accepted.connect(self.accept))
+        # AttributeError: type object 'QObject' has no attribute 'connect'
+
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):

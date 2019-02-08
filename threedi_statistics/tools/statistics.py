@@ -20,7 +20,11 @@ from ..sql_models.statistics import (
     FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
     PumplineStats, StatSource)
 from ..utils.statistics_database import StaticsticsDatabase
+
+# renier
+# qgis2 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtWidgets import QMessageBox
+
 log = logging.getLogger(__name__)
 
 
