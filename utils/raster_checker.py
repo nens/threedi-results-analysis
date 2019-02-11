@@ -85,7 +85,7 @@ class RasterChecker(object):
                                              height, block_width):
                 yield block
 
-    def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=1024):
+    def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=256):
         raster_height = band.YSize
         raster_width = band.XSize
         block_height, block_width = band.GetBlockSize()
@@ -593,6 +593,7 @@ class RasterChecker(object):
         # bbox_idx is 2D np.array:
         # 1st element = nth column (in west-east direction) in bbox
         # 2nd element = nth row (in north-south direction) in bbox
+
         """
         # 1. indices in the whole raster of wrong (True) pixels
         raster_idx = bbox_idx + [ul_row, ul_col]
@@ -609,9 +610,10 @@ class RasterChecker(object):
         # 2nd element (x-dir) is "distance -1" as we add to go east
         # times 0.5 because we want centre coord and not left up corner
         """
+
         # all (1, 2 and 3) in once:
-        coords = [uly, ulx] + ((bbox_idx + [ul_row, ul_col]) * [-1, 1]) + \
-                 [-0.5 * pixelsize, 0.5 * pixelsize]
+        coords = [uly, ulx] + ((bbox_idx + [ul_row, ul_col]) * pixelsize) * \
+                 [-1, 1] + [-0.5 * pixelsize, 0.5 * pixelsize]
         # note that: x = coords[:][0] and y = coords[:][1]
         return coords
 
