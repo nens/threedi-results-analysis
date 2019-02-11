@@ -21,8 +21,6 @@ from ..sql_models.statistics import (
     PumplineStats, StatSource)
 from ..utils.statistics_database import StaticsticsDatabase
 
-# renier
-# qgis2 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtWidgets import QMessageBox
 
 log = logging.getLogger(__name__)

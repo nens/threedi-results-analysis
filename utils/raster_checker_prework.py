@@ -1,7 +1,8 @@
+# (c) Nelen & Schuurmans, see LICENSE.rst.
+
 from sqlalchemy import (Table, select)
-from ThreeDiToolbox.utils.constants import (
-    V2_TABLES, NON_SETTINGS_TBL_WITH_RASTERS, RASTER_CHECKER_MAPPER)
-import collections
+from ThreeDiToolbox.utils.constants import (V2_TABLES, RASTER_CHECKER_MAPPER,
+                                            NON_SETTINGS_TBL_WITH_RASTERS)
 import logging
 log = logging.getLogger(__name__)
 
@@ -31,8 +32,8 @@ class DataModelSource(object):
             except Exception as e:
                 msg = "table {tbl_xx} could not be converted into a " \
                       "SQLAlchemy Table".format(tbl_xx=tblname)
-                #log.error(msg)
-                #log.error(e)
+                # log.error(msg)
+                # log.error(e)
 
 
 class RasterCheckerEntrees(object):

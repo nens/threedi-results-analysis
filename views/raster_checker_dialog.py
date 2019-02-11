@@ -1,58 +1,13 @@
-# -*- coding: utf-8 -*-
-import logging
+# (c) Nelen & Schuurmans, see LICENSE.rst.
 
-# renier
-# qgis2 from PyQt4.QtCore import pyqtSignal, QSettings
-from qgis.PyQt.QtCore import pyqtSignal
-
-# renier
-# qgis2 from PyQt4.QtGui import QDialog
 from qgis.PyQt.QtWidgets import QDialog
-
-# renier
-# qgis2 from PyQt4.QtSql import
-from qgis.PyQt.QtSql import QSqlDatabase
-
-# renier
-# qgis2 from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
 from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
-# dit is wellicht handiger... alles in 1x
-# from qgis.PyQt import QtCore
-
-# SIGNAL not supported in qt5
-# http://pyqt.sourceforge.net/Docs/PyQt5/pyqt4_differences.html
-
-# renier
-# qgis 2 from PyQt4.QtGui import (
-#     QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout,
-#     QCheckBox, QDialogButtonBox, QApplication)
 from qgis.PyQt.QtWidgets import (
-    QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout,
-    QCheckBox, QDialogButtonBox, QApplication)
-
-# renier
-# qgis2 from qgis.core import (QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry)
-from qgis.core import QgsDataSourceUri
-# hmm, alle 3 libs worden niet gebruikt?
-from qgis.gui import QgsCredentialDialog
-
+    QVBoxLayout, QGroupBox, QComboBox, QSizePolicy, QCheckBox,
+    QDialogButtonBox, QApplication)
 from ThreeDiToolbox.utils.threedi_database import get_databases
 import os
-
-
-# from qgis.PyQt.QtCore import QRect
-# from qgis.PyQt.QtCore import Qt
-# from qgis.PyQt.QtCore import QObject
-# from qgis.PyQt.QtCore import QMetaObject
-# from qgis.PyQt.QtWidgets import QVBoxLayout
-# from qgis.PyQt.QtWidgets import QGroupBox
-# from qgis.PyQt.QtWidgets import QComboBox
-# from qgis.PyQt.QtWidgets import QSizePolicy
-# from qgis.PyQt.QtWidgets import QDialogButtonBox
-# from qgis.PyQt.QtWidgets import QApplication
-# from qgis.PyQt.QtWidgets import QDialog
-
-
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +21,6 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
-# based on "class GuessIndicatorDialogWidget(QDialog)" as example
 class RasterCheckerDialogWidget(QDialog):
 
     def __init__(self, parent=None, checks=[],
@@ -76,8 +30,8 @@ class RasterCheckerDialogWidget(QDialog):
             parent: Qt parent Widget
             iface: QGiS interface
             ts_datasource: TimeseriesDatasourceModel instance
-            command: Command instance with a run_it method which will be called
-                     on acceptance of the dialog
+            command: Command instance with a run_it method which will be
+                     called on acceptance of the dialog
         """
         super(RasterCheckerDialogWidget, self).__init__(parent)
         self.checks = checks
@@ -185,24 +139,6 @@ class RasterCheckerDialogWidget(QDialog):
             QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
-
-        #renier
-        #qgis2
-        # self.retranslateUi()
-        # QObject.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
-        # QObject.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
-        # QMetaObject.connectSlotsByName(self)
-        #qgis3
-        # self.retranslateUi()
-        # QObject.connect(self.buttonBox.accepted.connect(self.accept))
-        # QObject.connect(self.buttonBox.rejected.connect(self.reject))
-        # QMetaObject.connectSlotsByName(self)
-
-        #   File "/home/renier.kramer/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox/views/raster_checker_dialog.py", line 81, in __init__
-        #     self.setupUi(checks)
-        #   File "/home/renier.kramer/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox/views/raster_checker_dialog.py", line 194, in setupUi
-        #     QObject.connect(self.buttonBox.accepted.connect(self.accept))
-        # AttributeError: type object 'QObject' has no attribute 'connect'
 
         self.retranslateUi()
         self.buttonBox.accepted.connect(self.accept)

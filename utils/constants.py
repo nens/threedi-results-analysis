@@ -156,7 +156,8 @@ RASTER_CHECKER_MAPPER = [
      'feedback': {
         'info': '{{raster}} has a valid extension.',
         'warning': '',
-        'error': '{{raster}} has an invalid extension (must be .tif or .tiff).',
+        'error': '{{raster}} has an invalid extension ('
+                 'must be .tif or .tiff).',
         },
      },
     {'check_id': 4,
@@ -241,7 +242,7 @@ RASTER_CHECKER_MAPPER = [
         'info': '{{raster}} has a pixel resolution with less than three '
                 'decimal places.',
         'warning': '{{raster}} has a pixel resolution with more than three '
-                 'decimal places.',
+                   'decimal places.',
         'error': '',
         },
      },

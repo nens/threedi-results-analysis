@@ -27,6 +27,7 @@ def prettify(value, postfix, value_format='%0.2f'):
         value_str = value_format % value
     return '%s %s' % (value_str, postfix)
 
+
 class Interflow(Base):
     __tablename__ = 'v2_interflow'
     id = Column(Integer, primary_key=True)

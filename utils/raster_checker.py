@@ -1,17 +1,18 @@
-# -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import (QgsField, QgsFields, QgsVectorFileWriter, QgsFeature,
+                       QgsGeometry, QgsPointXY, QgsCoordinateReferenceSystem,
+                       QgsWkbTypes)
 from sqlalchemy import MetaData
-from ThreeDiToolbox.utils.user_messages import (
-    pop_up_info, messagebar_message)
-from ThreeDiToolbox.utils.raster_checker_prework import (
-    DataModelSource, RasterCheckerEntrees)
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import (
-    RasterCheckerResults, RasterCheckerProgressBar)
-
 from sqlalchemy.ext.declarative import declarative_base
-
+from ThreeDiToolbox.utils.user_messages import (pop_up_info,
+                                                messagebar_message)
+from ThreeDiToolbox.utils.raster_checker_prework import (DataModelSource,
+                                                         RasterCheckerEntrees)
+from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.utils.raster_checker_log import (RasterCheckerResults,
+                                                     RasterCheckerProgressBar)
 import os
 import string
 import logging
@@ -19,25 +20,6 @@ import osr
 from gdal import GA_ReadOnly
 from osgeo import gdal, osr
 import numpy as np
-
-# renier
-# qgis2 from itertools import izip
-# izip zit nu gewoon in zip ??
-
-from qgis.PyQt.QtCore import QVariant
-
-# renier
-# QgsFields bestaat niet meer??
-# python 2 from qgis.core import (QgsFields, QgsField, QgsVectorFileWriter, QGis,
-#                       QgsFeature, QgsGeometry, QgsPoint,
-#                       QgsCoordinateReferenceSystem, QgsCoordinateTransform)
-
-from qgis.core import (QgsField, QgsFields, QgsVectorFileWriter, QgsFeature, QgsGeometry, QgsPointXY,
-                       QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsWkbTypes)
-
-# WKBPoint is niet meer.. (QgsPoint bestaat nog wel)
-# QGis.WKBPoint is nu QgsWkbTypes.Point
-# from qgis.core import QgsWkbTypes
 
 log = logging.getLogger(__name__)
 Base = declarative_base()
@@ -94,13 +76,13 @@ class RasterChecker(object):
         nrows = int(band.YSize / block_height)
         for j in range(nrows):
             for block in self.iter_block_row(band, j * block_height,
-                                              block_height, block_width):
+                                             block_height, block_width):
                 yield block
         # possible leftover row
         height = band.YSize - (nrows * block_height)
         if height > 0:
             for block in self.iter_block_row(band, nrows * block_height,
-                                              height, block_width):
+                                             height, block_width):
                 yield block
 
     def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=1024):
@@ -298,7 +280,7 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-                detail = 'compression_method is %s' %compr_method
+                detail = 'compression_method is %s' % compr_method
         except Exception as detail:
             log.error(detail)
             detail = str()
@@ -306,6 +288,7 @@ class RasterChecker(object):
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
                               check_id=check_id, result=result, detail=detail)
+
     def check_pixel_decimal(self, setting_id, rast_item, check_id, src_ds):
         # Has the pixel resolution less than three decimal places?
         detail = str()
@@ -321,8 +304,8 @@ class RasterChecker(object):
             if cnt_decimal_xres > 3 or cnt_decimal_yres > 3:
                 result = False
                 detail = 'found %d and %d decimal places for x- and ' \
-                         'y- resolution respectively' % (
-                    cnt_decimal_xres, cnt_decimal_yres)
+                         'y- resolution respectively' % (cnt_decimal_xres,
+                                                         cnt_decimal_yres)
             else:
                 result = True
         except Exception as detail:
@@ -389,9 +372,9 @@ class RasterChecker(object):
             rows = src_ds.RasterYSize
             src_ds = None  # close raster
             pixelcount = cols * rows
-            cum_pixelcount =+ pixelcount
+            cum_pixelcount += pixelcount
         if cum_pixelcount > max_pixels_allow:
-            result = False  # close raster
+            result = False
             detail = 'cumulative pixelcount= %d for all rasters in ' \
                      'setting_id %d. This is more than 3Di can handle ' \
                      '1.000.000.000' % (cum_pixelcount, setting_id)
@@ -424,7 +407,7 @@ class RasterChecker(object):
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+                              check_id=check_id, result=result, detail=detail)
 
     def check_pixelsize(self, setting_id, rast_item, check_id, src_ds,
                         dem_src_ds):
@@ -440,13 +423,13 @@ class RasterChecker(object):
         else:
             result = False
             detail = 'dem has pixel size x:%d y:%d, while %s has pixel ' \
-                     'size x:%d y:%d' % (
-                dem_xres, dem_yres, rast_item, xres, yres)
+                     'size x:%d y:%d' % (dem_xres, dem_yres, rast_item,
+                                         xres, yres)
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 
     def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds,
-                        dem_src_ds):
+                         dem_src_ds):
         """ compare data/nodata count of dem with another raster and store the
         counts as we use it later before pixel alignment check """
         detail = str()
@@ -470,7 +453,8 @@ class RasterChecker(object):
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 
-    def check_extent(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
+    def check_extent(self, setting_id, rast_item, check_id, src_ds,
+                     dem_src_ds):
         """ compare extent (number rows/colums) of dem with another raster """
         detail = str()
         dem_cols = dem_src_ds.RasterXSize
@@ -482,8 +466,8 @@ class RasterChecker(object):
         else:
             result = False
             detail = 'dem has %d columns and % d rows, while %s has ' \
-                     '%d columns and %d rows' % (
-                dem_cols, dem_rows, rast_item, cols, rows)
+                     '%d columns and %d rows' % (dem_cols, dem_rows,
+                                                 rast_item, cols, rows)
         self.results._add(setting_id=setting_id, raster=rast_item,
                           check_id=check_id, result=result, detail=detail)
 

@@ -1,3 +1,5 @@
+# (c) Nelen & Schuurmans, see LICENSE.rst.
+
 import time
 import os
 import logging
@@ -29,7 +31,8 @@ class RasterCheckerResults(object):
             raise AssertionError("setting_id unknown")
 
         raster = kwargs.get('raster')
-        if not raster: raise AssertionError("raster unknown")
+        if not raster:
+            raise AssertionError("raster unknown")
 
         check_id = kwargs.get('check_id')
         # TODO: let this range below depend on the map dict keys

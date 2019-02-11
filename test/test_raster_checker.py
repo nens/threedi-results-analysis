@@ -1,24 +1,16 @@
-"""
-Test Raster Checker
-"""
-import unittest
-import os
-
-from gdal import GA_ReadOnly
-from osgeo import gdal
-
-
-# import mock  # python 2
-# from mock import patch, Mock
-import unittest.mock # python 3
-
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget  # noqa
 from ThreeDiToolbox.utils.raster_checker_prework import (DataModelSource, RasterCheckerEntrees)  # noqa
 from ThreeDiToolbox.utils.raster_checker_log import (RasterCheckerResults, RasterCheckerProgressBar)  # noqa
+
 from sqlalchemy import MetaData
+import unittest
+import os
+from gdal import GA_ReadOnly
+from osgeo import gdal
+# import unittest.mock
 
 
 class TestRasterCheckerEntrees(unittest.TestCase):
@@ -35,7 +27,7 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         engine = db.get_engine()
         self.metadata = MetaData(bind=engine)
         self.datamodel = DataModelSource(self.metadata)
-        self.rc_entrees =  RasterCheckerEntrees(self.datamodel, session)
+        self.rc_entrees = RasterCheckerEntrees(self.datamodel, session)
         self.all_raster_ref_expect = [
             ('v2_global_settings', 1, 'dem_file', 'rasters/test1.tif'),
             ('v2_global_settings', 2, 'dem_file', 'rasters/test3.tif'),
@@ -94,7 +86,7 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             (1, 'v2_groundwater', 'leakage_file', 'rasters/test2.tif'),
             (2, 'v2_global_settings', 'dem_file', 'rasters/test3.tif'),
             (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
-            (2, 'v2_interflow', 'porosity_file', 'rasters/test1.tif'),]
+            (2, 'v2_interflow', 'porosity_file', 'rasters/test1.tif')]
         self.assertEqual(len(entrees), len(entrees_meta_expect))
         self.assertEqual(sorted(entrees), sorted(entrees_meta_expect))
 
@@ -279,7 +271,7 @@ class TestRasterChecker(unittest.TestCase):
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_nodata(setting_id, rast_item, check_id, src_ds)
         src_ds = None
-        self.assertTrue(self.get_result())  #True as test1.tif nodata=-9999
+        self.assertTrue(self.get_result())  # True as test1.tif nodata=-9999
 
     def test_check_utm(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
