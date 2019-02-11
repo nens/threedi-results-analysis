@@ -10,7 +10,7 @@ import unittest
 import os
 from gdal import GA_ReadOnly
 from osgeo import gdal
-# import unittest.mock
+import unittest.mock
 
 
 class TestRasterCheckerEntrees(unittest.TestCase):
