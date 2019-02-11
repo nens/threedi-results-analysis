@@ -454,6 +454,81 @@ class TestRasterChecker(unittest.TestCase):
             'setting_id': setting_id}]
         self.assertEqual(self.checker.input_data_shp, input_data_shp_expect)
 
-    def test_phase_update(self):
-        # TODO:
-        pass
+    def test_get_check_ids_names(self):
+        self.assertTrue(hasattr(self.checker, "get_check_ids_names"))
+
+        phase = 1
+        check_ids_names = self.checker.get_check_ids_names(phase)
+        expect = [(1, 'id_tifname_unique'), (2, 'tif_exists'),
+                  (3, 'extension'), (4, 'filename')]
+        self.assertEqual(check_ids_names, expect)
+
+        phase = 2
+        check_ids_names = self.checker.get_check_ids_names(phase)
+        expect = [(5, 'singleband'), (6, 'nodata'), (7, 'utm'), (8, 'flt32'),
+                  (9, 'compress'), (10, 'pixel_decimal'),
+                  (11, 'square_pixel'), (12, 'extreme_value')]
+        self.assertEqual(check_ids_names, expect)
+
+    def test_get_block_check_ids(self):
+        self.assertTrue(hasattr(self.checker.results, "get_block_check_ids"))
+
+        phase = 1
+        blocking_checks = self.checker.results.get_block_check_ids(phase)
+        self.assertEqual(blocking_checks, [1, 2])
+
+        phase = 2
+        blocking_checks = self.checker.results.get_block_check_ids(phase)
+        self.assertEqual(blocking_checks, [5, 6, 7, 8, 11])
+
+    def test_phase_update_all_checks_succes(self):
+        self.checker.results.result_per_phase = []
+
+        self.checker.results.result_per_check = [
+        {'raster': 'a.tif', 'setting_id': 1, 'check_id': 1, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'a.tif', 'setting_id': 1, 'check_id': 2, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'a.tif', 'setting_id': 1, 'check_id': 3, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'a.tif', 'setting_id': 1, 'check_id': 4, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'b.tif', 'setting_id': 1, 'check_id': 1, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'b.tif', 'setting_id': 1, 'check_id': 2, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'b.tif', 'setting_id': 1, 'check_id': 3, 'result': True, 'detail': ''},  # noqa
+        {'raster': 'b.tif', 'setting_id': 1, 'check_id': 4, 'result': True, 'detail': ''}  # noqa
+        ]
+
+        setting_id = 1
+        rasters = ['a.tif', 'b.tif']
+        phase = 1
+        self.checker.results.update_result_per_phase(
+            setting_id, rasters, phase)
+
+        expect = [
+            {'result': True, 'setting_id': 1, 'phase': 1, 'raster': 'a.tif'},
+            {'result': True, 'setting_id': 1, 'phase': 1, 'raster': 'b.tif'}]
+        self.assertEqual(self.checker.results.result_per_phase, expect)
+
+    def test_phase_update_one_blocker_fails(self):
+        self.checker.results.result_per_phase = []
+
+        # phase 1 blockers are checks 1 and 2 (see 'test_get_block_check_ids')
+        # 1 rasters fails on one blocking check and should not pass phase
+        self.checker.results.result_per_check = [
+            {'raster': 'a.tif', 'setting_id': 1, 'check_id': 1, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'a.tif', 'setting_id': 1, 'check_id': 2, 'result': False, 'detail': ''},  # noqa
+            {'raster': 'a.tif', 'setting_id': 1, 'check_id': 3, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'a.tif', 'setting_id': 1, 'check_id': 4, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'b.tif', 'setting_id': 1, 'check_id': 1, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'b.tif', 'setting_id': 1, 'check_id': 2, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'b.tif', 'setting_id': 1, 'check_id': 3, 'result': True, 'detail': ''},  # noqa
+            {'raster': 'b.tif', 'setting_id': 1, 'check_id': 4, 'result': True, 'detail': ''}  # noqa
+        ]
+
+        setting_id = 1
+        rasters = ['a.tif', 'b.tif']
+        phase = 1
+        self.checker.results.update_result_per_phase(
+            setting_id, rasters, phase)
+
+        expect = [
+            {'result': False, 'setting_id': 1, 'phase': 1, 'raster': 'a.tif'},
+            {'result': True, 'setting_id': 1, 'phase': 1,  'raster': 'b.tif'}]
+        self.assertEqual(self.checker.results.result_per_phase, expect)
