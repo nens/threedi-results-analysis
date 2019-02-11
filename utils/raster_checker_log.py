@@ -25,7 +25,8 @@ class RasterCheckerResults(object):
 
     def check_incomming(self, **kwargs):
         setting_id = kwargs.get('setting_id')
-        if not setting_id: raise AssertionError("setting_id unknown")
+        if not setting_id:
+            raise AssertionError("setting_id unknown")
 
         raster = kwargs.get('raster')
         if not raster: raise AssertionError("raster unknown")
@@ -34,11 +35,12 @@ class RasterCheckerResults(object):
         # TODO: let this range below depend on the map dict keys
         if not check_id:
             raise AssertionError("check unknown")
-        if not check_id in range(1, 19):
+        if check_id not in range(1, 19):
             raise AssertionError("check_id unknown")
 
         result = kwargs.get('result')
-        if not isinstance(result, bool): raise AssertionError("result unknown")
+        if not isinstance(result, bool):
+            raise AssertionError("result unknown")
 
         detail = kwargs.get('detail')
         if not isinstance(detail, str):
@@ -82,7 +84,8 @@ class RasterCheckerResults(object):
         """
         self.result_per_check = sorted(
             self.result_per_check, key=lambda elem: "%02d %s %02d" % (
-                int(elem['setting_id']), elem['raster'], int(elem['check_id'])))
+                int(elem['setting_id']),
+                elem['raster'], int(elem['check_id'])))
         self.result_per_phase = sorted(
             self.result_per_phase, key=lambda elem: "%02d %02d %s" % (
                 int(elem['phase']), int(elem['setting_id']), elem['raster']))
@@ -114,10 +117,10 @@ class RasterCheckerResults(object):
             rasters = rasters[1:]
         for rast_item in rasters:
             cnt_succes = len([result for result in self.result_per_check if
-                          result['result'] is True and
-                          result['check_id'] in block_check_ids_phase and
-                          result['setting_id'] == setting_id and
-                          result['raster'] == rast_item])
+                              result['result'] is True and
+                              result['check_id'] in block_check_ids_phase and
+                              result['setting_id'] == setting_id and
+                              result['raster'] == rast_item])
             phase_result = (cnt_succes == len(block_check_ids_phase))
             to_add = {
                 'phase': phase,
@@ -235,7 +238,7 @@ class RasterCheckerResults(object):
         """ returns last checkphase (int) of RASTER_CHECKER_MAPPER """
         if self._last_phase is None:
             self._last_phase = max([chck.get('phase') for chck in
-            RASTER_CHECKER_MAPPER])
+                                    RASTER_CHECKER_MAPPER])
         return self._last_phase
 
     def add_intro(self):
@@ -295,16 +298,16 @@ class RasterCheckerResults(object):
                     check_ids = self.get_block_check_ids(phase)
                     msg = 'setting_id %d: %s failed on at least one of ' \
                           'checks %s. Therefore we could not continue ' \
-                          'with this raster \n' % (
-                        setting_id, raster, str(check_ids))
+                          'with this raster \n' % (setting_id,
+                                                   raster, str(check_ids))
                     self.log_file.write(msg)
                     skip_raster_id.append((setting_id, raster))
                 elif phase in [3, 4] and \
                         (setting_id, raster) not in skip_raster_id:
                     added_something = True
                     check_ids = self.get_block_check_ids(phase)
-                    msg = 'setting_id %d: either %s failed on at least one of ' \
-                          'checks %s, or dem of this setting_id did not ' \
+                    msg = 'setting_id %d: either %s failed on at least one ' \
+                          'of checks %s, or dem of this setting_id did not ' \
                           'reach these checks. Therefore we could not ' \
                           'continue with this raster \n' % (
                               setting_id, raster, str(check_ids))

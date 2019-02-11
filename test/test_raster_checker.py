@@ -82,8 +82,8 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         entrees_expect = {
             1: ('rasters/test1.tif', 'rasters/test2.tif'),
             2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test1.tif')}
-        # do not sort entrees as that dict,values (=tuple with string) must have
-        # specific order (dem = first)
+        # do not sort entrees as dictvalues (=tuple with strings) must
+        # have specific order (dem = first)
         self.assertEqual(entrees, entrees_expect)
 
     def test_entrees_metadata(self):
@@ -113,7 +113,8 @@ class TestRasterChecker(unittest.TestCase):
         self.checker = RasterChecker(self.db)
         self.entrees_expect = {
             1: ('rasters/test1.tif', 'rasters/test2.tif'),
-            2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test12.tif')}
+            2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test12.tif')
+        }
 
     def test_has_raster_checker_run_method(self):
         self.assertTrue(hasattr(self.checker, 'run'))
@@ -146,8 +147,10 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(len(method_ids) == len(list(set(method_ids))))
 
     def test_get_nr_phases(self):
-        self.assertEqual(self.checker.get_nr_phases(run_pixel_checker=False), 4)
-        self.assertEqual(self.checker.get_nr_phases(run_pixel_checker=True), 5)
+        self.assertEqual(self.checker.get_nr_phases(
+            run_pixel_checker=False), 4)
+        self.assertEqual(self.checker.get_nr_phases(
+            run_pixel_checker=True), 5)
 
     def test_result_per_check(self):
         """ each check should add a result (a list with dict per raster) to
@@ -156,7 +159,9 @@ class TestRasterChecker(unittest.TestCase):
         2. what happens we run a check with 2 rasters?
         """
         self.checker.results.result_per_check = []
-        setting_id = 1; rast_item = 'xxxxx.tif'; check_id = 1
+        setting_id = 1
+        rast_item = 'xxxxx.tif'
+        check_id = 1
         # run a check "check_tif_exists"
         self.checker.check_tif_exists(setting_id, rast_item, check_id)
         # raster does not exists so we expect result is False
@@ -165,9 +170,13 @@ class TestRasterChecker(unittest.TestCase):
         self.assertEqual(self.checker.results.result_per_check, expect)
 
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'test3.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'test3.tif'
+        check_id = 13
         self.checker.check_tif_exists(setting_id, rast_item, check_id)
-        setting_id = 1; rast_item = 'test1.tif'; check_id = 13
+        setting_id = 1
+        rast_item = 'test1.tif'
+        check_id = 13
         self.checker.check_tif_exists(setting_id, rast_item, check_id)
         # both rasters exists so we expect result is True
         expect = [{'detail': '', 'result': False, 'check_id': 13,
@@ -187,57 +196,75 @@ class TestRasterChecker(unittest.TestCase):
     def test_id_tifname_unique(self):
         self.assertTrue(hasattr(self.checker, "check_id_tifname_unique"))
         self.checker.results.result_per_check = []
-        setting_id = 1; rast_item = 'abc.tif'; check_id = 1
+        setting_id = 1
+        rast_item = 'abc.tif'
+        check_id = 1
         self.checker.check_id_tifname_unique(setting_id, rast_item, check_id)
         self.assertTrue(self.get_result())  # rastername is unique
 
-        setting_id = 1; rast_item = 'abc.tif'; check_id = 1
+        setting_id = 1
+        rast_item = 'abc.tif'
+        check_id = 1
         self.checker.check_id_tifname_unique(setting_id, rast_item, check_id)
         res = [x.get('result') for x in self.checker.results.result_per_check]
-        self.assertEqual(res, [True, False])  #2nd tifname isnt unique anymore
+        self.assertEqual(res, [True, False])  # 2nd tifname isnt unique anymore
 
     def test_check_tif_exists(self):
         self.assertTrue(hasattr(self.checker, "check_tif_exists"))
         self.checker.results.result_per_check = []
-        setting_id = 1; rast_item = 'xxxxx.tif'; check_id = 1
+        setting_id = 1
+        rast_item = 'xxxxx.tif'
+        check_id = 1
         self.checker.check_tif_exists(setting_id, rast_item, check_id)
-        self.assertFalse(self.get_result()) # raster does not exists so we expect False
+        self.assertFalse(self.get_result())  # raster doesnt exists thus False
 
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test3.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test3.tif'
+        check_id = 13
         self.checker.check_tif_exists(setting_id, rast_item, check_id)
-        self.assertTrue(self.get_result()) # raster does exists so we expect True
+        self.assertTrue(self.get_result())  # raster does exists thus True
 
     def test_check_extension(self):
         self.assertTrue(hasattr(self.checker, "check_extension"))
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test3.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test3.tif'
+        check_id = 13
         self.checker.check_extension(setting_id, rast_item, check_id)
-        self.assertTrue(self.get_result()) # True as extension is 'tiff'/'tif'
+        self.assertTrue(self.get_result())  # True as extension is 'tiff'/'tif'
 
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test3.txt'; check_id = 2
+        setting_id = 2
+        rast_item = 'rasters/test3.txt'
+        check_id = 2
         self.checker.check_extension(setting_id, rast_item, check_id)
         result = [x.get('result') for x in
                   self.checker.results.result_per_check][0]
-        self.assertFalse(result) # False as extension is not 'tiff'/'tif'
+        self.assertFalse(result)  # False as extension is not 'tiff'/'tif'
 
     def test_check_filename(self):
         self.assertTrue(hasattr(self.checker, "check_filename"))
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test3.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test3.tif'
+        check_id = 13
         self.checker.check_filename(setting_id, rast_item, check_id)
         self.assertTrue(self.get_result())  # True as filename is valid
 
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/te-st3.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/te-st3.tif'
+        check_id = 13
         self.checker.check_filename(setting_id, rast_item, check_id)
         self.assertFalse(self.get_result())  # True as filename is invalid
 
     def test_check_singleband(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_singleband(setting_id, rast_item, check_id, src_ds)
         src_ds = None
@@ -246,16 +273,20 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_nodata(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_nodata(setting_id, rast_item, check_id, src_ds)
         src_ds = None
-        self.assertTrue(self.get_result())  # True as test1.tif has nodata=-9999
+        self.assertTrue(self.get_result())  #True as test1.tif nodata=-9999
 
     def test_check_utm(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_utm(setting_id, rast_item, check_id, src_ds)
         src_ds = None
@@ -264,7 +295,9 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_flt32(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_flt32(setting_id, rast_item, check_id, src_ds)
         src_ds = None
@@ -273,7 +306,9 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_compress(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_compress(setting_id, rast_item, check_id, src_ds)
         src_ds = None
@@ -282,7 +317,9 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_pixel_decimal(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_pixel_decimal(
             setting_id, rast_item, check_id, src_ds)
@@ -292,7 +329,9 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_square_pixel(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_square_pixel(
             setting_id, rast_item, check_id, src_ds)
@@ -303,7 +342,9 @@ class TestRasterChecker(unittest.TestCase):
         raster_path = os.path.join(self.test_sqlite_dir,
                                    'rasters/test1.tif')
         self.checker.results.result_per_check = []
-        setting_id = 2; rast_item = 'rasters/test1.tif'; check_id = 13
+        setting_id = 2
+        rast_item = 'rasters/test1.tif'
+        check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
         self.checker.check_extreme_value(
             setting_id, rast_item, check_id, src_ds)
@@ -313,7 +354,8 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_cum_pixel_cnt(self):
         rasters = [
             'rasters/test3.tif', 'rasters/test2.tif', 'rasters/test1.tif']
-        setting_id = 2; check_id = 12
+        setting_id = 2
+        check_id = 12
         self.checker.results.result_per_check = []
         self.checker.check_cum_pixel_cnt(rasters, setting_id, check_id)
         src_ds = None
@@ -326,7 +368,8 @@ class TestRasterChecker(unittest.TestCase):
         other_path = os.path.join(self.test_sqlite_dir, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
-        setting_id = 2; check_id = 12
+        setting_id = 2
+        check_id = 12
         self.checker.results.result_per_check = []
         self.checker.check_proj(
             setting_id, rast_item, check_id, src_ds, dem_src_ds)
@@ -341,7 +384,8 @@ class TestRasterChecker(unittest.TestCase):
         other_path = os.path.join(self.test_sqlite_dir, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
-        setting_id = 2; check_id = 12
+        setting_id = 2
+        check_id = 12
         self.checker.results.result_per_check = []
         self.checker.check_pixelsize(
             setting_id, rast_item, check_id, src_ds, dem_src_ds)
@@ -359,7 +403,8 @@ class TestRasterChecker(unittest.TestCase):
         other_path = os.path.join(self.test_sqlite_dir, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
-        setting_id = 1; check_id = 12
+        setting_id = 1
+        check_id = 12
         self.checker.check_cnt_nodata(
             setting_id, rast_item, check_id, src_ds, dem_src_ds)
         dem_src_ds = None
@@ -382,7 +427,8 @@ class TestRasterChecker(unittest.TestCase):
         other_path = os.path.join(self.test_sqlite_dir, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
-        setting_id = 2; check_id = 12
+        setting_id = 2
+        check_id = 12
         self.checker.results.result_per_check = []
         self.checker.check_extent(
             setting_id, rast_item, check_id, src_ds, dem_src_ds)
@@ -397,13 +443,12 @@ class TestRasterChecker(unittest.TestCase):
 
         dem = 'rasters/test1.tif'
         rast_item = 'rasters/test2.tif'
-        setting_id = 2; check_id = 12
-
+        setting_id = 2
+        check_id = 12
         self.checker.results.store_cnt_data_nodata = [{
             'cnt_data': 97, 'cnt_nodata': 3, 'dem_cnt_data': 96,
             'dem_cnt_nodata': 4, 'raster': 'rasters/test2.tif',
             'setting_id': 2}]
-
         self.checker.progress_bar = unittest.mock.MagicMock()
         self.checker.check_pixel_alignment(
             setting_id, rast_item, check_id, dem)
@@ -411,7 +456,6 @@ class TestRasterChecker(unittest.TestCase):
         src_ds = None
         result = self.get_result()
         self.assertFalse(result)
-
         input_data_shp_expect = [{
             'raster': rast_item,
             'coords': [[[8.5, 1.5], [0.5, 0.5], [0.5, 6.5]]],

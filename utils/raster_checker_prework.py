@@ -31,8 +31,8 @@ class DataModelSource(object):
             except Exception as e:
                 msg = "table {tbl_xx} could not be converted into a " \
                       "SQLAlchemy Table".format(tbl_xx=tblname)
-                log.error(msg)
-                log.error(e)
+                #log.error(msg)
+                #log.error(e)
 
 
 class RasterCheckerEntrees(object):
@@ -82,7 +82,7 @@ class RasterCheckerEntrees(object):
                 sql_column = getattr(sql_tbl, column)
                 q = select([sql_column, sql_tbl.id])
                 res = self.session_pre.execute(q)
-                select_rows = [x for x in res if x[column]] # e.g. row['dem_file'] not None:
+                select_rows = [x for x in res if x[column]]
                 for row in select_rows:
                     file_tbl.append(tbl)
                     file_id.append(row['id'])

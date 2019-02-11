@@ -32,7 +32,7 @@ from qgis.PyQt.QtCore import QVariant
 #                       QgsFeature, QgsGeometry, QgsPoint,
 #                       QgsCoordinateReferenceSystem, QgsCoordinateTransform)
 
-from qgis.core import (QgsField, QgsVectorFileWriter, QgsFeature, QgsGeometry, QgsPoint,
+from qgis.core import (QgsField, QgsFields, QgsVectorFileWriter, QgsFeature, QgsGeometry, QgsPointXY,
                        QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsWkbTypes)
 
 # WKBPoint is niet meer.. (QgsPoint bestaat nog wel)
@@ -575,7 +575,8 @@ class RasterChecker(object):
         while True:
             yield self.iter_blocks(band, block_width=w, block_height=h)
 
-    def get_pixel_specs(self, dem_path):
+    @staticmethod
+    def get_pixel_specs(dem_path):
         dem = gdal.Open(dem_path, GA_ReadOnly)
         ulx, xres, xskew, uly, yskew, yres = dem.GetGeoTransform()
         pixelsize = abs(min(xres, yres))
@@ -583,14 +584,13 @@ class RasterChecker(object):
         return pixel_specs
 
     def get_wrong_pixel(self, bbox1, compare_mask):
-        """
-        The function finds the x,y coordinates (in same projection as the dem)
-        of wrong pixels:
+        """ The function finds the x,y coordinates (in same projection as the
+        dem) of wrong pixels:
         - where dem is data and other raster nodata
         - where dem is nodata and other raster data
         We dont analyse whole raster at once, but blockwise (per boundingbox).
-        Each pixel is represented by a column nr (in the end used to get x-coor)
-        and a row nr (in the end used to get y-coor).
+        Each pixel is represented by a column nr (in the end used to get
+        x-coor) and a row nr (in the end used to get y-coor).
         :param setting_id: int (v2_global_setting id of model_entree)
         :param bbox1:
         :param compare_mask:
@@ -609,28 +609,26 @@ class RasterChecker(object):
         # bbox_idx is 2D np.array:
         # 1st element = nth column (in west-east direction) in bbox
         # 2nd element = nth row (in north-south direction) in bbox
-
         """
-        # indices in the whole raster of wrong (True) pixels
+        # 1. indices in the whole raster of wrong (True) pixels
         raster_idx = bbox_idx + [ul_row, ul_col]
         # 1st element = nth column (in west-east direction) in whole raster
         # 2nd element = nth row (in north-south direction) in whole raster
 
-        # distance from whole raster's lup corner to wrong pixels
+        # 2. distance from whole raster's lup corner to wrong pixels
         distance = raster_idx * pixelsize
 
-        # now get the centre coords (remember: row=y, col=x) of wrong pixels
+        # 3. now get the centre coords (remember: row=y, col=x) of wrong pixels
         coords = [uly, ulx] + (distance * [-1, 1]) + \
                         [-0.5 * pixelsize, 0.5 * pixelsize]
         # 1st element (y-dir) is "distance *-1" as we substract to go south
         # 2nd element (x-dir) is "distance -1" as we add to go east
         # times 0.5 because we want centre coord and not left up corner
         """
-        # all-in-one:
+        # all (1, 2 and 3) in once:
         coords = [uly, ulx] + ((bbox_idx + [ul_row, ul_col]) * [-1, 1]) + \
                  [-0.5 * pixelsize, 0.5 * pixelsize]
-        # x = coords[:][0]
-        # y = coords[:][1]
+        # note that: x = coords[:][0] and y = coords[:][1]
         return coords
 
     def compare_pixel_bbox(self, setting_id, other_tif, data1, data2):
@@ -653,7 +651,8 @@ class RasterChecker(object):
         check_name = prefix + base_check_name
         return getattr(self, check_name)(**kwargs)
 
-    def get_check_ids_names(self, check_phase=None):
+    @staticmethod
+    def get_check_ids_names(check_phase=None):
         """
         :param check_phase: int (1 to 5)
         :return: list with tuples with (check_id, check_name), e.g:
@@ -815,63 +814,43 @@ class RasterChecker(object):
         self.progress_bar.set_progress(100)
 
     def create_shp(self):
-        # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/
-        # vector.html#writing-vector-layers
-        # define fields for feature attributes. A QgsFields object is needed
+        fields = QgsFields()
+        fields.append(QgsField("setting_id", QVariant.String))
+        fields.append(QgsField("raster", QVariant.String))
+        fields.append(QgsField("x centre", QVariant.String))
+        fields.append(QgsField("y centre", QVariant.String))
 
-        pass
-
-        # renier: QgsFields bestaat niet meer??
-
-        # fields = QgsFields()
-        # fields.append(QgsField("setting_id", QVariant.String))
-        # fields.append(QgsField("raster", QVariant.String))
-        # fields.append(QgsField("x centre", QVariant.String))
-        # fields.append(QgsField("y centre", QVariant.String))
-        #
-        # """ create an instance of vector file writer, which will create
-        # the vector file.
-        # Arguments:
-        # 1. path to new file (will fail if exists already)
-        # 2. encoding of the attributes
-        # 3. field map
-        # 4. geometry type - from WKBTYPE enum
-        # 5. layer's spatial reference (instance of
-        #    QgsCoordinateReferenceSystem) - optional
-        # 6. driver name for the output file """
-        #
-        # self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
-        # # renier
-        # writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
-        #                              QGis.WKBPoint, None, "ESRI Shapefile")
-        # # QGis.WKBPoint is nu QgsWkbTypes.Point
-        # writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
-        #                              QgsWkbTypes.Point, None, "ESRI Shapefile")
-        # try:
-        #     if writer.hasError() != QgsVectorFileWriter.NoError:
-        #         msg = 'Error while creating shapefile: ' + \
-        #               str(writer.errorMessage())
-        #         log.error(msg)
-        #         raise Exception (msg)
-        #     else:
-        #         for pixel_check_dict in self.input_data_shp:
-        #             raster = pixel_check_dict.get('raster')
-        #             setting_id = pixel_check_dict.get('setting_id')
-        #             coords = pixel_check_dict.get('coords')
-        #             for row in coords:
-        #                 for point in row:
-        #                     point_y = point[0]
-        #                     point_x = point[1]
-        #                     feat = QgsFeature()
-        #                     feat.setGeometry(QgsGeometry.fromPoint(
-        #                         QgsPoint(point_x, point_y)))
-        #                     feat.setAttributes([
-        #                         setting_id, raster, point_x, point_y])
-        #                     writer.addFeature(feat)
-        # except Exception as e:
-        #     log.error(e)
-        # # delete the writer to flush features to disk
-        # del writer
+        self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
+        writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
+                                     QgsWkbTypes.Point,
+                                     QgsCoordinateReferenceSystem(),
+                                     "ESRI Shapefile")
+        try:
+            if writer.hasError() != QgsVectorFileWriter.NoError:
+                msg = 'Error while creating shapefile: ' + \
+                      str(writer.errorMessage())
+                log.error(msg)
+                raise Exception(msg)
+            else:
+                for pixel_check_dict in self.input_data_shp:
+                    raster = pixel_check_dict.get('raster')
+                    setting_id = pixel_check_dict.get('setting_id')
+                    coords = pixel_check_dict.get('coords')
+                    for row in coords:
+                        for point in row:
+                            point_y = point[0]
+                            point_x = point[1]
+                            feat = QgsFeature()
+                            feat.setGeometry(QgsGeometry.fromPointXY(
+                                QgsPointXY(point_x, point_y)))
+                            feat.setAttributes(
+                                [setting_id, raster, point_x, point_y])
+                            writer.addFeature(feat)
+        except Exception as e:
+            log.error(e)
+            raise AssertionError('could not write XY point to shp file')
+        # delete the writer to flush features to disk
+        del writer
 
     def pop_up_finished(self):
         header = 'Raster checker is finished'
