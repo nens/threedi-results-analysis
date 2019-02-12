@@ -281,9 +281,9 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = 'compression_method is %s' % compr_method
-        except Exception as detail:
-            log.error(detail)
-            detail = str()
+        except Exception as e:
+            detail = 'Not able to get compression type'
+            log.error(e)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
@@ -308,8 +308,8 @@ class RasterChecker(object):
                                                          cnt_decimal_yres)
             else:
                 result = True
-        except Exception as detail:
-            log.error(detail)
+        except Exception as e:
+            log.error(e)
             result = False
         finally:
             self.results._add(setting_id=setting_id, raster=rast_item,
