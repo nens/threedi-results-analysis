@@ -184,12 +184,14 @@ class ThreeDiResultSelection(QObject):
             'results-3di', 'aggregate-results-3di', 'grid-admin',
         ]
         selection_model = self.dialog.downloadResultTableView.selectionModel()
-        indexes = selection_model.selectedIndexes()
-        if len(indexes) != 1:
+        proxy_indexes = selection_model.selectedIndexes()
+        if len(proxy_indexes) != 1:
             pop_up_info("Please select one result.")
             return
-        row = indexes[0].row()
-        item = self.download_result_model.rows[row]
+        proxy_selection_index = proxy_indexes[0]
+        selection_index = self.dialog.download_proxy_model.mapToSource(
+            proxy_selection_index)
+        item = self.download_result_model.rows[selection_index.row()]
         to_download = [
             r for r in item.results.value if
             r['result_type']['code'] in result_type_codes_download]

@@ -118,12 +118,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
 
         self.download_result_model = download_result_model
-        download_proxy_model = QSortFilterProxyModel()
-        download_proxy_model.setSourceModel(download_result_model)
-        download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.download_proxy_model = QSortFilterProxyModel()
+        self.download_proxy_model.setSourceModel(download_result_model)
+        self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filterLineEdit.textChanged.connect(
-            download_proxy_model.setFilterFixedString)
-        self.downloadResultTableView.setModel(download_proxy_model)
+            self.download_proxy_model.setFilterFixedString)
+        self.downloadResultTableView.setModel(self.download_proxy_model)
 
         self.toggle_login_interface()
 
