@@ -149,26 +149,13 @@ class GuessIndicatorDialogWidget(QDialog):
 
     def setupUi(self, checks):
 
-        self.resize(515, 250)
+        self.resize(615, 550)
         self.verticalLayout = QVBoxLayout(self)
-
-        # self.file_combo = QComboBox(self.horizontalLayoutWidget)
-        # sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.file_combo.sizePolicy().hasHeightForWidth())
-        # self.file_combo.setSizePolicy(sizePolicy)
-        # self.file_combo.setObjectName("file_combo")
-        # self.horizontalLayout.addWidget(self.file_combo)
-        #
-        # self.file_button = QPushButton(self.horizontalLayoutWidget)
-        # self.file_button.setObjectName("file_button")
-        # self.horizontalLayout.addWidget(self.file_button)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QRect(10, 20, 481, 20))
+        self.database_combo.setGeometry(QRect(10, 40, 481, 40))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
