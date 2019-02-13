@@ -18,6 +18,7 @@ ThreeDiToolBox changelog
 - Added surface sources and sinks to the waterbalance.
 
 - Bumped threedigrid to 1.0.10.
+
 - ResultSelectionWidget now correctly downloads the selected result.
 
 
