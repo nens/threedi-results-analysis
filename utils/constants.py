@@ -197,15 +197,15 @@ RASTER_CHECKER_MAPPER = [
      },
     {'check_id': 7,
      'phase': 2,
-     'base_check_name': 'utm',
-     'description': '{{check_id}}: Does the raster have UTM projection '
-                    '(unit: meters)?',
+     'base_check_name': 'proj_unit',
+     'description': '{{check_id}}: Does the raster have a projected '
+                    'coordinate system (unit: meters)?',
      'blocking': True,
      'feedback': {
-        'info': '{{raster}} has UTM projection.',
+        'info': '{{raster}} has a projected coordinate system.',
         'warning': '',
-        'error': '{{raster}} has no (but must have) UTM projection '
-                 '(unit: meter).',
+        'error': '{{raster}} has no (but must have) projected coordinate '
+                 'system (unit: meter).',
         },
      },
     {'check_id': 8,
@@ -273,13 +273,13 @@ RASTER_CHECKER_MAPPER = [
      'phase': 3,
      'base_check_name': 'cum_pixel_cnt',
      'description': '{{check_id}}: Is the cumulative number of pixels of all'
-                    'rasters per setting_id lower than 1.000.000.000?',
+                    ' rasters per setting_id lower than 1.000.000.000?',
      'blocking': False,
      'feedback': {
-         'info': 'not too high cumulative pixelcount of all rasters of this '
-                 'setting_id.',
-         'warning': 'probably not too high cumulative pixelcount of all '
-                    'rasters.',
+         'info': 'cumulative pixelcount below allowed maximum for all '
+                 'rasters in this setting_id.',
+         'warning': 'cumulative pixelcount probably above allowed maximum '
+                    'for all rasters in this setting_id.',
          'error': '',
         },
      },

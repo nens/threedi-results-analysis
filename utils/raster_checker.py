@@ -231,8 +231,8 @@ class RasterChecker(object):
             self.results._add(setting_id=setting_id, raster=rast_item,
                               check_id=check_id, result=result, detail=detail)
 
-    def check_utm(self, setting_id, rast_item, check_id, src_ds):
-        # Is the raster projection in meters ?
+    def check_proj_unit(self, setting_id, rast_item, check_id, src_ds):
+        # Does the raster have a projected coordinate system? (unit: meters)?
         detail = str()
         try:
             proj = src_ds.GetProjection()

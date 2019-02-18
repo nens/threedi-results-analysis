@@ -114,13 +114,14 @@ class TestRasterChecker(unittest.TestCase):
     def test_get_check_ids_names(self):
         pass
 
+
     def test_check_defined_in_constants_exist_as_method(self):
         # test if checks defined in ..utils.constants.RASTER_CHECKER_MAPPER
         # exists as methods in self.checker
         method_names = [chck.get('base_check_name') for chck in
                         RASTER_CHECKER_MAPPER]
         methods_expect = ['id_tifname_unique', 'tif_exists', 'extension',
-                          'filename', 'singleband', 'nodata', 'utm', 'flt32',
+                          'filename', 'singleband', 'nodata', 'proj_unit', 'flt32',
                           'compress', 'pixel_decimal', 'square_pixel',
                           'extreme_value', 'cum_pixel_cnt', 'proj',
                           'pixelsize', 'cnt_nodata', 'extent',
@@ -273,16 +274,16 @@ class TestRasterChecker(unittest.TestCase):
         src_ds = None
         self.assertTrue(self.get_result())  # True as test1.tif nodata=-9999
 
-    def test_check_utm(self):
+    def test_check_proj_unit(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = 'rasters/test1.tif'
         check_id = 13
         src_ds = gdal.Open(raster_path, GA_ReadOnly)
-        self.checker.check_utm(setting_id, rast_item, check_id, src_ds)
+        self.checker.check_proj_unit(setting_id, rast_item, check_id, src_ds)
         src_ds = None
-        self.assertTrue(self.get_result())  # True as unit is 'metre' (UTM)
+        self.assertTrue(self.get_result())  # True as unit is 'metre'
 
     def test_check_flt32(self):
         raster_path = os.path.join(self.test_sqlite_dir, 'rasters/test1.tif')
@@ -465,7 +466,7 @@ class TestRasterChecker(unittest.TestCase):
 
         phase = 2
         check_ids_names = self.checker.get_check_ids_names(phase)
-        expect = [(5, 'singleband'), (6, 'nodata'), (7, 'utm'), (8, 'flt32'),
+        expect = [(5, 'singleband'), (6, 'nodata'), (7, 'proj_unit'), (8, 'flt32'),
                   (9, 'compress'), (10, 'pixel_decimal'),
                   (11, 'square_pixel'), (12, 'extreme_value')]
         self.assertEqual(check_ids_names, expect)
