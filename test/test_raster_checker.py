@@ -111,23 +111,23 @@ class TestRasterChecker(unittest.TestCase):
     def test_has_raster_checker_run_method(self):
         self.assertTrue(hasattr(self.checker, 'run'))
 
-    def test_get_check_ids_names(self):
-        pass
-
     def test_check_defined_in_constants_exist_as_method(self):
         # test if checks defined in ..utils.constants.RASTER_CHECKER_MAPPER
         # exists as methods in self.checker
-        method_names = [chck.get('base_check_name') for chck in
-                        RASTER_CHECKER_MAPPER]
-        methods_expect = ['id_tifname_unique', 'tif_exists', 'extension',
-                          'filename', 'singleband', 'nodata', 'proj_unit',
-                          'flt32', 'compress', 'pixel_decimal', 'square_pixel',
-                          'extreme_value', 'cum_pixel_cnt', 'proj',
-                          'pixelsize', 'cnt_nodata', 'extent',
-                          'pixel_alignment']
-        self.assertEqual(sorted(method_names), sorted(methods_expect))
+        method_id_name = [(chck.get('check_id'), chck.get('base_check_name'))
+                        for chck in RASTER_CHECKER_MAPPER]
+        id_name_expect = [(1, 'id_tifname_unique'), (2, 'tif_exists'),
+                          (3, 'extension'), (4, 'filename'), (5, 'singleband'),
+                          (6, 'nodata'), (7, 'proj_unit'), (8, 'flt32'),
+                          (9, 'compress'), (10, 'pixel_decimal'),
+                          (11, 'square_pixel'), (12, 'extreme_value'),
+                          (13, 'cum_pixel_cnt'), (14, 'proj'),
+                          (15, 'pixelsize'), (16, 'cnt_nodata'),
+                          (17, 'extent'), (18, 'pixel_alignment')]
+        self.assertEqual(sorted(method_id_name), sorted(id_name_expect))
         prefix = "check_"
-        for base_check_name in method_names:
+        for tuple in method_id_name:
+            base_check_name = tuple[1]
             check_name = prefix + base_check_name
             self.assertTrue(hasattr(self.checker, check_name))
 
