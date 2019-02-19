@@ -6,8 +6,9 @@ import os
 
 import numpy as np
 import pyqtgraph as pg
+from qgis.PyQt.Qt import QPixmap, QLabel
 from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject, pyqtSignal
-from qgis.PyQt.QtGui import QColor, QBrush
+from qgis.PyQt.QtGui import QColor, QBrush, QTransform, QPalette
 from qgis.PyQt.QtWidgets import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
                                  QSizePolicy, QPushButton, QSpacerItem,
                                  QApplication, QDockWidget, QComboBox)
@@ -777,11 +778,15 @@ class WaterBalanceWidget(QDockWidget):
         # We want to mark some bars with a different color. Labels with the key
         # 'domain exchange' and the last label ('change in storage').
         domain_exchange_key = '(domain exchange)'
-        standard_in_brush = QBrush(QColor(128, 204, 255))
-        standard_out_brush = QBrush(QColor(255, 191, 128))
+        standard_in_brush = QBrush(QColor(0, 122, 204))
+        standard_out_brush = QBrush(QColor(255, 128, 0))
 
-        domain_exchange_in_brush = QBrush(QColor(0, 122, 204))
-        domain_exchange_out_brush = QBrush(QColor(255, 128, 0))
+        domain_exchange_in_brush = QBrush(
+            QColor(0, 122, 204), style=Qt.BDiagPattern)  # Qt.BDiagPattern
+        domain_exchange_in_brush.setTransform(QTransform().scale(0.01, 0.01))
+        domain_exchange_out_brush = QBrush(
+            QColor(255, 128, 0), style=Qt.BDiagPattern)
+        domain_exchange_out_brush.setTransform(QTransform().scale(0.01, 0.01))
         change_storate_brush = QBrush(QColor('grey'))
 
         # #####
@@ -803,7 +808,7 @@ class WaterBalanceWidget(QDockWidget):
                                  width=0.6, brushes=in_brushes)
         bg_net_out = pg.BarGraphItem(x=bm_net.x, height=bm_net.end_balance_out,
                                     width=0.6, brushes=out_brushes)
-        axis_net = RotateLabelAxisItem(15, 'bottom')
+        axis_net = RotateLabelAxisItem(25, 'bottom')
         net_plot = layout.addPlot(
             row=1, col=0, colspan=2, axisItems={'bottom': axis_net})
         net_plot.addItem(bg_net_in)
@@ -820,9 +825,52 @@ class WaterBalanceWidget(QDockWidget):
         # # Logo #
         # # ######
 
-        logo_layout = layout.addLayout(row=1, col=2)
-        logo_layout.addLabel('Powered by 3Di, Topsector Water and Deltaris',
-                             row=0, col=0, colspan=3)
+        current_dir = os.path.dirname(__file__)
+        plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
+
+        path_3di_logo = os.path.join(plugin_dir, 'icons', 'icon.png')
+        logo_3di = QPixmap(path_3di_logo)
+        logo_3di = logo_3di.scaledToHeight(40)
+        label_3di = QLabel()
+        label_3di.setPixmap(logo_3di)
+
+        path_topsector_logo = os.path.join(
+            plugin_dir, 'icons', 'topsector_small.png')
+        logo_topsector = QPixmap(path_topsector_logo)
+        logo_topsector = logo_topsector.scaledToHeight(40)
+        label_topsector = QLabel()
+        label_topsector.setPixmap(logo_topsector)
+
+        path_deltaris_logo = os.path.join(
+            plugin_dir, 'icons', 'deltares_small.png')
+        logo_deltaris = QPixmap(path_deltaris_logo)
+        logo_deltaris = logo_deltaris.scaledToHeight(40)
+        label_deltaris = QLabel()
+        label_deltaris.setPixmap(logo_deltaris)
+
+        logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltaris")
+
+        powered_by_widget = QWidget()
+        pallete = QPalette(QColor('white'))
+        powered_by_widget.setAutoFillBackground(True)
+        powered_by_widget.setPalette(pallete)
+        powered_by_layout = QVBoxLayout()
+        powered_by_widget.setMaximumHeight(130)
+
+        logo_container = QWidget()
+        logo_container.setMaximumWidth(300)
+        logo_container_layout = QHBoxLayout()
+        logo_container_layout.addWidget(label_3di)
+        logo_container_layout.addWidget(label_topsector)
+        logo_container_layout.addWidget(label_deltaris)
+        logo_container.setLayout(logo_container_layout)
+
+        powered_by_layout.addWidget(logo_label_text)
+        powered_by_layout.addWidget(logo_container)
+
+        powered_by_widget.setLayout(powered_by_layout)
+        logo_ProxyWidget = layout.scene().addWidget(powered_by_widget)
+        layout.addItem(logo_ProxyWidget, row=1, col=2)
 
         # # ####
         # # 2D #
@@ -845,7 +893,7 @@ class WaterBalanceWidget(QDockWidget):
         surface_out = pg.BarGraphItem(
             x=bm_2d.x, height=bm_2d.end_balance_out,
             width=0.6, brushes=out_brushes)
-        axis_surface = RotateLabelAxisItem(15, 'bottom')
+        axis_surface = RotateLabelAxisItem(25, 'bottom')
         surface_plot = layout.addPlot(
             row=2, col=0, axisItems={'bottom': axis_surface})
         surface_plot.addItem(surface_in)
@@ -880,7 +928,7 @@ class WaterBalanceWidget(QDockWidget):
         groundwater_out = pg.BarGraphItem(
             x=bm_2d_groundwater.x, height=bm_2d_groundwater.end_balance_out,
             width=0.6, brushes=out_brushes)
-        axis_groundwater = RotateLabelAxisItem(15, 'bottom')
+        axis_groundwater = RotateLabelAxisItem(25, 'bottom')
         groundwater_plot = layout.addPlot(
             row=2, col=1, axisItems={'bottom': axis_groundwater})
         groundwater_plot.addItem(groundwater_in)
@@ -916,8 +964,8 @@ class WaterBalanceWidget(QDockWidget):
             brushes=in_brushes)
         network1d_out = pg.BarGraphItem(
             x=bm_1d.x, height=bm_1d.end_balance_out, width=0.6,
-            brushes=in_brushes)
-        axis_network1d = RotateLabelAxisItem(15, 'bottom')
+            brushes=out_brushes)
+        axis_network1d = RotateLabelAxisItem(25, 'bottom')
         network1d_plot = layout.addPlot(
             row=2, col=2, axisItems={'bottom': axis_network1d})
         network1d_plot.addItem(network1d_in)
