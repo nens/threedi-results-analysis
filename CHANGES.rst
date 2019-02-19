@@ -5,6 +5,9 @@ ThreeDiToolBox changelog
 1.7 (unreleased)
 ----------------
 
+- Added a new tool: raster checker (added to commands.tools.step1)
+
+
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation
 
