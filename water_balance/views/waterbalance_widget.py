@@ -804,10 +804,12 @@ class WaterBalanceWidget(QDockWidget):
             out_brushes[i] = domain_exchange_out_brush
         out_brushes.append(change_storate_brush)
 
-        bg_net_in = pg.BarGraphItem(x=bm_net.x, height=bm_net.end_balance_in,
-                                 width=0.6, brushes=in_brushes)
-        bg_net_out = pg.BarGraphItem(x=bm_net.x, height=bm_net.end_balance_out,
-                                    width=0.6, brushes=out_brushes)
+        bg_net_in = pg.BarGraphItem(
+            x=bm_net.x, height=bm_net.end_balance_in, width=0.6,
+            brushes=in_brushes)
+        bg_net_out = pg.BarGraphItem(
+            x=bm_net.x, height=bm_net.end_balance_out, width=0.6,
+            brushes=out_brushes)
         axis_net = RotateLabelAxisItem(25, 'bottom')
         net_plot = layout.addPlot(
             row=1, col=0, colspan=2, axisItems={'bottom': axis_net})
@@ -848,7 +850,8 @@ class WaterBalanceWidget(QDockWidget):
         label_deltaris = QLabel()
         label_deltaris.setPixmap(logo_deltaris)
 
-        logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltaris")
+        logo_label_text = QLabel("Powered by 3Di, Topsector Water and "
+                                 "Deltaris")
 
         powered_by_widget = QWidget()
         pallete = QPalette(QColor('white'))
@@ -916,8 +919,8 @@ class WaterBalanceWidget(QDockWidget):
         for i in domain_exchange_indexes:
             in_brushes[i] = domain_exchange_in_brush
         in_brushes.append(change_storate_brush)
-        out_brushes = [standard_out_brush] \
-                      * (len(bm_2d_groundwater.xlabels) - 1)
+        out_brushes = [standard_out_brush] * (
+                    len(bm_2d_groundwater.xlabels) - 1)
         for i in domain_exchange_indexes:
             out_brushes[i] = domain_exchange_out_brush
         out_brushes.append(change_storate_brush)
@@ -934,8 +937,8 @@ class WaterBalanceWidget(QDockWidget):
         groundwater_plot.addItem(groundwater_in)
         groundwater_plot.addItem(groundwater_out)
         axis_groundwater.setHeight(100)
-        axis_groundwater.setTicks([list(zip(bm_2d_groundwater.x,
-                                            bm_2d_groundwater.xlabels))])
+        axis_groundwater.setTicks(
+            [list(zip(bm_2d_groundwater.x, bm_2d_groundwater.xlabels))])
 
         groundwater_plot.setTitle('2D groundwater domain')
         y_axis = groundwater_plot.getAxis('left')
