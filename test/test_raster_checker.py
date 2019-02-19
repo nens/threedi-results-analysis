@@ -114,15 +114,14 @@ class TestRasterChecker(unittest.TestCase):
     def test_get_check_ids_names(self):
         pass
 
-
     def test_check_defined_in_constants_exist_as_method(self):
         # test if checks defined in ..utils.constants.RASTER_CHECKER_MAPPER
         # exists as methods in self.checker
         method_names = [chck.get('base_check_name') for chck in
                         RASTER_CHECKER_MAPPER]
         methods_expect = ['id_tifname_unique', 'tif_exists', 'extension',
-                          'filename', 'singleband', 'nodata', 'proj_unit', 'flt32',
-                          'compress', 'pixel_decimal', 'square_pixel',
+                          'filename', 'singleband', 'nodata', 'proj_unit',
+                          'flt32', 'compress', 'pixel_decimal', 'square_pixel',
                           'extreme_value', 'cum_pixel_cnt', 'proj',
                           'pixelsize', 'cnt_nodata', 'extent',
                           'pixel_alignment']
@@ -140,10 +139,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(len(method_ids) == len(list(set(method_ids))))
 
     def test_get_nr_phases(self):
-        self.assertEqual(self.checker.get_nr_phases(
-            run_pixel_checker=False), 4)
-        self.assertEqual(self.checker.get_nr_phases(
-            run_pixel_checker=True), 5)
+        self.assertEqual(self.checker.nr_phases, 5)
 
     def test_result_per_check(self):
         """ each check should add a result (a list with dict per raster) to
@@ -466,8 +462,8 @@ class TestRasterChecker(unittest.TestCase):
 
         phase = 2
         check_ids_names = self.checker.get_check_ids_names(phase)
-        expect = [(5, 'singleband'), (6, 'nodata'), (7, 'proj_unit'), (8, 'flt32'),
-                  (9, 'compress'), (10, 'pixel_decimal'),
+        expect = [(5, 'singleband'), (6, 'nodata'), (7, 'proj_unit'),
+                  (8, 'flt32'), (9, 'compress'), (10, 'pixel_decimal'),
                   (11, 'square_pixel'), (12, 'extreme_value')]
         self.assertEqual(check_ids_names, expect)
 

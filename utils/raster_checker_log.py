@@ -341,12 +341,10 @@ class RasterCheckerResults(object):
 
 
 class RasterCheckerProgressBar(StatusProgressBar):
-    def __init__(self, nr_phases, run_pixel_checker=False, maximum=100,
-                 message_title=''):
+    def __init__(self, nr_phases, maximum=100, message_title=''):
         StatusProgressBar.__init__(self, maximum=100, message_title='')
-        self.nr_phases = nr_phases
-        self.run_pixel_checker = run_pixel_checker
         self.maximum = maximum
+        self.progress_per_phase = int(maximum/nr_phases)
 
     def get_progress_per_raster(self, entrees, results, current_status):
         """
@@ -360,9 +358,6 @@ class RasterCheckerProgressBar(StatusProgressBar):
         add to the progress_bar each time a raster has been checked on
         pixel alignment
         """
-        if not self.run_pixel_checker:
-            raise AssertionError('do not call this function when you dont run'
-                                 'pixel_checker')
         count_rasters = 0
         for setting_id, rasters in entrees.items():
             rasters_ready = results.get_rasters_ready(setting_id, 5)
@@ -371,9 +366,6 @@ class RasterCheckerProgressBar(StatusProgressBar):
         progress_per_raster = int(
             (self.maximum - current_status) / count_rasters)
         return progress_per_raster
-
-    def get_progress_per_phase(self):
-        return int(self.maximum / self.nr_phases)
 
     @property
     def current_status(self):

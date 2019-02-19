@@ -46,6 +46,7 @@ class RasterChecker(object):
 
         self.progress_bar = None
         self.unique_id_name = []
+        self._nr_phases = None
 
     def close_session(self):
         try:
@@ -523,8 +524,6 @@ class RasterChecker(object):
         self.wrong_pixels = []
 
         # compare two rasters blockwise
-        # renier
-        # for data1, data2 in izip(
         for data1, data2 in list(zip(
                 generator_dem.__next__(), generator_other.__next__())):
             self.compare_pixel_bbox(setting_id, rast_item, data1, data2)
@@ -647,12 +646,13 @@ class RasterChecker(object):
         return [(chck.get('check_id'), chck.get('base_check_name')) for chck
                 in RASTER_CHECKER_MAPPER if chck.get('phase') == check_phase]
 
-    def get_nr_phases(self, run_pixel_checker):
-        nr_phases = max([chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
-        if run_pixel_checker:
-            return nr_phases
-        else:
-            return nr_phases - 1
+    @property
+    def nr_phases(self):
+        if self._nr_phases:
+            return self._nr_phases
+        self._nr_phases = max(
+            [chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
+        return self._nr_phases
 
     def dem_to_first_index(self, rasters_orig, rasters_ready):
         # assumes dem is in both arguments !!
@@ -732,12 +732,10 @@ class RasterChecker(object):
         ps: adding or deleting a check can be done via RASTER_CHECKER_MAPPER
         """
 
-        nr_phases = self.get_nr_phases(self.run_pixel_checker)
         self.progress_bar = RasterCheckerProgressBar(
-            nr_phases, self.run_pixel_checker, maximum=100,
-            message_title='Raster Checker')
+            self.nr_phases, maximum=100, message_title='Raster Checker')
 
-        progress_per_phase = self.progress_bar.get_progress_per_phase()
+        progress_per_phase = self.progress_bar.progress_per_phase
 
         phase = 1
         self.progress_bar.set_progress(0)
@@ -781,8 +779,6 @@ class RasterChecker(object):
         self.progress_bar.increase_progress(progress_per_phase, 'done phase 4')
 
         phase = 5
-        if not self.run_pixel_checker:
-            return
         self.input_data_shp = []
         for setting_id, rasters in self.entrees.items():
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
@@ -797,6 +793,7 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
+
         self.progress_bar.set_progress(100)
 
     def create_shp(self):
@@ -849,19 +846,25 @@ class RasterChecker(object):
                   self.results.log_path
         pop_up_info(msg, header)
 
-    def run(self, checks):
+    def run(self, tasks):
         """ runs the Raster checks.
-        :param checks: list with strings dependent on what user selected
-        ['check all rasters', 'check pixels] <-- latter is optional """
-        self.run_pixel_checker = 'check pixels' in checks
+        :param tasks: list with strings dependent on what user selected
+        ['check all rasters', 'improve rasters] <-- latter is optional """
+
         self.run_all_checks()
+
+        # TODO: improve rasters here
+        # if 'improve rasters' in tasks:
+        #     pass
+
         self.close_session()
         self.results.sort_results()
         # write and save log file (here the self.results.log_path is created)
         self.results.write_log(self.entrees_metadata)
-        # only create shp if 1) selected by user and 2) wrong pixels found
-        self.need_to_create_shp = self.run_pixel_checker and bool(
-            self.input_data_shp)
+
+        # only create shp if wrong pixels found
+        self.need_to_create_shp = bool(self.input_data_shp)
+
         if self.need_to_create_shp:
             self.create_shp()
 
