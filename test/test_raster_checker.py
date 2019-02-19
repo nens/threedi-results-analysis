@@ -115,7 +115,7 @@ class TestRasterChecker(unittest.TestCase):
         # test if checks defined in ..utils.constants.RASTER_CHECKER_MAPPER
         # exists as methods in self.checker
         method_id_name = [(chck.get('check_id'), chck.get('base_check_name'))
-                        for chck in RASTER_CHECKER_MAPPER]
+                          for chck in RASTER_CHECKER_MAPPER]
         id_name_expect = [(1, 'id_tifname_unique'), (2, 'tif_exists'),
                           (3, 'extension'), (4, 'filename'), (5, 'singleband'),
                           (6, 'nodata'), (7, 'proj_unit'), (8, 'flt32'),
