@@ -740,7 +740,7 @@ class WaterBalanceCalculation(object):
             ('rain', '_cum', np_1d_node, 27, 1),
             ('intercepted_volume', '_current', np_2d_node, 34, -1),
             ('q_sss', '_cum', np_2d_node, 35, 1),
-            ('q_sss', '_cum', np_2d_node, 36, 1),
+
         ]:
 
             if node.size > 0:
@@ -776,15 +776,8 @@ class WaterBalanceCalculation(object):
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
 
-                    # TODO: use:
-                    # vol_current = ds.get_values_by_timestep_nr(
-                    # 'vol_current', ts_idx, np_node['id'])
-                    # when calc_core bug is fixed (THREEDI-599: vol_current's
-                    # first timestep is incorrect, so for the first timestep
-                    # we read the 'vol' (from the .nc instead of the agg .nc)
-                    # for now
                     vol_current = ds.get_values_by_timestep_nr(
-                        'vol', ts_idx, np_node['id'])
+                        'vol_current', ts_idx, np_node['id'])
                     td_vol_pref = ma.masked_array(
                         vol_current, mask=mask_2d_nodes).sum()
                     od_vol_pref = ma.masked_array(
