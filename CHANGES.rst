@@ -12,6 +12,13 @@ ThreeDiToolBox changelog
 
 - Add v2_culvert to layer_tree_manager
 
+- Added surface sources and sinks (q_sss) to the datasource for the graph-tool
+  and animation-tool.
+
+- Added surface sources and sinks to the waterbalance.
+
+- Bumped threedigrid to 1.0.10.
+
 - ResultSelectionWidget now correctly downloads the selected result.
 
 

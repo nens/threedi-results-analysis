@@ -739,6 +739,8 @@ class WaterBalanceCalculation(object):
             ('leak', '_cum', np_2d_groundwater_node, 26, 1),
             ('rain', '_cum', np_1d_node, 27, 1),
             ('intercepted_volume', '_current', np_2d_node, 34, -1),
+            ('q_sss', '_cum', np_2d_node, 35, 1),
+
         ]:
 
             if node.size > 0:
@@ -774,15 +776,8 @@ class WaterBalanceCalculation(object):
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
 
-                    # TODO: use:
-                    # vol_current = ds.get_values_by_timestep_nr(
-                    # 'vol_current', ts_idx, np_node['id'])
-                    # when calc_core bug is fixed (THREEDI-599: vol_current's
-                    # first timestep is incorrect, so for the first timestep
-                    # we read the 'vol' (from the .nc instead of the agg .nc)
-                    # for now
                     vol_current = ds.get_values_by_timestep_nr(
-                        'vol', ts_idx, np_node['id'])
+                        'vol_current', ts_idx, np_node['id'])
                     td_vol_pref = ma.masked_array(
                         vol_current, mask=mask_2d_nodes).sum()
                     od_vol_pref = ma.masked_array(
@@ -876,7 +871,9 @@ class WaterBalanceTool(object):
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
+              "\n- sources and sinks (in case model has sources and sinks)"\
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
@@ -900,7 +897,9 @@ class WaterBalanceTool(object):
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
+              "\n- sources and sinks (in case model has sources and sinks)" \
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
@@ -921,9 +920,9 @@ class WaterBalanceTool(object):
 
         selected_ds = self.ts_datasource.rows[0].datasource()
         check_available_vars = selected_ds.get_available_variables()
-        nc_path = self.ts_datasource.rows[0].datasource().file_path
-        h5_path = find_h5_file(nc_path)
-        ga = GridH5ResultAdmin(h5_path, nc_path)
+
+        ga = self.ts_datasource.rows[0].datasource().gridadmin
+        gr = self.ts_datasource.rows[0].datasource().gridadmin_result
 
         minimum_agg_vars = [
             ('q_cum_negative', 'negative cumulative discharge'),
@@ -938,22 +937,22 @@ class WaterBalanceTool(object):
         # fields, we read the threedigrid metadata.
         simulated_vars_nodes = ga.nodes._meta.get_fields(only_names=True)
 
-        if ga.has_pumpstations:
+        if gr.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
             minimum_agg_vars.append(to_add)
 
-        # TODO: wait for threedigrid's e.g. 'ga.has_rained')
+        # TODO: wait for threedigrid's e.g. 'gr.has_rained')
         # u'rain' is always in simulated_vars_nodes. So it does not make sense
         # to check there. Thus, we're gonna read the nc's rain data
-        if np.nanmax(ga.nodes.rain) > 0:
+        if np.nanmax(gr.nodes.rain) > 0:
             to_add = ('rain_cum', 'cumulative rain')
             minimum_agg_vars.append(to_add)
 
-        # ga.has_simple_infiltration and ga.has_interception are added to
+        # gr.has_simple_infiltration and gr.has_interception are added to
         # threedigrid some months after groundwater release. To coop with the
         # .h5 that has been created in that period we use the meta data
         try:
-            if ga.has_simple_infiltration:
+            if gr.has_simple_infiltration:
                 to_add = ('infiltration_rate_simple_cum',
                           'cumulative infiltration rate')
                 minimum_agg_vars.append(to_add)
@@ -964,11 +963,11 @@ class WaterBalanceTool(object):
                 minimum_agg_vars.append(to_add)
 
         try:
-            if ga.has_interception:
+            if gr.has_interception:
                 to_add = ('intercepted_volume_current', 'current interception')
                 minimum_agg_vars.append(to_add)
         except AttributeError:
-            # ga.has_interception is added to threedigrid some months after
+            # gr.has_interception is added to threedigrid some months after
             # groundwater release. To coop with .h5 that has been created in
             # that period we read the simulated_vars_nodes
             if 'intercepted_volume' in simulated_vars_nodes:
@@ -982,6 +981,12 @@ class WaterBalanceTool(object):
         if 'leak' in simulated_vars_nodes:
             to_add = ('leak_cum', 'cumulative leakage')
             minimum_agg_vars.append(to_add)
+
+        if 'q_sss' in gr.nodes.Meta.subset_fields.keys():
+            if np.count_nonzero(gr.nodes.timeseries(
+                    indexes=slice(0, -1)).q_sss) > 0:
+                minimum_agg_vars.append(('q_sss_cum', 'cumulative surface '
+                                                      'sources and sinks'))
 
         missing_vars = []
         for required_var in minimum_agg_vars:

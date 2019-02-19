@@ -31,6 +31,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'su': '',
     'au': '',
     'intercepted_volume': 'm3',
+    'q_sss': 'm3',
 }
 
 
@@ -57,6 +58,7 @@ INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple',
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
 INTERCEPTION = NcVar('intercepted_volume', 'intercepted volume', 'm3')
+SOURCES_AND_SINKS = NcVar('q_sss', 'sources and sinks', 'm3/s')
 
 _Q_TYPES = [
     DISCHARGE,
@@ -76,7 +78,8 @@ _H_TYPES = [
     DISCHARGE_LATERAL,
     INFILTRATION_RATE_SIMPLE,
     LEAKAGE_RATE,
-    INTERCEPTION
+    INTERCEPTION,
+    SOURCES_AND_SINKS
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -102,6 +105,7 @@ AGGREGATION_VARIABLES = [
     WET_CROSS_SECTION_AREA,
     LEAKAGE_RATE,
     INTERCEPTION,
+    SOURCES_AND_SINKS,
 ]
 
 AGGREGATION_OPTIONS = {

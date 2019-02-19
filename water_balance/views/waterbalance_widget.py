@@ -75,6 +75,7 @@ INPUT_SERIES = [
     ('2d__1d_2d_exch_in', 32, '2d', '1d2d'),
     ('2d__1d_2d_exch_out', 33, '2d', '1d2d'),
     ('intercepted_volume', 34, '2d', '2d'),
+    ('q_sss', 35, '2d', '2d'),
 ]
 
 
@@ -634,6 +635,11 @@ class WaterBalanceWidget(QDockWidget):
             'in': ['intercepted_volume'],
             'out': ['intercepted_volume'],
             'type': '2d',
+        }, {
+            'label_name': 'surface sources and sinks',
+            'in': ['q_sss'],
+            'out': ['q_sss'],
+            'type': '2d',
         }
     ]
 
@@ -968,6 +974,7 @@ class WaterBalanceWidget(QDockWidget):
             'interception': ['2d'],
             'constant infiltration': ['2d'],
             'external (rain and laterals)': ['1d', '2d'],
+            'surface sources and sinks': ['2d'],
         }
 
         # more hackery to fix keys defined in both 'show main flow' and
@@ -1089,7 +1096,7 @@ class WaterBalanceWidget(QDockWidget):
         self.wb_polygon.transform(tr)
 
     def calc_wb_graph(self, model_part, aggregation_type, settings):
-        lines, pumps, points = self.get_wb_result_layers()
+        lines, points, pumps = self.get_wb_result_layers()
         self.get_wb_polygon()
         link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
             self.wb_polygon, model_part)
