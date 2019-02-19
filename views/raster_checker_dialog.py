@@ -66,10 +66,6 @@ class RasterCheckerDialogWidget(QDialog):
         checks = []
         if self.check_all_rasters.isChecked():
             checks.append('check all rasters')
-            # check_pixels may only be checked when 'check_all_rasters' is
-            # checked
-            # if self.check_pixels.isChecked():
-            #   checks.append('check pixels')
             # TODO: write improve first
             # improve_when_necessary may only be checked when
             # 'check_all_rasters' is checked
@@ -77,7 +73,6 @@ class RasterCheckerDialogWidget(QDialog):
             #     checks.append('improve when necessary')
 
         self.command.run_it(checks, db_set, settings['db_type'])
-
         self.accept()
 
     def on_reject(self):
@@ -121,10 +116,6 @@ class RasterCheckerDialogWidget(QDialog):
         self.check_all_rasters.setDisabled(True)
         self.verticalLayoutBox.addWidget(self.check_all_rasters)
 
-        # self.check_pixels = QCheckBox(self.groupBox)
-        # self.check_pixels.setChecked(False)
-        # self.verticalLayoutBox.addWidget(self.check_pixels)
-
         # TODO: write improve function first
         # self.improve_when_necessary = QCheckBox(self.groupBox)
         # self.improve_when_necessary.setChecked(False)
@@ -157,13 +148,8 @@ class RasterCheckerDialogWidget(QDialog):
             "1. Check all rasters of all v2_global_settings rows",
             None))
 
-        # self.check_pixels.setText(_translate(
-        #     "Import_dialog",
-        #     "2. Compare pixel alignment (only in combination with option 1)",
-        #     None))
-
         # TODO: write improve function first
         # self.improve_when_necessary.setText(_translate(
         #     "Import_dialog",
-        #     "3. Improve when necessary (only in combination with option 2)",
+        #     "2. Improve when necessary (only in combination with option 1)",
         #     None))
