@@ -21,6 +21,9 @@ ThreeDiToolBox changelog
 
 - ResultSelectionWidget now correctly downloads the selected result.
 
+- Removed matplotlib dependency used by the waterbalance barchart. The
+  waterbalance barchart now uses pyqtgraph.
+
 
 1.6 (2018-11-28)
 ----------------
