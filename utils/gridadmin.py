@@ -3,8 +3,10 @@ from builtins import range
 from collections import OrderedDict
 import logging
 
+import numpy as np
 from osgeo import ogr, osr
 from qgis.core import Qgis, QgsWkbTypes
+
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
 from threedigrid.admin.utils import KCUDescriptor
@@ -323,8 +325,13 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                         cont_type_raw_value = None
 
                     if cont_type_raw_value:
-                        value = \
-                            TYPE_FUNC_MAP[field_type](cont_type_raw_value)
+                        if type(cont_type_raw_value) is np.bytes_:
+                            value = TYPE_FUNC_MAP[field_type](
+                                cont_type_raw_value,
+                                encoding='utf-8')
+                        else:
+                            value = TYPE_FUNC_MAP[field_type](
+                                cont_type_raw_value)
                     else:
                         try:
                             value = str(kcu_dict[int(line_data['kcu'][i])])
@@ -337,7 +344,11 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 else:
                     try:
                         raw_value = line_data[fname][i]
-                        value = TYPE_FUNC_MAP[field_type](raw_value)
+                        if type(raw_value) is np.bytes_:
+                            value = TYPE_FUNC_MAP[field_type](raw_value,
+                                                              encoding='utf-8')
+                        else:
+                            value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
                         logger.debug(
                             "Error getting index %s from %s array", i, fname)
