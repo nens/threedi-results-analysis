@@ -30,7 +30,6 @@ Installing requirements
 - pyqtgraph
 - sqlalchemy version 1.1.0 or higher
 - geoalchemy2 with custom modifications, source available here: https://github.com/nens/geoalchemy2
-- netCDF4 (included only for Windows using 64 bit QGIS)
 - h5py (included for Windows)
 
 These Python dependencies are included in the **distribution** of the plugin,
@@ -42,11 +41,12 @@ but if you clone this repository you need to manually install them in the
 Windows
 ^^^^^^^
 
-The package includes the dependency 'netCDF4' for 64 bit installations of QGIS
-under Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32
-bit version of QGIS, it is best to upgrade to the 64 bit version or build the
-python packages netCDF4 and h5py including C bindings yourself. When building
-these packages, make sure to use the HDF5 version used in Qgis (1.8.11).
+The package includes the dependencies 'netCDF4' and 'h5py' for 64 bit
+installations of QGIS under Windows (tested on Windows 7 SP1 and Windows 10).
+If you are using the 32 bit version of QGIS, it is best to upgrade to the 64
+bit version or build the python packages netCDF4 and h5py including C bindings
+yourself. When building these packages, make sure to use the HDF5 version used
+in Qgis (1.8.11)::
 
     $ python -m pip install --no-binary=h5py --no-deps --global-option=build_ext --global-option="-IC:\Program Files\QGIS 3.4\include" --global-option="-LC:\Program Files\QGIS 3.4\lib" h5py
 

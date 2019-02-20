@@ -6,6 +6,7 @@
 help/build/
 .idea
 remote_debugger_settings.py
+docker-compose.override.yml
 
 # external python dependencies
 external/*.egg-info

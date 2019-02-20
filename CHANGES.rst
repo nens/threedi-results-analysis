@@ -24,6 +24,8 @@ ThreeDiToolBox changelog
 - Removed matplotlib dependency used by the waterbalance barchart. The
   waterbalance barchart now uses pyqtgraph.
 
+- Fixed bug reading in numpy.bytes as utf-8 strings.
+
 
 1.6 (2018-11-28)
 ----------------
