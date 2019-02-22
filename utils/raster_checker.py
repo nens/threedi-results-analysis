@@ -47,6 +47,11 @@ class RasterChecker(object):
         self.unique_id_name = []
         self._nr_phases = None
 
+        # some check constants
+        self.no_data_value_int = -9999
+        self.no_data_value_flt = -9999.
+        self.max_pixels_allow = 1000000000  # 1 billion all rasters 1 entree
+
     def close_session(self):
         try:
             self.session.close()
@@ -123,11 +128,10 @@ class RasterChecker(object):
             band, block_width=w, block_height=h)
         count_data = 0
         count_nodata = 0
-        nodata_value = -9999
         for data in raster_generator:
             bbox, arr = data
             total_size = arr.size
-            add_cnt_nodata = np.count_nonzero(arr == nodata_value)
+            add_cnt_nodata = np.count_nonzero(arr == self.no_data_value_int)
             add_cnt_data = (total_size - add_cnt_nodata)
             count_nodata += add_cnt_nodata
             count_data += add_cnt_data
@@ -219,7 +223,7 @@ class RasterChecker(object):
         try:
             srcband = src_ds.GetRasterBand(1)
             nodata = srcband.GetNoDataValue()
-            if nodata == -9999:
+            if nodata == self.no_data_value_int:
                 result = True
             else:
                 result = False
@@ -363,7 +367,6 @@ class RasterChecker(object):
     def check_cum_pixel_cnt(self, rasters, setting_id, check_id):
         # cummulative pixel count
         detail = ''
-        max_pixels_allow = 1000000000  # 1 billion for all rasters 1 entree
         cum_pixelcount = 0
         for rast_item in rasters:
             raster_path = os.path.join(self.sqlite_dir, rast_item)
@@ -373,7 +376,7 @@ class RasterChecker(object):
             src_ds = None  # close raster
             pixelcount = cols * rows
             cum_pixelcount += pixelcount
-        if cum_pixelcount > max_pixels_allow:
+        if cum_pixelcount > self.max_pixels_allow:
             result = False
             detail = 'cumulative pixelcount= %d for all rasters in ' \
                      'setting_id %d. This is more than 3Di can handle ' \
@@ -623,8 +626,8 @@ class RasterChecker(object):
         bbox1, arr1 = data1
         bbox2, arr2 = data2
         # create masks (without data and fill_value. Only mask)
-        mask1 = (arr1[:] == -9999.)
-        mask2 = (arr2[:] == -9999.)
+        mask1 = (arr1[:] == self.no_data_value_flt)
+        mask2 = (arr2[:] == self.no_data_value_flt)
         # xor gives array with trues for wrong pixels
         compare_mask = np.logical_xor(mask1, mask2)
         # is there any True in the compare mask? then there is at least
