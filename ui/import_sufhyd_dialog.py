@@ -38,13 +38,13 @@ except AttributeError:
 class Ui_Import_dialog(object):
     def setupUi(self, Import_dialog):
         Import_dialog.setObjectName(_fromUtf8("Import_dialog"))
-        Import_dialog.resize(515, 166)
+        Import_dialog.resize(815, 266)
         self.verticalLayout = QVBoxLayout(Import_dialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.groupBox = QGroupBox(Import_dialog)
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
         self.horizontalLayoutWidget = QWidget(self.groupBox)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 20, 481, 34))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 30, 481, 34))
         self.horizontalLayoutWidget.setObjectName(
             _fromUtf8("horizontalLayoutWidget"))
         self.horizontalLayout = QHBoxLayout(self.horizontalLayoutWidget)
@@ -67,7 +67,7 @@ class Ui_Import_dialog(object):
         self.groupBox_2 = QGroupBox(Import_dialog)
         self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QtCore.QRect(10, 20, 481, 20))
+        self.database_combo.setGeometry(QtCore.QRect(10, 30, 481, 34))
         sizePolicy = QSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)

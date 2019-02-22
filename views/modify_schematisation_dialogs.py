@@ -111,13 +111,13 @@ class PredictCalcPointsDialogWidget(QDialog):
 
     def setupUi(self):
 
-        self.resize(515, 250)
+        self.resize(815, 250)
         self.verticalLayout = QVBoxLayout(self)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QRect(10, 20, 481, 20))
+        self.database_combo.setGeometry(QRect(10, 30, 481, 34))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -224,13 +224,13 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
     def setupUi(self):
 
-        self.resize(515, 250)
+        self.resize(815, 250)
         self.verticalLayout = QVBoxLayout(self)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QRect(10, 20, 481, 20))
+        self.database_combo.setGeometry(QRect(10, 30, 481, 34))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
