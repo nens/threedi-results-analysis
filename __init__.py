@@ -141,5 +141,10 @@ def classFactory(iface):  # pylint: disable=invalid-name
     from .threedi_tools import ThreeDiTools
     from .utils.qlogging import setup_logging
 
+    sys.path.append('/Pycharm/pycharm-debug-py3k.egg')
+    import pydevd
+    # pydevd.settrace('10.90.20.39', port=53100, suspend=False, stdoutToServer=True)
+    pydevd.settrace('10.90.20.40', port=4000, suspend=False, stdoutToServer=True)
+
     setup_logging(iface)
     return ThreeDiTools(iface)
