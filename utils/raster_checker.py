@@ -905,8 +905,8 @@ class RasterChecker(object):
         # case 3
         elif a > 0 and b and not c:
             # pop_up_question
-            msg = 'Found %d errors and some wrong pixels. ' \
-                  'The check results have been written to: \n %s \n ' \
+            msg = 'Found %d errors and some wrong pixels. \n\n '\
+                  'The check results have been written to: \n %s \n\n ' \
                   'The coordinates of wrong pixels are written to: \n %s' \
                   % (self.results.nr_error_logrows, self.results.log_path,
                      self.shape_path)
@@ -918,8 +918,8 @@ class RasterChecker(object):
             # pop_up_question + warning
             msg = 'Found %d errors and some wrong pixels. \n ' \
                   'Also found for 1 or more rasters too many wrong pixels ' \
-                  'to write to .shp file. \n' \
-                  'The check results have been written to: \n %s \n ' \
+                  'to write to .shp file. \n\n' \
+                  'The check results have been written to: \n %s \n\n ' \
                   'The coordinates of wrong pixels are written to: \n %s' \
                   % (self.results.nr_error_logrows, self.results.log_path,
                      self.shape_path)
@@ -929,7 +929,7 @@ class RasterChecker(object):
         # case 5
         elif a == 0 and not b and not c:
             # pop_up_info()
-            msg = 'Found no errors (see .log) and no wrong pixels. \n ' \
+            msg = 'Found no errors (see .log) and no wrong pixels. \n\n ' \
                   'The check results have been written to: \n ' \
                   '%s' % self.results.log_path
             pop_up_info(msg, header)
