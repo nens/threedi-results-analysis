@@ -18,6 +18,7 @@ class RasterCheckerResults(object):
         self.store_cnt_data_nodata = []
         self.log_path = None
         self._last_phase = None
+        self.nr_error_logrows = 0
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -189,9 +190,8 @@ class RasterCheckerResults(object):
         feedback_dict = self.dict
         feedback_level = self.get_feedback_level(feedback_dict, result)
 
-        # info, 01, 02, rasters/test1.tif found for setting_id .
-        if feedback_level == 'info' and setting_id == 1 and check_id == 2:
-            pass
+        if feedback_level == 'error':
+            self.nr_error_logrows += 1
 
         template_feedback = self.get_template_feedback(
             feedback_dict, feedback_level)
@@ -278,6 +278,8 @@ class RasterCheckerResults(object):
         msg = '\n-- Report: -- \n' \
               'level, setting_id, check_id, feedback \n'
         self.log_file.write(msg)
+
+        self.count_error = 0
         for result_row in self.result_per_check:
             log_row = self.result_per_check_to_msg(result_row)
             self.log_file.write(log_row)

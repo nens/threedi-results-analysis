@@ -7,7 +7,8 @@ from qgis.core import (QgsField, QgsFields, QgsVectorFileWriter, QgsFeature,
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.utils.user_messages import (pop_up_info,
-                                                messagebar_message)
+                                                messagebar_message,
+                                                pop_up_question)
 from ThreeDiToolbox.utils.raster_checker_prework import (DataModelSource,
                                                          RasterCheckerEntrees)
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
@@ -46,6 +47,7 @@ class RasterChecker(object):
         self.progress_bar = None
         self.unique_id_name = []
         self._nr_phases = None
+        self.too_many_wrong_pixels = False
 
         # some check constants
         self.no_data_value_int = -9999
@@ -500,6 +502,7 @@ class RasterChecker(object):
         if diff_data > max_wrong_pixels or diff_nodata > max_wrong_pixels:
             detail = 'Wrong pixels are not written too .shp as too many ' \
                      'wrong pixels were found'
+            self.too_many_wrong_pixels = True
             result = False
             self.results._add(setting_id=setting_id, raster=rast_item,
                               check_id=check_id, result=result, detail=detail)
@@ -851,6 +854,89 @@ class RasterChecker(object):
                   self.results.log_path
         pop_up_info(msg, header)
 
+    def add_shp_to_iface(self):
+        basename = ''
+        provider = 'ogr'
+        from qgis.utils import iface
+        layer = iface.addVectorLayer(self.shape_path, basename, provider)
+        if not layer:
+            print("Layer failed to load!")
+
+    def pop_up_finished_or_question(self):
+        """3 things (columns below) can be true or false. Dependent on that we
+        return a pop_up_info (user clicks okay),
+        pop_up_question (user clicks yes/no), Assertionerror
+
+            self.results.nr_error_logrows   self.need_to_create_shp self.too_many_wrong_pixels (more rows than shp can handle)  # noqa
+            count_error > 0                 shp contains pixels     too many pixels for shp  # noqa
+        1.  True                            False                   False   --> pop_up_info  # noqa
+        2.  True                            False                   True    --> pop_up_info + warning  # noqa
+        3.  True                            True                    False   --> pop_up_question  # noqa
+        4.  True                            True                    True    --> pop_up_question + warning  # noqa
+        5.  False                           False                   False   --> pop_up_info  # noqa
+        6.  False                           False                   True    --> raise AssertionError  # noqa
+        7.  False                           True                    False   --> raise AssertionError  # noqa
+        8.  False                           True                    True    --> raise AssertionError  # noqa
+        """
+
+        a = self.results.nr_error_logrows
+        b = self.need_to_create_shp
+        c = self.too_many_wrong_pixels
+
+        header = 'Raster checker is finished'
+        question = 'Do you want to add .shp to current view?'
+
+        # case 1
+        if a > 0 and not b and not c:
+            # pop_up_info
+            msg = 'Found %d errors (see .log) and no wrong pixels. \n\n' \
+                  'The check results have been written to: \n ' \
+                  '%s' % (self.results.nr_error_logrows, self.results.log_path)
+            pop_up_info(msg, header)
+        # case 2
+        elif a > 0 and not b and c:
+            # pop_up_info + warning
+            msg = 'Found %d errors (see .log). \n' \
+                  'Found too many wrong pixels to write to .shp file ' \
+                  '(see .log). \n\n ' \
+                  'The check results have been written to: \n ' \
+                  '%s' % (self.results.nr_error_logrows, self.results.log_path)
+            pop_up_info(msg, header)
+        # case 3
+        elif a > 0 and b and not c:
+            # pop_up_question
+            msg = 'Found %d errors and some wrong pixels. ' \
+                  'The check results have been written to: \n %s \n ' \
+                  'The coordinates of wrong pixels are written to: \n %s' \
+                  % (self.results.nr_error_logrows, self.results.log_path,
+                     self.shape_path)
+            pop_up_info(msg, header)
+            if pop_up_question(question, 'Add shapefile?'):
+                self.add_shp_to_iface()
+        # case 4
+        elif a > 0 and b and c:
+            # pop_up_question + warning
+            msg = 'Found %d errors and some wrong pixels. \n ' \
+                  'Also found for 1 or more rasters too many wrong pixels ' \
+                  'to write to .shp file. \n' \
+                  'The check results have been written to: \n %s \n ' \
+                  'The coordinates of wrong pixels are written to: \n %s' \
+                  % (self.results.nr_error_logrows, self.results.log_path,
+                     self.shape_path)
+            pop_up_info(msg, header)
+            if pop_up_question(question, 'Add shapefile?'):
+                self.add_shp_to_iface()
+        # case 5
+        elif a == 0 and not b and not c:
+            # pop_up_info()
+            msg = 'Found no errors (see .log) and no wrong pixels. \n ' \
+                  'The check results have been written to: \n ' \
+                  '%s' % self.results.log_path
+            pop_up_info(msg, header)
+        # scenario 6, 7, or 8
+        elif a == 0 and b ^ c:
+            raise AssertionError('this result combination is impossible')
+
     def run(self, tasks):
         """ runs the Raster checks.
         :param tasks: list with strings dependent on what user selected
@@ -876,4 +962,4 @@ class RasterChecker(object):
         # delete progress bar
         self.progress_bar.__del__()
 
-        self.pop_up_finished()
+        self.pop_up_finished_or_question()
