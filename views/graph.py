@@ -434,6 +434,12 @@ class LocationTimeseriesTable(QTableView):
         self.resizeColumnsToContents()
         self.model.set_column_sizes_on_view(self)
 
+        # setColumnWidth(self, int column, int width)
+        self.setColumnWidth(0, 1)  # checkbox
+        self.setColumnWidth(1, 1)  # color
+        self.setColumnWidth(2, 1)  # id
+        self.setColumnWidth(3, 200)  # name
+
 
 class GraphWidget(QWidget):
 
@@ -582,7 +588,7 @@ class GraphWidget(QWidget):
             self.highlight_feature)
         self.location_timeseries_table.hoverExitAllRows.connect(
             self.unhighlight_all_features)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
