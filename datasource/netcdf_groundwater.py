@@ -287,37 +287,11 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == 'result':
-
-            # TODO: this is a bug in threedigrid:
-            # https://nelen-schuurmans.atlassian.net/browse/THREEDI-486
-            # until it is fixed, we add simple_infiltration to known_vars
-            if nc_variable == 'infiltration_rate_simple_cum':
-                try:
-                    values = self.ds_aggregation[
-                                 'Mesh2D_infiltration_rate_simple_cum'][
-                             :, object_id].data
-                except Exception as e:
-                    log.error("temp work around infiltration_rate_simple_cum "
-                              "does not work with this agg nc")
-            elif nc_variable == 'leak_cum':
-                try:
-                    values = self.ds_aggregation['Mesh2D_leak_cum'][
-                             :, object_id].data
-                except Exception as e:
-                    log.error("temp work around leakage_cum does not work "
-                              "with this agg nc")
-            else:
-                values = self._get_timeseries_result_layer(
-                    gr, object_type, object_id, nc_variable)
+            values = self._get_timeseries_result_layer(
+                gr, object_type, object_id, nc_variable)
         elif object_type_layer_source[object_type] == 'schematized':
             values = self._get_timeseries_schematisation_layer(
                 gr, object_type, object_id, nc_variable)
-
-        msg = "object_id={object_id} and object_type={object_type} and " \
-              "nc_variable={nc_variable}".format(object_id=object_id,
-                                                 object_type=object_type,
-                                                 nc_variable=nc_variable)
-        log.warning(msg)
 
         # Zip timeseries together in (n,2) array
         if fill_value is not None:

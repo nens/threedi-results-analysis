@@ -73,7 +73,7 @@ class LayerTreeManager(object):
         self.model.model_schematisation_change.connect(
             self._on_set_schematisation)
         # self.model.dataChanged.connect(self.on_change)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_results)
+        # self.model.rowsAboutToBeRemoved.connect(self.remove_results)
         self.model.rowsInserted.connect(self.add_results)
         self.init_references_from_layer_tree()
 
@@ -84,19 +84,19 @@ class LayerTreeManager(object):
     @model_layergroup.setter
     def model_layergroup(self, value):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = value
         if isinstance(value, QgsLayerTreeNode):
-            self._model_layergroup.destroyed.connect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.connect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = True
 
     def _on_delete_model_layergroup(self):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = None
 
