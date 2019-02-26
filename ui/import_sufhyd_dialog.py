@@ -68,6 +68,7 @@ class Ui_Import_dialog(object):
         self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
         self.database_combo = QComboBox(self.groupBox_2)
         self.database_combo.setGeometry(QtCore.QRect(10, 30, 481, 34))
+
         sizePolicy = QSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)

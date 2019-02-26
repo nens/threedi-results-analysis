@@ -6,12 +6,11 @@ import os
 
 import numpy as np
 import pyqtgraph as pg
-from qgis.PyQt.Qt import QPixmap, QLabel
 from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject, pyqtSignal
-from qgis.PyQt.QtGui import QColor, QBrush, QTransform, QPalette
+from qgis.PyQt.QtGui import QColor, QBrush, QTransform, QPalette, QPixmap
 from qgis.PyQt.QtWidgets import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
                                  QSizePolicy, QPushButton, QSpacerItem,
-                                 QApplication, QDockWidget, QComboBox)
+                                 QApplication, QDockWidget, QComboBox, QLabel)
 from qgis.core import (QgsGeometry, QgsCoordinateTransform, QgsFeatureRequest,
                        QgsProject)
 
