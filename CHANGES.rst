@@ -5,8 +5,9 @@ ThreeDiToolBox changelog
 1.7 (unreleased)
 ----------------
 
-- Added a new tool: raster checker (added to commands.tools.step1)
+- QGIS3 can only handle netcdf-groundwater results (created after March 2018)
 
+- Added a new tool: raster checker (added to commands.tools.step1)
 
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation

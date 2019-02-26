@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 from .base import BaseDataSource
-from ..utils.user_messages import log
+from ..utils.user_messages import (log, pop_up_info)
 from ..utils import cached_property
 
 # Explanation: aggregation using the cumulative method integrates the variable
@@ -362,6 +362,16 @@ class NetcdfDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
+
+        msg = "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n" \
+              "results created after March 2018 (groundwater release). \n\n" \
+              "You can do two things: \n" \
+              "1. simulate this model again and load the result in QGIS3 \n" \
+              "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+        log(msg, level='ERROR')
+        pop_up_info(msg, title='Error')
+        raise AssertionError('3Di result too old for QGIS3')
+
         from netCDF4 import Dataset
 
         self.file_path = file_path
