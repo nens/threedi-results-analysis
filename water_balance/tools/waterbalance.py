@@ -982,7 +982,7 @@ class WaterBalanceTool(object):
             to_add = ('leak_cum', 'cumulative leakage')
             minimum_agg_vars.append(to_add)
 
-        if 'q_sss' in gr.nodes.Meta.subset_fields.keys():
+        if 'q_sss' in simulated_vars_nodes:
             if np.count_nonzero(gr.nodes.timeseries(
                     indexes=slice(0, -1)).q_sss) > 0:
                 minimum_agg_vars.append(('q_sss_cum', 'cumulative surface '
