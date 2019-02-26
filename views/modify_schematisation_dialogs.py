@@ -110,8 +110,6 @@ class PredictCalcPointsDialogWidget(QDialog):
         event.accept()
 
     def setupUi(self):
-
-
         self.resize(815, 250)
         self.verticalLayout = QVBoxLayout(self)
 
@@ -233,7 +231,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
         self.database_combo.setGeometry(QRect(10, 30, 481, 34))
-        
+
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
