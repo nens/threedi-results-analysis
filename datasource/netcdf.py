@@ -370,7 +370,7 @@ class NetcdfDataSource(BaseDataSource):
               "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
         log(msg, level='ERROR')
         pop_up_info(msg, title='Error')
-        raise AssertionError('3Di result too old for QGIS3')
+        # raise AssertionError('3Di result too old for QGIS3')
 
         from netCDF4 import Dataset
 
