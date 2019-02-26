@@ -905,7 +905,7 @@ class WaterBalanceTool(object):
               "\n\nnegative cumulative:" \
               "\n- discharge" \
               "\n\nYour aggregation .nc misses the following variables:\n" + \
-              ', '.join(missing_vars)git
+              ', '.join(missing_vars)
         QMessageBox.warning(None, header, msg)
 
     def get_missing_agg_vars(self):
