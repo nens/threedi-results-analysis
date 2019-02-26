@@ -32,6 +32,8 @@ ThreeDiToolBox changelog
 - Fixed bug in netcdf_groundwater not reading in correctly the aggregate
   variable.
 
+- Changed UI of several popup-windows to make them better displayable.
+
 
 1.6 (2018-11-28)
 ----------------
