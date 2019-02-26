@@ -905,7 +905,7 @@ class WaterBalanceTool(object):
               "\n\nnegative cumulative:" \
               "\n- discharge" \
               "\n\nYour aggregation .nc misses the following variables:\n" + \
-              ', '.join(missing_vars)
+              ', '.join(missing_vars)git
         QMessageBox.warning(None, header, msg)
 
     def get_missing_agg_vars(self):
@@ -982,7 +982,7 @@ class WaterBalanceTool(object):
             to_add = ('leak_cum', 'cumulative leakage')
             minimum_agg_vars.append(to_add)
 
-        if 'q_sss' in gr.nodes.Meta.subset_fields.keys():
+        if 'q_sss' in simulated_vars_nodes:
             if np.count_nonzero(gr.nodes.timeseries(
                     indexes=slice(0, -1)).q_sss) > 0:
                 minimum_agg_vars.append(('q_sss_cum', 'cumulative surface '
