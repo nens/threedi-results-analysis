@@ -2,8 +2,7 @@ from builtins import object
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor, QCursor
 
-from qgis.core import Qgis, QgsGeometry
-from qgis.core import QgsLayerItem
+from qgis.core import QgsGeometry
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
