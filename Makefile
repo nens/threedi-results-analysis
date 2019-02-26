@@ -151,6 +151,7 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/Docker
 	rm -rf /tmp/$(PLUGINNAME)/docker-compose.yml
 	rm -rf /tmp/$(PLUGINNAME)/docker-compose.override.yml
+	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
