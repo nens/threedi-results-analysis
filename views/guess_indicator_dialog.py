@@ -148,8 +148,6 @@ class GuessIndicatorDialogWidget(QDialog):
         event.accept()
 
     def setupUi(self, checks):
-
-
         self.resize(515, 450)
         self.verticalLayout = QVBoxLayout(self)
 
