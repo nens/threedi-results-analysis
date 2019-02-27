@@ -430,14 +430,26 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
             node1_id = pump_data['node1_id'][i]
             node2_id = pump_data['node2_id'][i]
 
+            if node1_id == -9999:
+                raise AssertionError('start_node has not-null constraint')
+
             for node_id in [node1_id, node2_id]:
-                try:
-                    line.AddPoint_2D(
-                        self.node_data['coordinates'][0][node_id],
-                        self.node_data['coordinates'][1][node_id],
-                    )
-                except IndexError:
-                    logger.debug("Invalid node id: %s" % node_id)
+                if node_id == -9999:
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data['coordinates'][0][node1_id] + 5,
+                            self.node_data['coordinates'][1][node1_id] + 5,
+                        )
+                    except IndexError:
+                        logger.debug("Invalid node id: %s" % node_id)
+                else:
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data['coordinates'][0][node_id],
+                            self.node_data['coordinates'][1][node_id],
+                        )
+                    except IndexError:
+                        logger.debug("Invalid node id: %s" % node_id)
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
