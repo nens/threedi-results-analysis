@@ -985,6 +985,19 @@ class WaterBalanceWidget(QDockWidget):
         surface_plot.setYLink(network1d_plot)
         network1d_plot.setYLink(groundwater_plot)
 
+        # Set y-range so all bars are visible
+        y_min = min(
+            bm_2d.end_balance_out
+            + bm_2d_groundwater.end_balance_out
+            + bm_1d.end_balance_out
+        )
+        y_max = max(
+            bm_2d.end_balance_in
+            + bm_2d_groundwater.end_balance_in
+            + bm_1d.end_balance_in
+        )
+        network1d_plot.setYRange(min=y_min, max=y_max)
+
     def hover_enter_map_visualization(self, name):
         """On hover rubberband visualisation using the table item name.
 
