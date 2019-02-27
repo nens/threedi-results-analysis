@@ -428,17 +428,18 @@ class LocationTimeseriesTable(QTableView):
 
     def setModel(self, model):
         super(LocationTimeseriesTable, self).setModel(model)
-
         self.model = model
-
+        # https://stackoverflow.com/questions/3433664/how-to-make-sure-
+        # columns-in-qtableview-are-resized-to-the-maximum
+        self.setVisible(False)
         self.resizeColumnsToContents()
+        self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
-
-        # setColumnWidth(self, int column, int width)
-        self.setColumnWidth(0, 1)  # checkbox
-        self.setColumnWidth(1, 1)  # color
-        self.setColumnWidth(2, 1)  # id
-        self.setColumnWidth(3, 200)  # name
+        # first two columns (checkbox, color) can be set small always
+        self.setColumnWidth(0, 20)  # checkbox
+        self.setColumnWidth(1, 20)  # color field
+        # 3rd column (id) can be wide (in case of high id)
+        # 4th column (name) can be wide (e.g. '2d_groundwater')
 
 
 class GraphWidget(QWidget):

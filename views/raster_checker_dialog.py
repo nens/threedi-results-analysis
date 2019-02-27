@@ -92,13 +92,13 @@ class RasterCheckerDialogWidget(QDialog):
 
     def setupUi(self, checks):
 
-        self.resize(515, 400)
+        self.resize(815, 266)
         self.verticalLayout = QVBoxLayout(self)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QRect(10, 40, 481, 40))
+        self.database_combo.setGeometry(QRect(10, 30, 481, 34))
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

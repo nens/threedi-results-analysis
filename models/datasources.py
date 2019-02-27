@@ -205,7 +205,7 @@ class TimeseriesDatasourceModel(BaseModel):
         active = CheckboxField(show=True, default_value=True, column_width=20,
                                column_name='')
         name = ValueField(show=True, column_width=130, column_name='Name')
-        file_path = ValueField(show=True, column_width=900, column_name='File')
+        file_path = ValueField(show=True, column_width=615, column_name='File')
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
