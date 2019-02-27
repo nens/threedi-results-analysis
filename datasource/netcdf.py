@@ -362,6 +362,7 @@ class NetcdfDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
+
         from netCDF4 import Dataset
 
         self.file_path = file_path

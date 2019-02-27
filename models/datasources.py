@@ -18,7 +18,7 @@ from ..utils.layer_from_netCDF import (
     NODES_LAYER_NAME,
     PUMPLINES_LAYER_NAME,
 )
-from ..utils.user_messages import log
+from ..utils.user_messages import (log, pop_up_info)
 from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import StatusProgressBar
 
@@ -91,8 +91,25 @@ class DataSourceLayerManager(object):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
+            self.tmp_disable_netcdf()
             self._datasource = ds_class(self.file_path)
         return self._datasource
+
+    def tmp_disable_netcdf(self):
+        # TODO: This is a quick fix for now. Asap: Get rid of class
+        # NetcdfDataSource(BaseDataSource)
+        # https://nelen-schuurmans.atlassian.net/browse/THREEDI-761
+        msg = "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n" \
+              "results created after March 2018 (groundwater release). \n\n" \
+              "You can do two things: \n" \
+              "1. simulate this model again and load the result in QGIS3 \n" \
+              "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+
+        # we only continue if self.ds_type == 'netcdf-groundwater'
+        if self.ds_type == 'netcdf':
+            log(msg, level='ERROR')
+            pop_up_info(msg, title='Error')
+            raise AssertionError('result too old for QGIS3')
 
     @property
     def datasource_dir(self):

@@ -233,8 +233,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         setattr(item, '_datasource_layer_manager', 'yo')
         self.assertEqual(item.datasource_layer_manager(), 'yo')
 
-    @unittest.skipIf(not result_data_is_available(),
-                     "Result data doesn't exist or is incomplete.")
+    @unittest.skip('want to work only with netcdf-groundwater, not netcdf')
     def test_datasource(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
