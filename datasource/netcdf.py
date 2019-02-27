@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 from .base import BaseDataSource
-from ..utils.user_messages import (log, pop_up_info)
+from ..utils.user_messages import log
 from ..utils import cached_property
 
 # Explanation: aggregation using the cumulative method integrates the variable

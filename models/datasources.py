@@ -91,16 +91,14 @@ class DataSourceLayerManager(object):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
-
             self.tmp_disable_netcdf()
-
             self._datasource = ds_class(self.file_path)
-
         return self._datasource
 
     def tmp_disable_netcdf(self):
         # TODO: This is a quick fix for now. Asap: Get rid of class
         # NetcdfDataSource(BaseDataSource)
+        # https://nelen-schuurmans.atlassian.net/browse/THREEDI-761
         msg = "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n" \
               "results created after March 2018 (groundwater release). \n\n" \
               "You can do two things: \n" \
