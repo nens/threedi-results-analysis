@@ -5,6 +5,8 @@ ThreeDiToolBox changelog
 1.7 (unreleased)
 ----------------
 
+- Updated ThreediToolbox to Qgis3 (python3 and qt5).
+
 - QGIS3 can only handle netcdf-groundwater results (created after March 2018)
 
 - Added a new tool: raster checker (added to commands.tools.step1)
@@ -50,6 +52,7 @@ ThreeDiToolBox changelog
 
 1.4 (2018-11-26)
 ----------------
+
 - Enable intercepted_volume through aggregation NetCDF
 
 - Upgrade threedigrid from 0.2.6 to 1.0.7 (current latest version)

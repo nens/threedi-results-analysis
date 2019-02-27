@@ -93,12 +93,14 @@ class ConnectionNode(Base):
     the_geom = Column(Geometry(geometry_type='POINT',
                                srid=4326,
                                spatial_index=True,
+                               management=True,
                                use_st_prefix=False),
                       nullable=False)
 
     the_geom_linestring = Column(Geometry(geometry_type='POINT',
                                           srid=4326,
                                           spatial_index=False,
+                                          management=True,
                                           use_st_prefix=False),
                                  nullable=True)
 
