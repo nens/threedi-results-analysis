@@ -165,7 +165,7 @@ class RasterChecker(object):
         # exetension of raster must be  .tif or .tiff
         detail = ''
         extension = rast_item.split('.')[-1]
-        if extension not in ['tif', 'tiff']:
+        if extension.lower() not in ['tif', 'tiff']:
             result = False
             detail = 'found extension: %s' % extension
         else:
