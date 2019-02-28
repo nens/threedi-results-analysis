@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import sys
 import os
+from warnings import warn
 
 from .compat import filename_decode, filename_encode
 
@@ -24,6 +25,7 @@ from .base import phil, with_phil
 from .group import Group
 from .. import h5, h5f, h5p, h5i, h5fd, _objects
 from .. import version
+from ..h5py_warnings import H5pyDeprecationWarning
 
 mpi = h5.get_config().mpi
 hdf5_version = version.hdf5_version_tuple[0:3]
@@ -32,16 +34,19 @@ swmr_support = False
 if hdf5_version >= h5.get_config().swmr_min_hdf5_version:
     swmr_support = True
 
-if mpi:
-    import mpi4py
 
 libver_dict = {'earliest': h5f.LIBVER_EARLIEST, 'latest': h5f.LIBVER_LATEST}
 libver_dict_r = dict((y, x) for x, y in six.iteritems(libver_dict))
 
 
 def _set_fapl_mpio(plist, **kwargs):
+    import mpi4py
     kwargs.setdefault('info', mpi4py.MPI.Info())
     plist.set_fapl_mpio(**kwargs)
+
+
+def _set_fapl_fileobj(plist, **kwargs):
+    plist.set_fileobj_driver(h5fd.fileobj_driver, kwargs.get('fileobj'))
 
 
 _drivers = {
@@ -53,6 +58,7 @@ _drivers = {
         **kwargs
     ),
     'mpio': _set_fapl_mpio,
+    'fileobj': _set_fapl_fileobj,
 }
 
 
@@ -86,7 +92,7 @@ def registered_drivers():
     return frozenset(_drivers)
 
 
-def make_fapl(driver, libver, **kwds):
+def make_fapl(driver, libver, rdcc_nslots, rdcc_nbytes, rdcc_w0, **kwds):
     """ Set up a file access property list """
     plist = h5p.create(h5p.FILE_ACCESS)
 
@@ -100,6 +106,15 @@ def make_fapl(driver, libver, **kwds):
         # we default to earliest
         low, high = h5f.LIBVER_EARLIEST, h5f.LIBVER_LATEST
     plist.set_libver_bounds(low, high)
+
+    cache_settings = list(plist.get_cache())
+    if rdcc_nslots is not None:
+        cache_settings[1] = rdcc_nslots
+    if rdcc_nbytes is not None:
+        cache_settings[2] = rdcc_nbytes
+    if rdcc_w0 is not None:
+        cache_settings[3] = rdcc_w0
+    plist.set_cache(*cache_settings)
 
     if driver is None or (driver == 'windows' and sys.platform == 'win32'):
         # Prevent swallowing unused key arguments
@@ -116,6 +131,19 @@ def make_fapl(driver, libver, **kwds):
     else:
         set_fapl(plist, **kwds)
 
+    return plist
+
+
+def make_fcpl(track_order=False):
+    """ Set up a file creation property list """
+    if track_order:
+        plist = h5p.create(h5p.FILE_CREATE)
+        plist.set_link_creation_order(
+            h5p.CRT_ORDER_TRACKED | h5p.CRT_ORDER_INDEXED)
+        plist.set_attr_creation_order(
+            h5p.CRT_ORDER_TRACKED | h5p.CRT_ORDER_INDEXED)
+    else:
+        plist = None
     return plist
 
 
@@ -199,29 +227,35 @@ class File(Group):
     @with_phil
     def filename(self):
         """File name on disk"""
-        return filename_decode(h5f.get_name(self.fid))
+        return filename_decode(h5f.get_name(self.id))
 
     @property
     @with_phil
     def driver(self):
         """Low-level HDF5 file driver used to open file"""
-        drivers = {h5fd.SEC2: 'sec2', h5fd.STDIO: 'stdio',
-                   h5fd.CORE: 'core', h5fd.FAMILY: 'family',
-                   h5fd.WINDOWS: 'windows', h5fd.MPIO: 'mpio',
-                   h5fd.MPIPOSIX: 'mpiposix'}
-        return drivers.get(self.fid.get_access_plist().get_driver(), 'unknown')
+        drivers = {h5fd.SEC2: 'sec2',
+                   h5fd.STDIO: 'stdio',
+                   h5fd.CORE: 'core',
+                   h5fd.FAMILY: 'family',
+                   h5fd.WINDOWS: 'windows',
+                   h5fd.MPIO: 'mpio',
+                   h5fd.MPIPOSIX: 'mpiposix',
+                   h5fd.fileobj_driver: 'fileobj'}
+        return drivers.get(self.id.get_access_plist().get_driver(), 'unknown')
 
     @property
     @with_phil
     def mode(self):
         """ Python mode used to open file """
         return {h5f.ACC_RDONLY: 'r',
-                h5f.ACC_RDWR: 'r+'}.get(self.fid.get_intent())
+                h5f.ACC_RDWR: 'r+'}.get(self.id.get_intent())
 
     @property
     @with_phil
     def fid(self):
         """File ID (backwards compatibility) """
+        warn("File.fid has been deprecated. "
+            "Use File.id instead.", H5pyDeprecationWarning)
         return self.id
 
     @property
@@ -235,7 +269,7 @@ class File(Group):
     @with_phil
     def userblock_size(self):
         """ User block size (in bytes) """
-        fcpl = self.fid.get_create_plist()
+        fcpl = self.id.get_create_plist()
         return fcpl.get_userblock()
 
 
@@ -271,14 +305,18 @@ class File(Group):
                 raise ValueError("It is not possible to forcibly switch SWMR mode off.")
 
     def __init__(self, name, mode=None, driver=None,
-                 libver=None, userblock_size=None, swmr=False, **kwds):
+                 libver=None, userblock_size=None, swmr=False,
+                 rdcc_nslots=None, rdcc_nbytes=None, rdcc_w0=None,
+                 track_order=None,
+                 **kwds):
         """Create a new file object.
 
         See the h5py user guide for a detailed explanation of the options.
 
         name
-            Name of the file on disk.  Note: for files created with the 'core'
-            driver, HDF5 still requires this be non-empty.
+            Name of the file on disk, or file-like object.  Note: for files
+            created with the 'core' driver, HDF5 still requires this be
+            non-empty.
         mode
             r        Readonly, file must exist
             r+       Read/write, file must exist
@@ -296,8 +334,36 @@ class File(Group):
             file (mode w, w- or x).
         swmr
             Open the file in SWMR read mode. Only used when mode = 'r'.
+        rdcc_nbytes
+            Total size of the raw data chunk cache in bytes. The default size
+            is 1024**2 (1 MB) per dataset.
+        rdcc_w0
+            The chunk preemption policy for all datasets.  This must be
+            between 0 and 1 inclusive and indicates the weighting according to
+            which chunks which have been fully read or written are penalized
+            when determining which chunks to flush from cache.  A value of 0
+            means fully read or written chunks are treated no differently than
+            other chunks (the preemption is strictly LRU) while a value of 1
+            means fully read or written chunks are always preempted before
+            other chunks.  If your application only reads or writes data once,
+            this can be safely set to 1.  Otherwise, this should be set lower
+            depending on how often you re-read or re-write the same data.  The
+            default value is 0.75.
+        rdcc_nslots
+            The number of chunk slots in the raw data chunk cache for this
+            file. Increasing this value reduces the number of cache collisions,
+            but slightly increases the memory used. Due to the hashing
+            strategy, this value should ideally be a prime number. As a rule of
+            thumb, this value should be at least 10 times the number of chunks
+            that can fit in rdcc_nbytes bytes. For maximum performance, this
+            value should be set approximately 100 times that number of
+            chunks. The default value is 521.
+        track_order
+            Track dataset/group/attribute creation order under root group
+            if True. If None use global default h5.get_config().track_order.
         Additional keywords
             Passed on to the selected file driver.
+
         """
         if swmr and not swmr_support:
             raise ValueError("The SWMR feature is not available in this version of the HDF5 library")
@@ -306,15 +372,31 @@ class File(Group):
             with phil:
                 fid = h5i.get_file_id(name)
         else:
-            name = filename_encode(name)
-            with phil:
-                fapl = make_fapl(driver, libver, **kwds)
-                fid = make_fid(name, mode, userblock_size, fapl, swmr=swmr)
+            if hasattr(name, 'read') and hasattr(name, 'seek'):
+                if driver not in (None, 'fileobj'):
+                    raise ValueError("Driver must be 'fileobj' for file-like object if specified.")
+                driver = 'fileobj'
+                if kwds.get('fileobj', name) != name:
+                    raise ValueError("Invalid value of 'fileobj' argument; "
+                                     "must equal to file-like object if specified.")
+                kwds.update(fileobj=name)
+                name = repr(name).encode('ASCII', 'replace')
+            else:
+                name = filename_encode(name)
 
-                if swmr_support:
-                    self._swmr_mode = False
-                    if swmr and mode == 'r':
-                        self._swmr_mode = True
+            if track_order is None:
+                track_order = h5.get_config().track_order
+
+            with phil:
+                fapl = make_fapl(driver, libver, rdcc_nslots, rdcc_nbytes, rdcc_w0, **kwds)
+                fid = make_fid(name, mode, userblock_size,
+                               fapl, fcpl=make_fcpl(track_order=track_order),
+                               swmr=swmr)
+
+            if swmr_support:
+                self._swmr_mode = False
+                if swmr and mode == 'r':
+                    self._swmr_mode = True
 
         Group.__init__(self, fid)
 
@@ -348,7 +430,7 @@ class File(Group):
         """ Tell the HDF5 library to flush its buffers.
         """
         with phil:
-            h5f.flush(self.fid)
+            h5f.flush(self.id)
 
     @with_phil
     def __enter__(self):

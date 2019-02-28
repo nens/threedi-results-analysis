@@ -18,9 +18,9 @@ from __future__ import absolute_import
 
 import numpy
 import uuid
+import six
 
-
-from .. import h5s, h5t, h5a
+from .. import h5, h5s, h5t, h5a, h5p
 from . import base
 from .base import phil, with_phil, Empty, is_empty_dataspace
 from .dataset import readtime_dtype
@@ -116,10 +116,16 @@ class AttributeManager(base.MutableMappingHDF5, base.CommonStateObject):
 
         with phil:
 
-            # First, make sure we have a NumPy array.  We leave the data
-            # type conversion for HDF5 to perform.
+            # First, make sure we have a NumPy array.  We leave the data type
+            # conversion for HDF5 to perform (other than the below exception).
             if not isinstance(data, Empty):
+                is_list_or_tuple = isinstance(data, (list, tuple))
                 data = numpy.asarray(data, order='C')
+                # If we were passed a list or tuple, then we do not need to respect the
+                # datatype of the numpy array. If it is U type, convert to vlen unicode
+                # strings:
+                if is_list_or_tuple and data.dtype.type == numpy.unicode_:
+                    data = numpy.array(data, dtype=h5t.special_dtype(vlen=six.text_type))
 
             if shape is None:
                 shape = data.shape
@@ -156,7 +162,7 @@ class AttributeManager(base.MutableMappingHDF5, base.CommonStateObject):
             # is compatible, and reshape if needed.
             else:
 
-                if shape is not None and numpy.product(shape) != numpy.product(data.shape):
+                if shape is not None and numpy.product(shape, dtype=numpy.ulonglong) != numpy.product(data.shape, dtype=numpy.ulonglong):
                     raise ValueError("Shape of new attribute conflicts with shape of data")
 
                 if shape != data.shape:
@@ -229,7 +235,7 @@ class AttributeManager(base.MutableMappingHDF5, base.CommonStateObject):
 
                 # Allow the case of () <-> (1,)
                 if (value.shape != attr.shape) and not \
-                   (numpy.product(value.shape) == 1 and numpy.product(attr.shape) == 1):
+                   (numpy.product(value.shape, dtype=numpy.ulonglong) == 1 and numpy.product(attr.shape, dtype=numpy.ulonglong) == 1):
                     raise TypeError("Shape of data is incompatible with existing attribute")
                 attr.write(value)
 
@@ -248,7 +254,15 @@ class AttributeManager(base.MutableMappingHDF5, base.CommonStateObject):
                 """ Callback to gather attribute names """
                 attrlist.append(self._d(name))
 
-            h5a.iterate(self._id, iter_cb)
+            cpl = self._id.get_create_plist()
+            crt_order = cpl.get_attr_creation_order()
+            cpl.close()
+            if crt_order & h5p.CRT_ORDER_TRACKED:
+                idx_type = h5.INDEX_CRT_ORDER
+            else:
+                idx_type = h5.INDEX_NAME
+
+            h5a.iterate(self._id, iter_cb, index_type=idx_type)
 
         for name in attrlist:
             yield name

@@ -16,8 +16,13 @@ from __future__ import absolute_import
 import posixpath
 import os
 import six
-from collections import (Mapping, MutableMapping, KeysView,
-                         ValuesView, ItemsView)
+
+try:
+    from collections.abc import (Mapping, MutableMapping, KeysView,
+                                 ValuesView, ItemsView)
+except ImportError:
+    from collections import (Mapping, MutableMapping, KeysView,
+                             ValuesView, ItemsView)
 
 from .compat import fspath, filename_encode
 
@@ -301,6 +306,12 @@ class HLObject(CommonStateObject):
 # AttributeManager can only test for key names.
 
 
+class KeysViewHDF5(KeysView):
+    def __str__(self):
+        return "<KeysViewHDF5 {}>".format(list(self))
+
+    __repr__ = __str__
+
 class ValuesViewHDF5(ValuesView):
 
     """
@@ -380,7 +391,7 @@ class MappingHDF5(Mapping):
     else:
         def keys(self):
             """ Get a view object on member names """
-            return KeysView(self)
+            return KeysViewHDF5(self)
 
         def values(self):
             """ Get a view object on member objects """
@@ -411,6 +422,7 @@ class Empty(object):
         the same as an array with shape (0,).
     """
     shape = None
+    size = None
 
     def __init__(self, dtype):
         self.dtype = dtype

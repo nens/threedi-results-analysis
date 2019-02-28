@@ -121,6 +121,24 @@ class TestVlen(TestCase):
                          h5py.check_dtype(enum=h5py.check_dtype(vlen=dt2)))
 
 
+class TestExplicitCast(TestCase):
+    def test_f2_casting(self):
+        fname = self.mktemp()
+
+        np.random.seed(1)
+        A = np.random.rand(1500, 20)
+
+        # Save to HDF5 file
+        with h5py.File(fname, "w") as Fid:
+            Fid.create_dataset("Data", data=A, dtype='f2')
+
+        with h5py.File(fname, "r") as Fid:
+            B = Fid["Data"][:]
+
+        # Compare
+        self.assertTrue(np.all(A.astype('f2') == B))
+
+
 class TestOffsets(TestCase):
     """
         Check that compound members with aligned or manual offsets are handled
@@ -152,7 +170,7 @@ class TestOffsets(TestCase):
                         self.assertEqual(np_offsets, offsets)
 
     def test_aligned_offsets(self):
-        dt = np.dtype('i2,i8', align=True)
+        dt = np.dtype('i4,i8,i2', align=True)
         ht = h5py.h5t.py_create(dt)
         self.assertEqual(dt.itemsize, ht.get_size())
         self.assertEqual(
@@ -162,12 +180,14 @@ class TestOffsets(TestCase):
 
 
     def test_aligned_data(self):
-        dt = np.dtype('i2,f8', align=True)
+        dt = np.dtype('i4,f8,i2', align=True)
         data = np.empty(10, dtype=dt)
 
         data['f0'] = np.array(np.random.randint(-100, 100, size=data.size),
-                dtype='i2')
+                dtype='i4')
         data['f1'] = np.random.rand(data.size)
+        data['f2'] = np.array(np.random.randint(-100, 100, size=data.size),
+                dtype='i2')
 
         fname = self.mktemp()
 
@@ -176,7 +196,6 @@ class TestOffsets(TestCase):
 
         with h5py.File(fname, 'r') as f:
             self.assertArrayEqual(f['data'], data)
-
 
     def test_out_of_order_offsets(self):
         dt = np.dtype({
@@ -196,3 +215,26 @@ class TestOffsets(TestCase):
 
         with h5py.File(fname, 'r') as fd:
             self.assertArrayEqual(fd['data'], data)
+
+    def test_float_round_tripping(self):
+        dtypes = set(f for f in np.typeDict.values()
+                     if (np.issubdtype(f, np.floating) or
+                         np.issubdtype(f, np.complexfloating))
+                     )
+
+        dtype_dset_map = {str(j): d
+                          for j, d in enumerate(dtypes)}
+
+        fname = self.mktemp()
+
+        with h5py.File(fname, 'w') as f:
+            for n, d in dtype_dset_map.items():
+                data = np.arange(10,
+                                 dtype=d)
+
+                f.create_dataset(n, data=data)
+
+        with h5py.File(fname, 'r') as f:
+            for n, d in dtype_dset_map.items():
+                ldata = f[n][:]
+                self.assertEqual(ldata.dtype, d)
