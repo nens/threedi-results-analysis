@@ -2,7 +2,13 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.7 (unreleased)
+1.8 (unreleased)
+----------------
+
+- nothing changed yet
+
+
+1.7 (2019-02-28)
 ----------------
 
 - Updated ThreediToolbox to Qgis3 (python3 and qt5).
