@@ -7,6 +7,8 @@ ThreeDiToolBox changelog
 
 - Updated ThreediToolbox to Qgis3 (python3 and qt5).
 
+- Display pumplines without connection_node_end just for 5 meters
+
 - QGIS3 can only handle netcdf-groundwater results (created after March 2018)
 
 - Added a new tool: raster checker (added to commands.tools.step1)
