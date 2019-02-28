@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import posixpath as pp
 import sys
+from warnings import warn
 
 from threading import local
 
@@ -29,6 +30,9 @@ from . import filters
 from . import selections as sel
 from . import selections2 as sel2
 from .datatype import Datatype
+from .compat import filename_decode
+from .vds import VDSmap, vds_support
+from ..h5py_warnings import H5pyDeprecationWarning
 
 _LEGACY_GZIP_COMPRESSION_VALS = frozenset(range(10))
 MPI = h5.get_config().mpi
@@ -51,9 +55,10 @@ def readtime_dtype(basetype, names):
 
 
 def make_new_dset(parent, shape=None, dtype=None, data=None,
-                 chunks=None, compression=None, shuffle=None,
-                    fletcher32=None, maxshape=None, compression_opts=None,
-                  fillvalue=None, scaleoffset=None, track_times=None):
+                  chunks=None, compression=None, shuffle=None,
+                  fletcher32=None, maxshape=None, compression_opts=None,
+                  fillvalue=None, scaleoffset=None, track_times=None,
+                  external=None, track_order=None, dcpl=None):
     """ Return a new low-level dataset identifier
 
     Only creates anonymous datasets.
@@ -62,7 +67,20 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
     # Convert data to a C-contiguous ndarray
     if data is not None and not isinstance(data, Empty):
         from . import base
-        data = numpy.asarray(data, order="C", dtype=base.guess_dtype(data))
+        # normalize strings -> np.dtype objects
+        if dtype is not None:
+            _dtype = numpy.dtype(dtype)
+        else:
+            _dtype = None
+
+        # if we are going to a f2 datatype, pre-convert in python
+        # to workaround a possible h5py bug in the conversion.
+        is_small_float = (_dtype is not None and
+                          _dtype.kind == 'f' and
+                          _dtype.itemsize == 2)
+        data = numpy.asarray(data, order="C",
+                             dtype=(_dtype if is_small_float
+                                    else base.guess_dtype(data)))
 
     # Validate shape
     if shape is None:
@@ -73,13 +91,13 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
         shape = data.shape
     else:
         shape = tuple(shape)
-        if data is not None and (numpy.product(shape) != numpy.product(data.shape)):
+        if data is not None and (numpy.product(shape, dtype=numpy.ulonglong) != numpy.product(data.shape, dtype=numpy.ulonglong)):
             raise ValueError("Shape tuple is incompatible with data")
 
     tmp_shape = maxshape if maxshape is not None else shape
     # Validate chunk shape
     if isinstance(chunks, tuple) and any(
-        chunk > dim for dim, chunk in zip(tmp_shape,chunks) if dim is not None
+        chunk > dim for dim, chunk in zip(tmp_shape, chunks) if dim is not None
     ):
         errmsg = "Chunk shape must not be greater than data shape in any dimension. "\
                  "{} is not compatible with {}".format(chunks, shape)
@@ -100,7 +118,7 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
         tid = h5t.py_create(dtype, logical=1)
 
     # Legacy
-    if any((compression, shuffle, fletcher32, maxshape,scaleoffset)) and chunks is False:
+    if any((compression, shuffle, fletcher32, maxshape, scaleoffset)) and chunks is False:
         raise ValueError("Chunked format required for given storage options")
 
     # Legacy
@@ -116,8 +134,10 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
         compression_opts = compression
         compression = 'gzip'
 
-    dcpl = filters.generate_dcpl(shape, dtype, chunks, compression, compression_opts,
-                  shuffle, fletcher32, maxshape, scaleoffset)
+    dcpl = filters.fill_dcpl(
+        dcpl or h5p.create(h5p.DATASET_CREATE), shape, dtype,
+        chunks, compression, compression_opts, shuffle, fletcher32,
+        maxshape, scaleoffset, external)
 
     if fillvalue is not None:
         fillvalue = numpy.array(fillvalue)
@@ -127,6 +147,13 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
         dcpl.set_obj_track_times(track_times)
     elif track_times is not None:
         raise TypeError("track_times must be either True or False")
+    if track_order == True:
+        dcpl.set_attr_creation_order(
+            h5p.CRT_ORDER_TRACKED | h5p.CRT_ORDER_INDEXED)
+    elif track_order == False:
+        dcpl.set_attr_creation_order(0)
+    elif track_order is not None:
+        raise TypeError("track_order must be either True or False")
 
     if maxshape is not None:
         maxshape = tuple(m if m is not None else h5s.UNLIMITED for m in maxshape)
@@ -143,6 +170,41 @@ def make_new_dset(parent, shape=None, dtype=None, data=None,
         dset_id.write(h5s.ALL, h5s.ALL, data)
 
     return dset_id
+
+
+def make_new_virtual_dset(parent, shape, sources, dtype=None,
+                          maxshape=None, fillvalue=None):
+    """Return a new low-level dataset identifier for a virtual dataset
+
+    Like make_new_dset(), this creates an anonymous dataset, which can be given
+    a name later.
+    """
+    # create the creation property list
+    dcpl = h5p.create(h5p.DATASET_CREATE)
+    if fillvalue is not None:
+        dcpl.set_fill_value(numpy.array([fillvalue]))
+
+    if maxshape is not None:
+        maxshape = tuple(m if m is not None else h5s.UNLIMITED for m in maxshape)
+
+    virt_dspace = h5s.create_simple(shape, maxshape)
+
+    for vspace, fpath, dset, src_dspace in sources:
+        dcpl.set_virtual(vspace, fpath, dset, src_dspace)
+
+    dtype = dtype
+    if isinstance(dtype, Datatype):
+        # Named types are used as-is
+        tid = dtype.id
+    else:
+        if dtype is None:
+            dtype = numpy.dtype("=f4")
+        else:
+            dtype = numpy.dtype(dtype)
+        tid = h5t.py_create(dtype, logical=1)
+
+    return h5d.create(parent.id, name=None, tid=tid, space=virt_dspace,
+                      dcpl=dcpl)
 
 
 class AstypeContext(object):
@@ -233,6 +295,8 @@ class Dataset(HLObject):
     @with_phil
     def size(self):
         """Numpy-style attribute giving the total dataset size"""
+        if is_empty_dataspace(self.id):
+            return None
         return numpy.prod(self.shape, dtype=numpy.intp)
 
     @property
@@ -245,8 +309,8 @@ class Dataset(HLObject):
     @with_phil
     def value(self):
         """  Alias for dataset[()] """
-        DeprecationWarning("dataset.value has been deprecated. "
-            "Use dataset[()] instead.")
+        warn("dataset.value has been deprecated. "
+            "Use dataset[()] instead.", H5pyDeprecationWarning)
         return self[()]
 
     @property
@@ -296,6 +360,20 @@ class Dataset(HLObject):
             return self._filters['scaleoffset'][1]
         except KeyError:
             return None
+
+    @property
+    def external(self):
+        """External file settings. Returns a list of tuples of
+        (name, offset, size) for each external file entry, or returns None
+        if no external files are used."""
+        count = self._dcpl.get_external_count()
+        if count<=0:
+            return None
+        ext_list = list()
+        for x in xrange(count):
+            (name, offset, size) = self._dcpl.get_external(x)
+            ext_list.append( (filename_decode(name), offset, size) )
+        return ext_list
 
     @property
     @with_phil
@@ -395,7 +473,6 @@ class Dataset(HLObject):
         for i in xrange(shape[0]):
             yield self[i]
 
-
     @with_phil
     def __getitem__(self, args):
         """ Read a slice from the HDF5 dataset.
@@ -441,7 +518,7 @@ class Dataset(HLObject):
             mshape = sel.guess_shape(sid)
             if mshape is None:
                 return numpy.array((0,), dtype=new_dtype)
-            if numpy.product(mshape) == 0:
+            if numpy.product(mshape, dtype=numpy.ulonglong) == 0:
                 return numpy.array(mshape, dtype=new_dtype)
             out = numpy.empty(mshape, dtype=new_dtype)
             sid_out = h5s.create_simple(mshape)
@@ -451,7 +528,7 @@ class Dataset(HLObject):
 
         # === Check for zero-sized datasets =====
 
-        if numpy.product(self.shape) == 0:
+        if numpy.product(self.shape, dtype=numpy.ulonglong) == 0:
             # These are the only access methods NumPy allows for such objects
             if args == (Ellipsis,) or args == tuple():
                 return numpy.empty(self.shape, dtype=new_dtype)
@@ -499,11 +576,10 @@ class Dataset(HLObject):
         if len(names) == 1:
             arr = arr[names[0]]     # Single-field recarray convention
         if arr.shape == ():
-            arr = numpy.asscalar(arr)
+            arr = arr.item()
         if single_element:
             arr = arr[0]
         return arr
-
 
     @with_phil
     def __setitem__(self, args, val):
@@ -537,7 +613,7 @@ class Dataset(HLObject):
                 if val.ndim > 1:
                     tmp = numpy.empty(shape=val.shape[:-1], dtype=object)
                     tmp.ravel()[:] = [i for i in val.reshape(
-                        (numpy.product(val.shape[:-1]), val.shape[-1]))]
+                        (numpy.product(val.shape[:-1], dtype=numpy.ulonglong), val.shape[-1]))]
                 else:
                     tmp = numpy.array([None], dtype=object)
                     tmp[0] = val
@@ -690,7 +766,7 @@ class Dataset(HLObject):
         arr = numpy.empty(self.shape, dtype=self.dtype if dtype is None else dtype)
 
         # Special case for (0,)*-shape datasets
-        if numpy.product(self.shape) == 0:
+        if numpy.product(self.shape, dtype=numpy.ulonglong) == 0:
             return arr
 
         self.read_direct(arr)
@@ -733,3 +809,19 @@ class Dataset(HLObject):
             library version >=1.9.178
             """
             self._id.flush()
+
+    if vds_support:
+        @property
+        def is_virtual(self):
+            return self._dcpl.get_layout() == h5d.VIRTUAL
+
+        def virtual_sources(self):
+            if not self.is_virtual:
+                raise RuntimeError("Not a virtual dataset")
+            dcpl = self._dcpl
+            return [
+                VDSmap(dcpl.get_virtual_vspace(j),
+                       dcpl.get_virtual_filename(j),
+                       dcpl.get_virtual_dsetname(j),
+                       dcpl.get_virtual_srcspace(j))
+                for j in range(dcpl.get_virtual_count())]

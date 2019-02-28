@@ -30,8 +30,8 @@ import six
 
 from ..common import ut, TestCase
 import h5py
-from h5py.highlevel import File, Group, SoftLink, HardLink, ExternalLink
-from h5py.highlevel import Dataset, Datatype
+from h5py import File, Group, SoftLink, HardLink, ExternalLink
+from h5py import Dataset, Datatype
 from h5py import h5t
 from h5py._hl.compat import filename_encode
 
@@ -295,11 +295,6 @@ class TestLen(BaseMapping):
         self.f.create_group('e')
         self.assertEqual(len(self.f), len(self.groups)+1)
 
-    def test_exc(self):
-        """ len() on closed group gives ValueError """
-        self.f.close()
-        with self.assertRaises(ValueError):
-            len(self.f)
 
 class TestContains(BaseGroup):
 
@@ -396,8 +391,7 @@ class TestIter(BaseMapping):
             hfile.close()
 
 class TestTrackOrder(BaseGroup):
-    def test_track_order(self):
-        g = self.f.create_group('order', track_order=True)
+    def populate(self, g):
         for i in range(100):
             # Mix group and dataset creation.
             if i % 10 == 0:
@@ -405,9 +399,17 @@ class TestTrackOrder(BaseGroup):
             else:
                 g[str(i)] = [i]
 
-        objs = [str(i) for i in range(100)]
-        objs2 = [o for o in g]
-        self.assertEqual(objs, objs2)
+    def test_track_order(self):
+        g = self.f.create_group('order', track_order=True)  # creation order
+        self.populate(g)
+        self.assertEqual(list(g),
+                         [str(i) for i in range(100)])
+
+    def test_no_track_order(self):
+        g = self.f.create_group('order', track_order=False)  # name alphanumeric
+        self.populate(g)
+        self.assertEqual(list(g),
+                         sorted([str(i) for i in range(100)]))
 
 @ut.skipIf(sys.version_info[0] != 2, "Py2")
 class TestPy2Dict(BaseMapping):
@@ -1078,4 +1080,3 @@ class TestMutableMapping(BaseGroup):
         Group.__delitem__
         Group.__iter__
         Group.__len__
-
