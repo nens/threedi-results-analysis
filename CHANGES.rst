@@ -5,7 +5,8 @@ ThreeDiToolBox changelog
 1.8 (unreleased)
 ----------------
 
-- nothing changed yet
+- updated external h5py library (build h5py lib against hdf5 1.10.4-1 (instead
+  of hdf5 1.8.11-2)
 
 
 1.7 (2019-02-28)
