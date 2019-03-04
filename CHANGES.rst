@@ -2,7 +2,13 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.8 (unreleased)
+1.9 (unreleased)
+----------------
+
+- fixed sideview bug point no geometry
+
+
+1.8 (2019-02-28)
 ----------------
 
 - updated external h5py library (build h5py lib against hdf5 1.10.4-1 (instead
