@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.9 (unreleased)
+1.9 (2019-03-04)
 ----------------
 
 - fixed sideview bug point no geometry
