@@ -972,6 +972,8 @@ class SideViewMapVisualisation(object):
                         )
                         length = distance_on_line * conversion_factor
                         point = part[4].geometry().interpolate(length)
+                        if point.isEmpty():
+                            return
                         self.hover_marker.setCenter(
                             transform.transform(point.asPoint()))
                         return
