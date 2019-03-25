@@ -130,6 +130,7 @@ class StatisticsTool(object):
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
+        self.db_meta = None
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -180,6 +181,7 @@ class StatisticsTool(object):
         # fls = FlowlineStats()
 
         self.db = StaticsticsDatabase(db_set, db_type)
+        self.db_meta = self.db.get_metadata()
 
         if (not self.has_mod_views() and not test and
                 pop_up_question('Do you want to add views to the model database?',
@@ -231,17 +233,22 @@ class StatisticsTool(object):
         log.info('Run statistic tool')
 
     def has_mod_views(self):
-
-        mod_session = self.get_modeldb_session()
+        mod_session = self.get_modeldb_session()  # e.g. v2_bergermeer.sqlite
         view_table = self.get_modeldb_table('views_geometry_columns')
         return mod_session.query(view_table).filter(
             view_table.c.view_name == 'v2_1d_boundary_conditions_view').count() != 0
 
     def has_res_views(self):
-
-        res_session = self.db.get_session()
-        view_table = self.modeldb_meta.tables['views_geometry_columns']
-        return res_session.query(view_table).filter(view_table.c.view_name == 'pump_stats_view').count() != 0
+        # bugfix explanation: In QGIS2, all tables and views were put in the
+        # 'views_geometry_columns' of the model sqlite (e.g.
+        # v2_bergermeer.sqlite) or in the gridadmin.sqlite. Somehow in QGIS3
+        # all tables in gridadmin.sqlite's 'views_geometry_columns' are not
+        # visible. Solved it by putting these layers in the geometry_columns
+        # of the gridadmin.sqlite
+        res_session = self.db.get_session()  # gridadmin.sqlite'
+        table = self.db.get_metadata().tables['geometry_columns']
+        return res_session.query(table).filter(
+            table.c.f_table_name == 'pump_stats_view').count() != 0
 
     def add_modeldb_views(self):
 
@@ -561,7 +568,7 @@ class StatisticsTool(object):
 
             try:
                 np.copyto(dh_max, np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
-                      where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)))
+                          where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)))
             except:
                 log.info('dh_max is not loaded for timestep: %s' % (timestamp))
                 dh_max_calc = False
@@ -981,19 +988,21 @@ class StatisticsTool(object):
             WHERE f.id = fs.id;
            """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'flowline_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'flowline_stats_view';
             """
         )
         session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('flowline_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-            
+            """
+            INSERT INTO geometry_columns (
+                f_table_name, f_geometry_column, geometry_type, 
+                coord_dimension, SRID, spatial_index_enabled) 
+            VALUES ('flowline_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
 
         session.commit()
 
@@ -1035,68 +1044,75 @@ class StatisticsTool(object):
               AND f.id = ps.id;
             """
         )
-        session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_view';
-            """
-        )
-        session.execute(
-            """ 
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
 
+        session.execute(
+            """
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_view';
             """
         )
+        session.execute(
+            """
+            INSERT INTO geometry_columns (
+                f_table_name, f_geometry_column, geometry_type, 
+                coord_dimension, SRID, spatial_index_enabled) 
+            VALUES ('pipe_stats_view', 'the_geom', 2, 2, 4326, 0);
+            """
+        )
+
         session.commit()
 
         # dwa+mixed of pipestats
         session.execute(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view 
-
              AS 
-            SELECT *
+             SELECT *
              FROM pipe_stats_view
              WHERE pipe_stats_view.sewerage_type IN (0, 2);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_dwa_mixed_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_dwa_mixed_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_dwa_mixed_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
+                INSERT INTO geometry_columns (
+                    f_table_name, f_geometry_column, geometry_type, 
+                    coord_dimension, SRID, spatial_index_enabled) 
+                VALUES ('pipe_stats_dwa_mixed_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # rwa views of pipestats
         session.execute(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view 
-             AS 
+            AS 
             SELECT *
-             FROM pipe_stats_view
-             WHERE pipe_stats_view.sewerage_type IN (1);
+            FROM pipe_stats_view
+            WHERE pipe_stats_view.sewerage_type IN (1);
+            """
+        )
+
+        session.execute(
+            """
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_rwa_view';
             """
         )
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_rwa_view';          
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('pipe_stats_rwa_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
-        session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_rwa_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-            """
-        )
+
         session.commit()
 
         # weir stat view
@@ -1133,19 +1149,20 @@ class StatisticsTool(object):
               AND f.id = ws.id;
                 """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'weir_stats_view';          
+            DELETE FROM geometry_columns WHERE f_table_name = 'weir_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('weir_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-    
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('weir_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
 
         session.commit()
 
@@ -1178,18 +1195,21 @@ class StatisticsTool(object):
             WHERE n.id = mst.id;
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # dwa+mixed  of manholestats
@@ -1203,18 +1223,21 @@ class StatisticsTool(object):
              WHERE manhole_stats_view.sewerage_type IN (0, 2);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_dwa_mixed_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_dwa_mixed_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_dwa_mixed_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_dwa_mixed_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # rwa views of manholestats
@@ -1227,18 +1250,21 @@ class StatisticsTool(object):
              WHERE manhole_stats_view.sewerage_type IN (1);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_rwa_view';          
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_rwa_view';
             """
         )
         session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_rwa_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+            """
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_rwa_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
     def create_pump_views(self):
@@ -1268,18 +1294,21 @@ class StatisticsTool(object):
             WHERE p.id = ps.id;
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pump_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'pump_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pump_stats_view', 'the_geom', 'id', 'pumplines', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('pump_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
+
 
         # pump stat view Lines - points
         session.execute(

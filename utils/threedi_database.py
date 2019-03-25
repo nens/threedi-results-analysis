@@ -11,12 +11,14 @@ from sqlalchemy.event import listen
 from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
 from sqlalchemy.ext.declarative import declarative_base
+import logging
 
 from ThreeDiToolbox.sql_models.model_schematisation import Base
 
 
 Base = declarative_base()
 
+log = logging.getLogger(__name__)
 
 def load_spatialite(con, connection_record):
     '''Load spatialite extension as described in
@@ -137,23 +139,19 @@ class ThreediDatabase(object):
     def get_session(self):
         return sessionmaker(bind=self.engine)()
 
-    def fix_views(self):
-        """fixes views in spatialite by disabeling indexes for views
-
+    def drop_spatial_index(self):
+        if self.db_type != 'spatialite':
+            return
+        """fixes views all tables in spatialite in multiple steps:
+        1. Drop spatial index table from sqlite (e.g. idx_v2_channel_the_geom)
+        2. VACUUM spatialite to clean up spatialite
         """
-        if self.db_type == 'spatialite':
-            session = self.get_session()
-
-            session.execute(
-                """SELECT DisableSpatialIndex('v2_connection_nodes',
-                                              'the_geom_linestring');"""
-            )
-
-            session.execute(
-                """SELECT RecoverSpatialIndex('v2_impervious_surface',
-                                              'the_geom');""")
-
-            session.commit()
+        all_tables = self.engine.table_names()  # gets current existing tables
+        idx_v2_tables = [tbl for tbl in all_tables if
+                         'idx_' in tbl and 'v2_' in tbl]
+        for idx_name in idx_v2_tables:
+            self.drop_idx_table_if_exists(idx_name)
+        self.run_vacuum()
 
     def delete_from(self, table_name):
         """
@@ -184,7 +182,6 @@ class ThreediDatabase(object):
         geometry column
         """
         # runs a transaction
-
         if self.db_type == 'spatialite':
             select_statement = """
                SELECT CheckSpatialIndex('{table_name}', '{geom_column}');
@@ -207,6 +204,21 @@ class ThreediDatabase(object):
                 result = connection.execute(text(select_statement))
                 return bool(result.fetchone()[0])
 
+    def drop_idx_table_if_exists(self, idx_name):
+        if self.db_type == 'spatialite':
+            drop_statement = """DROP TABLE IF EXISTS '{idx_name}'""".format(
+                idx_name=idx_name)
+            with self.engine.begin() as connection:
+                connection.execute(text(drop_statement))
+
+    def run_vacuum(self):
+        """
+        call vacuum on a sqlite DB
+        """
+        if self.db_type == 'spatialite':
+            statement = """VACUUM;"""
+            with self.engine.begin() as connection:
+                connection.execute(text(statement))
 
 def get_databases():
     d = {}

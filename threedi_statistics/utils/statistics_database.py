@@ -49,6 +49,6 @@ class StaticsticsDatabase(ThreediDatabase):
             return self._base_metadata
 
 
-    def fix_views(self):
+    def drop_spatial_index(self):
         """function overwrite which is not relevant"""
         raise NotImplementedError('fix views not relevant in this context')
