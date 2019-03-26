@@ -74,7 +74,7 @@ ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
 RUN groupadd -g $GROUP_ID $GROUP_ID
-RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
+RUN useradd -m -l -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
 
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins
