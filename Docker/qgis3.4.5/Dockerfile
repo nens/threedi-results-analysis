@@ -21,6 +21,9 @@ RUN echo $TZ > /etc/timezone \
         software-properties-common \
         wget \
         dbus \
+        libhdf5-serial-dev \
+        python-dev \
+        build-essential \
         git \
         gosu \
     && add-apt-repository ppa:ubuntugis/ubuntugis-unstable \
@@ -47,9 +50,6 @@ RUN apt-get -y update \
         qgis-provider-grass \
         grass \
         pyqt5-dev-tools \
-        libhdf5-serial-dev \
-        python-dev \
-        build-essential \
     && apt-get clean \
     && apt-get purge \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -74,15 +74,10 @@ ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
 RUN groupadd -g $GROUP_ID $GROUP_ID
-RUN useradd -m -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
+RUN useradd -m -l -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
 
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins
-
-# Add the plugin source code and allow the user to make changes in his/her home folder
-RUN mkdir -p /home/$USERNAME/.local/share/QGIS/QGIS3/profiles/default/python/plugins/
-COPY . /home/${USERNAME}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-RUN chown $USERNAME:$GROUP_ID /home/${USERNAME}/.local -R
 
 COPY Docker/docker-entrypoint.sh /
 RUN chmod u+x /docker-entrypoint.sh
