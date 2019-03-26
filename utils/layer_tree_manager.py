@@ -161,6 +161,7 @@ class LayerTreeManager(object):
 
         Returns: None
         """
+
         self.init_references_from_layer_tree()
 
         tracer = dict([(ref, ident) for ident, ref in self.tracer_mapping])
@@ -178,7 +179,8 @@ class LayerTreeManager(object):
 
         # adjust spatialite for correct visualization of layers
         threedi_db = ThreediDatabase({'db_path': filename})
-        threedi_db.drop_spatial_index()
+        threedi_db.create_views()
+        threedi_db.fix_views()
 
         if self.model_layergroup is None:
             # todo: see if we can set 'tracer' as custom property to identify
@@ -370,6 +372,7 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_manhole'),
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),
+                  (additional_oned_group, 'v2_pipe'),
                   (advanced_settings_group, 'v2_numerical_settings'),
                   (inflow_surface_subgroup, 'v2_surface_map'),
                   (inflow_surface_subgroup, 'v2_surface_parameters'),

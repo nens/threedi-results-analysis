@@ -12,9 +12,8 @@ from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
 from sqlalchemy.ext.declarative import declarative_base
 import logging
-
 from ThreeDiToolbox.sql_models.model_schematisation import Base
-
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 Base = declarative_base()
 
@@ -139,13 +138,84 @@ class ThreediDatabase(object):
     def get_session(self):
         return sessionmaker(bind=self.engine)()
 
-    def drop_spatial_index(self):
+    def create_views(self):
+        conn = self.get_session()
+
+        conn.execute("""CREATE VIEW IF NOT EXISTS
+        v2_1d_boundary_conditions_view AS SELECT a.ROWID AS ROWID, a.id AS id,
+        a.connection_node_id AS connection_node_id, a.boundary_type AS
+        boundary_type, a.timeseries AS timeseries, b.the_geom
+        FROM v2_1d_boundary_conditions a
+        JOIN v2_connection_nodes b ON a.connection_node_id = b.id;""")
+
+        conn.execute("""DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_1d_boundary_conditions_view';""")
+
+        conn.execute("""INSERT INTO views_geometry_columns (view_name,
+        view_geometry, view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_1d_boundary_conditions_view', 'the_geom',
+        'connection_node_id', 'v2_connection_nodes', 'the_geom');""")
+
+        conn.execute("""CREATE VIEW IF NOT EXISTS v2_manhole_view
+        AS SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS
+        connection_node_id, b.the_geom
+        FROM v2_manhole a
+        JOIN v2_connection_nodes b ON a.connection_node_id = b.id;""")
+
+        conn.execute("""DELETE FROM views_geometry_columns WHERE
+        view_name = 'v2_manhole_view';""")
+
+        conn.execute("""INSERT INTO views_geometry_columns (view_name,
+        view_geometry, view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_manhole_view', 'the_geom', 'connection_node_id',
+        'v2_connection_nodes', 'the_geom');""")
+
+        conn.commit()
+        conn.close()
+
+    def fix_views(self):
         if self.db_type != 'spatialite':
             return
         """fixes views all tables in spatialite in multiple steps:
-        1. Drop spatial index table from sqlite (e.g. idx_v2_channel_the_geom)
-        2. VACUUM spatialite to clean up spatialite
+        1. Disable spatial index
+        2. Drop spatial index table from sqlite (e.g. idx_v2_channel_the_geom)
+        3. VACUUM spatialite to clean up spatialite
         """
+
+        # v2_tables = [tbl for tbl in all_tables if 'idx_' not in tbl and 'v2_' in tbl]
+        disable_view_v2_tables = [
+            ('v2_2d_boundary_conditions', 'the_geom'),
+            ('v2_2d_lateral', 'the_geom'),
+            ('v2_calculation_point', 'the_geom'),
+            ('v2_channel', 'the_geom'),
+            ('v2_connected_pnt', 'the_geom'),
+            ('v2_connection_nodes', 'the_geom'),
+            ('v2_connection_nodes', 'the_geom_linestring'),
+            ('v2_cross_section_location', 'the_geom'),
+            ('v2_culvert', 'the_geom'),
+            ('v2_dem_average_area', 'the_geom'),
+            ('v2_floodfill', 'the_geom'),
+            ('v2_grid_refinement', 'the_geom'),
+            ('v2_grid_refinement_area', 'the_geom'),
+            ('v2_impervious_surface', 'the_geom'),
+            ('v2_initial_waterlevel', 'the_geom'),
+            ('v2_levee', 'the_geom'),
+            ('v2_obstacle', 'the_geom'),
+            ('v2_outlet', 'the_geom'),
+            ('v2_pumped_drainage_area', 'the_geom'),
+            ('v2_surface', 'the_geom'),
+            ('v2_windshielding', 'the_geom'),
+            ]
+
+        # disable_spatial_index() takes some time (all tables in 10sec) which
+        # is too long for user if no progress bar or-the-like is shown
+        nr_tbls = len(disable_view_v2_tables)
+        progress_bar = StatusProgressBar(nr_tbls, 'prepare schematisation')
+
+        for (tbl, geom_column) in disable_view_v2_tables:
+            self.disable_spatial_index(tbl, geom_column)
+            progress_bar.increase_progress(1, '')
+
         all_tables = self.engine.table_names()  # gets current existing tables
         idx_v2_tables = [tbl for tbl in all_tables if
                          'idx_' in tbl and 'v2_' in tbl]
@@ -154,8 +224,6 @@ class ThreediDatabase(object):
         self.run_vacuum()
 
     def delete_from(self, table_name):
-        """
-        """
         del_statement = """DELETE FROM {}""".format(table_name)
 
         # runs a transaction
@@ -203,6 +271,19 @@ class ThreediDatabase(object):
             with self.engine.begin() as connection:
                 result = connection.execute(text(select_statement))
                 return bool(result.fetchone()[0])
+
+    def disable_spatial_index(self, table_name, geom_column):
+        """
+        recover the spatial index for the given table with the given
+        geometry column
+        :returns True when recovery was successful, False otherwise
+        """
+        if self.db_type == 'spatialite':
+            select_statement = """
+               SELECT DisableSpatialIndex('{table_name}', '{geom_column}');
+            """.format(table_name=table_name, geom_column=geom_column)
+            with self.engine.begin() as connection:
+                connection.execute(text(select_statement))
 
     def drop_idx_table_if_exists(self, idx_name):
         if self.db_type == 'spatialite':
