@@ -273,11 +273,6 @@ class ThreediDatabase(object):
                 return bool(result.fetchone()[0])
 
     def disable_spatial_index(self, table_name, geom_column):
-        """
-        recover the spatial index for the given table with the given
-        geometry column
-        :returns True when recovery was successful, False otherwise
-        """
         if self.db_type == 'spatialite':
             select_statement = """
                SELECT DisableSpatialIndex('{table_name}', '{geom_column}');
