@@ -19,6 +19,7 @@ Base = declarative_base()
 
 log = logging.getLogger(__name__)
 
+
 def load_spatialite(con, connection_record):
     '''Load spatialite extension as described in
     https://geoalchemy-2.readthedocs.io/en/latest/spatialite_tutorial.html'''
@@ -182,7 +183,6 @@ class ThreediDatabase(object):
         3. VACUUM spatialite to clean up spatialite
         """
 
-        # v2_tables = [tbl for tbl in all_tables if 'idx_' not in tbl and 'v2_' in tbl]
         disable_view_v2_tables = [
             ('v2_2d_boundary_conditions', 'the_geom'),
             ('v2_2d_lateral', 'the_geom'),
@@ -300,6 +300,7 @@ class ThreediDatabase(object):
             statement = """VACUUM;"""
             with self.engine.begin() as connection:
                 connection.execute(text(statement))
+
 
 def get_databases():
     d = {}
