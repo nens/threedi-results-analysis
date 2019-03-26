@@ -235,12 +235,23 @@ class MapAnimator(QWidget):
             os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
-        QgsProject.instance().addMapLayer(self.line_layer, True)
-        QgsProject.instance().addMapLayer(
-            self.line_layer_groundwater, True)
-        QgsProject.instance().addMapLayer(self.node_layer, True)
-        QgsProject.instance().addMapLayer(
-            self.node_layer_groundwater, True)
+        root = QgsProject.instance().layerTreeRoot()
+
+        animation_group_name = 'animation_layers'
+        animation_group = root.findGroup(animation_group_name)
+        if animation_group is None:
+            animation_group = root.insertGroup(0, animation_group_name)
+        animation_group.removeAllChildren()
+
+        QgsProject.instance().addMapLayer(self.line_layer, False)
+        QgsProject.instance().addMapLayer(self.line_layer_groundwater, False)
+        QgsProject.instance().addMapLayer(self.node_layer, False)
+        QgsProject.instance().addMapLayer(self.node_layer_groundwater, False)
+
+        animation_group.insertLayer(0, self.line_layer)
+        animation_group.insertLayer(1, self.line_layer_groundwater)
+        animation_group.insertLayer(2, self.node_layer)
+        animation_group.insertLayer(3, self.node_layer_groundwater)
 
     def update_results(self):
         if not self.state:
