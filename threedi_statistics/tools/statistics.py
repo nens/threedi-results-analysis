@@ -21,8 +21,6 @@ from ..sql_models.statistics import (
     PumplineStats, StatSource)
 from ..utils.statistics_database import StaticsticsDatabase
 
-from qgis.PyQt.QtWidgets import QMessageBox
-
 log = logging.getLogger(__name__)
 
 
@@ -134,7 +132,6 @@ class StatisticsTool(object):
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-
         pass
 
     def get_modeldb_session(self):
@@ -177,16 +174,8 @@ class StatisticsTool(object):
             'db_path': self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/')
         }
 
-        # call one of the sqlalchemy models first to detect mis configurations
-        # fls = FlowlineStats()
-
         self.db = StaticsticsDatabase(db_set, db_type)
         self.db_meta = self.db.get_metadata()
-
-        if (not self.has_mod_views() and not test and
-                pop_up_question('Do you want to add views to the model database?',
-                                'Add views?', )):
-            self.add_modeldb_views()
 
         if test:
             calculate_stats = False
@@ -249,79 +238,6 @@ class StatisticsTool(object):
         table = self.db.get_metadata().tables['geometry_columns']
         return res_session.query(table).filter(
             table.c.f_table_name == 'pump_stats_view').count() != 0
-
-    def add_modeldb_views(self):
-
-        mod_session = self.get_modeldb_session()
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_pumpstation_point_view AS
-                SELECT a.ROWID AS ROWID, a.id AS pump_id, a.display_name, a.code, a.classification, a.sewerage, 
-                a.start_level, a.lower_stop_level, 
-                       a.upper_stop_level, a.capacity, a.zoom_category, a.connection_node_start_id, 
-                       a.connection_node_end_id, a.type, b.id AS connection_node_id, b.storage_area, b.the_geom
-                FROM v2_pumpstation a JOIN v2_connection_nodes b ON a.connection_node_start_id = b.id;
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_pumpstation_point_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_pumpstation_point_view', 'the_geom', 'connection_node_start_id', 'v2_connection_nodes', 'the_geom');         
-            """)
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_1d_lateral_view AS
-                SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS connection_node_id, 
-                  a.timeseries AS timeseries, b.the_geom 
-                FROM v2_1d_lateral a 
-                JOIN v2_connection_nodes b ON a.connection_node_id = b.id;
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_1d_lateral_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_1d_lateral_view', 'the_geom', 'connection_node_id', 'v2_connection_nodes', 'the_geom');
-            """)
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_1d_boundary_conditions_view AS
-                SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS connection_node_id, 
-                  a.boundary_type AS boundary_type, a.timeseries AS timeseries, b.the_geom 
-                FROM v2_1d_boundary_conditions a 
-                JOIN v2_connection_nodes b ON a.connection_node_id = b.id;           
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_1d_boundary_conditions_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_1d_boundary_conditions_view', 'the_geom', 'connection_node_id', 'v2_connection_nodes', 'the_geom');
-            """)
-
-        mod_session.commit()
 
     def get_manhole_attributes_and_statistics(self):
         """read manhole information from model spatialite and put in manhole statistic table"""
