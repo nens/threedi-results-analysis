@@ -1020,8 +1020,8 @@ class WaterBalanceWidget(QDockWidget):
             '2D boundary flow': ['2d_bound'],
             '1D flow': ['1d'],
             '1D boundary flow': ['1d_bound'],
-            '2D to 1D flow (domain exchange)': ['1d_2d_exch'],
-            '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
+            '2D flow to 1D (domain exchange)': ['1d_2d_exch'],
+            '2D flow to 1D': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
             # TODO: 'pumps_hoover' is a magic string that we ad-hoc created
             # in the 'prepare_and_visualize_selection' function.
             # A better solution would be nice...
@@ -1032,10 +1032,10 @@ class WaterBalanceWidget(QDockWidget):
                 '2d_vertical_infiltration_neg'],
         }
         NAME_TO_LINE_TYPES_SHOW_MAIN_FLOW = {
-            '2D flow': ['2d', '2d_bound', '2d__1d_2d_flow'],
-            '1D flow': ['1d', 'pumps_hoover', '1d_bound', '1d__1d_2d_flow'],
-            '2D to 1D flow': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
-            '2D to 1D flow (domain exchange)': ['1d_2d_exch'],
+            '2D flow': ['2d', '2d_bound'],
+            '1D flow': ['1d', 'pumps_hoover', '1d_bound'],
+            '2D flow to 1D': ['1d__1d_2d_flow', '2d__1d_2d_flow'],
+            '2D flow to 1D (domain exchange)': ['1d_2d_exch'],
             'groundwater flow': ['2d_groundwater'],
         }
         NAME_TO_NODE_TYPES = {

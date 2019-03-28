@@ -2,16 +2,30 @@ ThreeDiToolBox changelog
 ========================
 
 
+1.10 (unreleased)
+----------------
+
+- Cleaned up old docker-files (now only QGIS3.4.5) and pinned GeoAlchemy2 and
+  updated docker readme.rst
+
+- Fixed waterbalance tool rubberbands for 1d2d flow
+
+- Grouped the 4 animation layers
+
+- Fixed views model schematisation and statistics tool
+
+
+
 1.9 (2019-03-04)
 ----------------
 
-- fixed sideview bug point no geometry
+- Fixed sideview bug point no geometry
 
 
 1.8 (2019-02-28)
 ----------------
 
-- updated external h5py library (build h5py lib against hdf5 1.10.4-1 (instead
+- Updated external h5py library (build h5py lib against hdf5 1.10.4-1 (instead
   of hdf5 1.8.11-2)
 
 
