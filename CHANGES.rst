@@ -2,8 +2,14 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.10 (unreleased)
-----------------
+1.11 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
+1.10 (2019-03-28)
+--------------
 
 - Cleaned up old docker-files (now only QGIS3.4.5) and pinned GeoAlchemy2 and
   updated docker readme.rst
@@ -14,6 +20,7 @@ ThreeDiToolBox changelog
 
 - Fixed views model schematisation and statistics tool
 
+- Fix guess_indicator postgres fields username and password
 
 
 1.9 (2019-03-04)
