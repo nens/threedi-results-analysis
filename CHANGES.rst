@@ -2,8 +2,8 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.10 (unreleased)
-----------------
+1.10 (2019-03-28)
+--------------
 
 - Cleaned up old docker-files (now only QGIS3.4.5) and pinned GeoAlchemy2 and
   updated docker readme.rst
