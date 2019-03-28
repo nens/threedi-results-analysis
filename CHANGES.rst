@@ -14,6 +14,7 @@ ThreeDiToolBox changelog
 
 - Fixed views model schematisation and statistics tool
 
+- Fix guess_indicator postgres fields username and password
 
 
 1.9 (2019-03-04)
