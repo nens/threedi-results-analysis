@@ -46,7 +46,8 @@ RUN apt-get -y update \
         python3-pip \
         gdal-bin \
         qgis \
-        python-qgis \
+        # python3-qgis-common \
+        python3-qgis \
         qgis-provider-grass \
         grass \
         pyqt5-dev-tools \
