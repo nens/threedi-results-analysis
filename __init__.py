@@ -39,9 +39,9 @@ sys.path.insert(
 try:
     import sqlalchemy  # noqa
     import geoalchemy2  # noqa
-except ImportError, e:
+except ImportError as e:
     pop_up_info("Error loading sqlalchemy or geoalchemy2 from "
-                "'external' subdirectory. error %s" % e.message)
+                "'external' subdirectory. error %s" % e)
 
 try:
     import pyqtgraph  # noqa
@@ -57,9 +57,9 @@ except Exception:
 
 try:
     import lizard_connector  # noqa
-except ImportError, e:
+except ImportError as e:
     pop_up_info("Error loading lizard_connector from "
-                "'external' subdirectory. error %s" % e.message)
+                "'external' subdirectory. error %s" % e)
 
 try:
     # Note: we're not importing it directly using the import statement because
@@ -129,7 +129,7 @@ try:
     imp.find_module('threedigrid')  # noqa
 except ImportError as e:
     pop_up_info("Error loading threedigrid from "
-                "'external' subdirectory. error %s" % e.message)
+                "'external' subdirectory. error %s" % e)
 
 
 # noinspection PyPep8Naming

@@ -1,8 +1,12 @@
+from builtins import str
+from builtins import range
 from collections import OrderedDict
 import logging
 
+import numpy as np
 from osgeo import ogr, osr
-from qgis.core import QGis
+from qgis.core import Qgis, QgsWkbTypes
+
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter
 from threedigrid.admin.utils import KCUDescriptor
@@ -96,7 +100,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBPoint, fields=self.TABLE_FIELDS,
+            layer_name, wkb_type=QgsWkbTypes.Point, fields=self.TABLE_FIELDS,
             id_field='id', geom_field='the_geom', srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
@@ -107,7 +111,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         _definition = layer.GetLayerDefn()
 
         layer.StartTransaction()
-        for i in xrange(node_data['id'].size):
+        for i in range(node_data['id'].size):
             point = ogr.Geometry(ogr.wkbPoint)
             point.AddPoint_2D(
                 node_data['coordinates'][0][i],
@@ -116,7 +120,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
-            for field_name, field_type in self.QGIS_NODE_FIELDS.iteritems():
+            for field_name, field_type in self.QGIS_NODE_FIELDS.items():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     raw_value = node_data[fname][i]
@@ -180,12 +184,12 @@ class QgisKCUDescriptor(KCUDescriptor):
         return self.__getitem__(item)
 
     def values(self):
-        v = self._descr.values()
+        v = list(self._descr.values())
         v.extend(['2d_bound', '2d_groundwater_bound'])
         return v
 
     def keys(self):
-        k = self._descr.keys()
+        k = list(self._descr.keys())
         k += self.bound_keys_2d
         k += self.bound_keys_groundwater
         return k
@@ -273,8 +277,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
-            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+            layer_name, wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
+            srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -286,7 +291,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         node_a = line_data['line'][0]
         node_b = line_data['line'][1]
         layer.StartTransaction()
-        for i in xrange(node_a.size):
+        for i in range(node_a.size):
             line = ogr.Geometry(ogr.wkbLineString)
             line.AddPoint_2D(line_data['line_coords'][0][i],
                              line_data['line_coords'][1][i])
@@ -302,7 +307,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
-            for field_name, field_type in self.LINE_FIELDS.iteritems():
+            for field_name, field_type in self.LINE_FIELDS.items():
                 fname = self.LINE_FIELD_NAME_MAP[field_name]
                 if field_name == 'type':
                     value = None  # if all fails
@@ -320,8 +325,13 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                         cont_type_raw_value = None
 
                     if cont_type_raw_value:
-                        value = \
-                            TYPE_FUNC_MAP[field_type](cont_type_raw_value)
+                        if type(cont_type_raw_value) is np.bytes_:
+                            value = TYPE_FUNC_MAP[field_type](
+                                cont_type_raw_value,
+                                encoding='utf-8')
+                        else:
+                            value = TYPE_FUNC_MAP[field_type](
+                                cont_type_raw_value)
                     else:
                         try:
                             value = str(kcu_dict[int(line_data['kcu'][i])])
@@ -334,7 +344,11 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 else:
                     try:
                         raw_value = line_data[fname][i]
-                        value = TYPE_FUNC_MAP[field_type](raw_value)
+                        if type(raw_value) is np.bytes_:
+                            value = TYPE_FUNC_MAP[field_type](raw_value,
+                                                              encoding='utf-8')
+                        else:
+                            value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
                         logger.debug(
                             "Error getting index %s from %s array", i, fname)
@@ -399,8 +413,9 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QGis.WKBLineString, fields=self.TABLE_FIELDS,
-            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+            layer_name, wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
+            srid=target_epsg_code)
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -410,24 +425,36 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         _definition = layer.GetLayerDefn()
 
         layer.StartTransaction()
-        for i in xrange(pump_data['id'].size):
+        for i in range(pump_data['id'].size):
             line = ogr.Geometry(ogr.wkbLineString)
             node1_id = pump_data['node1_id'][i]
             node2_id = pump_data['node2_id'][i]
 
+            if node1_id == -9999:
+                raise AssertionError('start_node has not-null constraint')
+
             for node_id in [node1_id, node2_id]:
-                try:
-                    line.AddPoint_2D(
-                        self.node_data['coordinates'][0][node_id],
-                        self.node_data['coordinates'][1][node_id],
-                    )
-                except IndexError:
-                    logger.debug("Invalid node id: %s" % node_id)
+                if node_id == -9999:
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data['coordinates'][0][node1_id] + 5,
+                            self.node_data['coordinates'][1][node1_id] + 5,
+                        )
+                    except IndexError:
+                        logger.debug("Invalid node id: %s" % node_id)
+                else:
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data['coordinates'][0][node_id],
+                            self.node_data['coordinates'][1][node_id],
+                        )
+                    except IndexError:
+                        logger.debug("Invalid node id: %s" % node_id)
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
-            for field_name, field_type in self.FIELDS.iteritems():
+            for field_name, field_type in self.FIELDS.items():
                 fname = self.FIELD_NAME_MAP[field_name]
                 raw_value = pump_data[fname][i]
                 value = TYPE_FUNC_MAP[field_type](raw_value)

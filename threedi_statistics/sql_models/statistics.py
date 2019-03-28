@@ -35,7 +35,9 @@ class Flowline(Base):
     end_node_idx = Column(Integer, nullable=False)
     the_geom = Column(Geometry(geometry_type='LINESTRING',
                                srid=4326,
-                               spatial_index=True),
+                               spatial_index=True,
+                               management=True,
+                               use_st_prefix=False),
                       nullable=False)
 
     stats = relationship("FlowlineStats",
@@ -164,7 +166,9 @@ class Node(Base):
     type = Column(String(25))
     the_geom = Column(Geometry(geometry_type='POINT',
                                srid=4326,
-                               spatial_index=True),
+                               spatial_index=True,
+                               management=True,
+                               use_st_prefix=False),
                       nullable=False)
 
     manhole_stats = relationship("ManholeStats",
@@ -215,10 +219,14 @@ class Pumpline(Base):
     node_idx1 = Column(Integer, nullable=False)
     node_idx2 = Column(Integer, nullable=True)
 
-    the_geom = Column(Geometry(geometry_type='LINESTRING',
-                               srid=4326,
-                               spatial_index=True),
-                      nullable=False)
+    the_geom = Column(
+        Geometry(
+            geometry_type='LINESTRING',
+            srid=4326,
+            spatial_index=True,
+            management=True,
+            use_st_prefix=False),
+        nullable=False)
 
     pumpline_stats = relationship("PumplineStats",
                                   uselist=False,

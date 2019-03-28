@@ -1,7 +1,9 @@
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QColor, QCursor
+from builtins import object
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor, QCursor
 
-from qgis.core import QGis, QgsGeometry
+from qgis.core import QgsGeometry
+from qgis.core import QgsWkbTypes
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
 
 RGBA = 255, 0, 0
@@ -21,7 +23,7 @@ class SelectionVisualisation(object):
         self.points = []
 
     def _get_rubberband(self):
-        rb_line = QgsRubberBand(self.canvas, QGis.Line)
+        rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
         rb_line.setColor(self.color)
         rb_line.setLineStyle(Qt.DotLine)
         rb_line.setWidth(3)
@@ -29,7 +31,7 @@ class SelectionVisualisation(object):
 
     def show(self):
         # visualize lines
-        multiline = QgsGeometry().fromMultiPolyline(self.lines)
+        multiline = QgsGeometry().fromMultiPolylineXY(self.lines)
         self.rb_line.setToGeometry(multiline, None)
         # visualize points
         for p in self.points:
@@ -41,7 +43,7 @@ class SelectionVisualisation(object):
             self.vertex_markers.append(marker)
 
     def reset(self):
-        self.rb_line.reset(QGis.Line)
+        self.rb_line.reset(QgsWkbTypes.LineGeometry)
         for m in self.vertex_markers:
             m.setVisible(False)
             # rubber bands are owned by the canvas, so we must explictly
@@ -72,7 +74,7 @@ class PolygonDrawMapVisualisation(object):
         self.points = []
 
         # temp layer for side profile trac
-        self.rb = QgsRubberBand(self.canvas, QGis.Polygon)
+        self.rb = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
         self.rb.setColor(Qt.red)
         self.rb.setFillColor(QColor(255, 0, 0, 64))
         self.rb.setLineStyle(Qt.SolidLine)
@@ -98,7 +100,7 @@ class PolygonDrawMapVisualisation(object):
 
     def reset(self):
         self.points = []
-        self.rb.reset(QGis.Polygon)
+        self.rb.reset(QgsWkbTypes.PolygonGeometry)
 
 
 class PolygonDrawTool(QgsMapTool):

@@ -22,11 +22,11 @@ import six
 
 import numpy as np
 
-from .common import ut, TestCase
+from ..common import ut, TestCase
 
 import h5py
 from h5py import h5s, h5t, h5d
-from h5py.highlevel import File
+from h5py import File
 
 class BaseSlicing(TestCase):
 
@@ -80,7 +80,7 @@ class TestSingleElement(BaseSlicing):
 class TestObjectIndex(BaseSlicing):
 
     """
-        Feauture: numpy.object_ subtypes map to real Python objects
+        Feature: numpy.object_ subtypes map to real Python objects
     """
 
     def test_reference(self):
@@ -140,6 +140,16 @@ class TestSimpleSlicing(TestCase):
     def test_negative_stop(self):
         """ Negative stop indexes work as they do in NumPy """
         self.assertArrayEqual(self.dset[2:-2], self.arr[2:-2])
+
+    def test_write(self):
+        """Assigning to a 1D slice of a 2D dataset
+        """
+        dset = self.f.create_dataset('x2', (10, 2))
+
+        x = np.zeros((10, 1))
+        dset[:, 0] = x[:, 0]
+        with self.assertRaises(TypeError):
+            dset[:, 1] = x
 
 class TestArraySlicing(BaseSlicing):
 
@@ -284,15 +294,15 @@ class TestFieldNames(BaseSlicing):
         if six.PY2:
             # Byte strings are only allowed for field names on Py2
             self.assertArrayEqual(self.dset[b'a'], self.data['a'])
-        self.assertArrayEqual(self.dset[six.u('a')], self.data['a'])
+        self.assertArrayEqual(self.dset[u'a'], self.data['a'])
 
     def test_unicode_names(self):
         """ Unicode field names for for read and write """
-        self.assertArrayEqual(self.dset[six.u('a')], self.data['a'])
-        self.dset[six.u('a')] = 42
+        self.assertArrayEqual(self.dset[u'a'], self.data['a'])
+        self.dset[u'a'] = 42
         data = self.data.copy()
         data['a'] = 42
-        self.assertArrayEqual(self.dset[six.u('a')], data['a'])
+        self.assertArrayEqual(self.dset[u'a'], data['a'])
 
     def test_write(self):
         """ Test write with field selections """

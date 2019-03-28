@@ -1,6 +1,9 @@
-from PyQt4.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
+from __future__ import absolute_import
+from builtins import range
+from builtins import object
+from qgis.PyQt.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
 import inspect
-from base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
+from .base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
 
 
 class BaseModelItem(object):
@@ -12,7 +15,7 @@ class BaseModelItem(object):
 
         for field_name, field_class in self._fields:
             value = None
-            if field_name in kwargs.keys():
+            if field_name in list(kwargs.keys()):
                 value = kwargs[field_name]
 
             setattr(self, field_name,

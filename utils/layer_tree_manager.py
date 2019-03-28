@@ -1,8 +1,15 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
 import os.path
 
 from qgis.core import (
-    QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer,
-    QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform)
+    QgsProject, QgsDataSourceUri, QgsVectorLayer,
+    QgsRectangle, QgsLayerTreeNode, QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem)
+
+from ..utils.user_messages import pop_up_question
 from . import styler
 from .threedi_database import ThreediDatabase
 
@@ -66,7 +73,7 @@ class LayerTreeManager(object):
         self.model.model_schematisation_change.connect(
             self._on_set_schematisation)
         # self.model.dataChanged.connect(self.on_change)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_results)
+        # self.model.rowsAboutToBeRemoved.connect(self.remove_results)
         self.model.rowsInserted.connect(self.add_results)
         self.init_references_from_layer_tree()
 
@@ -77,19 +84,19 @@ class LayerTreeManager(object):
     @model_layergroup.setter
     def model_layergroup(self, value):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = value
         if isinstance(value, QgsLayerTreeNode):
-            self._model_layergroup.destroyed.connect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.connect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = True
 
     def _on_delete_model_layergroup(self):
         if self._model_layergroup_connected:
-            self._model_layergroup.destroyed.disconnect(
-                self._on_delete_model_layergroup)
+            # self._model_layergroup.destroyed.disconnect(
+            #     self._on_delete_model_layergroup)
             self._model_layergroup_connected = False
         self._model_layergroup = None
 
@@ -116,7 +123,7 @@ class LayerTreeManager(object):
             return None
 
         for node in tree_node.children():
-            if node.customProperty('legend/3di_tracer') == unicode(marker):
+            if node.customProperty('legend/3di_tracer') == str(marker):
                 return node
         return None
 
@@ -126,7 +133,7 @@ class LayerTreeManager(object):
         if display_name is None:
             display_name = layer_name
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setDatabase(db_path)
         uri.setDataSource('', layer_name, geometry_column)
         return QgsVectorLayer(uri.uri(), display_name, provider_type)
@@ -154,6 +161,7 @@ class LayerTreeManager(object):
 
         Returns: None
         """
+
         self.init_references_from_layer_tree()
 
         tracer = dict([(ref, ident) for ident, ref in self.tracer_mapping])
@@ -171,6 +179,7 @@ class LayerTreeManager(object):
 
         # adjust spatialite for correct visualization of layers
         threedi_db = ThreediDatabase({'db_path': filename})
+        threedi_db.create_views()
         threedi_db.fix_views()
 
         if self.model_layergroup is None:
@@ -223,14 +232,21 @@ class LayerTreeManager(object):
         # zoom to model extent:
         extent = QgsRectangle()
         extent.setMinimal()
+
+        tree_layer = None
         for tree_layer in self.schematisation_layergroup.findLayers():
             extent.combineExtentWith(tree_layer.layer().extent())
 
         extent.scale(1.1)
 
+        if not tree_layer:
+            return
+
         transform = QgsCoordinateTransform(
             tree_layer.layer().crs(),
-            self.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance()
+        )
 
         self.iface.mapCanvas().setExtent(transform.transform(extent))
 
@@ -238,59 +254,44 @@ class LayerTreeManager(object):
 
     def _add_model_schematisation_layers(self, threedi_spatialite):
         """Assumes that the group layers are available
+        tables can be distinguished by having a geometry or not.
+        First handle all tables with geometry"""
 
-        Args:
-            threedi_spatialite:
-        """
-        # settings_layers = ['v2_global_settings', # no geom
-        #             'v2_aggregation_settings', # no geom
-        #             'v2_interflow', # no geom
-        #             'v2_simmple_infiltration', # no geom
-        #             'v2_groundwater', # no geom
-        #             ]
+        # First, handle all tables with geometry
+
         settings_layers = []
-        boundary_condition_layers = [  # 'v2_1d_boundary_conditions', # no geom
-                                     'v2_2d_boundary_conditions',
-                                     ]
-        lateral_layers = ['v2_1d_lateral',
-                          'v2_2d_lateral',
-                          ]
+
+        boundary_condition_layers = ['v2_1d_boundary_conditions_view',
+                                     'v2_2d_boundary_conditions']
+
+        lateral_layers = ['v2_1d_lateral_view',
+                          'v2_2d_lateral']
+
         oned_layers = ['v2_connection_nodes',
                        'v2_manhole_view',
                        'v2_cross_section_location',
                        'v2_pumpstation_view',
+                       'v2_pumpstation_point_view',
                        'v2_weir_view',
                        'v2_culvert_view',
                        'v2_orifice_view',
                        'v2_pipe_view',
-                       'v2_culvert',
-                       'v2_channel',
-                       ]
-        # additional_oned_layers = ['v2_manhole', # no geom
-        #                           'v2_cross_section_definition', # no geom
-        #                           'v2_orifice', # no geom
-        #                           'v2_pumpstation', # no geom
-        #                           'v2_weir', # no geom
-        #                           'v2_windshielding', # no geom
-        #                           ]
+                       'v2_culvert',  # yes.. this table has its own geom
+                       'v2_channel']  # yes.. this table has its own geom
+
         additional_oned_layers = []
+
         obstacle_layers = ['v2_obstacle',
-                           'v2_levee',
-                           ]
+                           'v2_levee']
+
         grid_refinement_layers = ['v2_grid_refinement',
-                                  'v2_grid_refinement_area'
-                                  ]
+                                  'v2_grid_refinement_area']
 
         inflow_imp_surface_layers = ['v2_impervious_surface']
 
-        inflow_surface_layers = ['v2_surface'
-                                 # 'v2_surface_map',  no geom
-                                 # 'v2_surface_parameters',  no geom
-                                 ]
+        inflow_surface_layers = ['v2_surface']
 
-        advanced_numerics_layers = [  # 'v2_numerical_settings', # no geom
-                                    'v2_dem_average_area',
-                                    ]
+        advanced_numerics_layers = ['v2_dem_average_area']
 
         # little bit administration: get all the groups
         settings_group = self.schematisation_layergroup.findGroup(
@@ -337,13 +338,12 @@ class LayerTreeManager(object):
                                                  geometry_column='the_geom')
 
                 if vector_layer.isValid():
-                    styler.apply_style(vector_layer, layer_name,
-                                       'schematisation')
-                    QgsMapLayerRegistry.instance().addMapLayer(vector_layer,
-                                                               False)
+                    styler.apply_style(
+                        vector_layer, layer_name, 'schematisation')
+                    QgsProject.instance().addMapLayer(vector_layer, False)
                     group.insertLayer(100, vector_layer)
 
-        # tables without geometry
+        # Secondly, handle tables without geometry
         tables = [(settings_group, 'v2_groundwater'),
                   (settings_group, 'v2_simmple_infiltration'),
                   (settings_group, 'v2_interflow'),
@@ -357,6 +357,7 @@ class LayerTreeManager(object):
                   (additional_oned_group, 'v2_manhole'),
                   (additional_oned_group, 'v2_orifice'),
                   (additional_oned_group, 'v2_weir'),
+                  (additional_oned_group, 'v2_pipe'),
                   (advanced_settings_group, 'v2_numerical_settings'),
                   (inflow_surface_subgroup, 'v2_surface_map'),
                   (inflow_surface_subgroup, 'v2_surface_parameters'),
@@ -368,7 +369,7 @@ class LayerTreeManager(object):
             table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
-                QgsMapLayerRegistry.instance().addMapLayer(table_layer, False)
+                QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
 
     def add_results(self, index, start_row, stop_row):
@@ -399,7 +400,7 @@ class LayerTreeManager(object):
                         os.path.dirname(os.path.realpath(__file__)),
                         os.path.pardir, 'layer_styles', 'tools', 'nodes.qml'))
 
-                    QgsMapLayerRegistry.instance().addMapLayers(
+                    QgsProject.instance().addMapLayers(
                         [line, node, pumpline], False)
 
                     tree_layer = group.insertLayer(0, line)

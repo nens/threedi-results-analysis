@@ -20,14 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
+from builtins import range
+from builtins import object
 import os.path
-from PyQt4.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 import qgis
 
-from views.sideview import SideViewDockWidget
+from .views.sideview import SideViewDockWidget
 
 
-class ThreeDiSideView:
+class ThreeDiSideView(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, tdi_root_tool):

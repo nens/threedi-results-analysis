@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 from collections import namedtuple
 import glob
 from itertools import (starmap, product)
@@ -29,6 +31,7 @@ CUMULATIVE_AGGREGATION_UNITS = {
     'su': '',
     'au': '',
     'intercepted_volume': 'm3',
+    'q_sss': 'm3',
 }
 
 
@@ -55,6 +58,7 @@ INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple',
 WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
 LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
 INTERCEPTION = NcVar('intercepted_volume', 'intercepted volume', 'm3')
+SOURCES_AND_SINKS = NcVar('q_sss', 'sources and sinks', 'm3/s')
 
 _Q_TYPES = [
     DISCHARGE,
@@ -74,7 +78,8 @@ _H_TYPES = [
     DISCHARGE_LATERAL,
     INFILTRATION_RATE_SIMPLE,
     LEAKAGE_RATE,
-    INTERCEPTION
+    INTERCEPTION,
+    SOURCES_AND_SINKS
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -100,6 +105,7 @@ AGGREGATION_VARIABLES = [
     WET_CROSS_SECTION_AREA,
     LEAKAGE_RATE,
     INTERCEPTION,
+    SOURCES_AND_SINKS,
 ]
 
 AGGREGATION_OPTIONS = {
@@ -142,7 +148,7 @@ layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
 
 def normalized_object_type(current_layer_name):
     """Get a normalized object type for internal purposes."""
-    if current_layer_name in layer_object_type_mapping.keys():
+    if current_layer_name in list(layer_object_type_mapping.keys()):
         return layer_object_type_mapping[current_layer_name]
     else:
         msg = "Unsupported layer: %s." % current_layer_name
@@ -232,9 +238,6 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf-groundwater'
 
     """
-    # first detect netcdf file format
-    # then detect netcdf file format
-
     import h5py
     try:
         dataset = h5py.File(netcdf_file_path, mode='r')
@@ -359,6 +362,7 @@ class NetcdfDataSource(BaseDataSource):
         # libraries because importing them will cause files to be held open
         # which cause trouble when updating the plugin. Therefore we delay
         # the import as much as possible.
+
         from netCDF4 import Dataset
 
         self.file_path = file_path
@@ -485,13 +489,13 @@ class NetcdfDataSource(BaseDataSource):
         if do_all or only_subgrid_map:
             possible_subgrid_map_vars = [v for v, _, _ in
                                          SUBGRID_MAP_VARIABLES]
-            subgrid_map_vars = self.ds.variables.keys()
+            subgrid_map_vars = list(self.ds.variables.keys())
             available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
                                           if v in subgrid_map_vars]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
             if self.ds_aggregation is not None:
-                agg_vars = self.ds_aggregation.variables.keys()
+                agg_vars = list(self.ds_aggregation.variables.keys())
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
                                       agg_vars]
                 available_vars += available_agg_vars
@@ -650,7 +654,7 @@ class NetcdfDataSource(BaseDataSource):
         n_object_type = normalized_object_type(object_type)
 
         # Derive the netcdf id
-        netcdf_ids = range(len(object_ids))  # init a list
+        netcdf_ids = list(range(len(object_ids)))  # init a list
         for i, obj_id in enumerate(object_ids):
             netcdf_ids[i] = self.obj_to_netcdf_id(obj_id, n_object_type)
         # netcdf_id = self.obj_to_netcdf_id(object_id, n_object_type)

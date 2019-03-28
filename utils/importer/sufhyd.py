@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 import logging
 
 from ...sql_models.constants import Constants
-from turtleurbanclasses import HydroObjectFactory
+from .turtleurbanclasses import HydroObjectFactory
 
 
 logger = logging.getLogger(__name__)
@@ -177,7 +181,7 @@ class SufhydReader(object):
             'impervious_surface_maps': [],
         }
 
-        unused_fields = {key: dict() for key in function_mapping.keys()}
+        unused_fields = {key: dict() for key in list(function_mapping.keys())}
 
         for obj in self.get_hydro_objects():
             if hasattr(obj, 'ide_rec'):

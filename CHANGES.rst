@@ -2,8 +2,43 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.7 (unreleased)
+1.10 (unreleased)
 ----------------
+
+- Cleaned up old docker-files (now only QGIS3.4.5) and pinned GeoAlchemy2 and
+  updated docker readme.rst
+
+- Fixed waterbalance tool rubberbands for 1d2d flow
+
+- Grouped the 4 animation layers
+
+- Fixed views model schematisation and statistics tool
+
+
+
+1.9 (2019-03-04)
+----------------
+
+- Fixed sideview bug point no geometry
+
+
+1.8 (2019-02-28)
+----------------
+
+- Updated external h5py library (build h5py lib against hdf5 1.10.4-1 (instead
+  of hdf5 1.8.11-2)
+
+
+1.7 (2019-02-28)
+----------------
+
+- Updated ThreediToolbox to Qgis3 (python3 and qt5).
+
+- Display pumplines without connection_node_end just for 5 meters
+
+- QGIS3 can only handle netcdf-groundwater results (created after March 2018)
+
+- Added a new tool: raster checker (added to commands.tools.step1)
 
 - Waterbalance tool now correctly checks whether rain has been aplied to
   simulation
@@ -11,6 +46,25 @@ ThreeDiToolBox changelog
 - Get rid of NetCDF4 lib
 
 - Add v2_culvert to layer_tree_manager
+
+- Added surface sources and sinks (q_sss) to the datasource for the graph-tool
+  and animation-tool.
+
+- Added surface sources and sinks to the waterbalance.
+
+- Bumped threedigrid to 1.0.10.
+
+- ResultSelectionWidget now correctly downloads the selected result.
+
+- Removed matplotlib dependency used by the waterbalance barchart. The
+  waterbalance barchart now uses pyqtgraph.
+
+- Fixed bug reading in numpy.bytes as utf-8 strings.
+
+- Fixed bug in netcdf_groundwater not reading in correctly the aggregate
+  variable.
+
+- Changed UI of several popup-windows to make them better displayable.
 
 
 1.6 (2018-11-28)
@@ -27,6 +81,7 @@ ThreeDiToolBox changelog
 
 1.4 (2018-11-26)
 ----------------
+
 - Enable intercepted_volume through aggregation NetCDF
 
 - Upgrade threedigrid from 0.2.6 to 1.0.7 (current latest version)

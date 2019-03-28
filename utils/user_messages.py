@@ -1,5 +1,7 @@
+from __future__ import print_function
 # If you don't include this import the test 'test_set_and_load_list'
 # test_project will fail! WTF?
+from builtins import object
 from contextlib import contextmanager
 
 try:
@@ -7,8 +9,10 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import QMessageBox, QProgressBar
-from PyQt4.QtCore import Qt
+from qgis.PyQt.QtWidgets import QMessageBox, QProgressBar
+from qgis.PyQt.QtCore import Qt
+
+from qgis.core import Qgis
 
 try:
     from qgis.utils import iface
@@ -20,6 +24,7 @@ def log(msg, level='INFO'):
     """Shortcut for QgsMessageLog.logMessage function."""
     if level not in ['INFO', 'CRITICAL', 'WARNING']:
         level = 'INFO'
+    level = level[0] + level[1:].lower()
 
     try:
         from qgis.core import QgsMessageLog
@@ -27,10 +32,10 @@ def log(msg, level='INFO'):
         print(msg)
         return
 
-    loglevel = getattr(QgsMessageLog, level)
+    loglevel = getattr(Qgis, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
     if iface is None:
-        print msg
+        print(msg)
 
 
 def pop_up_info(msg='', title='Information', parent=None):
@@ -56,7 +61,7 @@ def messagebar_message(title, msg, level=None, duration=0):
     try:
         from qgis.gui import QgsMessageBar
         if not level:
-            level = QgsMessageBar.INFO
+            level = Qgis.Info
     except ImportError:
         print("%s: %s" % (title, msg))
 
@@ -92,7 +97,7 @@ class StatusProgressBar(object):
         self.message_bar.layout().addWidget(self.progress_bar)
         if iface is not None:
             iface.messageBar().pushWidget(
-                self.message_bar, iface.messageBar().INFO)
+                self.message_bar, Qgis.MessageLevel())
 
         self.step_size = 1
         self.progress = 0

@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
-import pyqtgraph as pg
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
-from PyQt4.QtGui import (
-    QTableView, QWidget, QVBoxLayout, QHBoxLayout,
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget,
-    QDockWidget, QComboBox, QMessageBox, QCheckBox)
+from builtins import str
+from builtins import range
 
-from qgis.core import (QgsDataSourceURI, QgsFeatureRequest, QGis,
-                       QgsCoordinateTransform, QgsCoordinateReferenceSystem)
+import pyqtgraph as pg
+
+from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
+from qgis.PyQt.QtWidgets import (QTableView, QWidget, QVBoxLayout, QHBoxLayout,
+                                 QSizePolicy, QPushButton, QSpacerItem,
+                                 QApplication, QTabWidget, QDockWidget,
+                                 QComboBox, QMessageBox, QCheckBox)
+from qgis.core import (QgsDataSourceUri, QgsFeatureRequest,
+                       QgsCoordinateTransform, QgsCoordinateReferenceSystem,
+                       QgsWkbTypes, QgsProject)
 from qgis.gui import (QgsVertexMarker, QgsRubberBand)
 
-from ..datasource.netcdf import (
-    layer_qh_type_mapping, normalized_object_type)
+from ..datasource.netcdf import (layer_qh_type_mapping, normalized_object_type)
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import log, statusbar_message, messagebar_message
-from ..datasource.netcdf import (
-    SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES, AGGREGATION_VARIABLES,
-)
-from ..datasource.netcdf import (
-    CUMULATIVE_AGGREGATION_UNITS)
+from ..datasource.netcdf import (SUBGRID_MAP_VARIABLES, Q_TYPES, H_TYPES,
+                                 AGGREGATION_VARIABLES,
+                                 CUMULATIVE_AGGREGATION_UNITS)
 
 
 def parse_aggvarname(aggvarname):
@@ -427,17 +428,24 @@ class LocationTimeseriesTable(QTableView):
 
     def setModel(self, model):
         super(LocationTimeseriesTable, self).setModel(model)
-
         self.model = model
-
+        # https://stackoverflow.com/questions/3433664/how-to-make-sure-
+        # columns-in-qtableview-are-resized-to-the-maximum
+        self.setVisible(False)
         self.resizeColumnsToContents()
+        self.setVisible(True)
         self.model.set_column_sizes_on_view(self)
+        # first two columns (checkbox, color) can be set small always
+        self.setColumnWidth(0, 20)  # checkbox
+        self.setColumnWidth(1, 20)  # color field
+        # 3rd column (id) can be wide (in case of high id)
+        # 4th column (name) can be wide (e.g. '2d_groundwater')
 
 
 class GraphWidget(QWidget):
 
-    def __init__(self, parent=None, ts_datasource=None,
-                 parameter_config=[], name="", geometry_type=QGis.WKBPoint):
+    def __init__(self, parent=None, ts_datasource=None, parameter_config=[],
+                 name="", geometry_type=QgsWkbTypes.Point):
         super(GraphWidget, self).__init__(parent)
 
         self.name = name
@@ -461,7 +469,7 @@ class GraphWidget(QWidget):
         # init parameter selection
         self.set_parameter_list(parameter_config)
 
-        if self.geometry_type == QGis.WKBPoint:
+        if self.geometry_type == QgsWkbTypes.Point:
             self.marker = QgsVertexMarker(self.parent.iface.mapCanvas())
         else:
             self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
@@ -483,8 +491,8 @@ class GraphWidget(QWidget):
             self.parameter_combo_box.setCurrentIndex(0)
 
         nr_parameters_tot = self.parameter_combo_box.count()
-        for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                                nr_parameters_tot)):
+        for i in reversed(list(range(nr_parameters_tot - nr_old_parameters,
+                                     nr_parameters_tot))):
             self.parameter_combo_box.removeItem(i)
 
         # self.graph_plot.set_parameter(self.current_parameter)
@@ -514,7 +522,8 @@ class GraphWidget(QWidget):
         # with QgsRubberband and/ or QgsVertexMarker
         transform = QgsCoordinateTransform(
             QgsCoordinateReferenceSystem(4326),
-            self.parent.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance())
 
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
@@ -526,7 +535,7 @@ class GraphWidget(QWidget):
                 request = QgsFeatureRequest().setFilterExpression(filt)
                 features = lyr.getFeatures(request)
                 for feature in features:
-                    if self.geometry_type == QGis.WKBPoint:
+                    if self.geometry_type == QgsWkbTypes.Point:
                         geom = feature.geometry()
                         geom.transform(transform)
                         self.marker.setCenter(geom.asPoint())
@@ -537,7 +546,7 @@ class GraphWidget(QWidget):
     def unhighlight_all_features(self):
         """Remove the highlights from all layers"""
 
-        if self.geometry_type == QGis.WKBPoint:
+        if self.geometry_type == QgsWkbTypes.Point:
             self.marker.setVisible(False)
         else:
             self.marker.reset()
@@ -580,7 +589,7 @@ class GraphWidget(QWidget):
             self.highlight_feature)
         self.location_timeseries_table.hoverExitAllRows.connect(
             self.unhighlight_all_features)
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
@@ -703,7 +712,7 @@ class GraphWidget(QWidget):
         # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
         # DS_152_1D_totaal_bergingsbak/results/
         # DS_152_1D_totaal_bergingsbak_result.sqlite'"
-        conn_info = QgsDataSourceURI(
+        conn_info = QgsDataSourceUri(
             layer.dataProvider().dataSourceUri()).connectionInfo()
         try:
             filename = conn_info.split("'")[1]
@@ -771,10 +780,10 @@ class GraphDockWidget(QDockWidget):
         # add graph widgets
         self.q_graph_widget = GraphWidget(self, self.ts_datasource,
                                           parameter_config['q'], "Q graph",
-                                          QGis.WKBLineString)
+                                          QgsWkbTypes.LineString)
         self.h_graph_widget = GraphWidget(self, self.ts_datasource,
                                           parameter_config['h'], "H graph",
-                                          QGis.WKBPoint)
+                                          QgsWkbTypes.Point)
         self.graphTabWidget.addTab(self.q_graph_widget,
                                    self.q_graph_widget.name)
         self.graphTabWidget.addTab(self.h_graph_widget,
@@ -867,7 +876,7 @@ class GraphDockWidget(QDockWidget):
         if provider.name() not in VALID_PROVIDERS:
             return
 
-        if current_layer.name() not in layer_qh_type_mapping.keys():
+        if current_layer.name() not in list(layer_qh_type_mapping.keys()):
             if current_layer.name() not in ('flowlines', 'nodes'):
                 # todo: feedback layer not supported
                 return

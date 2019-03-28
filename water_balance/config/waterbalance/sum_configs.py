@@ -151,6 +151,13 @@ serie_settings = [
             'def_fill_color': '50,130,136' + fill_transp,
             'def_pen_color': '50,130,136' + pen_transp,
             'series': ['inflow'],
+        }, {
+            'name': 'surface sources and sinks',
+            'default_method': 'net',
+            'order': 7.2,
+            'def_fill_color': '204,255,51' + fill_transp,
+            'def_pen_color': '204,255,51' + pen_transp,
+            'series': ['q_sss'],
         }]
     }, {
         'name': 'show main flow',
@@ -229,6 +236,13 @@ serie_settings = [
             'def_fill_color': '221,160,221' + fill_transp,
             'def_pen_color': '221,160,221' + pen_transp,
             'series': ['leak'],
+        }, {
+            'name': 'surface sources and sinks',
+            'default_method': 'net',
+            'order': 7.2,
+            'def_fill_color': '204,255,51' + fill_transp,
+            'def_pen_color': '204,255,51' + pen_transp,
+            'series': ['q_sss'],
         }]
     }
 ]

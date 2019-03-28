@@ -69,7 +69,7 @@ default: compile
 compile: $(COMPILED_RESOURCE_FILES)
 
 %.py : %.qrc $(RESOURCES_SRC)
-	pyrcc4 -o $*.py  $<
+	pyrcc5 -o $*.py  $<
 
 %.qm : %.ts
 	$(LRELEASE) $<
@@ -148,6 +148,10 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/water_balance/tests
 	rm -rf /tmp/$(PLUGINNAME)/.git
 	rm -rf /tmp/$(PLUGINNAME)/*.zip
+	rm -rf /tmp/$(PLUGINNAME)/Docker
+	rm -rf /tmp/$(PLUGINNAME)/docker-compose.yml
+	rm -rf /tmp/$(PLUGINNAME)/docker-compose.override.yml
+	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 

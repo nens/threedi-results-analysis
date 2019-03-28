@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import object
 import logging
 
 from sqlalchemy import select
@@ -156,7 +157,7 @@ class Guesser(object):
             else:
                 try:
                     guess_method(only_empty_fields)
-                except BaseException, e:
+                except BaseException as e:
                     self.messages.append(
                         "[ERROR] guessing {}: {}.".format(check, e))
 

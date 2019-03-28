@@ -1,13 +1,15 @@
+from __future__ import absolute_import
+from builtins import range
 import os
 import logging
 
-from PyQt4.QtGui import (QWidget, QHBoxLayout,
-                         QPushButton, QApplication, QComboBox)
-from PyQt4.QtCore import (QVariant, )
-from qgis.core import (QgsField, QgsMapLayerRegistry)
+from qgis.PyQt.QtWidgets import (QWidget, QHBoxLayout, QPushButton,
+                                 QApplication, QComboBox)
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import (QgsField, QgsProject)
 import numpy as np
 
-from graph import generate_parameter_config
+from .graph import generate_parameter_config
 from ..utils.geo_processing import copy_layer_into_memory_layer
 from ..utils.user_messages import messagebar_message
 
@@ -109,8 +111,8 @@ class MapAnimator(QWidget):
                 combo_box.setCurrentIndex(0)
 
             nr_parameters_tot = combo_box.count()
-            for i in reversed(range(nr_parameters_tot - nr_old_parameters,
-                                    nr_parameters_tot)):
+            for i in reversed(list(range(nr_parameters_tot - nr_old_parameters,
+                                         nr_parameters_tot))):
                 combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
@@ -233,12 +235,23 @@ class MapAnimator(QWidget):
             os.path.dirname(os.path.realpath(__file__)), os.path.pardir,
             'layer_styles', 'tools', 'node_groundwaterlevel_diff.qml'))
 
-        QgsMapLayerRegistry.instance().addMapLayer(self.line_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(
-            self.line_layer_groundwater, True)
-        QgsMapLayerRegistry.instance().addMapLayer(self.node_layer, True)
-        QgsMapLayerRegistry.instance().addMapLayer(
-            self.node_layer_groundwater, True)
+        root = QgsProject.instance().layerTreeRoot()
+
+        animation_group_name = 'animation_layers'
+        animation_group = root.findGroup(animation_group_name)
+        if animation_group is None:
+            animation_group = root.insertGroup(0, animation_group_name)
+        animation_group.removeAllChildren()
+
+        QgsProject.instance().addMapLayer(self.line_layer, False)
+        QgsProject.instance().addMapLayer(self.line_layer_groundwater, False)
+        QgsProject.instance().addMapLayer(self.node_layer, False)
+        QgsProject.instance().addMapLayer(self.node_layer_groundwater, False)
+
+        animation_group.insertLayer(0, self.line_layer)
+        animation_group.insertLayer(1, self.line_layer_groundwater)
+        animation_group.insertLayer(2, self.node_layer)
+        animation_group.insertLayer(3, self.node_layer_groundwater)
 
     def update_results(self):
         if not self.state:
@@ -273,7 +286,7 @@ class MapAnimator(QWidget):
                 values = values  # removed np.fabs(values) to get actual value
 
             update_dict = {}
-            field_index = layer.fieldNameIndex('result')
+            field_index = layer.fields().lookupField('result')
 
             for feature in layer.getFeatures():
                 ids = int(feature.id())
@@ -293,7 +306,7 @@ class MapAnimator(QWidget):
                     field_index: float(value)}
 
             provider.changeAttributeValues(update_dict)
-            layer.setCacheImage(None)
+            # layer.setCacheImage(None)
             layer.triggerRepaint()
 
     def activate_animator(self):

@@ -23,16 +23,16 @@
 
 import os
 
-from PyQt4 import QtGui
-from PyQt4 import uic
-from PyQt4.QtCore import pyqtSignal
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QDockWidget
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), '..', 'ui',
     'threedi_toolbox_dockwidget_base.ui'))
 
 
-class ThreeDiToolboxDockWidget(QtGui.QDockWidget, FORM_CLASS):
+class ThreeDiToolboxDockWidget(QDockWidget, FORM_CLASS):
 
     closingWidget = pyqtSignal()
 

@@ -1,15 +1,15 @@
+from builtins import object
 from abc import (
     ABCMeta,
     abstractmethod,
     abstractproperty,
 )
+from future.utils import with_metaclass
 
 
-class BaseDataSource(object):
+class BaseDataSource(with_metaclass(ABCMeta, object)):
     # NOTE: methods used in ncstats methods are ignored for now to keep
     # things more manageable....
-    __metaclass__ = ABCMeta
-
     @abstractmethod
     def __init__(self, *args, **kwargs):
         pass

@@ -1,13 +1,17 @@
 from __future__ import division
 
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 import logging
 import os.path
 
 import numpy as np
 import numpy.ma as ma
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMessageBox
-from qgis.core import QgsFeatureRequest, QgsPoint
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.core import QgsFeatureRequest, QgsPointXY
 from ThreeDiToolbox.datasource.netcdf import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
@@ -43,32 +47,32 @@ class WaterBalanceCalculation(object):
         # get range of horizontal (in top view) surface water line ids
         x2d_surf_range_min = 1
         x2d_surf_range_max = nr_2d_x_dir
-        self.x2d_surf_range = range(x2d_surf_range_min, x2d_surf_range_max + 1)
+        self.x2d_surf_range = list(range(x2d_surf_range_min, x2d_surf_range_max + 1))  # noqa
 
         # get range of vertical (in top view) surface water line ids
         y2d_surf_range_min = x2d_surf_range_max + 1
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
-        self.y2d_surf_range = range(y2d_surf_range_min, y2d_surf_range_max + 1)
+        self.y2d_surf_range = list(range(y2d_surf_range_min, y2d_surf_range_max + 1))  # noqa
 
         # get range of vertical (in side view) line ids in the gridadmin.
         # These lines represent surface-groundwater (vertical) flow
         vert_flow_range_min = y2d_surf_range_max + 1
         vert_flow_range_max = y2d_surf_range_max + nr_2d
-        self.vert_flow_range = range(
-            vert_flow_range_min, vert_flow_range_max + 1)
+        self.vert_flow_range = list(range(
+            vert_flow_range_min, vert_flow_range_max + 1))
 
         if ga.has_groundwater:
             # total nr of x-dir (horizontal in topview) 2d groundwater lines
             x_grndwtr_range_min = start_gr + 1
             x_grndwtr_range_max = start_gr + nr_2d_x_dir
-            self.x_grndwtr_range = range(
-                x_grndwtr_range_min, x_grndwtr_range_max + 1)
+            self.x_grndwtr_range = list(range(
+                x_grndwtr_range_min, x_grndwtr_range_max + 1))
 
             # total nr of y-dir (vertical in topview) 2d groundwater lines
             y_grndwtr_range_min = x_grndwtr_range_max + 1
             y_grndwtr_range_max = x_grndwtr_range_max + nr_2d
-            self.y_grndwtr_range = range(
-                y_grndwtr_range_min, y_grndwtr_range_max + 1)
+            self.y_grndwtr_range = list(range(
+                y_grndwtr_range_min, y_grndwtr_range_max + 1))
 
     def get_incoming_and_outcoming_link_ids(self, wb_polygon, model_part):
         """Returns a tuple of dictionaries with ids by category:
@@ -91,7 +95,7 @@ class WaterBalanceCalculation(object):
         # this implemented is that the on hover map highlight selects all
         # links, even when the 2D or 1D modelpart is selected in the combo box.
 
-        log.info('polygon of wb area: %s', wb_polygon.exportToWkt())
+        log.info('polygon of wb area: %s', wb_polygon.asWkt())
 
         # the '_out' and '_in' indicate the draw direction of the flow_line.
         # a flow line can have in 1 simulation both positive and negative
@@ -129,7 +133,7 @@ class WaterBalanceCalculation(object):
         # all links in and out
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox())
+            wb_polygon.get().boundingBox())
         for line in lines.getFeatures(request_filter):
 
             if line['type'] == '2d_vertical_infiltration':
@@ -137,7 +141,7 @@ class WaterBalanceCalculation(object):
                 # 2d vertical infiltration line is handmade diagonal (drawn
                 # from 2d point 15m towards south-west ). Thus, if at-least
                 # its startpoint is within polygon then include the line
-                if wb_polygon.contains(QgsPoint(geom[0])):
+                if wb_polygon.contains(QgsPointXY(geom[0])):
                     flow_lines['2d_vertical_infiltration'].append(line['id'])
 
             # test if lines are crossing boundary of polygon
@@ -145,10 +149,10 @@ class WaterBalanceCalculation(object):
                 geom = line.geometry().asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPoint(geom[0]))
+                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPoint(geom[-1]))
+                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
 
                 if incoming and outgoing:
                     # skip lines that do have start- and end vertex outside of
@@ -217,7 +221,7 @@ class WaterBalanceCalculation(object):
                     # horizontal line?
                     if line.id() in self.x2d_surf_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             # directed to east?
                             # long coords increase going east, so:
                             if end_x > start_x:
@@ -229,7 +233,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines['2d_in'].append(line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             # directed to east?
                             # long coords increase going east
                             if end_x > start_x:
@@ -244,7 +248,7 @@ class WaterBalanceCalculation(object):
                     # vertical line?
                     if line.id() in self.y2d_surf_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             # directed to north?
                             # lat coords increase going north, so:
                             if end_y > start_y:
@@ -256,7 +260,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines['2d_in'].append(line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             # directed to north?
                             # lat coords increase going north, so:
                             if end_y > start_y:
@@ -278,7 +282,7 @@ class WaterBalanceCalculation(object):
                     # horizontal line?
                     if line.id() in self.x_grndwtr_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             if end_x > start_x:
                                 flow_lines['2d_groundwater_out'].append(
                                     line['id'])
@@ -286,7 +290,7 @@ class WaterBalanceCalculation(object):
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
                         # endpoint in polygon?
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             if end_x > start_x:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
@@ -296,14 +300,14 @@ class WaterBalanceCalculation(object):
                     # vertical line?
                     if line.id() in self.y_grndwtr_range:
                         # startpoint in polygon?
-                        if wb_polygon.contains(QgsPoint(geom[0])):
+                        if wb_polygon.contains(QgsPointXY(geom[0])):
                             if end_y > start_y:
                                 flow_lines['2d_groundwater_out'].append(
                                     line['id'])
                             else:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
-                        elif wb_polygon.contains(QgsPoint(geom[-1])):
+                        elif wb_polygon.contains(QgsPointXY(geom[-1])):
                             if end_y > start_y:
                                 flow_lines['2d_groundwater_in'].append(
                                     line['id'])
@@ -317,14 +321,14 @@ class WaterBalanceCalculation(object):
 
         # find boundaries in polygon
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox()
+            wb_polygon.get().boundingBox()
         ).setFilterExpression(u'"type" = '
                               u'\'1d_bound\' or "type" = '
                               u'\'2d_bound\'')
 
         # all boundaries in polygon
         for bound in points.getFeatures(request_filter):
-            if wb_polygon.contains(QgsPoint(bound.geometry().asPoint())):
+            if wb_polygon.contains(QgsPointXY(bound.geometry().asPoint())):
                 # find link connected to boundary
                 request_filter_bound = QgsFeatureRequest().\
                     setFilterExpression(u'"start_node_idx" = '
@@ -349,7 +353,7 @@ class WaterBalanceCalculation(object):
             f_pumps = []
         else:
             request_filter = QgsFeatureRequest().setFilterRect(
-                wb_polygon.geometry().boundingBox())
+                wb_polygon.get().boundingBox())
             f_pumps = pumps.getFeatures(request_filter)
 
         for pump in f_pumps:
@@ -358,10 +362,10 @@ class WaterBalanceCalculation(object):
                 geom = pump.geometry().asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPoint(geom[0]))
+                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPoint(geom[-1]))
+                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
 
                 if incoming and outgoing:
                     # skip
@@ -384,7 +388,7 @@ class WaterBalanceCalculation(object):
         }
         """
 
-        log.info('polygon of wb area: %s', wb_polygon.exportToWkt())
+        log.info('polygon of wb area: %s', wb_polygon.asWkt())
 
         nodes = {
             '1d': [],
@@ -396,7 +400,7 @@ class WaterBalanceCalculation(object):
 
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
-            wb_polygon.geometry().boundingBox())
+            wb_polygon.get().boundingBox())
         if model_part == '1d':
             request_filter.setFilterExpression(u'"type" = \'1d\'')
         elif model_part == '2d':
@@ -445,9 +449,9 @@ class WaterBalanceCalculation(object):
         ]
 
         NTYPE_MAXLEN = 25
-        assert max(map(len, ALL_TYPES)) <= NTYPE_MAXLEN, \
+        assert max(list(map(len, ALL_TYPES))) <= NTYPE_MAXLEN, \
             "NTYPE_MAXLEN insufficiently large for all values"
-        NTYPE_DTYPE = 'S%s' % NTYPE_MAXLEN
+        NTYPE_DTYPE = 'U%s' % NTYPE_MAXLEN
 
         # LINKS
         #######
@@ -706,7 +710,7 @@ class WaterBalanceCalculation(object):
             tnode.append((idx, TYPE_1D))
         for idx in node_ids['2d_groundwater']:
             tnode.append((idx, TYPE_2D_GROUNDWATER))
-
+        NTYPE_DTYPE
         np_node = np.array(tnode,
                            dtype=[('id', int), ('ntype', NTYPE_DTYPE)])
         np_node.sort(axis=0)
@@ -735,6 +739,8 @@ class WaterBalanceCalculation(object):
             ('leak', '_cum', np_2d_groundwater_node, 26, 1),
             ('rain', '_cum', np_1d_node, 27, 1),
             ('intercepted_volume', '_current', np_2d_node, 34, -1),
+            ('q_sss', '_cum', np_2d_node, 35, 1),
+
         ]:
 
             if node.size > 0:
@@ -770,15 +776,8 @@ class WaterBalanceCalculation(object):
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
 
-                    # TODO: use:
-                    # vol_current = ds.get_values_by_timestep_nr(
-                    # 'vol_current', ts_idx, np_node['id'])
-                    # when calc_core bug is fixed (THREEDI-599: vol_current's
-                    # first timestep is incorrect, so for the first timestep
-                    # we read the 'vol' (from the .nc instead of the agg .nc)
-                    # for now
                     vol_current = ds.get_values_by_timestep_nr(
-                        'vol', ts_idx, np_node['id'])
+                        'vol_current', ts_idx, np_node['id'])
                     td_vol_pref = ma.masked_array(
                         vol_current, mask=mask_2d_nodes).sum()
                     od_vol_pref = ma.masked_array(
@@ -819,7 +818,7 @@ class WaterBalanceCalculation(object):
         return ts, total_time
 
 
-class WaterBalanceTool:
+class WaterBalanceTool(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -872,7 +871,9 @@ class WaterBalanceTool:
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
+              "\n- sources and sinks (in case model has sources and sinks)"\
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
@@ -896,7 +897,9 @@ class WaterBalanceTool:
               "\n- leakage (in case model has leakage)" \
               "\n- laterals (in case model has laterals)"\
               "\n- pump discharge (in case model has pumps)" \
-              "\n- simple_infiltration (in case model has simple_infiltration"\
+              "\n- simple_infiltration (in case model has " \
+              "simple_infiltration)" \
+              "\n- sources and sinks (in case model has sources and sinks)" \
               "\n\npositive cumulative:" \
               "\n- discharge"\
               "\n\nnegative cumulative:" \
@@ -917,9 +920,9 @@ class WaterBalanceTool:
 
         selected_ds = self.ts_datasource.rows[0].datasource()
         check_available_vars = selected_ds.get_available_variables()
-        nc_path = self.ts_datasource.rows[0].datasource().file_path
-        h5_path = find_h5_file(nc_path)
-        ga = GridH5ResultAdmin(h5_path, nc_path)
+
+        ga = self.ts_datasource.rows[0].datasource().gridadmin
+        gr = self.ts_datasource.rows[0].datasource().gridadmin_result
 
         minimum_agg_vars = [
             ('q_cum_negative', 'negative cumulative discharge'),
@@ -934,22 +937,22 @@ class WaterBalanceTool:
         # fields, we read the threedigrid metadata.
         simulated_vars_nodes = ga.nodes._meta.get_fields(only_names=True)
 
-        if ga.has_pumpstations:
+        if gr.has_pumpstations:
             to_add = ('q_pump_cum', 'cumulative pump discharge')
             minimum_agg_vars.append(to_add)
 
-        # TODO: wait for threedigrid's e.g. 'ga.has_rained')
+        # TODO: wait for threedigrid's e.g. 'gr.has_rained')
         # u'rain' is always in simulated_vars_nodes. So it does not make sense
         # to check there. Thus, we're gonna read the nc's rain data
-        if np.nanmax(ga.nodes.rain) > 0:
+        if np.nanmax(gr.nodes.rain) > 0:
             to_add = ('rain_cum', 'cumulative rain')
             minimum_agg_vars.append(to_add)
 
-        # ga.has_simple_infiltration and ga.has_interception are added to
+        # gr.has_simple_infiltration and gr.has_interception are added to
         # threedigrid some months after groundwater release. To coop with the
         # .h5 that has been created in that period we use the meta data
         try:
-            if ga.has_simple_infiltration:
+            if gr.has_simple_infiltration:
                 to_add = ('infiltration_rate_simple_cum',
                           'cumulative infiltration rate')
                 minimum_agg_vars.append(to_add)
@@ -960,11 +963,11 @@ class WaterBalanceTool:
                 minimum_agg_vars.append(to_add)
 
         try:
-            if ga.has_interception:
+            if gr.has_interception:
                 to_add = ('intercepted_volume_current', 'current interception')
                 minimum_agg_vars.append(to_add)
         except AttributeError:
-            # ga.has_interception is added to threedigrid some months after
+            # gr.has_interception is added to threedigrid some months after
             # groundwater release. To coop with .h5 that has been created in
             # that period we read the simulated_vars_nodes
             if 'intercepted_volume' in simulated_vars_nodes:
@@ -978,6 +981,12 @@ class WaterBalanceTool:
         if 'leak' in simulated_vars_nodes:
             to_add = ('leak_cum', 'cumulative leakage')
             minimum_agg_vars.append(to_add)
+
+        if 'q_sss' in simulated_vars_nodes:
+            if np.count_nonzero(gr.nodes.timeseries(
+                    indexes=slice(0, -1)).q_sss) > 0:
+                minimum_agg_vars.append(('q_sss_cum', 'cumulative surface '
+                                                      'sources and sinks'))
 
         missing_vars = []
         for required_var in minimum_agg_vars:

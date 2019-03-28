@@ -20,14 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 """
+from __future__ import absolute_import
+from builtins import range
+from builtins import object
 import os.path
-from PyQt4.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 import qgis
 
-from views.graph import GraphDockWidget
+from .views.graph import GraphDockWidget
 
 
-class ThreeDiGraph:
+class ThreeDiGraph(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource, root_tool):

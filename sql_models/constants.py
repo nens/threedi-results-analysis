@@ -1,3 +1,6 @@
+from builtins import object
+
+
 def reversed_dict(d):
     """Create a reverse lookup dictionary"""
     return dict([(b, a) for a, b in d])
@@ -161,7 +164,7 @@ class Constants(object):
     )
 
     SEWERAGE_TYPES = dict(SEWERAGE_TYPE_CHOICES)
-    SEWERAGE_TYPE_MAP = reversed_dict(SEWERAGE_TYPES.items())
+    SEWERAGE_TYPE_MAP = reversed_dict(list(SEWERAGE_TYPES.items()))
 
     # Global settings
     # 0: Euler implicit; 1: Carlson implicit 2: Silecki explicit

@@ -3,13 +3,14 @@ mock
 nose
 nose-exclude
 # NOTE: coverage 4.0 is the last version that doesn't cause a segfault with test_project.py
-coverage==4.0
+coverage
 pycodestyle
 
 # misc required deps that are not included with QGIS on linux
 # numpy and cython may be needed for building netCDF4 (see netcdf4-python)
 numpy
 cython
-netCDF4
+
+future
 # you can attempt to try a newer version, but this works for me on QGIS 2.14 + Ubuntu 14.04
-h5py==2.5.0
+# h5py==2.5.0

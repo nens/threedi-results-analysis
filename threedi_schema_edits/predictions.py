@@ -1,12 +1,15 @@
-from PyQt4.QtCore import QVariant, QPyNullVariant
+from builtins import zip
+from builtins import range
+from builtins import object
+from qgis.PyQt.QtCore import QVariant
 
-from PyQt4 import QtSql
+from qgis.PyQt import QtSql
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 from qgis.core import QgsField
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceUri
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 
@@ -46,7 +49,7 @@ class Predictor(object):
 
     def get_uri(self, **kwargs):
         """
-        :returns an QgsDataSourceURI() instance
+        :returns an QgsDataSourceUri() instance
 
         kwargs :
             'host' --> network address (postgres) or
@@ -61,7 +64,7 @@ class Predictor(object):
 
          """
 
-        self._uri = QgsDataSourceURI()
+        self._uri = QgsDataSourceUri()
         host = kwargs['host']
         port = kwargs['port']
         database = kwargs['database']
@@ -96,7 +99,7 @@ class Predictor(object):
         :returns a vector layer instance of the given
         :param table_name in combination with the
         :param geom_column
-        :param uri: QgsDataSourceURI() instance
+        :param uri: QgsDataSourceUri() instance
         :param display_name: defaults to ``table_name``
         """
         if not display_name:
@@ -208,7 +211,7 @@ class Predictor(object):
         }
         """
         query_data = self._get_query_data(epsg_code)
-        for name, d in query_data.iteritems():
+        for name, d in query_data.items():
             logger.info("processing {}".format(name))
             rows = self.run_sqalchemy_query(d['query'])
             if rows is None:
@@ -522,10 +525,10 @@ class Predictor(object):
         self.mem_layer.updateFields()
 
     def remove_mem_layer(self):
-        QgsMapLayerRegistry.instance().removeMapLayers([self.mem_layer.id()])
+        QgsProject.instance().removeMapLayers([self.mem_layer.id()])
 
     def add_mem_layer(self):
-        QgsMapLayerRegistry.instance().addMapLayer(self.mem_layer)
+        QgsProject.instance().addMapLayer(self.mem_layer)
 
     def get_distances_on_line(self, distance, line_length, include_dest=False):
         cnt_segs = max(int(round(line_length / (distance * 1.0))), 1)
@@ -535,7 +538,7 @@ class Predictor(object):
         logger.debug("corrected_distance ", corrected_distance)
         if not include_dest:
             cnt_segs -= 1
-        for seg in xrange(int(cnt_segs)):
+        for seg in range(int(cnt_segs)):
             current_dist += corrected_distance
             dists.append(current_dist)
         return dists
@@ -547,7 +550,7 @@ class Predictor(object):
         :param content_type somewhere in the network has the lead
         False otherwise
         """
-        for node_id, leader in self.network_dict.iteritems():
+        for node_id, leader in self.network_dict.items():
             if all([leader['content_type'] == content_type,
                     leader['content_type_id'] == content_type_id,
                     node_id != current_node_id]):
@@ -586,7 +589,7 @@ class Predictor(object):
                 *transform.split(':')
             )
         # self._trans = self._set_coord_transformation(transform)
-        for node_id, node_info in self.network_dict.iteritems():
+        for node_id, node_info in self.network_dict.items():
             logger.debug("processing node_id {}".format(node_id))
 
             # for the first point we need the network calc_type
@@ -690,6 +693,7 @@ class Predictor(object):
             content_type, code, id):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
+        assert pnt_geom.isGeosValid()
         f = QgsFeature()
         if self._trans:
             pnt_geom.transform(self._trans)
@@ -731,7 +735,7 @@ class Predictor(object):
 
     def fill_connected_pnts_table(self, calc_pnts_lyr, connected_pnts_lyr):
         data_provider = connected_pnts_lyr.dataProvider()
-        connected_pnts_lyr_fields = connected_pnts_lyr.pendingFields()
+        connected_pnts_lyr_fields = connected_pnts_lyr.fields()
         field_names_connected_pnts_lyr = [
             field.name() for field in connected_pnts_lyr_fields
         ]
@@ -741,16 +745,16 @@ class Predictor(object):
         }
 
         field_names_calc_pnts = [
-            field.name() for field in calc_pnts_lyr.pendingFields()
+            field.name() for field in calc_pnts_lyr.fields()
         ]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-            calc_pnt = dict(zip(field_names_calc_pnts, feat.attributes()))
+            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))  # noqa
             calc_type = calc_pnt['calc_type']
             pnts_to_add = 1 if calc_type != 5 else 2
             if calc_type < 2:
                 continue
-            for _ in xrange(pnts_to_add):
+            for _ in range(pnts_to_add):
                 self._add_connected_pnt_feature(
                     feat.geometry(), calc_pnt_id=calc_pnt['id'],
                     field_names=fn_dict_connected_pnts_lyr,

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 from distutils.version import LooseVersion
 import mock
 import os
@@ -8,12 +10,12 @@ import shutil
 import sys
 
 try:
-    from qgis.core import (
-        QgsVectorLayer, QgsFeature, QgsPoint, QgsField, QgsGeometry)
+    from qgis.core import (QgsVectorLayer, QgsFeature, QgsPoint, QgsPointXY,
+                           QgsField, QgsGeometry)
 except ImportError:
     pass
 
-from PyQt4.QtCore import QVariant
+from qgis.PyQt.QtCore import QVariant
 
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
@@ -31,11 +33,10 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
-from ThreeDiToolbox.datasource.netcdf_groundwater_h5py import (
-    NetcdfGroundwaterDataSourceH5py,
+from ThreeDiToolbox.datasource.netcdf_groundwater import \
+    NetcdfGroundwaterDataSource, \
     find_aggregation_netcdf_gw
-)
-from .utilities import get_qgis_app, TemporaryDirectory
+from ThreeDiToolbox.test.utilities import get_qgis_app, TemporaryDirectory
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
@@ -251,7 +252,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
 
         feat = QgsFeature()
         feat.setAttributes([1, 'test'])
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(1.0, 2.0)))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
 
         pr.addFeatures([feat])
         self.assertEqual(layer.featureCount(), 1)
@@ -276,7 +277,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
         pr = layer.dataProvider()
         feat = QgsFeature()
         feat.setAttributes([1, 'test'])
-        feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(1.0, 2.0)))
+        feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
         pr.addFeatures([feat])
 
         spl_layer = spl.import_layer(layer, 'table_one', 'id')
@@ -286,31 +287,31 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 1)
 
 
-class TestNetcdfGroundwaterDataSourceH5py(unittest.TestCase):
+class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
-        NetcdfGroundwaterDataSourceH5py()
+        NetcdfGroundwaterDataSource()
 
     def test_sanity(self):
-        nds = NetcdfGroundwaterDataSourceH5py()
+        nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
         # sanity test
         self.assertEqual(nds.ds, m)
 
     def test_get_timestamps(self):
-        nds = NetcdfGroundwaterDataSourceH5py()
+        nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
         nds.get_timestamps()
 
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater_h5py.NetcdfGroundwaterDataSourceH5py.available_subgrid_map_vars',  # noqa
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars',  # noqa
         ['s1'])
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater_h5py.NetcdfGroundwaterDataSourceH5py.gridadmin_result')  # noqa
+        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result')  # noqa
     def test_get_timeseries(self, gridadmin_result_mock):
-        nds = NetcdfGroundwaterDataSourceH5py()
+        nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
         nds.get_timeseries('nodes', 3, 's1')

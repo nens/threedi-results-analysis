@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from builtins import str
+from builtins import range
+from builtins import object
 import ogr
 import osr
 import logging
@@ -65,8 +68,8 @@ class DataImportLogger(object):
     def get_full_log(self, only_main_items=False):
 
         txt = ''
-        for main_key, main_item in self.log_tree.items():
-            for key, list_issues in main_item.items():
+        for main_key, main_item in list(self.log_tree.items()):
+            for key, list_issues in list(main_item.items()):
                 txt += key + ' ({0} times)\n'.format(len(list_issues))
                 if not only_main_items:
                     for issue in list_issues:
@@ -144,8 +147,8 @@ class Importer(object):
             open(self.import_file, 'r').read(), data_log=self.log)
         unused_fields = reader.parse_input()
 
-        for ide_rec, unused_list in unused_fields.items():
-            for field, count in unused_list.items():
+        for ide_rec, unused_list in list(unused_fields.items()):
+            for field, count in list(unused_list.items()):
 
                 self.log.add(
                     logging.WARNING,
@@ -168,7 +171,7 @@ class Importer(object):
 
         doubles = []
         value_set = set()
-        for i in reversed(range(0, len(records))):
+        for i in reversed(list(range(0, len(records)))):
             record = records[i]
             if record[unique_field] in value_set:
                 doubles.append(record)
@@ -247,8 +250,7 @@ class Importer(object):
                         else:
                             used_outlets[code] = 1
         # 0
-        not_connected_outlets = [outl for cod, outl in outlet_dict.items() if
-                                 cod not in used_outlets]
+        not_connected_outlets = [outl for cod, outl in list(outlet_dict.items()) if cod not in used_outlets]  # noqa
 
         if len(not_connected_outlets) > 0:
             data['outlets'] = [outlet for outlet in data['outlets'] if
@@ -391,7 +393,7 @@ class Importer(object):
 
             session.commit()
         crs_list = []
-        for crs in data['profiles'].values():
+        for crs in list(data['profiles'].values()):
             crs_list.append(CrossSectionDefinition(**crs))
 
         commit_counts['profiles'] = len(crs_list)

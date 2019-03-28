@@ -20,12 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-import imp
+from builtins import str
+from builtins import object
+from importlib.machinery import SourceFileLoader
 import logging
 import os.path
+import types
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QAbstractItemView
 
 from .models.toolbox import ToolboxModel
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
@@ -33,7 +36,7 @@ from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 log = logging.getLogger(__name__)
 
 
-class ThreeDiToolbox:
+class ThreeDiToolbox(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -136,7 +139,9 @@ class ThreeDiToolbox:
             log.debug(module_path)
             log.debug(name)
 
-            mod = imp.load_source(name, module_path)
+            loader = SourceFileLoader(name, module_path)
+            mod = types.ModuleType(loader.name)
+            loader.exec_module(mod)
             log.debug(str(mod))
 
             self.command = mod.CustomCommand(
@@ -147,5 +152,5 @@ class ThreeDiToolbox:
         self.toolboxmodel = ToolboxModel()
         self.dockwidget.treeView.setModel(self.toolboxmodel)
         self.dockwidget.treeView.setEditTriggers(
-            QtGui.QAbstractItemView.NoEditTriggers)
+            QAbstractItemView.NoEditTriggers)
         self.dockwidget.treeView.doubleClicked.connect(self.run_script)

@@ -1,9 +1,11 @@
+from builtins import object
 import os
 import inspect
 
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QStandardItem
-from PyQt4.QtGui import QStandardItemModel
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import QStandardItem
+from qgis.PyQt.QtGui import QStandardItemModel
+from functools import reduce
 
 
 DEFAULT_TOOLBOX_DIR = os.path.join(
@@ -56,7 +58,7 @@ class ToolboxModel(QStandardItemModel):
         icon_tool = QIcon(
             ':/plugins/ThreeDiToolbox/icons/icon_hammer_small.png')
 
-        for text, children in iter(sorted(elements.iteritems())):
+        for text, children in iter(sorted(elements.items())):
             item = QStandardItem(text)
             parent.appendRow(item)
             if children:

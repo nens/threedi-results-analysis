@@ -1,5 +1,6 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
+from __future__ import absolute_import
 
 from contextlib import contextmanager
 import logging
@@ -23,12 +24,12 @@ def get_qgis_app():
 
     If QGIS is already running the handle to that app will be returned.
     """
-
     try:
         from qgis.core import QgsApplication
+        from qgis.PyQt.QtWidgets import QApplication, QWidget
         from qgis.gui import QgsMapCanvas
-        from PyQt4 import QtGui, QtCore
-        from qgis_interface import QgisInterface
+        from qgis.PyQt import QtGui, QtCore
+        from ThreeDiToolbox.test.qgis_interface import QgisInterface
     except ImportError:
         return None, None, None, None
 
@@ -37,7 +38,8 @@ def get_qgis_app():
     if QGIS_APP is None:
         gui_flag = True  # All test will run qgis in gui mode
         # noinspection PyPep8Naming
-        QGIS_APP = QgsApplication(sys.argv, gui_flag)
+        argv = [x.encode('utf-8') for x in sys.argv]
+        QGIS_APP = QgsApplication(argv, gui_flag)
         # Make sure QGIS_PREFIX_PATH is set in your env if needed!
         QGIS_APP.initQgis()
         s = QGIS_APP.showSettings()
@@ -46,7 +48,7 @@ def get_qgis_app():
     global PARENT  # pylint: disable=W0603
     if PARENT is None:
         # noinspection PyPep8Naming
-        PARENT = QtGui.QWidget()
+        PARENT = QWidget()
 
     global CANVAS  # pylint: disable=W0603
     if CANVAS is None:

@@ -21,8 +21,8 @@
  ***************************************************************************/
 """
 import os.path
-from PyQt4.QtCore import Qt, pyqtSignal
-from PyQt4.QtGui import QSlider
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtWidgets import QSlider
 import qgis
 
 

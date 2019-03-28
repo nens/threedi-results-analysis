@@ -1,17 +1,7 @@
 import unittest
 
-from ThreeDiToolbox.views.graph import (
-    parse_aggvarname,
-    generate_parameter_config,
-)
-
-from ThreeDiToolbox.views.guess_indicator_dialog import *
-from ThreeDiToolbox.views.import_sufhyd_dialog import *
-from ThreeDiToolbox.views.map_animator import *
-from ThreeDiToolbox.views.sideview import *
-from ThreeDiToolbox.views.timeslider import *
-from ThreeDiToolbox.views.tool_dialog import *
-from ThreeDiToolbox.views.result_selection import *
+from ThreeDiToolbox.views.graph import parse_aggvarname
+from ThreeDiToolbox.views.graph import generate_parameter_config
 
 
 class TestGraph(unittest.TestCase):

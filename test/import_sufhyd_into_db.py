@@ -1,10 +1,13 @@
 """integration test for the full process of importing sewer data from a
 sufhyd file into the database"""
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
 import unittest
 import tempfile
 import os.path
-import cPickle
+import pickle
 
 from ThreeDiToolbox.utils.import_sufhyd import Importer, transform
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
@@ -107,7 +110,7 @@ class TestSelectGeometry(unittest.TestCase):
 
         statement = select([types.ST_GeomFromEWKT('POINT')])
 
-        print statement.compile(dialect=postgresql.dialect())
+        print(statement.compile(dialect=postgresql.dialect()))
 
 
 @unittest.skipIf(not os.path.exists(test_file),

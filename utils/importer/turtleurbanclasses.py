@@ -22,7 +22,13 @@
 """this file contains a Python implementation of things defined in the
 *Green Book* of hydrological objects.
 """
+from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
+from builtins import object
 __revision__ = "$Rev$"[6:-2]
 
 import logging
@@ -34,7 +40,7 @@ import types
 
 
 def isSufHydKey(key):
-    if not isinstance(key, types.StringTypes):
+    if not isinstance(key, str):
         return False
     return (len(key) == 7 and key[3] == '_') or (len(key) == 10 and key[3] == key[6] == '_')
 
@@ -59,7 +65,7 @@ def fieldwise(obj, representation=None):
     return result
 
 
-class HydroObject:
+class HydroObject(object):
     types = {
         'aan_inw': (int, 4),
         'aan_won': (int, 4),
@@ -507,9 +513,6 @@ initPatternFromFields(AfvoerendOppervlakMetBijzondereKenmerken_Tak)
 
 
 class BijzonderLeidingprofiel(HydroObject):
-    field_names = ['ide_rec', 'pro_num', 'pro_com', ]
-    for i in range(50):
-        field_names.extend([k % i for k in ['pro_nv_%03d', 'pro_no_%03d', 'pro_hs_%03d', 'pro_br_%03d', ]])
 
     def parseSufHydLine(self, persid):
         lead = self.field_names[:4]
@@ -538,11 +541,16 @@ class BijzonderLeidingprofiel(HydroObject):
 
     def __init__(self, *args):
         HydroObject.__init__(self, *args)
+        self.field_names = ['ide_rec', 'pro_num', 'pro_com', ]
+        for i in range(50):
+            self.field_names.extend([k % i for k in
+                                ['pro_nv_%03d', 'pro_no_%03d', 'pro_hs_%03d',
+                                 'pro_br_%03d', ]])
         try:
             ## if any profile point is empty, shift fields to the left
             ## TODO 2069
             while self.pro_br_000 == self.pro_no_000 == self.pro_nv_000 == self.pro_hs_000 == '':
-                for i, j in zip(range(0, 500), range(1, 501)):
+                for i, j in zip(list(range(0, 500)), list(range(1, 501))):
                     if not hasattr(self, "pro_br_%03d" % j):
                         delattr(self, "pro_br_%03d" % i)
                         delattr(self, "pro_no_%03d" % i)
@@ -861,9 +869,9 @@ class HydroObjectFactory(object):
         try:
             that_class = cls.WhichHydroObject[class_name][variant]
         except KeyError:
-            print "no class for such name (%s)" % class_name
+            print("no class for such name (%s)" % class_name)
             return
-        print '\n'.join(that_class.greenBookDef()[:trim_at])
+        print('\n'.join(that_class.greenBookDef()[:trim_at]))
 
     def hydroObjectFromSUFHYD(self, persid, strict=True):
         '''create object from string.

@@ -1,13 +1,17 @@
+from builtins import str
+from builtins import object
 import logging
 import os.path
 from collections import OrderedDict
 
 import numpy as np
-from pyspatialite import dbapi2
+# from pyspatialite import dbapi2
+from sqlite3 import dbapi2
 from qgis.core import (
-    QgsMapLayerRegistry, QgsProject, QgsDataSourceURI, QgsVectorLayer)
+    QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer)
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
+from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 
 from ThreeDiToolbox.utils.user_messages import pop_up_question, pop_up_info,\
@@ -16,7 +20,7 @@ from ..sql_models.statistics import (
     FlowlineStats, Node, ManholeStats, Flowline, PipeStats, WeirStats,
     PumplineStats, StatSource)
 from ..utils.statistics_database import StaticsticsDatabase
-from PyQt4.QtGui import QMessageBox
+
 log = logging.getLogger(__name__)
 
 
@@ -52,13 +56,13 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds['nMesh2D_lines'].size +
-                    self.obj.ds['nMesh1D_lines'].size)
+                    self.obj.ds.get('nMesh2D_lines').size +
+                    self.obj.ds.get('nMesh1D_lines').size)
         return self._nflowlines
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSourceH5py'
+        return self.obj.__class__.__name__ == 'NetcdfGroundwaterDataSource'
 
     @property
     def timestamps(self):
@@ -68,7 +72,35 @@ class DataSourceAdapter(Proxy):
         return self._timestamps
 
 
-class StatisticsTool:
+def load_spatialite(con, connection_record):
+    import sqlite3
+    con.enable_load_extension(True)
+    cur = con.cursor()
+    libs = [
+        # SpatiaLite >= 4.2 and Sqlite >= 3.7.17, should work on all platforms
+        ("mod_spatialite", "sqlite3_modspatialite_init"),
+        # SpatiaLite >= 4.2 and Sqlite < 3.7.17 (Travis)
+        ("mod_spatialite.so", "sqlite3_modspatialite_init"),
+        # SpatiaLite < 4.2 (linux)
+        ("libspatialite.so", "sqlite3_extension_init")
+    ]
+    found = False
+    for lib, entry_point in libs:
+        try:
+            cur.execute(
+                "select load_extension('{}', '{}')".format(lib, entry_point))
+        except sqlite3.OperationalError:
+            continue
+        else:
+            found = True
+            break
+    if not found:
+        raise RuntimeError("Cannot find any suitable spatialite module")
+    cur.close()
+    con.enable_load_extension(False)
+
+
+class StatisticsTool(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -96,10 +128,10 @@ class StatisticsTool:
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
+        self.db_meta = None
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-
         pass
 
     def get_modeldb_session(self):
@@ -108,9 +140,10 @@ class StatisticsTool:
             self.modeldb_engine = create_engine(
                 'sqlite:///{0}'.format(
                     self.ts_datasource.model_spatialite_filepath),
-                module=dbapi2,
-                # this controls SQL logging
                 echo=False)
+            listen(self.modeldb_engine, 'connect', load_spatialite)
+
+            # activate the spatialite extension!
 
             self.modeldb_meta = MetaData()
             self.modeldb_meta.reflect(bind=self.modeldb_engine)
@@ -141,15 +174,8 @@ class StatisticsTool:
             'db_path': self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/')
         }
 
-        # call one of the sqlalchemy models first to detect mis configurations
-        # fls = FlowlineStats()
-
         self.db = StaticsticsDatabase(db_set, db_type)
-
-        if (not self.has_mod_views() and not test and
-                pop_up_question('Do you want to add views to the model database?',
-                                'Add views?', )):
-            self.add_modeldb_views()
+        self.db_meta = self.db.get_metadata()
 
         if test:
             calculate_stats = False
@@ -164,7 +190,7 @@ class StatisticsTool:
 
             try:
                 self.db.create_and_check_fields()
-            except dbapi2.OperationalError, e:
+            except dbapi2.OperationalError as e:
                 pop_up_info('Database error. You could try it again, in most cases this fix the problem.', 'ERROR')
 
             with progress_bar(self.iface) as pb:
@@ -196,90 +222,22 @@ class StatisticsTool:
         log.info('Run statistic tool')
 
     def has_mod_views(self):
-
-        mod_session = self.get_modeldb_session()
+        mod_session = self.get_modeldb_session()  # e.g. v2_bergermeer.sqlite
         view_table = self.get_modeldb_table('views_geometry_columns')
         return mod_session.query(view_table).filter(
             view_table.c.view_name == 'v2_1d_boundary_conditions_view').count() != 0
 
     def has_res_views(self):
-
-        res_session = self.db.get_session()
-        view_table = self.modeldb_meta.tables['views_geometry_columns']
-        return res_session.query(view_table).filter(view_table.c.view_name == 'pump_stats_view').count() != 0
-
-    def add_modeldb_views(self):
-
-        mod_session = self.get_modeldb_session()
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_pumpstation_point_view AS
-                SELECT a.ROWID AS ROWID, a.id AS pump_id, a.display_name, a.code, a.classification, a.sewerage, 
-                a.start_level, a.lower_stop_level, 
-                       a.upper_stop_level, a.capacity, a.zoom_category, a.connection_node_start_id, 
-                       a.connection_node_end_id, a.type, b.id AS connection_node_id, b.storage_area, b.the_geom
-                FROM v2_pumpstation a JOIN v2_connection_nodes b ON a.connection_node_start_id = b.id;
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_pumpstation_point_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_pumpstation_point_view', 'the_geom', 'connection_node_start_id', 'v2_connection_nodes', 'the_geom');         
-            """)
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_1d_lateral_view AS
-                SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS connection_node_id, 
-                  a.timeseries AS timeseries, b.the_geom 
-                FROM v2_1d_lateral a 
-                JOIN v2_connection_nodes b ON a.connection_node_id = b.id;
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_1d_lateral_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_1d_lateral_view', 'the_geom', 'connection_node_id', 'v2_connection_nodes', 'the_geom');
-            """)
-
-        mod_session.execute(
-            """
-                CREATE VIEW IF NOT EXISTS v2_1d_boundary_conditions_view AS
-                SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS connection_node_id, 
-                  a.boundary_type AS boundary_type, a.timeseries AS timeseries, b.the_geom 
-                FROM v2_1d_boundary_conditions a 
-                JOIN v2_connection_nodes b ON a.connection_node_id = b.id;           
-            """)
-
-        mod_session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'v2_1d_boundary_conditions_view';
-            """
-        )
-
-        mod_session.execute(
-            """
-                INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-                  f_geometry_column)
-                VALUES('v2_1d_boundary_conditions_view', 'the_geom', 'connection_node_id', 'v2_connection_nodes', 'the_geom');
-            """)
-
-        mod_session.commit()
+        # bugfix explanation: In QGIS2, all tables and views were put in the
+        # 'views_geometry_columns' of the model sqlite (e.g.
+        # v2_bergermeer.sqlite) or in the gridadmin.sqlite. Somehow in QGIS3
+        # all tables in gridadmin.sqlite's 'views_geometry_columns' are not
+        # visible. Solved it by putting these layers in the geometry_columns
+        # of the gridadmin.sqlite
+        res_session = self.db.get_session()  # gridadmin.sqlite'
+        table = self.db.get_metadata().tables['geometry_columns']
+        return res_session.query(table).filter(
+            table.c.f_table_name == 'pump_stats_view').count() != 0
 
     def get_manhole_attributes_and_statistics(self):
         """read manhole information from model spatialite and put in manhole statistic table"""
@@ -365,6 +323,7 @@ class StatisticsTool:
             's1',
             len(self.ds.timestamps) - 1,
             index=manhole_idx)
+        h_end = h_end.filled(-9999.0)
 
         manhole_stats = []
 
@@ -525,7 +484,7 @@ class StatisticsTool:
 
             try:
                 np.copyto(dh_max, np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
-                      where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)))
+                          where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)))
             except:
                 log.info('dh_max is not loaded for timestep: %s' % (timestamp))
                 dh_max_calc = False
@@ -549,8 +508,10 @@ class StatisticsTool:
         vend = ds.get_values_by_timestep_nr('u1', len(ds.timestamps) - 1)
         hend_start = ds.get_values_by_timestep_nr(
             's1', len(ds.timestamps) - 1, index=start_idx)
+        hend_start = hend_start.filled(-9999.0)
         hend_end = ds.get_values_by_timestep_nr(
             's1', len(ds.timestamps) - 1, index=end_idx)
+        hend_end = hend_end.filled(-9999.0)
 
         # save stats to the database
         log.info('prepare flowline statistics for database')
@@ -786,12 +747,14 @@ class StatisticsTool:
                     max_cum_discharge_neg, 2)
             )
 
-            weir.max_overfall_height = None if (
-                    weir.flowline.stats.max_waterlevel_start is None and
-                    weir.flowline.stats.max_waterlevel_end is None) else round(
-                max(weir.flowline.stats.max_waterlevel_start,
-                    weir.flowline.stats.max_waterlevel_end)
-                        - weir.crest_level, 3)
+            waterlevel_start = weir.flowline.stats.max_waterlevel_start
+            waterlevel_end = weir.flowline.stats.max_waterlevel_end
+            if waterlevel_start is not None and waterlevel_end is not None:
+                weir.max_overfall_height = \
+                    round(max(waterlevel_start, waterlevel_end)
+                          - weir.crest_level, 3)
+            else:
+                weir.max_overfall_height = waterlevel_start or waterlevel_end
 
         res_session.commit()
 
@@ -941,19 +904,21 @@ class StatisticsTool:
             WHERE f.id = fs.id;
            """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'flowline_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'flowline_stats_view';
             """
         )
         session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('flowline_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-            
+            """
+            INSERT INTO geometry_columns (
+                f_table_name, f_geometry_column, geometry_type, 
+                coord_dimension, SRID, spatial_index_enabled) 
+            VALUES ('flowline_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
 
         session.commit()
 
@@ -995,68 +960,75 @@ class StatisticsTool:
               AND f.id = ps.id;
             """
         )
-        session.execute(
-            """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_view';
-            """
-        )
-        session.execute(
-            """ 
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
 
+        session.execute(
+            """
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_view';
             """
         )
+        session.execute(
+            """
+            INSERT INTO geometry_columns (
+                f_table_name, f_geometry_column, geometry_type, 
+                coord_dimension, SRID, spatial_index_enabled) 
+            VALUES ('pipe_stats_view', 'the_geom', 2, 2, 4326, 0);
+            """
+        )
+
         session.commit()
 
         # dwa+mixed of pipestats
         session.execute(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view 
-
              AS 
-            SELECT *
+             SELECT *
              FROM pipe_stats_view
              WHERE pipe_stats_view.sewerage_type IN (0, 2);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_dwa_mixed_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_dwa_mixed_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_dwa_mixed_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
+                INSERT INTO geometry_columns (
+                    f_table_name, f_geometry_column, geometry_type, 
+                    coord_dimension, SRID, spatial_index_enabled) 
+                VALUES ('pipe_stats_dwa_mixed_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # rwa views of pipestats
         session.execute(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view 
-             AS 
+            AS 
             SELECT *
-             FROM pipe_stats_view
-             WHERE pipe_stats_view.sewerage_type IN (1);
+            FROM pipe_stats_view
+            WHERE pipe_stats_view.sewerage_type IN (1);
+            """
+        )
+
+        session.execute(
+            """
+            DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_rwa_view';
             """
         )
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pipe_stats_rwa_view';          
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('pipe_stats_rwa_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
-        session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pipe_stats_rwa_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-            """
-        )
+
         session.commit()
 
         # weir stat view
@@ -1093,19 +1065,20 @@ class StatisticsTool:
               AND f.id = ws.id;
                 """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'weir_stats_view';          
+            DELETE FROM geometry_columns WHERE f_table_name = 'weir_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('weir_stats_view', 'the_geom', 'id', 'flowlines', 'the_geom', 1);
-    
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('weir_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
 
         session.commit()
 
@@ -1138,18 +1111,21 @@ class StatisticsTool:
             WHERE n.id = mst.id;
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # dwa+mixed  of manholestats
@@ -1163,18 +1139,21 @@ class StatisticsTool:
              WHERE manhole_stats_view.sewerage_type IN (0, 2);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_dwa_mixed_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_dwa_mixed_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_dwa_mixed_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_dwa_mixed_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
         # rwa views of manholestats
@@ -1187,18 +1166,21 @@ class StatisticsTool:
              WHERE manhole_stats_view.sewerage_type IN (1);
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'manhole_stats_rwa_view';          
+            DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_rwa_view';
             """
         )
         session.execute(
-            """      
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('manhole_stats_rwa_view', 'the_geom', 'id', 'nodes', 'the_geom', 1);
+            """
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('manhole_stats_rwa_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
+
+
         session.commit()
 
     def create_pump_views(self):
@@ -1228,18 +1210,21 @@ class StatisticsTool:
             WHERE p.id = ps.id;
             """
         )
+
         session.execute(
             """
-            DELETE FROM views_geometry_columns WHERE view_name = 'pump_stats_view';
+            DELETE FROM geometry_columns WHERE f_table_name = 'pump_stats_view';
             """
         )
         session.execute(
             """
-            INSERT INTO views_geometry_columns (view_name, view_geometry, view_rowid, f_table_name, 
-            f_geometry_column, read_only)
-            VALUES('pump_stats_view', 'the_geom', 'id', 'pumplines', 'the_geom', 1);
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
+                  SRID, spatial_index_enabled) 
+                VALUES ('pump_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
+
+
 
         # pump stat view Lines - points
         session.execute(
@@ -1332,25 +1317,23 @@ class StatisticsTool:
         stat_group.removeAllChildren()
 
         # add source stat metadata
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setDatabase(self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/'))
         uri.setDataSource('', 'stat_source', '')
 
         vector_layer = QgsVectorLayer(uri.uri(), 'metadata statistics', 'spatialite')
-        QgsMapLayerRegistry.instance().addMapLayer(
+        QgsProject.instance().addMapLayer(
             vector_layer,
             False)
 
         stat_group.insertLayer(0, vector_layer)
 
-        legend = self.iface.legendInterface()
-
-        for group, layers in styled_layers.items():
+        for group, layers in list(styled_layers.items()):
             qgroup = stat_group.insertGroup(100, group)
             qgroup.setExpanded(False)
 
             for layer in layers:
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 uri.setDatabase(self.result_db_qmodel.spatialite_cache_filepath().replace('\\', '/'))
                 uri.setDataSource('', layer[1], 'the_geom')
 
@@ -1363,7 +1346,7 @@ class StatisticsTool:
                         'layer_styles',
                         'stats',
                         layer[3] + '.qml')
-                    style = file(style_path, 'r').read()
+                    style = open(style_path, 'r').read()
 
                     # replace by column name
                     style = style.replace('<<variable>>', layer[2])
@@ -1375,15 +1358,14 @@ class StatisticsTool:
                         'stats',
                         'cr_' + layer[3] + '_' + layer[2] + '.qml')
 
-                    new_style_file = file(new_style_path, 'w')
+                    new_style_file = open(new_style_path, 'w')
                     new_style_file.write(style)
                     new_style_file.close()
 
                     vector_layer.loadNamedStyle(new_style_path)
 
-                    QgsMapLayerRegistry.instance().addMapLayer(
+                    QgsProject.instance().addMapLayer(
                         vector_layer,
                         False)
 
                     qgroup.insertLayer(100, vector_layer)
-                    legend.setLayerVisible(vector_layer, False)

@@ -7,7 +7,15 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from builtins import object
+from qgis.PyQt import QtCore, QtGui
+from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QGridLayout
+from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QTreeView
+from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QVBoxLayout
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -16,32 +24,32 @@ except AttributeError:
         return s
 
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QApplication.translate(context, text, disambig)
 
 
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(391, 453)
-        self.gridLayout = QtGui.QGridLayout(Form)
+        self.gridLayout = QGridLayout(Form)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.tabWidget = QtGui.QTabWidget()
+        self.tabWidget = QTabWidget()
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
-        self.tab = QtGui.QWidget()
+        self.tab = QWidget()
         self.tab.setObjectName(_fromUtf8("tab"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.tab)
+        self.verticalLayout = QVBoxLayout(self.tab)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.treeView = QtGui.QTreeView(self.tab)
+        self.treeView = QTreeView(self.tab)
         self.treeView.setHeaderHidden(True)
         self.treeView.setObjectName(_fromUtf8("treeView"))
         self.verticalLayout.addWidget(self.treeView)
-        self.checkBox = QtGui.QCheckBox(self.tab)
+        self.checkBox = QCheckBox(self.tab)
         self.checkBox.setObjectName(_fromUtf8("checkBox"))
         self.verticalLayout.addWidget(self.checkBox)
         self.tabWidget.addTab(self.tab, _fromUtf8(""))

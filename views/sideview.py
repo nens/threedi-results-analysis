@@ -1,33 +1,29 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QLabel, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox, QColor, QCursor
+from builtins import str
+from builtins import object
+from collections import Counter
+from functools import reduce
 
 import numpy as np
 import os
-
-from qgis.networkanalysis import QgsArcProperter
-from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-    QgsDistanceArcProperter, QgsGraphAnalyzer
-import qgis
-from qgis.core import QgsPoint, QgsRectangle, QgsCoordinateTransform, \
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsMapLayerRegistry, \
-    QGis, QgsFeatureRequest, QgsDistanceArea, QgsCoordinateReferenceSystem
+import pyqtgraph as pg
+from qgis.analysis import QgsNetworkStrategy, QgsVectorLayerDirector
+from qgis.core import (QgsPointXY, QgsRectangle, QgsCoordinateTransform,
+                       QgsVectorLayer, QgsField, QgsFeature, QgsGeometry,
+                       QgsProject, QgsFeatureRequest, QgsDistanceArea,
+                       QgsUnitTypes, QgsWkbTypes, QgsDataSourceUri)
 from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
-from collections import Counter
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QMetaObject, QVariant
+from qgis.PyQt.QtGui import QColor, QCursor
+from qgis.PyQt.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
+                                 QSizePolicy, QPushButton, QLabel, QSpacerItem,
+                                 QApplication, QTabWidget, QDockWidget)
 
-from ..models.graph import LocationTimeseriesModel
+from ..utils import haversine
+from ..utils.geo_processing import split_line_at_points
+from ..utils.route import Route
 from ..utils.user_messages import log, statusbar_message
 
-from ..utils.route import Route
-from ..utils import haversine
-
-from ..utils.geo_processing import split_line_at_points
-
-
-import pyqtgraph as pg
-from qgis.core import QgsDataSourceURI
 
 # GraphDockWidget labels related parameters.
 parameter_config = {
@@ -817,7 +813,10 @@ class RouteTool(QgsMapTool):
                             max(point_ll.y(), point_ru.y()))
 
         transform = QgsCoordinateTransform(
-            self.canvas.mapSettings().destinationCrs(), self.line_layer.crs())
+            self.canvas.mapSettings().destinationCrs(),
+            self.line_layer.crs(),
+            QgsProject.instance()
+        )
 
         rect = transform.transform(rect)
         filter = QgsFeatureRequest().setFilterRect(rect)
@@ -849,21 +848,28 @@ class RouteTool(QgsMapTool):
         return False
 
 
-class CustomDistancePropeter(QgsArcProperter):
+class CustomDistancePropeter(QgsNetworkStrategy):
     """custom properter for graph layer"""
 
     def __init__(self):
-        QgsArcProperter.__init__(self)
+        QgsNetworkStrategy.__init__(self)
 
-    def property(self, distance, feature):
+    def cost(self, distance, feature):
         value = feature['real_length']
         if python_value(value) is None:
             # provided distance is not correct, so do a correct calculation
             # value = distance
             d = QgsDistanceArea()
-            value, unit = d.convertMeasurement(
-                feature.geometry().length(),
-                QGis.Degrees, QGis.Meters, False)
+            length = d.measureLength(feature.geometry())
+            unit = d.lengthUnits()
+            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
+                unit,
+                QgsUnitTypes.DistanceMeters
+            )
+            value = length * conversion_factor
+            # value, unit = d.convertMeasurement(
+            #     feature.geometry().length(),
+            #     Qgis.Degrees, Qgis.Meters, False)
         return value
 
     def requiredAttributes(self):
@@ -880,7 +886,8 @@ class SideViewMapVisualisation(object):
         self.source_crs = source_crs
 
         # temp layer for side profile trac
-        self.rb = QgsRubberBand(self.iface.mapCanvas())
+        self.rb = QgsRubberBand(self.iface.mapCanvas(),
+                                QgsWkbTypes.LineGeometry)
         self.rb.setColor(Qt.red)
         self.rb.setWidth(2)
 
@@ -906,7 +913,9 @@ class SideViewMapVisualisation(object):
         self.active_route = route
         transform = QgsCoordinateTransform(
             self.source_crs,
-            self.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance()
+        )
 
         for pnt in route.path_vertexes:
             t_pnt = transform.transform(pnt)
@@ -930,13 +939,14 @@ class SideViewMapVisualisation(object):
 
         self.point_markers = []
 
-        self.hover_marker.setCenter(QgsPoint(0.0, 0.0))
+        self.hover_marker.setCenter(QgsPointXY(0.0, 0.0))
 
     def hover_graph(self, meters_from_start):
 
         transform = QgsCoordinateTransform(
             self.source_crs,
-            self.iface.mapCanvas().mapRenderer().destinationCrs())
+            QgsProject.instance().crs(),
+            QgsProject.instance())
 
         if self.active_route is None:
             return
@@ -956,11 +966,14 @@ class SideViewMapVisualisation(object):
                         else:
                             distance_on_line = part[1] - meters_from_start
 
-                        length, unit_type = self.dist_calc.convertMeasurement(
-                            distance_on_line,
-                            QGis.Meters, QGis.Degrees, False)  # QGis.Degrees
-
+                        conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
+                            QgsUnitTypes.DistanceMeters,
+                            QgsUnitTypes.DistanceDegrees
+                        )
+                        length = distance_on_line * conversion_factor
                         point = part[4].geometry().interpolate(length)
+                        if point.isEmpty():
+                            return
                         self.hover_marker.setCenter(
                             transform.transform(point.asPoint()))
                         return
@@ -1042,8 +1055,10 @@ class SideViewDockWidget(QDockWidget):
         self.side_view_tab_widget.addTab(widget, widget.name)
 
         # init route graph
-        director = QgsLineVectorLayerDirector(
-            self.line_layer, -1, '', '', '', 3)
+        # QgsLineVectorLayerDirector
+        director = QgsVectorLayerDirector(
+            self.line_layer, -1, '', '', '',
+            QgsVectorLayerDirector.DirectionBoth)
 
         self.route = Route(self.line_layer, director, id_field='nr',
                            weight_properter=CustomDistancePropeter(),
@@ -1070,7 +1085,7 @@ class SideViewDockWidget(QDockWidget):
             os.path.dirname(os.path.realpath(__file__)), os.pardir,
             'layer_styles', 'tools', 'tree.qml'))
 
-        QgsMapLayerRegistry.instance().addMapLayer(self.vl_tree_layer)
+        QgsProject.instance().addMapLayer(self.vl_tree_layer)
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 
@@ -1079,7 +1094,7 @@ class SideViewDockWidget(QDockWidget):
         #     model_line_layer = canvas.currentLayer()
 
         def get_layer(spatialite_path, table_name, geom_column=''):
-            uri2 = QgsDataSourceURI()
+            uri2 = QgsDataSourceUri()
             uri2.setDatabase(spatialite_path)
             uri2.setDataSource('', table_name, geom_column)
 
@@ -1404,10 +1419,11 @@ class SideViewDockWidget(QDockWidget):
                 # startpoint as well as an endpoint, so 2 occurances)
                 cpoint_count = dict(Counter(cpoints_idx))
                 calc_points = [key for key, value in
-                               cpoint_count.items() if value == 2]
+                               list(cpoint_count.items()) if value == 2]
 
-                calculation_points = [{'id': key, 'geom': value} for key, value
-                                      in cpoints.items() if key in calc_points]
+                calculation_points = \
+                    [{'id': key, 'geom': value} for key, value
+                     in list(cpoints.items()) if key in calc_points]
 
                 channel_parts = split_line_at_points(
                     channel.geometry(),
@@ -1468,8 +1484,8 @@ class SideViewDockWidget(QDockWidget):
             QgsField("nr", QVariant.Int),
             QgsField("id", QVariant.String, len=25),
             QgsField("type", QVariant.Int),
-            QgsField("start_node", QVariant.Int),
-            QgsField("end_node", QVariant.Int),
+            QgsField("start_node", QVariant.String),
+            QgsField("end_node", QVariant.String),
             QgsField("start_node_idx", QVariant.Int),
             QgsField("end_node_idx", QVariant.Int),
             QgsField("start_level", QVariant.Double),
@@ -1493,9 +1509,9 @@ class SideViewDockWidget(QDockWidget):
             if python_value(line['end_node']) is not None:
                 p2 = points[line['end_node']]['point']
             else:
-                p2 = QgsPoint(p1.x(), p1.y() + 0.0001)
+                p2 = QgsPointXY(p1.x(), p1.y() + 0.0001)
 
-            geom = QgsGeometry.fromPolyline([p1, p2])
+            geom = QgsGeometry.fromPolylineXY([p1, p2])
             # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
 
             feat.setGeometry(geom)
@@ -1523,7 +1539,7 @@ class SideViewDockWidget(QDockWidget):
         pr.addFeatures(features)
         vl.updateExtents()
 
-        QgsMapLayerRegistry.instance().addMapLayer(vl)
+        QgsProject.instance().addMapLayer(vl)
 
         return vl, points, channel_profiles
 
@@ -1551,7 +1567,7 @@ class SideViewDockWidget(QDockWidget):
         def haversine_clicked(coordinate):
             """Calculate the distance w.r.t. the clicked location."""
             lon1, lat1 = clicked_coordinate
-            lon2, lat2 = coordinate
+            lon2, lat2 = coordinate.x(), coordinate.y()
             return haversine(lon1, lat1, lon2, lat2)
 
         selected_coordinates = reduce(
@@ -1563,7 +1579,7 @@ class SideViewDockWidget(QDockWidget):
             return
 
         closest_point = min(selected_coordinates, key=haversine_clicked)
-        next_point = QgsPoint(closest_point)
+        next_point = QgsPointXY(closest_point)
 
         success, msg = self.route.add_point(next_point)
 
@@ -1602,8 +1618,8 @@ class SideViewDockWidget(QDockWidget):
 
         # todo: find out how to unload layer from memory (done automic if
         # there are no references?)
-        QgsMapLayerRegistry.instance().removeMapLayer(self.vl_tree_layer.id())
-        QgsMapLayerRegistry.instance().removeMapLayer(self.line_layer.id())
+        QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
+        QgsProject.instance().removeMapLayer(self.line_layer.id())
 
     def closeEvent(self, event):
         """

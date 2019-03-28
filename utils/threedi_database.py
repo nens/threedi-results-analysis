@@ -1,16 +1,53 @@
+from builtins import object
 import os
 import copy
 
 import ogr
 import collections
-from pyspatialite import dbapi2
-from PyQt4.QtCore import QSettings
+from qgis.PyQt.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from sqlalchemy.event import listen
 from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
-
+from sqlalchemy.ext.declarative import declarative_base
+import logging
 from ThreeDiToolbox.sql_models.model_schematisation import Base
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+
+Base = declarative_base()
+
+log = logging.getLogger(__name__)
+
+
+def load_spatialite(con, connection_record):
+    '''Load spatialite extension as described in
+    https://geoalchemy-2.readthedocs.io/en/latest/spatialite_tutorial.html'''
+    import sqlite3
+    con.enable_load_extension(True)
+    cur = con.cursor()
+    libs = [
+        # SpatiaLite >= 4.2 and Sqlite >= 3.7.17, should work on all platforms
+        ("mod_spatialite", "sqlite3_modspatialite_init"),
+        # SpatiaLite >= 4.2 and Sqlite < 3.7.17 (Travis)
+        ("mod_spatialite.so", "sqlite3_modspatialite_init"),
+        # SpatiaLite < 4.2 (linux)
+        ("libspatialite.so", "sqlite3_extension_init")
+    ]
+    found = False
+    for lib, entry_point in libs:
+        try:
+            cur.execute(
+                "select load_extension('{}', '{}')".format(lib, entry_point))
+        except sqlite3.OperationalError:
+            continue
+        else:
+            found = True
+            break
+    if not found:
+        raise RuntimeError("Cannot find any suitable spatialite module")
+    cur.close()
+    con.enable_load_extension(False)
 
 
 class ThreediDatabase(object):
@@ -48,6 +85,7 @@ class ThreediDatabase(object):
             drv = ogr.GetDriverByName('SQLite')
             db = drv.CreateDataSource(self.settings['db_file'],
                                       ["SPATIALITE=YES"])
+            Base.metadata.bind = self.engine
             Base.metadata.create_all(self.engine)
 
             # todo: add settings to improve database creation speed for older
@@ -63,8 +101,8 @@ class ThreediDatabase(object):
             if self.db_type == 'spatialite':
                 engine = create_engine('sqlite:///{0}'.format(
                     self.settings['db_path']),
-                    module=dbapi2,
                     echo=self.echo)
+                listen(engine, 'connect', load_spatialite)
                 if get_seperate_engine:
                     return engine
                 else:
@@ -101,27 +139,138 @@ class ThreediDatabase(object):
     def get_session(self):
         return sessionmaker(bind=self.engine)()
 
+    def create_views(self):
+        conn = self.get_session()
+
+        conn.execute("""
+        CREATE VIEW IF NOT EXISTS v2_manhole_view
+        AS SELECT a.ROWID AS ROWID, a.id AS id, a.connection_node_id AS
+        connection_node_id, b.the_geom
+        FROM v2_manhole a
+        JOIN v2_connection_nodes b
+        ON a.connection_node_id = b.id;""")
+
+        conn.execute("""
+        DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_manhole_view';""")
+
+        conn.execute("""
+        INSERT INTO views_geometry_columns (view_name, view_geometry,
+        view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_manhole_view', 'the_geom', 'connection_node_id',
+        'v2_connection_nodes', 'the_geom');""")
+
+        conn.execute("""
+        CREATE VIEW IF NOT EXISTS v2_pumpstation_point_view
+        AS SELECT a.ROWID AS ROWID, a.id AS pump_id, a.display_name, a.code,
+        a.classification, a.sewerage, a.start_level, a.lower_stop_level,
+        a.upper_stop_level, a.capacity, a.zoom_category,
+        a.connection_node_start_id, a.connection_node_end_id, a.type,
+        b.id AS connection_node_id, b.storage_area, b.the_geom
+        FROM v2_pumpstation a
+        JOIN v2_connection_nodes b
+        ON a.connection_node_start_id = b.id;""")
+
+        conn.execute("""
+        DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_pumpstation_point_view';""")
+
+        conn.execute("""
+        INSERT INTO views_geometry_columns (view_name, view_geometry,
+        view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_pumpstation_point_view', 'the_geom',
+        'connection_node_start_id', 'v2_connection_nodes', 'the_geom');""")
+
+        conn.execute("""
+        CREATE VIEW IF NOT EXISTS v2_1d_lateral_view
+        AS SELECT a.ROWID AS ROWID, a.id AS id,
+        a.connection_node_id AS connection_node_id,
+        a.timeseries AS timeseries, b.the_geom
+        FROM v2_1d_lateral a
+        JOIN v2_connection_nodes b ON a.connection_node_id = b.id;""")
+
+        conn.execute("""
+        DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_1d_lateral_view';""")
+
+        conn.execute("""
+        INSERT INTO views_geometry_columns (view_name, view_geometry,
+        view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_1d_lateral_view', 'the_geom', 'connection_node_id',
+        'v2_connection_nodes', 'the_geom');""")
+
+        conn.execute("""
+        CREATE VIEW IF NOT EXISTS v2_1d_boundary_conditions_view
+        AS SELECT a.ROWID AS ROWID, a.id AS id,
+        a.connection_node_id AS connection_node_id,
+        a.boundary_type AS boundary_type, a.timeseries AS timeseries,
+        b.the_geom
+        FROM v2_1d_boundary_conditions a
+        JOIN v2_connection_nodes b ON a.connection_node_id = b.id;""")
+
+        conn.execute("""
+        DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_1d_boundary_conditions_view';""")
+
+        conn.execute("""
+        INSERT INTO views_geometry_columns (view_name, view_geometry,
+        view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_1d_boundary_conditions_view', 'the_geom',
+        'connection_node_id', 'v2_connection_nodes', 'the_geom');""")
+
+        conn.commit()
+        conn.close()
+
     def fix_views(self):
-        """fixes views in spatialite by disabeling indexes for views
-
+        if self.db_type != 'spatialite':
+            return
+        """fixes views all tables in spatialite in multiple steps:
+        1. Disable spatial index
+        2. Drop spatial index table from sqlite (e.g. idx_v2_channel_the_geom)
+        3. VACUUM spatialite to clean up spatialite
         """
-        if self.db_type == 'spatialite':
-            session = self.get_session()
 
-            session.execute(
-                """SELECT DisableSpatialIndex('v2_connection_nodes',
-                                              'the_geom_linestring');"""
-            )
+        disable_view_v2_tables = [
+            ('v2_2d_boundary_conditions', 'the_geom'),
+            ('v2_2d_lateral', 'the_geom'),
+            ('v2_calculation_point', 'the_geom'),
+            ('v2_channel', 'the_geom'),
+            ('v2_connected_pnt', 'the_geom'),
+            ('v2_connection_nodes', 'the_geom'),
+            ('v2_connection_nodes', 'the_geom_linestring'),
+            ('v2_cross_section_location', 'the_geom'),
+            ('v2_culvert', 'the_geom'),
+            ('v2_dem_average_area', 'the_geom'),
+            ('v2_floodfill', 'the_geom'),
+            ('v2_grid_refinement', 'the_geom'),
+            ('v2_grid_refinement_area', 'the_geom'),
+            ('v2_impervious_surface', 'the_geom'),
+            ('v2_initial_waterlevel', 'the_geom'),
+            ('v2_levee', 'the_geom'),
+            ('v2_obstacle', 'the_geom'),
+            ('v2_outlet', 'the_geom'),
+            ('v2_pumped_drainage_area', 'the_geom'),
+            ('v2_surface', 'the_geom'),
+            ('v2_windshielding', 'the_geom'),
+            ]
 
-            session.execute(
-                """SELECT RecoverSpatialIndex('v2_impervious_surface',
-                                              'the_geom');""")
+        # disable_spatial_index() takes some time (all tables in 10sec) which
+        # is too long for user if no progress bar or-the-like is shown
+        nr_tbls = len(disable_view_v2_tables)
+        progress_bar = StatusProgressBar(nr_tbls, 'prepare schematisation')
 
-            session.commit()
+        for (tbl, geom_column) in disable_view_v2_tables:
+            self.disable_spatial_index(tbl, geom_column)
+            progress_bar.increase_progress(1, '')
+
+        all_tables = self.engine.table_names()  # gets current existing tables
+        idx_v2_tables = [tbl for tbl in all_tables if
+                         'idx_' in tbl and 'v2_' in tbl]
+        for idx_name in idx_v2_tables:
+            self.drop_idx_table_if_exists(idx_name)
+        self.run_vacuum()
 
     def delete_from(self, table_name):
-        """
-        """
         del_statement = """DELETE FROM {}""".format(table_name)
 
         # runs a transaction
@@ -140,9 +289,7 @@ class ThreediDatabase(object):
         with self.engine.begin() as connection:
             res = connection.execute(text(select_statement))
             result = res.fetchone()
-            if result:
-                is_empty = result[0]
-            return is_empty
+            return result is None
 
     def has_valid_spatial_index(self, table_name, geom_column):
         """
@@ -150,7 +297,6 @@ class ThreediDatabase(object):
         geometry column
         """
         # runs a transaction
-
         if self.db_type == 'spatialite':
             select_statement = """
                SELECT CheckSpatialIndex('{table_name}', '{geom_column}');
@@ -172,6 +318,30 @@ class ThreediDatabase(object):
             with self.engine.begin() as connection:
                 result = connection.execute(text(select_statement))
                 return bool(result.fetchone()[0])
+
+    def disable_spatial_index(self, table_name, geom_column):
+        if self.db_type == 'spatialite':
+            select_statement = """
+               SELECT DisableSpatialIndex('{table_name}', '{geom_column}');
+            """.format(table_name=table_name, geom_column=geom_column)
+            with self.engine.begin() as connection:
+                connection.execute(text(select_statement))
+
+    def drop_idx_table_if_exists(self, idx_name):
+        if self.db_type == 'spatialite':
+            drop_statement = """DROP TABLE IF EXISTS '{idx_name}'""".format(
+                idx_name=idx_name)
+            with self.engine.begin() as connection:
+                connection.execute(text(drop_statement))
+
+    def run_vacuum(self):
+        """
+        call vacuum on a sqlite DB
+        """
+        if self.db_type == 'spatialite':
+            statement = """VACUUM;"""
+            with self.engine.begin() as connection:
+                connection.execute(text(statement))
 
 
 def get_databases():

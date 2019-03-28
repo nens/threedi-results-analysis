@@ -1,33 +1,25 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject, QVariant
-from PyQt4.QtGui import QTableView, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QPushButton, QSpacerItem, QApplication, QTabWidget, \
-    QDockWidget, QComboBox, QMessageBox, QColor, QCursor
+from builtins import str
+from builtins import object
+from qgis.PyQt.QtCore import QVariant
 
-import numpy as np
-import os
-
-from qgis.networkanalysis import QgsLineVectorLayerDirector, QgsGraphBuilder,\
-    QgsDistanceArcProperter, QgsGraphAnalyzer
+from qgis.analysis import QgsGraphBuilder, QgsNetworkDistanceStrategy, \
+    QgsGraphAnalyzer, QgsNetworkStrategy
 
 from qgis.core import (
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest)
-from qgis.networkanalysis import QgsArcProperter
-from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
-
-from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log, statusbar_message
+    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest,
+    QgsPoint)
 
 
-class AttributeProperter(QgsArcProperter):
+class AttributeProperter(QgsNetworkStrategy):
     """custom properter"""
 
     def __init__(self, attribute, attribute_index):
-        QgsArcProperter.__init__(self)
+        QgsNetworkStrategy.__init__(self)
         self.attribute = attribute
         self.attribute_index = attribute_index
 
-    def property(self, distance, feature):
+    def cost(self, distance, feature):
         if self.attribute == 'ROWID':
             value = feature.id()
         else:
@@ -43,22 +35,23 @@ class AttributeProperter(QgsArcProperter):
 class Route(object):
 
     def __init__(self, line_layer, director,
-                 weight_properter=QgsDistanceArcProperter(),
-                 distance_properter=QgsDistanceArcProperter(),
+                 weight_properter=QgsNetworkDistanceStrategy(),
+                 distance_properter=QgsNetworkDistanceStrategy(),
                  id_field="ROWID"):
 
         self.line_layer = line_layer
         self.director = director
         self.id_field = id_field
-        self.id_field_index = self.line_layer.fieldNameIndex(self.id_field)
+        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)  # noqa
 
         # build graph for network
         properter_1 = weight_properter
         properter_2 = distance_properter
         properter_3 = AttributeProperter(self.id_field, self.id_field_index)
-        self.director.addProperter(properter_1)
-        self.director.addProperter(properter_2)
-        self.director.addProperter(properter_3)
+        self.director.addStrategy(properter_1)
+        self.director.addStrategy(properter_2)
+        self.director.addStrategy(properter_3)
+        # self.director.addStrategy(QgsNetworkDistanceStrategy())
         crs = self.line_layer.crs()
         self.builder = QgsGraphBuilder(crs)
         self.director.makeGraph(self.builder, [])
@@ -170,19 +163,19 @@ class Route(object):
         cum_dist = begin_distance
         cur_pos = id_end_point
         while cur_pos != id_start_point:
-            point = self.graph.vertex(self.graph.arc(
-                self.tree[cur_pos]).inVertex()).point()
+            point = self.graph.vertex(self.graph.edge(
+                self.tree[cur_pos]).toVertex()).point()
             p.append(point)
 
-            dist = self.graph.arc(self.tree[cur_pos]).properties()[1]
+            dist = self.graph.edge(self.tree[cur_pos]).strategies()[1]
 
-            id_line = self.graph.arc(self.tree[cur_pos]).properties()[2]
+            id_line = self.graph.edge(self.tree[cur_pos]).strategies()[2]
 
             filt = u'"%s" = %s' % (self.id_field, str(id_line))
             request = QgsFeatureRequest().setFilterExpression(filt)
-            feature = self.line_layer.getFeatures(request).next()
+            feature = next(self.line_layer.getFeatures(request))
 
-            if point == feature.geometry().vertexAt(0):
+            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):  # noqa
                 # current point on tree (end point of this line) is equal to
                 # begin of original feature, so direction is opposite: -1
                 route_direction_feature = -1
@@ -192,7 +185,7 @@ class Route(object):
             path_props.insert(
                 0, [None, None, dist, route_direction_feature, feature])
 
-            cur_pos = self.graph.arc(self.tree[cur_pos]).outVertex()
+            cur_pos = self.graph.edge(self.tree[cur_pos]).fromVertex()
 
         for path in path_props:
             path[0] = cum_dist
@@ -227,14 +220,14 @@ class Route(object):
                 # add a feature
                 feat = QgsFeature()
                 a = self.graph.vertex(
-                    self.graph.arc(branch).inVertex()).point()
+                    self.graph.edge(branch).fromVertex()).point()
                 b = self.graph.vertex(
-                    self.graph.arc(branch).outVertex()).point()
-                feat.setGeometry(QgsGeometry.fromPolyline([a, b]))
+                    self.graph.edge(branch).toVertex()).point()
+                feat.setGeometry(QgsGeometry.fromPolylineXY([a, b]))
 
                 feat.setAttributes([
-                    float(self.graph.arc(branch).properties()[1]),
-                    int(self.graph.arc(branch).properties()[2])])
+                    float(self.graph.edge(branch).strategies()[1]),
+                    int(self.graph.edge(branch).strategies()[2])])
                 features.append(feat)
 
         self._virtual_tree_layer.dataProvider().addFeatures(features)

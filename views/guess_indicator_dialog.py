@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from PyQt4.QtCore import pyqtSignal, QSettings
-from PyQt4.QtGui import QDialog
-from PyQt4.QtSql import QSqlDatabase
-from PyQt4.QtCore import SIGNAL, QRect, Qt, QObject, QMetaObject
-from PyQt4.QtGui import (
-    QVBoxLayout, QGroupBox, QWidget, QComboBox, QSizePolicy, QHBoxLayout,
-    QCheckBox, QDialogButtonBox, QApplication)
-
-from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsMapLayerRegistry
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt.QtCore import QRect, Qt, QMetaObject
+from qgis.PyQt.QtWidgets import (QVBoxLayout, QGroupBox, QComboBox,
+                                 QSizePolicy, QCheckBox, QDialogButtonBox,
+                                 QApplication)
+from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 
 from ThreeDiToolbox.utils.threedi_database import get_databases
@@ -47,7 +45,7 @@ class GuessIndicatorDialogWidget(QDialog):
         self.command = command
 
         self.databases = get_databases()
-        self.database_combo.addItems(self.databases.keys())
+        self.database_combo.addItems(list(self.databases.keys()))
 
         # Connect signals
         self.buttonBox.accepted.connect(self.on_accept)
@@ -75,7 +73,7 @@ class GuessIndicatorDialogWidget(QDialog):
 
             while not successful_connection:
 
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 uri.setConnection(db_set['host'],
                                   db_set['port'],
                                   db_set['database'],
@@ -150,27 +148,14 @@ class GuessIndicatorDialogWidget(QDialog):
         event.accept()
 
     def setupUi(self, checks):
-
-        self.resize(515, 250)
+        self.resize(515, 450)
         self.verticalLayout = QVBoxLayout(self)
-
-        # self.file_combo = QComboBox(self.horizontalLayoutWidget)
-        # sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.file_combo.sizePolicy().hasHeightForWidth())
-        # self.file_combo.setSizePolicy(sizePolicy)
-        # self.file_combo.setObjectName("file_combo")
-        # self.horizontalLayout.addWidget(self.file_combo)
-        #
-        # self.file_button = QPushButton(self.horizontalLayoutWidget)
-        # self.file_button.setObjectName("file_button")
-        # self.horizontalLayout.addWidget(self.file_button)
 
         self.groupBox_2 = QGroupBox(self)
         self.groupBox_2.setObjectName("groupBox_2")
         self.database_combo = QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QRect(10, 20, 481, 20))
+        self.database_combo.setGeometry(QRect(10, 30, 481, 34))
+
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -209,10 +194,8 @@ class GuessIndicatorDialogWidget(QDialog):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi()
-        QObject.connect(self.buttonBox, SIGNAL("accepted()"),
-                        self.accept)
-        QObject.connect(self.buttonBox, SIGNAL("rejected()"),
-                        self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):

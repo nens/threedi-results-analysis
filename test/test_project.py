@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from __future__ import absolute_import
 import unittest
 import tempfile
 import os.path
 
 from qgis.core import QgsProject
-from PyQt4.QtCore import QObject, pyqtSignal, QFileInfo
+from qgis.PyQt.QtCore import QObject, pyqtSignal, QFileInfo
 
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import get_qgis_app
 
 QGIS_APP = get_qgis_app()
 
@@ -72,7 +73,7 @@ class TestProjectState(unittest.TestCase):
         # check value is set
         self.prm.load_and_set_state()
         # self.assertEqual(self.tool.state[key], value)
-        proj.write(QFileInfo(self.qgs_file_path))
+        proj.write(self.qgs_file_path)
 
         # reset project
         proj.clear()
@@ -82,7 +83,7 @@ class TestProjectState(unittest.TestCase):
         self.assertIsNone(self.tool.state[key])
 
         # read project file
-        proj.read(QFileInfo(self.qgs_file_path))
+        proj.read(self.qgs_file_path)
         # no connection to load signal in test, so run manually
         self.prm.load_and_set_state()
         # check value read and transformed correctly
@@ -124,7 +125,7 @@ class TestProjectState(unittest.TestCase):
         self.assertIsInstance(self.tool.state[key], list)
         self.assertEqual(len(self.tool.state[key]), 3)
         self.assertEqual(self.tool.state[key][0], value[0])
-        proj.write(QFileInfo(self.qgs_file_path))
+        proj.write(self.qgs_file_path)
 
         # reset project
         proj.clear()
@@ -135,7 +136,7 @@ class TestProjectState(unittest.TestCase):
         self.assertEqual(len(self.tool.state[key]), 0)
 
         # read project file
-        proj.read(QFileInfo(self.qgs_file_path))
+        proj.read(self.qgs_file_path)
         # no connection to load signal in test, so run manually
         self.prm.load_and_set_state()
         # check value read and transformed correctly

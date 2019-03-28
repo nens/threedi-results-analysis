@@ -7,7 +7,17 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from builtins import object
+from qgis.PyQt import QtCore, QtGui
+from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QGroupBox
+from qgis.PyQt.QtWidgets import QDialogButtonBox
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -16,33 +26,33 @@ except AttributeError:
         return s
 
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QApplication.translate(context, text, disambig)
 
 
 class Ui_Import_dialog(object):
     def setupUi(self, Import_dialog):
         Import_dialog.setObjectName(_fromUtf8("Import_dialog"))
-        Import_dialog.resize(515, 166)
-        self.verticalLayout = QtGui.QVBoxLayout(Import_dialog)
+        Import_dialog.resize(815, 266)
+        self.verticalLayout = QVBoxLayout(Import_dialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.groupBox = QtGui.QGroupBox(Import_dialog)
+        self.groupBox = QGroupBox(Import_dialog)
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
-        self.horizontalLayoutWidget = QtGui.QWidget(self.groupBox)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 20, 481, 34))
+        self.horizontalLayoutWidget = QWidget(self.groupBox)
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 30, 481, 34))
         self.horizontalLayoutWidget.setObjectName(
             _fromUtf8("horizontalLayoutWidget"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.horizontalLayoutWidget)
+        self.horizontalLayout = QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setMargin(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.file_combo = QtGui.QComboBox(self.horizontalLayoutWidget)
-        sizePolicy = QtGui.QSizePolicy(
-            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self.file_combo = QComboBox(self.horizontalLayoutWidget)
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
@@ -50,16 +60,17 @@ class Ui_Import_dialog(object):
         self.file_combo.setSizePolicy(sizePolicy)
         self.file_combo.setObjectName(_fromUtf8("file_combo"))
         self.horizontalLayout.addWidget(self.file_combo)
-        self.file_button = QtGui.QPushButton(self.horizontalLayoutWidget)
+        self.file_button = QPushButton(self.horizontalLayoutWidget)
         self.file_button.setObjectName(_fromUtf8("file_button"))
         self.horizontalLayout.addWidget(self.file_button)
         self.verticalLayout.addWidget(self.groupBox)
-        self.groupBox_2 = QtGui.QGroupBox(Import_dialog)
+        self.groupBox_2 = QGroupBox(Import_dialog)
         self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
-        self.database_combo = QtGui.QComboBox(self.groupBox_2)
-        self.database_combo.setGeometry(QtCore.QRect(10, 20, 481, 20))
-        sizePolicy = QtGui.QSizePolicy(
-            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self.database_combo = QComboBox(self.groupBox_2)
+        self.database_combo.setGeometry(QtCore.QRect(10, 30, 481, 34))
+
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
@@ -67,10 +78,10 @@ class Ui_Import_dialog(object):
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName(_fromUtf8("database_combo"))
         self.verticalLayout.addWidget(self.groupBox_2)
-        self.buttonBox = QtGui.QDialogButtonBox(Import_dialog)
+        self.buttonBox = QDialogButtonBox(Import_dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(
-            QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Ok)
+            QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.verticalLayout.addWidget(self.buttonBox)
 

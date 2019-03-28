@@ -1,7 +1,10 @@
+from builtins import str
 from qgis.core import (
-    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, QGis,
-    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceURI,
+    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, Qgis,
+    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceUri,
     QgsCoordinateReferenceSystem)
+from qgis.core import QgsProject
+from qgis.core import QgsWkbTypes
 import math
 
 
@@ -32,8 +35,10 @@ def split_line_at_points(polyline_input, point_features,
     source_crs = QgsCoordinateReferenceSystem(4326)
     dest_crs = QgsCoordinateReferenceSystem(3857)
 
-    transform = QgsCoordinateTransform(source_crs, dest_crs)
-    transform_back = QgsCoordinateTransform(dest_crs, source_crs)
+    transform = QgsCoordinateTransform(source_crs, dest_crs,
+                                       QgsProject.instance())
+    transform_back = QgsCoordinateTransform(dest_crs, source_crs,
+                                            QgsProject.instance())
 
     polyline = QgsGeometry(polyline_input)
     polyline.transform(transform)
@@ -50,7 +55,7 @@ def split_line_at_points(polyline_input, point_features,
         else:
             geom = point['geom']
 
-        geom = QgsGeometry.fromPoint(geom)
+        geom = QgsGeometry.fromPointXY(geom)
         geom.transform(transform)
         geom = geom.asPoint()
 
@@ -99,9 +104,11 @@ def split_line_at_points(polyline_input, point_features,
             line_points.append(point[2])
             geom = QgsGeometry.fromPolyline(line_points)
 
-            length, unit_type = d.convertMeasurement(
-                d.computeDistance(line_points),
-                QGis.Meters, QGis.Meters, False)  # QGis.Degrees
+            # length, unit_type = d.convertMeasurement(
+            #     d.computeDistance(line_points),
+            #     Qgis.Meters, Qgis.Meters, False)  # Qgis.Degrees
+
+            length = geom.length()
 
             # add line parts
             line_parts.append({
@@ -118,9 +125,10 @@ def split_line_at_points(polyline_input, point_features,
 
     # last part of the line
     geom = QgsGeometry.fromPolyline(line_points)
-    length, something = d.convertMeasurement(
-        d.computeDistance(line_points),
-        QGis.Meters, QGis.Meters, False)
+    length = geom.length()
+    # length, something = d.convertMeasurement(
+    #     d.computeDistance(line_points),
+    #     Qgis.Meters, Qgis.Meters, False)
 
     line_parts.append({
         'geom': geom,
@@ -138,7 +146,7 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
-        QGis.featureType(source_provider.geometryType()).lstrip('WKB'),
+        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip('WKB'),
         str(source_provider.crs().postgisSrid()))
 
     dest_layer = QgsVectorLayer(uri, layer_name, "memory")

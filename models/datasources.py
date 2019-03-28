@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import os
-from PyQt4.QtCore import Qt, pyqtSignal
-from ..datasource.netcdf_groundwater_h5py import \
-    NetcdfGroundwaterDataSourceH5py
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from ..datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from ..datasource.netcdf import NetcdfDataSource
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
@@ -18,7 +18,7 @@ from ..utils.layer_from_netCDF import (
     NODES_LAYER_NAME,
     PUMPLINES_LAYER_NAME,
 )
-from ..utils.user_messages import log
+from ..utils.user_messages import (log, pop_up_info)
 from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import StatusProgressBar
 
@@ -68,7 +68,7 @@ class DataSourceLayerManager(object):
     """
     type_ds_mapping = {
         'netcdf': NetcdfDataSource,
-        'netcdf-groundwater': NetcdfGroundwaterDataSourceH5py,
+        'netcdf-groundwater': NetcdfGroundwaterDataSource,
     }
 
     def __init__(self, ds_type, file_path):
@@ -91,8 +91,25 @@ class DataSourceLayerManager(object):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
+            self.tmp_disable_netcdf()
             self._datasource = ds_class(self.file_path)
         return self._datasource
+
+    def tmp_disable_netcdf(self):
+        # TODO: This is a quick fix for now. Asap: Get rid of class
+        # NetcdfDataSource(BaseDataSource)
+        # https://nelen-schuurmans.atlassian.net/browse/THREEDI-761
+        msg = "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n" \
+              "results created after March 2018 (groundwater release). \n\n" \
+              "You can do two things: \n" \
+              "1. simulate this model again and load the result in QGIS3 \n" \
+              "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+
+        # we only continue if self.ds_type == 'netcdf-groundwater'
+        if self.ds_type == 'netcdf':
+            log(msg, level='ERROR')
+            pop_up_info(msg, title='Error')
+            raise AssertionError('result too old for QGIS3')
 
     @property
     def datasource_dir(self):
@@ -184,11 +201,11 @@ class TimeseriesDatasourceModel(BaseModel):
     model_spatialite_filepath = ValueWithChangeSignal(
         'model_schematisation_change', 'model_schematisation')
 
-    class Fields:
+    class Fields(object):
         active = CheckboxField(show=True, default_value=True, column_width=20,
                                column_name='')
         name = ValueField(show=True, column_width=130, column_name='Name')
-        file_path = ValueField(show=True, column_width=260, column_name='File')
+        file_path = ValueField(show=True, column_width=615, column_name='File')
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 

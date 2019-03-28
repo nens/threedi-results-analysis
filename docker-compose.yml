@@ -1,0 +1,23 @@
+version: '3.0'
+
+services:
+
+  qgis-desktop:
+    image: qgis-desktop:3.4.5
+    build:
+      context: .
+      dockerfile: Docker/qgis3.4.5/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${UID}
+        USERNAME: ${USER}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
+      - .:/home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox # source code
+      - ~/.local/share/QGIS/QGIS3:/home/${USER}/.local/share/QGIS/QGIS3  # make settings persistent
+    environment:
+      - USERNAME=${USER}
+      - USER_ID=${UID}
+      - GROUP_ID=${UID}
+      - DISPLAY=unix${DISPLAY}
+    command: /usr/bin/qgis

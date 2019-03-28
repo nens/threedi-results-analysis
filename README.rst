@@ -26,14 +26,13 @@ Take a look at the `Wiki`_ for more information.
 Installing requirements
 -----------------------
 
-- QGIS 2.14 or 2.16 (64 bit is recommended)
+- QGIS 3 (64 bit)
 - pyqtgraph
 - sqlalchemy version 1.1.0 or higher
 - geoalchemy2 with custom modifications, source available here: https://github.com/nens/geoalchemy2
-- netCDF4 (included only for Windows using 64 bit QGIS)
 - h5py (included for Windows)
 
-Most Python dependencies are included in the **distribution** of the plugin,
+These Python dependencies are included in the **distribution** of the plugin,
 but if you clone this repository you need to manually install them in the
 ``external`` directory::
 
@@ -42,14 +41,20 @@ but if you clone this repository you need to manually install them in the
 Windows
 ^^^^^^^
 
-The package includes the dependency 'netCDF4' for 64 bit installations of QGIS under
-Windows (tested on Windows 7 SP1 and Windows 10). If you are using the 32 bit version of QGIS,
-it is best to upgrade to the 64 bit version or build the Python netCDF4 including C bindings yourself.
+The package includes the dependencies 'netCDF4' and 'h5py' for 64 bit
+installations of QGIS under Windows (tested on Windows 7 SP1 and Windows 10).
+If you are using the 32 bit version of QGIS, it is best to upgrade to the 64
+bit version or build the python packages netCDF4 and h5py including C bindings
+yourself. When building these packages, make sure to use the HDF5 version used
+in Qgis (1.8.11)::
+
+    $ python -m pip install --no-binary=h5py --no-deps --global-option=build_ext --global-option="-IC:\Program Files\QGIS 3.4\include" --global-option="-LC:\Program Files\QGIS 3.4\lib" h5py
 
 Linux
 ^^^^^
 
-For Linux, NetCDF and HDF5 dependencies are **not** included, so you have to install them::
+For Linux, NetCDF and h5py dependencies are **not** included, so you have to
+install them::
 
 $ sudo apt-get install libhdf5-serial-dev libnetcdf-dev
 

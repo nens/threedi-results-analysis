@@ -1,41 +1,19 @@
 language: generic
-sudo: required
-dist: trusty
+dist: xenial
 
 env:
-    - QGIS_REPO=http://qgis.org/debian-ltr
+    - UID=1000 USER=qgis_user
 
-addons:
-  apt:
-    packages:
-      - python-software-properties
-      - libhdf5-serial-dev
-      - libnetcdf-dev
-      - xvfb  # emulating X-server
-      - pyqt4-dev-tools
+services:
+  - docker
 
 before_install:
-    - sudo apt-get -qq -y update
-
-install:
-    # See: https://github.com/tomchadwin/qgis2web/blob/master/.travis.yml
-    - sudo add-apt-repository ${QGIS_REPO}
-    - sudo apt-get update
-    - sudo apt-get install -y --force-yes qgis python-qgis
-    # linux requirements
-    - sudo pip install -r requirements-dev.txt
-    # required pure python packages
-    - pip install -r requirements.txt --target=external --no-deps
+  - docker-compose build
 
 script:
-    # this script adds standard qgis plugins (like db_manager) to PYTHONPATH
-    - source scripts/run-env-linux.sh /usr
-    - xvfb-run make test
-    - make pep8
+  # We set the QT_QPA_PLATFORM to run the tests on a headless server: http://doc.qt.io/qt-5/embedded-linux.html
+  - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
+  - docker-compose run qgis-desktop make pep8
 
 notifications:
     email: false
-
-cache:
-    directories:
-    - $HOME/.cache/pip
