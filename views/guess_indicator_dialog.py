@@ -108,8 +108,8 @@ class GuessIndicatorDialogWidget(QDialog):
                     connInfo, uname, passwd, msg)
 
                 if success:
-                    db_set['username'] = passwd
-                    db_set['password'] = uname
+                    db_set['username'] = uname
+                    db_set['password'] = passwd
                 else:
                     return
 
