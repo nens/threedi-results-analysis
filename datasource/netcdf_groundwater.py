@@ -115,7 +115,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
 
-        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource  # noqa
+        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
         >>> ds = NetcdfGroundwaterDataSource()
         >>> ds._strip_prefix('Mesh2D_s1')
         's1'
@@ -490,5 +490,5 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             log.error("Could not find the aggregation netcdf.")
             return None
         else:
-            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)  # noqa
+            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")

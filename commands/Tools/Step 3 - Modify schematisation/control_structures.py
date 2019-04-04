@@ -20,18 +20,18 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
 )
 from ThreeDiToolbox.views.control_structures_create_measuring_group import (
     CreateMeasuringGroupDialogWidget,
-)  # noqa
+)
 from ThreeDiToolbox.views.control_structures_create_table_control_dialog import (
     CreateTableControlDialogWidget,
-)  # noqa
+)
 from ThreeDiToolbox.views.control_structures_create_control_group_dialog import (
     CreateControlGroupDialogWidget,
-)  # noqa
+)
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.views.control_structures_dockwidget import (
     ControlStructuresDockWidget,
-)  # noqa
+)
 
 log = logging.getLogger(__name__)
 

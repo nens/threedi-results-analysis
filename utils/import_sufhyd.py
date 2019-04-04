@@ -273,7 +273,7 @@ class Importer(object):
         # 0
         not_connected_outlets = [
             outl for cod, outl in list(outlet_dict.items()) if cod not in used_outlets
-        ]  # noqa
+        ]
 
         if len(not_connected_outlets) > 0:
             data["outlets"] = [
@@ -390,7 +390,7 @@ class Importer(object):
                 manhole["storage_area"] = None
 
             # if manhole['code'] in link_dict:
-            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])  # noqa
+            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])
             #     del manhole
             #     continue
 

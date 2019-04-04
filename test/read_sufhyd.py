@@ -6,7 +6,7 @@ from ..tools.importer import Importer
 
 class TestReadSufhyd(unittest.TestCase):
     def test_knp(self):
-        knp = "*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   "  # noqa
+        knp = "*KNP   0000NOORD1                 164371100  388463700   19.14  0   100   100.000        00    5.00                   "
 
         sufhyd = SufhydReader(knp)
         sufhyd.parse_input()
@@ -25,7 +25,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data["material"], None)
 
     def test_lei(self):
-        lei = "*LEI   0000NOORD1   0000NOORD2      5.00    2.002561.63           1.500  2.000 02                                      "  # noqa
+        lei = "*LEI   0000NOORD1   0000NOORD2      5.00    2.002561.63           1.500  2.000 02                                      "
 
         sufhyd = SufhydReader(lei)
         sufhyd.parse_input()
@@ -52,7 +52,7 @@ class TestReadSufhyd(unittest.TestCase):
 
     def test_gemaal(self):
 
-        gem = "*GEM   00000IILST   0000GEMAAL 0             3  625.83   12.66   12.61                 3000.00   12.96   12.66                 3300.00   13.96   13.66                 3330.00   14.96   14.66"  # noqa
+        gem = "*GEM   00000IILST   0000GEMAAL 0             3  625.83   12.66   12.61                 3000.00   12.96   12.66                 3300.00   13.96   13.66                 3330.00   14.96   14.66"
 
         sufhyd = SufhydReader(gem)
         sufhyd.parse_input()
@@ -71,9 +71,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data["capacity"], 625.83)
 
     def test_overstort(self):
-        ovs = (
-            "*OVS   000000SON2                10.000   17.14 0.941   1   17.04"
-        )  # noqa
+        ovs = "*OVS   000000SON2                10.000   17.14 0.941   1   17.04"
 
         sufhyd = SufhydReader(ovs)
         sufhyd.parse_input()
@@ -102,7 +100,7 @@ class TestReadSufhyd(unittest.TestCase):
     def test_doorlaat(self):
         drl = (
             "*DRL   0000G2175U   0000G2175W 0  3.300  0.850 02   16.02 0.600          2"
-        )  # noqa
+        )
 
         sufhyd = SufhydReader(drl)
         sufhyd.parse_input()
@@ -153,7 +151,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data["storage_area"], 80.0)
 
     def test_bergend_oppervlak(self):
-        bop = "*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00"  # noqa
+        bop = "*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00"
 
         sufhyd = SufhydReader(bop)
         sufhyd.parse_input()

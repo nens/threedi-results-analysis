@@ -1039,16 +1039,16 @@ class RasterChecker(object):
         return a pop_up_info (user clicks okay),
         pop_up_question (user clicks yes/no), Assertionerror
 
-            self.results.nr_error_logrows   self.need_to_create_shp self.too_many_wrong_pixels (more rows than shp can handle)  # noqa
-            count_error > 0                 shp contains pixels     too many pixels for shp  # noqa
-        1.  True                            False                   False   --> pop_up_info  # noqa
-        2.  True                            False                   True    --> pop_up_info + warning  # noqa
-        3.  True                            True                    False   --> pop_up_question  # noqa
-        4.  True                            True                    True    --> pop_up_question + warning  # noqa
-        5.  False                           False                   False   --> pop_up_info  # noqa
-        6.  False                           False                   True    --> raise AssertionError  # noqa
-        7.  False                           True                    False   --> raise AssertionError  # noqa
-        8.  False                           True                    True    --> raise AssertionError  # noqa
+            self.results.nr_error_logrows   self.need_to_create_shp self.too_many_wrong_pixels (more rows than shp can handle)
+            count_error > 0                 shp contains pixels     too many pixels for shp
+        1.  True                            False                   False   --> pop_up_info
+        2.  True                            False                   True    --> pop_up_info + warning
+        3.  True                            True                    False   --> pop_up_question
+        4.  True                            True                    True    --> pop_up_question + warning
+        5.  False                           False                   False   --> pop_up_info
+        6.  False                           False                   True    --> raise AssertionError
+        7.  False                           True                    False   --> raise AssertionError
+        8.  False                           True                    True    --> raise AssertionError
         """
 
         a = self.results.nr_error_logrows

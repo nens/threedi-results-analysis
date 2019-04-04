@@ -14,11 +14,11 @@ class TestLayerFuncs(unittest.TestCase):
 
 class TestDBSourceInfoParser(unittest.TestCase):
     def test_it_can_parse_sqlite_info(self):
-        info_string = "dbname='/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite' table=\"v2_connected_pnt\" (the_geom) sql="  # noqa
+        info_string = "dbname='/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite' table=\"v2_connected_pnt\" (the_geom) sql="
         s_info = parse_db_source_info(info_string)
         expected = {
-            "database": "/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite",  # noqa
-            "host": "/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite",  # noqa,
+            "database": "/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite",
+            "host": "/home/test_user/v2_bergermeer/test_plugin/v2_bergermeer.sqlite",
             "password": "",
             "port": "",
             "srid": "",
@@ -31,7 +31,12 @@ class TestDBSourceInfoParser(unittest.TestCase):
         self.assertDictEqual(s_info, expected)
 
     def test_it_can_parse_postgres_info(self):
-        info_string = u"dbname='work_test' host=localhost port=54324 user='tester' password='test_pw' sslmode=disable key='id' srid=28992 type=LineString table=\"public\".\"v2_levee\" (the_geom) sql="  # noqa
+        info_string = (
+            u"dbname='work_test' host=localhost port=54324 "
+            "user='tester' password='test_pw' sslmode=disable "
+            "key='id' srid=28992 type=LineString "
+            'table="public"."v2_levee" (the_geom) sql='
+        )
         expected = {
             "database": u"work_test",
             "host": "localhost",

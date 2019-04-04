@@ -378,7 +378,7 @@ class BreachLocation(object):
                 pnt, end_point, EXTRAPLORATION_RATIO
             )
             exp_end_pnt = QgsPointXY(extrapolated_point[0], extrapolated_point[1])
-            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])  # noqa
+            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])
         new_position = line_from_intersect.interpolate(self.distance_to_levee)
         return new_position, levee_id
 

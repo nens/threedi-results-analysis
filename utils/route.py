@@ -56,7 +56,7 @@ class Route(object):
         self.id_field = id_field
         self.id_field_index = self.line_layer.fields().lookupField(
             self.id_field
-        )  # noqa
+        )
 
         # build graph for network
         properter_1 = weight_properter
@@ -191,7 +191,7 @@ class Route(object):
             request = QgsFeatureRequest().setFilterExpression(filt)
             feature = next(self.line_layer.getFeatures(request))
 
-            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):  # noqa
+            if QgsPoint(point.x(), point.y()) == feature.geometry().vertexAt(0):
                 # current point on tree (end point of this line) is equal to
                 # begin of original feature, so direction is opposite: -1
                 route_direction_feature = -1

@@ -86,7 +86,8 @@ class CacheClearer(object):
         # registry, even though it may appear that no more layers are loaded
         # visually.
         # The specific error message (for googling):
-        # error 32 the process cannot access the file because it is being used by another process  # noqa
+        # "error 32 the process cannot access the file because it is being used
+        # by another process"
         all_layers = list(QgsProject.instance().mapLayers().values())
         loaded_layers = [
             l

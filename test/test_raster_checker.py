@@ -1,15 +1,15 @@
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget  # noqa
+from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget
 from ThreeDiToolbox.utils.raster_checker_prework import (
     DataModelSource,
     RasterCheckerEntrees,
-)  # noqa
+)
 from ThreeDiToolbox.utils.raster_checker_log import (
     RasterCheckerResults,
     RasterCheckerProgressBar,
-)  # noqa
+)
 
 from sqlalchemy import MetaData
 import unittest
@@ -544,56 +544,56 @@ class TestRasterChecker(unittest.TestCase):
                 "check_id": 1,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 2,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 3,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 4,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 1,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 2,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 3,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 4,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
         ]
 
         setting_id = 1
@@ -619,56 +619,56 @@ class TestRasterChecker(unittest.TestCase):
                 "check_id": 1,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 2,
                 "result": False,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 3,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "a.tif",
                 "setting_id": 1,
                 "check_id": 4,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 1,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 2,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 3,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
             {
                 "raster": "b.tif",
                 "setting_id": 1,
                 "check_id": 4,
                 "result": True,
                 "detail": "",
-            },  # noqa
+            },
         ]
 
         setting_id = 1

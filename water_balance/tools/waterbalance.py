@@ -54,7 +54,7 @@ class WaterBalanceCalculation(object):
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
         self.y2d_surf_range = list(
             range(y2d_surf_range_min, y2d_surf_range_max + 1)
-        )  # noqa
+        )
 
         # get range of vertical (in side view) line ids in the gridadmin.
         # These lines represent surface-groundwater (vertical) flow

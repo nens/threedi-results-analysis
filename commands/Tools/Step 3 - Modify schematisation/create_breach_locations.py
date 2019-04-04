@@ -9,7 +9,7 @@ from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
     CreateBreachLocationsDialogWidget,
-)  # noqa
+)
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 

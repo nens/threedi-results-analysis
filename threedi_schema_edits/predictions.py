@@ -207,7 +207,7 @@ class Predictor(object):
                                    'content_type_id': 1,
                                    'dist_calc_pnts': 5.0,
                                    'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},  # noqa
+                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
         }
         """
         query_data = self._get_query_data(epsg_code)
@@ -752,7 +752,7 @@ class Predictor(object):
         field_names_calc_pnts = [field.name() for field in calc_pnts_lyr.fields()]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))  # noqa
+            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))
             calc_type = calc_pnt["calc_type"]
             pnts_to_add = 1 if calc_type != 5 else 2
             if calc_type < 2:

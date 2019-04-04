@@ -290,7 +290,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.help_text_browser.setText(
             tool_help.replace("        ", "")
             .replace("\n", "")
-            .replace("\r", "")  # noqa
+            .replace("\r", "")
         )
         connected_pnt_lyr = QgsProject.instance().mapLayersByName("v2_connected_pnt")
         # automatically pre-select the right layer if present
