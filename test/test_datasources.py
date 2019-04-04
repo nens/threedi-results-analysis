@@ -10,8 +10,14 @@ import shutil
 import sys
 
 try:
-    from qgis.core import (QgsVectorLayer, QgsFeature, QgsPoint, QgsPointXY,
-                           QgsField, QgsGeometry)
+    from qgis.core import (
+        QgsVectorLayer,
+        QgsFeature,
+        QgsPoint,
+        QgsPointXY,
+        QgsField,
+        QgsGeometry,
+    )
 except ImportError:
     pass
 
@@ -21,7 +27,7 @@ try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
     # Linux specific
-    sys.path.append('/usr/share/qgis/python/plugins/')
+    sys.path.append("/usr/share/qgis/python/plugins/")
     try:
         from ThreeDiToolbox.datasource.spatialite import Spatialite
     except ImportError:
@@ -33,19 +39,24 @@ from ThreeDiToolbox.datasource.netcdf import (
     find_id_mapping_file,
     find_aggregation_netcdf,
 )
-from ThreeDiToolbox.datasource.netcdf_groundwater import \
-    NetcdfGroundwaterDataSource, \
-    find_aggregation_netcdf_gw
+from ThreeDiToolbox.datasource.netcdf_groundwater import (
+    NetcdfGroundwaterDataSource,
+    find_aggregation_netcdf_gw,
+)
 from ThreeDiToolbox.test.utilities import get_qgis_app, TemporaryDirectory
 
 QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
 spatialite_datasource_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'data', 'test_spatialite.sqlite')
+    os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
+)
 netcdf_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    'data', 'testmodel', 'results', 'subgrid_map.nc')
+    "data",
+    "testmodel",
+    "results",
+    "subgrid_map.nc",
+)
 
 
 def result_data_is_available(flow_agg_must_exist=False):
@@ -64,18 +75,17 @@ def result_data_is_available(flow_agg_must_exist=False):
     return True
 
 
-@unittest.skipIf(not result_data_is_available(),
-                 "Result data doesn't exist or is incomplete.")
+@unittest.skipIf(
+    not result_data_is_available(), "Result data doesn't exist or is incomplete."
+)
 class TestNetcdfDatasource(unittest.TestCase):
-
     def setUp(self):
-        self.ncds = NetcdfDataSource(netcdf_datasource_path,
-                                     load_properties=False)
+        self.ncds = NetcdfDataSource(netcdf_datasource_path, load_properties=False)
 
         # cherry picked id and object type that exist in this
         # test set
         self.cherry_picked_object_id = 114
-        self.cherry_picked_object_type = 'v2_weir_view'
+        self.cherry_picked_object_type = "v2_weir_view"
         # the inp id the cherry picked object id maps to (look in
         # id_mapping.json)
         self.complementary_inp_id_of_object_id = 5472
@@ -113,7 +123,7 @@ class TestNetcdfDatasource(unittest.TestCase):
     def test_get_ids_memory_layers(self):
         """test memory layers that are not mapped."""
         object_id = 42
-        for object_type in ['flowline', 'node', 'pumpline']:
+        for object_type in ["flowline", "node", "pumpline"]:
             ncid = self.ncds.obj_to_netcdf_id(object_id, object_type)
             self.assertEqual(ncid, object_id)
 
@@ -128,46 +138,37 @@ class TestNetcdfDatasource(unittest.TestCase):
         id which leads to all sorts of problems.
         """
         norm_obj_type = normalized_object_type(self.cherry_picked_object_type)
-        inp_id = self.ncds.inp_id_from(
-            self.cherry_picked_object_id, norm_obj_type)
+        inp_id = self.ncds.inp_id_from(self.cherry_picked_object_id, norm_obj_type)
         self.assertEqual(inp_id, self.complementary_inp_id_of_object_id)
 
         ncid = self.ncds.netcdf_id_from(inp_id, norm_obj_type)
         self.assertEqual(
             ncid,
-            self.ncds.obj_to_netcdf_id(
-                self.cherry_picked_object_id,
-                norm_obj_type
-            )
+            self.ncds.obj_to_netcdf_id(self.cherry_picked_object_id, norm_obj_type),
         )
 
     def test_get_timeseries(self):
         """Test get_timeseries from datasource."""
         # q exists
-        self.assertTrue(
-            'q' in self.ncds.available_subgrid_map_vars
-        )
+        self.assertTrue("q" in self.ncds.available_subgrid_map_vars)
         ts = self.ncds.get_timeseries(
-            'flowlines',
+            "flowlines",
             # We assume there is at least one timestep of data that we can
             # slice
             0,
-            'q',
+            "q",
         )
         self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
 
     @unittest.skipIf(
         not result_data_is_available(flow_agg_must_exist=True),
-        "No flow aggregate found.")
+        "No flow aggregate found.",
+    )
     def test_flow_aggregate(self):
         """Simple flow aggregate checks."""
         self.assertTrue(self.ncds.ds_aggregation)
-        self.assertTrue(self.ncds.get_agg_var_timestamps('s1_max').size > 0)
-        ts = self.ncds.get_timeseries(
-            'nodes',
-            0,
-            's1_max',
-        )
+        self.assertTrue(self.ncds.get_agg_var_timestamps("s1_max").size > 0)
+        ts = self.ncds.get_timeseries("nodes", 0, "s1_max")
         self.assertEqual(ts.shape[1], 2)  # timeseries has two columns
 
 
@@ -177,10 +178,11 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
     def setUp(self):
         class Mock(object):
             pass
+
         mock = Mock()  # Mock the netCDF Dataset
-        self.ncds = NetcdfDataSource(netcdf_datasource_path,
-                                     load_properties=False,
-                                     ds=mock)
+        self.ncds = NetcdfDataSource(
+            netcdf_datasource_path, load_properties=False, ds=mock
+        )
 
     def test_load_properties(self):
         """Test getting attributes from netCDF."""
@@ -207,58 +209,58 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
-            nc_path = os.path.join(tempdir, 'bla.nc')
+            nc_path = os.path.join(tempdir, "bla.nc")
             with self.assertRaises(IndexError):
                 find_aggregation_netcdf(nc_path)
 
     def test_find_agg_success(self):
         with TemporaryDirectory() as tempdir:
-            nc_path = os.path.join(tempdir, 'bla.nc')
-            agg_path = os.path.join(tempdir, 'flow_aggregate.nc')
-            with open(agg_path, 'w') as aggfile:
-                aggfile.write('doesnt matter')
+            nc_path = os.path.join(tempdir, "bla.nc")
+            agg_path = os.path.join(tempdir, "flow_aggregate.nc")
+            with open(agg_path, "w") as aggfile:
+                aggfile.write("doesnt matter")
             agg_path_found = find_aggregation_netcdf(nc_path)
             self.assertEqual(agg_path, agg_path_found)
 
 
 @unittest.skipIf(
-    linux_dist == 'Ubuntu' and
-    LooseVersion(ubuntu_version) < LooseVersion('16.04'),
+    linux_dist == "Ubuntu" and LooseVersion(ubuntu_version) < LooseVersion("16.04"),
     "Your Ubuntu version probably has a GDAL/OGR version that's too old for "
-    "this test to succeed.")
+    "this test to succeed.",
+)
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
 class TestSpatialiteDataSource(unittest.TestCase):
-
     def setUp(self):
         self.tmp_directory = tempfile.mkdtemp()
-        self.spatialite_path = os.path.join(self.tmp_directory, 'test.sqlite')
+        self.spatialite_path = os.path.join(self.tmp_directory, "test.sqlite")
 
     def tearDown(self):
         shutil.rmtree(self.tmp_directory)
 
     def test_create_empty_table(self):
-        spl = Spatialite(self.spatialite_path + '1')
+        spl = Spatialite(self.spatialite_path + "1")
 
         layer = spl.create_empty_layer(
-            'table_one', fields=['id INTEGER', 'name TEXT NULLABLE'])
+            "table_one", fields=["id INTEGER", "name TEXT NULLABLE"]
+        )
         # test table is created
         self.assertIsNotNone(layer)
-        self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
-        self.assertFalse('table_two' in spl.getTables())
+        self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
+        self.assertFalse("table_two" in spl.getTables())
 
         # test adding data
         self.assertEqual(layer.featureCount(), 0)
         pr = layer.dataProvider()
 
         feat = QgsFeature()
-        feat.setAttributes([1, 'test'])
+        feat.setAttributes([1, "test"])
         feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
 
         pr.addFeatures([feat])
         self.assertEqual(layer.featureCount(), 1)
 
     def test_import_layer(self):
-        spl = Spatialite(self.spatialite_path + '3')
+        spl = Spatialite(self.spatialite_path + "3")
 
         # create memory layer
         uri = "Point?crs=epsg:4326&index=yes"
@@ -266,24 +268,26 @@ class TestSpatialiteDataSource(unittest.TestCase):
         pr = layer.dataProvider()
 
         # add fields
-        pr.addAttributes([
-            QgsField("id", QVariant.Int),
-            QgsField("col2", QVariant.Double),
-            QgsField("col3", QVariant.String, None, 20),
-            QgsField("col4", QVariant.TextFormat),
-        ])
+        pr.addAttributes(
+            [
+                QgsField("id", QVariant.Int),
+                QgsField("col2", QVariant.Double),
+                QgsField("col3", QVariant.String, None, 20),
+                QgsField("col4", QVariant.TextFormat),
+            ]
+        )
         # tell the vector layer to fetch changes from the provider
         layer.updateFields()
         pr = layer.dataProvider()
         feat = QgsFeature()
-        feat.setAttributes([1, 'test'])
+        feat.setAttributes([1, "test"])
         feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(1.0, 2.0)))
         pr.addFeatures([feat])
 
-        spl_layer = spl.import_layer(layer, 'table_one', 'id')
+        spl_layer = spl.import_layer(layer, "table_one", "id")
 
         self.assertIsNotNone(spl_layer)
-        self.assertTrue('table_one' in [c[1] for c in spl.getTables()])
+        self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
         self.assertEqual(layer.featureCount(), 1)
 
 
@@ -306,27 +310,29 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         nds.get_timestamps()
 
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars',  # noqa
-        ['s1'])
+        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",
+        ["s1"],
+    )
     @mock.patch(
-        'ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result')  # noqa
+        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result"
+    )
     def test_get_timeseries(self, gridadmin_result_mock):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
-        nds.get_timeseries('nodes', 3, 's1')
+        nds.get_timeseries("nodes", 3, "s1")
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
-            nc_path = os.path.join(tempdir, 'bla.nc')
+            nc_path = os.path.join(tempdir, "bla.nc")
             with self.assertRaises(IndexError):
                 find_aggregation_netcdf_gw(nc_path)
 
     def test_find_agg_success(self):
         with TemporaryDirectory() as tempdir:
-            nc_path = os.path.join(tempdir, 'bla.nc')
-            agg_path = os.path.join(tempdir, 'aggregate_results_3di.nc')
-            with open(agg_path, 'w') as aggfile:
-                aggfile.write('doesnt matter')
+            nc_path = os.path.join(tempdir, "bla.nc")
+            agg_path = os.path.join(tempdir, "aggregate_results_3di.nc")
+            with open(agg_path, "w") as aggfile:
+                aggfile.write("doesnt matter")
             agg_path_found = find_aggregation_netcdf_gw(nc_path)
             self.assertEqual(agg_path, agg_path_found)

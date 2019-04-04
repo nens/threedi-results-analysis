@@ -1,19 +1,32 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from qgis.PyQt.QtCore import QVariant
-from qgis.core import (QgsField, QgsFields, QgsVectorFileWriter, QgsFeature,
-                       QgsGeometry, QgsPointXY, QgsCoordinateReferenceSystem,
-                       QgsWkbTypes)
+from qgis.core import (
+    QgsField,
+    QgsFields,
+    QgsVectorFileWriter,
+    QgsFeature,
+    QgsGeometry,
+    QgsPointXY,
+    QgsCoordinateReferenceSystem,
+    QgsWkbTypes,
+)
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.utils.user_messages import (pop_up_info,
-                                                messagebar_message,
-                                                pop_up_question)
-from ThreeDiToolbox.utils.raster_checker_prework import (DataModelSource,
-                                                         RasterCheckerEntrees)
+from ThreeDiToolbox.utils.user_messages import (
+    pop_up_info,
+    messagebar_message,
+    pop_up_question,
+)
+from ThreeDiToolbox.utils.raster_checker_prework import (
+    DataModelSource,
+    RasterCheckerEntrees,
+)
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import (RasterCheckerResults,
-                                                     RasterCheckerProgressBar)
+from ThreeDiToolbox.utils.raster_checker_log import (
+    RasterCheckerResults,
+    RasterCheckerProgressBar,
+)
 import os
 import string
 import logging
@@ -40,7 +53,7 @@ class RasterChecker(object):
         self.entrees = raster_checker_entrees.entrees
         self.entrees_metadata = raster_checker_entrees.entrees_metadata
 
-        sqlite_path = str(self.db.settings['db_path'])
+        sqlite_path = str(self.db.settings["db_path"])
         self.sqlite_dir = os.path.split(sqlite_path)[0]
         self.results = RasterCheckerResults(sqlite_path)
 
@@ -51,7 +64,7 @@ class RasterChecker(object):
 
         # some check constants
         self.no_data_value_int = -9999
-        self.no_data_value_flt = -9999.
+        self.no_data_value_flt = -9999.0
         self.max_pixels_allow = 1000000000  # 1 billion all rasters 1 entree
 
     def close_session(self):
@@ -63,17 +76,23 @@ class RasterChecker(object):
     def iter_block_row(self, band, offset_y, block_height, block_width):
         ncols = int(band.XSize / block_width)
         for i in range(ncols):
-            arr = band.ReadAsArray(i * block_width, offset_y, block_width,
-                                   block_height)
-            yield (i * block_width, offset_y, (i + 1) * block_width, offset_y +
-                   block_height), arr
+            arr = band.ReadAsArray(i * block_width, offset_y, block_width, block_height)
+            yield (
+                i * block_width,
+                offset_y,
+                (i + 1) * block_width,
+                offset_y + block_height,
+            ), arr
         # possible leftover block
         width = band.XSize - (ncols * block_width)
         if width > 0:
-            arr = band.ReadAsArray(i * block_width, offset_y, width,
-                                   block_height)
-            yield (ncols * block_width, offset_y, ncols * block_width + width,
-                   offset_y + block_height), arr
+            arr = band.ReadAsArray(i * block_width, offset_y, width, block_height)
+            yield (
+                ncols * block_width,
+                offset_y,
+                ncols * block_width + width,
+                offset_y + block_height,
+            ), arr
             # offset_y + block_height), arr
 
     def iter_blocks(self, band, block_width=0, block_height=0):
@@ -82,14 +101,16 @@ class RasterChecker(object):
         Returns a tuple of bbox (x1, y1, x2, y2) and the data as ndarray. """
         nrows = int(band.YSize / block_height)
         for j in range(nrows):
-            for block in self.iter_block_row(band, j * block_height,
-                                             block_height, block_width):
+            for block in self.iter_block_row(
+                band, j * block_height, block_height, block_width
+            ):
                 yield block
         # possible leftover row
         height = band.YSize - (nrows * block_height)
         if height > 0:
-            for block in self.iter_block_row(band, nrows * block_height,
-                                             height, block_width):
+            for block in self.iter_block_row(
+                band, nrows * block_height, height, block_width
+            ):
                 yield block
 
     def optimize_blocksize(self, band, min_blocksize=256, max_blocksize=256):
@@ -126,61 +147,75 @@ class RasterChecker(object):
         band = src_ds.GetRasterBand(1)
         src_ds = None  # close raster
         w, h, nr_blocks = self.optimize_blocksize(band)
-        raster_generator = self.iter_blocks(
-            band, block_width=w, block_height=h)
+        raster_generator = self.iter_blocks(band, block_width=w, block_height=h)
         count_data = 0
         count_nodata = 0
         for data in raster_generator:
             bbox, arr = data
             total_size = arr.size
             add_cnt_nodata = np.count_nonzero(arr == self.no_data_value_int)
-            add_cnt_data = (total_size - add_cnt_nodata)
+            add_cnt_data = total_size - add_cnt_nodata
             count_nodata += add_cnt_nodata
             count_data += add_cnt_data
         return count_data, count_nodata
 
     def check_id_tifname_unique(self, setting_id, rast_item, check_id):
-        detail = ''
-        id_name = '%d_%s' % (setting_id, rast_item)
+        detail = ""
+        id_name = "%d_%s" % (setting_id, rast_item)
         self.unique_id_name.append(id_name)
         if len(self.unique_id_name) == len(set(self.unique_id_name)):
             result = True
         else:
             result = False
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def check_tif_exists(self, setting_id, rast_item, check_id):
         # Does the raster (reference from the model) really exists?
-        detail = ''
+        detail = ""
         raster_path = os.path.join(self.sqlite_dir, rast_item)
         if os.path.isfile(raster_path):
             result = True
         else:
             result = False
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def check_extension(self, setting_id, rast_item, check_id):
         # exetension of raster must be  .tif or .tiff
-        detail = ''
-        extension = rast_item.split('.')[-1]
-        if extension.lower() not in ['tif', 'tiff']:
+        detail = ""
+        extension = rast_item.split(".")[-1]
+        if extension.lower() not in ["tif", "tiff"]:
             result = False
-            detail = 'found extension: %s' % extension
+            detail = "found extension: %s" % extension
         else:
             result = True
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def check_filename(self, setting_id, rast_item, check_id):
         # what is the purpose ??
         # TODO: lars suggest to use just 'os' to check its 1 folder deep
 
         # Does the raster filename have valid chars (also space is not allowed)
-        detail = ''
+        detail = ""
         invalid_chars = set(string.punctuation.replace("_", ""))
-        invalid_chars.add(' ')
+        invalid_chars.add(" ")
         invalid_chars_in_filename = []
 
         # only one '.' and '/' is allowed in relative path
@@ -188,9 +223,9 @@ class RasterChecker(object):
         count_dot = 0
         for char in rast_item:
             if char in invalid_chars:
-                if char == '/' and count_forward_slash < 1:
+                if char == "/" and count_forward_slash < 1:
                     count_forward_slash += 1
-                elif char == '.' and count_dot < 1:
+                elif char == "." and count_dot < 1:
                     count_dot += 1
                 else:
                     invalid_chars_in_filename.append(char)
@@ -199,29 +234,39 @@ class RasterChecker(object):
             detail = str(invalid_chars_in_filename)
         else:
             result = True
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def check_singleband(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster singleband ?
-        detail = ''
+        detail = ""
         try:
             cnt_rasterband = src_ds.RasterCount
             if cnt_rasterband == 1:
                 result = True
             else:
                 result = False
-                detail = 'found %d rasterbands' % cnt_rasterband
+                detail = "found %d rasterbands" % cnt_rasterband
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_nodata(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster nodata -9999 ?
-        detail = ''
+        detail = ""
         try:
             srcband = src_ds.GetRasterBand(1)
             nodata = srcband.GetNoDataValue()
@@ -229,101 +274,126 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-                detail = 'nodata value is %d' % nodata
+                detail = "nodata value is %d" % nodata
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_proj_unit(self, setting_id, rast_item, check_id, src_ds):
         # Does the raster have a projected coordinate system? (unit: meters)?
-        detail = ''
+        detail = ""
         try:
             proj = src_ds.GetProjection()
             spat_ref = osr.SpatialReference()
             spat_ref.ImportFromWkt(proj)
             unit = spat_ref.GetLinearUnitsName()
-            if unit == 'metre':
+            if unit == "metre":
                 result = True
             else:
                 result = False
-                detail = 'unit is %s' % unit
+                detail = "unit is %s" % unit
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_flt32(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster datatype float32 ?
-        detail = ''
+        detail = ""
         try:
             srcband = src_ds.GetRasterBand(1)
             data_type = srcband.DataType
             data_type_name = gdal.GetDataTypeName(data_type)
-            if data_type_name == 'Float32':
+            if data_type_name == "Float32":
                 result = True
             else:
                 result = False
-                detail = 'data_type is %s' % data_type_name
+                detail = "data_type is %s" % data_type_name
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_compress(self, setting_id, rast_item, check_id, src_ds):
         # Is the raster compressed ?
-        detail = ''
+        detail = ""
         try:
-            compr_method = src_ds.GetMetadata('IMAGE_STRUCTURE')[
-                'COMPRESSION']
-            if compr_method == 'DEFLATE':
+            compr_method = src_ds.GetMetadata("IMAGE_STRUCTURE")["COMPRESSION"]
+            if compr_method == "DEFLATE":
                 result = True
             else:
                 result = False
-                detail = 'compression_method is %s' % compr_method
+                detail = "compression_method is %s" % compr_method
         except Exception as e:
-            detail = 'Not able to get compression type'
+            detail = "Not able to get compression type"
             log.error(e)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_pixel_decimal(self, setting_id, rast_item, check_id, src_ds):
         # Has the pixel resolution less than three decimal places?
-        detail = ''
+        detail = ""
         try:
             geotransform = src_ds.GetGeoTransform()
             # horizontal pixel resolution
             xres = abs(geotransform[1])
-            cnt_decimal_xres = str(xres)[::-1].find('.')
+            cnt_decimal_xres = str(xres)[::-1].find(".")
             # vertical pixel resolution
             yres = abs(geotransform[5])
-            cnt_decimal_yres = str(yres)[::-1].find('.')
+            cnt_decimal_yres = str(yres)[::-1].find(".")
 
             if cnt_decimal_xres > 3 or cnt_decimal_yres > 3:
                 result = False
-                detail = 'found %d and %d decimal places for x- and ' \
-                         'y- resolution respectively' % (cnt_decimal_xres,
-                                                         cnt_decimal_yres)
+                detail = (
+                    "found %d and %d decimal places for x- and "
+                    "y- resolution respectively" % (cnt_decimal_xres, cnt_decimal_yres)
+                )
             else:
                 result = True
         except Exception as e:
             log.error(e)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_square_pixel(self, setting_id, rast_item, check_id, src_ds):
         # check 10 has the raster square pixels?
-        detail = ''
+        detail = ""
         try:
             geotransform = src_ds.GetGeoTransform()
             # horizontal pixel resolution
@@ -335,18 +405,25 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-                detail = 'we found %d and %d for x- and y-resolution. Must ' \
-                         'be equal' % (xres, yres)
+                detail = (
+                    "we found %d and %d for x- and y-resolution. Must "
+                    "be equal" % (xres, yres)
+                )
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_extreme_value(self, setting_id, rast_item, check_id, src_ds):
         # are there no extreme values?
-        detail = ''
+        detail = ""
         try:
             srcband = src_ds.GetRasterBand(1)
             stats = srcband.GetStatistics(True, True)
@@ -358,17 +435,22 @@ class RasterChecker(object):
                 result = True
             else:
                 result = False
-                detail = 'found extreme values: min=%d, max=%d' % (min, max)
+                detail = "found extreme values: min=%d, max=%d" % (min, max)
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_cum_pixel_cnt(self, rasters, setting_id, check_id):
         # cummulative pixel count
-        detail = ''
+        detail = ""
         cum_pixelcount = 0
         for rast_item in rasters:
             raster_path = os.path.join(self.sqlite_dir, rast_item)
@@ -380,44 +462,58 @@ class RasterChecker(object):
             cum_pixelcount += pixelcount
         if cum_pixelcount > self.max_pixels_allow:
             result = False
-            detail = 'cumulative pixelcount= %d for all rasters in ' \
-                     'setting_id %d. This is more than 3Di can handle ' \
-                     '1.000.000.000' % (cum_pixelcount, setting_id)
+            detail = (
+                "cumulative pixelcount= %d for all rasters in "
+                "setting_id %d. This is more than 3Di can handle "
+                "1.000.000.000" % (cum_pixelcount, setting_id)
+            )
         else:
             result = True
         for rast_item in rasters:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
     def check_proj(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         # compare projection of dem with another raster
-        detail = ''
+        detail = ""
         try:
             dem_src_srs = osr.SpatialReference()
             dem_src_srs.ImportFromWkt(dem_src_ds.GetProjection())
-            dem_projcs = dem_src_srs.GetAttrValue('projcs')
+            dem_projcs = dem_src_srs.GetAttrValue("projcs")
 
             src_srs = osr.SpatialReference()
             src_srs.ImportFromWkt(src_ds.GetProjection())
-            projcs = src_srs.GetAttrValue('projcs')
+            projcs = src_srs.GetAttrValue("projcs")
 
             if dem_projcs == projcs:
                 result = True
             else:
                 result = False
-                detail = 'found dem projection=%s, while %s projection=%s' % (
-                    dem_projcs, rast_item, projcs)
+                detail = "found dem projection=%s, while %s projection=%s" % (
+                    dem_projcs,
+                    rast_item,
+                    projcs,
+                )
         except Exception as detail:
             log.error(detail)
             result = False
         finally:
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
 
-    def check_pixelsize(self, setting_id, rast_item, check_id, src_ds,
-                        dem_src_ds):
+    def check_pixelsize(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         # compare pixelsize of dem with another raster
-        detail = ''
+        detail = ""
         dem_ext = dem_src_ds.GetGeoTransform()
         dem_ulx, dem_xres, dem_xskew, dem_uly, dem_yskew, dem_yres = dem_ext
         ext = src_ds.GetGeoTransform()
@@ -427,41 +523,57 @@ class RasterChecker(object):
             result = True
         else:
             result = False
-            detail = 'dem has pixel size x:%d y:%d, while %s has pixel ' \
-                     'size x:%d y:%d' % (dem_xres, dem_yres, rast_item,
-                                         xres, yres)
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+            detail = (
+                "dem has pixel size x:%d y:%d, while %s has pixel "
+                "size x:%d y:%d" % (dem_xres, dem_yres, rast_item, xres, yres)
+            )
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
-    def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds,
-                         dem_src_ds):
+    def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         """ compare data/nodata count of dem with another raster and store the
         counts as we use it later before pixel alignment check """
-        detail = ''
+        detail = ""
         dem_cnt_data, dem_cnt_nodata = self.count_data_nodata(dem_src_ds)
         cnt_data, cnt_nodata = self.count_data_nodata(src_ds)
-        self.results.store_cnt_data_nodata.append({
-            'setting_id': setting_id,
-            'raster': rast_item,
-            'dem_cnt_data': dem_cnt_data,
-            'dem_cnt_nodata': dem_cnt_nodata,
-            'cnt_data': cnt_data,
-            'cnt_nodata': cnt_nodata,
-        })
+        self.results.store_cnt_data_nodata.append(
+            {
+                "setting_id": setting_id,
+                "raster": rast_item,
+                "dem_cnt_data": dem_cnt_data,
+                "dem_cnt_nodata": dem_cnt_nodata,
+                "cnt_data": cnt_data,
+                "cnt_nodata": cnt_nodata,
+            }
+        )
 
         if (dem_cnt_data, dem_cnt_nodata) == (cnt_data, cnt_nodata):
             result = True
         else:
             result = False
-            detail = 'dem: %d/%d data/nodata, while %s: %d/%d data/nodata' % (
-                dem_cnt_data, dem_cnt_nodata, rast_item, cnt_data, cnt_nodata)
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+            detail = "dem: %d/%d data/nodata, while %s: %d/%d data/nodata" % (
+                dem_cnt_data,
+                dem_cnt_nodata,
+                rast_item,
+                cnt_data,
+                cnt_nodata,
+            )
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
-    def check_extent(self, setting_id, rast_item, check_id, src_ds,
-                     dem_src_ds):
+    def check_extent(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
         """ compare extent (number rows/colums) of dem with another raster """
-        detail = ''
+        detail = ""
         dem_cols = dem_src_ds.RasterXSize
         dem_rows = dem_src_ds.RasterYSize
         cols = src_ds.RasterXSize
@@ -470,11 +582,17 @@ class RasterChecker(object):
             result = True
         else:
             result = False
-            detail = 'dem has %d columns and % d rows, while %s has ' \
-                     '%d columns and %d rows' % (dem_cols, dem_rows,
-                                                 rast_item, cols, rows)
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+            detail = (
+                "dem has %d columns and % d rows, while %s has "
+                "%d columns and %d rows" % (dem_cols, dem_rows, rast_item, cols, rows)
+            )
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def check_pixel_alignment(self, setting_id, rast_item, check_id, dem):
         """
@@ -489,23 +607,34 @@ class RasterChecker(object):
         :return:
         """
 
-        detail = ''
+        detail = ""
         [(dem_cnt_data, dem_cnt_nodata, cnt_data, cnt_nodata)] = [
-            (chck.get('dem_cnt_data'), chck.get('dem_cnt_nodata'),
-             chck.get('cnt_data'), chck.get('cnt_nodata'))
-            for chck in self.results.store_cnt_data_nodata if
-            chck.get('raster') == rast_item and
-            chck.get('setting_id') == setting_id]
+            (
+                chck.get("dem_cnt_data"),
+                chck.get("dem_cnt_nodata"),
+                chck.get("cnt_data"),
+                chck.get("cnt_nodata"),
+            )
+            for chck in self.results.store_cnt_data_nodata
+            if chck.get("raster") == rast_item and chck.get("setting_id") == setting_id
+        ]
         diff_data = abs(dem_cnt_data - cnt_data)
         diff_nodata = abs(dem_cnt_nodata - cnt_nodata)
         max_wrong_pixels = 50000
         if diff_data > max_wrong_pixels or diff_nodata > max_wrong_pixels:
-            detail = 'Wrong pixels are not written too .shp as too many ' \
-                     'wrong pixels were found'
+            detail = (
+                "Wrong pixels are not written too .shp as too many "
+                "wrong pixels were found"
+            )
             self.too_many_wrong_pixels = True
             result = False
-            self.results._add(setting_id=setting_id, raster=rast_item,
-                              check_id=check_id, result=result, detail=detail)
+            self.results._add(
+                setting_id=setting_id,
+                raster=rast_item,
+                check_id=check_id,
+                result=result,
+                detail=detail,
+            )
             return
 
         dem_path = os.path.join(self.sqlite_dir, dem)
@@ -521,7 +650,8 @@ class RasterChecker(object):
 
         current_status = self.progress_bar.current_status
         progress_per_raster = self.progress_bar.get_progress_per_raster(
-            self.entrees, self.results, current_status)
+            self.entrees, self.results, current_status
+        )
         self.progress_bar.increase_progress(progress_per_raster)
 
         self.pixel_specs = self.get_pixel_specs(dem_path)
@@ -530,8 +660,9 @@ class RasterChecker(object):
         wrong_pixels_list = []
 
         # compare two rasters blockwise
-        for data1, data2 in list(zip(
-                generator_dem.__next__(), generator_other.__next__())):
+        for data1, data2 in list(
+            zip(generator_dem.__next__(), generator_other.__next__())
+        ):
             wrong_pixels = self.compare_pixel_bbox(data1, data2)
             if wrong_pixels:
                 found_wrong_pixel = True
@@ -542,16 +673,23 @@ class RasterChecker(object):
 
         if found_wrong_pixel:
             self.input_data_shp.append(
-                {'setting_id': setting_id,
-                 'raster': rast_item,
-                 'coords': wrong_pixels_list}
+                {
+                    "setting_id": setting_id,
+                    "raster": rast_item,
+                    "coords": wrong_pixels_list,
+                }
             )
             result = False
-            detail = 'the mismatch locations have been written to .shp file'
+            detail = "the mismatch locations have been written to .shp file"
         else:
             result = True
-        self.results._add(setting_id=setting_id, raster=rast_item,
-                          check_id=check_id, result=result, detail=detail)
+        self.results._add(
+            setting_id=setting_id,
+            raster=rast_item,
+            check_id=check_id,
+            result=result,
+            detail=detail,
+        )
 
     def get_nr_blocks(self, raster_path):
         raster = gdal.Open(raster_path, GA_ReadOnly)
@@ -620,8 +758,11 @@ class RasterChecker(object):
         """
 
         # all (1, 2 and 3) in once:
-        coords = [uly, ulx] + ((bbox_idx + [ul_row, ul_col]) * pixelsize) * \
-                 [-1, 1] + [-0.5 * pixelsize, 0.5 * pixelsize]
+        coords = (
+            [uly, ulx]
+            + ((bbox_idx + [ul_row, ul_col]) * pixelsize) * [-1, 1]
+            + [-0.5 * pixelsize, 0.5 * pixelsize]
+        )
         # note that: x = coords[:][0] and y = coords[:][1]
         return coords
 
@@ -629,8 +770,8 @@ class RasterChecker(object):
         bbox1, arr1 = data1
         bbox2, arr2 = data2
         # create masks (without data and fill_value. Only mask)
-        mask1 = (arr1[:] == self.no_data_value_flt)
-        mask2 = (arr2[:] == self.no_data_value_flt)
+        mask1 = arr1[:] == self.no_data_value_flt
+        mask2 = arr2[:] == self.no_data_value_flt
         # xor gives array with trues for wrong pixels
         compare_mask = np.logical_xor(mask1, mask2)
         # is there any True in the compare mask? then there is at least
@@ -651,15 +792,17 @@ class RasterChecker(object):
         :return: list with tuples with (check_id, check_name), e.g:
         [(1, 'tif_exists'), (2, 'tif_extension')]
         """
-        return [(chck.get('check_id'), chck.get('base_check_name')) for chck
-                in RASTER_CHECKER_MAPPER if chck.get('phase') == check_phase]
+        return [
+            (chck.get("check_id"), chck.get("base_check_name"))
+            for chck in RASTER_CHECKER_MAPPER
+            if chck.get("phase") == check_phase
+        ]
 
     @property
     def nr_phases(self):
         if self._nr_phases:
             return self._nr_phases
-        self._nr_phases = max(
-            [chck.get('phase') for chck in RASTER_CHECKER_MAPPER])
+        self._nr_phases = max([chck.get("phase") for chck in RASTER_CHECKER_MAPPER])
         return self._nr_phases
 
     def dem_to_first_index(self, rasters_orig, rasters_ready):
@@ -667,8 +810,10 @@ class RasterChecker(object):
         dem = rasters_orig[0]
         dem_index = rasters_ready.index(dem)
         if dem_index != 0:
-            rasters_ready[0], rasters_ready[dem_index] = \
-                rasters_ready[dem_index], rasters_ready[0]
+            rasters_ready[0], rasters_ready[dem_index] = (
+                rasters_ready[dem_index],
+                rasters_ready[0],
+            )
         # we do not have to return 'rasters_ready' since inplace edit
 
     def run_phase_checks(self, setting_id, rasters, check_phase):
@@ -680,8 +825,12 @@ class RasterChecker(object):
                 return
             for rast_item in rasters:
                 for check_id, base_check_name in check_ids_names:
-                    self.run_check(base_check_name, setting_id=setting_id,
-                                   rast_item=rast_item, check_id=check_id)
+                    self.run_check(
+                        base_check_name,
+                        setting_id=setting_id,
+                        rast_item=rast_item,
+                        check_id=check_id,
+                    )
 
         # phase 2 does multiple checks over one raster, then next raster
         elif check_phase == 2:
@@ -689,17 +838,25 @@ class RasterChecker(object):
                 raster_path = os.path.join(self.sqlite_dir, rast_item)
                 src_ds = gdal.Open(raster_path, GA_ReadOnly)
                 for check_id, base_check_name in check_ids_names:
-                    self.run_check(base_check_name, setting_id=setting_id,
-                                   rast_item=rast_item, check_id=check_id,
-                                   src_ds=src_ds)
+                    self.run_check(
+                        base_check_name,
+                        setting_id=setting_id,
+                        rast_item=rast_item,
+                        check_id=check_id,
+                        src_ds=src_ds,
+                    )
                 src_ds = None  # close raster
 
         # pixel cumulative
         # phase 3 does check over multiple rasters at once, then next check
         elif check_phase == 3:
             for check_id, base_check_name in check_ids_names:
-                self.run_check(base_check_name, setting_id=setting_id,
-                               rasters=rasters, check_id=check_id)
+                self.run_check(
+                    base_check_name,
+                    setting_id=setting_id,
+                    rasters=rasters,
+                    check_id=check_id,
+                )
 
         # phase 4 (compare with dem)
         elif check_phase == 4:
@@ -710,9 +867,14 @@ class RasterChecker(object):
                 path = os.path.join(self.sqlite_dir, rast_item)
                 src_ds = gdal.Open(path, GA_ReadOnly)
                 for check_id, base_check_name in check_ids_names:
-                    self.run_check(base_check_name, setting_id=setting_id,
-                                   rast_item=rast_item, check_id=check_id,
-                                   src_ds=src_ds, dem_src_ds=dem_src_ds)
+                    self.run_check(
+                        base_check_name,
+                        setting_id=setting_id,
+                        rast_item=rast_item,
+                        check_id=check_id,
+                        src_ds=src_ds,
+                        dem_src_ds=dem_src_ds,
+                    )
             dem_src_ds = None  # close raster
             src_ds = None  # close raster
 
@@ -721,9 +883,13 @@ class RasterChecker(object):
             dem = rasters[0]
             for rast_item in rasters[1:]:
                 for check_id, base_check_name in check_ids_names:
-                    self.run_check(base_check_name, setting_id=setting_id,
-                                   rast_item=rast_item, check_id=check_id,
-                                   dem=dem)
+                    self.run_check(
+                        base_check_name,
+                        setting_id=setting_id,
+                        rast_item=rast_item,
+                        check_id=check_id,
+                        dem=dem,
+                    )
 
     def run_all_checks(self):
         """
@@ -741,7 +907,8 @@ class RasterChecker(object):
         """
 
         self.progress_bar = RasterCheckerProgressBar(
-            self.nr_phases, maximum=100, message_title='Raster Checker')
+            self.nr_phases, maximum=100, message_title="Raster Checker"
+        )
 
         progress_per_phase = self.progress_bar.progress_per_phase
 
@@ -750,7 +917,7 @@ class RasterChecker(object):
         for setting_id, rasters in self.entrees.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, 'done phase 1')
+        self.progress_bar.increase_progress(progress_per_phase, "done phase 1")
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
@@ -760,7 +927,7 @@ class RasterChecker(object):
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, 'done phase 2')
+        self.progress_bar.increase_progress(progress_per_phase, "done phase 2")
 
         phase = 3
         # cumulative pixels of all rasters in 1 entree not too much?
@@ -769,7 +936,7 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, 'done phase 3')
+        self.progress_bar.increase_progress(progress_per_phase, "done phase 3")
 
         phase = 4
         # compare rasters with dem in same entree
@@ -784,7 +951,7 @@ class RasterChecker(object):
                 self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, 'done phase 4')
+        self.progress_bar.increase_progress(progress_per_phase, "done phase 4")
 
         phase = 5
         self.input_data_shp = []
@@ -811,53 +978,58 @@ class RasterChecker(object):
         fields.append(QgsField("x centre", QVariant.String))
         fields.append(QgsField("y centre", QVariant.String))
 
-        self.shape_path = self.results.log_path.split('.log')[0] + '.shp'
-        writer = QgsVectorFileWriter(self.shape_path, "CP1250", fields,
-                                     QgsWkbTypes.Point,
-                                     QgsCoordinateReferenceSystem(),
-                                     "ESRI Shapefile")
+        self.shape_path = self.results.log_path.split(".log")[0] + ".shp"
+        writer = QgsVectorFileWriter(
+            self.shape_path,
+            "CP1250",
+            fields,
+            QgsWkbTypes.Point,
+            QgsCoordinateReferenceSystem(),
+            "ESRI Shapefile",
+        )
         try:
             if writer.hasError() != QgsVectorFileWriter.NoError:
-                msg = 'Error while creating shapefile: ' + \
-                      str(writer.errorMessage())
+                msg = "Error while creating shapefile: " + str(writer.errorMessage())
                 log.error(msg)
                 raise Exception(msg)
             else:
                 for pixel_check_dict in self.input_data_shp:
-                    raster = pixel_check_dict.get('raster')
-                    setting_id = pixel_check_dict.get('setting_id')
-                    coords = pixel_check_dict.get('coords')
+                    raster = pixel_check_dict.get("raster")
+                    setting_id = pixel_check_dict.get("setting_id")
+                    coords = pixel_check_dict.get("coords")
                     for row in coords:
                         for point in row:
                             point_y = point[0]
                             point_x = point[1]
                             feat = QgsFeature()
-                            feat.setGeometry(QgsGeometry.fromPointXY(
-                                QgsPointXY(point_x, point_y)))
-                            feat.setAttributes(
-                                [setting_id, raster, point_x, point_y])
+                            feat.setGeometry(
+                                QgsGeometry.fromPointXY(QgsPointXY(point_x, point_y))
+                            )
+                            feat.setAttributes([setting_id, raster, point_x, point_y])
                             writer.addFeature(feat)
         except Exception as e:
             log.error(e)
-            raise AssertionError('could not write XY point to shp file')
+            raise AssertionError("could not write XY point to shp file")
         # delete the writer to flush features to disk
         del writer
 
     def pop_up_finished(self):
-        header = 'Raster checker is finished'
+        header = "Raster checker is finished"
         if self.need_to_create_shp:
-            msg = 'The check results have been written to: \n %s \n ' \
-                  'The coordinates of wrong pixels are written to: \n' \
-                  '%s' % (self.results.log_path, self.shape_path)
+            msg = (
+                "The check results have been written to: \n %s \n "
+                "The coordinates of wrong pixels are written to: \n"
+                "%s" % (self.results.log_path, self.shape_path)
+            )
         else:
-            msg = 'The check results have been written to:\n%s' % \
-                  self.results.log_path
+            msg = "The check results have been written to:\n%s" % self.results.log_path
         pop_up_info(msg, header)
 
     def add_shp_to_iface(self):
-        basename = ''
-        provider = 'ogr'
+        basename = ""
+        provider = "ogr"
         from qgis.utils import iface
+
         layer = iface.addVectorLayer(self.shape_path, basename, provider)
         if not layer:
             print("Layer failed to load!")
@@ -867,75 +1039,91 @@ class RasterChecker(object):
         return a pop_up_info (user clicks okay),
         pop_up_question (user clicks yes/no), Assertionerror
 
-            self.results.nr_error_logrows   self.need_to_create_shp self.too_many_wrong_pixels (more rows than shp can handle)  # noqa
-            count_error > 0                 shp contains pixels     too many pixels for shp  # noqa
-        1.  True                            False                   False   --> pop_up_info  # noqa
-        2.  True                            False                   True    --> pop_up_info + warning  # noqa
-        3.  True                            True                    False   --> pop_up_question  # noqa
-        4.  True                            True                    True    --> pop_up_question + warning  # noqa
-        5.  False                           False                   False   --> pop_up_info  # noqa
-        6.  False                           False                   True    --> raise AssertionError  # noqa
-        7.  False                           True                    False   --> raise AssertionError  # noqa
-        8.  False                           True                    True    --> raise AssertionError  # noqa
+            self.results.nr_error_logrows   self.need_to_create_shp self.too_many_wrong_pixels (more rows than shp can handle)
+            count_error > 0                 shp contains pixels     too many pixels for shp
+        1.  True                            False                   False   --> pop_up_info
+        2.  True                            False                   True    --> pop_up_info + warning
+        3.  True                            True                    False   --> pop_up_question
+        4.  True                            True                    True    --> pop_up_question + warning
+        5.  False                           False                   False   --> pop_up_info
+        6.  False                           False                   True    --> raise AssertionError
+        7.  False                           True                    False   --> raise AssertionError
+        8.  False                           True                    True    --> raise AssertionError
         """
 
         a = self.results.nr_error_logrows
         b = self.need_to_create_shp
         c = self.too_many_wrong_pixels
 
-        header = 'Raster checker is finished'
-        question = 'Do you want to add .shp to current view?'
+        header = "Raster checker is finished"
+        question = "Do you want to add .shp to current view?"
 
         # case 1
         if a > 0 and not b and not c:
             # pop_up_info
-            msg = 'Found %d errors (see .log) and no wrong pixels. \n\n' \
-                  'The check results have been written to: \n ' \
-                  '%s' % (self.results.nr_error_logrows, self.results.log_path)
+            msg = (
+                "Found %d errors (see .log) and no wrong pixels. \n\n"
+                "The check results have been written to: \n "
+                "%s" % (self.results.nr_error_logrows, self.results.log_path)
+            )
             pop_up_info(msg, header)
         # case 2
         elif a > 0 and not b and c:
             # pop_up_info + warning
-            msg = 'Found %d errors (see .log). \n' \
-                  'Found too many wrong pixels to write to .shp file ' \
-                  '(see .log). \n\n ' \
-                  'The check results have been written to: \n ' \
-                  '%s' % (self.results.nr_error_logrows, self.results.log_path)
+            msg = (
+                "Found %d errors (see .log). \n"
+                "Found too many wrong pixels to write to .shp file "
+                "(see .log). \n\n "
+                "The check results have been written to: \n "
+                "%s" % (self.results.nr_error_logrows, self.results.log_path)
+            )
             pop_up_info(msg, header)
         # case 3
         elif a > 0 and b and not c:
             # pop_up_question
-            msg = 'Found %d errors and some wrong pixels. \n\n '\
-                  'The check results have been written to: \n %s \n\n ' \
-                  'The coordinates of wrong pixels are written to: \n %s' \
-                  % (self.results.nr_error_logrows, self.results.log_path,
-                     self.shape_path)
+            msg = (
+                "Found %d errors and some wrong pixels. \n\n "
+                "The check results have been written to: \n %s \n\n "
+                "The coordinates of wrong pixels are written to: \n %s"
+                % (
+                    self.results.nr_error_logrows,
+                    self.results.log_path,
+                    self.shape_path,
+                )
+            )
             pop_up_info(msg, header)
-            if pop_up_question(question, 'Add shapefile?'):
+            if pop_up_question(question, "Add shapefile?"):
                 self.add_shp_to_iface()
         # case 4
         elif a > 0 and b and c:
             # pop_up_question + warning
-            msg = 'Found %d errors and some wrong pixels. \n ' \
-                  'Also found for 1 or more rasters too many wrong pixels ' \
-                  'to write to .shp file. \n\n' \
-                  'The check results have been written to: \n %s \n\n ' \
-                  'The coordinates of wrong pixels are written to: \n %s' \
-                  % (self.results.nr_error_logrows, self.results.log_path,
-                     self.shape_path)
+            msg = (
+                "Found %d errors and some wrong pixels. \n "
+                "Also found for 1 or more rasters too many wrong pixels "
+                "to write to .shp file. \n\n"
+                "The check results have been written to: \n %s \n\n "
+                "The coordinates of wrong pixels are written to: \n %s"
+                % (
+                    self.results.nr_error_logrows,
+                    self.results.log_path,
+                    self.shape_path,
+                )
+            )
             pop_up_info(msg, header)
-            if pop_up_question(question, 'Add shapefile?'):
+            if pop_up_question(question, "Add shapefile?"):
                 self.add_shp_to_iface()
         # case 5
         elif a == 0 and not b and not c:
             # pop_up_info()
-            msg = 'Found no errors (see .log) and no wrong pixels. \n\n ' \
-                  'The check results have been written to: \n ' \
-                  '%s' % self.results.log_path
+            msg = (
+                "Found no errors (see .log) and no wrong pixels. \n\n "
+                "The check results have been written to: \n "
+                "%s" % self.results.log_path
+            )
             pop_up_info(msg, header)
         # scenario 6, 7, or 8
         elif a == 0 and b ^ c:
-            raise AssertionError('this result combination is impossible')
+            raise AssertionError("this result combination is impossible")
 
     def run(self, tasks):
         """ runs the Raster checks.

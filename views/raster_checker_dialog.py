@@ -3,8 +3,14 @@
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
 from qgis.PyQt.QtWidgets import (
-    QVBoxLayout, QGroupBox, QComboBox, QSizePolicy, QCheckBox,
-    QDialogButtonBox, QApplication)
+    QVBoxLayout,
+    QGroupBox,
+    QComboBox,
+    QSizePolicy,
+    QCheckBox,
+    QDialogButtonBox,
+    QApplication,
+)
 from ThreeDiToolbox.utils.threedi_database import get_databases
 import os
 import logging
@@ -16,15 +22,16 @@ try:
 
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
 
 class RasterCheckerDialogWidget(QDialog):
-
-    def __init__(self, parent=None, checks=[],
-                 command=None):
+    def __init__(self, parent=None, checks=[], command=None):
         """Constructor
         Args:
             parent: Qt parent Widget
@@ -42,8 +49,8 @@ class RasterCheckerDialogWidget(QDialog):
         self.databases = {}
         self.all_databases = get_databases()
         for k, v in self.all_databases.items():
-            if 'spatialite' in k:
-                if v['db_name']:
+            if "spatialite" in k:
+                if v["db_name"]:
                     self.databases[k] = v
 
         self.database_combo.addItems(self.databases.keys())
@@ -56,23 +63,23 @@ class RasterCheckerDialogWidget(QDialog):
         """Accept and run the Command.run_it method."""
         db_key = self.database_combo.currentText()
         settings = self.databases[db_key]
-        db_set = settings['db_settings']
+        db_set = settings["db_settings"]
 
-        if not os.path.isfile(db_set['db_path']):
-            msg = 'sqlite %s not found' % str(db_set['db_path'])
+        if not os.path.isfile(db_set["db_path"]):
+            msg = "sqlite %s not found" % str(db_set["db_path"])
             raise Exception(msg)
 
         # TODO: check_all_rasters always runs. Enable check per model entree
         checks = []
         if self.check_all_rasters.isChecked():
-            checks.append('check all rasters')
+            checks.append("check all rasters")
             # TODO: write improve first
             # improve_when_necessary may only be checked when
             # 'check_all_rasters' is checked
             # if self.improve_when_necessary.isChecked():
             #     checks.append('improve when necessary')
 
-        self.command.run_it(checks, db_set, settings['db_type'])
+        self.command.run_it(checks, db_set, settings["db_type"])
         self.accept()
 
     def on_reject(self):
@@ -103,7 +110,8 @@ class RasterCheckerDialogWidget(QDialog):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.database_combo.sizePolicy().hasHeightForWidth())
+            self.database_combo.sizePolicy().hasHeightForWidth()
+        )
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -126,8 +134,7 @@ class RasterCheckerDialogWidget(QDialog):
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -138,15 +145,19 @@ class RasterCheckerDialogWidget(QDialog):
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Raster Checker", None))
-        self.groupBox_2.setTitle(_translate(
-            "self", "Model schematisation database", None))
+        self.groupBox_2.setTitle(
+            _translate("self", "Model schematisation database", None)
+        )
 
         self.groupBox.setTitle(_translate("Import_dialog", "Options", None))
 
-        self.check_all_rasters.setText(_translate(
-            "Import_dialog",
-            "1. Check all rasters of all v2_global_settings rows",
-            None))
+        self.check_all_rasters.setText(
+            _translate(
+                "Import_dialog",
+                "1. Check all rasters of all v2_global_settings rows",
+                None,
+            )
+        )
 
         # TODO: write improve function first
         # self.improve_when_necessary.setText(_translate(

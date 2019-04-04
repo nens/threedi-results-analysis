@@ -18,7 +18,7 @@ from ..utils.layer_from_netCDF import (
     NODES_LAYER_NAME,
     PUMPLINES_LAYER_NAME,
 )
-from ..utils.user_messages import (log, pop_up_info)
+from ..utils.user_messages import log, pop_up_info
 from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import StatusProgressBar
 
@@ -34,7 +34,7 @@ def get_line_pattern(item_field):
         Qt.DashLine,
         Qt.DotLine,
         Qt.DashDotLine,
-        Qt.DashDotDotLine
+        Qt.DashDotDotLine,
     ]
 
     used_patterns = [item.pattern.value for item in item_field.item.model.rows]
@@ -47,7 +47,6 @@ def get_line_pattern(item_field):
 
 
 class ValueWithChangeSignal(object):
-
     def __init__(self, signal_name, signal_setting_name, init_value=None):
         self.signal_name = signal_name
         self.signal_setting_name = signal_setting_name
@@ -58,17 +57,17 @@ class ValueWithChangeSignal(object):
 
     def __set__(self, instance, value):
         self.value = value
-        getattr(instance, self.signal_name).emit(
-            self.signal_setting_name, value)
+        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
 class DataSourceLayerManager(object):
     """
     Abstracts away datasource-layer specifics.
     """
+
     type_ds_mapping = {
-        'netcdf': NetcdfDataSource,
-        'netcdf-groundwater': NetcdfGroundwaterDataSource,
+        "netcdf": NetcdfDataSource,
+        "netcdf-groundwater": NetcdfGroundwaterDataSource,
     }
 
     def __init__(self, ds_type, file_path):
@@ -82,8 +81,8 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            'netcdf': self._get_result_layers_regular,
-            'netcdf-groundwater': self._get_result_layers_groundwater,
+            "netcdf": self._get_result_layers_regular,
+            "netcdf-groundwater": self._get_result_layers_groundwater,
         }
 
     @property
@@ -99,17 +98,19 @@ class DataSourceLayerManager(object):
         # TODO: This is a quick fix for now. Asap: Get rid of class
         # NetcdfDataSource(BaseDataSource)
         # https://nelen-schuurmans.atlassian.net/browse/THREEDI-761
-        msg = "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n" \
-              "results created after March 2018 (groundwater release). \n\n" \
-              "You can do two things: \n" \
-              "1. simulate this model again and load the result in QGIS3 \n" \
-              "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+        msg = (
+            "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n"
+            "results created after March 2018 (groundwater release). \n\n"
+            "You can do two things: \n"
+            "1. simulate this model again and load the result in QGIS3 \n"
+            "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+        )
 
         # we only continue if self.ds_type == 'netcdf-groundwater'
-        if self.ds_type == 'netcdf':
-            log(msg, level='ERROR')
-            pop_up_info(msg, title='Error')
-            raise AssertionError('result too old for QGIS3')
+        if self.ds_type == "netcdf":
+            log(msg, level="ERROR")
+            pop_up_info(msg, title="Error")
+            raise AssertionError("result too old for QGIS3")
 
     @property
     def datasource_dir(self):
@@ -123,10 +124,10 @@ class DataSourceLayerManager(object):
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf'"""
-        if self.ds_type == 'netcdf':
-            return self.file_path[:-3] + '.sqlite1'
-        elif self.ds_type == 'netcdf-groundwater':
-            return os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        if self.ds_type == "netcdf":
+            return self.file_path[:-3] + ".sqlite1"
+        elif self.ds_type == "netcdf-groundwater":
+            return os.path.join(self.datasource_dir, "gridadmin.sqlite")
         else:
             raise ValueError("Invalid datasource type %s" % self.ds_type)
 
@@ -140,16 +141,13 @@ class DataSourceLayerManager(object):
         if self._line_layer is None:
             if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                 # todo check nr of attributes
-                self._line_layer = spl.get_layer(
-                    FLOWLINES_LAYER_NAME, None, 'the_geom')
+                self._line_layer = spl.get_layer(FLOWLINES_LAYER_NAME, None, "the_geom")
             else:
-                self._line_layer = make_flowline_layer(
-                    self.datasource, spl)
+                self._line_layer = make_flowline_layer(self.datasource, spl)
 
         if self._node_layer is None:
             if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                self._node_layer = spl.get_layer(
-                    NODES_LAYER_NAME, None, 'the_geom')
+                self._node_layer = spl.get_layer(NODES_LAYER_NAME, None, "the_geom")
             else:
                 self._node_layer = make_node_layer(self.datasource, spl)
 
@@ -157,31 +155,34 @@ class DataSourceLayerManager(object):
 
             if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                 self._pumpline_layer = spl.get_layer(
-                    PUMPLINES_LAYER_NAME, None, 'the_geom')
+                    PUMPLINES_LAYER_NAME, None, "the_geom"
+                )
             else:
                 try:
-                    self._pumpline_layer = make_pumpline_layer(
-                        self.datasource, spl)
+                    self._pumpline_layer = make_pumpline_layer(self.datasource, spl)
                 except KeyError:
-                    log("No pumps in netCDF", level='WARNING')
+                    log("No pumps in netCDF", level="WARNING")
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
     def _get_result_layers_groundwater(self, progress_bar=None):
 
         if progress_bar is None:
-            progress_bar = StatusProgressBar(100, 'create gridadmin.sqlite')
+            progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
         progress_bar.increase_progress(0, "create flowline layer")
-        sqlite_path = os.path.join(self.datasource_dir, 'gridadmin.sqlite')
+        sqlite_path = os.path.join(self.datasource_dir, "gridadmin.sqlite")
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, sqlite_path)
+            self.datasource, sqlite_path
+        )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, sqlite_path)
+            self.datasource, sqlite_path
+        )
         progress_bar.increase_progress(34, "done")
-        self._pumpline_layer = self._pumpline_layer or \
-            get_or_create_pumpline_layer(self.datasource, sqlite_path)
+        self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
+            self.datasource, sqlite_path
+        )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
@@ -197,22 +198,25 @@ class TimeseriesDatasourceModel(BaseModel):
         self.rowsInserted.connect(self.on_change)
 
     # fields:
-    tool_name = 'result_selection'
+    tool_name = "result_selection"
     model_spatialite_filepath = ValueWithChangeSignal(
-        'model_schematisation_change', 'model_schematisation')
+        "model_schematisation_change", "model_schematisation"
+    )
 
     class Fields(object):
-        active = CheckboxField(show=True, default_value=True, column_width=20,
-                               column_name='')
-        name = ValueField(show=True, column_width=130, column_name='Name')
-        file_path = ValueField(show=True, column_width=615, column_name='File')
+        active = CheckboxField(
+            show=True, default_value=True, column_width=20, column_name=""
+        )
+        name = ValueField(show=True, column_width=130, column_name="Name")
+        file_path = ValueField(show=True, column_width=615, column_name="File")
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
         def datasource_layer_manager(self):
-            if not hasattr(self, '_datasource_layer_manager'):
+            if not hasattr(self, "_datasource_layer_manager"):
                 self._datasource_layer_manager = DataSourceLayerManager(
-                    self.type.value, self.file_path.value)
+                    self.type.value, self.file_path.value
+                )
             return self._datasource_layer_manager
 
         def datasource(self):
@@ -230,4 +234,4 @@ class TimeseriesDatasourceModel(BaseModel):
 
     def on_change(self, start=None, stop=None, etc=None):
 
-        self.results_change.emit('result_directories', self.rows)
+        self.results_change.emit("result_directories", self.rows)

@@ -16,9 +16,17 @@ from copy import copy
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
 from ThreeDiToolbox.sql_models.model_schematisation import (
-    ConnectionNode, Manhole,
-    BoundaryCondition1D, Pipe, CrossSectionDefinition, Orifice, Weir,
-    Pumpstation, ImperviousSurface, ImperviousSurfaceMap)
+    ConnectionNode,
+    Manhole,
+    BoundaryCondition1D,
+    Pipe,
+    CrossSectionDefinition,
+    Orifice,
+    Weir,
+    Pumpstation,
+    ImperviousSurface,
+    ImperviousSurfaceMap,
+)
 from ThreeDiToolbox.sql_models.constants import Constants
 
 logger = logging.getLogger(__name__)
@@ -37,7 +45,6 @@ def transform(wkt, srid_source, srid_dest):
 
 
 class DataImportLogger(object):
-
     def __init__(self):
         pass
         self.log_tree = OrderedDict()
@@ -53,36 +60,33 @@ class DataImportLogger(object):
         if base_msg not in self.log_tree:
             self.log_tree[base_msg] = OrderedDict()
 
-        msg = logging.getLevelName(level) + ': ' + \
-            base_msg.format(**base_params)
+        msg = logging.getLevelName(level) + ": " + base_msg.format(**base_params)
 
         if msg not in self.log_tree[base_msg]:
             self.log_tree[base_msg][msg] = list()
 
-        self.log_tree[base_msg][msg].append(
-            specific_msg.format(**specific_params))
+        self.log_tree[base_msg][msg].append(specific_msg.format(**specific_params))
 
     def get_summary(self):
         return self.get_full_log(True)
 
     def get_full_log(self, only_main_items=False):
 
-        txt = ''
+        txt = ""
         for main_key, main_item in list(self.log_tree.items()):
             for key, list_issues in list(main_item.items()):
-                txt += key + ' ({0} times)\n'.format(len(list_issues))
+                txt += key + " ({0} times)\n".format(len(list_issues))
                 if not only_main_items:
                     for issue in list_issues:
-                        txt += '    %s\n' % issue
+                        txt += "    %s\n" % issue
 
         return txt
 
 
 class Importer(object):
-
     def __init__(self, import_file, threedi_database):
         self.import_file = import_file
-        self.file_type = 'sufhyd'
+        self.file_type = "sufhyd"
         self.db = threedi_database
 
         self.logging_tree = OrderedDict()
@@ -95,56 +99,62 @@ class Importer(object):
 
         # self.db.create_and_check_fields()
 
-        if self.file_type == 'sufhyd':
+        if self.file_type == "sufhyd":
             data = self.load_sufhyd_data()
             self.check_import_data(data)
             self.transform_import_data(data)
             commit_counts = self.write_data_to_db(data)
 
-            logger.warning('Summary of import:\n' + self.log.get_summary())
+            logger.warning("Summary of import:\n" + self.log.get_summary())
 
             # write logging to file
-            log_file = open(self.import_file + '.log', 'w')
-            log_file.write('Import on {0} of file: {1}.\n'.format(
-                datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'),
-                self.import_file
-            ))
+            log_file = open(self.import_file + ".log", "w")
+            log_file.write(
+                "Import on {0} of file: {1}.\n".format(
+                    datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+                    self.import_file,
+                )
+            )
 
             db_set = copy(self.db.settings)
-            if 'password' in db_set:
-                del db_set['password']
-            if 'username' in db_set:
-                del db_set['username']
+            if "password" in db_set:
+                del db_set["password"]
+            if "username" in db_set:
+                del db_set["username"]
 
             log_file.write(
-                'Added to the {0} database with connection settings {1} :\n'
-                .format(self.db.db_type, str(db_set)))
-            log_file.write('{profiles} profiles\n'
-                           '{manholes} manholes\n'
-                           '{pipes} pipes\n'
-                           '{structures} structures'
-                           '{outlets} outlets\n'
-                           '{impervious_surfaces} impervious surfaces\n'
-                           ''.format(**commit_counts))
+                "Added to the {0} database with connection settings {1} :\n".format(
+                    self.db.db_type, str(db_set)
+                )
+            )
+            log_file.write(
+                "{profiles} profiles\n"
+                "{manholes} manholes\n"
+                "{pipes} pipes\n"
+                "{structures} structures"
+                "{outlets} outlets\n"
+                "{impervious_surfaces} impervious surfaces\n"
+                "".format(**commit_counts)
+            )
 
             log_file.write(self.log.get_full_log())
             log_file.close()
 
-            msg = "{errors} errors and {warnings} warnings, see qgis log for "\
-                  "the summary and {log_file} for the full log".format(
-                      errors=self.log.level_count.get(logging.ERROR, 0),
-                      warnings=self.log.level_count.get(logging.WARNING, 0),
-                      log_file=log_file)
+            msg = (
+                "{errors} errors and {warnings} warnings, see qgis log for "
+                "the summary and {log_file} for the full log".format(
+                    errors=self.log.level_count.get(logging.ERROR, 0),
+                    warnings=self.log.level_count.get(logging.WARNING, 0),
+                    log_file=log_file,
+                )
+            )
 
-            messagebar_message('sufhyd import ready',
-                               msg,
-                               duration=20)
+            messagebar_message("sufhyd import ready", msg, duration=20)
 
-            logger.info('sufhyd import ready = ' + msg)
+            logger.info("sufhyd import ready = " + msg)
 
     def load_sufhyd_data(self):
-        reader = SufhydReader(
-            open(self.import_file, 'r').read(), data_log=self.log)
+        reader = SufhydReader(open(self.import_file, "r").read(), data_log=self.log)
         unused_fields = reader.parse_input()
 
         for ide_rec, unused_list in list(unused_fields.items()):
@@ -154,15 +164,21 @@ class Importer(object):
                     logging.WARNING,
                     "Some fields provided in the sufhyd for object "
                     "'{ide_rec}' are not used.",
-                    {'ide_rec': ide_rec},
-                    "Data of '{ide_rec}' field '{field}' {count} times "
-                    "ignored.",
-                    {'ide_rec': ide_rec, 'field': field, 'count': count})
+                    {"ide_rec": ide_rec},
+                    "Data of '{ide_rec}' field '{field}' {count} times ignored.",
+                    {"ide_rec": ide_rec, "field": field, "count": count},
+                )
 
         return reader.get_data()
 
-    def _check_on_unique(self, records, unique_field, remove_doubles=False,
-                         item_name_for_logging='', log_level=logging.WARNING):
+    def _check_on_unique(
+        self,
+        records,
+        unique_field,
+        remove_doubles=False,
+        item_name_for_logging="",
+        log_level=logging.WARNING,
+    ):
 
         values = [m[unique_field] for m in records]
 
@@ -177,13 +193,14 @@ class Importer(object):
                 doubles.append(record)
                 self.log.add(
                     log_level,
-                    'double values in {unique_field} of '
-                    '{item_name_for_logging}',
-                    {'unique_field': unique_field,
-                        'item_name_for_logging': item_name_for_logging},
-                    'for records with {unique_field}: {code}',
-                    {'unique_field': unique_field,
-                        'code': record[unique_field]})
+                    "double values in {unique_field} of {item_name_for_logging}",
+                    {
+                        "unique_field": unique_field,
+                        "item_name_for_logging": item_name_for_logging,
+                    },
+                    "for records with {unique_field}: {code}",
+                    {"unique_field": unique_field, "code": record[unique_field]},
+                )
 
                 if remove_doubles:
                     records.remove(record)
@@ -194,27 +211,31 @@ class Importer(object):
 
     def check_import_data(self, data):
 
-        self._check_on_unique(data['manholes'], 'code', True, 'knoop')
+        self._check_on_unique(data["manholes"], "code", True, "knoop")
         self._check_on_unique(
-            data['storage'], 'node.code', True, 'bergend oppervlak knoop')
-        self._check_on_unique(
-            data['outlets'], 'node.code', True, 'uitlaat knoop')
+            data["storage"], "node.code", True, "bergend oppervlak knoop"
+        )
+        self._check_on_unique(data["outlets"], "node.code", True, "uitlaat knoop")
 
-        self._check_on_unique(data['weirs'], 'code', False, 'overstort')
-        self._check_on_unique(data['pumpstations'], 'code', False, 'gemaal')
-        self._check_on_unique(data['orifices'], 'code', False, 'doorlaat')
+        self._check_on_unique(data["weirs"], "code", False, "overstort")
+        self._check_on_unique(data["pumpstations"], "code", False, "gemaal")
+        self._check_on_unique(data["orifices"], "code", False, "doorlaat")
 
     def check_on_outlet_connections(self, data):
 
-        outlet_dict = {c['node.code']: c for c in data['outlets']}
-        manhole_dict = {m['code']: m for m in data['manholes']}
+        outlet_dict = {c["node.code"]: c for c in data["outlets"]}
+        manhole_dict = {m["code"]: m for m in data["manholes"]}
         used_outlets = {}
 
         # check on multiple connections
-        for objects in (data['pipes'], data['pumpstations'], data['weirs'],
-                        data['orifices']):
+        for objects in (
+            data["pipes"],
+            data["pumpstations"],
+            data["weirs"],
+            data["orifices"],
+        ):
             for obj in objects:
-                for node in ('start_node.code', 'end_node.code'):
+                for node in ("start_node.code", "end_node.code"):
                     code = obj[node]
                     if code in outlet_dict:
                         if code in used_outlets:
@@ -222,149 +243,158 @@ class Importer(object):
 
                             # add extra manhole
                             new_manhole = copy(manhole_dict[code])
-                            new_manhole['code'] = new_manhole['code'] + \
-                                '-' + str(used_outlets[code])
+                            new_manhole["code"] = (
+                                new_manhole["code"] + "-" + str(used_outlets[code])
+                            )
 
-                            geom = new_manhole['geom']
-                            new_manhole['geom'] = (
-                                geom[0], geom[1] + 1.0, geom[2])
-                            data['manholes'].append(new_manhole)
+                            geom = new_manhole["geom"]
+                            new_manhole["geom"] = (geom[0], geom[1] + 1.0, geom[2])
+                            data["manholes"].append(new_manhole)
 
                             # redirect object to new manhole
-                            obj[node] = new_manhole['code']
+                            obj[node] = new_manhole["code"]
 
                             # add extra outlet
                             new_outlet = copy(outlet_dict[code])
-                            new_outlet['node.code'] = new_manhole['code']
-                            data['outlets'].append(new_outlet)
+                            new_outlet["node.code"] = new_manhole["code"]
+                            data["outlets"].append(new_outlet)
 
                             self.log.add(
                                 logging.INFO,
-                                'multiple connection to outlet',
+                                "multiple connection to outlet",
                                 {},
-                                'multiple connection to outlet {orig_code}, '
-                                'added extra manhole and outlet {new_code}',
-                                {'orig_code': code,
-                                 'new_code': new_manhole['code']})
+                                "multiple connection to outlet {orig_code}, "
+                                "added extra manhole and outlet {new_code}",
+                                {"orig_code": code, "new_code": new_manhole["code"]},
+                            )
 
                         else:
                             used_outlets[code] = 1
         # 0
-        not_connected_outlets = [outl for cod, outl in list(outlet_dict.items()) if cod not in used_outlets]  # noqa
+        not_connected_outlets = [
+            outl for cod, outl in list(outlet_dict.items()) if cod not in used_outlets
+        ]
 
         if len(not_connected_outlets) > 0:
-            data['outlets'] = [outlet for outlet in data['outlets'] if
-                               outlet not in not_connected_outlets]
+            data["outlets"] = [
+                outlet
+                for outlet in data["outlets"]
+                if outlet not in not_connected_outlets
+            ]
             for outlet in not_connected_outlets:
-                self.log.add(logging.WARNING,
-                             'no connection to outlet',
-                             {},
-                             'no connection to outlet {code}, outlet removed',
-                             {'code': outlet['node.code']})
+                self.log.add(
+                    logging.WARNING,
+                    "no connection to outlet",
+                    {},
+                    "no connection to outlet {code}, outlet removed",
+                    {"code": outlet["node.code"]},
+                )
 
     def transform_import_data(self, data):
 
         self.check_on_outlet_connections(data)
 
         profiles = dict()
-        profiles['default'] = {
-            'width': 1,
-            'height': 1,
-            'shape': Constants.SHAPE_ROUND,
-            'code': 'default'
+        profiles["default"] = {
+            "width": 1,
+            "height": 1,
+            "shape": Constants.SHAPE_ROUND,
+            "code": "default",
         }
 
-        for obj_type in ['pipes', 'orifices', 'weirs']:
+        for obj_type in ["pipes", "orifices", "weirs"]:
             objects = data[obj_type]
             for obj in objects:
-                crs = obj['cross_section_details']
-                if crs['shape'] == Constants.SHAPE_ROUND:
-                    code = 'round_{width}'.format(**crs)
-                elif crs['shape'] == Constants.SHAPE_EGG:
-                    code = 'egg_w{width}_h{height}'.format(**crs)
-                elif crs['shape'] == Constants.SHAPE_RECTANGLE:
-                    if crs['height'] is None:
-                        code = 'rectangle_w{width}_open'.format(**crs)
+                crs = obj["cross_section_details"]
+                if crs["shape"] == Constants.SHAPE_ROUND:
+                    code = "round_{width}".format(**crs)
+                elif crs["shape"] == Constants.SHAPE_EGG:
+                    code = "egg_w{width}_h{height}".format(**crs)
+                elif crs["shape"] == Constants.SHAPE_RECTANGLE:
+                    if crs["height"] is None:
+                        code = "rectangle_w{width}_open".format(**crs)
                     else:
-                        code = 'rectangle_w{width}_h{height}'.format(**crs)
+                        code = "rectangle_w{width}_h{height}".format(**crs)
                 else:
-                    code = 'default'
+                    code = "default"
 
                 # add unique profiles to profile definition
                 if code not in profiles:
                     profiles[code] = crs
-                    profiles[code]['code'] = code
+                    profiles[code]["code"] = code
 
-                obj['crs_code'] = code
+                obj["crs_code"] = code
 
         # generate extra boundary nodes if needed
-        manhole_geom = {m['code']: m['geom'] for m in data['manholes']}
+        manhole_geom = {m["code"]: m["geom"] for m in data["manholes"]}
         inc_nr = 1
-        for obj_type in ['orifices', 'weirs']:
+        for obj_type in ["orifices", "weirs"]:
             objects = data[obj_type]
             for obj in objects:
-                if obj['end_node.code'] is None:
+                if obj["end_node.code"] is None:
                     # add extra node with boundary conditions
-                    bound_code = obj['code'] + '-bound' + str(inc_nr)
+                    bound_code = obj["code"] + "-bound" + str(inc_nr)
                     inc_nr += 1
 
-                    geom = manhole_geom.get(
-                        obj['start_node.code'], (0., 0., 28992))
+                    geom = manhole_geom.get(obj["start_node.code"], (0.0, 0.0, 28992))
                     new_geom = (geom[0], geom[1] + 1.0, geom[2])
 
-                    data['manholes'].append({
-                        'code': bound_code,
-                        'display_name': bound_code,
-                        'width': 1.0,
-                        'length': 1.0,
-                        'shape': Constants.MANHOLE_SHAPE_SQUARE,
-                        'bottom_level': obj['crest_level'] - 1.0,
-                        'surface_level': obj['crest_level'] + 1.0,
-                        'geom': new_geom
-                    })
-                    obj['end_node.code'] = bound_code
+                    data["manholes"].append(
+                        {
+                            "code": bound_code,
+                            "display_name": bound_code,
+                            "width": 1.0,
+                            "length": 1.0,
+                            "shape": Constants.MANHOLE_SHAPE_SQUARE,
+                            "bottom_level": obj["crest_level"] - 1.0,
+                            "surface_level": obj["crest_level"] + 1.0,
+                            "geom": new_geom,
+                        }
+                    )
+                    obj["end_node.code"] = bound_code
 
-                    if (obj_type == 'orifice' or
-                            'boundary_details' not in obj or
-                            obj['boundary_details']['timeseries'] is None):
-                        if obj['crest_level'] is not None:
-                            waterlevel = obj['crest_level'] - 0.5
+                    if (
+                        obj_type == "orifice"
+                        or "boundary_details" not in obj
+                        or obj["boundary_details"]["timeseries"] is None
+                    ):
+                        if obj["crest_level"] is not None:
+                            waterlevel = obj["crest_level"] - 0.5
                         else:
                             waterlevel = -999.0
-                        timeseries = '0,{0}/n9999,{0}'.format(waterlevel)
+                        timeseries = "0,{0}/n9999,{0}".format(waterlevel)
                     else:
-                        timeseries = obj['boundary_details']['timeseries']
+                        timeseries = obj["boundary_details"]["timeseries"]
 
-                    data['outlets'].append({
-                        'node.code': bound_code,
-                        'boundary_type': Constants.BOUNDARY_TYPE_WATERLEVEL,
-                        'timeseries': timeseries
-                    })
+                    data["outlets"].append(
+                        {
+                            "node.code": bound_code,
+                            "boundary_type": Constants.BOUNDARY_TYPE_WATERLEVEL,
+                            "timeseries": timeseries,
+                        }
+                    )
 
         # link_node_conversion
-        link_dict = {k['end_node.code']: k['start_node.code'] for
-                     k in data['links']}
+        link_dict = {k["end_node.code"]: k["start_node.code"] for k in data["links"]}
 
-        storage_dict = {k['node.code']: k for k in data['storage']}
+        storage_dict = {k["node.code"]: k for k in data["storage"]}
 
         # remove manholes which are part of a link
-        data['manholes'] = [m for m in data['manholes']
-                            if m['code'] not in link_dict]
+        data["manholes"] = [m for m in data["manholes"] if m["code"] not in link_dict]
 
-        for manhole in data['manholes']:
+        for manhole in data["manholes"]:
             # add storage area
-            if manhole['code'] in storage_dict:
-                manhole['storage_area'] = storage_dict[manhole['code']
-                                                       ]['storage_area']
+            if manhole["code"] in storage_dict:
+                manhole["storage_area"] = storage_dict[manhole["code"]]["storage_area"]
             else:
-                manhole['storage_area'] = None
+                manhole["storage_area"] = None
 
             # if manhole['code'] in link_dict:
-            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])  # noqa
+            #     logger.info("delete manhole %s as part of a linkage." % manhole['code'])
             #     del manhole
             #     continue
 
-        data['profiles'] = profiles
+        data["profiles"] = profiles
 
     def write_data_to_db(self, data):
         """
@@ -382,241 +412,246 @@ class Importer(object):
         session = self.db.get_session()
 
         # set all autoincrement counters to max ids
-        if self.db.db_type == 'postgres':
-            for table in (ConnectionNode, Manhole, BoundaryCondition1D, Pipe,
-                          CrossSectionDefinition, Orifice, Weir, Pumpstation,
-                          ImperviousSurface, ImperviousSurfaceMap):
+        if self.db.db_type == "postgres":
+            for table in (
+                ConnectionNode,
+                Manhole,
+                BoundaryCondition1D,
+                Pipe,
+                CrossSectionDefinition,
+                Orifice,
+                Weir,
+                Pumpstation,
+                ImperviousSurface,
+                ImperviousSurfaceMap,
+            ):
 
-                session.execute("SELECT setval('{table}_id_seq', max(id)) "
-                                "FROM {table}".format(
-                                    table=table.__tablename__))
+                session.execute(
+                    "SELECT setval('{table}_id_seq', max(id)) "
+                    "FROM {table}".format(table=table.__tablename__)
+                )
 
             session.commit()
         crs_list = []
-        for crs in list(data['profiles'].values()):
+        for crs in list(data["profiles"].values()):
             crs_list.append(CrossSectionDefinition(**crs))
 
-        commit_counts['profiles'] = len(crs_list)
+        commit_counts["profiles"] = len(crs_list)
         session.bulk_save_objects(crs_list)
         session.commit()
 
-        crs_list = session.query(CrossSectionDefinition).options(
-            load_only("id", "code")).order_by(CrossSectionDefinition.id).all()
+        crs_list = (
+            session.query(CrossSectionDefinition)
+            .options(load_only("id", "code"))
+            .order_by(CrossSectionDefinition.id)
+            .all()
+        )
         crs_dict = {m.code: m.id for m in crs_list}
         del crs_list
 
         con_list = []
         srid = 4326
-        if self.db.db_type == 'postgres':
+        if self.db.db_type == "postgres":
             geom_col = session.execute(
                 "SELECT srid FROM geometry_columns "
                 "WHERE f_table_name = 'v2_connection_nodes' AND "
-                "f_geometry_column = 'the_geom'")
+                "f_geometry_column = 'the_geom'"
+            )
             srid = geom_col.fetchone()[0]
 
-        for manhole in data['manholes']:
-            wkt = transform("POINT({0} {1})".format(*manhole['geom']),
-                            manhole['geom'][2],
-                            srid)
+        for manhole in data["manholes"]:
+            wkt = transform(
+                "POINT({0} {1})".format(*manhole["geom"]), manhole["geom"][2], srid
+            )
             con_list.append(
-                ConnectionNode(code=manhole['code'],
-                               storage_area=manhole['storage_area'],
-                               the_geom="srid={0};{1}".format(srid, wkt)))
+                ConnectionNode(
+                    code=manhole["code"],
+                    storage_area=manhole["storage_area"],
+                    the_geom="srid={0};{1}".format(srid, wkt),
+                )
+            )
 
         session.bulk_save_objects(con_list)
         session.commit()
 
-        con_list = session.query(ConnectionNode).options(
-            load_only("id", "code")).order_by(ConnectionNode.id).all()
+        con_list = (
+            session.query(ConnectionNode)
+            .options(load_only("id", "code"))
+            .order_by(ConnectionNode.id)
+            .all()
+        )
         con_dict = {m.code: m.id for m in con_list}
         del con_list
 
         # add extra references for link nodes (one node, multiple linked codes
-        for link in data['links']:
+        for link in data["links"]:
             try:
-                if link['end_node.code'] in con_dict:
-                    con_dict[link['end_node.code']
-                             ] = con_dict[link['start_node.code']]
+                if link["end_node.code"] in con_dict:
+                    con_dict[link["end_node.code"]] = con_dict[link["start_node.code"]]
                 else:
-                    con_dict[link['end_node.code']
-                             ] = con_dict[link['start_node.code']]
+                    con_dict[link["end_node.code"]] = con_dict[link["start_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'node of link not found in nodes',
+                    "node of link not found in nodes",
                     {},
-                    'start node {start_node} or end_node {end_node} of link '
-                    'definition not found',
-                    {'start_node': link['start_node.code'],
-                     'end_node': link['end_node.code']}
+                    "start node {start_node} or end_node {end_node} of link "
+                    "definition not found",
+                    {
+                        "start_node": link["start_node.code"],
+                        "end_node": link["end_node.code"],
+                    },
                 )
 
         con_dict[None] = None
-        con_dict[''] = None
+        con_dict[""] = None
 
         man_list = []
-        for manhole in data['manholes']:
-            del manhole['geom']
-            del manhole['storage_area']
+        for manhole in data["manholes"]:
+            del manhole["geom"]
+            del manhole["storage_area"]
 
-            manhole['connection_node_id'] = con_dict[manhole['code']]
+            manhole["connection_node_id"] = con_dict[manhole["code"]]
             man_list.append(Manhole(**manhole))
 
-        commit_counts['manholes'] = len(man_list)
+        commit_counts["manholes"] = len(man_list)
         session.bulk_save_objects(man_list)
         session.commit()
         del man_list
 
         pipe_list = []
-        for pipe in data['pipes']:
+        for pipe in data["pipes"]:
             try:
-                pipe['connection_node_start_id'] = con_dict[
-                    pipe['start_node.code']]
+                pipe["connection_node_start_id"] = con_dict[pipe["start_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Start node of pipe not found in nodes',
+                    "Start node of pipe not found in nodes",
                     {},
-                    'Start node {start_node} of pipe with code {code} not '
-                    'found',
-                    {'start_node': pipe['start_node.code'],
-                        'code': pipe['code']}
+                    "Start node {start_node} of pipe with code {code} not found",
+                    {"start_node": pipe["start_node.code"], "code": pipe["code"]},
                 )
 
             try:
-                pipe['connection_node_end_id'] = con_dict[
-                    pipe['end_node.code']]
+                pipe["connection_node_end_id"] = con_dict[pipe["end_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'End node of pipe not found in nodes',
+                    "End node of pipe not found in nodes",
                     {},
-                    'End node {end_node} of pipe with code {code} not found',
-                    {'end_node': pipe['end_node.code'], 'code': pipe['code']}
+                    "End node {end_node} of pipe with code {code} not found",
+                    {"end_node": pipe["end_node.code"], "code": pipe["code"]},
                 )
 
-            pipe['cross_section_definition_id'] = crs_dict[pipe['crs_code']]
+            pipe["cross_section_definition_id"] = crs_dict[pipe["crs_code"]]
 
-            del pipe['start_node.code']
-            del pipe['end_node.code']
-            del pipe['crs_code']
-            del pipe['cross_section_details']
+            del pipe["start_node.code"]
+            del pipe["end_node.code"]
+            del pipe["crs_code"]
+            del pipe["cross_section_details"]
 
             pipe_list.append(Pipe(**pipe))
 
-        commit_counts['pipes'] = len(pipe_list)
+        commit_counts["pipes"] = len(pipe_list)
         session.bulk_save_objects(pipe_list)
         session.commit()
         del pipe_list
 
         obj_list = []
-        for pump in data['pumpstations']:
+        for pump in data["pumpstations"]:
             try:
-                pump['connection_node_start_id'] = con_dict[
-                    pump['start_node.code']]
+                pump["connection_node_start_id"] = con_dict[pump["start_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Start node of pump not found in nodes',
+                    "Start node of pump not found in nodes",
                     {},
-                    'Start node {start_node} of pump with code {code} not '
-                    'found',
-                    {'start_node': pump['start_node.code'],
-                        'code': pump['code']}
+                    "Start node {start_node} of pump with code {code} not found",
+                    {"start_node": pump["start_node.code"], "code": pump["code"]},
                 )
 
             try:
-                pump['connection_node_end_id'] = con_dict[
-                    pump['end_node.code']]
+                pump["connection_node_end_id"] = con_dict[pump["end_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'End node of pump not found in nodes',
+                    "End node of pump not found in nodes",
                     {},
-                    'End node {end_node} of pump with code {code} not found',
-                    {'end_node': pump['end_node.code'], 'code': pump['code']}
+                    "End node {end_node} of pump with code {code} not found",
+                    {"end_node": pump["end_node.code"], "code": pump["code"]},
                 )
 
-            del pump['start_node.code']
-            del pump['end_node.code']
+            del pump["start_node.code"]
+            del pump["end_node.code"]
 
             obj_list.append(Pumpstation(**pump))
 
-        for weir in data['weirs']:
+        for weir in data["weirs"]:
             try:
-                weir['connection_node_start_id'] = con_dict[
-                    weir['start_node.code']]
+                weir["connection_node_start_id"] = con_dict[weir["start_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Start node of weir not found in nodes',
+                    "Start node of weir not found in nodes",
                     {},
-                    'Start node {start_node} of weir with code {code} not '
-                    'found',
-                    {'start_node': weir['start_node.code'],
-                        'code': weir['code']}
+                    "Start node {start_node} of weir with code {code} not found",
+                    {"start_node": weir["start_node.code"], "code": weir["code"]},
                 )
 
             try:
-                weir['connection_node_end_id'] = con_dict[
-                    weir['end_node.code']]
+                weir["connection_node_end_id"] = con_dict[weir["end_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'End node of weir not found in nodes',
+                    "End node of weir not found in nodes",
                     {},
-                    'End node {end_node} of weir with code {code} not found',
-                    {'end_node': weir['end_node.code'], 'code': weir['code']}
+                    "End node {end_node} of weir with code {code} not found",
+                    {"end_node": weir["end_node.code"], "code": weir["code"]},
                 )
 
-            weir['cross_section_definition_id'] = crs_dict[weir['crs_code']]
+            weir["cross_section_definition_id"] = crs_dict[weir["crs_code"]]
 
-            del weir['start_node.code']
-            del weir['end_node.code']
-            del weir['crs_code']
-            del weir['cross_section_details']
-            del weir['boundary_details']
+            del weir["start_node.code"]
+            del weir["end_node.code"]
+            del weir["crs_code"]
+            del weir["cross_section_details"]
+            del weir["boundary_details"]
 
             obj_list.append(Weir(**weir))
 
-        for orif in data['orifices']:
+        for orif in data["orifices"]:
             try:
-                orif['connection_node_start_id'] = con_dict[
-                    orif['start_node.code']]
+                orif["connection_node_start_id"] = con_dict[orif["start_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Start node of orifice not found in nodes',
+                    "Start node of orifice not found in nodes",
                     {},
-                    'Start node {start_node} of orifice with code {code} not '
-                    'found',
-                    {'start_node': orif['start_node.code'],
-                        'code': orif['code']}
+                    "Start node {start_node} of orifice with code {code} not found",
+                    {"start_node": orif["start_node.code"], "code": orif["code"]},
                 )
 
             try:
-                orif['connection_node_end_id'] = con_dict[
-                    orif['end_node.code']]
+                orif["connection_node_end_id"] = con_dict[orif["end_node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'End node of orifice not found in nodes',
+                    "End node of orifice not found in nodes",
                     {},
-                    'End node {end_node} of orifice with code {code} not '
-                    'found',
-                    {'end_node': orif['end_node.code'], 'code': orif['code']}
+                    "End node {end_node} of orifice with code {code} not found",
+                    {"end_node": orif["end_node.code"], "code": orif["code"]},
                 )
 
-            orif['cross_section_definition_id'] = crs_dict[orif['crs_code']]
+            orif["cross_section_definition_id"] = crs_dict[orif["crs_code"]]
 
-            del orif['start_node.code']
-            del orif['end_node.code']
-            del orif['crs_code']
-            del orif['cross_section_details']
+            del orif["start_node.code"]
+            del orif["end_node.code"]
+            del orif["crs_code"]
+            del orif["cross_section_details"]
 
             obj_list.append(Orifice(**orif))
 
-        commit_counts['structures'] = len(obj_list)
+        commit_counts["structures"] = len(obj_list)
         session.bulk_save_objects(obj_list)
         session.commit()
         del obj_list
@@ -624,60 +659,62 @@ class Importer(object):
         # Outlets (must be saved after weirs, orifice, pumpstation, etc.
         # because of constraints)
         outlet_list = []
-        for outlet in data['outlets']:
+        for outlet in data["outlets"]:
             try:
-                outlet['connection_node_id'] = con_dict[outlet['node.code']]
+                outlet["connection_node_id"] = con_dict[outlet["node.code"]]
 
-                del outlet['node.code']
+                del outlet["node.code"]
                 outlet_list.append(BoundaryCondition1D(**outlet))
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'node of outlet not found in nodes',
+                    "node of outlet not found in nodes",
                     {},
-                    'node {node} of outlet definition not found',
-                    {'node': outlet['node.code']}
+                    "node {node} of outlet definition not found",
+                    {"node": outlet["node.code"]},
                 )
 
-        commit_counts['outlets'] = len(outlet_list)
+        commit_counts["outlets"] = len(outlet_list)
         session.bulk_save_objects(outlet_list)
         session.commit()
         del outlet_list
 
         # Impervious surfaces
         imp_list = []
-        for imp in data['impervious_surfaces']:
+        for imp in data["impervious_surfaces"]:
             imp_list.append(ImperviousSurface(**imp))
 
-        commit_counts['impervious_surfaces'] = len(imp_list)
+        commit_counts["impervious_surfaces"] = len(imp_list)
         session.bulk_save_objects(imp_list)
         session.commit()
 
-        imp_list = session.query(ImperviousSurface).options(
-            load_only("id", "code")).order_by(ImperviousSurface.id).all()
+        imp_list = (
+            session.query(ImperviousSurface)
+            .options(load_only("id", "code"))
+            .order_by(ImperviousSurface.id)
+            .all()
+        )
         imp_dict = {m.code: m.id for m in imp_list}
         del imp_list
 
         map_list = []
-        for imp_map in data['impervious_surface_maps']:
+        for imp_map in data["impervious_surface_maps"]:
             try:
-                imp_map['connection_node_id'] = con_dict[imp_map['node.code']]
+                imp_map["connection_node_id"] = con_dict[imp_map["node.code"]]
             except KeyError:
                 self.log.add(
                     logging.ERROR,
-                    'Manhole connected to impervious surface not found',
+                    "Manhole connected to impervious surface not found",
                     {},
-                    'Node {node} of impervious surface map connected to '
-                    'impervious surface with code {code} not found',
-                    {'node': imp_map['node.code'],
-                        'code': imp_map['imp_surface.code']}
+                    "Node {node} of impervious surface map connected to "
+                    "impervious surface with code {code} not found",
+                    {"node": imp_map["node.code"], "code": imp_map["imp_surface.code"]},
                 )
                 continue
 
-            imp_map['impervious_surface_id'] = imp_dict[
-                imp_map['imp_surface.code']]
-            del imp_map['node.code']
-            del imp_map['imp_surface.code']
+            imp_map["impervious_surface_id"] = imp_dict[imp_map["imp_surface.code"]]
+            del imp_map["node.code"]
+            del imp_map["imp_surface.code"]
 
             map_list.append(ImperviousSurfaceMap(**imp_map))
 

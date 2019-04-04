@@ -50,8 +50,8 @@ class ThreeDiSideView(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon_route.png'
-        self.menu_text = u'Show sideview of 3Di model with results'
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_route.png"
+        self.menu_text = u"Show sideview of 3Di model with results"
 
         self.dock_widgets = []
         self.widget_nr = 0
@@ -86,10 +86,12 @@ class ThreeDiSideView(object):
         """
         # create the dockwidget
         self.widget_nr += 1
-        new_widget = SideViewDockWidget(self.iface,
-                                        parent_class=self,
-                                        nr=self.widget_nr,
-                                        tdi_root_tool=self.tdi_root_tool)
+        new_widget = SideViewDockWidget(
+            self.iface,
+            parent_class=self,
+            nr=self.widget_nr,
+            tdi_root_tool=self.tdi_root_tool,
+        )
         self.dock_widgets.append(new_widget)
 
         # connect cleanup on closing of dockwidget

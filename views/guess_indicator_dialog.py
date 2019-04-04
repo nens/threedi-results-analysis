@@ -4,9 +4,15 @@ import logging
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.PyQt.QtCore import QRect, Qt, QMetaObject
-from qgis.PyQt.QtWidgets import (QVBoxLayout, QGroupBox, QComboBox,
-                                 QSizePolicy, QCheckBox, QDialogButtonBox,
-                                 QApplication)
+from qgis.PyQt.QtWidgets import (
+    QVBoxLayout,
+    QGroupBox,
+    QComboBox,
+    QSizePolicy,
+    QCheckBox,
+    QDialogButtonBox,
+    QApplication,
+)
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 
@@ -20,15 +26,16 @@ try:
 
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
 
 class GuessIndicatorDialogWidget(QDialog):
-
-    def __init__(self, parent=None, checks=[],
-                 command=None):
+    def __init__(self, parent=None, checks=[], command=None):
         """Constructor
 
         Args:
@@ -59,30 +66,32 @@ class GuessIndicatorDialogWidget(QDialog):
         db_key = self.database_combo.currentText()
 
         settings = self.databases[db_key]
-        db_set = settings['db_settings']
+        db_set = settings["db_settings"]
 
-        if settings['db_type'] == 'spatialite':
+        if settings["db_type"] == "spatialite":
             pass
         else:  # postgres
 
             successful_connection = False
 
-            uname = db_set['username']
-            passwd = db_set['password']
-            msg = 'Log in'
+            uname = db_set["username"]
+            passwd = db_set["password"]
+            msg = "Log in"
 
             while not successful_connection:
 
                 uri = QgsDataSourceUri()
-                uri.setConnection(db_set['host'],
-                                  db_set['port'],
-                                  db_set['database'],
-                                  db_set['username'],
-                                  db_set['password'])
+                uri.setConnection(
+                    db_set["host"],
+                    db_set["port"],
+                    db_set["database"],
+                    db_set["username"],
+                    db_set["password"],
+                )
 
                 # try to connect
                 # create a PostgreSQL connection using QSqlDatabase
-                db = QSqlDatabase.addDatabase('QPSQL')
+                db = QSqlDatabase.addDatabase("QPSQL")
                 # check to see if it is valid
 
                 db.setHostName(uri.host())
@@ -105,29 +114,32 @@ class GuessIndicatorDialogWidget(QDialog):
 
                 connInfo = uri.connectionInfo()
                 (success, uname, passwd) = QgsCredentialDialog.instance().get(
-                    connInfo, uname, passwd, msg)
+                    connInfo, uname, passwd, msg
+                )
 
                 if success:
-                    db_set['username'] = uname
-                    db_set['password'] = passwd
+                    db_set["username"] = uname
+                    db_set["password"] = passwd
                 else:
                     return
 
         checks = []
 
         if self.check_manhole_indicator.isChecked():
-            checks.append('manhole_indicator')
+            checks.append("manhole_indicator")
 
         if self.check_pipe_friction.isChecked():
-            checks.append('pipe_friction')
+            checks.append("pipe_friction")
 
         if self.check_manhole_area.isChecked():
-            checks.append('manhole_area')
+            checks.append("manhole_area")
 
-        self.command.run_it(checks,
-                            self.check_only_empty_fields.isChecked(),
-                            db_set,
-                            settings['db_type'])
+        self.command.run_it(
+            checks,
+            self.check_only_empty_fields.isChecked(),
+            db_set,
+            settings["db_type"],
+        )
 
         self.accept()
 
@@ -160,7 +172,8 @@ class GuessIndicatorDialogWidget(QDialog):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.database_combo.sizePolicy().hasHeightForWidth())
+            self.database_combo.sizePolicy().hasHeightForWidth()
+        )
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -188,8 +201,7 @@ class GuessIndicatorDialogWidget(QDialog):
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -200,15 +212,20 @@ class GuessIndicatorDialogWidget(QDialog):
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Guess indicators", None))
-        self.groupBox_2.setTitle(_translate(
-            "self", "Model schematisation database", None))
+        self.groupBox_2.setTitle(
+            _translate("self", "Model schematisation database", None)
+        )
 
         self.groupBox.setTitle(_translate("Import_dialog", "Guess", None))
-        self.check_pipe_friction.setText(_translate(
-            "Import_dialog", "Pipe friction", None))
-        self.check_manhole_indicator.setText(_translate(
-            "Import_dialog", "Manhole indicator", None))
+        self.check_pipe_friction.setText(
+            _translate("Import_dialog", "Pipe friction", None)
+        )
+        self.check_manhole_indicator.setText(
+            _translate("Import_dialog", "Manhole indicator", None)
+        )
         self.check_only_empty_fields.setText(
-            _translate("Import_dialog", "Only fill NULL fields", None))
-        self.check_manhole_area.setText(_translate(
-            "Import_dialog", "Manhole area (only fills NULL fields)", None))
+            _translate("Import_dialog", "Only fill NULL fields", None)
+        )
+        self.check_manhole_area.setText(
+            _translate("Import_dialog", "Manhole area (only fills NULL fields)", None)
+        )

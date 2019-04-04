@@ -7,7 +7,6 @@ from .base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
 
 
 class BaseModelItem(object):
-
     def __init__(self, model=None, **kwargs):
 
         self.model = model
@@ -18,8 +17,9 @@ class BaseModelItem(object):
             if field_name in list(kwargs.keys()):
                 value = kwargs[field_name]
 
-            setattr(self, field_name,
-                    field_class.create_row_field(item=self, value=value))
+            setattr(
+                self, field_name, field_class.create_row_field(item=self, value=value)
+            )
 
         # for function_name, function in self._functions:
         #    setattr(self, function_name, function)
@@ -73,25 +73,28 @@ class BaseModel(QAbstractTableModel):
 
         # create item class
         self._fields = sorted(
-            [(name, cl) for name, cl in inspect.getmembers(
-                self.Fields, lambda a:not(inspect.isroutine(a)))
-             if not name.startswith('__') and not name.startswith('_')],
-            key=lambda cl: cl[1]._nr)
+            [
+                (name, cl)
+                for name, cl in inspect.getmembers(
+                    self.Fields, lambda a: not (inspect.isroutine(a))
+                )
+                if not name.startswith("__") and not name.startswith("_")
+            ],
+            key=lambda cl: cl[1]._nr,
+        )
 
         self.columns = [cl for name, cl in self._fields]
 
         self.item_class = type(
-            self.class_name + 'Item',
+            self.class_name + "Item",
             (self._base_model_item_class, self.Fields),
-            {
-                '_fields': self._fields
-            }
+            {"_fields": self._fields},
         )
 
         # initiate fields with fieldname, link to model and column_nr
         for i in range(0, len(self._fields)):
             name, field = self._fields[i]
-            if hasattr(field, 'contribute_to_class'):
+            if hasattr(field, "contribute_to_class"):
                 field.contribute_to_class(name, self, i)
 
         # process initial data
@@ -160,8 +163,7 @@ class BaseModel(QAbstractTableModel):
         # elif role == Qt.ToolTipRole:
         #     return 'tooltip'
 
-    def headerData(
-            self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
+    def headerData(self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         """
         required Qt function for getting column information
         :param col_nr: column number
@@ -208,8 +210,9 @@ class BaseModel(QAbstractTableModel):
                        signal
         """
         if signal:
-            self.beginInsertRows(QModelIndex(), self.rowCount(
-            ), self.rowCount() + len(data_items) - 1)
+            self.beginInsertRows(
+                QModelIndex(), self.rowCount(), self.rowCount() + len(data_items) - 1
+            )
 
         for data_item in data_items:
             item = self._create_item(**data_item)

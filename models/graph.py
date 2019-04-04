@@ -36,7 +36,7 @@ COLOR_LIST = [
     (141, 182, 0),
     (101, 69, 34),
     (226, 88, 34),
-    (43, 61, 38)
+    (43, 61, 38),
 ]
 
 EMPTY_TIMESERIES = np.array([], dtype=float)
@@ -69,23 +69,19 @@ class LocationTimeseriesModel(BaseModel):
     class Fields(object):
         """Fields and functions of ModelItem"""
 
-        active = CheckboxField(show=True,
-                               default_value=True,
-                               column_width=20,
-                               column_name='')
-        color = ColorField(show=True,
-                           column_width=30,
-                           column_name='',
-                           default_value=select_default_color)
-        object_id = ValueField(show=True,
-                               column_width=50,
-                               column_name='id')
-        object_name = ValueField(show=True,
-                                 column_width=140,
-                                 column_name='name')
+        active = CheckboxField(
+            show=True, default_value=True, column_width=20, column_name=""
+        )
+        color = ColorField(
+            show=True,
+            column_width=30,
+            column_name="",
+            default_value=select_default_color,
+        )
+        object_id = ValueField(show=True, column_width=50, column_name="id")
+        object_name = ValueField(show=True, column_width=140, column_name="name")
         object_type = ValueField(show=False)
-        hover = ValueField(show=False,
-                           default_value=False)
+        hover = ValueField(show=False, default_value=False)
         file_path = ValueField(show=False)
 
         _plots = {}
@@ -101,21 +97,18 @@ class LocationTimeseriesModel(BaseModel):
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
-                ts_table = self.timeseries_table(parameters=parameters,
-                                                 result_ds_nr=result_ds_nr,
-                                                 absolute=absolute)
-                pattern = self.model.datasource.rows[
-                    result_ds_nr].pattern.value
-                pen = pg.mkPen(color=self.color.qvalue,
-                               width=2,
-                               style=pattern)
-                self._plots[str(parameters)][result_key] = \
-                    pg.PlotDataItem(ts_table, pen=pen)
+                ts_table = self.timeseries_table(
+                    parameters=parameters, result_ds_nr=result_ds_nr, absolute=absolute
+                )
+                pattern = self.model.datasource.rows[result_ds_nr].pattern.value
+                pen = pg.mkPen(color=self.color.qvalue, width=2, style=pattern)
+                self._plots[str(parameters)][result_key] = pg.PlotDataItem(
+                    ts_table, pen=pen
+                )
 
             return self._plots[str(parameters)][result_key]
 
-        def timeseries_table(self, parameters=None, result_ds_nr=0,
-                             absolute=False):
+        def timeseries_table(self, parameters=None, result_ds_nr=0, absolute=False):
             """
             get list of timestamp values for object and parameters
             from result datasource
@@ -124,12 +117,16 @@ class LocationTimeseriesModel(BaseModel):
             :return: numpy array with timestamp, values
             """
             try:
-                timeseries = self.model.datasource.rows[
-                    result_ds_nr].datasource().get_timeseries(
+                timeseries = (
+                    self.model.datasource.rows[result_ds_nr]
+                    .datasource()
+                    .get_timeseries(
                         self.object_type.value,
                         self.object_id.value,
                         parameters,
-                        fill_value=np.NaN)
+                        fill_value=np.NaN,
+                    )
+                )
                 if absolute:
                     timeseries = np.abs(timeseries)
             except (KeyError, IndexError, ValueError, AttributeError):

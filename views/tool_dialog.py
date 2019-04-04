@@ -7,14 +7,13 @@ from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui', 'tool_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "tool_dialog.ui")
+)
 
 
 class ToolDialogWidget(QDialog, FORM_CLASS):
-
-    def __init__(self, parent=None, iface=None, ts_datasource=None,
-                 command=None):
+    def __init__(self, parent=None, iface=None, ts_datasource=None, command=None):
         """Constructor
 
         Args:
@@ -60,8 +59,7 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
 
         # Connect signals
         self.layerComboBox.activated[int].connect(self.on_layerbox_activate)
-        self.datasourceComboBox.activated[int].connect(
-            self.on_datasourcebox_activate)
+        self.datasourceComboBox.activated[int].connect(self.on_datasourcebox_activate)
         self.buttonBox.accepted.connect(self.on_accept)
         self.buttonBox.rejected.connect(self.on_reject)
 
@@ -73,14 +71,14 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
     def on_datasourcebox_activate(self, idx):
         print(idx)
         self.selected_datasource = self.datasources[idx]
-        print("Selected datasource: %s" %
-              self.selected_datasource.file_path.value)
+        print("Selected datasource: %s" % self.selected_datasource.file_path.value)
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
         self.accept()
-        self.command.run_it(layer=self.selected_layer,
-                            datasource=self.selected_datasource)
+        self.command.run_it(
+            layer=self.selected_layer, datasource=self.selected_datasource
+        )
 
     def on_reject(self):
         """Cancel"""
@@ -95,8 +93,8 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         # Clean up signals
         self.buttonBox.accepted.disconnect(self.on_accept)
         self.buttonBox.rejected.disconnect(self.on_reject)
-        self.layerComboBox.activated[int].disconnect(
-            self.on_layerbox_activate)
+        self.layerComboBox.activated[int].disconnect(self.on_layerbox_activate)
         self.datasourceComboBox.activated[int].disconnect(
-            self.on_datasourcebox_activate)
+            self.on_datasourcebox_activate
+        )
         event.accept()

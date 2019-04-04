@@ -25,8 +25,7 @@ from __future__ import absolute_import
 import os
 import os.path
 
-from qgis.PyQt.QtCore import (QSettings, QTranslator, qVersion,
-                              QCoreApplication, QObject)
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QObject
 from qgis.PyQt.QtWidgets import QAction, QLCDNumber
 from qgis.PyQt.QtGui import QIcon
 
@@ -69,40 +68,37 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.plugin_dir = os.path.dirname(__file__)
 
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
+        locale = QSettings().value("locale/userLocale")[0:2]
         locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'ThreeDiTools_{}.qm'.format(locale))
+            self.plugin_dir, "i18n", "ThreeDiTools_{}.qm".format(locale)
+        )
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
 
-            if qVersion() > '4.3.3':
+            if qVersion() > "4.3.3":
                 QCoreApplication.installTranslator(self.translator)
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&3Di toolbox')
+        self.menu = self.tr(u"&3Di toolbox")
 
         self.ts_datasource = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar(u'ThreeDiTools')
-        self.toolbar.setObjectName(u'ThreeDiTools')
-        self.toolbar_animation = self.iface.addToolBar(u'ThreeDiAnimation')
-        self.toolbar_animation.setObjectName(u'ThreeDiAnimation')
+        self.toolbar = self.iface.addToolBar(u"ThreeDiTools")
+        self.toolbar.setObjectName(u"ThreeDiTools")
+        self.toolbar_animation = self.iface.addToolBar(u"ThreeDiAnimation")
+        self.toolbar_animation.setObjectName(u"ThreeDiAnimation")
 
-        self.timeslider_widget = TimesliderWidget(self.toolbar_animation,
-                                                  self.iface,
-                                                  self.ts_datasource)
+        self.timeslider_widget = TimesliderWidget(
+            self.toolbar_animation, self.iface, self.ts_datasource
+        )
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
-        self.map_animator_widget = MapAnimator(self.toolbar_animation,
-                                               self.iface,
-                                               self)
+        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
 
         # Init the rest of the tools
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
@@ -123,7 +119,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         ]
 
         self.active_datasource = None
-        self.group_layer_name = '3Di toolbox layers'
+        self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None
 
         self.line_layer = None
@@ -144,20 +140,21 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('ThreeDiTools', message)
+        return QCoreApplication.translate("ThreeDiTools", message)
 
     def add_action(
-            self,
-            tool_instance,
-            icon_path,
-            text,
-            callback,
-            enabled_flag=True,
-            add_to_menu=True,
-            add_to_toolbar=True,
-            status_tip=None,
-            whats_this=None,
-            parent=None):
+        self,
+        tool_instance,
+        icon_path,
+        text,
+        callback,
+        enabled_flag=True,
+        add_to_menu=True,
+        add_to_toolbar=True,
+        status_tip=None,
+        whats_this=None,
+        parent=None,
+    ):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -212,11 +209,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToMenu(self.menu, action)
 
-        setattr(tool_instance, 'action_icon', action)
+        setattr(tool_instance, "action_icon", action)
         self.actions.append(action)
         return action
 
@@ -238,18 +233,16 @@ class ThreeDiTools(QObject, ProjectStateMixin):
                 tool.icon_path,
                 text=self.tr(tool.menu_text),
                 callback=tool.run,
-                parent=self.iface.mainWindow())
+                parent=self.iface.mainWindow(),
+            )
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
         self.toolbar_animation.addWidget(self.timeslider_widget)
         self.toolbar_animation.addWidget(self.lcd)
 
-        self.ts_datasource.rowsRemoved.connect(
-            self.check_status_model_and_results)
-        self.ts_datasource.rowsInserted.connect(
-            self.check_status_model_and_results)
-        self.ts_datasource.dataChanged.connect(
-            self.check_status_model_and_results)
+        self.ts_datasource.rowsRemoved.connect(self.check_status_model_and_results)
+        self.ts_datasource.rowsInserted.connect(self.check_status_model_and_results)
+        self.ts_datasource.dataChanged.connect(self.check_status_model_and_results)
 
         self.init_state_sync()
 
@@ -275,8 +268,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
-        if (self.ts_datasource.rowCount() > 0 and
-                self.ts_datasource.model_spatialite_filepath is not None):
+        if (
+            self.ts_datasource.rowCount() > 0
+            and self.ts_datasource.model_spatialite_filepath is not None
+        ):
             self.sideview_tool.action_icon.setEnabled(True)
             self.stats_tool.action_icon.setEnabled(True)
             self.water_balance_tool.action_icon.setEnabled(True)
@@ -293,9 +288,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.unload_state_sync()
 
         for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr(u'&3Di toolbox'),
-                action)
+            self.iface.removePluginMenu(self.tr(u"&3Di toolbox"), action)
             self.iface.removeToolBarIcon(action)
 
             for tool in self.tools:
@@ -303,8 +296,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         self.layer_manager.on_unload()
 
-        self.timeslider_widget.valueChanged.disconnect(
-            self.on_slider_change)
+        self.timeslider_widget.valueChanged.disconnect(self.on_slider_change)
 
         # remove the toolbar
         try:

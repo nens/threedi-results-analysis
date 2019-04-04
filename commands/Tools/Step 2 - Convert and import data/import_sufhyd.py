@@ -5,14 +5,10 @@ from builtins import object
 import logging
 import inspect
 
-from ThreeDiToolbox.views.import_sufhyd_dialog import (
-    ImportSufhydDialogWidget)
-from ThreeDiToolbox.commands.base.custom_command import (
-    CustomCommandBase)
-from ThreeDiToolbox.utils.threedi_database import (
-    ThreediDatabase)
-from ThreeDiToolbox.utils.import_sufhyd import (
-    Importer)
+from ThreeDiToolbox.views.import_sufhyd_dialog import ImportSufhydDialogWidget
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from ThreeDiToolbox.utils.import_sufhyd import Importer
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +30,16 @@ class CustomCommand(CustomCommandBase):
         self.args = args
         self.kwargs = kwargs
         self._fields = sorted(
-            [(name, cl) for name, cl in
-             inspect.getmembers(self.Fields,
-                                lambda a: not(inspect.isroutine(a)))
-             if not name.startswith('__') and not name.startswith('_')])
-        self.iface = kwargs.get('iface')
-        self.ts_datasource = kwargs.get('ts_datasource')
+            [
+                (name, cl)
+                for name, cl in inspect.getmembers(
+                    self.Fields, lambda a: not (inspect.isroutine(a))
+                )
+                if not name.startswith("__") and not name.startswith("_")
+            ]
+        )
+        self.iface = kwargs.get("iface")
+        self.ts_datasource = kwargs.get("ts_datasource")
         self.tool_dialog_widget = None
 
     def run(self):
@@ -48,7 +48,8 @@ class CustomCommand(CustomCommandBase):
     def show_gui(self):
 
         self.tool_dialog_widget = ImportSufhydDialogWidget(
-            iface=self.iface, ts_datasource=self.ts_datasource, command=self)
+            iface=self.iface, ts_datasource=self.ts_datasource, command=self
+        )
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, sufhyd_file, db_set, db_type):

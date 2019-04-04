@@ -16,15 +16,12 @@ from ThreeDiToolbox.test.utilities import get_qgis_app
 
 
 class TestGeoUtils(unittest.TestCase):
-
     def setUp(self):
         self.QGIS_APP, self.CANVAS, self.IFACE, self.PARENT = get_qgis_app()
 
     def test_it_can_get_epsg_code_from_layer(self):
-        crs = 'EPSG:28992'
-        pnt_layer = QgsVectorLayer(
-            "Point?crs=" + crs, "temp_connected_pnt", "memory"
-        )
+        crs = "EPSG:28992"
+        pnt_layer = QgsVectorLayer("Point?crs=" + crs, "temp_connected_pnt", "memory")
         epsg_code = get_epsg_code_from_layer(pnt_layer)
         self.assertEqual(epsg_code, 28992)
 
@@ -36,30 +33,30 @@ class TestGeoUtils(unittest.TestCase):
         )
         self.assertTrue(inst.destinationCrs().isValid())
         self.assertTrue(inst.sourceCrs().isValid())
-        self.assertEqual(inst.destinationCrs().authid(), 'EPSG:28992')
+        self.assertEqual(inst.destinationCrs().authid(), "EPSG:28992")
         src_epsg, dest_epsg = 28992, 4326
         inst_rev = get_coord_transformation_instance(src_epsg, dest_epsg)
-        self.assertEqual(inst_rev.destinationCrs().authid(), 'EPSG:4326')
+        self.assertEqual(inst_rev.destinationCrs().authid(), "EPSG:4326")
 
     def test_it_can_get_distance_between_points(self):
         pnt, pnt1 = QgsPointXY(0, 0), QgsPointXY(0, 10)
         dist = get_distance(pnt, pnt1, 4326)
         self.assertEqual(dist, 1105854.8332357334)
         dist = get_distance(pnt, pnt1, 28992)
-        self.assertEqual(dist, 10.)
+        self.assertEqual(dist, 10.0)
 
     def test_it_can_calculate_perpendicular_line(self):
         line_coords = [0, 5, 0, 10]
         expected = (-20.0, 5.0, 20.0, 5.0)
         perpendicular_line = calculate_perpendicular_line(line_coords, 20)
         self.assertEqual(expected, perpendicular_line)
-        perpendicular_line_left = calculate_perpendicular_line(
-            line_coords, 20, 'left')
+        perpendicular_line_left = calculate_perpendicular_line(line_coords, 20, "left")
         expected_left = (0, 5, -20.0, 5.0)
         self.assertEqual(expected_left, perpendicular_line_left)
         expected_right = (0, 5, 20.0, 5.0)
         perpendicular_line_right = calculate_perpendicular_line(
-            line_coords, 20, 'right')
+            line_coords, 20, "right"
+        )
         self.assertEqual(expected_right, perpendicular_line_right)
 
         # should return None when the distance between the points <= 0

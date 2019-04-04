@@ -1,9 +1,13 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from sqlalchemy import (Table, select)
-from ThreeDiToolbox.utils.constants import (V2_TABLES, RASTER_CHECKER_MAPPER,
-                                            NON_SETTINGS_TBL_WITH_RASTERS)
+from sqlalchemy import Table, select
+from ThreeDiToolbox.utils.constants import (
+    V2_TABLES,
+    RASTER_CHECKER_MAPPER,
+    NON_SETTINGS_TBL_WITH_RASTERS,
+)
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -23,6 +27,7 @@ class DataModelSource(object):
     content;
     6. luckly enough the column names did not change the last years;
     """
+
     def __init__(self, metadata):
         self.dms_metatdata = metadata
         for tblname in V2_TABLES:
@@ -30,8 +35,10 @@ class DataModelSource(object):
                 __table__ = Table(tblname, metadata, autoload=True)
                 setattr(self, tblname, __table__)
             except Exception as e:
-                msg = "table {tbl_xx} could not be converted into a " \
-                      "SQLAlchemy Table".format(tbl_xx=tblname)
+                msg = (
+                    "table {tbl_xx} could not be converted into a "
+                    "SQLAlchemy Table".format(tbl_xx=tblname)
+                )
                 # log.error(msg)
                 # log.error(e)
 
@@ -40,6 +47,7 @@ class RasterCheckerEntrees(object):
     """
     Class for getting all rasters references in a sqlite
     """
+
     def __init__(self, datamodel, session):
         self.datamodel_pre = datamodel
         self.session_pre = session
@@ -50,8 +58,7 @@ class RasterCheckerEntrees(object):
         self._unique_setting_ids = None
 
     def get_all_v2_tables(self):
-        return list(
-            set([a for a in dir(self.datamodel_pre) if a.startswith('v2_')]))
+        return list(set([a for a in dir(self.datamodel_pre) if a.startswith("v2_")]))
 
     @property
     def all_raster_ref(self):
@@ -77,7 +84,7 @@ class RasterCheckerEntrees(object):
         table_list = self.get_all_v2_tables()
         for tbl in table_list:
             all_columns = getattr(self.datamodel_pre, tbl).columns.keys()
-            file_columns = [x for x in all_columns if '_file' in x]
+            file_columns = [x for x in all_columns if "_file" in x]
             for column in file_columns:
                 sql_tbl = getattr(self.datamodel_pre, tbl).c
                 sql_column = getattr(sql_tbl, column)
@@ -86,12 +93,11 @@ class RasterCheckerEntrees(object):
                 select_rows = [x for x in res if x[column]]
                 for row in select_rows:
                     file_tbl.append(tbl)
-                    file_id.append(row['id'])
+                    file_id.append(row["id"])
                     file_column.append(column)
                     file_name.append(str(row[column]))
         # in python3 zip returns iterator so return the list of zip object
-        self._all_raster_ref = list(
-            zip(file_tbl, file_id, file_column, file_name))
+        self._all_raster_ref = list(zip(file_tbl, file_id, file_column, file_name))
         return self._all_raster_ref
 
     @property
@@ -112,9 +118,8 @@ class RasterCheckerEntrees(object):
         file_id = []
         file_column = []
         file_name = []
-        tbl_settings = 'v2_global_settings'
-        all_settings_columns = getattr(
-            self.datamodel_pre, tbl_settings).columns.keys()
+        tbl_settings = "v2_global_settings"
+        all_settings_columns = getattr(self.datamodel_pre, tbl_settings).columns.keys()
         for column in all_settings_columns:
             for tbl, col in NON_SETTINGS_TBL_WITH_RASTERS.items():
                 if col == column:
@@ -125,12 +130,11 @@ class RasterCheckerEntrees(object):
                     select_rows = [x for x in res if x[column]]
                     for row in select_rows:
                         file_tbl.append(tbl_settings)
-                        file_id.append(row['id'])
+                        file_id.append(row["id"])
                         file_column.append(column)
                         file_name.append(row[column])
         # in python3 zip returns iterator so return the list of zip object
-        self._foreign_keys = list(
-            zip(file_tbl, file_id, file_column, file_name))
+        self._foreign_keys = list(zip(file_tbl, file_id, file_column, file_name))
         return self._foreign_keys
 
     @property
@@ -145,8 +149,14 @@ class RasterCheckerEntrees(object):
             return self._unique_setting_ids
 
         self._unique_setting_ids = list(
-            set([item[1] for item in self.all_raster_ref if
-                 item[0] == 'v2_global_settings']))
+            set(
+                [
+                    item[1]
+                    for item in self.all_raster_ref
+                    if item[0] == "v2_global_settings"
+                ]
+            )
+        )
         self._unique_setting_ids.sort()
         return self._unique_setting_ids
 
@@ -154,12 +164,14 @@ class RasterCheckerEntrees(object):
         dem_used = False
         for ref_item in self.all_raster_ref:
             ref_column_name = ref_item[2]
-            if ref_column_name == 'dem_file':
+            if ref_column_name == "dem_file":
                 dem_used = True
         if not dem_used:
-            log.warning('RasterChecker skips v2_global_settings id %d as'
-                        'this id does not (but must) refer to an '
-                        'elevation raster' % entree_id)
+            log.warning(
+                "RasterChecker skips v2_global_settings id %d as"
+                "this id does not (but must) refer to an "
+                "elevation raster" % entree_id
+            )
         return dem_used
 
     @property
@@ -192,24 +204,28 @@ class RasterCheckerEntrees(object):
                 ref_setting_id = ref_item[1]
                 ref_column_name = ref_item[2]
                 ref_raster_str = ref_item[3]
-                if ref_setting_id == entree_id and \
-                        ref_tbl_name == 'v2_global_settings' and \
-                        ref_column_name == 'dem_file':
+                if (
+                    ref_setting_id == entree_id
+                    and ref_tbl_name == "v2_global_settings"
+                    and ref_column_name == "dem_file"
+                ):
                     entrees_dict_log_file.append(
-                        (entree_id, ref_tbl_name, ref_column_name,
-                         ref_raster_str))
+                        (entree_id, ref_tbl_name, ref_column_name, ref_raster_str)
+                    )
             # now the rest of the rasters (in the v2_global_settings)
             for ref_item in self.all_raster_ref:
                 ref_tbl_name = ref_item[0]
                 ref_setting_id = ref_item[1]
                 ref_column_name = ref_item[2]
                 ref_raster_str = ref_item[3]
-                if ref_setting_id == entree_id and \
-                        ref_tbl_name == 'v2_global_settings' and \
-                        ref_column_name != 'dem_file':
+                if (
+                    ref_setting_id == entree_id
+                    and ref_tbl_name == "v2_global_settings"
+                    and ref_column_name != "dem_file"
+                ):
                     entrees_dict_log_file.append(
-                        (entree_id, ref_tbl_name, ref_column_name,
-                         ref_raster_str))
+                        (entree_id, ref_tbl_name, ref_column_name, ref_raster_str)
+                    )
             # now the rest of the rasters outside of the v2_global_settings
             for ref_item in self.all_raster_ref:
                 ref_tbl_name = ref_item[0]
@@ -222,12 +238,19 @@ class RasterCheckerEntrees(object):
                             fk_setting_id = fk_item[1]
                             fk_column_name = fk_item[2]
                             fk_id = fk_item[3]
-                            if fk_setting_id == entree_id \
-                                    and fk_column_name == col \
-                                    and fk_id == ref_setting_id:
+                            if (
+                                fk_setting_id == entree_id
+                                and fk_column_name == col
+                                and fk_id == ref_setting_id
+                            ):
                                 entrees_dict_log_file.append(
-                                    (entree_id, ref_tbl_name, ref_column_name,
-                                     ref_raster_str))
+                                    (
+                                        entree_id,
+                                        ref_tbl_name,
+                                        ref_column_name,
+                                        ref_raster_str,
+                                    )
+                                )
         # sort the list with tuple based on the first element of tuple, which
         # is the setting_id
         entrees_dict_log_file.sort(key=self.sort_by_setting_id)
@@ -238,7 +261,7 @@ class RasterCheckerEntrees(object):
 
     def sort_by_setting_id(self, elem):
         if len(elem) != 4:
-            raise AssertionError('should have 4 elements setting_id on 1st')
+            raise AssertionError("should have 4 elements setting_id on 1st")
         return elem[0]
 
     @property

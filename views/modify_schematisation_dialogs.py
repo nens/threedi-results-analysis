@@ -29,20 +29,21 @@ try:
 
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui',
-    'move_connected_pnts.ui'))
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "move_connected_pnts.ui")
+)
 
 
 class PredictCalcPointsDialogWidget(QDialog):
-
-    def __init__(self, parent=None,
-                 command=None):
+    def __init__(self, parent=None, command=None):
         """Constructor
 
         Args:
@@ -72,24 +73,24 @@ class PredictCalcPointsDialogWidget(QDialog):
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
 
-        _db_settings = db_entry['db_settings']
+        _db_settings = db_entry["db_settings"]
 
-        if db_entry['db_type'] == 'spatialite':
-            host = _db_settings['db_path']
+        if db_entry["db_type"] == "spatialite":
+            host = _db_settings["db_path"]
             db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
+                "host": host,
+                "port": "",
+                "name": "",
+                "username": "",
+                "password": "",
+                "schema": "",
+                "database": "",
+                "db_path": host,
             }
         else:
             db_settings = _db_settings
-            db_settings['schema'] = 'public'
-        self.command.run_it(db_settings, db_entry['db_type'])
+            db_settings["schema"] = "public"
+        self.command.run_it(db_settings, db_entry["db_type"])
 
         self.accept()
 
@@ -122,7 +123,8 @@ class PredictCalcPointsDialogWidget(QDialog):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.database_combo.sizePolicy().hasHeightForWidth())
+            self.database_combo.sizePolicy().hasHeightForWidth()
+        )
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -132,8 +134,7 @@ class PredictCalcPointsDialogWidget(QDialog):
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -144,14 +145,13 @@ class PredictCalcPointsDialogWidget(QDialog):
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Predict calc points", None))
-        self.groupBox_2.setTitle(_translate(
-            "self", "Model schematisation database", None))
+        self.groupBox_2.setTitle(
+            _translate("self", "Model schematisation database", None)
+        )
 
 
 class AddCoonnectedPointsDialogWidget(QDialog):
-
-    def __init__(self, parent=None,
-                 command=None):
+    def __init__(self, parent=None, command=None):
         """Constructor
 
         Args:
@@ -180,28 +180,28 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
-        db_type = db_entry['db_type']
+        db_type = db_entry["db_type"]
 
-        _db_settings = db_entry['db_settings']
+        _db_settings = db_entry["db_settings"]
 
-        if db_type == 'spatialite':
+        if db_type == "spatialite":
             # usage of db_type 'spatialite' instead of 'sqlite'
             # makes much more sense because it also used internally
             # by qgis, for example when by the ``QgsVectorLayer()``-object
-            host = _db_settings['db_path']
+            host = _db_settings["db_path"]
             db_settings = {
-                'host': host,
-                'port': '',
-                'name': '',
-                'username': '',
-                'password': '',
-                'schema': '',
-                'database': '',
-                'db_path': host,
+                "host": host,
+                "port": "",
+                "name": "",
+                "username": "",
+                "password": "",
+                "schema": "",
+                "database": "",
+                "db_path": host,
             }
         else:
             db_settings = _db_settings
-            db_settings['schema'] = 'public'
+            db_settings["schema"] = "public"
         self.command.run_it(db_settings, db_type)
 
         self.accept()
@@ -236,7 +236,8 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.database_combo.sizePolicy().hasHeightForWidth())
+            self.database_combo.sizePolicy().hasHeightForWidth()
+        )
         self.database_combo.setSizePolicy(sizePolicy)
         self.database_combo.setObjectName("database_combo")
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -246,8 +247,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(
-            QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -258,13 +258,11 @@ class AddCoonnectedPointsDialogWidget(QDialog):
 
     def retranslateUi(self):
         self.setWindowTitle(_translate("self", "Add connected points", None))
-        self.groupBox_2.setTitle(_translate(
-            "self", "Load from model database", None))
+        self.groupBox_2.setTitle(_translate("self", "Load from model database", None))
 
 
 class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
-    def __init__(self, parent=None,
-                 command=None):
+    def __init__(self, parent=None, command=None):
         """Constructor
         Args:
             parent: Qt parent Widget
@@ -281,8 +279,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_search_distance.setMinimum(2)
         self.spinbox_levee_distace.setMaximum(5000)
         self.spinbox_levee_distace.setMinimum(1)
-        self.setWindowTitle(_translate(
-            "self", "Create breach locations", None))
+        self.setWindowTitle(_translate("self", "Create breach locations", None))
         tool_help = """
         Move connected points across the nearest levee. You can limit your
         point set to your current selection. Using the dry-run option will
@@ -291,11 +288,9 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         test your settings first before actually applying them to your model.
         Using the 'dry-run' option thus is highly recommended."""
         self.help_text_browser.setText(
-            tool_help.replace('        ', '').replace('\n', '').replace('\r', '')  # noqa
+            tool_help.replace("        ", "").replace("\n", "").replace("\r", "")
         )
-        connected_pnt_lyr = QgsProject.instance().mapLayersByName(
-            'v2_connected_pnt'
-        )
+        connected_pnt_lyr = QgsProject.instance().mapLayersByName("v2_connected_pnt")
         # automatically pre-select the right layer if present
         if connected_pnt_lyr:
             lyr = connected_pnt_lyr[0]
@@ -313,11 +308,9 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
             distance_to_levee=self.spinbox_levee_distace.value(),
             use_selection=self.checkBox_feat.isChecked(),
             is_dry_run=self.checkBox_dry_run.isChecked(),
-            connected_pnt_lyr=self.connected_pny_lyr_box.currentLayer()
+            connected_pnt_lyr=self.connected_pny_lyr_box.currentLayer(),
         )
-        self.command.run_it(
-            breach_loc, self.checkBox_auto_commit.isChecked()
-        )
+        self.command.run_it(breach_loc, self.checkBox_auto_commit.isChecked())
         self.accept()
 
     def on_reject(self):

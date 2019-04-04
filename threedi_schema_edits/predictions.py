@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 class Predictor(object):
     _QUERY_TYPE_DICT = {
-        'postgres': 'QPSQL',
-        'spatialite': 'QSQLITE',
-        'spatialite2': 'QSQLITE2'
+        "postgres": "QPSQL",
+        "spatialite": "QSQLITE",
+        "spatialite2": "QSQLITE2",
     }
 
     def __init__(self, flavor, lyr_name=""):
@@ -65,15 +65,15 @@ class Predictor(object):
          """
 
         self._uri = QgsDataSourceUri()
-        host = kwargs['host']
-        port = kwargs['port']
-        database = kwargs['database']
-        username = kwargs['username']
-        password = kwargs['password']
-        self._schema = kwargs['schema']
-        if self.flavor == 'spatialite':
+        host = kwargs["host"]
+        port = kwargs["port"]
+        database = kwargs["database"]
+        username = kwargs["username"]
+        password = kwargs["password"]
+        self._schema = kwargs["schema"]
+        if self.flavor == "spatialite":
             self._uri.setDatabase(host)
-        elif self.flavor == 'postgres':
+        elif self.flavor == "postgres":
             self._uri.setConnection(host, port, database, username, password)
         return self._uri
 
@@ -93,8 +93,7 @@ class Predictor(object):
         self.threedi_db = ThreediDatabase(kwargs, db_type=self.flavor)
         self.engine = self.threedi_db.engine
 
-    def get_layer_from_uri(self, uri, table_name, geom_column='',
-                           display_name=''):
+    def get_layer_from_uri(self, uri, table_name, geom_column="", display_name=""):
         """
         :returns a vector layer instance of the given
         :param table_name in combination with the
@@ -128,8 +127,9 @@ class Predictor(object):
             self.query = QtSql.QSqlQuery(db)
         else:
             raise RuntimeError(
-                'Failed to open database connection: {}'.format(
-                    db.lastError().driverText())
+                "Failed to open database connection: {}".format(
+                    db.lastError().driverText()
+                )
             )
 
     def run_qtsql_query(self, query_str):
@@ -141,9 +141,8 @@ class Predictor(object):
             self.create_query_obj_from_uri(self._uri)
         if not self.query.exec_(query_str):
             raise RuntimeError(
-                'Could not execute the query {}. '
-                'Error message {}'.format(
-                    query_str, self.query.lastError().text())
+                "Could not execute the query {}. "
+                "Error message {}".format(query_str, self.query.lastError().text())
             )
 
     def run_sqalchemy_query(self, query_str):
@@ -153,8 +152,9 @@ class Predictor(object):
                 rows = res.fetchall()
             except ResourceClosedError:
                 logger.warning(
-                    '[!] The proxy object has been consumed because the '
-                    'query has returned no results.')
+                    "[!] The proxy object has been consumed because the "
+                    "query has returned no results."
+                )
                 rows = None
         con.close()
         return rows
@@ -207,60 +207,56 @@ class Predictor(object):
                                    'content_type_id': 1,
                                    'dist_calc_pnts': 5.0,
                                    'line_length': 40.0,
-                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},  # noqa
+                                   'the_geom': u'LINESTRING(45 5,45 25,45 45)'}]},
         }
         """
         query_data = self._get_query_data(epsg_code)
         for name, d in query_data.items():
             logger.info("processing {}".format(name))
-            rows = self.run_sqalchemy_query(d['query'])
+            rows = self.run_sqalchemy_query(d["query"])
             if rows is None:
                 continue
             for row in rows:
                 # distinguish between start- and endpoints
                 start_point = {}
                 end_point = {}
-                object_id = row[d['id']]
+                object_id = row[d["id"]]
                 # geometries can only be present for objects that have
                 # both a start- and endpoint (culverts, pipes and channels)
                 the_geom = None
-                if d['the_geom'] is not None:
-                    the_geom = row[d['the_geom']]
+                if d["the_geom"] is not None:
+                    the_geom = row[d["the_geom"]]
                 the_geom_end = None
-                if d['the_geom_end'] is not None:
-                    the_geom_end = row[d['the_geom_end']]
+                if d["the_geom_end"] is not None:
+                    the_geom_end = row[d["the_geom_end"]]
                 line_length = None
-                if d['line_length'] is not None:
-                    line_length = row[d['line_length']]
+                if d["line_length"] is not None:
+                    line_length = row[d["line_length"]]
                 dist_calc_points = None
-                if d['dist_calc_points'] is not None:
-                    dist_calc_points = row[d['dist_calc_points']]
-                code = ''
-                if d['code'] is not None:
-                    code = row[d['code']] or ''
+                if d["dist_calc_points"] is not None:
+                    dist_calc_points = row[d["dist_calc_points"]]
+                code = ""
+                if d["code"] is not None:
+                    code = row[d["code"]] or ""
                 connection_node_end = None
-                if d['node_id_end'] is not None:
-                    connection_node_end = row[d['node_id_end']]
+                if d["node_id_end"] is not None:
+                    connection_node_end = row[d["node_id_end"]]
                 connection_node_start = None
-                if d['node_id_start'] is not None:
-                    connection_node_start = row[
-                        d['node_id_start']
-                    ]
+                if d["node_id_start"] is not None:
+                    connection_node_start = row[d["node_id_start"]]
                 # not all objects must have a calculation type defined.
                 # If the database field is empty the query will return NULL
                 # N.B the operator has to be ``==``!
-                _calc_type = row[d['calc_type']]
-                calc_type = constants.CALC_TYPE_MAP.get(
-                    _calc_type)
+                _calc_type = row[d["calc_type"]]
+                calc_type = constants.CALC_TYPE_MAP.get(_calc_type)
                 if calc_type is None:
                     calc_type = _calc_type
-                logger.debug(
-                    "calc_type is ", calc_type, "type ", type(calc_type)
-                )
+                logger.debug("calc_type is ", calc_type, "type ", type(calc_type))
                 if calc_type is None:
                     logger.warning(
                         "WARNING: no calc_type for {name} {id}".format(
-                            name=name, id=object_id)
+                            name=name, id=object_id
+                        )
                     )
                     continue
                 # objects with a geometry have both a start- and endpoint
@@ -273,20 +269,24 @@ class Predictor(object):
                     # define in how many segments the line geometry will
                     # be divided my the threedicore
                     cnt_segments = max(
-                        int(round(
-                            line_length / (dist_calc_points * 1.0))), 1
+                        int(round(line_length / (dist_calc_points * 1.0))), 1
                     )
-                    start_point['calc_type'] = calc_type
-                    start_point['content_type'] = name
-                    start_point['content_type_id'] = object_id
-                    start_point['code'] = code
-                    start_point['dist_calc_pnts'] = dist_calc_points
-                    start_point['line_length'] = line_length
-                    start_point['the_geom'] = the_geom
-                    start_point['cnt_segments'] = cnt_segments
+                    start_point["calc_type"] = calc_type
+                    start_point["content_type"] = name
+                    start_point["content_type_id"] = object_id
+                    start_point["code"] = code
+                    start_point["dist_calc_pnts"] = dist_calc_points
+                    start_point["line_length"] = line_length
+                    start_point["the_geom"] = the_geom
+                    start_point["cnt_segments"] = cnt_segments
                     end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, code, the_geom_end,
-                        dist_calc_points, cnt_segments
+                        end_point,
+                        name,
+                        object_id,
+                        code,
+                        the_geom_end,
+                        dist_calc_points,
+                        cnt_segments,
                     )
 
                 entry_start = self.network_dict.get(connection_node_start)
@@ -294,12 +294,12 @@ class Predictor(object):
                     try:
                         # a brand new entry
                         self.network_dict[connection_node_start] = {
-                            'calc_type': calc_type,
-                            'content_type_id': object_id,
-                            'code': code,
-                            'content_type': name,
-                            'start_points': [],
-                            'end_point': '',
+                            "calc_type": calc_type,
+                            "content_type_id": object_id,
+                            "code": code,
+                            "content_type": name,
+                            "start_points": [],
+                            "end_point": "",
                         }
                     except KeyError:
                         logger.debug(
@@ -318,24 +318,24 @@ class Predictor(object):
                 # there should never be a start point entry for
                 # boundaries and manholes as they don't have geometries.
                 if start_point:
-                    self.network_dict[
-                        connection_node_start]['start_points'].append(
+                    self.network_dict[connection_node_start]["start_points"].append(
                         start_point
                     )
                 if connection_node_end is not None:
                     end_point = self._fill_end_pnt_dict(
-                        end_point, name, object_id, code, the_geom_end)
+                        end_point, name, object_id, code, the_geom_end
+                    )
 
                     entry_end = self.network_dict.get(connection_node_end)
                     if entry_end is None:
                         # a brand new entry
                         self.network_dict[connection_node_end] = {
-                            'calc_type': calc_type,
-                            'content_type_id': object_id,
-                            'code': code,
-                            'content_type': name,
-                            'start_points': [],
-                            'end_point': end_point,
+                            "calc_type": calc_type,
+                            "content_type_id": object_id,
+                            "code": code,
+                            "content_type": name,
+                            "start_points": [],
+                            "end_point": end_point,
                         }
                     else:
                         # already entry for this connection node, we
@@ -345,12 +345,20 @@ class Predictor(object):
                             entry_end, calc_type, object_id, name, code
                         )
                         if elected:
-                            self.network_dict[
-                                connection_node_end]['end_point'] = end_point
+                            self.network_dict[connection_node_end][
+                                "end_point"
+                            ] = end_point
 
     @staticmethod
-    def _fill_end_pnt_dict(end_pnt_dict, name, object_id, code, the_geom_end,
-                           dist_calc_points=None, cnt_segments=1):
+    def _fill_end_pnt_dict(
+        end_pnt_dict,
+        name,
+        object_id,
+        code,
+        the_geom_end,
+        dist_calc_points=None,
+        cnt_segments=1,
+    ):
         """
         All object with a line geometry have a complete set of end point
         attributes. This is the default. Because manholes have to be
@@ -358,12 +366,12 @@ class Predictor(object):
         for the attributes dist_calc_points and cnt_segments.
         """
         if not end_pnt_dict:
-            end_pnt_dict['content_type'] = name
-            end_pnt_dict['code'] = code
-            end_pnt_dict['content_type_id'] = object_id
-            end_pnt_dict['dist_calc_pnts'] = dist_calc_points
-            end_pnt_dict['the_geom_end'] = the_geom_end
-            end_pnt_dict['cnt_segments'] = cnt_segments
+            end_pnt_dict["content_type"] = name
+            end_pnt_dict["code"] = code
+            end_pnt_dict["content_type_id"] = object_id
+            end_pnt_dict["dist_calc_pnts"] = dist_calc_points
+            end_pnt_dict["the_geom_end"] = the_geom_end
+            end_pnt_dict["cnt_segments"] = cnt_segments
         return end_pnt_dict
 
     def _elect_new_leader(self, entry, calc_type, object_id, name, code):
@@ -373,24 +381,29 @@ class Predictor(object):
         type is ranked higher
         :returns True if a new leader has been elected, False otherwise
         """
-        _current_content_type = entry.get('content_type')
+        _current_content_type = entry.get("content_type")
         # manhole is already the lead. Only a boundary can surpass him
-        if all([_current_content_type == 'v2_manhole',
-                name != 'v2_1d_boundary_conditions']):
+        if all(
+            [_current_content_type == "v2_manhole", name != "v2_1d_boundary_conditions"]
+        ):
             return False
 
         # make manhole the leader in case a boundary isn't
         # leading at the moment
-        if all([name == 'v2_manhole',
-                _current_content_type != 'v2_1d_boundary_conditions',
-                calc_type is not None]):
-            entry['calc_type'] = calc_type
-            entry['content_type_id'] = object_id
-            entry['code'] = code
-            entry['content_type'] = name
+        if all(
+            [
+                name == "v2_manhole",
+                _current_content_type != "v2_1d_boundary_conditions",
+                calc_type is not None,
+            ]
+        ):
+            entry["calc_type"] = calc_type
+            entry["content_type_id"] = object_id
+            entry["code"] = code
+            entry["content_type"] = name
             return True
 
-        current_leader = entry.get('calc_type')
+        current_leader = entry.get("calc_type")
         unranked_calc_types = [current_leader, calc_type]
         ranked_calc_type = min(
             unranked_calc_types, key=constants.CALC_TYPE_RANKING.index
@@ -400,13 +413,13 @@ class Predictor(object):
             logger.debug(
                 "we have a new leader: calc_type was {} ({}) "
                 "is now {} ({})".format(
-                    current_leader, _current_content_type,
-                    ranked_calc_type, name)
+                    current_leader, _current_content_type, ranked_calc_type, name
+                )
             )
-            entry['calc_type'] = ranked_calc_type
-            entry['content_type_id'] = object_id
-            entry['code'] = code
-            entry['content_type'] = name
+            entry["calc_type"] = ranked_calc_type
+            entry["content_type_id"] = object_id
+            entry["code"] = code
+            entry["content_type"] = name
             return True
         return False
 
@@ -421,65 +434,65 @@ class Predictor(object):
         # query value --> database query string as plain text
         # all other values --> index of the attribute in the result collection
         query_data = {
-            'v2_1d_boundary_conditions': {
-                'query': query_strings_dict['v2_1d_boundary_conditions'],
-                'node_id_start': 0,
-                'node_id_end': None,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': None,
-                'code': None,
+            "v2_1d_boundary_conditions": {
+                "query": query_strings_dict["v2_1d_boundary_conditions"],
+                "node_id_start": 0,
+                "node_id_end": None,
+                "calc_type": 1,
+                "the_geom": None,
+                "line_length": None,
+                "id": 2,
+                "dist_calc_points": None,
+                "the_geom_end": None,
+                "code": None,
             },
-            'v2_manhole': {
-                'query': query_strings_dict['v2_manhole'],
-                'node_id_start': None,
-                'node_id_end': 0,
-                'calc_type': 1,
-                'the_geom': None,
-                'line_length': None,
-                'id': 2,
-                'dist_calc_points': None,
-                'the_geom_end': 3,
-                'code': 4,
+            "v2_manhole": {
+                "query": query_strings_dict["v2_manhole"],
+                "node_id_start": None,
+                "node_id_end": 0,
+                "calc_type": 1,
+                "the_geom": None,
+                "line_length": None,
+                "id": 2,
+                "dist_calc_points": None,
+                "the_geom_end": 3,
+                "code": 4,
             },
-            'v2_pipe': {
-                'query': query_strings_dict['v2_pipe'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom_end': 4,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                'code': 9,
+            "v2_pipe": {
+                "query": query_strings_dict["v2_pipe"],
+                "node_id_start": 0,
+                "node_id_end": 1,
+                "calc_type": 2,
+                "the_geom_end": 4,
+                "the_geom": 5,
+                "line_length": 6,
+                "id": 7,
+                "dist_calc_points": 8,
+                "code": 9,
             },
-            'v2_culvert': {
-                'query': query_strings_dict['v2_culvert'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 3,
-                'line_length': 4,
-                'id': 5,
-                'dist_calc_points': 6,
-                'the_geom_end': 7,
-                'code': 8,
+            "v2_culvert": {
+                "query": query_strings_dict["v2_culvert"],
+                "node_id_start": 0,
+                "node_id_end": 1,
+                "calc_type": 2,
+                "the_geom": 3,
+                "line_length": 4,
+                "id": 5,
+                "dist_calc_points": 6,
+                "the_geom_end": 7,
+                "code": 8,
             },
-            'v2_channel': {
-                'query': query_strings_dict['v2_channel'],
-                'node_id_start': 0,
-                'node_id_end': 1,
-                'calc_type': 2,
-                'the_geom': 5,
-                'line_length': 6,
-                'id': 7,
-                'dist_calc_points': 8,
-                'the_geom_end': 4,
-                'code': 9,
+            "v2_channel": {
+                "query": query_strings_dict["v2_channel"],
+                "node_id_start": 0,
+                "node_id_end": 1,
+                "calc_type": 2,
+                "the_geom": 5,
+                "line_length": 6,
+                "id": 7,
+                "dist_calc_points": 8,
+                "the_geom_end": 4,
+                "code": 9,
             },
         }
         return query_data
@@ -489,7 +502,7 @@ class Predictor(object):
         get the epsg_code entry from v2_global_settings table (first row)
         """
         with self.engine.connect() as con:
-            rs = con.execute('''SELECT epsg_code FROM v2_global_settings;''')
+            rs = con.execute("""SELECT epsg_code FROM v2_global_settings;""")
             row = rs.fetchone()
             if row:
                 return row[0]
@@ -500,9 +513,9 @@ class Predictor(object):
         create a QgsVectorLayer in memory
         """
         _type_map = {
-            'str': QVariant.String,
-            'int': QVariant.Int,
-            'float': QVariant.Double
+            "str": QVariant.String,
+            "int": QVariant.Int,
+            "float": QVariant.Double,
         }
         # create layer
         lyr_def_str = lyr_type
@@ -551,13 +564,17 @@ class Predictor(object):
         False otherwise
         """
         for node_id, leader in self.network_dict.items():
-            if all([leader['content_type'] == content_type,
-                    leader['content_type_id'] == content_type_id,
-                    node_id != current_node_id]):
+            if all(
+                [
+                    leader["content_type"] == content_type,
+                    leader["content_type_id"] == content_type_id,
+                    node_id != current_node_id,
+                ]
+            ):
                 return True
         return False
 
-    def predict_points(self, output_layer, transform=''):
+    def predict_points(self, output_layer, transform=""):
         """
         Case connection node entry knows an endpoint
         --------------------------------------------
@@ -585,54 +602,50 @@ class Predictor(object):
         self._feat_id = 1
         data_provider = output_layer.dataProvider()
         if transform:
-            self._trans = get_coord_transformation_instance(
-                *transform.split(':')
-            )
+            self._trans = get_coord_transformation_instance(*transform.split(":"))
         # self._trans = self._set_coord_transformation(transform)
         for node_id, node_info in self.network_dict.items():
             logger.debug("processing node_id {}".format(node_id))
 
             # for the first point we need the network calc_type
-            node_calc_type = node_info['calc_type']
+            node_calc_type = node_info["calc_type"]
             # an entry for end_point means we have to use this his information
             # over other information for the node
-            end_point = node_info.get('end_point')
+            end_point = node_info.get("end_point")
             node_has_been_added = False
             start_id = 1
             if end_point:
-                content_type = end_point['content_type']
-                content_type_id = end_point['content_type_id']
-                code = end_point['code']
-                pnt_geom = QgsGeometry.fromWkt(
-                    end_point['the_geom_end']
-                )
-                last_seq_id = end_point['cnt_segments']
+                content_type = end_point["content_type"]
+                content_type_id = end_point["content_type_id"]
+                code = end_point["code"]
+                pnt_geom = QgsGeometry.fromWkt(end_point["the_geom_end"])
+                last_seq_id = end_point["cnt_segments"]
                 # if the same objects will used elsewhere as starting point
                 # the sequence of calculation points will be longer (by one)
                 last_seq_id += 1
 
                 self._add_calc_pnt_feature(
-                    calc_type=node_calc_type, pnt_geom=pnt_geom,
-                    content_type_id=content_type_id, content_type=content_type,
-                    code=code, id=last_seq_id
+                    calc_type=node_calc_type,
+                    pnt_geom=pnt_geom,
+                    content_type_id=content_type_id,
+                    content_type=content_type,
+                    code=code,
+                    id=last_seq_id,
                 )
                 node_has_been_added = True
                 start_id = 2
-            start_points = node_info.get('start_points')
+            start_points = node_info.get("start_points")
             for start_pnt_cnt, start_point in enumerate(start_points):
-                content_type = start_point['content_type']
-                content_type_id = start_point['content_type_id']
-                code = start_point['code']
+                content_type = start_point["content_type"]
+                content_type_id = start_point["content_type_id"]
+                code = start_point["code"]
                 # the calculation type for the interpolated points
-                calc_type = start_point['calc_type']
+                calc_type = start_point["calc_type"]
                 distances = self.get_distances_on_line(
-                    start_point['dist_calc_pnts'],
-                    start_point['line_length']
+                    start_point["dist_calc_pnts"], start_point["line_length"]
                 )
                 logger.debug("processing start point {}".format(start_pnt_cnt))
-                line_geom = QgsGeometry.fromWkt(
-                    start_point['the_geom']
-                )
+                line_geom = QgsGeometry.fromWkt(start_point["the_geom"])
                 if not node_has_been_added:
                     # find out if the node info has been derived
                     # from the object we are looking at right now
@@ -643,16 +656,17 @@ class Predictor(object):
                     self._add_calc_pnt_feature(
                         calc_type=node_calc_type,
                         pnt_geom=start_pnt,
-                        content_type_id=node_info['content_type_id'],
-                        content_type=node_info['content_type'],
-                        code=node_info['code'],
-                        id=1
+                        content_type_id=node_info["content_type_id"],
+                        content_type=node_info["content_type"],
+                        code=node_info["code"],
+                        id=1,
                     )
                     node_has_been_added = True
                     start_id = 2
                     logger.debug(
                         "node has been added {} {}".format(
-                            content_type, content_type_id)
+                            content_type, content_type_id
+                        )
                     )
                 else:
                     distances = distances[1:]
@@ -667,30 +681,28 @@ class Predictor(object):
                         content_type_id=content_type_id,
                         content_type=content_type,
                         code=code,
-                        id=i
+                        id=i,
                     )
         succces, features = data_provider.addFeatures(self._calc_pnt_features)
         cnt_feat = len(features)
         if succces:
             logger.info(
-                "[*] Successfully saved {} features to the database".format(
-                    cnt_feat)
+                "[*] Successfully saved {} features to the database".format(cnt_feat)
             )
             if not self.threedi_db.has_valid_spatial_index(
-                    constants.TABLE_NAME_CALC_PNT, 'the_geom'):
+                constants.TABLE_NAME_CALC_PNT, "the_geom"
+            ):
                 self.threedi_db.recover_spatial_index(
-                    constants.TABLE_NAME_CALC_PNT, 'the_geom'
+                    constants.TABLE_NAME_CALC_PNT, "the_geom"
                 )
             output_layer.updateExtents()
         else:
-            logger.error(
-                'Error while saving {} feaures to database.'.format(cnt_feat)
-            )
+            logger.error("Error while saving {} feaures to database.".format(cnt_feat))
         return succces, features
 
     def _add_calc_pnt_feature(
-            self, calc_type, pnt_geom, content_type_id,
-            content_type, code, id):
+        self, calc_type, pnt_geom, content_type_id, content_type, code, id
+    ):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         assert pnt_geom.isGeosValid()
@@ -699,18 +711,13 @@ class Predictor(object):
             pnt_geom.transform(self._trans)
         f.setGeometry(pnt_geom)
         if calc_type < 0:
-            content_type = 'v2_1d_boundary_conditions'
+            content_type = "v2_1d_boundary_conditions"
             id = 1
-        ref_id = '{code}#{obj_id}#{table_name}#{seq_id}'.format(
-            code=code,
-            obj_id=content_type_id,
-            table_name=content_type,
-            seq_id=id
+        ref_id = "{code}#{obj_id}#{table_name}#{seq_id}".format(
+            code=code, obj_id=content_type_id, table_name=content_type, seq_id=id
         )
 
-        f.setAttributes(
-            [self._feat_id, content_type_id, ref_id, calc_type]
-        )
+        f.setAttributes([self._feat_id, content_type_id, ref_id, calc_type])
         self._calc_pnt_features.append(f)
         self._feat_id += 1
 
@@ -718,18 +725,16 @@ class Predictor(object):
         # Create a new QgsFeature and assign it the new geometry
         # add a feature
         connected_pnt_data = {
-            'id': self._connect_pnt_id,
-            'exchange_level': -9999,
-            'calculation_pnt_id': calc_pnt_id,
-            'levee_id': None
+            "id": self._connect_pnt_id,
+            "exchange_level": -9999,
+            "calculation_pnt_id": calc_pnt_id,
+            "levee_id": None,
         }
         f = QgsFeature()
         f.setGeometry(the_geom)
         fn_sorted = sorted(field_names, key=field_names.__getitem__)
         attributes = [connected_pnt_data[fn] for fn in fn_sorted]
-        f.setAttributes(
-            attributes
-        )
+        f.setAttributes(attributes)
         self._connected_pnt_features.append(f)
         self._connect_pnt_id += 1
 
@@ -744,39 +749,34 @@ class Predictor(object):
             for fn in field_names_connected_pnts_lyr
         }
 
-        field_names_calc_pnts = [
-            field.name() for field in calc_pnts_lyr.fields()
-        ]
+        field_names_calc_pnts = [field.name() for field in calc_pnts_lyr.fields()]
         self._connect_pnt_id = 1
         for feat in calc_pnts_lyr.getFeatures():
-            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))  # noqa
-            calc_type = calc_pnt['calc_type']
+            calc_pnt = dict(list(zip(field_names_calc_pnts, feat.attributes())))
+            calc_type = calc_pnt["calc_type"]
             pnts_to_add = 1 if calc_type != 5 else 2
             if calc_type < 2:
                 continue
             for _ in range(pnts_to_add):
                 self._add_connected_pnt_feature(
-                    feat.geometry(), calc_pnt_id=calc_pnt['id'],
+                    feat.geometry(),
+                    calc_pnt_id=calc_pnt["id"],
                     field_names=fn_dict_connected_pnts_lyr,
                 )
 
-        succces, features = data_provider.addFeatures(
-            self._connected_pnt_features
-        )
+        succces, features = data_provider.addFeatures(self._connected_pnt_features)
         cnt_feat = len(features)
         if succces:
             logger.info(
-                "[*] Successfully saved {} features to the database".format(
-                    cnt_feat)
+                "[*] Successfully saved {} features to the database".format(cnt_feat)
             )
             if not self.threedi_db.has_valid_spatial_index(
-                    constants.TABLE_NAME_CONN_PNT, 'the_geom'):
+                constants.TABLE_NAME_CONN_PNT, "the_geom"
+            ):
                 self.threedi_db.recover_spatial_index(
-                    constants.TABLE_NAME_CONN_PNT, 'the_geom'
+                    constants.TABLE_NAME_CONN_PNT, "the_geom"
                 )
             connected_pnts_lyr.updateExtents()
         else:
-            logger.error(
-                'Error while saving {} feaures to database.'.format(cnt_feat)
-            )
+            logger.error("Error while saving {} feaures to database.".format(cnt_feat))
         return succces, features

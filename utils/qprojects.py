@@ -86,20 +86,20 @@ class ProjectStateMixin(object):
     projects, the behaviour was still not the same at all circumstances)..
 
     """
+
     connect_to_save_and_load = False
 
     def unload_state_sync(self):
         """removes the connection to signals"""
         for tool in self.tools:
-            if hasattr(tool, 'set_state'):
+            if hasattr(tool, "set_state"):
                 # add listener
                 tool.state_changed.connect(self.save_setting_to_project)
         # add listeners to load projects
         if self.connect_to_save_and_load:
             self.iface.newProjectCreated.disconnect(self.load_and_set_state)
             self.iface.projectRead.disconnect(self.load_and_set_state)
-            QgsProject.instance().writeProject.disconnect(
-                self.set_paths_relative)
+            QgsProject.instance().writeProject.disconnect(self.set_paths_relative)
             # TODO: this signal will be available in version 2.17
             # QgsProject.instance().homePathChanged.disconnect(self.set_paths_relative)
             self.connect_to_save_and_load = False
@@ -117,7 +117,7 @@ class ProjectStateMixin(object):
         self.load_and_set_state()
         self.file_dict = {}
         for tool in self.tools:
-            if hasattr(tool, 'set_state'):
+            if hasattr(tool, "set_state"):
                 # add listener
                 tool.state_changed.connect(self.save_setting_to_project)
                 # keep list of  settings with type 'file', so we can change
@@ -148,7 +148,7 @@ class ProjectStateMixin(object):
         proj = QgsProject.instance()
         for tool_key, key_dict in list(self.file_dict.items()):
             for setting_key in list(key_dict.keys()):
-                value, valid = proj.readEntry(tool_key, 'abs_' + setting_key)
+                value, valid = proj.readEntry(tool_key, "abs_" + setting_key)
                 if valid and len(value) > 0:
                     rel_path = self._get_relative_path(value)
                     proj.writeEntry(tool_key, setting_key, rel_path)
@@ -171,7 +171,7 @@ class ProjectStateMixin(object):
     def load_and_set_state(self):
         """loads state from project and sets state on each tool"""
         for tool in self.tools:
-            if hasattr(tool, 'set_state'):
+            if hasattr(tool, "set_state"):
                 # set_initial state
                 settings = {}
                 tool_name, description = tool.get_state_description()
@@ -184,11 +184,9 @@ class ProjectStateMixin(object):
                     # or the default. Now the default value is detected by
                     # indetification of an empty string.
                     if value_type == list:
-                        value, valid = QgsProject.instance().readListEntry(
-                            name, key)
+                        value, valid = QgsProject.instance().readListEntry(name, key)
                     else:
-                        value, valid = QgsProject.instance().readEntry(
-                            name, key)
+                        value, valid = QgsProject.instance().readEntry(name, key)
                         # self.load_func[value.__name__](name, key)
                         if valid and len(value) > 0:
                             if value_type == int:
@@ -196,13 +194,15 @@ class ProjectStateMixin(object):
                             elif value_type == float:
                                 value = float(value)
                             elif value_type == bool:
-                                value, valid = QgsProject.instance(
-                                ).readBoolEntry(name, key)
+                                value, valid = QgsProject.instance().readBoolEntry(
+                                    name, key
+                                )
                             elif isinstance(value_type, IOBase):
                                 # TODO: change this code when starting to
                                 # work with 2.17 and up
                                 value, valid = QgsProject.instance().readEntry(
-                                    name, 'abs_' + key)
+                                    name, "abs_" + key
+                                )
                                 # value = self._get_abs_path(value)
                         else:
                             value = None
@@ -222,7 +222,7 @@ class ProjectStateMixin(object):
             for storing the state in the QgsProject
 
         """
-        return 'threedi_toolbox' + tool_name
+        return "threedi_toolbox" + tool_name
 
     def save_settings_to_project(self, tool_name, settings):
         """sets multiple settings to QgsProject
@@ -260,7 +260,7 @@ class ProjectStateMixin(object):
                 if key in self.file_dict[name]:
                     # type is file, store absolute path under extra key and
                     # relative path under original key
-                    QgsProject.instance().writeEntry(name, 'abs_' + key, value)
+                    QgsProject.instance().writeEntry(name, "abs_" + key, value)
                     try:
                         value = self._get_relative_path(value)
                     except ValueError:

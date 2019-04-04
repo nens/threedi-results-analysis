@@ -23,17 +23,23 @@ from qgis.PyQt.QtWidgets import QWidget
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
+
     def _fromUtf8(s):
         return s
 
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    ControlledStructures
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    MEASURE_VARIABLE_WATERLEVEL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    RULE_OPERATOR_BOTTOM_UP
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
-    RULE_OPERATOR_TOP_DOWN
+
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
+    ControlledStructures,
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
+    MEASURE_VARIABLE_WATERLEVEL,
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
+    RULE_OPERATOR_BOTTOM_UP,
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
+    RULE_OPERATOR_TOP_DOWN,
+)
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -48,19 +54,32 @@ try:
 
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui',
-    'controlled_structures_create_table_control_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        "ui",
+        "controlled_structures_create_table_control_dialog.ui",
+    )
+)
 
 
 class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
-    def __init__(self, parent=None, db_key=None, table_control_id=None,
-                 dockwidget_controlled_structures=None):
+    def __init__(
+        self,
+        parent=None,
+        db_key=None,
+        table_control_id=None,
+        dockwidget_controlled_structures=None,
+    ):
         """Constructor
 
         Args:
@@ -79,14 +98,14 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         self.setupUi(self)
 
         self.table_control_id = table_control_id
-        self.dockwidget_controlled_structures = \
-            dockwidget_controlled_structures
+        self.dockwidget_controlled_structures = dockwidget_controlled_structures
 
         self.db_key = db_key
         self.databases = get_databases()
         self.db = get_database_properties(self.db_key)
         self.control_structure = ControlledStructures(
-            flavor=self.db["db_entry"]['db_type'])
+            flavor=self.db["db_entry"]["db_type"]
+        )
         self.setup_ids()
         self.connect_signals()
 
@@ -131,30 +150,25 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         self.combobox_input_structure_id.clear()
         list_of_structure_ids = self.control_structure.get_attributes(
             table_name="{table_name_base}_view".format(
-                table_name_base=DICT_TABLE_NAMES[structure_type]),
-            attribute_name=DICT_TABLE_ID[structure_type])
-        self.combobox_input_structure_id.addItems(
-            list_of_structure_ids)
+                table_name_base=DICT_TABLE_NAMES[structure_type]
+            ),
+            attribute_name=DICT_TABLE_ID[structure_type],
+        )
+        self.combobox_input_structure_id.addItems(list_of_structure_ids)
 
     def setup_action_types(self):
         """Setup the action types of the structures."""
         self.combobox_input_action_type.clear()
         structure_type = self.combobox_input_structure_table.currentText()
-        self.combobox_input_action_type\
-            .addItems(DICT_ACTION_TYPES[structure_type])
+        self.combobox_input_action_type.addItems(DICT_ACTION_TYPES[structure_type])
 
     def connect_signals(self):
         """Connect the signals."""
-        self.pushbutton_input_rule_add_row.clicked.connect(
-            self.add_row)
-        self.pushbutton_input_rule_load_from_csv.clicked.connect(
-            self.load_from_csv)
-        self.pushbutton_input_rule_clear.clicked.connect(
-            self.clear_table)
-        self.combobox_input_structure_table.activated.connect(
-            self.setup_structure_ids)
-        self.combobox_input_structure_table.activated.connect(
-            self.setup_action_types)
+        self.pushbutton_input_rule_add_row.clicked.connect(self.add_row)
+        self.pushbutton_input_rule_load_from_csv.clicked.connect(self.load_from_csv)
+        self.pushbutton_input_rule_clear.clicked.connect(self.clear_table)
+        self.combobox_input_structure_table.activated.connect(self.setup_structure_ids)
+        self.combobox_input_structure_table.activated.connect(self.setup_action_types)
         self.buttonbox.accepted.connect(self.on_accept)
         self.buttonbox.rejected.connect(self.on_reject)
 
@@ -166,7 +180,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         pushbutton_remove_row = QPushButton("Remove")
         pushbutton_remove_row.clicked.connect(self.remove_row)
         self.tablewidget_input_rule_table_control.setCellWidget(
-            row_position, 2, pushbutton_remove_row)
+            row_position, 2, pushbutton_remove_row
+        )
 
     def remove_row(self):
         """Remove a row from the tablewidget."""
@@ -199,27 +214,25 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
                     tablewidget.setItem(row_position, 1, action_value)
                     pushbutton_remove_row = QPushButton("Remove")
                     pushbutton_remove_row.clicked.connect(self.remove_row)
-                    tablewidget.setCellWidget(
-                        row_position, 2, pushbutton_remove_row)
+                    tablewidget.setCellWidget(row_position, 2, pushbutton_remove_row)
                     row_number += 1
             finally:
                 csv_file.close()
 
     def get_file(self, file_type):
         """Function to get a file."""
-        settings = QSettings('3di_plugin', 'qgisplugin')
+        settings = QSettings("3di_plugin", "qgisplugin")
 
         try:
-            init_path = settings.value('last_used_import_path', type=str)
+            init_path = settings.value("last_used_import_path", type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
         if file_type == "csv":
-            filename, __ = QFileDialog\
-                .getOpenFileName(None, 'Select import file', init_path,
-                                 'Comma-seperated values (*.csv)')
+            filename, __ = QFileDialog.getOpenFileName(
+                None, "Select import file", init_path, "Comma-seperated values (*.csv)"
+            )
         if filename:
-            settings.setValue('last_used_import_path',
-                              os.path.dirname(filename))
+            settings.setValue("last_used_import_path", os.path.dirname(filename))
 
         return filename
 
@@ -258,23 +271,19 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
                 action_value = tablewidget.item(row_number, 1).text()
             except AttributeError:
                 action_value = ""
-            list_of_values_table_control.append(
-                [measure_value, action_value])
-        table_control["action_table"] = self.control_structure\
-            .create_action_table(list_of_values_table_control)
-        if self.combobox_input_rule_operator.currentText()\
-                == 'Bottom up':
+            list_of_values_table_control.append([measure_value, action_value])
+        table_control["action_table"] = self.control_structure.create_action_table(
+            list_of_values_table_control
+        )
+        if self.combobox_input_rule_operator.currentText() == "Bottom up":
             measure_operator = RULE_OPERATOR_BOTTOM_UP
         else:
             measure_operator = RULE_OPERATOR_TOP_DOWN
         table_control["measure_operator"] = measure_operator
-        table_control["target_id"] = self\
-            .combobox_input_structure_id.currentText()
+        table_control["target_id"] = self.combobox_input_structure_id.currentText()
         structure_table = self.combobox_input_structure_table.currentText()
-        table_control["target_type"] = DICT_TABLE_NAMES.get(
-            structure_table, "")
-        table_control["action_type"] = self\
-            .combobox_input_action_type.currentText()
+        table_control["target_type"] = DICT_TABLE_NAMES.get(structure_table, "")
+        table_control["action_type"] = self.combobox_input_action_type.currentText()
         measure_variable = MEASURE_VARIABLE_WATERLEVEL
         table_control["measure_variable"] = measure_variable
         table_control["id"] = self.table_control_id
@@ -291,45 +300,52 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
 
         label_field = QLabel(tab)
         label_field.setGeometry(10, 10, 300, 21)
-        label_field.setText("Measure variable: {}".format(
-            self.combobox_input_rule_measure_variable.currentText()))
+        label_field.setText(
+            "Measure variable: {}".format(
+                self.combobox_input_rule_measure_variable.currentText()
+            )
+        )
 
         label_field = QLabel(tab)
         label_field.setGeometry(10, 40, 300, 21)
-        label_field.setText("Operator: {}".format(
-            self.combobox_input_rule_operator.currentText()))
+        label_field.setText(
+            "Operator: {}".format(self.combobox_input_rule_operator.currentText())
+        )
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 10, 300, 21)
-        label_field.setText("Structure type: {}".format(
-            self.combobox_input_structure_table.currentText()))
+        label_field.setText(
+            "Structure type: {}".format(
+                self.combobox_input_structure_table.currentText()
+            )
+        )
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 40, 300, 21)
-        label_field.setText("Structure id: {}".format(
-            self.combobox_input_structure_id.currentText()))
+        label_field.setText(
+            "Structure id: {}".format(self.combobox_input_structure_id.currentText())
+        )
 
         label_field = QLabel(tab)
         label_field.setGeometry(310, 70, 741, 21)
-        label_field.setText("Action type: {}".format(
-            self.combobox_input_action_type.currentText()))
+        label_field.setText(
+            "Action type: {}".format(self.combobox_input_action_type.currentText())
+        )
 
         table_control_table = QTableWidget(tab)
         table_control_table.setGeometry(10, 100, 741, 181)
         table_control_table.insertColumn(0)
         table_control_table.setHorizontalHeaderItem(
-            0, QTableWidgetItem("measuring_value"))
+            0, QTableWidgetItem("measuring_value")
+        )
         table_control_table.insertColumn(1)
-        table_control_table.setHorizontalHeaderItem(
-            1, QTableWidgetItem("action_value"))
+        table_control_table.setHorizontalHeaderItem(1, QTableWidgetItem("action_value"))
         table_control_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.dockwidget_controlled_structures.table_control_view = \
-            table_control_table
+        self.dockwidget_controlled_structures.table_control_view = table_control_table
 
-        self.dockwidget_controlled_structures\
-            .tab_table_control_view.insertTab(
-                0, tab, "Table control: {}".format(
-                    str(self.table_control_id)))
+        self.dockwidget_controlled_structures.tab_table_control_view.insertTab(
+            0, tab, "Table control: {}".format(str(self.table_control_id))
+        )
 
     def setup_table_control_tab_dockwidget(self):
         """
@@ -337,8 +353,9 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         in the dockwidget.
         """
         tablewidget_dialog = self.tablewidget_input_rule_table_control
-        tablewidget_dockwidget = self.dockwidget_controlled_structures\
-            .table_control_view
+        tablewidget_dockwidget = (
+            self.dockwidget_controlled_structures.table_control_view
+        )
         list_of_values_table_control = []
         for row_number in range(tablewidget_dialog.rowCount()):
             try:
@@ -354,6 +371,8 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             row_position = tablewidget_dockwidget.rowCount()
             tablewidget_dockwidget.insertRow(row_position)
             tablewidget_dockwidget.setItem(
-                row_position, 0, QTableWidgetItem(measure_value))
+                row_position, 0, QTableWidgetItem(measure_value)
+            )
             tablewidget_dockwidget.setItem(
-                row_position, 1, QTableWidgetItem(action_value))
+                row_position, 1, QTableWidgetItem(action_value)
+            )

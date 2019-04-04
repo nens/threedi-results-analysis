@@ -18,7 +18,7 @@ QGIS_APP = get_qgis_app()
 class ExampleTool(QObject):
 
     state_changed = pyqtSignal([str, str, list])
-    tool_name = 'example_tool'
+    tool_name = "example_tool"
     state = {}
 
     def emit_value(self, setting_key, value):
@@ -28,18 +28,19 @@ class ExampleTool(QObject):
         self.state = settings_dict
 
     def get_state_description(self):
-        return (self.tool_name,
-                {
-                    'bool_value': bool,
-                    'int_value': int,
-                    'float_value': float,
-                    'str_value': str,
-                    'list_value': list
-                })
+        return (
+            self.tool_name,
+            {
+                "bool_value": bool,
+                "int_value": int,
+                "float_value": float,
+                "str_value": str,
+                "list_value": list,
+            },
+        )
 
 
 class ExampleProjectManager(QObject, ProjectStateMixin):
-
     def __init__(self, iface, tools):
         QObject.__init__(self)
         self.iface = iface
@@ -55,7 +56,7 @@ class TestProjectState(unittest.TestCase):
         app, canvas, self.iface, parent = QGIS_APP
 
         self.tmp_directory = tempfile.mkdtemp()
-        self.qgs_file_path = os.path.join(self.tmp_directory, 'test.qgs')
+        self.qgs_file_path = os.path.join(self.tmp_directory, "test.qgs")
 
         self.tool = ExampleTool()
         self.prm = ExampleProjectManager(self.iface, [self.tool])
@@ -93,24 +94,24 @@ class TestProjectState(unittest.TestCase):
         proj.clear()
 
     def test_set_and_load_bool_true(self):
-        self.function_set_and_load_compare_value('bool_value', True)
+        self.function_set_and_load_compare_value("bool_value", True)
 
     def test_set_and_load_bool_false(self):
-        self.function_set_and_load_compare_value('bool_value', False)
+        self.function_set_and_load_compare_value("bool_value", False)
 
     def test_set_and_load_float(self):
-        self.function_set_and_load_compare_value('float_value', 5.40)
+        self.function_set_and_load_compare_value("float_value", 5.40)
 
     def test_set_and_load_int(self):
-        self.function_set_and_load_compare_value('int_value', 5)
+        self.function_set_and_load_compare_value("int_value", 5)
 
     def test_set_and_load_str(self):
-        self.function_set_and_load_compare_value('str_value', 'test_test')
+        self.function_set_and_load_compare_value("str_value", "test_test")
 
     def test_set_and_load_list(self):
 
-        value = ['test', 'test2', 'test3']
-        key = 'list_value'
+        value = ["test", "test2", "test3"]
+        key = "list_value"
         # initial_project
         proj = QgsProject.instance()
         self.prm.load_and_set_state()

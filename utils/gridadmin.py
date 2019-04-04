@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 ogr.UseExceptions()  # fail fast
 
-SPATIALITE_DRIVER_NAME = 'SQLite'
+SPATIALITE_DRIVER_NAME = "SQLite"
 
 
 def get_spatial_reference(epsg_code):
@@ -39,37 +39,41 @@ class QgisNodesOgrExporter(BaseOgrExporter):
     """
 
     # 'id' can be ignored, it is set automatically, or by 'SetFID'
-    QGIS_NODE_FIELDS = OrderedDict([
-        ('inp_id', 'int'),
-        ('spatialite_id', 'int'),
-        # TODO: feat_type is not yet implemented
-        ('feature_type', 'str'),  # e.g. v2_connection_nodes
-        ('type', 'str'),  # 1d, 2d, etc.
-    ])
+    QGIS_NODE_FIELDS = OrderedDict(
+        [
+            ("inp_id", "int"),
+            ("spatialite_id", "int"),
+            # TODO: feat_type is not yet implemented
+            ("feature_type", "str"),  # e.g. v2_connection_nodes
+            ("type", "str"),  # 1d, 2d, etc.
+        ]
+    )
 
-    QGIS_NODE_FIELD_NAME_MAP = OrderedDict([
-        ('inp_id', 'seq_id'),
-        ('spatialite_id', 'content_pk'),
-        ('feature_type', 'node_type'),
-        ('type', 'node_type'),
-    ])
+    QGIS_NODE_FIELD_NAME_MAP = OrderedDict(
+        [
+            ("inp_id", "seq_id"),
+            ("spatialite_id", "content_pk"),
+            ("feature_type", "node_type"),
+            ("type", "node_type"),
+        ]
+    )
 
     INT_TO_TYPE_STR = {
-        '1': '2d',
-        '2': '2d_groundwater',
-        '3': '1d',
-        '4': '1d',
-        '5': '2d_bound',
-        '6': '2d_groundwater_bound',
-        '7': '1d_bound',
+        "1": "2d",
+        "2": "2d_groundwater",
+        "3": "1d",
+        "4": "1d",
+        "5": "2d_bound",
+        "6": "2d_groundwater_bound",
+        "7": "1d_bound",
     }
 
     TABLE_FIELDS = [
-        'id INTEGER',
-        'inp_id INTEGER',
-        'spatialite_id INTEGER',
-        'feature_type VARCHAR',  # use STRING?
-        'type VARCHAR',
+        "id INTEGER",
+        "inp_id INTEGER",
+        "spatialite_id INTEGER",
+        "feature_type VARCHAR",  # use STRING?
+        "type VARCHAR",
     ]
 
     def __init__(self, nodes):
@@ -77,13 +81,17 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         :param lines: lines.models.Lines instance
         """
         self._nodes = nodes
-        self.supported_drivers = {
-            SPATIALITE_DRIVER_NAME,
-        }
+        self.supported_drivers = {SPATIALITE_DRIVER_NAME}
 
     def save(
-            self, file_name, layer_name, node_data, source_epsg_code,
-            target_epsg_code, **kwargs):
+        self,
+        file_name,
+        layer_name,
+        node_data,
+        source_epsg_code,
+        target_epsg_code,
+        **kwargs
+    ):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -100,8 +108,13 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QgsWkbTypes.Point, fields=self.TABLE_FIELDS,
-            id_field='id', geom_field='the_geom', srid=target_epsg_code)
+            layer_name,
+            wkb_type=QgsWkbTypes.Point,
+            fields=self.TABLE_FIELDS,
+            id_field="id",
+            geom_field="the_geom",
+            srid=target_epsg_code,
+        )
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -111,18 +124,17 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         _definition = layer.GetLayerDefn()
 
         layer.StartTransaction()
-        for i in range(node_data['id'].size):
+        for i in range(node_data["id"].size):
             point = ogr.Geometry(ogr.wkbPoint)
             point.AddPoint_2D(
-                node_data['coordinates'][0][i],
-                node_data['coordinates'][1][i]
+                node_data["coordinates"][0][i], node_data["coordinates"][1][i]
             )
             point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
             for field_name, field_type in self.QGIS_NODE_FIELDS.items():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
-                if field_name == 'type':
+                if field_name == "type":
                     raw_value = node_data[fname][i]
                     _value = TYPE_FUNC_MAP[field_type](raw_value)
                     try:
@@ -136,14 +148,13 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                         raw_value = node_data[fname][i]
                         value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
-                        logger.debug(
-                            "Error getting index %s from %s array", i, fname)
+                        logger.debug("Error getting index %s from %s array", i, fname)
                         value = None
                 if value is not None:
                     feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(node_data['id'][i])
+                fid = _fix_fid_for_SetFID(node_data["id"][i])
                 feature.SetFID(fid)
             layer.CreateFeature(feature)
             feature.Destroy()
@@ -156,28 +167,28 @@ class QgisKCUDescriptor(KCUDescriptor):
         super(QgisKCUDescriptor, self).__init__(*args, **kwargs)
 
         self._descr = {
-            0: '1d',
-            1: '1d',
-            2: '1d',
-            3: '1d',
-            4: '1d',
-            5: '1d',
-            51: '1d_2d',
-            52: '1d_2d',
-            53: '1d_2d',
-            54: '1d_2d',
-            55: '1d_2d',
-            56: '1d_2d',
-            57: '1d_2d_groundwater',
-            58: '1d_2d_groundwater',
-            100: '2d',
-            101: '2d',
-            150: '2d_vertical_infiltration',
-            -150: '2d_groundwater',
-            200: '2d_bound',
-            300: '2d_bound',
-            400: '2d_bound',
-            500: '2d_bound',
+            0: "1d",
+            1: "1d",
+            2: "1d",
+            3: "1d",
+            4: "1d",
+            5: "1d",
+            51: "1d_2d",
+            52: "1d_2d",
+            53: "1d_2d",
+            54: "1d_2d",
+            55: "1d_2d",
+            56: "1d_2d",
+            57: "1d_2d_groundwater",
+            58: "1d_2d_groundwater",
+            100: "2d",
+            101: "2d",
+            150: "2d_vertical_infiltration",
+            -150: "2d_groundwater",
+            200: "2d_bound",
+            300: "2d_bound",
+            400: "2d_bound",
+            500: "2d_bound",
         }
 
     def get(self, item):
@@ -185,7 +196,7 @@ class QgisKCUDescriptor(KCUDescriptor):
 
     def values(self):
         v = list(self._descr.values())
-        v.extend(['2d_bound', '2d_groundwater_bound'])
+        v.extend(["2d_bound", "2d_groundwater_bound"])
         return v
 
     def keys(self):
@@ -196,9 +207,9 @@ class QgisKCUDescriptor(KCUDescriptor):
 
     def __getitem__(self, item):
         if item in self.bound_keys_2d:
-            return '2d_bound'
+            return "2d_bound"
         elif item in self.bound_keys_groundwater:
-            return '2d_groundwater_bound'
+            return "2d_groundwater_bound"
         v = self._descr.get(item)
         if not v:
             raise KeyError(item)
@@ -212,38 +223,42 @@ class QgisLinesOgrExporter(BaseOgrExporter):
     """
 
     # 'id' can be ignored, it is set automatically, or by 'SetFID'
-    LINE_FIELDS = OrderedDict([
-        ('kcu', 'int'),  # unused in plugin
-        # type is a combination of 'kcu' and 'cont_type'
-        ('type', 'str'),
-        ('start_node_idx', 'int'),
-        ('end_node_idx', 'int'),
-        ('content_type', 'str'),  # unused in plugin
-        ('spatialite_id', 'int'),
-        ('inp_id', 'int'),
-    ])
+    LINE_FIELDS = OrderedDict(
+        [
+            ("kcu", "int"),  # unused in plugin
+            # type is a combination of 'kcu' and 'cont_type'
+            ("type", "str"),
+            ("start_node_idx", "int"),
+            ("end_node_idx", "int"),
+            ("content_type", "str"),  # unused in plugin
+            ("spatialite_id", "int"),
+            ("inp_id", "int"),
+        ]
+    )
 
     # maps the fields names of grid line objects
     # to their external representation
-    LINE_FIELD_NAME_MAP = OrderedDict([
-        ('kcu', 'kcu'),
-        ('type', 'does not matter'),
-        ('start_node_idx', 'does not matter'),
-        ('end_node_idx', 'does not matter'),
-        ('inp_id', 'lik'),
-        ('content_type', 'content_type'),
-        ('spatialite_id', 'content_pk'),
-    ])
+    LINE_FIELD_NAME_MAP = OrderedDict(
+        [
+            ("kcu", "kcu"),
+            ("type", "does not matter"),
+            ("start_node_idx", "does not matter"),
+            ("end_node_idx", "does not matter"),
+            ("inp_id", "lik"),
+            ("content_type", "content_type"),
+            ("spatialite_id", "content_pk"),
+        ]
+    )
 
     TABLE_FIELDS = [
-        'id INTEGER',
-        'kcu INTEGER',
-        'type VARCHAR',
-        'start_node_idx INTEGER',
-        'end_node_idx INTEGER',
-        'content_type VARCHAR',
-        'spatialite_id INTEGER',
-        'inp_id INTEGER',
+        "id INTEGER",
+        "kcu INTEGER",
+        "type VARCHAR",
+        "start_node_idx INTEGER",
+        "end_node_idx INTEGER",
+        "content_type VARCHAR",
+        "spatialite_id INTEGER",
+        "inp_id INTEGER",
     ]
 
     def __init__(self, lines):
@@ -251,14 +266,18 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         :param lines: lines.models.Lines instance
         """
         self._lines = lines
-        self.supported_drivers = {
-            SPATIALITE_DRIVER_NAME,
-        }
+        self.supported_drivers = {SPATIALITE_DRIVER_NAME}
         self.driver = None
 
     def save(
-            self, file_name, layer_name, line_data, source_epsg_code,
-            target_epsg_code, **kwargs):
+        self,
+        file_name,
+        layer_name,
+        line_data,
+        source_epsg_code,
+        target_epsg_code,
+        **kwargs
+    ):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -277,9 +296,13 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QgsWkbTypes.LineString,
-            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
-            srid=target_epsg_code)
+            layer_name,
+            wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS,
+            id_field="id",
+            geom_field="the_geom",
+            srid=target_epsg_code,
+        )
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -288,76 +311,78 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
         _definition = layer.GetLayerDefn()
 
-        node_a = line_data['line'][0]
-        node_b = line_data['line'][1]
+        node_a = line_data["line"][0]
+        node_b = line_data["line"][1]
         layer.StartTransaction()
         for i in range(node_a.size):
             line = ogr.Geometry(ogr.wkbLineString)
-            line.AddPoint_2D(line_data['line_coords'][0][i],
-                             line_data['line_coords'][1][i])
+            line.AddPoint_2D(
+                line_data["line_coords"][0][i], line_data["line_coords"][1][i]
+            )
             # kcu 150=2d_vertical_infiltration (their start and end vertex
             # are equal. To be able to display line we shift the end vertex
-            if line_data['kcu'][i] == 150:
-                line.AddPoint_2D(line_data['line_coords'][2][i]-5,
-                                 line_data['line_coords'][3][i]-5)
+            if line_data["kcu"][i] == 150:
+                line.AddPoint_2D(
+                    line_data["line_coords"][2][i] - 5,
+                    line_data["line_coords"][3][i] - 5,
+                )
             else:
-                line.AddPoint_2D(line_data['line_coords'][2][i],
-                                 line_data['line_coords'][3][i])
+                line.AddPoint_2D(
+                    line_data["line_coords"][2][i], line_data["line_coords"][3][i]
+                )
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
             for field_name, field_type in self.LINE_FIELDS.items():
                 fname = self.LINE_FIELD_NAME_MAP[field_name]
-                if field_name == 'type':
+                if field_name == "type":
                     value = None  # if all fails
 
                     # TODO: first try to find a mapping with kcu, then find
                     # a mapping using cont_type. If cont_type is not None,
                     # then use the cont_type, else use kcu
                     try:
-                        cont_type_raw_value = line_data['content_type'][i]
+                        cont_type_raw_value = line_data["content_type"][i]
                     except IndexError:
                         # threedigrid weirdness, if a field is unavailable,
                         # it just returns a ``np.array(None, dtype=object)``
-                        logger.debug(
-                            "Failed to get index %s from content_type", i)
+                        logger.debug("Failed to get index %s from content_type", i)
                         cont_type_raw_value = None
 
                     if cont_type_raw_value:
                         if type(cont_type_raw_value) is np.bytes_:
                             value = TYPE_FUNC_MAP[field_type](
-                                cont_type_raw_value,
-                                encoding='utf-8')
+                                cont_type_raw_value, encoding="utf-8"
+                            )
                         else:
-                            value = TYPE_FUNC_MAP[field_type](
-                                cont_type_raw_value)
+                            value = TYPE_FUNC_MAP[field_type](cont_type_raw_value)
                     else:
                         try:
-                            value = str(kcu_dict[int(line_data['kcu'][i])])
+                            value = str(kcu_dict[int(line_data["kcu"][i])])
                         except KeyError:
                             pass
-                elif field_name == 'start_node_idx':
+                elif field_name == "start_node_idx":
                     value = TYPE_FUNC_MAP[field_type](node_a[i])
-                elif field_name == 'end_node_idx':
+                elif field_name == "end_node_idx":
                     value = TYPE_FUNC_MAP[field_type](node_b[i])
                 else:
                     try:
                         raw_value = line_data[fname][i]
                         if type(raw_value) is np.bytes_:
-                            value = TYPE_FUNC_MAP[field_type](raw_value,
-                                                              encoding='utf-8')
+                            value = TYPE_FUNC_MAP[field_type](
+                                raw_value, encoding="utf-8"
+                            )
                         else:
                             value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
-                        logger.debug(
-                            "Error getting index %s from %s array", i, fname)
+                        logger.debug("Error getting index %s from %s array", i, fname)
                         value = None
                 if value is not None:
                     feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(line_data['id'][i])
+                fid = _fix_fid_for_SetFID(line_data["id"][i])
                 feature.SetFID(fid)
 
             layer.CreateFeature(feature)
@@ -373,29 +398,25 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
     """
 
     # 'id' can be ignored, it is set automatically, or by 'SetFID'
-    FIELDS = OrderedDict([
-        ('node_idx1', 'int'),
-        ('node_idx2', 'int'),
-    ])
+    FIELDS = OrderedDict([("node_idx1", "int"), ("node_idx2", "int")])
 
-    FIELD_NAME_MAP = OrderedDict([
-        ('node_idx1', 'node1_id'),
-        ('node_idx2', 'node2_id'),
-    ])
+    FIELD_NAME_MAP = OrderedDict([("node_idx1", "node1_id"), ("node_idx2", "node2_id")])
 
-    TABLE_FIELDS = [
-        'id INTEGER',
-        'node_idx1 INTEGER',
-        'node_idx2 INTEGER',
-    ]
+    TABLE_FIELDS = ["id INTEGER", "node_idx1 INTEGER", "node_idx2 INTEGER"]
 
     def __init__(self, node_data):
         self.node_data = node_data
         self.driver = None
 
     def save(
-            self, file_name, layer_name, pump_data, source_epsg_code,
-            target_epsg_code, **kwargs):
+        self,
+        file_name,
+        layer_name,
+        pump_data,
+        source_epsg_code,
+        target_epsg_code,
+        **kwargs
+    ):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -413,9 +434,13 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
         spl.create_empty_layer_only(
-            layer_name, wkb_type=QgsWkbTypes.LineString,
-            fields=self.TABLE_FIELDS, id_field='id', geom_field='the_geom',
-            srid=target_epsg_code)
+            layer_name,
+            wkb_type=QgsWkbTypes.LineString,
+            fields=self.TABLE_FIELDS,
+            id_field="id",
+            geom_field="the_geom",
+            srid=target_epsg_code,
+        )
         del spl  # closes the connection
         # reopen the file as writeable
         data_source = self.driver.Open(file_name, update=1)
@@ -425,28 +450,28 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         _definition = layer.GetLayerDefn()
 
         layer.StartTransaction()
-        for i in range(pump_data['id'].size):
+        for i in range(pump_data["id"].size):
             line = ogr.Geometry(ogr.wkbLineString)
-            node1_id = pump_data['node1_id'][i]
-            node2_id = pump_data['node2_id'][i]
+            node1_id = pump_data["node1_id"][i]
+            node2_id = pump_data["node2_id"][i]
 
             if node1_id == -9999:
-                raise AssertionError('start_node has not-null constraint')
+                raise AssertionError("start_node has not-null constraint")
 
             for node_id in [node1_id, node2_id]:
                 if node_id == -9999:
                     try:
                         line.AddPoint_2D(
-                            self.node_data['coordinates'][0][node1_id] + 5,
-                            self.node_data['coordinates'][1][node1_id] + 5,
+                            self.node_data["coordinates"][0][node1_id] + 5,
+                            self.node_data["coordinates"][1][node1_id] + 5,
                         )
                     except IndexError:
                         logger.debug("Invalid node id: %s" % node_id)
                 else:
                     try:
                         line.AddPoint_2D(
-                            self.node_data['coordinates'][0][node_id],
-                            self.node_data['coordinates'][1][node_id],
+                            self.node_data["coordinates"][0][node_id],
+                            self.node_data["coordinates"][1][node_id],
                         )
                     except IndexError:
                         logger.debug("Invalid node id: %s" % node_id)
@@ -461,7 +486,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 feature.SetField(str(field_name), value)
                 # explicitly set feature id to the 'id' field of the gridadmin
                 # data, because graph tool uses the feature id.
-                fid = _fix_fid_for_SetFID(pump_data['id'][i])
+                fid = _fix_fid_for_SetFID(pump_data["id"][i])
                 feature.SetFID(fid)
 
             layer.CreateFeature(feature)

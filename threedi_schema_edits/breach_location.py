@@ -45,8 +45,14 @@ class BreachLocation(object):
     will created.
     """
 
-    def __init__(self, search_distance, distance_to_levee, use_selection,
-                 is_dry_run, connected_pnt_lyr):
+    def __init__(
+        self,
+        search_distance,
+        distance_to_levee,
+        use_selection,
+        is_dry_run,
+        connected_pnt_lyr,
+    ):
         """
         :param search_distance: the distance to search for a levee intersection
         :param distance_to_levee: the distance from the levee to place the
@@ -67,19 +73,20 @@ class BreachLocation(object):
 
         self.connected_pnt_lyr = connected_pnt_lyr
         self.fnames_conn_pnt = {
-            field.name(): i for i, field
-            in enumerate(self.connected_pnt_lyr.fields())
+            field.name(): i for i, field in enumerate(self.connected_pnt_lyr.fields())
         }
         if not self.is_dry_run:
             self.connected_pnt_lyr.startEditing()
         source_info = self.connected_pnt_lyr.dataProvider().dataSourceUri()
         source_info_dict = parse_db_source_info(source_info)
-        predictor = Predictor(source_info_dict['db_type'])
+        predictor = Predictor(source_info_dict["db_type"])
         uri = predictor.get_uri(**source_info_dict)
         self.calc_pnt_lyr = predictor.get_layer_from_uri(
-            uri, constants.TABLE_NAME_CALC_PNT, 'the_geom')
+            uri, constants.TABLE_NAME_CALC_PNT, "the_geom"
+        )
         self.levee_lyr = predictor.get_layer_from_uri(
-            uri, constants.TABLE_NAME_LEVEE, 'the_geom')
+            uri, constants.TABLE_NAME_LEVEE, "the_geom"
+        )
 
         self.epsg_code = get_epsg_code_from_layer(self.connected_pnt_lyr)
 
@@ -114,12 +121,8 @@ class BreachLocation(object):
 
         for item in user_selection:
             # combine feature with field names
-            conn_pnt = dict(
-                zip(item.fields().names(), item.attributes())
-            )
-            self.selected_pnt_ids[item.id()].append(
-                conn_pnt['calculation_pnt_id']
-            )
+            conn_pnt = dict(zip(item.fields().names(), item.attributes()))
+            self.selected_pnt_ids[item.id()].append(conn_pnt["calculation_pnt_id"])
 
     def get_connected_points(self, ids, calc_type):
         """
@@ -133,31 +136,25 @@ class BreachLocation(object):
         """
         INDEX_MAP = {
             constants.NODE_CALC_TYPE_CONNECTED: -2,
-            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED: -3
+            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED: -3,
         }
         selected_points = []
 
-        id_str = ','.join([str(x) for x in ids])
+        id_str = ",".join([str(x) for x in ids])
 
         # request object that will filter the connected points by its
         # source object (e.g. all points originating from a specific pipe)
         connected_pnt_request = QgsFeatureRequest().setFilterExpression(
             '"calculation_pnt_id" IN ({ids})'.format(ids=id_str)
         )
-        connected_points = self.connected_pnt_lyr.getFeatures(
-            connected_pnt_request
-        )
+        connected_points = self.connected_pnt_lyr.getFeatures(connected_pnt_request)
         selected_connected_pnt_ids = list(self.selected_pnt_ids.keys())
         for feature in connected_points:
             if self.use_selection:
                 if feature.id() in selected_connected_pnt_ids:
-                    selected_points.append(
-                        {feature.id(): feature.geometry().asPoint()}
-                    )
+                    selected_points.append({feature.id(): feature.geometry().asPoint()})
             else:
-                selected_points.append(
-                    {feature.id(): feature.geometry().asPoint()}
-                )
+                selected_points.append({feature.id(): feature.geometry().asPoint()})
         if len(selected_points) < abs(INDEX_MAP[calc_type]):
             return []
         # add a dummy point to be able to draw a line for the
@@ -183,9 +180,7 @@ class BreachLocation(object):
         """
         calc_points_dict = collections.defaultdict(list)
         # get the field names for easier lookup
-        fnames_calc_pnt = [
-            field.name() for field in self.calc_pnt_lyr.fields()
-        ]
+        fnames_calc_pnt = [field.name() for field in self.calc_pnt_lyr.fields()]
 
         calc_type_filter = [2, 5]
         # request object to filter the features by
@@ -197,23 +192,20 @@ class BreachLocation(object):
             itertools.chain(*list(self.selected_pnt_ids.values()))
         )
         for calc_pnt_feature in calc_pnt_features:
-            if any([calc_pnt_feature.id() in selected_calc_pnt_ids,
-                    not self.use_selection]):
+            if any(
+                [calc_pnt_feature.id() in selected_calc_pnt_ids, not self.use_selection]
+            ):
                 # combine feature with field names
                 calc_pnt = dict(
-                    list(zip(
-                        fnames_calc_pnt, calc_pnt_feature.attributes()
-                    ))
+                    list(zip(fnames_calc_pnt, calc_pnt_feature.attributes()))
                 )
-                user_ref = calc_pnt['user_ref']
-                calc_type = calc_pnt['calc_type']
-                code, src_id, src_tbl, calc_nr = user_ref.split('#')
-                source_info = '{src_id}{src_table}'.format(
+                user_ref = calc_pnt["user_ref"]
+                calc_type = calc_pnt["calc_type"]
+                code, src_id, src_tbl, calc_nr = user_ref.split("#")
+                source_info = "{src_id}{src_table}".format(
                     src_id=src_id, src_table=src_tbl
                 )
-                calc_points_dict[(source_info, calc_type)].append(
-                    calc_pnt['id']
-                )
+                calc_points_dict[(source_info, calc_type)].append(calc_pnt["id"])
         return calc_points_dict
 
     def move_points_behind_levee(self, points, calc_type):
@@ -227,10 +219,8 @@ class BreachLocation(object):
         # calc type 5 will first look on the left side of the point,
         # then on the right side
         ORIENTATION_MAP = {
-            constants.NODE_CALC_TYPE_CONNECTED:
-                [None],
-            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED:
-                ['left', 'right']
+            constants.NODE_CALC_TYPE_CONNECTED: [None],
+            constants.NODE_CALC_TYPE_DOUBLE_CONNECTED: ["left", "right"],
         }
 
         _connected_pnt_ids = None
@@ -247,33 +237,22 @@ class BreachLocation(object):
             if start_pnt_xy == nxt_pnt_xy:
                 # we do need both ids for updating the geometry
                 _connected_pnt_ids = list(
-                    itertools.chain(
-                        *(list(start_pnt.keys()), list(nxt_pnt.keys()))
-                    )
+                    itertools.chain(*(list(start_pnt.keys()), list(nxt_pnt.keys())))
                 )
                 continue
 
-            coords = list(
-                itertools.chain(
-                    *(start_pnt_xy, nxt_pnt_xy)
-                )
-            )
+            coords = list(itertools.chain(*(start_pnt_xy, nxt_pnt_xy)))
 
             new_positions = []
             orientation = ORIENTATION_MAP[calc_type]
             for i, item in enumerate(orientation):
                 perpendicular_line = calculate_perpendicular_line(
-                    coords, distance=self.search_distance,
-                    orientation=item
+                    coords, distance=self.search_distance, orientation=item
                 )
                 if not perpendicular_line:
                     continue
-                line_start = QgsPointXY(
-                    perpendicular_line[0], perpendicular_line[1]
-                )
-                line_end = QgsPointXY(
-                    perpendicular_line[2], perpendicular_line[3]
-                )
+                line_start = QgsPointXY(perpendicular_line[0], perpendicular_line[1])
+                line_end = QgsPointXY(perpendicular_line[2], perpendicular_line[3])
 
                 org_start = QgsPointXY(coords[0], coords[1])
                 org_end = QgsPointXY(coords[2], coords[3])
@@ -300,13 +279,13 @@ class BreachLocation(object):
                 if _connected_pnt_ids is not None:
                     # new_position can contain just one entry if there
                     # wasn't an intersection on one side
-                    to_update = dict(itertools.zip_longest(
-                        _connected_pnt_ids, new_positions,
-                        fillvalue=(None, None))
+                    to_update = dict(
+                        itertools.zip_longest(
+                            _connected_pnt_ids, new_positions, fillvalue=(None, None)
+                        )
                     )
                 else:
-                    to_update = dict(list(zip(connected_pnt_ids,
-                                              new_positions)))
+                    to_update = dict(list(zip(connected_pnt_ids, new_positions)))
 
                 self.update_connected_point_layer(to_update)
             _connected_pnt_ids = None
@@ -329,9 +308,7 @@ class BreachLocation(object):
                     - levee id
         """
 
-        levee_field_names = [
-            field.name() for field in self.levee_lyr.fields()
-        ]
+        levee_field_names = [field.name() for field in self.levee_lyr.fields()]
 
         virtual_line = QgsGeometry.fromPolylineXY([start_point, end_point])
         # filter levees by bbox of the virtual line
@@ -351,16 +328,10 @@ class BreachLocation(object):
         levee_intersections = collections.defaultdict(list)
         for levee_feat in levee_features:
             # combine feature with field names
-            levee = dict(
-                list(zip(
-                    levee_field_names, levee_feat.attributes()
-                ))
-            )
-            levee_id = levee['id']
+            levee = dict(list(zip(levee_field_names, levee_feat.attributes())))
+            levee_id = levee["id"]
             if levee_feat.geometry().intersects(virtual_line):
-                intersection_pnt = levee_feat.geometry().intersection(
-                    virtual_line
-                )
+                intersection_pnt = levee_feat.geometry().intersection(virtual_line)
                 intersection_pnt.convertToSingleType()
                 g = intersection_pnt.constGet()
                 pnt = QgsPointXY(g.x(), g.y())
@@ -368,8 +339,9 @@ class BreachLocation(object):
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
         return levee_intersections
 
-    def calculate_new_position(self, levee_intersections, start_point,
-                               end_point, calc_type):
+    def calculate_new_position(
+        self, levee_intersections, start_point, end_point, calc_type
+    ):
         """
         :param levee_intersections: a dict containing intersections
             key: levee id that intersects
@@ -386,26 +358,16 @@ class BreachLocation(object):
         """
 
         # sort by distance
-        intersections = sorted(
-            list(levee_intersections.values()), key=lambda x: (x[0]))
+        intersections = sorted(list(levee_intersections.values()), key=lambda x: (x[0]))
         dist, pnt, levee_id = intersections[0][0]
 
         pnt_to_use = end_point
         if calc_type == constants.NODE_CALC_TYPE_CONNECTED:
             # find out which point is closer to the intersection
-            end_pnt_dist = get_distance(
-                pnt, end_point, epsg_code=self.epsg_code
-            )
-            start_pnt_dist = get_distance(
-                pnt, start_point, epsg_code=self.epsg_code
-            )
-            pnt_dict = {
-                end_pnt_dist: end_point,
-                start_pnt_dist: start_point
-            }
-            pnt_to_use = pnt_dict[
-                min(end_pnt_dist, start_pnt_dist)
-            ]
+            end_pnt_dist = get_distance(pnt, end_point, epsg_code=self.epsg_code)
+            start_pnt_dist = get_distance(pnt, start_point, epsg_code=self.epsg_code)
+            pnt_dict = {end_pnt_dist: end_point, start_pnt_dist: start_point}
+            pnt_to_use = pnt_dict[min(end_pnt_dist, start_pnt_dist)]
         line_from_intersect = QgsGeometry.fromPolylineXY([pnt, pnt_to_use])
         line_length_from_intersect = line_from_intersect.length()
 
@@ -415,10 +377,8 @@ class BreachLocation(object):
             extrapolated_point = get_extrapolated_point(
                 pnt, end_point, EXTRAPLORATION_RATIO
             )
-            exp_end_pnt = QgsPointXY(
-                extrapolated_point[0], extrapolated_point[1]
-            )
-            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])  # noqa
+            exp_end_pnt = QgsPointXY(extrapolated_point[0], extrapolated_point[1])
+            line_from_intersect = QgsGeometry.fromPolylineXY([pnt, exp_end_pnt])
         new_position = line_from_intersect.interpolate(self.distance_to_levee)
         return new_position, levee_id
 
@@ -445,10 +405,7 @@ class BreachLocation(object):
         succces, features = self.provider_pnt.addFeatures(new_features)
         cnt_feat = len(features)
         if succces:
-            log.info(
-                "[*] Successfully added {} features to the layer".format(
-                    cnt_feat)
-            )
+            log.info("[*] Successfully added {} features to the layer".format(cnt_feat))
         else:
             log.error("[-] Could not add features to the layer")
 
@@ -470,7 +427,7 @@ class BreachLocation(object):
                 continue
             req = QgsFeatureRequest().setFilterFid(conn_pnt_id)
             feat = next(self.connected_pnt_lyr.getFeatures(req))
-            feat['levee_id'] = levee_id
+            feat["levee_id"] = levee_id
             feat.setGeometry(geom)
             self.connected_pnt_lyr.updateFeature(feat)
             self.cnt_moved_pnts += 1
@@ -480,7 +437,7 @@ class BreachLocation(object):
         creates two qgis "memory" layers: "temp_connected_pnt"
         and "temp_connected_line"
         """
-        crs = 'EPSG:{}'.format(self.epsg_code)
+        crs = "EPSG:{}".format(self.epsg_code)
         self.pnt_layer = QgsVectorLayer(
             "Point?crs=" + crs, "temp_connected_pnt", "memory"
         )

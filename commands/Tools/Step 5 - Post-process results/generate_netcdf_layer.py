@@ -8,12 +8,11 @@ from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
 class CustomCommand(CustomCommandBase):
-
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.iface = kwargs.get('iface')
-        self.ts_datasource = kwargs.get('ts_datasource')
+        self.iface = kwargs.get("iface")
+        self.ts_datasource = kwargs.get("ts_datasource")
 
         # These will be dynamically set:
         self.layer = None
@@ -24,14 +23,15 @@ class CustomCommand(CustomCommandBase):
 
     def show_gui(self):
         self.tool_dialog_widget = ToolDialogWidget(
-            iface=self.iface, ts_datasource=self.ts_datasource, command=self)
+            iface=self.iface, ts_datasource=self.ts_datasource, command=self
+        )
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, layer=None, datasource=None):
         if datasource:
             self.datasource = datasource
         if not self.datasource:
-            pop_up_info("No datasource found, aborting.", title='Error')
+            pop_up_info("No datasource found, aborting.", title="Error")
             return
 
         vlayers = self.datasource.get_result_layers()

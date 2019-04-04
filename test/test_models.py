@@ -16,11 +16,12 @@ from ThreeDiToolbox.test.test_datasources import (
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
     """ Test LocationTimeseriesModelItem created by LocationTimeseriesModel"""
+
     test_values = {
         "active": False,
         "color": [10, 20, 30],
         "object_id": 40,
-        "object_name": "test_name"
+        "object_name": "test_name",
     }
 
     def setUp(self):
@@ -40,18 +41,16 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
         model = LocationTimeseriesModel()
         item = model._create_item(**self.test_values)
 
-        self.assertEqual(item.active.value, self.test_values['active'])
-        self.assertEqual(item.color.value, self.test_values['color'])
-        self.assertEqual(item.object_id.value, self.test_values['object_id'])
-        self.assertEqual(
-            item.object_name.value, self.test_values['object_name'])
+        self.assertEqual(item.active.value, self.test_values["active"])
+        self.assertEqual(item.color.value, self.test_values["color"])
+        self.assertEqual(item.object_id.value, self.test_values["object_id"])
+        self.assertEqual(item.object_name.value, self.test_values["object_name"])
 
     def test_set_values(self):
         """test setting properties"""
         model = LocationTimeseriesModel(
-            initial_data=[{'object_id': 1,
-                           'object_name': 'object_1',
-                           'active': True}])
+            initial_data=[{"object_id": 1, "object_name": "object_1", "active": True}]
+        )
         item = model.rows[0]
 
         item.active.value = False
@@ -81,20 +80,21 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
 
 class TestLocationTimeseriesModel(unittest.TestCase):
     """ Test LocationTimeseriesModel functions"""
-    datasource = 'bla'
+
+    datasource = "bla"
 
     initial_data = [
-        {'object_id': 1, 'object_name': 'object_1', 'active': True},
-        {'object_id': 2, 'object_name': 'object_2', 'active': True},
-        {'object_id': 3, 'object_name': 'object_3', 'active': False},
-        {'object_id': 4, 'object_name': 'object_4', 'active': False}
+        {"object_id": 1, "object_name": "object_1", "active": True},
+        {"object_id": 2, "object_name": "object_2", "active": True},
+        {"object_id": 3, "object_name": "object_3", "active": False},
+        {"object_id": 4, "object_name": "object_4", "active": False},
     ]
 
     additional_data = [
-        {'object_id': 5, 'object_name': 'object_5', 'active': True},
-        {'object_id': 6, 'object_name': 'object_6', 'active': True},
-        {'object_id': 7, 'object_name': 'object_7', 'active': False},
-        {'object_id': 8, 'object_name': 'object_8', 'active': False}
+        {"object_id": 5, "object_name": "object_5", "active": True},
+        {"object_id": 6, "object_name": "object_6", "active": True},
+        {"object_id": 7, "object_name": "object_7", "active": False},
+        {"object_id": 8, "object_name": "object_8", "active": False},
     ]
 
     def setUp(self):
@@ -103,107 +103,110 @@ class TestLocationTimeseriesModel(unittest.TestCase):
 
     def test_init(self):
         """test default values after initialisation"""
-        collection = LocationTimeseriesModel(
-            datasource=self.datasource)
+        collection = LocationTimeseriesModel(datasource=self.datasource)
 
         self.assertEqual(collection.rowCount(), 0)
         self.assertEqual(collection.columnCount(), 7)
 
-        headers = [collection.headerData(i)
-                   for i in range(0, collection.columnCount())]
+        headers = [collection.headerData(i) for i in range(0, collection.columnCount())]
 
         self.assertListEqual(
             headers,
             # display column names
-            ['', '', 'id', 'name', 'object_type', 'hover', 'file_path'])
+            ["", "", "id", "name", "object_type", "hover", "file_path"],
+        )
 
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
         collection = LocationTimeseriesModel(
-            datasource=self.datasource,
-            initial_data=self.initial_data)
+            datasource=self.datasource, initial_data=self.initial_data
+        )
 
         self.assertEqual(collection.rowCount(), 4)
         self.assertEqual(collection.columnCount(), 7)
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 0, None),
-            role=Qt.DisplayRole), None)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 0, None), role=Qt.DisplayRole),
+            None,
+        )
 
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 1, None),
-            role=Qt.DisplayRole), None)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 1, None), role=Qt.DisplayRole),
+            None,
+        )
 
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 2, None),
-            role=Qt.DisplayRole), 1)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 2, None), role=Qt.DisplayRole), 1
+        )
 
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 3, None),
-            role=Qt.DisplayRole), 'object_1')
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 3, None), role=Qt.DisplayRole),
+            "object_1",
+        )
 
     def test_insert_remove_rows(self):
         """ test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
-            datasource=self.datasource,
-            initial_data=self.initial_data)
+            datasource=self.datasource, initial_data=self.initial_data
+        )
 
         collection.insertRows(self.additional_data)
 
         self.assertEqual(collection.rowCount(), 8)
         self.assertEqual(collection.columnCount(), 7)
 
-        self.assertEqual(collection.data(
-            collection.createIndex(7, 3, None),
-            role=Qt.DisplayRole), 'object_8')
+        self.assertEqual(
+            collection.data(collection.createIndex(7, 3, None), role=Qt.DisplayRole),
+            "object_8",
+        )
 
         collection.removeRows(2, 4)
 
         self.assertEqual(collection.rowCount(), 4)
 
-        self.assertEqual(collection.data(
-            collection.createIndex(1, 3, None),
-            role=Qt.DisplayRole), 'object_2')
+        self.assertEqual(
+            collection.data(collection.createIndex(1, 3, None), role=Qt.DisplayRole),
+            "object_2",
+        )
 
-        self.assertEqual(collection.data(
-            collection.createIndex(2, 3, None),
-            role=Qt.DisplayRole), 'object_7')
+        self.assertEqual(
+            collection.data(collection.createIndex(2, 3, None), role=Qt.DisplayRole),
+            "object_7",
+        )
 
     def test_set_get_data(self):
         """ test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
-            datasource=self.datasource,
-            initial_data=self.initial_data)
+            datasource=self.datasource, initial_data=self.initial_data
+        )
 
         # first test checkField
-        collection.setData(collection.createIndex(0, 0),
-                           Qt.Unchecked,
-                           Qt.CheckStateRole)
+        collection.setData(
+            collection.createIndex(0, 0), Qt.Unchecked, Qt.CheckStateRole
+        )
 
         self.assertEqual(collection.rows[0].active.value, False)
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 0, None),
-            role=Qt.CheckStateRole), Qt.Unchecked)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 0, None), role=Qt.CheckStateRole),
+            Qt.Unchecked,
+        )
 
-        collection.setData(collection.createIndex(0, 0),
-                           Qt.Checked,
-                           Qt.CheckStateRole)
+        collection.setData(collection.createIndex(0, 0), Qt.Checked, Qt.CheckStateRole)
 
         self.assertEqual(collection.rows[0].active.value, True)
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 0, None),
-            role=Qt.CheckStateRole), Qt.Checked)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 0, None), role=Qt.CheckStateRole),
+            Qt.Checked,
+        )
 
         # test valueField
-        collection.setData(collection.createIndex(0, 2),
-                           8,
-                           Qt.DisplayRole)
+        collection.setData(collection.createIndex(0, 2), 8, Qt.DisplayRole)
 
         self.assertEqual(collection.rows[0].object_id.value, 8)
-        self.assertEqual(collection.data(
-            collection.createIndex(0, 2, None),
-            role=Qt.DisplayRole), 8)
+        self.assertEqual(
+            collection.data(collection.createIndex(0, 2, None), role=Qt.DisplayRole), 8
+        )
 
     def tearDown(self):
         """Runs after each test."""
@@ -230,10 +233,10 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         """Smoke test the ``datasource_layer_manager()`` method."""
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**self.test_values)
-        setattr(item, '_datasource_layer_manager', 'yo')
-        self.assertEqual(item.datasource_layer_manager(), 'yo')
+        setattr(item, "_datasource_layer_manager", "yo")
+        self.assertEqual(item.datasource_layer_manager(), "yo")
 
-    @unittest.skip('want to work only with netcdf-groundwater, not netcdf')
+    @unittest.skip("want to work only with netcdf-groundwater, not netcdf")
     def test_datasource(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
@@ -252,17 +255,17 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
 
 class TestDataSourceLayerManager(unittest.TestCase):
     def test_smoke(self):
-        DataSourceLayerManager('a type', '/tmp/to/some/where')
+        DataSourceLayerManager("a type", "/tmp/to/some/where")
 
     def test_datasource_failure(self):
-        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
+        dlm = DataSourceLayerManager("a type", "/tmp/to/some/where")
         with self.assertRaises(KeyError):
             dlm.datasource
 
     def test_datasource_success(self):
-        dlm = DataSourceLayerManager('a type', '/tmp/to/some/where')
-        setattr(dlm, '_datasource', 'FOO')
-        self.assertEqual(dlm.datasource, 'FOO')
+        dlm = DataSourceLayerManager("a type", "/tmp/to/some/where")
+        setattr(dlm, "_datasource", "FOO")
+        self.assertEqual(dlm.datasource, "FOO")
 
 
 """
@@ -305,5 +308,5 @@ Functions:
 
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

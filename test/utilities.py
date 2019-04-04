@@ -8,7 +8,7 @@ import shutil
 import sys
 import tempfile
 
-LOGGER = logging.getLogger('QGIS')
+LOGGER = logging.getLogger("QGIS")
 QGIS_APP = None  # Static variable used to hold hand to running QGIS app
 CANVAS = None
 PARENT = None
@@ -38,7 +38,7 @@ def get_qgis_app():
     if QGIS_APP is None:
         gui_flag = True  # All test will run qgis in gui mode
         # noinspection PyPep8Naming
-        argv = [x.encode('utf-8') for x in sys.argv]
+        argv = [x.encode("utf-8") for x in sys.argv]
         QGIS_APP = QgsApplication(argv, gui_flag)
         # Make sure QGIS_PREFIX_PATH is set in your env if needed!
         QGIS_APP.initQgis()

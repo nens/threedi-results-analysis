@@ -1,12 +1,13 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget  # noqa
+from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
 import logging
 import inspect
+
 log = logging.getLogger(__name__)
 
 
@@ -16,12 +17,16 @@ class CustomCommand(CustomCommandBase):
 
     def __init__(self, **kwargs):
         self._fields = sorted(
-            [(name, cl) for name, cl in
-             inspect.getmembers(self.Fields,
-                                lambda a: not(inspect.isroutine(a)))
-             if not name.startswith('__') and not name.startswith('_')])
-        self.iface = kwargs.get('iface')
-        self.ts_datasource = kwargs.get('ts_datasource')
+            [
+                (name, cl)
+                for name, cl in inspect.getmembers(
+                    self.Fields, lambda a: not (inspect.isroutine(a))
+                )
+                if not name.startswith("__") and not name.startswith("_")
+            ]
+        )
+        self.iface = kwargs.get("iface")
+        self.ts_datasource = kwargs.get("ts_datasource")
         self.tool_dialog_widget = None
 
     def run(self):
@@ -29,13 +34,12 @@ class CustomCommand(CustomCommandBase):
 
     def show_gui(self):
         checks = []
-        self.tool_dialog_widget = RasterCheckerDialogWidget(
-            checks=checks, command=self)
+        self.tool_dialog_widget = RasterCheckerDialogWidget(checks=checks, command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, action_list, db_set, db_type):
         db = ThreediDatabase(db_set, db_type)
         checker = RasterChecker(db)
         msg = checker.run(action_list)
-        messagebar_message('Raster checker ready', msg, duration=3)
-        log.info('Raster checker ready')
+        messagebar_message("Raster checker ready", msg, duration=3)
+        log.info("Raster checker ready")

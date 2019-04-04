@@ -11,8 +11,7 @@ import unittest
 
 from qgis.PyQt.QtWidgets import QDockWidget
 
-from ThreeDiToolbox.views.threedi_toolbox_dockwidget import \
-    ThreeDiToolboxDockWidget
+from ThreeDiToolbox.views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 
 from ThreeDiToolbox.test.utilities import get_qgis_app
 

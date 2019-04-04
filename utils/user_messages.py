@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 # If you don't include this import the test 'test_set_and_load_list'
 # test_project will fail! WTF?
 from builtins import object
@@ -20,10 +21,10 @@ except Exception:
     iface = None
 
 
-def log(msg, level='INFO'):
+def log(msg, level="INFO"):
     """Shortcut for QgsMessageLog.logMessage function."""
-    if level not in ['INFO', 'CRITICAL', 'WARNING']:
-        level = 'INFO'
+    if level not in ["INFO", "CRITICAL", "WARNING"]:
+        level = "INFO"
     level = level[0] + level[1:].lower()
 
     try:
@@ -38,12 +39,12 @@ def log(msg, level='INFO'):
         print(msg)
 
 
-def pop_up_info(msg='', title='Information', parent=None):
+def pop_up_info(msg="", title="Information", parent=None):
     """Display an info message via Qt box"""
-    QMessageBox.information(parent, title, '%s' % msg)
+    QMessageBox.information(parent, title, "%s" % msg)
 
 
-def statusbar_message(msg=''):
+def statusbar_message(msg=""):
     """Display message in status bar """
     if iface is not None:
         iface.mainWindow().statusBar().showMessage(msg)
@@ -60,6 +61,7 @@ def messagebar_message(title, msg, level=None, duration=0):
     """
     try:
         from qgis.gui import QgsMessageBar
+
         if not level:
             level = Qgis.Info
     except ImportError:
@@ -69,26 +71,24 @@ def messagebar_message(title, msg, level=None, duration=0):
         iface.messageBar().pushMessage(title, msg, level, duration)
 
 
-def pop_up_question(msg='', title='', parent=None):
+def pop_up_question(msg="", title="", parent=None):
     """Message box question (Yes or No).
 
     Returns:
         True if 'Yes' was clicked, or False if 'No' was clicked.
     """
     reply = QMessageBox.question(
-        parent, title, msg,
-        QMessageBox.Yes | QMessageBox.No,
-        QMessageBox.No)
+        parent, title, msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+    )
 
-    return (reply == QMessageBox.Yes)
+    return reply == QMessageBox.Yes
 
 
 class StatusProgressBar(object):
-
-    def __init__(self, maximum=100, message_title=''):
+    def __init__(self, maximum=100, message_title=""):
 
         self.maximum = maximum
-        self.message_bar = iface.messageBar().createMessage(message_title, '')
+        self.message_bar = iface.messageBar().createMessage(message_title, "")
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximum(maximum)
@@ -96,8 +96,7 @@ class StatusProgressBar(object):
 
         self.message_bar.layout().addWidget(self.progress_bar)
         if iface is not None:
-            iface.messageBar().pushWidget(
-                self.message_bar, Qgis.MessageLevel())
+            iface.messageBar().pushWidget(self.message_bar, Qgis.MessageLevel())
 
         self.step_size = 1
         self.progress = 0

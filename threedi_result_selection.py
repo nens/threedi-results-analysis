@@ -10,6 +10,7 @@ import json
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QObject, QUrl
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtNetwork import QNetworkRequest
+
 # QNetworkAccessManager
 from qgis.core import QgsNetworkAccessManager
 
@@ -24,9 +25,9 @@ log = logging.getLogger(__name__)
 
 USER_DOWNLOAD_DIRECTORY = 1111
 
-assert \
-    QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax,\
-    "User defined attribute codes must be between User and UserMax."
+assert (
+    QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax
+), "User defined attribute codes must be between User and UserMax."
 
 
 # From Django:
@@ -40,8 +41,8 @@ def get_valid_filename(s):
     >>> get_valid_filename("john's portrait in 2004.jpg")
     'johns_portrait_in_2004.jpg'
     """
-    s = str(s).strip().replace(' ', '_')
-    return re.sub(r'(?u)[^-\w.]', '', s)
+    s = str(s).strip().replace(" ", "_")
+    return re.sub(r"(?u)[^-\w.]", "", s)
 
 
 class ThreeDiResultSelection(QObject):
@@ -49,7 +50,7 @@ class ThreeDiResultSelection(QObject):
 
     state_changed = pyqtSignal([str, str, list])
 
-    tool_name = 'result_selection'
+    tool_name = "result_selection"
 
     def __init__(self, iface, ts_datasource):
         """Constructor.
@@ -78,14 +79,12 @@ class ThreeDiResultSelection(QObject):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = \
-            ':/plugins/ThreeDiToolbox/icons/icon_add_datasource.png'
-        self.menu_text = u'Select 3Di results'
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_add_datasource.png"
+        self.menu_text = u"Select 3Di results"
 
         self.is_active = False
         self.dialog = None
-        self.ts_datasource.model_schematisation_change.connect(
-            self.on_state_changed)
+        self.ts_datasource.model_schematisation_change.connect(self.on_state_changed)
         self.ts_datasource.results_change.connect(self.on_state_changed)
 
     def on_unload(self):
@@ -117,12 +116,12 @@ class ThreeDiResultSelection(QObject):
                     iface=self.iface,
                     ts_datasource=self.ts_datasource,
                     download_result_model=self.download_result_model,
-                    parent_class=self)
+                    parent_class=self,
+                )
 
                 # download signals; signal connections should persist after
                 # closing the dialog.
-                self.dialog.downloadResultButton.clicked.connect(
-                    self.handle_download)
+                self.dialog.downloadResultButton.clicked.connect(self.handle_download)
 
             # connect to provide cleanup on closing of dockwidget
             self.dialog.closingDialog.connect(self.on_close_dialog)
@@ -131,21 +130,25 @@ class ThreeDiResultSelection(QObject):
             self.dialog.show()
         else:
             self.dialog.setWindowState(
-                self.dialog.windowState() & ~Qt.WindowMinimized |
-                Qt.WindowActive)
+                self.dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
+            )
             self.dialog.raise_()
 
     def on_state_changed(self, setting_key, value):
 
-        if setting_key == 'result_directories':
+        if setting_key == "result_directories":
             output = []
             for result in value:
-                output.append(json.JSONEncoder().encode({
-                    'active': result.active.value,
-                    'name': result.name.value,
-                    'file_path': result.file_path.value,
-                    'type': result.type.value
-                }))
+                output.append(
+                    json.JSONEncoder().encode(
+                        {
+                            "active": result.active.value,
+                            "name": result.name.value,
+                            "file_path": result.file_path.value,
+                            "type": result.type.value,
+                        }
+                    )
+                )
         else:
             output = value
 
@@ -155,9 +158,10 @@ class ThreeDiResultSelection(QObject):
         self.ts_datasource.reset()
 
         self.ts_datasource.model_spatialite_filepath = setting_dict.get(
-            'model_schematisation', None)
+            "model_schematisation", None
+        )
 
-        result_list = setting_dict.get('result_directories', None)
+        result_list = setting_dict.get("result_directories", None)
         if result_list is not None:
             for result_json in result_list:
                 result = json.JSONDecoder().decode(result_json)
@@ -165,11 +169,11 @@ class ThreeDiResultSelection(QObject):
 
     def get_state_description(self):
         from io import IOBase
-        return (self.tool_name,
-                {
-                    'model_schematisation': IOBase,  # file,
-                    'result_directories': list
-                })
+
+        return (
+            self.tool_name,
+            {"model_schematisation": IOBase, "result_directories": list},  # file,
+        )
 
     @property
     def logged_in(self):
@@ -177,11 +181,15 @@ class ThreeDiResultSelection(QObject):
 
     def handle_download(self):
         result_type_codes_download = [
-            'logfiles',
+            "logfiles",
             # non-groundwater codes
-            'subgrid_map', 'flow-aggregate', 'id-mapping',
+            "subgrid_map",
+            "flow-aggregate",
+            "id-mapping",
             # groundwater codes
-            'results-3di', 'aggregate-results-3di', 'grid-admin',
+            "results-3di",
+            "aggregate-results-3di",
+            "grid-admin",
         ]
         selection_model = self.dialog.downloadResultTableView.selectionModel()
         proxy_indexes = selection_model.selectedIndexes()
@@ -190,19 +198,20 @@ class ThreeDiResultSelection(QObject):
             return
         proxy_selection_index = proxy_indexes[0]
         selection_index = self.dialog.download_proxy_model.mapToSource(
-            proxy_selection_index)
+            proxy_selection_index
+        )
         item = self.download_result_model.rows[selection_index.row()]
         to_download = [
-            r for r in item.results.value if
-            r['result_type']['code'] in result_type_codes_download]
-        to_download_urls = [dl['attachment_url'] for dl in to_download]
+            r
+            for r in item.results.value
+            if r["result_type"]["code"] in result_type_codes_download
+        ]
+        to_download_urls = [dl["attachment_url"] for dl in to_download]
         log.debug(item.name.value)
 
         # ask user where to store download
         directory = QFileDialog.getExistingDirectory(
-            None,
-            'Choose a directory',
-            os.path.expanduser('~'),
+            None, "Choose a directory", os.path.expanduser("~")
         )
         if not directory:
             return
@@ -213,8 +222,7 @@ class ThreeDiResultSelection(QObject):
         # Because the files are downloaded and processed in chunks, we cannot
         # guarantee data integrity with existing files.
         if os.path.exists(self.download_directory):
-            pop_up_info(
-                "The directory %s already exists." % self.download_directory)
+            pop_up_info("The directory %s already exists." % self.download_directory)
             return
         log.info("Creating download directory.")
         os.mkdir(self.download_directory)
@@ -226,16 +234,14 @@ class ThreeDiResultSelection(QObject):
         # the downloads are processed asynchronous using callbacks.
         for url in to_download_urls:
             request = QNetworkRequest(QUrl(url))
-            request.setRawHeader(b'username', bytes(self.username, 'utf-8'))
-            request.setRawHeader(b'password', bytes(self.password, 'utf-8'))
-            request.setAttribute(
-                USER_DOWNLOAD_DIRECTORY, self.download_directory)
+            request.setRawHeader(b"username", bytes(self.username, "utf-8"))
+            request.setRawHeader(b"password", bytes(self.password, "utf-8"))
+            request.setAttribute(USER_DOWNLOAD_DIRECTORY, self.download_directory)
 
             reply = self.network_manager.get(request)
             # Get replies in chunks, and process them
             reply.setReadBufferSize(CHUNK_SIZE)
-            reply.readyRead.connect(
-                self.on_single_download_ready_to_read_chunk)
+            reply.readyRead.connect(self.on_single_download_ready_to_read_chunk)
             reply.finished.connect(self.on_single_download_finished)
         pop_up_info("Download started.")
 
@@ -244,18 +250,19 @@ class ThreeDiResultSelection(QObject):
         # TODO: do some exception handling if the download did not succeed
         reply = self.sender()
         raw_chunk = reply.readAll()  # QByteArray
-        filename = reply.url().toString().split('/')[-1]
+        filename = reply.url().toString().split("/")[-1]
         download_directory = reply.request().attribute(USER_DOWNLOAD_DIRECTORY)
         if not download_directory:
             raise RuntimeError(
                 "Request is not set up properly, USER_DOWNLOAD_DIRECTORY is "
-                "required to locate the download directory.")
-        with open(os.path.join(download_directory, filename), 'ab') as f:
+                "required to locate the download directory."
+            )
+        with open(os.path.join(download_directory, filename), "ab") as f:
             f.write(raw_chunk)
 
     def on_single_download_finished(self):
         """Usage: mostly for notifying the user the download has finished."""
         reply = self.sender()
-        filename = reply.url().toString().split('/')[-1]
+        filename = reply.url().toString().split("/")[-1]
         reply.close()
         messagebar_message("Done", "Finished downloading %s" % filename)
