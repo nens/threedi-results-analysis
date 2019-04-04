@@ -52,7 +52,7 @@ except Exception:
     # TODO: fix this error (which is the reason of this exception):
     # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
     # could be imported.
-    msg = "Error: Exception while loading pyqtgraph. Probably couldn't " "import PyQt"
+    msg = "Error: Exception while loading pyqtgraph. Probably couldn't import PyQt"
     log(msg)
     pop_up_info(msg)
 
@@ -60,7 +60,7 @@ try:
     import lizard_connector  # noqa
 except ImportError as e:
     pop_up_info(
-        "Error loading lizard_connector from " "'external' subdirectory. error %s" % e
+        "Error loading lizard_connector from 'external' subdirectory. error %s" % e
     )
 
 try:
@@ -147,7 +147,7 @@ try:
     imp.find_module("threedigrid")  # noqa
 except ImportError as e:
     pop_up_info(
-        "Error loading threedigrid from " "'external' subdirectory. error %s" % e
+        "Error loading threedigrid from 'external' subdirectory. error %s" % e
     )
 
 

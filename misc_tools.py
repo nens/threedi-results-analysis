@@ -114,7 +114,7 @@ class CacheClearer(object):
                 except OSError:
                     pop_up_info("Failed to delete %s." % f)
             pop_up_info(
-                "Cache cleared. You may need to restart QGIS and " "reload your data."
+                "Cache cleared. You may need to restart QGIS and reload your data."
             )
 
     def on_unload(self):

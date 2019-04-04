@@ -165,7 +165,7 @@ class Importer(object):
                     "Some fields provided in the sufhyd for object "
                     "'{ide_rec}' are not used.",
                     {"ide_rec": ide_rec},
-                    "Data of '{ide_rec}' field '{field}' {count} times " "ignored.",
+                    "Data of '{ide_rec}' field '{field}' {count} times ignored.",
                     {"ide_rec": ide_rec, "field": field, "count": count},
                 )
 
@@ -193,7 +193,7 @@ class Importer(object):
                 doubles.append(record)
                 self.log.add(
                     log_level,
-                    "double values in {unique_field} of " "{item_name_for_logging}",
+                    "double values in {unique_field} of {item_name_for_logging}",
                     {
                         "unique_field": unique_field,
                         "item_name_for_logging": item_name_for_logging,
@@ -528,7 +528,7 @@ class Importer(object):
                     logging.ERROR,
                     "Start node of pipe not found in nodes",
                     {},
-                    "Start node {start_node} of pipe with code {code} not " "found",
+                    "Start node {start_node} of pipe with code {code} not found",
                     {"start_node": pipe["start_node.code"], "code": pipe["code"]},
                 )
 
@@ -566,7 +566,7 @@ class Importer(object):
                     logging.ERROR,
                     "Start node of pump not found in nodes",
                     {},
-                    "Start node {start_node} of pump with code {code} not " "found",
+                    "Start node {start_node} of pump with code {code} not found",
                     {"start_node": pump["start_node.code"], "code": pump["code"]},
                 )
 
@@ -594,7 +594,7 @@ class Importer(object):
                     logging.ERROR,
                     "Start node of weir not found in nodes",
                     {},
-                    "Start node {start_node} of weir with code {code} not " "found",
+                    "Start node {start_node} of weir with code {code} not found",
                     {"start_node": weir["start_node.code"], "code": weir["code"]},
                 )
 
@@ -627,7 +627,7 @@ class Importer(object):
                     logging.ERROR,
                     "Start node of orifice not found in nodes",
                     {},
-                    "Start node {start_node} of orifice with code {code} not " "found",
+                    "Start node {start_node} of orifice with code {code} not found",
                     {"start_node": orif["start_node.code"], "code": orif["code"]},
                 )
 
@@ -638,7 +638,7 @@ class Importer(object):
                     logging.ERROR,
                     "End node of orifice not found in nodes",
                     {},
-                    "End node {end_node} of orifice with code {code} not " "found",
+                    "End node {end_node} of orifice with code {code} not found",
                     {"end_node": orif["end_node.code"], "code": orif["code"]},
                 )
 

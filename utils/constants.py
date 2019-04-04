@@ -159,7 +159,7 @@ RASTER_CHECKER_MAPPER = [
         "feedback": {
             "info": "{{raster}} has a valid extension.",
             "warning": "",
-            "error": "{{raster}} has an invalid extension (" "must be .tif or .tiff).",
+            "error": "{{raster}} has an invalid extension (must be .tif or .tiff).",
         },
     },
     {

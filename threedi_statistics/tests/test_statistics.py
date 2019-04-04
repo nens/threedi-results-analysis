@@ -57,7 +57,7 @@ class TestStatistics(unittest.TestCase):
         con_res.row_factory = dbapi.Row
 
         flowline_cursor = con_res.execute(
-            "SELECT " "* " "FROM pipe_stats_view " "WHERE id=4473 "
+            "SELECT * FROM pipe_stats_view WHERE id=4473 "
         )
         flowline = flowline_cursor.fetchone()
 
@@ -88,7 +88,7 @@ class TestStatistics(unittest.TestCase):
         con_res.row_factory = dbapi.Row
 
         flowline_cursor = con_res.execute(
-            "SELECT " "* " "FROM pipe_stats_view " "WHERE id=4475 "
+            "SELECT * FROM pipe_stats_view WHERE id=4475 "
         )
         flowline = flowline_cursor.fetchone()
 
@@ -109,7 +109,7 @@ class TestStatistics(unittest.TestCase):
         con_res.row_factory = dbapi.Row
 
         cursor = con_res.execute(
-            "SELECT " "* " "FROM weir_stats_view " "WHERE spatialite_id=6003 "
+            "SELECT * FROM weir_stats_view WHERE spatialite_id=6003 "
         )
         weir = cursor.fetchone()
 
@@ -124,7 +124,7 @@ class TestStatistics(unittest.TestCase):
         con_res.row_factory = dbapi.Row
 
         cursor = con_res.execute(
-            "SELECT " "* " "FROM pumpline_stats " "WHERE spatialite_id=61 "
+            "SELECT * FROM pumpline_stats WHERE spatialite_id=61 "
         )
         pump = cursor.fetchone()
 
@@ -142,7 +142,7 @@ class TestStatistics(unittest.TestCase):
         con_res.row_factory = dbapi.Row
 
         cursor = con_res.execute(
-            "SELECT " "* " "FROM manhole_stats_view " "WHERE spatialite_id=1005 "
+            "SELECT * FROM manhole_stats_view WHERE spatialite_id=1005 "
         )
         manhole = cursor.fetchone()
 

@@ -52,9 +52,7 @@ class WaterBalanceCalculation(object):
         # get range of vertical (in top view) surface water line ids
         y2d_surf_range_min = x2d_surf_range_max + 1
         y2d_surf_range_max = x2d_surf_range_max + nr_2d_y_dir
-        self.y2d_surf_range = list(
-            range(y2d_surf_range_min, y2d_surf_range_max + 1)
-        )
+        self.y2d_surf_range = list(range(y2d_surf_range_min, y2d_surf_range_max + 1))
 
         # get range of vertical (in side view) line ids in the gridadmin.
         # These lines represent surface-groundwater (vertical) flow
@@ -1039,7 +1037,7 @@ class WaterBalanceTool(object):
         if "q_sss" in simulated_vars_nodes:
             if np.count_nonzero(gr.nodes.timeseries(indexes=slice(0, -1)).q_sss) > 0:
                 minimum_agg_vars.append(
-                    ("q_sss_cum", "cumulative surface " "sources and sinks")
+                    ("q_sss_cum", "cumulative surface sources and sinks")
                 )
 
         missing_vars = []

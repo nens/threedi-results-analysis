@@ -54,9 +54,7 @@ class Route(object):
         self.line_layer = line_layer
         self.director = director
         self.id_field = id_field
-        self.id_field_index = self.line_layer.fields().lookupField(
-            self.id_field
-        )
+        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)
 
         # build graph for network
         properter_1 = weight_properter

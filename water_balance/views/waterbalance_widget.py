@@ -878,7 +878,7 @@ class WaterBalanceWidget(QDockWidget):
         label_deltaris = QLabel()
         label_deltaris.setPixmap(logo_deltaris)
 
-        logo_label_text = QLabel("Powered by 3Di, Topsector Water and " "Deltaris")
+        logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltares")
 
         powered_by_widget = QWidget()
         pallete = QPalette(QColor("white"))

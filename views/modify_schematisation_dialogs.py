@@ -288,9 +288,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         test your settings first before actually applying them to your model.
         Using the 'dry-run' option thus is highly recommended."""
         self.help_text_browser.setText(
-            tool_help.replace("        ", "")
-            .replace("\n", "")
-            .replace("\r", "")
+            tool_help.replace("        ", "").replace("\n", "").replace("\r", "")
         )
         connected_pnt_lyr = QgsProject.instance().mapLayersByName("v2_connected_pnt")
         # automatically pre-select the right layer if present

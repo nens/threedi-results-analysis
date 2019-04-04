@@ -166,7 +166,7 @@ class RasterCheckerResults(object):
                 feedback_level = "warning"
             else:
                 raise AssertionError(
-                    "feedback dict cannot have both warning " "and error message"
+                    "feedback dict cannot have both warning and error message"
                 )
         return feedback_level
 
@@ -308,7 +308,7 @@ class RasterCheckerResults(object):
 
     def result_per_check_to_log(self):
         # add self.result_per_check to log_file
-        msg = "\n-- Report: -- \n" "level, setting_id, check_id, feedback \n"
+        msg = "\n-- Report: -- \nlevel, setting_id, check_id, feedback \n"
         self.log_file.write(msg)
 
         self.count_error = 0
@@ -366,7 +366,7 @@ class RasterCheckerResults(object):
         except Exception as e:
             log.error(e)
             raise Exception(
-                "RasterChecker can not write to logfile " "directory %s" % self.log_path
+                "RasterChecker can not write to logfile directory %s" % self.log_path
             )
 
         self.add_intro()
