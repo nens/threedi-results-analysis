@@ -123,9 +123,7 @@ class TestStatistics(unittest.TestCase):
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
 
-        cursor = con_res.execute(
-            "SELECT * FROM pumpline_stats WHERE spatialite_id=61 "
-        )
+        cursor = con_res.execute("SELECT * FROM pumpline_stats WHERE spatialite_id=61 ")
         pump = cursor.fetchone()
 
         # self.assertAlmostEqual(pump['cum_discharge'], 5.822114, places=3)
