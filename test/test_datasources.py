@@ -310,12 +310,12 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         nds.get_timestamps()
 
     @mock.patch(
-        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",  # noqa
+        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",
         ["s1"],
     )
     @mock.patch(
         "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result"
-    )  # noqa
+    )
     def test_get_timeseries(self, gridadmin_result_mock):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
