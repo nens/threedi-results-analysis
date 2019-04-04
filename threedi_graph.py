@@ -49,8 +49,8 @@ class ThreeDiGraph(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon_graph.png'
-        self.menu_text = u'Show 3Di results in Graph'
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_graph.png"
+        self.menu_text = u"Show 3Di results in Graph"
 
         self.dock_widgets = []
         self.widget_nr = 0
@@ -85,11 +85,13 @@ class ThreeDiGraph(object):
         """
         # create the dockwidget
         self.widget_nr += 1
-        new_widget = GraphDockWidget(self.iface,
-                                     parent_class=self,
-                                     nr=self.widget_nr,
-                                     ts_datasource=self.ts_datasource,
-                                     root_tool=self.root_tool)
+        new_widget = GraphDockWidget(
+            self.iface,
+            parent_class=self,
+            nr=self.widget_nr,
+            ts_datasource=self.ts_datasource,
+            root_tool=self.root_tool,
+        )
         self.dock_widgets.append(new_widget)
 
         # connect cleanup on closing of dockwidget

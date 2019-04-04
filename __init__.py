@@ -32,34 +32,36 @@ except ImportError:
     pop_up_info = log = lambda x: x
 
 sys.path.insert(
-    0,
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
+    0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "external")
 )
 
 try:
     import sqlalchemy  # noqa
     import geoalchemy2  # noqa
 except ImportError as e:
-    pop_up_info("Error loading sqlalchemy or geoalchemy2 from "
-                "'external' subdirectory. error %s" % e)
+    pop_up_info(
+        "Error loading sqlalchemy or geoalchemy2 from "
+        "'external' subdirectory. error %s" % e
+    )
 
 try:
     import pyqtgraph  # noqa
-    log('Use local installation of pyqtgraph ')
+
+    log("Use local installation of pyqtgraph ")
 except Exception:
     # TODO: fix this error (which is the reason of this exception):
     # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
     # could be imported.
-    msg = "Error: Exception while loading pyqtgraph. Probably couldn't "\
-          "import PyQt"
+    msg = "Error: Exception while loading pyqtgraph. Probably couldn't " "import PyQt"
     log(msg)
     pop_up_info(msg)
 
 try:
     import lizard_connector  # noqa
 except ImportError as e:
-    pop_up_info("Error loading lizard_connector from "
-                "'external' subdirectory. error %s" % e)
+    pop_up_info(
+        "Error loading lizard_connector from " "'external' subdirectory. error %s" % e
+    )
 
 try:
     # Note: we're not importing it directly using the import statement because
@@ -68,27 +70,35 @@ try:
     # program (at least with Windows), which is problematic when trying to
     # update the plugin using the plugin manager (because it tries to delete
     # the old plugin files). Real imports are postponed as long as possible.
-    imp.find_module('netCDF4')
-    log('Use local installation of python netCDF4 library')
+    imp.find_module("netCDF4")
+    log("Use local installation of python netCDF4 library")
 except ImportError:
-    if os.name == 'nt':
-        if sys.maxsize > 2**32:
+    if os.name == "nt":
+        if sys.maxsize > 2 ** 32:
             # Windows 64 bit
             # use netCDF in external map
-            sys.path.append(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'external', 'netCDF4-win64'))
+            sys.path.append(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    "external",
+                    "netCDF4-win64",
+                )
+            )
             # import netCDF4
 
-            log('Used netCDF4 library, provided with plugin.')
+            log("Used netCDF4 library, provided with plugin.")
         else:
-            pop_up_info('Error: could not find netCDF4 installation. Change '
-                        'to the 64-bit version of QGIS or try to install the '
-                        'netCDF4 python libary yourself.')
+            pop_up_info(
+                "Error: could not find netCDF4 installation. Change "
+                "to the 64-bit version of QGIS or try to install the "
+                "netCDF4 python libary yourself."
+            )
             # netCDF4 = None
     else:
-        pop_up_info('Error: could not find netCDF4 installation. Please '
-                    'install python-netCDF4 package.')
+        pop_up_info(
+            "Error: could not find netCDF4 installation. Please "
+            "install python-netCDF4 package."
+        )
         # netCDF4 = None
 
 # if netCDF4 is not None:
@@ -106,30 +116,39 @@ try:
     # program (at least with Windows), which is problematic when trying to
     # update the plugin using the plugin manager (because it tries to delete
     # the old plugin files). Real imports are postponed as long as possible.
-    imp.find_module('h5py')
+    imp.find_module("h5py")
     log("Using local h5py installation.")
 except ImportError as e:
-    if os.name == 'nt':
-        if sys.maxsize > 2**32:
-            sys.path.append(os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                'external', 'h5py-win64'))
+    if os.name == "nt":
+        if sys.maxsize > 2 ** 32:
+            sys.path.append(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    "external",
+                    "h5py-win64",
+                )
+            )
             log("Using h5py provided by plugin.")
         else:
-            pop_up_info('Error: could not find h5py installation. Change '
-                        'to the 64-bit version of QGIS or try to install the '
-                        'h5py python libary yourself.')
+            pop_up_info(
+                "Error: could not find h5py installation. Change "
+                "to the 64-bit version of QGIS or try to install the "
+                "h5py python libary yourself."
+            )
     else:
-        pop_up_info('Error: could not find h5py installation. Please '
-                    'install the h5py package manually.')
+        pop_up_info(
+            "Error: could not find h5py installation. Please "
+            "install the h5py package manually."
+        )
 
 try:
     # Note: threedigrid depends on h5py and netCDF, so don't import it directly
     # (see above).
-    imp.find_module('threedigrid')  # noqa
+    imp.find_module("threedigrid")  # noqa
 except ImportError as e:
-    pop_up_info("Error loading threedigrid from "
-                "'external' subdirectory. error %s" % e)
+    pop_up_info(
+        "Error loading threedigrid from " "'external' subdirectory. error %s" % e
+    )
 
 
 # noinspection PyPep8Naming

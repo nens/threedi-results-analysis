@@ -55,8 +55,8 @@ class ThreeDiToolbox(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ':/plugins/ThreeDiToolbox/icons/icon_toolbox.png'
-        self.menu_text = u'Toolbox for working with 3Di models'
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_toolbox.png"
+        self.menu_text = u"Toolbox for working with 3Di models"
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -101,16 +101,16 @@ class ThreeDiToolbox(object):
     @staticmethod
     def is_leaf(q_model_index):
         """Check if QModelIndex is a leaf, i.e., has no children."""
-        return (q_model_index.isValid() and
-                not q_model_index.child(0, 0).isValid())
+        return q_model_index.isValid() and not q_model_index.child(0, 0).isValid()
 
     @staticmethod
     def leaf_path(q_model_index):
         if not q_model_index.parent().isValid():
             return [q_model_index.data()]
         else:
-            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + \
-                [q_model_index.data()]
+            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + [
+                q_model_index.data()
+            ]
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
@@ -130,9 +130,9 @@ class ThreeDiToolbox(object):
             log.debug(path)
 
             curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, 'commands', *path)
+            module_path = os.path.join(curr_dir, "commands", *path)
             name, ext = os.path.splitext(path[-1])
-            if ext != '.py':
+            if ext != ".py":
                 log.error("Not a Python script")
                 return
 
@@ -145,12 +145,12 @@ class ThreeDiToolbox(object):
             log.debug(str(mod))
 
             self.command = mod.CustomCommand(
-                iface=self.iface, ts_datasource=self.ts_datasource)
+                iface=self.iface, ts_datasource=self.ts_datasource
+            )
             self.command.run()
 
     def add_tools(self):
         self.toolboxmodel = ToolboxModel()
         self.dockwidget.treeView.setModel(self.toolboxmodel)
-        self.dockwidget.treeView.setEditTriggers(
-            QAbstractItemView.NoEditTriggers)
+        self.dockwidget.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget.treeView.doubleClicked.connect(self.run_script)
