@@ -7,7 +7,9 @@ from qgis.core import Qgis
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
-from ThreeDiToolbox.views.modify_schematisation_dialogs import CreateBreachLocationsDialogWidget  # noqa
+from ThreeDiToolbox.views.modify_schematisation_dialogs import (
+    CreateBreachLocationsDialogWidget,
+)  # noqa
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
@@ -22,16 +24,15 @@ class CustomCommand(CustomCommandBase):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.iface = kwargs.get('iface')
-        self.ts_datasource = kwargs.get('ts_datasource')
+        self.iface = kwargs.get("iface")
+        self.ts_datasource = kwargs.get("ts_datasource")
         self.tool_dialog_widget = None
 
     def run(self):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(
-            command=self)
+        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, breach_loc, auto_commit):
@@ -48,10 +49,7 @@ class CustomCommand(CustomCommandBase):
         breach_location = breach_loc
         if not breach_location.has_valid_selection:
             msg = "You need to select at least two connection points"
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical,
-                duration=5
-            )
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
             return
 
         calc_points_dict = breach_location.get_calc_points_by_content()
@@ -62,8 +60,9 @@ class CustomCommand(CustomCommandBase):
         with progress_bar(self.iface) as pb:
             for key, values in calc_points_dict.items():
                 calc_type = key[1]
-                connected_points_selection = \
-                    breach_location.get_connected_points(values, calc_type)
+                connected_points_selection = breach_location.get_connected_points(
+                    values, calc_type
+                )
                 breach_location.move_points_behind_levee(
                     connected_points_selection, calc_type
                 )
@@ -88,6 +87,4 @@ class CustomCommand(CustomCommandBase):
             msg = "Created {} potential breach locations".format(
                 breach_location.cnt_moved_pnts
             )
-            messagebar_message(
-                "Finished", msg, level=Qgis.Success, duration=8
-            )
+            messagebar_message("Finished", msg, level=Qgis.Success, duration=8)

@@ -1,16 +1,27 @@
 from builtins import str
 from qgis.core import (
-    QgsFeature, QgsGeometry, QgsPoint, QgsDistanceArea, Qgis,
-    QgsVectorLayer, QgsCoordinateTransform, QgsDataSourceUri,
-    QgsCoordinateReferenceSystem)
+    QgsFeature,
+    QgsGeometry,
+    QgsPoint,
+    QgsDistanceArea,
+    Qgis,
+    QgsVectorLayer,
+    QgsCoordinateTransform,
+    QgsDataSourceUri,
+    QgsCoordinateReferenceSystem,
+)
 from qgis.core import QgsProject
 from qgis.core import QgsWkbTypes
 import math
 
 
-def split_line_at_points(polyline_input, point_features,
-                         point_feature_id_field='id',
-                         start_node_id=None, end_node_id=None):
+def split_line_at_points(
+    polyline_input,
+    point_features,
+    point_feature_id_field="id",
+    start_node_id=None,
+    end_node_id=None,
+):
     """
         Split line at points
     Args
@@ -35,10 +46,8 @@ def split_line_at_points(polyline_input, point_features,
     source_crs = QgsCoordinateReferenceSystem(4326)
     dest_crs = QgsCoordinateReferenceSystem(3857)
 
-    transform = QgsCoordinateTransform(source_crs, dest_crs,
-                                       QgsProject.instance())
-    transform_back = QgsCoordinateTransform(dest_crs, source_crs,
-                                            QgsProject.instance())
+    transform = QgsCoordinateTransform(source_crs, dest_crs, QgsProject.instance())
+    transform_back = QgsCoordinateTransform(dest_crs, source_crs, QgsProject.instance())
 
     polyline = QgsGeometry(polyline_input)
     polyline.transform(transform)
@@ -47,13 +56,13 @@ def split_line_at_points(polyline_input, point_features,
         if type(point) == QgsFeature:
             point = {
                 point_feature_id_field: point[point_feature_id_field],
-                'geom': point.geometry()
+                "geom": point.geometry(),
             }
 
-        if hasattr(point['geom'], 'asPoint'):
-            geom = point['geom'].asPoint()
+        if hasattr(point["geom"], "asPoint"):
+            geom = point["geom"].asPoint()
         else:
-            geom = point['geom']
+            geom = point["geom"]
 
         geom = QgsGeometry.fromPointXY(geom)
         geom.transform(transform)
@@ -75,8 +84,14 @@ def split_line_at_points(polyline_input, point_features,
         distance_on_subline = math.hypot(p2.x() - p1.x(), p2.y() - p1.y())
         distance_on_subline2 = closest_seg[0]
 
-        snap_points.append((start_vertex_nr, distance_on_subline,
-                            point_geom_on_line, point[point_feature_id_field]))
+        snap_points.append(
+            (
+                start_vertex_nr,
+                distance_on_subline,
+                point_geom_on_line,
+                point[point_feature_id_field],
+            )
+        )
 
     # order on vertex nr and if same vertex nr on distance
     snap_points.sort(key=lambda x: x[1])
@@ -111,13 +126,15 @@ def split_line_at_points(polyline_input, point_features,
             length = geom.length()
 
             # add line parts
-            line_parts.append({
-                'geom': geom.transform(transform_back),
-                'start_point_id': start_point_id,
-                'end_point_id': point[3],
-                'distance_at_line': total_line_distance,
-                'length': length
-            })
+            line_parts.append(
+                {
+                    "geom": geom.transform(transform_back),
+                    "start_point_id": start_point_id,
+                    "end_point_id": point[3],
+                    "distance_at_line": total_line_distance,
+                    "length": length,
+                }
+            )
             # create starting point of new line
             line_points = [point[2]]
             start_point_id = point[3]
@@ -130,13 +147,15 @@ def split_line_at_points(polyline_input, point_features,
     #     d.computeDistance(line_points),
     #     Qgis.Meters, Qgis.Meters, False)
 
-    line_parts.append({
-        'geom': geom,
-        'start_point_id': start_point_id,
-        'end_point_id': end_node_id,
-        'distance_at_line': total_line_distance,
-        'length': length
-    })
+    line_parts.append(
+        {
+            "geom": geom,
+            "start_point_id": start_point_id,
+            "end_point_id": end_node_id,
+            "distance_at_line": total_line_distance,
+            "length": length,
+        }
+    )
 
     return line_parts
 
@@ -146,8 +165,9 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
-        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip('WKB'),
-        str(source_provider.crs().postgisSrid()))
+        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip("WKB"),
+        str(source_provider.crs().postgisSrid()),
+    )
 
     dest_layer = QgsVectorLayer(uri, layer_name, "memory")
     dest_provider = dest_layer.dataProvider()

@@ -15,14 +15,13 @@ class CustomCommandBase(with_metaclass(abc.ABCMeta, object)):
         try:
             self.datasource = self.ts_datasource.rows[0]
         except IndexError:
-            pop_up_info("No datasource found. Aborting.", title='Error')
+            pop_up_info("No datasource found. Aborting.", title="Error")
             return
 
         # Current layer information
         self.layer = self.iface.mapCanvas().currentLayer()
         if not self.layer:
-            pop_up_info("No layer selected, things will not go well..",
-                        title='Error')
+            pop_up_info("No layer selected, things will not go well..", title="Error")
             return
 
     @abc.abstractmethod

@@ -4,8 +4,7 @@ import os.path
 import sys
 
 sys.path.insert(
-    0,
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'external')
+    0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "external")
 )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,33 +17,35 @@ Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
     def __repr__(self):
-        return "<User(name='%s')>" % (
-            self.name)
+        return "<User(name='%s')>" % (self.name)
 
 
 class GeoTable(Base):
-    __tablename__ = 'geotable'
+    __tablename__ = "geotable"
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    geom = Column(Geometry(
-        geometry_type='POINT',
-        srid=4326,
-        management=True,
-        spatial_index=True,
-        use_st_prefix=False))
+    geom = Column(
+        Geometry(
+            geometry_type="POINT",
+            srid=4326,
+            management=True,
+            spatial_index=True,
+            use_st_prefix=False,
+        )
+    )
 
     def __repr__(self):
-        return "<User(geom='%s')>" % (
-            self.geom)
+        return "<User(geom='%s')>" % (self.geom)
 
 
 def load_spatialite(con, connection_record):
     import sqlite3
+
     con.enable_load_extension(True)
     cur = con.cursor()
     libs = [
@@ -53,13 +54,12 @@ def load_spatialite(con, connection_record):
         # SpatiaLite >= 4.2 and Sqlite < 3.7.17 (Travis)
         ("mod_spatialite.so", "sqlite3_modspatialite_init"),
         # SpatiaLite < 4.2 (linux)
-        ("libspatialite.so", "sqlite3_extension_init")
+        ("libspatialite.so", "sqlite3_extension_init"),
     ]
     found = False
     for lib, entry_point in libs:
         try:
-            cur.execute(
-                "select load_extension('{}', '{}')".format(lib, entry_point))
+            cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
         except sqlite3.OperationalError:
             continue
         else:
@@ -72,14 +72,13 @@ def load_spatialite(con, connection_record):
 
 
 class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
-
     def setUp(self):
         self.tmp_directory = tempfile.mkdtemp()
-        self.file_path = os.path.join(self.tmp_directory, 'testdb.sqlite')
+        self.file_path = os.path.join(self.tmp_directory, "testdb.sqlite")
 
-        db = ThreediDatabase({'db_file': self.file_path,
-                              'db_path': self.file_path},
-                             echo=True)
+        db = ThreediDatabase(
+            {"db_file": self.file_path, "db_path": self.file_path}, echo=True
+        )
         db.create_db()
         self.engine = db.get_engine()
         self.session = db.get_session()
@@ -88,7 +87,7 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
         Base.metadata.create_all(self.engine)
 
     def test_insert_and_get_normal_table(self):
-        user = User(name='test')
+        user = User(name="test")
         self.session.add(user)
         self.session.commit()
 
@@ -96,10 +95,10 @@ class TestSpatialAlchemyWithSpatialite(unittest.TestCase):
         self.assertEqual(self.session.query(User).count(), 1)
         user = self.session.query(User).limit(1)[0]
 
-        self.assertEqual(user.name, 'test')
+        self.assertEqual(user.name, "test")
 
     def test_insert_and_get_geo_data(self):
-        geo_table = GeoTable(geom='srid=4326;POINT(1.01234567 4.01234567)')
+        geo_table = GeoTable(geom="srid=4326;POINT(1.01234567 4.01234567)")
         self.session.add(geo_table)
         self.session.commit()
 

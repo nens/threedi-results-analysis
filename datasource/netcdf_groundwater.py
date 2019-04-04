@@ -9,8 +9,12 @@ import h5py
 from .base import BaseDataSource
 from ..utils import cached_property
 from .netcdf import (
-    SUBGRID_MAP_VARIABLES, AGG_Q_TYPES, AGG_H_TYPES, Q_TYPES, H_TYPES,
-    find_h5_file
+    SUBGRID_MAP_VARIABLES,
+    AGG_Q_TYPES,
+    AGG_H_TYPES,
+    Q_TYPES,
+    H_TYPES,
+    find_h5_file,
 )
 from ..utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
@@ -25,31 +29,28 @@ log = logging.getLogger(__name__)
 
 layer_information = [
     # object_type, model_instance, model_instance_subset, qgis_layer_source
-    ('v2_connection_nodes', 'nodes', 'connectionnodes', 'schematized'),
-    ('v2_pipe_view', 'lines', 'pipes', 'schematized'),
-    ('v2_channel', 'lines', 'channels', 'schematized'),
-    ('v2_culvert_view', 'lines', 'culverts', 'schematized'),
-    ('v2_manhole_view', 'nodes', 'manholes', 'schematized'),
+    ("v2_connection_nodes", "nodes", "connectionnodes", "schematized"),
+    ("v2_pipe_view", "lines", "pipes", "schematized"),
+    ("v2_channel", "lines", "channels", "schematized"),
+    ("v2_culvert_view", "lines", "culverts", "schematized"),
+    ("v2_manhole_view", "nodes", "manholes", "schematized"),
     # Todo:
     # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
-    ('v2_pumpstation_view', 'pumps', 'pumps', 'schematized'),
-    ('v2_weir_view', 'lines', 'weirs', 'schematized'),
-    ('v2_orifice_view', 'lines', 'orifices', 'schematized'),
-    ('flowlines', 'lines', 'lines', 'result'),
-    ('nodes', 'nodes', 'nodes', 'result'),
-    ('pumplines', 'pumps', 'pumps', 'result'),
-    ('node_results', 'nodes', 'nodes', 'result'),
-    ('node_results_groundwater', 'nodes', 'nodes', 'result'),
-    ('line_results', 'lines', 'lines', 'result'),
-    ('line_results_groundwater', 'lines', 'lines', 'result')
-    ]
+    ("v2_pumpstation_view", "pumps", "pumps", "schematized"),
+    ("v2_weir_view", "lines", "weirs", "schematized"),
+    ("v2_orifice_view", "lines", "orifices", "schematized"),
+    ("flowlines", "lines", "lines", "result"),
+    ("nodes", "nodes", "nodes", "result"),
+    ("pumplines", "pumps", "pumps", "result"),
+    ("node_results", "nodes", "nodes", "result"),
+    ("node_results_groundwater", "nodes", "nodes", "result"),
+    ("line_results", "lines", "lines", "result"),
+    ("line_results_groundwater", "lines", "lines", "result"),
+]
 
-object_type_model_instance = dict(
-    [(a[0], a[1]) for a in layer_information])
-object_type_model_instance_subset = dict(
-    [(a[0], a[2]) for a in layer_information])
-object_type_layer_source = dict(
-    [(a[0], a[3]) for a in layer_information])
+object_type_model_instance = dict([(a[0], a[1]) for a in layer_information])
+object_type_model_instance_subset = dict([(a[0], a[2]) for a in layer_information])
+object_type_layer_source = dict([(a[0], a[3]) for a in layer_information])
 
 
 def find_aggregation_netcdf_gw(netcdf_file_path):
@@ -65,14 +66,14 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = 'aggregate_results_3di.nc'
+    pattern = "aggregate_results_3di.nc"
     result_dir = os.path.dirname(netcdf_file_path)
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
 class NetcdfGroundwaterDataSource(BaseDataSource):
-    PREFIX_1D = 'Mesh1D_'
-    PREFIX_2D = 'Mesh2D_'
+    PREFIX_1D = "Mesh1D_"
+    PREFIX_2D = "Mesh2D_"
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
     PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
 
@@ -87,7 +88,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     def ds(self):
         if self._ds is None:
             try:
-                self._ds = h5py.File(self.file_path, 'r')
+                self._ds = h5py.File(self.file_path, "r")
             except IOError as e:
                 log.error(e)
         return self._ds
@@ -95,19 +96,19 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     @property
     def nMesh2D_nodes(self):
         # return self.ds.dimensions['nMesh2D_nodes'].size
-        return self.ds.get('nMesh2D_nodes').size
+        return self.ds.get("nMesh2D_nodes").size
 
     @property
     def nMesh1D_nodes(self):
-        return self.ds.get('nMesh1D_nodes').size
+        return self.ds.get("nMesh1D_nodes").size
 
     @property
     def nMesh2D_lines(self):
-        return self.ds.get('nMesh2D_lines').size
+        return self.ds.get("nMesh2D_lines").size
 
     @property
     def nMesh1D_lines(self):
-        return self.ds.get('nMesh1D_lines').size
+        return self.ds.get("nMesh1D_lines").size
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -124,9 +125,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         'iets_anders'
         """
         if var_name.startswith(self.PREFIX_1D):
-            return var_name[self.PREFIX_1D_LENGTH:]
+            return var_name[self.PREFIX_1D_LENGTH :]
         elif var_name.startswith(self.PREFIX_2D):
-            return var_name[self.PREFIX_2D_LENGTH:]
+            return var_name[self.PREFIX_2D_LENGTH :]
         else:
             return var_name
 
@@ -136,13 +137,15 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         if self.gridadmin_result.has_pumpstations:
             available_vars = (
-                self.gridadmin_result.nodes._field_names |
-                self.gridadmin_result.lines._field_names |
-                self.gridadmin_result.pumps._field_names)
+                self.gridadmin_result.nodes._field_names
+                | self.gridadmin_result.lines._field_names
+                | self.gridadmin_result.pumps._field_names
+            )
         else:
             available_vars = (
-                self.gridadmin_result.nodes._field_names |
-                self.gridadmin_result.lines._field_names)
+                self.gridadmin_result.nodes._field_names
+                | self.gridadmin_result.lines._field_names
+            )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
         return list(available_known_vars)
@@ -155,45 +158,49 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # hardcoded whitelist
         if agg.has_pumpstations:
             known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys()) +
-                list(agg.lines.Meta.subset_fields.keys()) +
-                list(agg.nodes.Meta.composite_fields.keys()) +
-                list(agg.nodes.Meta.subset_fields.keys()) +
-                list(agg.pumps.Meta.composite_fields.keys())
+                list(agg.lines.Meta.composite_fields.keys())
+                + list(agg.lines.Meta.subset_fields.keys())
+                + list(agg.nodes.Meta.composite_fields.keys())
+                + list(agg.nodes.Meta.subset_fields.keys())
+                + list(agg.pumps.Meta.composite_fields.keys())
             )
 
             # all available fields, including hdf5 fields
             available_vars = (
-                    agg.nodes._field_names | agg.lines._field_names |
-                    agg.pumps._field_names
+                agg.nodes._field_names | agg.lines._field_names | agg.pumps._field_names
             )
         else:
             known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys()) +
-                list(agg.lines.Meta.subset_fields.keys()) +
-                list(agg.nodes.Meta.composite_fields.keys()) +
-                list(agg.nodes.Meta.subset_fields.keys())
+                list(agg.lines.Meta.composite_fields.keys())
+                + list(agg.lines.Meta.subset_fields.keys())
+                + list(agg.nodes.Meta.composite_fields.keys())
+                + list(agg.nodes.Meta.subset_fields.keys())
             )
 
             # all available fields, including hdf5 fields
-            available_vars = (agg.nodes._field_names | agg.lines._field_names)
+            available_vars = agg.nodes._field_names | agg.lines._field_names
 
         available_known_vars = available_vars & known_vars
         return list(available_known_vars)
 
     def get_available_variables(self):
         # This method is used by the water balance plugin (DeltaresTdiToolbox)
-        return (
-            self.available_subgrid_map_vars + self.available_aggregation_vars
-        )
+        return self.available_subgrid_map_vars + self.available_aggregation_vars
 
     @cached_property
     def timestamps(self):
         return self.get_timestamps()
 
     def _get_timeseries_schematisation_layer(
-            self, gridadmin_result, object_type, object_id, nc_variable,
-            timeseries=None, only=None, data=None):
+        self,
+        gridadmin_result,
+        object_type,
+        object_id,
+        nc_variable,
+        timeseries=None,
+        only=None,
+        data=None,
+    ):
         """
         -   this function retireves a timeserie when user select a
             schematization layer and e.g. 'adds' it to the graph.
@@ -213,7 +220,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         # gr.nodes / gr.lines / gr.pumps
         gr_model_instance = getattr(gridadmin_result, model_instance)
 
-        if model_instance in ['nodes', 'lines']:
+        if model_instance in ["nodes", "lines"]:
             # one example for v2_connection_nodes =
             # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None)).vol
@@ -222,13 +229,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             #   indexes=slice(None)).au
 
             # e.g. gr.nodes.connectionnodes
-            gr_model_instance_subset = getattr(
-                gr_model_instance, model_instance_subset)
+            gr_model_instance_subset = getattr(gr_model_instance, model_instance_subset)
             # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None))
-            filter_timeseries = \
-                gr_model_instance_subset.filter(
-                    content_pk=object_id).timeseries(indexes=slice(None))
+            filter_timeseries = gr_model_instance_subset.filter(
+                content_pk=object_id
+            ).timeseries(indexes=slice(None))
             # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
             #   indexes=slice(None)).vol
             filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
@@ -237,18 +243,21 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             pick_only_first_of_element = 0
             vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
             return vals
-        elif model_instance == 'pumps':
+        elif model_instance == "pumps":
             # TODO
             # filtering on id still needs to be implemented in threedigrid
             # prepare. For now, users need to use pumplines qgisvectorlayer
-            msg = "v2_pumpstation_view results are not implemented yet. Use " \
-                  "the 'pumplines' layer to get your results"
-            messagebar_message('Warning', msg, level=1, duration=6)
+            msg = (
+                "v2_pumpstation_view results are not implemented yet. Use "
+                "the 'pumplines' layer to get your results"
+            )
+            messagebar_message("Warning", msg, level=1, duration=6)
         else:
-            raise ValueError('object_type not available')
+            raise ValueError("object_type not available")
 
     def _get_timeseries_result_layer(
-            self, gridadmin_result, object_type, object_id, nc_variable):
+        self, gridadmin_result, object_type, object_id, nc_variable
+    ):
         """
         -   this function retireves a timeserie when user select a
             result layer and e.g. 'adds' it to the graph
@@ -265,16 +274,16 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         gr_model_instance = getattr(gridadmin_result, model_instance)
 
         # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        filter_timeseries = gr_model_instance.filter(
-            id=object_id).timeseries(indexes=slice(None))
+        filter_timeseries = gr_model_instance.filter(id=object_id).timeseries(
+            indexes=slice(None)
+        )
         # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
         filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
         # flatten numpyarray
         vals = filter_timeseries_ncvar.flatten()
         return vals
 
-    def get_timeseries(
-            self, object_type, object_id, nc_variable, fill_value=None):
+    def get_timeseries(self, object_type, object_id, nc_variable, fill_value=None):
 
         if nc_variable in self.available_subgrid_map_vars:
             gr = self.gridadmin_result
@@ -286,12 +295,14 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             log.error("Unsupported variable %s", nc_variable)
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
-        if object_type_layer_source[object_type] == 'result':
+        if object_type_layer_source[object_type] == "result":
             values = self._get_timeseries_result_layer(
-                gr, object_type, object_id, nc_variable)
-        elif object_type_layer_source[object_type] == 'schematized':
+                gr, object_type, object_id, nc_variable
+            )
+        elif object_type_layer_source[object_type] == "schematized":
             values = self._get_timeseries_schematisation_layer(
-                gr, object_type, object_id, nc_variable)
+                gr, object_type, object_id, nc_variable
+            )
 
         # Zip timeseries together in (n,2) array
         if fill_value is not None:
@@ -308,17 +319,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     def get_timestamps(self, object_type=None, parameter=None):
         # TODO: use cached property to limit file access
         if parameter is None:
-            return self.ds.get('time')[:]
+            return self.ds.get("time")[:]
         elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.ds.get('time')[:]
+            return self.ds.get("time")[:]
         else:
             # determine the grid type from the parameter alone
-            if parameter.startswith('q_pump'):
-                object_type = 'pumplines'
+            if parameter.startswith("q_pump"):
+                object_type = "pumplines"
             elif parameter in AGG_Q_TYPES:
-                object_type = 'flowlines'
+                object_type = "flowlines"
             elif parameter in AGG_H_TYPES:
-                object_type = 'nodes'
+                object_type = "nodes"
             else:
                 raise ValueError(parameter)
             grid_type = object_type_model_instance[object_type]
@@ -327,9 +338,11 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     # used in map_animator
     def get_values_by_timestep_nr(
-            self, variable, timestamp_idx, index=None, use_cache=True):
+        self, variable, timestamp_idx, index=None, use_cache=True
+    ):
         return self.temp_get_values_by_timestep_nr_impl(
-            variable, timestamp_idx, index, use_cache)
+            variable, timestamp_idx, index, use_cache
+        )
 
     def _nc_from_mem(self, ds, variable, use_cache=True):
         """Get netcdf data from memory if needed."""
@@ -347,7 +360,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return data
 
     def temp_get_values_by_timestep_nr_impl(
-            self, variable, timestamp_idx, index=None, use_cache=True):
+        self, variable, timestamp_idx, index=None, use_cache=True
+    ):
         var_2d = self.PREFIX_2D + variable
         var_1d = self.PREFIX_1D + variable
 
@@ -369,13 +383,13 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             fill_value = fill_value_1d
 
         if var_2d in ds.keys() and var_1d in ds.keys():
-            assert fill_value_1d == fill_value_2d, \
-                "Difference in fill value, can't consolidate"
+            assert (
+                fill_value_1d == fill_value_2d
+            ), "Difference in fill value, can't consolidate"
 
         if index is None:
-            if variable.startswith('q_pump'):
-                return self._nc_from_mem(
-                    ds, var_1d, use_cache)[timestamp_idx, :]
+            if variable.startswith("q_pump"):
+                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
             elif variable in ALL_Q_TYPES:
                 n2d = self.nMesh2D_lines
                 n1d = self.nMesh1D_lines
@@ -387,20 +401,16 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
             # Note: it's possible to only have 2D or 1D
             if var_2d in ds.keys():
-                a2d = self._nc_from_mem(
-                    ds, var_2d, use_cache)[timestamp_idx, :]
+                a2d = self._nc_from_mem(ds, var_2d, use_cache)[timestamp_idx, :]
             else:
                 a2d = np.ma.masked_all(n2d)
 
             if var_1d in ds.keys():
-                a1d = self._nc_from_mem(
-                    ds, var_1d, use_cache)[timestamp_idx, :]
+                a1d = self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
             else:
                 a1d = np.ma.masked_all(n1d)
 
-            assert (
-                var_2d in ds.keys() or var_1d in
-                ds.keys()), "No 2D and 1D?"
+            assert var_2d in ds.keys() or var_1d in ds.keys(), "No 2D and 1D?"
 
             # Note: order is: 2D, then 1D
             res = np.ma.hstack([a2d, a1d])
@@ -412,9 +422,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
             # hacky object_type checking mechanism, sinds we don't have
             # that information readily available
-            if variable.startswith('q_pump'):
-                return self._nc_from_mem(
-                    ds, var_1d, use_cache)[timestamp_idx, index]
+            if variable.startswith("q_pump"):
+                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, index]
             elif variable in ALL_Q_TYPES:
                 threshold = self.nMesh2D_lines
             elif variable in ALL_H_TYPES:
@@ -433,11 +442,13 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # works, but on a netCDF Variable it doesn't. Therefore we must
             # explicitly check if the list is empty.
             if iarr_2d.size > 0:
-                res[idx_2d] = self._nc_from_mem(
-                    ds, var_2d, use_cache)[timestamp_idx, iarr_2d]
+                res[idx_2d] = self._nc_from_mem(ds, var_2d, use_cache)[
+                    timestamp_idx, iarr_2d
+                ]
             if iarr_1d.size > 0:
-                res[idx_1d] = self._nc_from_mem(
-                    ds, var_1d, use_cache)[timestamp_idx, iarr_1d]
+                res[idx_1d] = self._nc_from_mem(ds, var_1d, use_cache)[
+                    timestamp_idx, iarr_1d
+                ]
         # note: res is a masked array
         return res
 
@@ -474,11 +485,10 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         # Load aggregation netcdf
         try:
-            aggregation_netcdf_file = find_aggregation_netcdf_gw(
-                self.file_path)
+            aggregation_netcdf_file = find_aggregation_netcdf_gw(self.file_path)
         except IndexError:
             log.error("Could not find the aggregation netcdf.")
             return None
         else:
             log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)  # noqa
-            return h5py.File(aggregation_netcdf_file, mode='r')
+            return h5py.File(aggregation_netcdf_file, mode="r")

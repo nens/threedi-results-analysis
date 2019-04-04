@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from future import standard_library
+
 standard_library.install_aliases()  # noqa
 from builtins import str
 import logging
@@ -15,17 +16,21 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.PyQt import uic
 
-from ..datasource.netcdf import (find_id_mapping_file,
-                                 find_h5_file,
-                                 layer_qh_type_mapping,
-                                 detect_netcdf_version)
+from ..datasource.netcdf import (
+    find_id_mapping_file,
+    find_h5_file,
+    layer_qh_type_mapping,
+    detect_netcdf_version,
+)
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui',
-    'threedi_result_selection_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(
+        os.path.dirname(__file__), os.pardir, "ui", "threedi_result_selection_dialog.ui"
+    )
+)
 
 log = logging.getLogger(__name__)
 
@@ -34,10 +39,10 @@ def _reshape_scenario_results(results):
     MEBIBYTE = 1048576
     return [
         {
-            'name': r['name'],
-            'url': r['url'],
-            'size_mebibytes': round(r['total_size'] / MEBIBYTE, 1),
-            'results': r['result_set'],
+            "name": r["name"],
+            "url": r["url"],
+            "size_mebibytes": round(r["total_size"] / MEBIBYTE, 1),
+            "results": r["result_set"],
         }
         for r in results
     ]
@@ -49,8 +54,7 @@ class ResultsWorker(QThread):
     output = pyqtSignal(object)
     connection_failure = pyqtSignal(int, str)
 
-    def __init__(
-            self, parent=None, endpoint=None, username=None, password=None):
+    def __init__(self, parent=None, endpoint=None, username=None, password=None):
         self.endpoint = endpoint
         self.username = username
         self.password = password
@@ -72,8 +76,10 @@ class ResultsWorker(QThread):
                 log.debug("ResultsWorker - got new data")
                 self.output.emit(items)
         except HTTPError as e:
-            message = "Something went wrong trying to connect to {0}. {1}: " \
-                      "{2}".format(e.url, e.code, e.reason)
+            message = (
+                "Something went wrong trying to connect to {0}. {1}: "
+                "{2}".format(e.url, e.code, e.reason)
+            )
             log.info(message)
             self.connection_failure.emit(e.code, e.reason)
 
@@ -86,11 +92,17 @@ class ResultsWorker(QThread):
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
     """Dialog for selecting model (spatialite and result files netCDFs)"""
+
     closingDialog = pyqtSignal()
 
     def __init__(
-            self, parent=None, iface=None, ts_datasource=None,
-            download_result_model=None, parent_class=None):
+        self,
+        parent=None,
+        iface=None,
+        ts_datasource=None,
+        download_result_model=None,
+        parent_class=None,
+    ):
         """Constructor
 
         :parent: Qt parent Widget
@@ -122,45 +134,48 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.download_proxy_model.setSourceModel(download_result_model)
         self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filterLineEdit.textChanged.connect(
-            self.download_proxy_model.setFilterFixedString)
+            self.download_proxy_model.setFilterFixedString
+        )
         self.downloadResultTableView.setModel(self.download_proxy_model)
 
         self.toggle_login_interface()
 
         # connect signals
-        self.selectTsDatasourceButton.clicked.connect(
-            self.select_ts_datasource)
+        self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(
-            self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.connect(
-            self.select_model_spatialite_file)
+            self.select_model_spatialite_file
+        )
         self.loginButton.clicked.connect(self.on_login_button_clicked)
 
         # set combobox list
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
 
-        if self.ts_datasource.model_spatialite_filepath and \
-                self.ts_datasource.model_spatialite_filepath not in combo_list:
+        if (
+            self.ts_datasource.model_spatialite_filepath
+            and self.ts_datasource.model_spatialite_filepath not in combo_list
+        ):
             combo_list.append(self.ts_datasource.model_spatialite_filepath)
 
         if not self.ts_datasource.model_spatialite_filepath:
-            combo_list.append('')
+            combo_list.append("")
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
         if self.ts_datasource.model_spatialite_filepath:
             current_index = self.modelSpatialiteComboBox.findText(
-                self.ts_datasource.model_spatialite_filepath)
+                self.ts_datasource.model_spatialite_filepath
+            )
 
-            self.modelSpatialiteComboBox.setCurrentIndex(
-                current_index)
+            self.modelSpatialiteComboBox.setCurrentIndex(current_index)
         else:
-            current_index = self.modelSpatialiteComboBox.findText('')
+            current_index = self.modelSpatialiteComboBox.findText("")
             self.modelSpatialiteComboBox.setCurrentIndex(current_index)
 
         self.modelSpatialiteComboBox.currentIndexChanged.connect(
-            self.model_spatialite_change)
+            self.model_spatialite_change
+        )
 
         self.thread = None
 
@@ -168,13 +183,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
         Clean object on close
         """
-        self.selectTsDatasourceButton.clicked.disconnect(
-            self.select_ts_datasource)
+        self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(
-            self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_ds)
         self.selectModelSpatialiteButton.clicked.disconnect(
-            self.select_model_spatialite_file)
+            self.select_model_spatialite_file
+        )
         self.loginButton.clicked.disconnect(self.on_login_button_clicked)
 
         # stop the thread when we close the widget
@@ -203,18 +217,19 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :return: boolean, if file is selected
         """
 
-        settings = QSettings('3di', 'qgisplugin')
+        settings = QSettings("3di", "qgisplugin")
 
         try:
-            init_path = settings.value('last_used_datasource_path', type=str)
+            init_path = settings.value("last_used_datasource_path", type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(
             self,
-            'Open resultaten file',
+            "Open resultaten file",
             init_path,
-            'NetCDF (subgrid_map.nc results_3di.nc)')
+            "NetCDF (subgrid_map.nc results_3di.nc)",
+        )
 
         if filename:
             # Little test for checking if there is an id mapping file available
@@ -223,41 +238,48 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
             ds_type = detect_netcdf_version(filename)
 
-            if ds_type == 'netcdf-groundwater':
+            if ds_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
                 except IndexError:
-                    pop_up_info("You selected a netcdf that was created "
-                                "(after May 2018) with a 3Di calculation"
-                                "core that is able to include groundwater"
-                                " calculations. The ThreeDiToolbox reads "
-                                "this netcdf together with an .h5 file, we "
-                                "could however not find this .h5 file. Please "
-                                "add this file next to the netcdf and try "
-                                "again", title='Error')
+                    pop_up_info(
+                        "You selected a netcdf that was created "
+                        "(after May 2018) with a 3Di calculation"
+                        "core that is able to include groundwater"
+                        " calculations. The ThreeDiToolbox reads "
+                        "this netcdf together with an .h5 file, we "
+                        "could however not find this .h5 file. Please "
+                        "add this file next to the netcdf and try "
+                        "again",
+                        title="Error",
+                    )
                     return False
-            elif ds_type == 'netcdf':
+            elif ds_type == "netcdf":
                 try:
                     find_id_mapping_file(filename)
                 except IndexError:
-                    pop_up_info("You selected a netcdf that was created "
-                                "(before June 2018) with a 3Di calculation "
-                                "core that is not able to include groundwater "
-                                "calculations. The ThreeDiToolbox reads this "
-                                "netcdf together with an id_mapping file, "
-                                "we could however not find this id_mapping "
-                                "file. Please add this file next to the "
-                                "netcdf and try again", title='Error')
+                    pop_up_info(
+                        "You selected a netcdf that was created "
+                        "(before June 2018) with a 3Di calculation "
+                        "core that is not able to include groundwater "
+                        "calculations. The ThreeDiToolbox reads this "
+                        "netcdf together with an id_mapping file, "
+                        "we could however not find this id_mapping "
+                        "file. Please add this file next to the "
+                        "netcdf and try again",
+                        title="Error",
+                    )
                     return False
 
-            items = [{
-                'type': ds_type,
-                'name': os.path.basename(filename).lower().rstrip('.nc'),
-                'file_path': filename
-            }]
+            items = [
+                {
+                    "type": ds_type,
+                    "name": os.path.basename(filename).lower().rstrip(".nc"),
+                    "file_path": filename,
+                }
+            ]
             self.ts_datasource.insertRows(items)
-            settings.setValue('last_used_datasource_path',
-                              os.path.dirname(filename))
+            settings.setValue("last_used_datasource_path", os.path.dirname(filename))
             return True
         return False
 
@@ -268,8 +290,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         selection_model = self.resultTableView.selectionModel()
         # get unique rows in selected fields
-        rows = set([index.row()
-                    for index in selection_model.selectedIndexes()])
+        rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
             self.ts_datasource.removeRows(row, 1)
 
@@ -281,8 +302,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         tdi_spatialites = []
         for layer in self.iface.layerTreeView().selectedLayers():
-            if layer.name() in list(layer_qh_type_mapping.keys()) and \
-                    layer.dataProvider().name() == 'spatialite':
+            if (
+                layer.name() in list(layer_qh_type_mapping.keys())
+                and layer.dataProvider().name() == "spatialite"
+            ):
                 source = layer.dataProvider().dataSourceUri().split("'")[1]
                 if source not in tdi_spatialites:
                     tdi_spatialites.append(source)
@@ -296,8 +319,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :param nr: integer, nr of item selected in combobox
         """
 
-        self.ts_datasource.model_spatialite_filepath = \
+        self.ts_datasource.model_spatialite_filepath = (
             self.modelSpatialiteComboBox.currentText()
+        )
         # Just emitting some dummy model indices cuz what else can we do, there
         # is no corresponding rows/columns that's been changed
         self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
@@ -308,18 +332,16 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :return: Boolean, if file is selected
         """
 
-        settings = QSettings('3di', 'qgisplugin')
+        settings = QSettings("3di", "qgisplugin")
 
         try:
-            init_path = settings.value('last_used_spatialite_path', type=str)
+            init_path = settings.value("last_used_spatialite_path", type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(
-            self,
-            'Open 3Di model spatialite file',
-            init_path,
-            'Spatialite (*.sqlite)')
+            self, "Open 3Di model spatialite file", init_path, "Spatialite (*.sqlite)"
+        )
 
         if filename == "":
             return False
@@ -333,8 +355,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
 
-        settings.setValue('last_used_spatialite_path',
-                          os.path.dirname(filename))
+        settings.setValue("last_used_spatialite_path", os.path.dirname(filename))
         return True
 
     def on_login_button_clicked(self):
@@ -371,15 +392,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         username = self.login_dialog.user_name_input.text()
         password = self.login_dialog.user_password_input.text()
 
-        if username == '' or password == '':
+        if username == "" or password == "":
             pop_up_info("Username or password cannot be empty.")
             return
 
         try:
             scenarios_endpoint = Endpoint(
-                username=username,
-                password=password,
-                endpoint='scenarios',
+                username=username, password=password, endpoint="scenarios"
             )
             endpoint = scenarios_endpoint.download_paginated(page_size=10)
         except HTTPError as e:
@@ -396,9 +415,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
             # start thread
             self.thread = ResultsWorker(
-                endpoint=endpoint, username=username, password=password)
-            self.thread.connection_failure.connect(
-                self.handle_connection_failure)
+                endpoint=endpoint, username=username, password=password
+            )
+            self.thread.connection_failure.connect(self.handle_connection_failure)
             self.thread.output.connect(self.update_download_result_model)
             self.thread.start()
 
@@ -409,8 +428,10 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.download_result_model.insertRows(items)
 
     def handle_connection_failure(self, status, reason):
-        pop_up_info("Something went wrong trying to connect to "
-                    "lizard: {0} {1}".format(status, reason))
+        pop_up_info(
+            "Something went wrong trying to connect to "
+            "lizard: {0} {1}".format(status, reason)
+        )
         self.handle_log_out()
 
     @property

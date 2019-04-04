@@ -14,13 +14,13 @@
 
 """
 
-__author__ = 'tim@linfiniti.com'
-__revision__ = '$Format:%H$'
-__date__ = '10/01/2011'
+__author__ = "tim@linfiniti.com"
+__revision__ = "$Format:%H$"
+__date__ = "10/01/2011"
 __copyright__ = (
-    'Copyright (c) 2010 by Ivan Mincik, ivan.mincik@gista.sk and '
-    'Copyright (c) 2011 German Carrillo, geotux_tuxman@linuxmail.org'
-    'Copyright (c) 2014 Tim Sutton, tim@linfiniti.com'
+    "Copyright (c) 2010 by Ivan Mincik, ivan.mincik@gista.sk and "
+    "Copyright (c) 2011 German Carrillo, geotux_tuxman@linuxmail.org"
+    "Copyright (c) 2014 Tim Sutton, tim@linfiniti.com"
 )
 
 import logging
@@ -32,19 +32,20 @@ from qgis.core import QgsProject
 from qgis.gui import QgsMapCanvasLayer
 
 
-LOGGER = logging.getLogger('QGIS')
+LOGGER = logging.getLogger("QGIS")
 
 
-if 'linux' in sys.platform:
-    prefix_path = u'/usr'
+if "linux" in sys.platform:
+    prefix_path = u"/usr"
 else:
-    prefix_path = 'c:/Users/basti/.qgis'
+    prefix_path = "c:/Users/basti/.qgis"
 
-qgis = QgsApplication.setPrefixPath(u'/usr', True)  # linux
+qgis = QgsApplication.setPrefixPath(u"/usr", True)  # linux
 qgis = QgsApplication([], True)
 qgis.initQgis()
 
 import atexit
+
 atexit.register(qgis.exitQgis)
 
 
@@ -55,6 +56,7 @@ class QgisInterface(QObject):
     This class is here for enabling us to run unit tests only,
     so most methods are simply stubs.
     """
+
     currentLayerChanged = pyqtSignal(QgsMapCanvasLayer)
 
     def __init__(self, canvas):
@@ -65,7 +67,7 @@ class QgisInterface(QObject):
         self.canvas = canvas
         # Set up slots so we can mimic the behaviour of QGIS when layers
         # are added.
-        LOGGER.debug('Initialising canvas...')
+        LOGGER.debug("Initialising canvas...")
         # noinspection PyArgumentList
         QgsProject.instance().layersAdded.connect(self.addLayers)
         # noinspection PyArgumentList
@@ -76,7 +78,7 @@ class QgisInterface(QObject):
         # For processing module
         self.destCrs = None
 
-    @pyqtSlot('QStringList')
+    @pyqtSlot("QStringList")
     def addLayers(self, layers):
         """Handle layers being added to the registry so they show up in canvas.
 
@@ -98,7 +100,7 @@ class QgisInterface(QObject):
         self.canvas.setLayerSet(final_layers)
         # LOGGER.debug('Layer Count After: %s' % len(self.canvas.layers()))
 
-    @pyqtSlot('QgsMapLayer')
+    @pyqtSlot("QgsMapLayer")
     def addLayer(self, layer):
         """Handle a layer being added to the registry so it shows up in canvas.
 

@@ -6,8 +6,7 @@ from random import randint
 
 import numpy as np
 from ThreeDiToolbox.models.base import BaseModel
-from ThreeDiToolbox.models.base_fields import ValueField, \
-    ColorField, CheckboxField
+from ThreeDiToolbox.models.base_fields import ValueField, ColorField, CheckboxField
 
 COLOR_LIST = [
     (34, 34, 34),
@@ -30,14 +29,13 @@ COLOR_LIST = [
     (141, 182, 0),
     (101, 69, 34),
     (226, 88, 34),
-    (43, 61, 38)
+    (43, 61, 38),
 ]
 
 EMPTY_TIMESERIES = np.array([], dtype=float)
 
 
 class ValueWithChangeSignal(object):
-
     def __init__(self, signal_name, signal_setting_name, init_value=None):
         self.signal_name = signal_name
         self.signal_setting_name = signal_setting_name
@@ -48,8 +46,7 @@ class ValueWithChangeSignal(object):
 
     def __set__(self, instance, value):
         self.value = value
-        getattr(instance, self.signal_name).emit(
-            self.signal_setting_name, value)
+        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
 def select_default_color(item_field):
@@ -78,29 +75,28 @@ class WaterbalanceItemModel(BaseModel):
 
     ts = np.array([0])
 
-    aggregation = ValueWithChangeSignal(
-        'agg_change', 'aggregation', 'm3/s')
-    split_meth0d = ValueWithChangeSignal(
-        'split_change', 'split_method', 'defined')
+    aggregation = ValueWithChangeSignal("agg_change", "aggregation", "m3/s")
+    split_meth0d = ValueWithChangeSignal("split_change", "split_method", "defined")
 
     class Fields(object):
         """Fields and functions of ModelItem"""
 
-        active = CheckboxField(show=True,
-                               default_value=True,
-                               column_width=20,
-                               column_name='')
-        fill_color = ColorField(show=False,
-                                column_width=30,
-                                column_name='',
-                                default_value=select_default_color)
-        pen_color = ColorField(show=True,
-                               column_width=30,
-                               column_name='',
-                               default_value=select_default_color)
-        name = ValueField(show=True,
-                          column_width=210,
-                          column_name='name')
+        active = CheckboxField(
+            show=True, default_value=True, column_width=20, column_name=""
+        )
+        fill_color = ColorField(
+            show=False,
+            column_width=30,
+            column_name="",
+            default_value=select_default_color,
+        )
+        pen_color = ColorField(
+            show=True,
+            column_width=30,
+            column_name="",
+            default_value=select_default_color,
+        )
+        name = ValueField(show=True, column_width=210, column_name="name")
         hover = ValueField(show=False, default_value=False)
         layer_in_table = ValueField(show=False, default_value=False)
         order = ValueField(show=False)

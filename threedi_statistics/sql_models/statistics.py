@@ -1,7 +1,6 @@
 import logging
 
-from sqlalchemy import (
-    Boolean, Column, Integer, String, Float, ForeignKey)
+from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from geoalchemy2.types import Geometry
@@ -10,21 +9,21 @@ logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 
-def prettify(value, postfix, value_format='%0.2f'):
+def prettify(value, postfix, value_format="%0.2f"):
     """
     return prettified string of given value
     value may be None
     postfix can be used for unit for example
     """
     if value is None:
-        value_str = '--'
+        value_str = "--"
     else:
         value_str = value_format % value
-    return '%s %s' % (value_str, postfix)
+    return "%s %s" % (value_str, postfix)
 
 
 class Flowline(Base):
-    __tablename__ = 'flowlines'
+    __tablename__ = "flowlines"
     extend_existing = True
 
     id = Column(Integer, primary_key=True)
@@ -33,32 +32,29 @@ class Flowline(Base):
     type = Column(String(25))
     start_node_idx = Column(Integer, nullable=False)
     end_node_idx = Column(Integer, nullable=False)
-    the_geom = Column(Geometry(geometry_type='LINESTRING',
-                               srid=4326,
-                               spatial_index=True,
-                               management=True,
-                               use_st_prefix=False),
-                      nullable=False)
+    the_geom = Column(
+        Geometry(
+            geometry_type="LINESTRING",
+            srid=4326,
+            spatial_index=True,
+            management=True,
+            use_st_prefix=False,
+        ),
+        nullable=False,
+    )
 
-    stats = relationship("FlowlineStats",
-                         uselist=False,
-                         back_populates="flowline")
+    stats = relationship("FlowlineStats", uselist=False, back_populates="flowline")
 
-    pipe_stats = relationship("PipeStats",
-                              uselist=False,
-                              back_populates="flowline")
+    pipe_stats = relationship("PipeStats", uselist=False, back_populates="flowline")
 
-    weir_stats = relationship("WeirStats",
-                              uselist=False,
-                              back_populates="flowline")
+    weir_stats = relationship("WeirStats", uselist=False, back_populates="flowline")
 
     def __str__(self):
-        return u'Flowline {0} - {1}'.format(
-            self.type, self.id)
+        return u"Flowline {0} - {1}".format(self.type, self.id)
 
 
 class PipeStats(Base):
-    __tablename__ = 'pipe_stats'
+    __tablename__ = "pipe_stats"
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(
@@ -66,11 +62,10 @@ class PipeStats(Base):
         ForeignKey(Flowline.__tablename__ + ".id"),
         primary_key=True,
         nullable=False,
-        unique=True)
+        unique=True,
+    )
 
-    flowline = relationship(Flowline,
-                            foreign_keys=id,
-                            back_populates="pipe_stats")
+    flowline = relationship(Flowline, foreign_keys=id, back_populates="pipe_stats")
 
     code = Column(String(25))
     display_name = Column(String(128))
@@ -85,12 +80,11 @@ class PipeStats(Base):
     end_filling = Column(Float)
 
     def __str__(self):
-        return u'PipeStats {0} - {1}'.format(
-            self.code, self.display_name)
+        return u"PipeStats {0} - {1}".format(self.code, self.display_name)
 
 
 class WeirStats(Base):
-    __tablename__ = 'weir_stats'
+    __tablename__ = "weir_stats"
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
     id = Column(
@@ -98,11 +92,10 @@ class WeirStats(Base):
         ForeignKey(Flowline.__tablename__ + ".id"),
         primary_key=True,
         nullable=False,
-        unique=True)
+        unique=True,
+    )
 
-    flowline = relationship(Flowline,
-                            foreign_keys=id,
-                            back_populates="weir_stats")
+    flowline = relationship(Flowline, foreign_keys=id, back_populates="weir_stats")
 
     code = Column(String(25))
     display_name = Column(String(128))
@@ -116,23 +109,21 @@ class WeirStats(Base):
     max_overfall_height = Column(Float)
 
     def __str__(self):
-        return u'WeirStats {0} - {1}'.format(
-            self.code, self.display_name)
+        return u"WeirStats {0} - {1}".format(self.code, self.display_name)
 
 
 class FlowlineStats(Base):
-    __tablename__ = 'flowline_stats'
+    __tablename__ = "flowline_stats"
 
     id = Column(
         Integer,
         ForeignKey(Flowline.__tablename__ + ".id"),
         primary_key=True,
         nullable=False,
-        unique=True)
+        unique=True,
+    )
 
-    flowline = relationship(Flowline,
-                            foreign_keys=id,
-                            back_populates="stats")
+    flowline = relationship(Flowline, foreign_keys=id, back_populates="stats")
 
     abs_length = Column(Float)
 
@@ -149,14 +140,12 @@ class FlowlineStats(Base):
     end_waterlevel_start = Column(Float)
     end_waterlevel_end = Column(Float)
 
-
     def __str__(self):
-        return u'FlowLineStats {0}'.format(
-            self.id)
+        return u"FlowLineStats {0}".format(self.id)
 
 
 class Node(Base):
-    __tablename__ = 'nodes'
+    __tablename__ = "nodes"
     extend_existing = True
 
     id = Column(Integer, primary_key=True)
@@ -164,34 +153,34 @@ class Node(Base):
     spatialite_id = Column(Integer)
     featuretype = Column(String(25))
     type = Column(String(25))
-    the_geom = Column(Geometry(geometry_type='POINT',
-                               srid=4326,
-                               spatial_index=True,
-                               management=True,
-                               use_st_prefix=False),
-                      nullable=False)
+    the_geom = Column(
+        Geometry(
+            geometry_type="POINT",
+            srid=4326,
+            spatial_index=True,
+            management=True,
+            use_st_prefix=False,
+        ),
+        nullable=False,
+    )
 
-    manhole_stats = relationship("ManholeStats",
-                                 uselist=False,
-                                 back_populates="node")
+    manhole_stats = relationship("ManholeStats", uselist=False, back_populates="node")
 
     def __str__(self):
-        return u'Node {0} - {1}'.format(
-            self.type, self.id)
+        return u"Node {0} - {1}".format(self.type, self.id)
 
 
 class ManholeStats(Base):
-    __tablename__ = 'manhole_stats'
+    __tablename__ = "manhole_stats"
 
     id = Column(
         Integer,
         ForeignKey(Node.__tablename__ + ".id"),
         primary_key=True,
         nullable=False,
-        unique=True)
-    node = relationship(Node,
-                        foreign_keys=id,
-                        back_populates="manhole_stats")
+        unique=True,
+    )
+    node = relationship(Node, foreign_keys=id, back_populates="manhole_stats")
 
     code = Column(String(25))
     display_name = Column(String(128))
@@ -209,47 +198,46 @@ class ManholeStats(Base):
     max_filling = Column(Float)
 
     def __str__(self):
-        return u'PipeStats {0} - {1}'.format(
-            self.code, self.display_name)
+        return u"PipeStats {0} - {1}".format(self.code, self.display_name)
 
 
 class Pumpline(Base):
-    __tablename__ = 'pumplines'
+    __tablename__ = "pumplines"
     id = Column(Integer, primary_key=True)
     node_idx1 = Column(Integer, nullable=False)
     node_idx2 = Column(Integer, nullable=True)
 
     the_geom = Column(
         Geometry(
-            geometry_type='LINESTRING',
+            geometry_type="LINESTRING",
             srid=4326,
             spatial_index=True,
             management=True,
-            use_st_prefix=False),
-        nullable=False)
+            use_st_prefix=False,
+        ),
+        nullable=False,
+    )
 
-    pumpline_stats = relationship("PumplineStats",
-                                  uselist=False,
-                                  back_populates="pumpline")
+    pumpline_stats = relationship(
+        "PumplineStats", uselist=False, back_populates="pumpline"
+    )
 
     def __str__(self):
-        return u'Node {0} - {1}'.format(
-            self.type, self.id)
+        return u"Node {0} - {1}".format(self.type, self.id)
 
 
 class PumplineStats(Base):
-    __tablename__ = 'pumpline_stats'
+    __tablename__ = "pumpline_stats"
 
     id = Column(
         Integer,
         ForeignKey(Pumpline.__tablename__ + ".id"),
         primary_key=True,
         nullable=False,
-        unique=True)
+        unique=True,
+    )
 
-    pumpline = relationship(Pumpline,
-                            foreign_keys=id,
-                            back_populates="pumpline_stats")
+    pumpline = relationship(Pumpline, foreign_keys=id, back_populates="pumpline_stats")
 
     spatialite_id = Column(Integer)
     code = Column(String(25))
@@ -267,19 +255,15 @@ class PumplineStats(Base):
     duration_pump_on_max = Column(Float)
 
     def __str__(self):
-        return u'PumpLineStats {0} - {1}'.format(
-            self.code, self.display_name)
+        return u"PumpLineStats {0} - {1}".format(self.code, self.display_name)
 
 
 class StatSource(Base):
-    __tablename__ = 'stat_source'
+    __tablename__ = "stat_source"
 
     id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-        nullable=False,
-        unique=True)
+        Integer, primary_key=True, autoincrement=True, nullable=False, unique=True
+    )
     table = Column(String(25))
     field = Column(String(25))
     from_agg = Column(Boolean)
@@ -287,5 +271,4 @@ class StatSource(Base):
     timestep = Column(Integer)
 
     def __str__(self):
-        return u'StatSource {0} - {1}'.format(
-            self.table, self.field)
+        return u"StatSource {0} - {1}".format(self.table, self.field)

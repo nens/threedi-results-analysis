@@ -7,12 +7,11 @@ from qgis.core import QgsMessageLog
 LOGGING_TO_QGIS = {
     logging.INFO: Qgis.Info,
     logging.WARNING: Qgis.Warning,
-    logging.CRITICAL: Qgis.Critical
+    logging.CRITICAL: Qgis.Critical,
 }
 
 
 class QgisHandler(logging.Handler):
-
     def __init__(self, iface, *args, **kwargs):
         logging.Handler.__init__(self, *args, **kwargs)
         self.iface = iface
@@ -27,8 +26,7 @@ class QgisHandler(logging.Handler):
         msg = self.format(record)
         if record.levelno >= logging.CRITICAL:
             level = Qgis.Critical
-            self.iface.messageBar().pushMessage(
-                record.funcName, msg, level, 0)
+            self.iface.messageBar().pushMessage(record.funcName, msg, level, 0)
         elif record.levelno >= logging.WARNING:
             level = Qgis.Warning
         else:
@@ -39,7 +37,7 @@ class QgisHandler(logging.Handler):
 
 def setup_logging(iface=None):
 
-    log = logging.getLogger('')  # set up a root logger
+    log = logging.getLogger("")  # set up a root logger
 
     ql = QgisHandler(iface)
     ql.setLevel(logging.INFO)
@@ -50,7 +48,7 @@ def setup_logging(iface=None):
     st = logging.StreamHandler()
     st.setLevel(logging.INFO)
 
-    format = logging.Formatter('%(name)-12s - %(levelname)-8s - %(message)s')
+    format = logging.Formatter("%(name)-12s - %(levelname)-8s - %(message)s")
     # fh.setFormatter(format)
     st.setFormatter(format)
 

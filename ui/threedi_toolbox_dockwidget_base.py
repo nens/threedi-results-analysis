@@ -20,15 +20,20 @@ from qgis.PyQt.QtWidgets import QVBoxLayout
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
+
     def _fromUtf8(s):
         return s
+
 
 try:
     _encoding = QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig, _encoding)
+
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QApplication.translate(context, text, disambig)
 
@@ -62,5 +67,6 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(_translate("Form", "3Di toolbox", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(
-            self.tab), _translate("Form", "Toolbox", None))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab), _translate("Form", "Toolbox", None)
+        )

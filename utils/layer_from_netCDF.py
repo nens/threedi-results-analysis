@@ -17,15 +17,15 @@ from .user_messages import StatusProgressBar
 from ..datasource.spatialite import disable_sqlite_synchronous
 
 # Hardcoded default names
-FLOWLINES_LAYER_NAME = 'flowlines'
-NODES_LAYER_NAME = 'nodes'
-PUMPLINES_LAYER_NAME = 'pumplines'
+FLOWLINES_LAYER_NAME = "flowlines"
+NODES_LAYER_NAME = "nodes"
+PUMPLINES_LAYER_NAME = "pumplines"
 
 IGNORE_FIRST = slice(1, None, None)
 
 
 def contains_layer(sqlite_path, layer_name):
-    driver = ogr.GetDriverByName('SQLite')
+    driver = ogr.GetDriverByName("SQLite")
     data_source = driver.Open(sqlite_path)
     has_layer = False
     for i in range(data_source.GetLayerCount()):
@@ -37,56 +37,63 @@ def contains_layer(sqlite_path, layer_name):
     return has_layer
 
 
-def _get_vec_lyr(sqlite_path, layer_name, geom_column='the_geom'):
+def _get_vec_lyr(sqlite_path, layer_name, geom_column="the_geom"):
     """Helper function to construct a QgsVectorLayer."""
     uri = QgsDataSourceUri()
     uri.setDatabase(sqlite_path)
-    uri.setDataSource('', layer_name, geom_column)
-    return QgsVectorLayer(uri.uri(), layer_name, 'spatialite')
+    uri.setDataSource("", layer_name, geom_column)
+    return QgsVectorLayer(uri.uri(), layer_name, "spatialite")
 
 
 @disable_sqlite_synchronous
 def get_or_create_flowline_layer(ds, output_path):
-    if not os.path.exists(output_path) or not \
-            contains_layer(output_path, FLOWLINES_LAYER_NAME):
+    if not os.path.exists(output_path) or not contains_layer(
+        output_path, FLOWLINES_LAYER_NAME
+    ):
         ga = ds.gridadmin
         from .gridadmin import QgisLinesOgrExporter
-        exporter = QgisLinesOgrExporter('dont matter')
-        exporter.driver = ogr.GetDriverByName('SQLite')
+
+        exporter = QgisLinesOgrExporter("dont matter")
+        exporter.driver = ogr.GetDriverByName("SQLite")
         sliced = ga.lines.slice(IGNORE_FIRST)
         exporter.save(
-            output_path, FLOWLINES_LAYER_NAME, sliced.data,
-            sliced.epsg_code, 4326)
+            output_path, FLOWLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+        )
     return _get_vec_lyr(output_path, FLOWLINES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
 def get_or_create_node_layer(ds, output_path):
-    if not os.path.exists(output_path) or not \
-            contains_layer(output_path, NODES_LAYER_NAME):
+    if not os.path.exists(output_path) or not contains_layer(
+        output_path, NODES_LAYER_NAME
+    ):
         ga = ds.gridadmin
         from .gridadmin import QgisNodesOgrExporter
-        exporter = QgisNodesOgrExporter('dont matter')
-        exporter.driver = ogr.GetDriverByName('SQLite')
+
+        exporter = QgisNodesOgrExporter("dont matter")
+        exporter.driver = ogr.GetDriverByName("SQLite")
         sliced = ga.nodes.slice(IGNORE_FIRST)
         exporter.save(
-            output_path, NODES_LAYER_NAME, sliced.data,
-            sliced.epsg_code, 4326)
+            output_path, NODES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+        )
     return _get_vec_lyr(output_path, NODES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
 def get_or_create_pumpline_layer(ds, output_path):
     ga = ds.gridadmin
-    if not os.path.exists(output_path) or not \
-            contains_layer(output_path, PUMPLINES_LAYER_NAME):
+    if not os.path.exists(output_path) or not contains_layer(
+        output_path, PUMPLINES_LAYER_NAME
+    ):
         if ga.has_pumpstations:
             from .gridadmin import QgisPumpsOgrExporter
+
             exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
-            exporter.driver = ogr.GetDriverByName('SQLite')
+            exporter.driver = ogr.GetDriverByName("SQLite")
             sliced = ga.pumps.slice(IGNORE_FIRST)
-            exporter.save(output_path, PUMPLINES_LAYER_NAME, sliced.data,
-                          sliced.epsg_code, 4326)
+            exporter.save(
+                output_path, PUMPLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+            )
     if ga.has_pumpstations:
         return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
 
@@ -103,18 +110,18 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         (QgsVectorLayer) In memory layer with all lines
     """
     if progress_bar is None:
-        progress_bar = StatusProgressBar(100, 'create flow line: ')
+        progress_bar = StatusProgressBar(100, "create flow line: ")
 
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
-    projection = ds.ds.variables['projected_coordinate_system']
+    projection = ds.ds.variables["projected_coordinate_system"]
     source_epsg = projection.epsg
     # Connections (2, nFlowLine):
-    flowline_connection = ds.ds.variables['FlowLine_connection']
+    flowline_connection = ds.ds.variables["FlowLine_connection"]
 
     # FlowElem centers:
-    flowelem_xcc = ds.ds.variables['FlowElem_xcc']  # in meters
-    flowelem_ycc = ds.ds.variables['FlowElem_ycc']  # in meters
+    flowelem_xcc = ds.ds.variables["FlowElem_xcc"]  # in meters
+    flowelem_ycc = ds.ds.variables["FlowElem_ycc"]  # in meters
 
     # -1 probably because of fortran indexing
     flowline_p1 = flowline_connection[:, 0].astype(int) - 1
@@ -137,36 +144,42 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         "spatialite_id INTEGER",
         "type STRING(25)",
         "start_node_idx INTEGER NOT NULL",
-        "end_node_idx INTEGER NOT NULL"
+        "end_node_idx INTEGER NOT NULL",
     ]
 
     layer = spatialite.create_empty_layer(
-        FLOWLINES_LAYER_NAME, Qgis.WKBLineString, fields, 'id')
+        FLOWLINES_LAYER_NAME, Qgis.WKBLineString, fields, "id"
+    )
 
     pr = layer.dataProvider()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    if 'channel_mapping' not in ds.ds.variables:
+    if "channel_mapping" not in ds.ds.variables:
         progress_bar.increase_progress(
             0,
             "no channel mapping found in netCDF, skip object mapping. Model "
-            "only has 2d?"
+            "only has 2d?",
         )
         flowid_to_inp_mapping = {}
         inp_to_splt_mapping = {}
     else:
         pass
-        flowid_to_inp_mapping = dict([(flowid, inp_id) for inp_id, flowid in
-                                      ds.ds.variables['channel_mapping']])
+        flowid_to_inp_mapping = dict(
+            [(flowid, inp_id) for inp_id, flowid in ds.ds.variables["channel_mapping"]]
+        )
 
         # create mapping of inp_id to spatialite_id and feature type
         inp_to_splt_mapping = {}
-        for feature_type in ("v2_channel", "v2_pipe", "v2_culvert", "v2_weir",
-                             "v2_orifice"):
+        for feature_type in (
+            "v2_channel",
+            "v2_pipe",
+            "v2_culvert",
+            "v2_weir",
+            "v2_orifice",
+        ):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in list(ds.id_mapping[
-                        feature_type].items()):
+                for spatialite_id, inp_id in list(ds.id_mapping[feature_type].items()):
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -200,12 +213,20 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
         except KeyError:
             cat = ds.line_type_of(i)
-            if cat == '1d':
-                cat = '1d_2d'
+            if cat == "1d":
+                cat = "1d_2d"
             spatialite_tbl = cat
 
-        feat.setAttributes([i, inp_id, spatialite_id, spatialite_tbl,
-                            int(flowline_p1[i]), int(flowline_p2[i])])
+        feat.setAttributes(
+            [
+                i,
+                inp_id,
+                spatialite_id,
+                spatialite_tbl,
+                int(flowline_p1[i]),
+                int(flowline_p2[i]),
+            ]
+        )
 
         features.append(feat)
 
@@ -235,15 +256,15 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         (QgsVectorLayer) In memory layer with all points or shapefile layer
     """
     if progress_bar is None:
-        progress_bar = StatusProgressBar(100, 'create node layer: ')
+        progress_bar = StatusProgressBar(100, "create node layer: ")
 
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
-    projection = ds.ds.variables['projected_coordinate_system']
+    projection = ds.ds.variables["projected_coordinate_system"]
     source_epsg = projection.epsg  # = 28992
     # FlowElem centers:
-    flowelem_xcc = ds.ds.variables['FlowElem_xcc']  # in meters
-    flowelem_ycc = ds.ds.variables['FlowElem_ycc']  # in meters
+    flowelem_xcc = ds.ds.variables["FlowElem_xcc"]  # in meters
+    flowelem_ycc = ds.ds.variables["FlowElem_ycc"]  # in meters
 
     progress_bar.increase_progress(10, "create layer")
     # create layer
@@ -252,36 +273,40 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         "inp_id INTEGER",
         "spatialite_id INTEGER",
         "feature_type STRING(25)",
-        "type STRING(25)"
+        "type STRING(25)",
     ]
 
     layer = spatialite.create_empty_layer(
-        NODES_LAYER_NAME, QgsWkbTypes.Point, fields, 'id')
+        NODES_LAYER_NAME, QgsWkbTypes.Point, fields, "id"
+    )
 
     pr = layer.dataProvider()
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
 
-    if 'node_mapping' not in ds.ds.variables:
+    if "node_mapping" not in ds.ds.variables:
         progress_bar.increase_progress(
             0,
             "no node mapping found in netCDF, skip object mapping. Model "
-            "only has 2d?"
+            "only has 2d?",
         )
         node_idx_to_inp_id = {}
         inp_to_splt_mapping = {}
     else:
-        node_idx_to_inp_id = dict([(flowid - 1, inp_id) for inp_id, flowid in
-                                   ds.ds.variables['node_mapping']])
+        node_idx_to_inp_id = dict(
+            [(flowid - 1, inp_id) for inp_id, flowid in ds.ds.variables["node_mapping"]]
+        )
 
         # create mapping of inp_id to spatialite_id and feature type
         inp_to_splt_mapping = {}
-        for feature_type in ("v2_connection_nodes", "v2_manhole",
-                             "v2_1d_boundary_conditions"):
+        for feature_type in (
+            "v2_connection_nodes",
+            "v2_manhole",
+            "v2_1d_boundary_conditions",
+        ):
             if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in list(ds.id_mapping[
-                        feature_type].items()):
+                for spatialite_id, inp_id in list(ds.id_mapping[feature_type].items()):
                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
     progress_bar.increase_progress(20, "Prepare data")
@@ -302,8 +327,7 @@ def make_node_layer(ds, spatialite, progress_bar=None):
         # Getting all node types, feature types, and whatnot:
         node_type = ds.node_type_of(i)
         inp_id = node_idx_to_inp_id.get(i, None)
-        feature_type, spatialite_id = inp_to_splt_mapping.get(
-            inp_id, (None, None))
+        feature_type, spatialite_id = inp_to_splt_mapping.get(inp_id, (None, None))
 
         feat.setAttributes([i, inp_id, spatialite_id, feature_type, node_type])
         features.append(feat)
@@ -326,14 +350,14 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
         nds: netCDF Datasource
     """
     # Get relevant netCDF.Variables
-    projection = nds.ds.variables['projected_coordinate_system']
+    projection = nds.ds.variables["projected_coordinate_system"]
     source_epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
-    pumpline = nds.ds.variables['PumpLine_connection']
+    pumpline = nds.ds.variables["PumpLine_connection"]
 
     # FlowElem centers:
-    flowelem_xcc = nds.ds.variables['FlowElem_xcc']  # in meters
-    flowelem_ycc = nds.ds.variables['FlowElem_ycc']  # in meters
+    flowelem_xcc = nds.ds.variables["FlowElem_xcc"]  # in meters
+    flowelem_ycc = nds.ds.variables["FlowElem_ycc"]  # in meters
 
     # -1 probably because of fortran indexing
     # CAUTION: pumpline index can be 0, (which means it is pumping out of the,
@@ -351,14 +375,11 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
 
     # create layer
 
-    fields = [
-        "id INTEGER",
-        "node_idx1 INTEGER",
-        "node_idx2 INTEGER"
-    ]
+    fields = ["id INTEGER", "node_idx1 INTEGER", "node_idx2 INTEGER"]
 
     layer = spatialite.create_empty_layer(
-        PUMPLINES_LAYER_NAME, Qgis.WKBLineString, fields, 'id')
+        PUMPLINES_LAYER_NAME, Qgis.WKBLineString, fields, "id"
+    )
 
     pr = layer.dataProvider()
 

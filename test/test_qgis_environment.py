@@ -8,20 +8,20 @@
      (at your option) any later version.
 
 """
-__author__ = 'tim@linfiniti.com'
-__date__ = '20/01/2011'
-__copyright__ = ('Copyright 2012, Australia Indonesia Facility for '
-                 'Disaster Reduction')
+__author__ = "tim@linfiniti.com"
+__date__ = "20/01/2011"
+__copyright__ = "Copyright 2012, Australia Indonesia Facility for " "Disaster Reduction"
 
 import os
 import unittest
 from qgis.core import QgsProviderRegistry
 
 from ThreeDiToolbox.test.utilities import get_qgis_app
+
 QGIS_APP = get_qgis_app()
 
 
-@unittest.skipIf(os.name == 'posix', "Apparently doesn't work on Linux")
+@unittest.skipIf(os.name == "posix", "Apparently doesn't work on Linux")
 class QGISTest(unittest.TestCase):
     """Test the QGIS Environment"""
 
@@ -29,10 +29,10 @@ class QGISTest(unittest.TestCase):
         """QGIS environment has the expected providers"""
 
         r = QgsProviderRegistry.instance()
-        self.assertIn('gdal', r.providerList())
-        self.assertIn('ogr', r.providerList())
-        self.assertIn('postgres', r.providerList())
+        self.assertIn("gdal", r.providerList())
+        self.assertIn("ogr", r.providerList())
+        self.assertIn("postgres", r.providerList())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

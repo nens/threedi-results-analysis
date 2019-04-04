@@ -21,10 +21,7 @@ def get_query_strings(flavor, epsg_code):
     logger.info("[*] Getting sql queries for {}".format(flavor))
 
     sql_functions_map = {
-        'makeline':
-        {'postgres': 'ST_MakeLine',
-         'spatialite': 'MakeLine'
-         },
+        "makeline": {"postgres": "ST_MakeLine", "spatialite": "MakeLine"}
     }
     # ---------- boundary table ------------------
     queries = {}
@@ -38,7 +35,7 @@ def get_query_strings(flavor, epsg_code):
           v2_1d_boundary_conditions
         ;
     """
-    queries['v2_1d_boundary_conditions'] = boundary_query_str
+    queries["v2_1d_boundary_conditions"] = boundary_query_str
 
     # ---------- manhole table ------------------
     manhole_query_str = """
@@ -59,8 +56,10 @@ def get_query_strings(flavor, epsg_code):
     WHERE
      connection_node_id = cn_end.id
     ;
-    """.format(epsg_code=epsg_code)
-    queries['v2_manhole'] = manhole_query_str
+    """.format(
+        epsg_code=epsg_code
+    )
+    queries["v2_manhole"] = manhole_query_str
 
     # ---------- pipe table ------------------
     pipe_query_str = """
@@ -105,10 +104,10 @@ def get_query_strings(flavor, epsg_code):
     AND
       connection_node_end_id = cn_end.id
     ;
-    """.format(makeline=sql_functions_map['makeline'][flavor],
-               epsg_code=epsg_code
-               )
-    queries['v2_pipe'] = pipe_query_str
+    """.format(
+        makeline=sql_functions_map["makeline"][flavor], epsg_code=epsg_code
+    )
+    queries["v2_pipe"] = pipe_query_str
 
     # ---------- culvert table ------------------
     culvert_query_str = """
@@ -144,8 +143,10 @@ def get_query_strings(flavor, epsg_code):
     AND
       connection_node_end_id = cn_end.id
     ;
-    """.format(epsg_code=epsg_code)
-    queries['v2_culvert'] = culvert_query_str
+    """.format(
+        epsg_code=epsg_code
+    )
+    queries["v2_culvert"] = culvert_query_str
 
     # ---------- channel table ------------------
     channel_query_str = """
@@ -186,6 +187,8 @@ def get_query_strings(flavor, epsg_code):
     AND
       connection_node_end_id = cn_end.id
     ;
-    """.format(epsg_code=epsg_code)
-    queries['v2_channel'] = channel_query_str
+    """.format(
+        epsg_code=epsg_code
+    )
+    queries["v2_channel"] = channel_query_str
     return queries

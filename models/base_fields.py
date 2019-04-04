@@ -33,7 +33,7 @@ class BaseItemField(object):
         if value is not None:
             self._value = value
         else:
-            if hasattr(self.field.default_value, '__call__'):
+            if hasattr(self.field.default_value, "__call__"):
                 self._value = self.field.default_value(self)
             else:
                 self._value = self.field.default_value
@@ -81,7 +81,8 @@ class BaseItemField(object):
             if signal:
                 if self.item.model:
                     index = self.item.model.index(
-                        self.item.get_row_nr(), self.field.column_nr)
+                        self.item.get_row_nr(), self.field.column_nr
+                    )
                     self.item.model.dataChanged.emit(index, index)
             return True
 
@@ -115,9 +116,14 @@ class BaseItemField(object):
 
 
 class BaseField(object):
-
-    def __init__(self, name=None, column_name=None, default_value=None,
-                 show=False, column_width=0):
+    def __init__(
+        self,
+        name=None,
+        column_name=None,
+        default_value=None,
+        show=False,
+        column_width=0,
+    ):
 
         self.type = None
         self.name = name

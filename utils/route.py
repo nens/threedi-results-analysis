@@ -3,12 +3,21 @@ from builtins import str
 from builtins import object
 from qgis.PyQt.QtCore import QVariant
 
-from qgis.analysis import QgsGraphBuilder, QgsNetworkDistanceStrategy, \
-    QgsGraphAnalyzer, QgsNetworkStrategy
+from qgis.analysis import (
+    QgsGraphBuilder,
+    QgsNetworkDistanceStrategy,
+    QgsGraphAnalyzer,
+    QgsNetworkStrategy,
+)
 
 from qgis.core import (
-    QgsVectorLayer, QgsField, QgsFeature, QgsGeometry, QgsFeatureRequest,
-    QgsPoint)
+    QgsVectorLayer,
+    QgsField,
+    QgsFeature,
+    QgsGeometry,
+    QgsFeatureRequest,
+    QgsPoint,
+)
 
 
 class AttributeProperter(QgsNetworkStrategy):
@@ -20,7 +29,7 @@ class AttributeProperter(QgsNetworkStrategy):
         self.attribute_index = attribute_index
 
     def cost(self, distance, feature):
-        if self.attribute == 'ROWID':
+        if self.attribute == "ROWID":
             value = feature.id()
         else:
             value = feature[self.attribute]
@@ -33,16 +42,21 @@ class AttributeProperter(QgsNetworkStrategy):
 
 
 class Route(object):
-
-    def __init__(self, line_layer, director,
-                 weight_properter=QgsNetworkDistanceStrategy(),
-                 distance_properter=QgsNetworkDistanceStrategy(),
-                 id_field="ROWID"):
+    def __init__(
+        self,
+        line_layer,
+        director,
+        weight_properter=QgsNetworkDistanceStrategy(),
+        distance_properter=QgsNetworkDistanceStrategy(),
+        id_field="ROWID",
+    ):
 
         self.line_layer = line_layer
         self.director = director
         self.id_field = id_field
-        self.id_field_index = self.line_layer.fields().lookupField(self.id_field)  # noqa
+        self.id_field_index = self.line_layer.fields().lookupField(
+            self.id_field
+        )  # noqa
 
         # build graph for network
         properter_1 = weight_properter
@@ -84,8 +98,9 @@ class Route(object):
             distance = 0
             if len(self.path_points) > 0:
                 # not first point, get path between previous point and point
-                success, path, p = self.get_path(self.id_start_tree, id_point,
-                                                 self.path_points[-1][2])
+                success, path, p = self.get_path(
+                    self.id_start_tree, id_point, self.path_points[-1][2]
+                )
 
                 if not success:
                     # not path found between previous point and point
@@ -128,9 +143,9 @@ class Route(object):
         self.id_start_tree = id_start_point
         self.start_point_tree = self.graph.vertex(id_start_point).point()
 
-        (self.tree, self.cost) = QgsGraphAnalyzer.dijkstra(self.graph,
-                                                           self.id_start_tree,
-                                                           0)
+        (self.tree, self.cost) = QgsGraphAnalyzer.dijkstra(
+            self.graph, self.id_start_tree, 0
+        )
         self.tree_layer_up_to_date = False
         if self._virtual_tree_layer:
             self.update_virtual_tree_layer()
@@ -163,8 +178,9 @@ class Route(object):
         cum_dist = begin_distance
         cur_pos = id_end_point
         while cur_pos != id_start_point:
-            point = self.graph.vertex(self.graph.edge(
-                self.tree[cur_pos]).toVertex()).point()
+            point = self.graph.vertex(
+                self.graph.edge(self.tree[cur_pos]).toVertex()
+            ).point()
             p.append(point)
 
             dist = self.graph.edge(self.tree[cur_pos]).strategies()[1]
@@ -182,8 +198,7 @@ class Route(object):
             else:
                 route_direction_feature = 1
 
-            path_props.insert(
-                0, [None, None, dist, route_direction_feature, feature])
+            path_props.insert(0, [None, None, dist, route_direction_feature, feature])
 
             cur_pos = self.graph.edge(self.tree[cur_pos]).fromVertex()
 
@@ -219,15 +234,16 @@ class Route(object):
             if int(branch) >= 0:
                 # add a feature
                 feat = QgsFeature()
-                a = self.graph.vertex(
-                    self.graph.edge(branch).fromVertex()).point()
-                b = self.graph.vertex(
-                    self.graph.edge(branch).toVertex()).point()
+                a = self.graph.vertex(self.graph.edge(branch).fromVertex()).point()
+                b = self.graph.vertex(self.graph.edge(branch).toVertex()).point()
                 feat.setGeometry(QgsGeometry.fromPolylineXY([a, b]))
 
-                feat.setAttributes([
-                    float(self.graph.edge(branch).strategies()[1]),
-                    int(self.graph.edge(branch).strategies()[2])])
+                feat.setAttributes(
+                    [
+                        float(self.graph.edge(branch).strategies()[1]),
+                        int(self.graph.edge(branch).strategies()[2]),
+                    ]
+                )
                 features.append(feat)
 
         self._virtual_tree_layer.dataProvider().addFeatures(features)
@@ -248,13 +264,15 @@ class Route(object):
         if not self._virtual_tree_layer:
             # create_layer
             self._virtual_tree_layer = QgsVectorLayer(
-                "linestring?crs=epsg:4326",
-                "temporary_lines",
-                "memory")
+                "linestring?crs=epsg:4326", "temporary_lines", "memory"
+            )
 
-            self._virtual_tree_layer.dataProvider().addAttributes([
-                QgsField("weight", QVariant.Double),
-                QgsField("line_id", QVariant.LongLong)])
+            self._virtual_tree_layer.dataProvider().addAttributes(
+                [
+                    QgsField("weight", QVariant.Double),
+                    QgsField("line_id", QVariant.LongLong),
+                ]
+            )
 
             self._virtual_tree_layer.commitChanges()
 

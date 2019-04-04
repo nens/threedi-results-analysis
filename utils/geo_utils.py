@@ -22,9 +22,8 @@ def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):
     :returns the start- and endpoint of the extrapolated line
     """
     extrapolated_point = (
-        starting_pnt[0] + extrapolation_ration *
-        (end_pnt[0] - starting_pnt[0]),
-        starting_pnt[1] + extrapolation_ration * (end_pnt[1] - starting_pnt[1])
+        starting_pnt[0] + extrapolation_ration * (end_pnt[0] - starting_pnt[0]),
+        starting_pnt[1] + extrapolation_ration * (end_pnt[1] - starting_pnt[1]),
     )
     return extrapolated_point
 
@@ -68,9 +67,9 @@ def calculate_perpendicular_line(line_coords, distance, orientation=None):
     # to the left or to the right?
     if orientation is None:
         return x3, y3, x4, y4
-    elif orientation == 'left':
+    elif orientation == "left":
         return x1, y1, x3, y3
-    elif orientation == 'right':
+    elif orientation == "right":
         return x1, y1, x4, y4
 
 
@@ -80,7 +79,7 @@ def get_epsg_code_from_layer(layer_instance):
     """
     epsg_info = layer_instance.crs().authid()
     try:
-        return int(epsg_info.split(':')[1])
+        return int(epsg_info.split(":")[1])
     except IndexError:
         pass
 
@@ -109,7 +108,7 @@ def get_distance(pnt1, pnt2, epsg_code):
     context = QgsProject.instance().transformContext()
     distance.setSourceCrs(crs, context)
     if epsg_code == constants.EPSG_WGS84:
-        distance.setEllipsoid('WGS84')
+        distance.setEllipsoid("WGS84")
     return distance.measureLine(pnt1, pnt2)
 
 

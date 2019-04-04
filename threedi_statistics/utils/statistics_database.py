@@ -19,15 +19,15 @@ class StaticsticsDatabase(ThreediDatabase):
 
 
     """
+
     def create_db(self, overwrite=False):
-        if self.db_type == 'spatialite':
+        if self.db_type == "spatialite":
 
-            if overwrite and os.path.isfile(self.settings['db_file']):
-                os.remove(self.settings['db_file'])
+            if overwrite and os.path.isfile(self.settings["db_file"]):
+                os.remove(self.settings["db_file"])
 
-            drv = ogr.GetDriverByName('SQLite')
-            db = drv.CreateDataSource(self.settings['db_file'],
-                                      ["SPATIALITE=YES"])
+            drv = ogr.GetDriverByName("SQLite")
+            db = drv.CreateDataSource(self.settings["db_file"], ["SPATIALITE=YES"])
             Base.metadata.create_all(self.engine)
 
             # todo: add settings to improve database creation speed for older
@@ -48,7 +48,6 @@ class StaticsticsDatabase(ThreediDatabase):
                 self._base_metadata = copy.deepcopy(Base.metadata)
             return self._base_metadata
 
-
     def fix_views(self):
         """function overwrite which is not relevant"""
-        raise NotImplementedError('fix views not relevant in this context')
+        raise NotImplementedError("fix views not relevant in this context")

@@ -20,10 +20,10 @@ class Constants(object):
     CALCULATION_TYPE_DOUBLE_CONNECTED = 5
 
     CALCULATION_TYPE_CHOICES = (
-        (CALCULATION_TYPE_EMBEDDED, 'embedded'),
-        (CALCULATION_TYPE_ISOLATED, 'isolated'),
-        (CALCULATION_TYPE_CONNECTED, 'connected'),
-        (CALCULATION_TYPE_DOUBLE_CONNECTED, 'double connected'),
+        (CALCULATION_TYPE_EMBEDDED, "embedded"),
+        (CALCULATION_TYPE_ISOLATED, "isolated"),
+        (CALCULATION_TYPE_CONNECTED, "connected"),
+        (CALCULATION_TYPE_DOUBLE_CONNECTED, "double connected"),
     )
     CALCULATION_TYPES = dict(CALCULATION_TYPE_CHOICES)
 
@@ -33,16 +33,16 @@ class Constants(object):
     # FRICTION_TYPE_NIKURADSE = 999 # not supported
 
     FRICTION_TYPE_CHOICES = (
-        (FRICTION_TYPE_CHEZY, 'chezy [m^(1/2)/s]'),
-        (FRICTION_TYPE_MANNING, 'manning nm [s/m^(1/2)]'),
+        (FRICTION_TYPE_CHEZY, "chezy [m^(1/2)/s]"),
+        (FRICTION_TYPE_MANNING, "manning nm [s/m^(1/2)]"),
         # (FRICTION_TYPE_NIKURADSE, 'nikuradse (White-Coolbrook) [mm]'),
     )
     FRICTION_TYPES = dict(FRICTION_TYPE_CHOICES)
 
     # SHAPES FOR MANHOLES
-    MANHOLE_SHAPE_SQUARE = 'sqr'
-    MANHOLE_SHAPE_RECTANGLE = 'rect'
-    MANHOLE_SHAPE_ROUND = 'rnd'
+    MANHOLE_SHAPE_SQUARE = "sqr"
+    MANHOLE_SHAPE_RECTANGLE = "rect"
+    MANHOLE_SHAPE_ROUND = "rnd"
 
     # SHAPES FOR PIPES
     SHAPE_RECTANGLE = 1
@@ -53,21 +53,21 @@ class Constants(object):
     SHAPE_TABULATED_TRAPEZIUM = 6
 
     PROFILE_SHAPE_CHOICES = (
-        (SHAPE_RECTANGLE, 'rectangle'),
-        (SHAPE_ROUND, 'round'),
-        (SHAPE_EGG, 'egg'),
+        (SHAPE_RECTANGLE, "rectangle"),
+        (SHAPE_ROUND, "round"),
+        (SHAPE_EGG, "egg"),
         # (SHAPE_YZ, 'yz'),
-        (SHAPE_TABULATED_RECTANGLE, 'tabulated rectangle'),
-        (SHAPE_TABULATED_TRAPEZIUM, 'tabulated trapezium'),
+        (SHAPE_TABULATED_RECTANGLE, "tabulated rectangle"),
+        (SHAPE_TABULATED_TRAPEZIUM, "tabulated trapezium"),
     )
 
     PROFILE_SHAPES = dict(PROFILE_SHAPE_CHOICES)
     PROFILE_SHAPES_LOOKUP = reversed_dict(PROFILE_SHAPE_CHOICES)
 
     MANHOLE_SHAPE_CHOICES = (
-        (MANHOLE_SHAPE_ROUND, 'round'),
-        (MANHOLE_SHAPE_SQUARE, 'square'),
-        (MANHOLE_SHAPE_RECTANGLE, 'rectangle'),
+        (MANHOLE_SHAPE_ROUND, "round"),
+        (MANHOLE_SHAPE_SQUARE, "square"),
+        (MANHOLE_SHAPE_RECTANGLE, "rectangle"),
     )
 
     MANHOLE_SHAPES = dict(MANHOLE_SHAPE_CHOICES)
@@ -85,15 +85,15 @@ class Constants(object):
     MATERIAL_TYPE_STEEL = 8
 
     MATERIAL_TYPE_CHOICES = (
-        (MATERIAL_TYPE_CONCRETE, 'concrete'),
-        (MATERIAL_TYPE_PVC, 'pvc'),
-        (MATERIAL_TYPE_STONEWARE, 'stoneware'),
-        (MATERIAL_TYPE_CAST_IRON, 'cast-iron'),
-        (MATERIAL_TYPE_BRICKWORK, 'brickwork'),
-        (MATERIAL_TYPE_HPE, 'hpe'),
-        (MATERIAL_TYPE_HPDE, 'hpde'),
-        (MATERIAL_TYPE_SHEET_IRON, 'sheet-iron'),
-        (MATERIAL_TYPE_STEEL, 'steel'),
+        (MATERIAL_TYPE_CONCRETE, "concrete"),
+        (MATERIAL_TYPE_PVC, "pvc"),
+        (MATERIAL_TYPE_STONEWARE, "stoneware"),
+        (MATERIAL_TYPE_CAST_IRON, "cast-iron"),
+        (MATERIAL_TYPE_BRICKWORK, "brickwork"),
+        (MATERIAL_TYPE_HPE, "hpe"),
+        (MATERIAL_TYPE_HPDE, "hpde"),
+        (MATERIAL_TYPE_SHEET_IRON, "sheet-iron"),
+        (MATERIAL_TYPE_STEEL, "steel"),
     )
     MATERIALS = dict(MATERIAL_TYPE_CHOICES)
     MATERIAL_LOOKUP = reversed_dict(MATERIAL_TYPE_CHOICES)
@@ -103,8 +103,8 @@ class Constants(object):
     LEVEE_MATERIAAL_CLAY = 2
 
     LEVEE_MATERIAL_CHOICES = (
-        (LEVEE_MATERIAL_SAND, 'sand'),
-        (LEVEE_MATERIAAL_CLAY, 'clay'),
+        (LEVEE_MATERIAL_SAND, "sand"),
+        (LEVEE_MATERIAAL_CLAY, "clay"),
     )
     LEVEE_MATERIALS = dict(LEVEE_MATERIAL_CHOICES)
 
@@ -123,9 +123,9 @@ class Constants(object):
     BOUNDARY_TYPE_DISCHARGE = 3
 
     BOUNDARY_TYPE_CHOICES = (
-        (BOUNDARY_TYPE_WATERLEVEL, 'waterlevel'),
-        (BOUNDARY_TYPE_VELOCITY, 'velocity'),
-        (BOUNDARY_TYPE_DISCHARGE, 'discharge'),
+        (BOUNDARY_TYPE_WATERLEVEL, "waterlevel"),
+        (BOUNDARY_TYPE_VELOCITY, "velocity"),
+        (BOUNDARY_TYPE_DISCHARGE, "discharge"),
     )
     BOUNDARY_TYPES = dict(BOUNDARY_TYPE_CHOICES)
 
@@ -135,9 +135,9 @@ class Constants(object):
     MANHOLE_INDICATOR_PUMPSTATION = 2
 
     MANHOLE_INDICATOR_CHOICES = (
-        (MANHOLE_INDICATOR_MANHOLE, 'manhole'),
-        (MANHOLE_INDICATOR_OUTLET, 'outlet'),
-        (MANHOLE_INDICATOR_PUMPSTATION, 'pumpstation'),
+        (MANHOLE_INDICATOR_MANHOLE, "manhole"),
+        (MANHOLE_INDICATOR_OUTLET, "outlet"),
+        (MANHOLE_INDICATOR_PUMPSTATION, "pumpstation"),
     )
     MANHOLE_INDICATORS = dict(MANHOLE_INDICATOR_CHOICES)
     MANHOLE_INDICATOR_LOOKUP = reversed_dict(MANHOLE_INDICATOR_CHOICES)
@@ -153,14 +153,14 @@ class Constants(object):
     SEWERAGE_TYPE_STORAGE_SETTLING_TANK = 7
 
     SEWERAGE_TYPE_CHOICES = (
-        (SEWERAGE_TYPE_COMBINED, 'combined'),
-        (SEWERAGE_TYPE_STORMWATER, 'stormwater'),  # RWA
-        (SEWERAGE_TYPE_WASTEWATER, 'wastewater'),  # DWA
-        (SEWERAGE_TYPE_TRANSPORT, 'transport'),
-        (SEWERAGE_TYPE_OVERFLOW, 'overflow'),
-        (SEWERAGE_TYPE_SINKER, 'sinker'),
-        (SEWERAGE_TYPE_STORAGE, 'storage'),
-        (SEWERAGE_TYPE_STORAGE_SETTLING_TANK, 'storage-settling-tank'),
+        (SEWERAGE_TYPE_COMBINED, "combined"),
+        (SEWERAGE_TYPE_STORMWATER, "stormwater"),  # RWA
+        (SEWERAGE_TYPE_WASTEWATER, "wastewater"),  # DWA
+        (SEWERAGE_TYPE_TRANSPORT, "transport"),
+        (SEWERAGE_TYPE_OVERFLOW, "overflow"),
+        (SEWERAGE_TYPE_SINKER, "sinker"),
+        (SEWERAGE_TYPE_STORAGE, "storage"),
+        (SEWERAGE_TYPE_STORAGE_SETTLING_TANK, "storage-settling-tank"),
     )
 
     SEWERAGE_TYPES = dict(SEWERAGE_TYPE_CHOICES)
@@ -173,9 +173,9 @@ class Constants(object):
     INTEGRATION_METHOD_SILECKI_EXPLICIT = 2
 
     INTEGRATION_METHOD_CHOICES = (
-        (INTEGRATION_METHOD_EULER_IMPLICIT, 'euler-implicit'),
-        (INTEGRATION_METHOD_CARLSON_IMPLICIT, 'carlson-implicit'),
-        (INTEGRATION_METHOD_SILECKI_EXPLICIT, 'silecki-explicit'),
+        (INTEGRATION_METHOD_EULER_IMPLICIT, "euler-implicit"),
+        (INTEGRATION_METHOD_CARLSON_IMPLICIT, "carlson-implicit"),
+        (INTEGRATION_METHOD_SILECKI_EXPLICIT, "silecki-explicit"),
     )
     INTEGRATION_METHODS = dict(INTEGRATION_METHOD_CHOICES)
 
@@ -195,29 +195,29 @@ class Constants(object):
     # pand hellend dak_hel
     # pand vlak dak_vla
     # pand uitgestrekt dak_vlu
-    SURFACE_CLASS_GESLOTEN_VERHARDING = 'gesloten verharding'
-    SURFACE_CLASS_OPEN_VERHARDING = 'open verharding'
-    SURFACE_CLASS_ONVERHARD = 'onverhard'
-    SURFACE_CLASS_HALF_VERHARD = 'half verhard'
-    SURFACE_CLASS_PAND = 'pand'
+    SURFACE_CLASS_GESLOTEN_VERHARDING = "gesloten verharding"
+    SURFACE_CLASS_OPEN_VERHARDING = "open verharding"
+    SURFACE_CLASS_ONVERHARD = "onverhard"
+    SURFACE_CLASS_HALF_VERHARD = "half verhard"
+    SURFACE_CLASS_PAND = "pand"
 
     SURFACE_CLASS_CHOICES = (
-        (SURFACE_CLASS_GESLOTEN_VERHARDING, 'gesloten verharding'),
-        (SURFACE_CLASS_OPEN_VERHARDING, 'open verharding'),
-        (SURFACE_CLASS_ONVERHARD, 'onverhard'),
-        (SURFACE_CLASS_HALF_VERHARD, 'half verhard'),
-        (SURFACE_CLASS_PAND, 'pand'),
+        (SURFACE_CLASS_GESLOTEN_VERHARDING, "gesloten verharding"),
+        (SURFACE_CLASS_OPEN_VERHARDING, "open verharding"),
+        (SURFACE_CLASS_ONVERHARD, "onverhard"),
+        (SURFACE_CLASS_HALF_VERHARD, "half verhard"),
+        (SURFACE_CLASS_PAND, "pand"),
     )
     SURFACE_CLASSES = dict(SURFACE_CLASS_CHOICES)
 
-    SURFACE_INCLINATION_HELLEND = 'hellend'
-    SURFACE_INCLINATION_VLAK = 'vlak'
-    SURFACE_INCLINATION_UITGESTREKT = 'uitgestrekt'
+    SURFACE_INCLINATION_HELLEND = "hellend"
+    SURFACE_INCLINATION_VLAK = "vlak"
+    SURFACE_INCLINATION_UITGESTREKT = "uitgestrekt"
 
     SURFACE_INCLINATION_CHOICES = (
-        (SURFACE_INCLINATION_HELLEND, 'hellend'),
-        (SURFACE_INCLINATION_VLAK, 'vlak'),
-        (SURFACE_INCLINATION_UITGESTREKT, 'uitgestrekt'),
+        (SURFACE_INCLINATION_HELLEND, "hellend"),
+        (SURFACE_INCLINATION_VLAK, "vlak"),
+        (SURFACE_INCLINATION_UITGESTREKT, "uitgestrekt"),
     )
     SURFACE_INCLINATIONS = dict(SURFACE_INCLINATION_CHOICES)
 

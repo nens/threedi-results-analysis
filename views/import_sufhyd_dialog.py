@@ -8,17 +8,17 @@ from qgis.PyQt import uic
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
+
 log = logging.getLogger(__name__)
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), os.pardir, 'ui', 'import_sufhyd_dialog.ui'))
+FORM_CLASS, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "import_sufhyd_dialog.ui")
+)
 
 
 class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
-
-    def __init__(self, parent=None, iface=None, ts_datasource=None,
-                 command=None):
+    def __init__(self, parent=None, iface=None, ts_datasource=None, command=None):
         """Constructor
 
         Args:
@@ -37,8 +37,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
         self.db_path = ts_datasource.model_spatialite_filepath
         self.databases = get_databases()
-        self.database_combo.addItems(
-            list(self.databases.keys()))
+        self.database_combo.addItems(list(self.databases.keys()))
 
         self.file_button.clicked.connect(self.select_sufhyd_file)
 
@@ -50,24 +49,22 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
     def select_sufhyd_file(self):
 
-        settings = QSettings('3di', 'qgisplugin')
+        settings = QSettings("3di", "qgisplugin")
 
         try:
-            init_path = settings.value('last_used_import_path', type=str)
+            init_path = settings.value("last_used_import_path", type=str)
         except TypeError:
             init_path = os.path.expanduser("~")
 
-        filename, __ = QFileDialog.getOpenFileName(self,
-                                                   'Select import file',
-                                                   init_path,
-                                                   'Sufhyd (*.hyd)')
+        filename, __ = QFileDialog.getOpenFileName(
+            self, "Select import file", init_path, "Sufhyd (*.hyd)"
+        )
 
         if filename:
             self.filename = filename
             self.file_combo.addItems([filename])
 
-            settings.setValue('last_used_import_path',
-                              os.path.dirname(filename))
+            settings.setValue("last_used_import_path", os.path.dirname(filename))
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
@@ -75,30 +72,32 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         db_key = self.database_combo.currentText()
 
         settings = self.databases[db_key]
-        db_set = settings['db_settings']
+        db_set = settings["db_settings"]
 
-        if settings['db_type'] == 'spatialite':
+        if settings["db_type"] == "spatialite":
             pass
         else:  # postgres
 
             successful_connection = False
 
-            uname = db_set['username']
-            passwd = db_set['password']
-            msg = 'Log in'
+            uname = db_set["username"]
+            passwd = db_set["password"]
+            msg = "Log in"
 
             while not successful_connection:
 
                 uri = QgsDataSourceUri()
-                uri.setConnection(db_set['host'],
-                                  db_set['port'],
-                                  db_set['database'],
-                                  db_set['username'],
-                                  db_set['password'])
+                uri.setConnection(
+                    db_set["host"],
+                    db_set["port"],
+                    db_set["database"],
+                    db_set["username"],
+                    db_set["password"],
+                )
 
                 # try to connect
                 # create a PostgreSQL connection using QSqlDatabase
-                db = QSqlDatabase.addDatabase('QPSQL')
+                db = QSqlDatabase.addDatabase("QPSQL")
                 # check to see if it is valid
 
                 db.setHostName(uri.host())
@@ -117,15 +116,16 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
 
                 connInfo = uri.connectionInfo()
                 (success, uname, passwd) = QgsCredentialDialog.instance().get(
-                    connInfo, uname, passwd, msg)
+                    connInfo, uname, passwd, msg
+                )
 
                 if success:
-                    db_set['username'] = passwd
-                    db_set['password'] = uname
+                    db_set["username"] = passwd
+                    db_set["password"] = uname
                 else:
                     return
 
-        self.command.run_it(self.filename, db_set, settings['db_type'])
+        self.command.run_it(self.filename, db_set, settings["db_type"])
 
         self.accept()
 

@@ -14,13 +14,12 @@ from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 logger = logging.getLogger(__name__)
 
-RULE_OPERATOR_BOTTOM_UP = '>'
-RULE_OPERATOR_TOP_DOWN = '<'
-MEASURE_VARIABLE_WATERLEVEL = 'waterlevel'
+RULE_OPERATOR_BOTTOM_UP = ">"
+RULE_OPERATOR_TOP_DOWN = "<"
+MEASURE_VARIABLE_WATERLEVEL = "waterlevel"
 
 
 class ControlledStructures(object):
-
     def __init__(self, flavor):
         self.flavor = flavor
         self._schema = None  # will passed to get_uri()
@@ -43,15 +42,15 @@ class ControlledStructures(object):
          """
 
         self._uri = QgsDataSourceUri()
-        host = kwargs['host']
-        port = kwargs['port']
-        database = kwargs['database']
-        username = kwargs['username']
-        password = kwargs['password']
-        self._schema = kwargs['schema']
-        if self.flavor == 'spatialite':
+        host = kwargs["host"]
+        port = kwargs["port"]
+        database = kwargs["database"]
+        username = kwargs["username"]
+        password = kwargs["password"]
+        self._schema = kwargs["schema"]
+        if self.flavor == "spatialite":
             self._uri.setDatabase(host)
-        elif self.flavor == 'postgres':
+        elif self.flavor == "postgres":
             self._uri.setConnection(host, port, database, username, password)
         return self._uri
 
@@ -113,31 +112,29 @@ class ControlledStructures(object):
         try:
             with self.engine.connect() as con:
                 rs = con.execute(
-                    '''SELECT {attribute} FROM {table};'''.format(
-                        attribute=attribute_name, table=table_name)
+                    """SELECT {attribute} FROM {table};""".format(
+                        attribute=attribute_name, table=table_name
+                    )
                 )
                 attributes = rs.fetchall()
                 if all_features is False:
-                    list_of_attributes = [str(attribute_value[0]) for
-                                          attribute_value in attributes]
+                    list_of_attributes = [
+                        str(attribute_value[0]) for attribute_value in attributes
+                    ]
                 else:
                     list_of_attributes += attributes
         except OperationalError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         return list_of_attributes
 
-    def get_features_with_where_clause(
-            self, table_name, attribute_name, where):
+    def get_features_with_where_clause(self, table_name, attribute_name, where):
         """
         Get all values of an attribute from a table.
 
@@ -158,25 +155,21 @@ class ControlledStructures(object):
         try:
             with self.engine.connect() as con:
                 rs = con.execute(
-                    '''SELECT {attribute} FROM {table} WHERE {where};'''
-                    .format(
-                        attribute=attribute_name, table=table_name,
-                        where=where)
+                    """SELECT {attribute} FROM {table} WHERE {where};""".format(
+                        attribute=attribute_name, table=table_name, where=where
+                    )
                 )
                 features = rs.fetchall()
                 list_of_features = [feature for feature in features]
         except OperationalError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         return list_of_features
 
     def save_table_control(self, table_control):
@@ -200,8 +193,9 @@ class ControlledStructures(object):
         # TypeErrors when adding 1 to create new_id_control_table.
         attribute_name = "MAX(id)"
         try:
-            max_id_control_table = int(self.get_attributes(
-                table_name, attribute_name)[0])
+            max_id_control_table = int(
+                self.get_attributes(table_name, attribute_name)[0]
+            )
         except ValueError:
             max_id_control_table = 0
         new_id_control_table = max_id_control_table + 1
@@ -235,22 +229,21 @@ class ControlledStructures(object):
         try:
             with self.engine.connect() as con:
                 con.execute(
-                    '''INSERT INTO {table} ({attributes}) VALUES ({values});'''
-                    .format(table=table_name, attributes=attribute_names,
-                            values=attribute_values)
+                    """INSERT INTO {table} ({attributes}) VALUES ({values});""".format(
+                        table=table_name,
+                        attributes=attribute_names,
+                        values=attribute_values,
+                    )
                 )
         except OperationalError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
 
     def delete_from_database(self, table_name, where=""):
         """
@@ -264,24 +257,21 @@ class ControlledStructures(object):
         try:
             with self.engine.connect() as con:
                 con.execute(
-                    '''DELETE FROM {table}{where};'''.format(
-                        table=table_name, where=where)
+                    """DELETE FROM {table}{where};""".format(
+                        table=table_name, where=where
+                    )
                 )
         except OperationalError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
             msg = str(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
             msg = "An unknown exception occured: {}".format(e)
-            messagebar_message(
-                "Error", msg, level=Qgis.Critical, duration=5)
+            messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
 
-    def delete_controls_and_control_groups(
-            self, id_name, id_value, tabwidget):
+    def delete_controls_and_control_groups(self, id_name, id_value, tabwidget):
         """
         Remove the database entries of the controls and delete them.
         Delete empty control groups
@@ -300,11 +290,10 @@ class ControlledStructures(object):
         # Get the control id(s) from v2_control
         table_name = "v2_control"
         attribute_name = "id"
-        where = "{id_name} = {id_value}".format(
-            id_name=id_name, id_value=id_value)
+        where = "{id_name} = {id_value}".format(id_name=id_name, id_value=id_value)
         control_ids = self.get_features_with_where_clause(
-            table_name=table_name, attribute_name=attribute_name,
-            where=where)
+            table_name=table_name, attribute_name=attribute_name, where=where
+        )
         for control in control_ids:
             control_id = control[0]
             # Get the control group id from v2_control
@@ -312,33 +301,30 @@ class ControlledStructures(object):
             attribute_name = "control_group_id"
             where = "id = '{}'".format(str(control_id))
             control_group_ids = self.get_features_with_where_clause(
-                table_name=table_name, attribute_name=attribute_name,
-                where=where)
+                table_name=table_name, attribute_name=attribute_name, where=where
+            )
             for control_group in control_group_ids:
                 control_group_id = control_group[0]
                 # Remove control from v2_control
                 table_name = "v2_control"
-                where = " WHERE id = '{}'".format(
-                    str(control_id))
-                self.delete_from_database(
-                    table_name=table_name, where=where)
+                where = " WHERE id = '{}'".format(str(control_id))
+                self.delete_from_database(table_name=table_name, where=where)
                 # Also remove control groups with these controls in the
                 # tab Control groups
                 tabs_to_remove = []
                 tab_number = tabwidget.count()
                 for tab in range(tab_number):
-                    if tabwidget.tabText(tab) == "Control group: {}"\
-                            .format(control_group_id):
+                    if tabwidget.tabText(tab) == "Control group: {}".format(
+                        control_group_id
+                    ):
                         tabs_to_remove += [tab]
                         # Removing a tabs makes the tab go to the left, so
                         # delete the tabs in reversed order
                         # (from right to left).
-                [tabwidget.removeTab(tab)
-                    for tab in reversed(tabs_to_remove)]
+                [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]
                 # Check whether there are still controls linked to this
                 # control group. If not, delete these empty control groups.
-                self.delete_empty_control_groups(
-                    control_group_id, tabwidget)
+                self.delete_empty_control_groups(control_group_id, tabwidget)
 
     def delete_empty_control_groups(self, control_group_id, tabwidget):
         """
@@ -355,25 +341,26 @@ class ControlledStructures(object):
         attribute_name = "COUNT(*)"
         where = "control_group_id = '{}'".format(str(control_group_id))
         count_control_group_ids = self.get_features_with_where_clause(
-            table_name=table_name, attribute_name=attribute_name,
-            where=where)[0][0]
+            table_name=table_name, attribute_name=attribute_name, where=where
+        )[0][0]
         # Remove control groups that do not contain any controls anymore.
         if count_control_group_ids == 0:
             # Remove these control groups from v2_control_group
             table_name = "v2_control_group"
             attribute_name = "id"
             where = " WHERE {attribute} = {value}".format(
-                attribute=attribute_name, value=control_group_id)
+                attribute=attribute_name, value=control_group_id
+            )
             self.delete_from_database(table_name=table_name, where=where)
             # Also remove these control groups in tab Control groups
             tabs_to_remove = []
             tab_number = tabwidget.count()
             for tab in range(tab_number):
                 if tabwidget.tabText(tab) == "Control group: {}".format(
-                        control_group_id):
+                    control_group_id
+                ):
                     tabs_to_remove += [tab]
                     # Removing a tabs makes the tab go to the left, so
                     # delete the tabs in reversed order
                     # (from right to left).
-            [tabwidget.removeTab(tab)
-                for tab in reversed(tabs_to_remove)]
+            [tabwidget.removeTab(tab) for tab in reversed(tabs_to_remove)]

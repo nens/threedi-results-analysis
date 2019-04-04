@@ -1,9 +1,5 @@
 from builtins import object
-from abc import (
-    ABCMeta,
-    abstractmethod,
-    abstractproperty,
-)
+from abc import ABCMeta, abstractmethod, abstractproperty
 from future.utils import with_metaclass
 
 
@@ -23,8 +19,7 @@ class BaseDataSource(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def get_timeseries(
-            self, object_type, object_id, nc_variable, fill_value=None):
+    def get_timeseries(self, object_type, object_id, nc_variable, fill_value=None):
         pass
 
     @abstractmethod

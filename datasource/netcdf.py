@@ -2,7 +2,7 @@ from builtins import str
 from builtins import range
 from collections import namedtuple
 import glob
-from itertools import (starmap, product)
+from itertools import starmap, product
 import json
 import os
 
@@ -15,50 +15,51 @@ from ..utils import cached_property
 # Explanation: aggregation using the cumulative method integrates the variable
 # over time. Therefore the units must be multiplied by the time also.
 CUMULATIVE_AGGREGATION_UNITS = {
-    's1': 'm MSL',
-    'q': 'm3',
-    'u1': 'm',
-    'vol': 'm3',
-    'q_pump': 'm3',
-    'qp': 'm3',
-    'up1': 'm',
-    'q_lat': 'm3',
-    'vol1': 'm3',
-    'rain': 'm3',
-    'infiltration_rate': 'm3',
-    'infiltration_rate_simple': 'm3',
-    'leak': 'm3',
-    'su': '',
-    'au': '',
-    'intercepted_volume': 'm3',
-    'q_sss': 'm3',
+    "s1": "m MSL",
+    "q": "m3",
+    "u1": "m",
+    "vol": "m3",
+    "q_pump": "m3",
+    "qp": "m3",
+    "up1": "m",
+    "q_lat": "m3",
+    "vol1": "m3",
+    "rain": "m3",
+    "infiltration_rate": "m3",
+    "infiltration_rate_simple": "m3",
+    "leak": "m3",
+    "su": "",
+    "au": "",
+    "intercepted_volume": "m3",
+    "q_sss": "m3",
 }
 
 
 # NetCDF variable information
-NcVar = namedtuple('NcVar', ['name', 'verbose_name', 'unit'])
+NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit"])
 
-WATERLEVEL = NcVar('s1', 'waterlevel', 'm MSL')
-DISCHARGE = NcVar('q', 'discharge', 'm3/s')
-VELOCITY = NcVar('u1', 'velocity', 'm/s')
+WATERLEVEL = NcVar("s1", "waterlevel", "m MSL")
+DISCHARGE = NcVar("q", "discharge", "m3/s")
+VELOCITY = NcVar("u1", "velocity", "m/s")
 # Volume is called 'vol' in subgrid_map.nc but 'vol1' in the aggregation
 # netcdf
-VOLUME = NcVar('vol', 'volume', 'm3')
-VOLUME_AGG = NcVar('vol1', 'volume', 'm3')
-DISCHARGE_PUMP = NcVar('q_pump', 'discharge pump', 'm3/s')
-DISCHARGE_INTERFLOW = NcVar('qp', 'discharge interflow', 'm3/s')
-DISCHARGE_LATERAL = NcVar('q_lat', 'discharge lateral', 'm3/s')
-VELOCITY_INTERFLOW = NcVar('up1', 'velocity interflow', 'm/s')
-RAIN_INTENSITY = NcVar('rain', 'rain intensity', 'm3/s')
-WET_SURFACE_AREA = NcVar('su', 'wet surface area', 'm2')
+VOLUME = NcVar("vol", "volume", "m3")
+VOLUME_AGG = NcVar("vol1", "volume", "m3")
+DISCHARGE_PUMP = NcVar("q_pump", "discharge pump", "m3/s")
+DISCHARGE_INTERFLOW = NcVar("qp", "discharge interflow", "m3/s")
+DISCHARGE_LATERAL = NcVar("q_lat", "discharge lateral", "m3/s")
+VELOCITY_INTERFLOW = NcVar("up1", "velocity interflow", "m/s")
+RAIN_INTENSITY = NcVar("rain", "rain intensity", "m3/s")
+WET_SURFACE_AREA = NcVar("su", "wet surface area", "m2")
 # before groundwater release only infiltration_rate exists on nodes
-INFILTRATION = NcVar('infiltration_rate', 'infiltration rate', 'm3/s')
-INFILTRATION_RATE_SIMPLE = NcVar('infiltration_rate_simple',
-                                 'infiltration_rate_simple', 'm3/s')
-WET_CROSS_SECTION_AREA = NcVar('au', 'wet cross section area', 'm2')
-LEAKAGE_RATE = NcVar('leak', 'leakage rate', 'm3/s')
-INTERCEPTION = NcVar('intercepted_volume', 'intercepted volume', 'm3')
-SOURCES_AND_SINKS = NcVar('q_sss', 'sources and sinks', 'm3/s')
+INFILTRATION = NcVar("infiltration_rate", "infiltration rate", "m3/s")
+INFILTRATION_RATE_SIMPLE = NcVar(
+    "infiltration_rate_simple", "infiltration_rate_simple", "m3/s"
+)
+WET_CROSS_SECTION_AREA = NcVar("au", "wet cross section area", "m2")
+LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s")
+INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3")
+SOURCES_AND_SINKS = NcVar("q_sss", "sources and sinks", "m3/s")
 
 _Q_TYPES = [
     DISCHARGE,
@@ -79,7 +80,7 @@ _H_TYPES = [
     INFILTRATION_RATE_SIMPLE,
     LEAKAGE_RATE,
     INTERCEPTION,
-    SOURCES_AND_SINKS
+    SOURCES_AND_SINKS,
 ]
 
 Q_TYPES = [v.name for v in _Q_TYPES]
@@ -109,37 +110,42 @@ AGGREGATION_VARIABLES = [
 ]
 
 AGGREGATION_OPTIONS = {
-    'min', 'max', 'avg', 'med', 'cum', 'cum_positive', 'cum_negative',
-    'current'}
+    "min",
+    "max",
+    "avg",
+    "med",
+    "cum",
+    "cum_positive",
+    "cum_negative",
+    "current",
+}
 
 
 layer_information = [
     # layer name, (normalized) object_type, q/h type
-
     # Note: the reason why this is plural is because this is (inconsistently)
     # also plural in the id mapping json, in contrast to all other object
     # types
-    ('v2_connection_nodes', 'connection_nodes', 'h'),
-    ('v2_pipe_view', 'pipe', 'q'),
-    ('v2_channel', 'channel', 'q'),
-    ('v2_culvert_view', 'culvert', 'q'),
-    ('v2_manhole_view', 'manhole', 'h'),
-    ('v2_pumpstation', 'pumpstation', 'q'),
-    ('v2_pumpstation_view', 'pumpstation', 'q'),
-    ('v2_weir_view', 'weir', 'q'),
-    ('v2_orifice_view', 'orifice', 'q'),
-    ('sewerage_manhole', 'manhole', 'h'),
-    ('sewerage_pipe_view', 'pipe', 'q'),
-    ('sewerage_pumpstation', 'pumpstation', 'q'),
-    ('sewerage_pumpstation_view', 'pumpstation', 'q'),
-    ('sewerage_weir_view', 'weir', 'q'),
-    ('sewerage_orifice_view', 'orifice', 'q'),
-    ('flowlines', 'flowline', 'q'),
-    ('nodes', 'node', 'h'),
-    ('pumplines', 'pumpline', 'q'),
-    ('line_results', 'flowline', 'q'),
-    ('node_results', 'node', 'h'),
-
+    ("v2_connection_nodes", "connection_nodes", "h"),
+    ("v2_pipe_view", "pipe", "q"),
+    ("v2_channel", "channel", "q"),
+    ("v2_culvert_view", "culvert", "q"),
+    ("v2_manhole_view", "manhole", "h"),
+    ("v2_pumpstation", "pumpstation", "q"),
+    ("v2_pumpstation_view", "pumpstation", "q"),
+    ("v2_weir_view", "weir", "q"),
+    ("v2_orifice_view", "orifice", "q"),
+    ("sewerage_manhole", "manhole", "h"),
+    ("sewerage_pipe_view", "pipe", "q"),
+    ("sewerage_pumpstation", "pumpstation", "q"),
+    ("sewerage_pumpstation_view", "pumpstation", "q"),
+    ("sewerage_weir_view", "weir", "q"),
+    ("sewerage_orifice_view", "orifice", "q"),
+    ("flowlines", "flowline", "q"),
+    ("nodes", "node", "h"),
+    ("pumplines", "pumpline", "q"),
+    ("line_results", "flowline", "q"),
+    ("node_results", "node", "h"),
 ]
 
 layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
@@ -152,7 +158,7 @@ def normalized_object_type(current_layer_name):
         return layer_object_type_mapping[current_layer_name]
     else:
         msg = "Unsupported layer: %s." % current_layer_name
-        log(msg, level='WARNING')
+        log(msg, level="WARNING")
         return None
 
 
@@ -176,9 +182,8 @@ def find_id_mapping_file(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = 'id_mapping*'
-    inpdir = os.path.join(os.path.dirname(netcdf_file_path),
-                          '..', 'input_generated')
+    pattern = "id_mapping*"
+    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "input_generated")
     resultdir = os.path.dirname(netcdf_file_path)
 
     from_inpdir = glob.glob(os.path.join(inpdir, pattern))
@@ -208,9 +213,8 @@ def find_h5_file(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = '*.h5'
-    inpdir = os.path.join(os.path.dirname(netcdf_file_path),
-                          '..', 'preprocessed')
+    pattern = "*.h5"
+    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "preprocessed")
     resultdir = os.path.dirname(netcdf_file_path)
 
     from_inpdir = glob.glob(os.path.join(inpdir, pattern))
@@ -239,17 +243,18 @@ def detect_netcdf_version(netcdf_file_path):
 
     """
     import h5py
+
     try:
-        dataset = h5py.File(netcdf_file_path, mode='r')
+        dataset = h5py.File(netcdf_file_path, mode="r")
         if "threedicore_version" in dataset.attrs:
-            return 'netcdf-groundwater'
+            return "netcdf-groundwater"
         else:
-            return 'netcdf'
+            return "netcdf"
     except IOError as e:
         # old 3Di results cannot be opened with h5py. The can be opened with
         # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
         # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
-        return 'netcdf'
+        return "netcdf"
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -264,7 +269,7 @@ def find_aggregation_netcdf(netcdf_file_path):
     Raises:
         IndexError if nothing is found
     """
-    pattern = 'flow_aggregate.nc'
+    pattern = "flow_aggregate.nc"
     result_dir = os.path.dirname(netcdf_file_path)
     return glob.glob(os.path.join(result_dir, pattern))[0]
 
@@ -279,7 +284,7 @@ def construct_channel_mapping(ds):
     Python's 0-based indexing array (versus Fortran's 1-based indexing). These
     flowline ids are used for  pipes, weirs and orifices.
     """
-    cm = np.copy(ds.variables['channel_mapping'])
+    cm = np.copy(ds.variables["channel_mapping"])
     cm[:, 1] = cm[:, 1] - 1  # the index transformation
     # TODO: not a dict anymore, needs changing other places
     return dict(cm)
@@ -293,14 +298,14 @@ def construct_node_mapping(ds):
     Python's 0-based indexing array (versus Fortran's 1-based indexing). These
     node ids are used for manholes.
     """
-    cm = np.copy(ds.variables['node_mapping'])
+    cm = np.copy(ds.variables["node_mapping"])
     cm[:, 1] = cm[:, 1] - 1  # the index transformation
     return dict(cm)
 
 
 def get_timesteps(ds):
     """Timestep determination using consecutive element difference"""
-    return np.ediff1d(ds.variables['time'])
+    return np.ediff1d(ds.variables["time"])
 
 
 # Note: copied from threedi codebase
@@ -324,14 +329,13 @@ def product_and_concat(variables, aggregation_options=AGGREGATION_OPTIONS):
  'q_min']
     """
     prods = product(variables, aggregation_options)
-    nc_vars = starmap(lambda x, y: '%s_%s' % (x, y), prods)
+    nc_vars = starmap(lambda x, y: "%s_%s" % (x, y), prods)
     return nc_vars
 
 
 AGG_Q_TYPES = list(product_and_concat(Q_TYPES))
 AGG_H_TYPES = list(product_and_concat(H_TYPES))
-POSSIBLE_AGG_VARS = list(product_and_concat(
-    [v.name for v in AGGREGATION_VARIABLES]))
+POSSIBLE_AGG_VARS = list(product_and_concat([v.name for v in AGGREGATION_VARIABLES]))
 
 
 class NetcdfDataSource(BaseDataSource):
@@ -368,7 +372,7 @@ class NetcdfDataSource(BaseDataSource):
         self.file_path = file_path
         # Load netcdf
         if not ds:
-            self.ds = Dataset(self.file_path, mode='r', format='NETCDF4')
+            self.ds = Dataset(self.file_path, mode="r", format="NETCDF4")
             log("Opened netcdf: %s" % self.file_path)
         else:
             self.ds = ds
@@ -384,20 +388,21 @@ class NetcdfDataSource(BaseDataSource):
         line_type_of to work.
         """
         # Nodes
-        self.n2dtot = getattr(self.ds, 'nFlowElem2d', 0)
-        self.n1dtot = getattr(self.ds, 'nFlowElem1d', 0)
-        self.n2dobc = getattr(self.ds, 'nFlowElem2dBounds', 0)
+        self.n2dtot = getattr(self.ds, "nFlowElem2d", 0)
+        self.n1dtot = getattr(self.ds, "nFlowElem1d", 0)
+        self.n2dobc = getattr(self.ds, "nFlowElem2dBounds", 0)
         self.end_n1dtot = self.n2dtot + self.n1dtot
         self.end_n2dobc = self.n2dtot + self.n1dtot + self.n2dobc
-        self.nodall = getattr(self.ds, 'nFlowElem', 0)
+        self.nodall = getattr(self.ds, "nFlowElem", 0)
         # Links
-        self.nFlowLine2d = getattr(self.ds, 'nFlowLine2d', 0)
-        self.nFlowLine = getattr(self.ds, 'nFlowLine', 0)
-        self.nFlowLine1dBounds = getattr(self.ds, 'nFlowLine1dBounds', 0)
-        self.nFlowLine2dBounds = getattr(self.ds, 'nFlowLine2dBounds', 0)
+        self.nFlowLine2d = getattr(self.ds, "nFlowLine2d", 0)
+        self.nFlowLine = getattr(self.ds, "nFlowLine", 0)
+        self.nFlowLine1dBounds = getattr(self.ds, "nFlowLine1dBounds", 0)
+        self.nFlowLine2dBounds = getattr(self.ds, "nFlowLine2dBounds", 0)
         self.end_2d_bound_line = self.nFlowLine - self.nFlowLine1dBounds
-        self.end_1d_line = (self.nFlowLine - self.nFlowLine2dBounds -
-                            self.nFlowLine1dBounds)
+        self.end_1d_line = (
+            self.nFlowLine - self.nFlowLine2dBounds - self.nFlowLine1dBounds
+        )
         assert (
             self.end_n1dtot <= self.end_n2dobc <= self.nodall
         ), "Inconsistent node attribute values in netCDF"
@@ -427,8 +432,7 @@ class NetcdfDataSource(BaseDataSource):
             return None
         else:
             log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-            return Dataset(aggregation_netcdf_file, mode='r',
-                           format='NETCDF4')
+            return Dataset(aggregation_netcdf_file, mode="r", format="NETCDF4")
 
     @cached_property
     def channel_mapping(self):
@@ -461,9 +465,9 @@ class NetcdfDataSource(BaseDataSource):
     def get_timestamps(self, object_type=None, parameter=None):
         # todo: object_type can be removed
         if parameter is None:
-            return self.ds.variables['time'][:]
+            return self.ds.variables["time"][:]
         elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.ds.variables['time'][:]
+            return self.ds.variables["time"][:]
         else:
             return self.get_agg_var_timestamps(parameter)
 
@@ -472,11 +476,10 @@ class NetcdfDataSource(BaseDataSource):
 
         Example: for 's1_max' the time variable name is 'time_s1_max'.
         """
-        time_var_name = 'time_%s' % aggregation_variable_name
+        time_var_name = "time_%s" % aggregation_variable_name
         return self.ds_aggregation.variables[time_var_name][:]
 
-    def get_available_variables(self, only_subgrid_map=False,
-                                only_aggregation=False):
+    def get_available_variables(self, only_subgrid_map=False, only_aggregation=False):
         """Query the netCDF files and get all variables which we can retrieve
         data for.
 
@@ -487,21 +490,23 @@ class NetcdfDataSource(BaseDataSource):
         available_vars = []
 
         if do_all or only_subgrid_map:
-            possible_subgrid_map_vars = [v for v, _, _ in
-                                         SUBGRID_MAP_VARIABLES]
+            possible_subgrid_map_vars = [v for v, _, _ in SUBGRID_MAP_VARIABLES]
             subgrid_map_vars = list(self.ds.variables.keys())
-            available_subgrid_map_vars = [v for v in possible_subgrid_map_vars
-                                          if v in subgrid_map_vars]
+            available_subgrid_map_vars = [
+                v for v in possible_subgrid_map_vars if v in subgrid_map_vars
+            ]
             available_vars += available_subgrid_map_vars
         if do_all or only_aggregation:
             if self.ds_aggregation is not None:
                 agg_vars = list(self.ds_aggregation.variables.keys())
-                available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in
-                                      agg_vars]
+                available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in agg_vars]
                 available_vars += available_agg_vars
             else:
-                log("No aggregation netCDF was found, only the data from the "
-                    "regular netCDF will be used.", level='WARNING')
+                log(
+                    "No aggregation netCDF was found, only the data from the "
+                    "regular netCDF will be used.",
+                    level="WARNING",
+                )
         return available_vars
 
     def get_object(self, object_type, object_id):
@@ -512,7 +517,7 @@ class NetcdfDataSource(BaseDataSource):
         aka: the inp_id"""
         try:
             # This is the v2 situation
-            v2_object_type = 'v2_%s' % normalized_object_type
+            v2_object_type = "v2_%s" % normalized_object_type
             obj_id_mapping = self.id_mapping[v2_object_type]
         except KeyError:
             # This is the sewerage situation
@@ -523,9 +528,9 @@ class NetcdfDataSource(BaseDataSource):
         """Get the node or flow link id needed to get data from netcdf."""
         # Note: because pumpstation uses q_pump it also has a special way of
         # accessing that array.
-        if object_type in ['pumpstation']:
+        if object_type in ["pumpstation"]:
             return inp_id - 1
-        elif object_type in ['manhole', 'connection_nodes']:
+        elif object_type in ["manhole", "connection_nodes"]:
             return self.node_mapping[inp_id]
         else:
             return self.channel_mapping[inp_id]
@@ -540,17 +545,18 @@ class NetcdfDataSource(BaseDataSource):
         #    ----------------- +
         #    nFlowElem
         if node_idx < self.n2dtot:
-            return '2d'
+            return "2d"
         elif node_idx < self.end_n1dtot:
-            return '1d'
+            return "1d"
         elif node_idx < self.end_n2dobc:
-            return '2d_bound'
+            return "2d_bound"
         elif node_idx < self.nodall:
-            return '1d_bound'
+            return "1d_bound"
         else:
             raise ValueError(
-                "Index %s is not smaller than the number of nodes (%s)" %
-                (node_idx, self.nodall))
+                "Index %s is not smaller than the number of nodes (%s)"
+                % (node_idx, self.nodall)
+            )
 
     def line_type_of(self, line_idx):
         """Get line type based on its index."""
@@ -561,23 +567,24 @@ class NetcdfDataSource(BaseDataSource):
         # - 2d bound links (nr: ds.ds.nFlowLine2dBounds)
         # - 1d bound links (nr: ds.ds.nFlowLine1dBounds)
         if line_idx < self.nFlowLine2d:
-            return '2d'
+            return "2d"
         elif line_idx < self.end_1d_line:
-            return '1d'
+            return "1d"
         elif line_idx < self.end_2d_bound_line:
-            return '2d_bound'
+            return "2d_bound"
         elif line_idx < self.nFlowLine:
-            return '1d_bound'
+            return "1d_bound"
         else:
             raise ValueError(
-                "Index %s is not smaller than the number of lines (%s)" %
-                (line_idx, self.nFlowLine))
+                "Index %s is not smaller than the number of lines (%s)"
+                % (line_idx, self.nFlowLine)
+            )
 
     def obj_to_netcdf_id(self, object_id, normalized_object_type):
         # Here we map the feature ids (== object ids) to internal netcdf ids.
         # Note: 'flowline' and 'node' are memory layers that are made from the
         # netcdf, so they don't need an id mapping or netcdf mapping
-        if normalized_object_type in ['flowline', 'node', 'pumpline']:
+        if normalized_object_type in ["flowline", "node", "pumpline"]:
             # TODO: need to test this id to make sure (-1/+1??)!!
             netcdf_id = object_id
         else:
@@ -586,8 +593,15 @@ class NetcdfDataSource(BaseDataSource):
             netcdf_id = self.netcdf_id_from(inp_id, normalized_object_type)
         return netcdf_id
 
-    def get_timeseries(self, object_type, object_id, variable, start_ts=None,
-                       end_ts=None, fill_value=None):
+    def get_timeseries(
+        self,
+        object_type,
+        object_id,
+        variable,
+        start_ts=None,
+        end_ts=None,
+        fill_value=None,
+    ):
         """Get a list of time series from netcdf.
 
         Args:
@@ -631,8 +645,7 @@ class NetcdfDataSource(BaseDataSource):
         # np.ma.vstack
         return np.ma.vstack((timestamps, vals)).T
 
-    def get_values_by_ids(self, variable, object_type, object_ids,
-                          caching=True):
+    def get_values_by_ids(self, variable, object_type, object_ids, caching=True):
         """Get timeseries values by one or more object ids.
 
         Args:
@@ -692,10 +705,12 @@ class NetcdfDataSource(BaseDataSource):
     def get_values_by_id(self, variable, object_type, object_id, caching=True):
         """Convenience method to get a regular array if only one ID is needed.
         """
-        vals = self.get_values_by_ids(variable=variable,
-                                      object_type=object_type,
-                                      object_ids=[object_id],
-                                      caching=caching)
+        vals = self.get_values_by_ids(
+            variable=variable,
+            object_type=object_type,
+            object_ids=[object_id],
+            caching=caching,
+        )
         # Convert row array to regular array.
         return vals[:, 0]
 
