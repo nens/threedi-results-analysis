@@ -86,4 +86,3 @@ WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/Three
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/usr/bin/qgis"]
-USER nens
