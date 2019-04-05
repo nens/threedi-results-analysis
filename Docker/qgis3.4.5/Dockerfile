@@ -7,9 +7,9 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 
 ENV TZ Europe/Amsterdam
 
-ARG UID=1000
-ARG GID=1000
-RUN groupadd -g $GID nens && useradd -lm -u $UID -g $GID nens
+ARG uid=1000
+ARG gid=1000
+RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
 
 RUN echo $TZ > /etc/timezone \
     && apt-get -y update \
