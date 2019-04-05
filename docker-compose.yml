@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.2'
 
 services:
 
@@ -7,6 +7,7 @@ services:
     build:
       context: .
       dockerfile: Docker/qgis3.4.5/Dockerfile
+      cache_from: ['qgis-desktop']  # For caching on travis-ci
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
