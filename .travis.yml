@@ -11,8 +11,8 @@ cache:
 before_install:
   - cat $HOME/docker-cache/our-image.tar | docker load || true
 
-# install:
-#   - md5sum --check $HOME/docker-cache/docker-checksum || docker-compose build
+install:
+  - md5sum --check $HOME/docker-cache/docker-checksum || docker-compose build
 
 script:
   # We set the QT_QPA_PLATFORM to run the tests on a headless server:
