@@ -7,9 +7,10 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 
 ENV TZ Europe/Amsterdam
 
-ARG USER_ID
-ARG GROUP_ID
-ARG USERNAME
+ARG UID=1000
+ARG GID=1000
+ARG USERNAME=nens
+RUN groupadd -g $GID $USERNAME && useradd -lm -u $UID -g $GID $USERNAME
 
 RUN echo $TZ > /etc/timezone \
     && apt-get -y update \
@@ -75,9 +76,6 @@ RUN pip install netCDF4
 RUN pip3 uninstall h5py -y
 ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
-
-RUN groupadd -g $GROUP_ID $GROUP_ID
-RUN useradd -m -l -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
 
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins

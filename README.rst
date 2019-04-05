@@ -80,6 +80,20 @@ The plugin can be added using one of the following ways:
   external dependencies (see Requirements section).
 
 
+Local development
+-----------------
+
+Local development happens with docker to make sure we're working in a nicely
+isolated environment. So first build the docker::
+
+  $ docker-compose build
+
+If your user ID isn't ``1000``, you can run it like this::
+
+  $ docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
+
+
+
 Release
 -------
 

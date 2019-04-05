@@ -7,10 +7,6 @@ services:
     build:
       context: .
       dockerfile: Docker/qgis3.4.5/Dockerfile
-      args:
-        USER_ID: ${UID}
-        GROUP_ID: ${UID}
-        USERNAME: ${USER}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
       - .:/home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox # source code
