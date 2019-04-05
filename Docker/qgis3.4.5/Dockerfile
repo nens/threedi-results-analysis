@@ -80,5 +80,5 @@ RUN pip3 install --no-binary=h5py h5py
 ENV PYTHONPATH /usr/share/qgis/python/plugins
 
 WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-USER nens
 CMD ["/usr/bin/qgis"]
+USER nens
