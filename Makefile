@@ -79,12 +79,6 @@ test: compile transcompile
 	@echo "----------------------"
 	@echo "Regression Test Suite"
 	@echo "----------------------"
-
-	whoami
-	id -u
-	id -g
-	ls -l
-	touch pietje.txt
 	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
 		export QGIS_DEBUG=0; \
 		export QGIS_LOG_FILE=/dev/null; \
