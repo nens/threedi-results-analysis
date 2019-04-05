@@ -1,7 +1,8 @@
 Introduction
 ============
-This folder contains the docker container for running QGIS desktop with
-the ThreeDiToolbox installed.
+
+This folder contains the docker container for running QGIS desktop with the
+ThreeDiToolbox installed.
 
 To build the image and run the image enter the following commands::
 
@@ -21,4 +22,3 @@ To run the test enter the following command::
 Check PEP8::
 
     $ docker-compose run qgis-desktop make pep8
-
