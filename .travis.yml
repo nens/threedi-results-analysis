@@ -11,8 +11,8 @@ cache:
 before_install:
   - cat $HOME/docker-cache/our-image.tar | docker load || true
 
-# install:
-#   - docker-compose build
+install:
+  - docker-compose build
 
 script:
   # We set the QT_QPA_PLATFORM to run the tests on a headless server:
