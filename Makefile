@@ -80,6 +80,9 @@ test: compile transcompile
 	@echo "Regression Test Suite"
 	@echo "----------------------"
 
+	@echo whoami
+	@echo ls -l
+	@echo touch pietje.txt
 	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
 		export QGIS_DEBUG=0; \
 		export QGIS_LOG_FILE=/dev/null; \
