@@ -5,7 +5,7 @@ services:
   - docker
 
 before_install:
-  - docker load --input $HOME/docker-cache/our-image.tar qgis-desktop || true
+  - cat $HOME/docker-cache/our-image.tar qgis-desktop | docker load --input  || true
 
 install:
   - docker-compose build
@@ -18,7 +18,7 @@ script:
 
 before_cache:
   - mkdir -p $HOME/docker-cache
-  - docker save --output $HOME/docker-cache/our-image.tar qgis-desktop
+  - docker save qgis-desktop > $HOME/docker-cache/our-image.tar
 
 notifications:
   email: false
