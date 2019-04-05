@@ -79,10 +79,6 @@ RUN pip3 install --no-binary=h5py h5py
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins
 
-COPY Docker/docker-entrypoint.sh /
-RUN chmod u+x /docker-entrypoint.sh
-
 WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+USER nens
 CMD ["/usr/bin/qgis"]
