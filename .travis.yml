@@ -9,7 +9,7 @@ cache:
     - $HOME/docker-cache
 
 before_install:
-  - cat $HOME/docker-cache/our-image.tar qgis-desktop | docker load || true
+  - cat $HOME/docker-cache/our-image.tar | docker load || true
 
 # install:
 #   - docker-compose build
