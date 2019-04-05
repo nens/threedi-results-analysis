@@ -13,7 +13,5 @@ services:
       - ~/.local/share/QGIS/QGIS3:/home/${USER}/.local/share/QGIS/QGIS3  # make settings persistent
     environment:
       - USERNAME=${USER}
-      - USER_ID=${UID}
-      - GROUP_ID=${UID}
       - DISPLAY=unix${DISPLAY}
     command: /usr/bin/qgis
