@@ -12,8 +12,7 @@ before_install:
   - cat $HOME/docker-cache/our-image.tar | docker load || true
 
 install:
-  - ls -l $HOME/docker-cache/
-#  - docker-compose build
+  - md5sum --check $HOME/docker-cache/docker-checksum || docker-compose build
 
 script:
   # We set the QT_QPA_PLATFORM to run the tests on a headless server:
@@ -23,7 +22,10 @@ script:
 
 before_cache:
   - mkdir -p $HOME/docker-cache
-  - docker save qgis-desktop > $HOME/docker-cache/our-image.tar
+  - md5sum --check $HOME/docker-cache/docker-checksum || \
+        docker save qgis-desktop > $HOME/docker-cache/our-image.tar \
+        md5sum docker-compose.yml Docker/qgis3.4.5/Dockerfile \
+        > $HOME/docker-cache/docker-checksum
 
 notifications:
   email: false
