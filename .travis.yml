@@ -4,6 +4,10 @@ dist: xenial
 services:
   - docker
 
+cache:
+  directories:
+    - $HOME/docker-cache
+
 before_install:
   - cat $HOME/docker-cache/our-image.tar qgis-desktop | docker load --input  || true
 
