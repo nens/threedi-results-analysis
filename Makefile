@@ -81,6 +81,8 @@ test: compile transcompile
 	@echo "----------------------"
 
 	whoami
+	id -u
+	id -g
 	ls -l
 	touch pietje.txt
 	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
