@@ -9,8 +9,7 @@ ENV TZ Europe/Amsterdam
 
 ARG UID=1000
 ARG GID=1000
-ARG USERNAME=nens
-RUN groupadd -g $GID $USERNAME && useradd -lm -u $UID -g $GID $USERNAME
+RUN groupadd -g $GID nens && useradd -lm -u $UID -g $GID nens
 
 RUN echo $TZ > /etc/timezone \
     && apt-get -y update \
@@ -83,7 +82,8 @@ ENV PYTHONPATH /usr/share/qgis/python/plugins
 COPY Docker/docker-entrypoint.sh /
 RUN chmod u+x /docker-entrypoint.sh
 
-WORKDIR /home/${USERNAME}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/usr/bin/qgis"]
+USER nens
