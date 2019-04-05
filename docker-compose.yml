@@ -7,12 +7,11 @@ services:
     build:
       context: .
       dockerfile: Docker/qgis3.4.5/Dockerfile
-      cache_from: ['qgis-desktop']  # For caching on travis-ci
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
       - .:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox # source code
-      - ~/.local/share/QGIS/QGIS3:/home/nens/.local/share/QGIS/QGIS3  # make settings persistent
+      - ~/.qgis-docker:/home/nens/.local/share/QGIS/QGIS3  # make settings persistent
     environment:
       - DISPLAY=unix${DISPLAY}
     command: /usr/bin/qgis
