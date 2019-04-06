@@ -33,9 +33,7 @@ before_cache:
      md5sum --check $HOME/docker-cache/docker-checksum || docker save
      qgis-desktop > $HOME/docker-cache/our-image.tar
   - >
-     md5sum --check $HOME/docker-cache/docker-checksum || md5sum
-     docker-compose.yml Docker/qgis3.4.5/Dockerfile >
-     $HOME/docker-cache/docker-checksum
+     md5sum --check $HOME/docker-cache/docker-checksum || scripts/create-travis-checksum.sh
 
 notifications:
   email: false

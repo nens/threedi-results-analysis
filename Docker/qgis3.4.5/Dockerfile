@@ -58,8 +58,6 @@ RUN apt-get -y update \
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
 
-# Warning: modifications of requirements.txt do not automatically result in a
-# newly build docker image! You have to fire off the re-build by hand.
 ADD requirements.txt .
 ADD requirements-dev.txt .
 RUN pip3 install -r requirements.txt -U
