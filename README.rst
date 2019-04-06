@@ -92,6 +92,7 @@ If your user ID isn't ``1000``, you can run it like this::
 
   $ docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
+The docker-qgis's settings are persisted in ``~/.qgis-docker/``.
 
 
 Release
