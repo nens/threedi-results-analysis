@@ -94,6 +94,11 @@ If your user ID isn't ``1000``, you can run it like this::
 
 The docker-qgis's settings are persisted in ``~/.qgis-docker/``.
 
+The tests that run on travis-ci.org cache the docker image that is being build
+in order to shave 5 minutes off the test duration. The image is automatically
+rebuild when the ``Dockerfile`` or ``docker-compose.yml`` changes. It is also
+possible to empty travis' cache in case something seems to be wrong.
+
 
 Release
 -------

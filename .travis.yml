@@ -9,11 +9,13 @@ cache:
     - $HOME/docker-cache
 
 before_install:
+  # If the docker checksum matches, use the cached docker image.
   - >
      md5sum --check $HOME/docker-cache/docker-checksum &&
      cat $HOME/docker-cache/our-image.tar | docker load || true
 
 install:
+  # Rebuild the docker image, but only if the docker checksum does not match.
   - >
      md5sum --check $HOME/docker-cache/docker-checksum ||
      docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
@@ -25,6 +27,7 @@ script:
   - docker-compose run qgis-desktop make pep8
 
 before_cache:
+  # If the docker checksum did not match, save the new docker image + checksum.
   - mkdir -p $HOME/docker-cache
   - >
      md5sum --check $HOME/docker-cache/docker-checksum || docker save
