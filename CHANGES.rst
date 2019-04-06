@@ -5,7 +5,8 @@ ThreeDiToolBox changelog
 1.11 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Made automated tests on travis-ci.org run much faster (from 8 down to 3
+  minutes).
 
 
 1.10 (2019-03-28)
