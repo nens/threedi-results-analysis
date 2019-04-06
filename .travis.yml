@@ -9,15 +9,15 @@ cache:
     - $HOME/docker-cache
 
 before_install:
-  # If the docker checksum matches, use the cached docker image.
+  # If the docker cache is still valid, use the cached docker image.
   - >
-     md5sum --check $HOME/docker-cache/docker-checksum &&
+     scripts/travis-cache-ok.sh &&
      cat $HOME/docker-cache/our-image.tar | docker load || true
 
 install:
-  # Rebuild the docker image, but only if the docker checksum does not match.
+  # Rebuild the docker image, but only if the docker cache isn't valid anymore.
   - >
-     md5sum --check $HOME/docker-cache/docker-checksum ||
+     scripts/travis-cache-ok.sh ||
      docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
 script:
@@ -27,13 +27,12 @@ script:
   - docker-compose run qgis-desktop make pep8
 
 before_cache:
-  # If the docker checksum did not match, save the new docker image + checksum.
+  # If the docker cache isn't valid, save the new docker image + checksum.
   - mkdir -p $HOME/docker-cache
   - >
-     md5sum --check $HOME/docker-cache/docker-checksum || docker save
-     qgis-desktop > $HOME/docker-cache/our-image.tar
-  - >
-     md5sum --check $HOME/docker-cache/docker-checksum || scripts/create-travis-checksum.sh
+     scripts/travis-cache-ok.sh ||
+     docker save qgis-desktop > $HOME/docker-cache/our-image.tar
+  - scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
 notifications:
   email: false
