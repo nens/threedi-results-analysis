@@ -77,16 +77,9 @@ RUN pip3 install --no-binary=h5py h5py
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins
 
-# Directories. Our plugin is deep in the .local qgis plugin directory
-# structure. It is our working directory. The current directory will be
-# mounted into it by docker-compose. The .local qgis dir is a volume so that
-# settings are persisted.
-ARG QGIS_LOCAL_DIR=/home/nens/.local/share/QGIS/
-ARG PLUGIN_DIR=/$QGIS_LOCAL_DIR/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-
-USER nens
-RUN mkdir -p $PLUGIN_DIR
-WORKDIR $PLUGIN_DIR
+WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
 
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]
+
+USER nens
