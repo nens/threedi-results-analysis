@@ -10,8 +10,10 @@ services:
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
-      - .:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox # source code
-      - ~/.qgis-docker:/home/nens/.local/share/QGIS/QGIS3  # make settings persistent
+      - .:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+      - qgis-settings:/home/nens/.local/share/QGIS/
     environment:
       - DISPLAY=unix${DISPLAY}
-    command: /usr/bin/qgis
+
+volumes:
+  qgis-settings:
