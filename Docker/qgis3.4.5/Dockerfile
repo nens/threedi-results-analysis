@@ -77,9 +77,9 @@ RUN pip3 install --no-binary=h5py h5py
 # Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
 ENV PYTHONPATH /usr/share/qgis/python/plugins
 
-WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]
 
 USER nens
+RUN mkdir -p /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
