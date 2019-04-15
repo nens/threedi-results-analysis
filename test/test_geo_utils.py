@@ -12,12 +12,13 @@ from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import get_distance
 from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
 from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
-from ThreeDiToolbox.test.utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
 
 class TestGeoUtils(unittest.TestCase):
+
     def setUp(self):
-        self.QGIS_APP, self.CANVAS, self.IFACE, self.PARENT = get_qgis_app()
+        ensure_qgis_app_is_initialized()
 
     def test_it_can_get_epsg_code_from_layer(self):
         crs = "EPSG:28992"

@@ -1,7 +1,6 @@
 import os.path
 import unittest
 
-from ThreeDiToolbox.test.utilities import get_qgis_app
 from qgis.core import (
     QgsPoint,
     QgsGeometry,
@@ -12,7 +11,6 @@ from qgis.core import (
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.water_balance.tools.waterbalance import WaterBalanceCalculation
 
-# QGIS_APP = get_qgis_app()
 test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 
 

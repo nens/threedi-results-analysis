@@ -13,7 +13,6 @@ try:
     from qgis.core import (
         QgsVectorLayer,
         QgsFeature,
-        QgsPoint,
         QgsPointXY,
         QgsField,
         QgsGeometry,
@@ -43,9 +42,9 @@ from ThreeDiToolbox.datasource.netcdf_groundwater import (
     NetcdfGroundwaterDataSource,
     find_aggregation_netcdf_gw,
 )
-from ThreeDiToolbox.test.utilities import get_qgis_app, TemporaryDirectory
+from ThreeDiToolbox.test.utilities import TemporaryDirectory
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
-QGIS_APP = get_qgis_app()
 linux_dist, ubuntu_version, _ = platform.linux_distribution()
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
@@ -80,6 +79,7 @@ def result_data_is_available(flow_agg_must_exist=False):
 )
 class TestNetcdfDatasource(unittest.TestCase):
     def setUp(self):
+        ensure_qgis_app_is_initialized()
         self.ncds = NetcdfDataSource(netcdf_datasource_path, load_properties=False)
 
         # cherry picked id and object type that exist in this
@@ -176,6 +176,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
     """Some basic tests without needing an actual netCDF file."""
 
     def setUp(self):
+        ensure_qgis_app_is_initialized()
         class Mock(object):
             pass
 
@@ -223,28 +224,34 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
             self.assertEqual(agg_path, agg_path_found)
 
 
-@unittest.skipIf(
-    linux_dist == "Ubuntu" and LooseVersion(ubuntu_version) < LooseVersion("16.04"),
-    "Your Ubuntu version probably has a GDAL/OGR version that's too old for "
-    "this test to succeed.",
-)
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
 class TestSpatialiteDataSource(unittest.TestCase):
     def setUp(self):
+        ensure_qgis_app_is_initialized()
         self.tmp_directory = tempfile.mkdtemp()
+        print("Created tmp dir %s" % self.tmp_directory)
         self.spatialite_path = os.path.join(self.tmp_directory, "test.sqlite")
 
     def tearDown(self):
         shutil.rmtree(self.tmp_directory)
+        print("Zapped tmp dir %s" % self.tmp_directory)
 
     def test_create_empty_table(self):
+        print("test_create_empty_table start")
         spl = Spatialite(self.spatialite_path + "1")
+        print("test_create_empty_table 2")
 
         layer = spl.create_empty_layer(
             "table_one", fields=["id INTEGER", "name TEXT NULLABLE"]
         )
+        # ^^^^^ Deze gaat fout:
+        # error loading table table_one from spatialite file /tmp/tmpx19kbb5m/test.sqlite1. Error message: <QgsError: >.
+
+        print("test_create_empty_table 3")
         # test table is created
         self.assertIsNotNone(layer)
+        print("test_create_empty_table 4")
+
         self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
         self.assertFalse("table_two" in spl.getTables())
 
@@ -260,12 +267,17 @@ class TestSpatialiteDataSource(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 1)
 
     def test_import_layer(self):
+        print("test_import_layer start")
         spl = Spatialite(self.spatialite_path + "3")
+        print("test_import_layer 2")
 
         # create memory layer
         uri = "Point?crs=epsg:4326&index=yes"
+        # Op de volgende regel klapt hij eruit. Memory door iets anders overschreven.
         layer = QgsVectorLayer(uri, "test_layer", "memory")
+        print("test_import_layer 3")
         pr = layer.dataProvider()
+        print("test_import_layer 4")
 
         # add fields
         pr.addAttributes(

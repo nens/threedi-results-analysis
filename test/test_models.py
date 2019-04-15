@@ -8,10 +8,7 @@ from ThreeDiToolbox.models.datasources import (
     DataSourceLayerManager,
 )
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
-from ThreeDiToolbox.test.test_datasources import (
-    netcdf_datasource_path,
-    result_data_is_available,
-)
+from ThreeDiToolbox.test.test_datasources import netcdf_datasource_path
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
