@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Inspired by https://hub.docker.com/r/timcera/qgis-desktop-ubuntu/~/dockerfile/
 
@@ -17,7 +17,7 @@ RUN echo $TZ > /etc/timezone \
         tzdata \
         dirmngr \
         apt-transport-https \
-        python-software-properties \
+        gpg-agent \
         software-properties-common \
         wget \
         dbus \
@@ -25,8 +25,8 @@ RUN echo $TZ > /etc/timezone \
         python-dev \
         build-essential \
         git \
-        gosu \
-    && add-apt-repository ppa:ubuntugis/ubuntugis-unstable \
+	strace \
+	valgrind \
     && rm /etc/localtime \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata \
@@ -36,8 +36,8 @@ RUN echo $TZ > /etc/timezone \
 
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
-RUN echo "deb     https://qgis.org/ubuntugis-ltr xenial main" >> /etc/apt/sources.list
-RUN echo "deb-src https://qgis.org/ubuntugis-ltr xenial main" >> /etc/apt/sources.list
+RUN echo "deb     https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
+#RUN echo "deb-src https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 
 RUN apt-get -y update \
@@ -46,7 +46,6 @@ RUN apt-get -y update \
         python3-pip \
         gdal-bin \
         qgis \
-        # python3-qgis-common \
         python3-qgis \
         qgis-provider-grass \
         grass \
