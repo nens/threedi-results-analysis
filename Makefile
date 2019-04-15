@@ -75,20 +75,12 @@ compile: $(COMPILED_RESOURCE_FILES)
 	$(LRELEASE) $<
 
 test: compile transcompile
-	@echo
-	@echo "----------------------"
-	@echo "Tests"
-	@echo "----------------------"
 	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
 		export QGIS_DEBUG=0; \
 		export QGIS_LOG_FILE=/dev/null; \
 		export QGIS_NO_OVERRIDE_IMPORT=1; \
+		export QT_QPA_PLATFORM=offscreen; \
 		pytest
-	@echo "----------------------"
-	@echo "If you get a 'no module named qgis.core error, try sourcing"
-	@echo "the helper script we have provided first then run make test."
-	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
-	@echo "----------------------"
 
 deploy: compile doc transcompile
 	@echo
@@ -183,10 +175,6 @@ transup:
 	@scripts/update-strings.sh $(LOCALES)
 
 transcompile:
-	@echo
-	@echo "-----------------------------------------"
-	@echo "Compiling translation files to .qm files."
-	@echo "-----------------------------------------"
 	@scripts/compile-strings.sh $(LRELEASE) $(LOCALES)
 
 transclean:
