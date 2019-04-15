@@ -14,6 +14,8 @@ services:
       - qgis-settings:/home/nens/.local/share/QGIS/
     environment:
       - DISPLAY=unix${DISPLAY}
+    cap_add:
+      - SYS_PTRACE
 
 volumes:
   qgis-settings:
