@@ -16,7 +16,6 @@ from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
 
 class TestGeoUtils(unittest.TestCase):
-
     def setUp(self):
         ensure_qgis_app_is_initialized()
 

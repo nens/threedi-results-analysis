@@ -15,12 +15,11 @@ _singletons = {}
 
 def ensure_qgis_app_is_initialized():
     """Make sure qgis is initialized for testing."""
-    if 'app' not in _singletons:
+    if "app" not in _singletons:
         app = QgsApplication([], False)
         app.initQgis()
-        logger.debug("Initialized qgis (for testing). Settings: %s",
-                     app.showSettings())
-        _singletons['app'] = app
+        logger.debug("Initialized qgis (for testing). Settings: %s", app.showSettings())
+        _singletons["app"] = app
 
 
 @contextmanager

@@ -10,13 +10,7 @@ import shutil
 import sys
 
 try:
-    from qgis.core import (
-        QgsVectorLayer,
-        QgsFeature,
-        QgsPointXY,
-        QgsField,
-        QgsGeometry,
-    )
+    from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
     pass
 
@@ -177,6 +171,7 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
 
     def setUp(self):
         ensure_qgis_app_is_initialized()
+
         class Mock(object):
             pass
 
