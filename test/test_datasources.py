@@ -81,7 +81,6 @@ def result_data_is_available(flow_agg_must_exist=False):
 class TestNetcdfDatasource(unittest.TestCase):
     def setUp(self):
         self.ncds = NetcdfDataSource(netcdf_datasource_path, load_properties=False)
-
         # cherry picked id and object type that exist in this
         # test set
         self.cherry_picked_object_id = 114
