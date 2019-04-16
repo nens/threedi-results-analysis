@@ -189,52 +189,58 @@ class StatisticsTool(object):
         self.db = StaticsticsDatabase(db_set, db_type)
         self.db_meta = self.db.get_metadata()
 
-        if test:
-            calculate_stats = False
-        else:
+        if not test:
             calculate_stats = True
             if self.has_res_views():
                 calculate_stats = pop_up_question(
                     "Recalculate the statistics?", "Recalculate?"
                 )
 
-        if calculate_stats:
-            log.info("Create statistic models if needed.")
+            if calculate_stats:
+                log.info("Create statistic models if needed.")
 
-            try:
-                self.db.create_and_check_fields()
-            except dbapi2.OperationalError as e:
-                pop_up_info(
-                    "Database error. You could try it again, in most cases this fix the problem.",
-                    "ERROR",
-                )
+                try:
+                    self.db.create_and_check_fields()
+                except dbapi2.OperationalError as e:
+                    pop_up_info(
+                        "Database error. You could try it again, in most cases this fix the problem.",
+                        "ERROR",
+                    )
 
-            with progress_bar(self.iface) as pb:
-                # calculate the statistics
-                pb.setValue(10)
-                self.get_manhole_attributes_and_statistics()
-                pb.setValue(30)
-                self.create_node_views()
-                pb.setValue(40)
-                self.calc_flowline_statistics()
-                pb.setValue(50)
-                self.calc_pipe_and_weir_statistics()
-                pb.setValue(70)
-                self.create_line_views()
-                pb.setValue(80)
-                self.get_pump_attributes_and_statistics()
-                pb.setValue(90)
-                self.create_pump_views()
-                pb.setValue(100)
+                with progress_bar(self.iface) as pb:
+                    # calculate the statistics
+                    pb.setValue(10)
+                    self.get_manhole_attributes_and_statistics()
+                    pb.setValue(30)
+                    self.create_node_views()
+                    pb.setValue(40)
+                    self.calc_flowline_statistics()
+                    pb.setValue(50)
+                    self.calc_pipe_and_weir_statistics()
+                    pb.setValue(70)
+                    self.create_line_views()
+                    pb.setValue(80)
+                    self.get_pump_attributes_and_statistics()
+                    pb.setValue(90)
+                    self.create_pump_views()
+                    pb.setValue(100)
 
-        # add layers to QGIS map
-        if not test:
+            # add layers to QGIS map
             self.add_statistic_layers_to_map()
+
+        if test:
+            self.db.create_and_check_fields()
+            self.get_manhole_attributes_and_statistics()
+            self.create_node_views()
+            self.calc_flowline_statistics()
+            self.calc_pipe_and_weir_statistics()
+            self.create_line_views()
+            self.get_pump_attributes_and_statistics()
+            self.create_pump_views()
 
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
-
         log.info("Run statistic tool")
 
     def has_mod_views(self):
