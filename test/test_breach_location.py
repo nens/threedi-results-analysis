@@ -16,7 +16,7 @@ from ThreeDiToolbox.utils import constants
 
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.test.utilities import get_qgis_app
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
 
 class TestBreachLocationDryRun(unittest.TestCase):
@@ -26,8 +26,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
     """
 
     def setUp(self):
-        self.QGIS_APP, self.CANVAS, self.IFACE, self.PARENT = get_qgis_app()
-
+        ensure_qgis_app_is_initialized()
         # os.path.abspath(__file__)
         here = os.path.split(os.path.abspath(__file__))[0]
         test_db = os.path.join(here, "data", "simple_breach_test.sqlite")
@@ -229,7 +228,7 @@ class TestBresLocation(unittest.TestCase):
     """
 
     def setUp(self):
-
+        ensure_qgis_app_is_initialized()
         here = os.path.split(os.path.abspath(__file__))[0]
         test_db_org = os.path.join(here, "data", "simple_breach_test.sqlite")
 

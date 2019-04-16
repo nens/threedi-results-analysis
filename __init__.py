@@ -25,6 +25,9 @@ import imp
 import sys
 import os
 
+import faulthandler
+faulthandler.enable()
+
 
 try:
     from .utils.user_messages import pop_up_info, log

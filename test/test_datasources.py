@@ -10,14 +10,7 @@ import shutil
 import sys
 
 try:
-    from qgis.core import (
-        QgsVectorLayer,
-        QgsFeature,
-        QgsPoint,
-        QgsPointXY,
-        QgsField,
-        QgsGeometry,
-    )
+    from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
     pass
 
@@ -26,13 +19,8 @@ from qgis.PyQt.QtCore import QVariant
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
-    # Linux specific
-    sys.path.append("/usr/share/qgis/python/plugins/")
-    try:
-        from ThreeDiToolbox.datasource.spatialite import Spatialite
-    except ImportError:
-        print("Can't import Spatialite.")
-        Spatialite = None
+    print("Can't import Spatialite.")
+    Spatialite = None
 from ThreeDiToolbox.datasource.netcdf import (
     NetcdfDataSource,
     normalized_object_type,
@@ -43,10 +31,9 @@ from ThreeDiToolbox.datasource.netcdf_groundwater import (
     NetcdfGroundwaterDataSource,
     find_aggregation_netcdf_gw,
 )
-from ThreeDiToolbox.test.utilities import get_qgis_app, TemporaryDirectory
+from ThreeDiToolbox.test.utilities import TemporaryDirectory
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
-QGIS_APP = get_qgis_app()
-linux_dist, ubuntu_version, _ = platform.linux_distribution()
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
@@ -80,6 +67,7 @@ def result_data_is_available(flow_agg_must_exist=False):
 )
 class TestNetcdfDatasource(unittest.TestCase):
     def setUp(self):
+        ensure_qgis_app_is_initialized()
         self.ncds = NetcdfDataSource(netcdf_datasource_path, load_properties=False)
 
         # cherry picked id and object type that exist in this
@@ -176,6 +164,8 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
     """Some basic tests without needing an actual netCDF file."""
 
     def setUp(self):
+        ensure_qgis_app_is_initialized()
+
         class Mock(object):
             pass
 
@@ -223,14 +213,10 @@ class TestNetcdfDatasourceBasic(unittest.TestCase):
             self.assertEqual(agg_path, agg_path_found)
 
 
-@unittest.skipIf(
-    linux_dist == "Ubuntu" and LooseVersion(ubuntu_version) < LooseVersion("16.04"),
-    "Your Ubuntu version probably has a GDAL/OGR version that's too old for "
-    "this test to succeed.",
-)
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
 class TestSpatialiteDataSource(unittest.TestCase):
     def setUp(self):
+        ensure_qgis_app_is_initialized()
         self.tmp_directory = tempfile.mkdtemp()
         self.spatialite_path = os.path.join(self.tmp_directory, "test.sqlite")
 
@@ -245,6 +231,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
         )
         # test table is created
         self.assertIsNotNone(layer)
+
         self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
         self.assertFalse("table_two" in spl.getTables())
 
