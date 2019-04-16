@@ -19,13 +19,8 @@ from qgis.PyQt.QtCore import QVariant
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
-    # Linux specific
-    sys.path.append("/usr/share/qgis/python/plugins/")
-    try:
-        from ThreeDiToolbox.datasource.spatialite import Spatialite
-    except ImportError:
-        print("Can't import Spatialite.")
-        Spatialite = None
+    print("Can't import Spatialite.")
+    Spatialite = None
 from ThreeDiToolbox.datasource.netcdf import (
     NetcdfDataSource,
     normalized_object_type,
@@ -39,7 +34,6 @@ from ThreeDiToolbox.datasource.netcdf_groundwater import (
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
-linux_dist, ubuntu_version, _ = platform.linux_distribution()
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
