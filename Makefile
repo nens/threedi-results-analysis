@@ -62,6 +62,8 @@ PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
+# TODO: most of this makefile needs fixing: it isn't qgis2 anymore.
+# So most of the targets won't work.
 QGISDIR=.qgis2
 
 default: compile
@@ -75,30 +77,13 @@ compile: $(COMPILED_RESOURCE_FILES)
 	$(LRELEASE) $<
 
 test: compile transcompile
-	@echo
-	@echo "----------------------"
-	@echo "Regression Test Suite"
-	@echo "----------------------"
-
-	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
-		export QGIS_DEBUG=0; \
-		export QGIS_LOG_FILE=/dev/null; \
-		nosetests -v --with-id --with-coverage --cover-package=. \
-		3>&1 1>&2 2>&3 3>&-
-	@echo "----------------------"
-	@echo "If you get a 'no module named qgis.core error, try sourcing"
-	@echo "the helper script we have provided first then run make test."
-	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
-	@echo "----------------------"
+	QT_QPA_PLATFORM=offscreen pytest
 
 deploy: compile doc transcompile
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2 directory."
 	@echo "------------------------------------------"
-	# The deploy  target only works on unix like operating system where
-	# the Python plugin directory is located at:
-	# $HOME/$(QGISDIR)/python/plugins
 	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
@@ -181,15 +166,9 @@ transup:
 	@echo "------------------------------------------------"
 	@echo "Updating translation files with any new strings."
 	@echo "------------------------------------------------"
-	@chmod +x scripts/update-strings.sh
 	@scripts/update-strings.sh $(LOCALES)
 
 transcompile:
-	@echo
-	@echo "----------------------------------------"
-	@echo "Compiled translation files to .qm files."
-	@echo "----------------------------------------"
-	@chmod +x scripts/compile-strings.sh
 	@scripts/compile-strings.sh $(LRELEASE) $(LOCALES)
 
 transclean:

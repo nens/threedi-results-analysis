@@ -1,0 +1,12 @@
+[run]
+source = .
+omit = external utils/importer test
+
+[report]
+show_missing = true
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

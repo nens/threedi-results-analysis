@@ -80,6 +80,28 @@ The plugin can be added using one of the following ways:
   external dependencies (see Requirements section).
 
 
+Local development
+-----------------
+
+Local development happens with docker to make sure we're working in a nicely
+isolated environment. So first build the docker::
+
+  $ docker-compose build
+
+If your user ID isn't ``1000``, you can run it like this::
+
+  $ docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
+
+The docker-qgis's settings are persisted in a "named docker volume",
+``qgis-docker``. To wipe it clean, run ``docker-compose down -v``.
+
+The tests that run on travis-ci.org cache the docker image that is being build
+in order to shave 5 minutes off the test duration. The image is automatically
+rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
+`requirements` files changes. It is also possible to empty travis' cache in
+case something seems to be wrong.
+
+
 Release
 -------
 

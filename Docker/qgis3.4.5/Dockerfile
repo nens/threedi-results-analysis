@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Inspired by https://hub.docker.com/r/timcera/qgis-desktop-ubuntu/~/dockerfile/
 
@@ -7,9 +7,9 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 
 ENV TZ Europe/Amsterdam
 
-ARG USER_ID
-ARG GROUP_ID
-ARG USERNAME
+ARG uid=1000
+ARG gid=1000
+RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
 
 RUN echo $TZ > /etc/timezone \
     && apt-get -y update \
@@ -17,7 +17,7 @@ RUN echo $TZ > /etc/timezone \
         tzdata \
         dirmngr \
         apt-transport-https \
-        python-software-properties \
+        gpg-agent \
         software-properties-common \
         wget \
         dbus \
@@ -25,8 +25,8 @@ RUN echo $TZ > /etc/timezone \
         python-dev \
         build-essential \
         git \
-        gosu \
-    && add-apt-repository ppa:ubuntugis/ubuntugis-unstable \
+	strace \
+	valgrind \
     && rm /etc/localtime \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata \
@@ -36,8 +36,8 @@ RUN echo $TZ > /etc/timezone \
 
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
-RUN echo "deb     https://qgis.org/ubuntugis-ltr xenial main" >> /etc/apt/sources.list
-RUN echo "deb-src https://qgis.org/ubuntugis-ltr xenial main" >> /etc/apt/sources.list
+RUN echo "deb     https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
+#RUN echo "deb-src https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 
 RUN apt-get -y update \
@@ -46,7 +46,6 @@ RUN apt-get -y update \
         python3-pip \
         gdal-bin \
         qgis \
-        # python3-qgis-common \
         python3-qgis \
         qgis-provider-grass \
         grass \
@@ -74,16 +73,14 @@ RUN pip3 uninstall h5py -y
 ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
-RUN groupadd -g $GROUP_ID $GROUP_ID
-RUN useradd -m -l -d /home/$USERNAME --shell /bin/bash --uid $USER_ID --gid $GROUP_ID $USERNAME
+# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the PYTHONPATH.
+ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
+# Don't let qgis grab python's import mechanism (which breaks pytest).
+ENV QGIS_NO_OVERRIDE_IMPORT 1
 
-# Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
-ENV PYTHONPATH /usr/share/qgis/python/plugins
-
-COPY Docker/docker-entrypoint.sh /
-RUN chmod u+x /docker-entrypoint.sh
-
-WORKDIR /home/${USERNAME}/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]
+
+USER nens
+RUN mkdir -p /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox

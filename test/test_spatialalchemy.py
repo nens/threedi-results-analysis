@@ -3,10 +3,6 @@ import tempfile
 import os.path
 import sys
 
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "external")
-)
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from geoalchemy2.types import Geometry

@@ -1,19 +1,38 @@
 language: generic
 dist: xenial
 
-env:
-    - UID=1000 USER=qgis_user
-
 services:
   - docker
 
+cache:
+  directories:
+    - $HOME/docker-cache
+
 before_install:
-  - docker-compose build
+  # If the docker cache is still valid, use the cached docker image.
+  - >
+     scripts/travis-cache-ok.sh &&
+     cat $HOME/docker-cache/our-image.tar | docker load || true
+
+install:
+  # Rebuild the docker image, but only if the docker cache isn't valid anymore.
+  - >
+     scripts/travis-cache-ok.sh ||
+     docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
 
 script:
-  # We set the QT_QPA_PLATFORM to run the tests on a headless server: http://doc.qt.io/qt-5/embedded-linux.html
+  # We set the QT_QPA_PLATFORM to run the tests on a headless server:
+  # http://doc.qt.io/qt-5/embedded-linux.html
   - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
   - docker-compose run qgis-desktop make pep8
 
+before_cache:
+  # If the docker cache isn't valid, save the new docker image + checksum.
+  - mkdir -p $HOME/docker-cache
+  - >
+     scripts/travis-cache-ok.sh ||
+     docker save qgis-desktop > $HOME/docker-cache/our-image.tar
+  - scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
+
 notifications:
-    email: false
+  email: false
