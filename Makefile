@@ -62,6 +62,8 @@ PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
+# TODO: most of this makefile needs fixing: it isn't qgis2 anymore.
+# So most of the targets won't work.
 QGISDIR=.qgis2
 
 default: compile
@@ -75,21 +77,13 @@ compile: $(COMPILED_RESOURCE_FILES)
 	$(LRELEASE) $<
 
 test: compile transcompile
-	@export PYTHONPATH=`pwd`:$(PYTHONPATH); \
-		export QGIS_DEBUG=0; \
-		export QGIS_LOG_FILE=/dev/null; \
-		export QGIS_NO_OVERRIDE_IMPORT=1; \
-		export QT_QPA_PLATFORM=offscreen; \
-		pytest
+	QT_QPA_PLATFORM=offscreen pytest
 
 deploy: compile doc transcompile
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2 directory."
 	@echo "------------------------------------------"
-	# The deploy  target only works on unix like operating system where
-	# the Python plugin directory is located at:
-	# $HOME/$(QGISDIR)/python/plugins
 	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)

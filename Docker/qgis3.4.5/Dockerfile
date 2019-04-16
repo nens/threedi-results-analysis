@@ -73,8 +73,10 @@ RUN pip3 uninstall h5py -y
 ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
-# Add the qgis-core plugins (like 'db_manager') to the PYTHONPATH
-ENV PYTHONPATH /usr/share/qgis/python/plugins
+# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the PYTHONPATH.
+ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
+# Don't let qgis grab python's import mechanism (which breaks pytest).
+ENV QGIS_NO_OVERRIDE_IMPORT 1
 
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]
