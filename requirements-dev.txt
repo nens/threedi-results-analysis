@@ -2,6 +2,7 @@
 mock
 pytest
 pytest-cov
+pytest-flake8
 coverage
 pycodestyle
 flake8
@@ -13,5 +14,3 @@ numpy
 cython
 
 future
-# you can attempt to try a newer version, but this works for me on QGIS 2.14 + Ubuntu 14.04
-# h5py==2.5.0
