@@ -23,7 +23,7 @@ class BaseDataSource(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def get_timestamps(self, object_type=None, parameter=None):
+    def get_timestamps(self, parameter=None):
         pass
 
     # used in map_animator

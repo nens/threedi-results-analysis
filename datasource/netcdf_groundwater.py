@@ -14,6 +14,7 @@ from .netcdf import (
     AGG_H_TYPES,
     Q_TYPES,
     H_TYPES,
+    POSSIBLE_AGG_VARS,
     find_h5_file,
 )
 from ..utils.user_messages import messagebar_message
@@ -98,6 +99,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 self._ds = h5py.File(self.file_path, "r")
             except IOError as e:
                 log.error(e)
+                raise e
         return self._ds
 
     @property
