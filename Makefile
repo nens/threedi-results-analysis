@@ -79,6 +79,9 @@ compile: $(COMPILED_RESOURCE_FILES)
 test: compile transcompile
 	QT_QPA_PLATFORM=offscreen pytest --cov
 
+docstring:
+	python3 scripts/docstring-report.py
+
 deploy: compile doc transcompile
 	@echo
 	@echo "------------------------------------------"
