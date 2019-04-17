@@ -77,7 +77,7 @@ compile: $(COMPILED_RESOURCE_FILES)
 	$(LRELEASE) $<
 
 test: compile transcompile
-	QT_QPA_PLATFORM=offscreen pytest
+	QT_QPA_PLATFORM=offscreen pytest --cov
 
 deploy: compile doc transcompile
 	@echo
