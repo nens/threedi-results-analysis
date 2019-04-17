@@ -72,12 +72,19 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
 
 
 class NetcdfGroundwaterDataSource(BaseDataSource):
+    """NetcdfGroundwaterDatasource provides an abstraction layer to query
+    result data from a 3Di simulation stored in a netcdf
+
+    It provides an abstraction so you don't need to worry about whether the
+    data is stored in the results_3di.nc or aggregate_results_3di.nc
+    """
+
     PREFIX_1D = "Mesh1D_"
     PREFIX_2D = "Mesh2D_"
     PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
     PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
 
-    def __init__(self, file_path=None, *args, **kwargs):
+    def __init__(self, file_path=None):
         self.file_path = file_path
         self._ga = None
         self._ga_result = None
@@ -95,20 +102,19 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def nMesh2D_nodes(self):
-        # return self.ds.dimensions['nMesh2D_nodes'].size
-        return self.ds.get("nMesh2D_nodes").size
+        return self.gridadmin.nodes.subset('2D_ALL').count
 
     @property
     def nMesh1D_nodes(self):
-        return self.ds.get("nMesh1D_nodes").size
+        return self.gridadmin.nodes.subset('1D_ALL').count
 
     @property
     def nMesh2D_lines(self):
-        return self.ds.get("nMesh2D_lines").size
+        return self.gridadmin.lines.subset('2D_ALL').count
 
     @property
     def nMesh1D_lines(self):
-        return self.ds.get("nMesh1D_lines").size
+        return self.gridadmin.lines.subset('1D_ALL').count
 
     def _strip_prefix(self, var_name):
         """Strip away netCDF variable name prefixes.
@@ -316,14 +322,45 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # np.ma.vstack
             return np.ma.vstack((ts, values)).T
 
-    def get_timestamps(self, object_type=None, parameter=None):
-        # TODO: use cached property to limit file access
-        if parameter is None:
-            return self.ds.get("time")[:]
-        elif parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.ds.get("time")[:]
+    def get_datasource(self, variable):
+        """Return the
+
+        Args:
+            variable:
+
+        Returns:
+
+        """
+        if self._is_aggregation_parameter(variable):
+            return self.gridadmin_aggregate_result
         else:
-            # determine the grid type from the parameter alone
+            return self.gridadmin_result
+
+    def _is_aggregation_parameter(self, parameter):
+        """Return if the parameter is an aggregation parameter
+
+        Aggregation parameters are variables which are stored inside the
+        aggregation-result-netcdf.
+        """
+        return parameter in POSSIBLE_AGG_VARS
+
+    def get_timestamps(self, parameter=None):
+        """Returns an array of timestamps of the given parameter.
+
+        The timestamps are in seconds after the simulation has started.
+
+        Variables of the aggregation netcdf can have varying number of
+        timestamps and their step size can differ.
+        Variables from the normal netcdf are all the same.
+
+        if no parameter is given, returns the timestamps of the normal netcdf.
+
+        :return: (np.array)
+        """
+        if (parameter is None
+                or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]):
+            return self.gridadmin_result.nodes.timestamps
+        elif self._is_aggregation_parameter(parameter):
             if parameter.startswith("q_pump"):
                 object_type = "pumplines"
             elif parameter in AGG_Q_TYPES:
@@ -331,10 +368,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             elif parameter in AGG_H_TYPES:
                 object_type = "nodes"
             else:
-                raise ValueError(parameter)
+                raise ValueError("Unknown aggregation parameter: %s" % parameter)
             grid_type = object_type_model_instance[object_type]
             orm_obj = getattr(self.gridadmin_aggregate_result, grid_type)
             return orm_obj.get_timestamps(parameter)
+        else:
+            raise ValueError("Unknown parameter: %s" % parameter)
 
     # used in map_animator
     def get_values_by_timestep_nr(

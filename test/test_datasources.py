@@ -290,12 +290,6 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         # sanity test
         self.assertEqual(nds.ds, m)
 
-    def test_get_timestamps(self):
-        nds = NetcdfGroundwaterDataSource()
-        m = mock.MagicMock()
-        nds._ds = m
-        nds.get_timestamps()
-
     @mock.patch(
         "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",
         ["s1"],
@@ -323,3 +317,22 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
                 aggfile.write("doesnt matter")
             agg_path_found = find_aggregation_netcdf_gw(nc_path)
             self.assertEqual(agg_path, agg_path_found)
+
+
+def test_get_timestamps_none(netcdf_groundwater_ds):
+    timestamps = netcdf_groundwater_ds.get_timestamps()
+    assert timestamps.shape == (31,)
+    assert timestamps[-1] == 1805.1862915819302
+
+
+def test_get_timestamps_with_parameter(netcdf_groundwater_ds):
+    timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter='q_cum')
+    assert timestamps_q_cum.shape == (7,)
+    assert timestamps_q_cum[-1] == 1805.1862915819302
+    timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(parameter='vol_current')
+    assert timestamps_vol_current.shape == (7,)
+    assert timestamps_vol_current[-1] == 1805.1862915819302
+
+
+def test_get_timestamps_gridadmin(netcdf_groundwater_ds):
+    netcdf_groundwater_ds.gridadmin_result.time_units
