@@ -6,7 +6,6 @@ from contextlib import contextmanager
 from qgis.core import QgsApplication
 import logging
 import shutil
-import sys
 import tempfile
 
 logger = logging.getLogger(__name__)

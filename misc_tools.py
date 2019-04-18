@@ -69,9 +69,6 @@ class CacheClearer(object):
             for item in self.ts_datasource.rows
             if os.path.exists(item.spatialite_cache_filepath())
         ]
-        result_dirs = [
-            os.path.dirname(item.file_path.value) for item in self.ts_datasource.rows
-        ]
         # Note: convert to set because duplicates are possible if the same
         # datasource is loaded multiple times
         cached = set(spatialite_filepaths)
