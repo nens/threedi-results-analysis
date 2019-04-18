@@ -30,7 +30,6 @@ def main():
         if not (
             filename.startswith("external")
             or filename.startswith("help")
-            or filename.endswith("waterbalance_widget.py")
             or "/test" in filename
         )
     ]
