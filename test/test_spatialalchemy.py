@@ -1,7 +1,6 @@
 import unittest
 import tempfile
 import os.path
-import sys
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String

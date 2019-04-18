@@ -122,7 +122,7 @@ try:
     # the old plugin files). Real imports are postponed as long as possible.
     imp.find_module("h5py")
     log("Using local h5py installation.")
-except ImportError as e:
+except ImportError:
     if os.name == "nt":
         if sys.maxsize > 2 ** 32:
             sys.path.append(

@@ -132,7 +132,7 @@ class PolygonDrawTool(QgsMapTool):
         self.callback_on_draw_finish(self.map_visualisation.points)
 
     def canvasPressEvent(self, e):
-        point = self.toMapCoordinates(e.pos())
+        self.toMapCoordinates(e.pos())
         self.isEmittingPoint = True
 
     def canvasReleaseEvent(self, e):

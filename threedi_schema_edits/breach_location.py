@@ -12,7 +12,6 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsPoint
 from qgis.core import QgsPointXY
 from qgis.core import QgsField
 

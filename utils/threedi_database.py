@@ -12,7 +12,6 @@ from sqlalchemy.sql import text
 from .sqlalchemy_add_columns import create_and_upgrade
 from sqlalchemy.ext.declarative import declarative_base
 import logging
-from ThreeDiToolbox.sql_models.model_schematisation import Base
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 Base = declarative_base()
@@ -82,7 +81,7 @@ class ThreediDatabase(object):
                 os.remove(self.settings["db_file"])
 
             drv = ogr.GetDriverByName("SQLite")
-            db = drv.CreateDataSource(self.settings["db_file"], ["SPATIALITE=YES"])
+            drv.CreateDataSource(self.settings["db_file"], ["SPATIALITE=YES"])
             Base.metadata.bind = self.engine
             Base.metadata.create_all(self.engine)
 
@@ -305,7 +304,6 @@ class ThreediDatabase(object):
 
         :returns False if the table contains a least one entry
         """
-        is_empty = False
         select_statement = """SELECT 0 FROM {table_name} LIMIT 1;""".format(
             table_name=table_name
         )

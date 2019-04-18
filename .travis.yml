@@ -25,7 +25,6 @@ script:
   # http://doc.qt.io/qt-5/embedded-linux.html
   - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
   - docker-compose run qgis-desktop make docstrings
-  - docker-compose run qgis-desktop make pep8
 
 before_cache:
   # If the docker cache isn't valid, save the new docker image + checksum.

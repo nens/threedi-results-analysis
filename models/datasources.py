@@ -12,7 +12,7 @@ from ..utils.layer_from_netCDF import (
     get_or_create_node_layer,
     get_or_create_pumpline_layer,
     make_flowline_layer,
-    make_node_layer,
+    # make_node_layer,
     make_pumpline_layer,
     FLOWLINES_LAYER_NAME,
     NODES_LAYER_NAME,
@@ -149,7 +149,9 @@ class DataSourceLayerManager(object):
             if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
                 self._node_layer = spl.get_layer(NODES_LAYER_NAME, None, "the_geom")
             else:
-                self._node_layer = make_node_layer(self.datasource, spl)
+                # self._node_layer = make_node_layer(self.datasource, spl)
+                # TODO: ^^^^ above make_node_layer() is defective.
+                pass
 
         if self._pumpline_layer is None:
 

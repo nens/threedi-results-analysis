@@ -8,7 +8,7 @@ import numpy as np
 
 # from pyspatialite import dbapi2
 from sqlite3 import dbapi2
-from qgis.core import QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer
+from qgis.core import QgsProject, QgsDataSourceUri, QgsVectorLayer
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.event import listen
@@ -194,7 +194,7 @@ class StatisticsTool(object):
 
             try:
                 self.db.create_and_check_fields()
-            except dbapi2.OperationalError as e:
+            except dbapi2.OperationalError:
                 pop_up_info(
                     "Database error. You could try it again, "
                     "in most cases this fixes the problem.",
@@ -261,7 +261,7 @@ class StatisticsTool(object):
         log.info("Create mapping between result id and connection_node_id")
 
         nodes = res_session.query(Node.spatialite_id, Node.id).filter(
-            Node.spatialite_id != None
+            Node.spatialite_id != None  # NOQA
         )
         node_mapping = {node.spatialite_id: node.id for node in nodes}
 
@@ -546,7 +546,7 @@ class StatisticsTool(object):
                     np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
                     where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)),
                 )
-            except:
+            except Exception:
                 log.info("dh_max is not loaded for timestep: %s" % (timestamp))
                 dh_max_calc = False
 
@@ -1085,8 +1085,8 @@ class StatisticsTool(object):
         session.execute(
             """
             INSERT INTO geometry_columns (
-                f_table_name, f_geometry_column, geometry_type, 
-                coord_dimension, SRID, spatial_index_enabled) 
+                f_table_name, f_geometry_column, geometry_type,
+                coord_dimension, SRID, spatial_index_enabled)
             VALUES ('flowline_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1140,8 +1140,8 @@ class StatisticsTool(object):
         session.execute(
             """
             INSERT INTO geometry_columns (
-                f_table_name, f_geometry_column, geometry_type, 
-                coord_dimension, SRID, spatial_index_enabled) 
+                f_table_name, f_geometry_column, geometry_type,
+                coord_dimension, SRID, spatial_index_enabled)
             VALUES ('pipe_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1151,8 +1151,8 @@ class StatisticsTool(object):
         # dwa+mixed of pipestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view 
-             AS 
+            CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view
+             AS
              SELECT *
              FROM pipe_stats_view
              WHERE pipe_stats_view.sewerage_type IN (0, 2);
@@ -1167,8 +1167,8 @@ class StatisticsTool(object):
         session.execute(
             """
                 INSERT INTO geometry_columns (
-                    f_table_name, f_geometry_column, geometry_type, 
-                    coord_dimension, SRID, spatial_index_enabled) 
+                    f_table_name, f_geometry_column, geometry_type,
+                    coord_dimension, SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_dwa_mixed_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1178,8 +1178,8 @@ class StatisticsTool(object):
         # rwa views of pipestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view 
-            AS 
+            CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view
+            AS
             SELECT *
             FROM pipe_stats_view
             WHERE pipe_stats_view.sewerage_type IN (1);
@@ -1193,8 +1193,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_rwa_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1243,8 +1243,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('weir_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1288,8 +1288,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1301,7 +1301,7 @@ class StatisticsTool(object):
             """
             CREATE VIEW IF NOT EXISTS manhole_stats_dwa_mixed_view
 
-             AS 
+             AS
             SELECT *
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (0, 2);
@@ -1315,8 +1315,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_dwa_mixed_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1326,8 +1326,8 @@ class StatisticsTool(object):
         # rwa views of manholestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS manhole_stats_rwa_view 
-             AS 
+            CREATE VIEW IF NOT EXISTS manhole_stats_rwa_view
+             AS
             SELECT *
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (1);
@@ -1341,8 +1341,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_rwa_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1384,8 +1384,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pump_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1422,8 +1422,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pump_stats_point_view', 'the_geom', 1, 2, 4326, 0);
             """
         )

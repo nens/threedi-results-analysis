@@ -11,10 +11,8 @@ from qgis.core import (
     QgsRectangle,
     QgsLayerTreeNode,
     QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem,
 )
 
-from ..utils.user_messages import pop_up_question
 from . import styler
 from .threedi_database import ThreediDatabase
 

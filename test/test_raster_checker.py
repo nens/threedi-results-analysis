@@ -1,14 +1,9 @@
 from ThreeDiToolbox.utils.raster_checker import RasterChecker
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget
 from ThreeDiToolbox.utils.raster_checker_prework import (
     DataModelSource,
     RasterCheckerEntrees,
-)
-from ThreeDiToolbox.utils.raster_checker_log import (
-    RasterCheckerResults,
-    RasterCheckerProgressBar,
 )
 
 from sqlalchemy import MetaData
@@ -380,7 +375,6 @@ class TestRasterChecker(unittest.TestCase):
         check_id = 12
         self.checker.results.result_per_check = []
         self.checker.check_cum_pixel_cnt(rasters, setting_id, check_id)
-        src_ds = None
         self.assertTrue(self.get_result())
 
     def test_check_proj(self):
@@ -483,8 +477,6 @@ class TestRasterChecker(unittest.TestCase):
         ]
         self.checker.progress_bar = unittest.mock.MagicMock()
         self.checker.check_pixel_alignment(setting_id, rast_item, check_id, dem)
-        dem_src_ds = None
-        src_ds = None
         result = self.get_result()
         self.assertFalse(result)
         input_data_shp_expect = [

@@ -5,7 +5,6 @@ import os
 import logging
 
 
-from qgis.PyQt import QtGui
 from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QWidget
@@ -174,7 +173,6 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         # Always put the new row on top.
         row_position = 1
         tablewidget.insertRow(row_position)
-        measuring_point_id = QTableWidgetItem(str(id_measuring_point))
         # tablewidget.setItem(row_position, 0, measuring_point_id)
         measuring_point_table_widget = QTableWidgetItem(
             self.combobox_input_measuring_point_table.currentText()
@@ -207,7 +205,6 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         """Load a measuring group in the tablewidget."""
         # Remove all current rows, besides te first.
         tablewidget = self.tablewidget_measuring_point
-        BUTTON_ROW = 0
         row_count = tablewidget.rowCount()
         for row in range(row_count - 1):
             tablewidget.removeRow(1)
