@@ -67,7 +67,10 @@ import re
 import mock
 
 handler = mock.Handler(level=logging.DEBUG)
-logging.getLogger("").addHandler(handler)
+
+# 2019-04-18 Reinout: disabled this handler as it spams the log when
+# running pytest with --flake8
+#logging.getLogger("").addHandler(handler)
 
 
 class MockWriter(file):
