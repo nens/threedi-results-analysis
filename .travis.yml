@@ -9,6 +9,12 @@ cache:
     - $HOME/docker-cache
 
 before_install:
+  # Decrypt .coveralls.yml
+  - >
+     openssl aes-256-cbc
+     -K $encrypted_1f076a31531a_key -iv $encrypted_1f076a31531a_iv
+     -in .coveralls.yml.enc
+     -out .coveralls.yml -d
   # If the docker cache is still valid, use the cached docker image.
   - >
      scripts/travis-cache-ok.sh &&
