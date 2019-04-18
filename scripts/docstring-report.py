@@ -13,18 +13,6 @@ import glob
 FORMAT = "%-74s %5s  %5s  %3d%%"
 
 
-# Temp monkeypatch.
-# See https://github.com/HunterMcGushion/docstr_coverage/pull/3
-# TODO: it can be removed if a new version has been released, see Reinout's
-# comment at the end of that PR.
-def monkeypatched_open(filename, mode):
-    return open(filename, mode, encoding="utf-8")
-
-
-coverage.open = monkeypatched_open
-# End of monkeypatch.
-
-
 def main():
     """Call docstr-coverage's main method with our preferences.
 
