@@ -66,7 +66,6 @@ class DataSourceLayerManager(object):
     """
 
     type_ds_mapping = {
-        "netcdf": NetcdfDataSource,
         "netcdf-groundwater": NetcdfGroundwaterDataSource,
     }
 
@@ -81,7 +80,6 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            "netcdf": self._get_result_layers_regular,
             "netcdf-groundwater": self._get_result_layers_groundwater,
         }
 
@@ -90,27 +88,8 @@ class DataSourceLayerManager(object):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             ds_class = self.type_ds_mapping[self.ds_type]
-            self.tmp_disable_netcdf()
             self._datasource = ds_class(self.file_path)
         return self._datasource
-
-    def tmp_disable_netcdf(self):
-        # TODO: This is a quick fix for now. Asap: Get rid of class
-        # NetcdfDataSource(BaseDataSource)
-        # https://nelen-schuurmans.atlassian.net/browse/THREEDI-761
-        msg = (
-            "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n"
-            "results created after March 2018 (groundwater release). \n\n"
-            "You can do two things: \n"
-            "1. simulate this model again and load the result in QGIS3 \n"
-            "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
-        )
-
-        # we only continue if self.ds_type == 'netcdf-groundwater'
-        if self.ds_type == "netcdf":
-            log(msg, level="ERROR")
-            pop_up_info(msg, title="Error")
-            raise AssertionError("result too old for QGIS3")
 
     @property
     def datasource_dir(self):
@@ -123,10 +102,8 @@ class DataSourceLayerManager(object):
 
     @property
     def spatialite_cache_filepath(self):
-        """Only valid for type 'netcdf'"""
-        if self.ds_type == "netcdf":
-            return self.file_path[:-3] + ".sqlite1"
-        elif self.ds_type == "netcdf-groundwater":
+        """Only valid for type 'netcdf-groundwater'"""
+        if self.ds_type == "netcdf-groundwater":
             return os.path.join(self.datasource_dir, "gridadmin.sqlite")
         else:
             raise ValueError("Invalid datasource type %s" % self.ds_type)

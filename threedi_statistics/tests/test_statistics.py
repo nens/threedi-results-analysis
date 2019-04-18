@@ -7,7 +7,10 @@ from sqlite3 import dbapi2 as dbapi
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 
-test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
+
+test_data_dir = os.path.dirname(netcdf_groundwater_datasource_nc_path)
+# test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 
 class DummyTimeseriesDatasourceModel(object):

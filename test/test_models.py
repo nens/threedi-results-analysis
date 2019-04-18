@@ -7,8 +7,8 @@ from ThreeDiToolbox.models.datasources import (
     TimeseriesDatasourceModel,
     DataSourceLayerManager,
 )
-from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
-from ThreeDiToolbox.test.test_datasources import netcdf_datasource_path
+from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -233,20 +233,19 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         setattr(item, "_datasource_layer_manager", "yo")
         self.assertEqual(item.datasource_layer_manager(), "yo")
 
-    @unittest.skip("want to work only with netcdf-groundwater, not netcdf")
-    def test_datasource(self):
+    def test_datasource_netcdf_groundwater(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
             "active": False,
             "name": "jaa",
-            "file_path": netcdf_datasource_path,
-            "type": "netcdf",
+            "file_path": netcdf_groundwater_datasource_nc_path,
+            "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**test_values)
         ncds = item.datasource()
-        self.assertTrue(isinstance(ncds, NetcdfDataSource))
+        self.assertTrue(isinstance(ncds, NetcdfGroundwaterDataSource))
         self.assertTrue(ncds.ds)
 
 
