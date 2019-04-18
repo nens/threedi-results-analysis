@@ -39,10 +39,12 @@ def main():
     filenames = [
         filename
         for filename in filenames
-        if not (filename.startswith("external")
-                or filename.startswith("help")
-                or filename.endswith("waterbalance_widget.py")
-                or "/test" in filename)
+        if not (
+            filename.startswith("external")
+            or filename.startswith("help")
+            or filename.endswith("waterbalance_widget.py")
+            or "/test" in filename
+        )
     ]
     file_results, total_results = coverage.get_docstring_coverage(
         filenames,
