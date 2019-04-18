@@ -13,10 +13,7 @@ from qgis.core import (
 )
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.utils.user_messages import (
-    pop_up_info,
-    pop_up_question,
-)
+from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
 from ThreeDiToolbox.utils.raster_checker_prework import (
     DataModelSource,
     RasterCheckerEntrees,

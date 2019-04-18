@@ -1,7 +1,6 @@
 from builtins import object
 import unittest
 import os.path
-import platform
 
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf import NetcdfDataSource
