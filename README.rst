@@ -101,6 +101,20 @@ rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
 `requirements` files changes. It is also possible to empty travis' cache in
 case something seems to be wrong.
 
+To run the full tests including coverage report::
+
+  $ docker-compose run qgis-desktop make test
+
+You can also just run pytest. You won't get the coverage report. You *can*
+however then use one of the pytest options, like ``-x``, which aborts the test
+at the first failure::
+
+  $ docker-compose run qgis-desktop pytest -x
+
+To get a "coverage" report for the docstrings::
+
+  $ docker-compose run qgis-desktop make docstrings
+
 
 Release
 -------
