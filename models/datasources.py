@@ -65,9 +65,7 @@ class DataSourceLayerManager(object):
     Abstracts away datasource-layer specifics.
     """
 
-    type_ds_mapping = {
-        "netcdf-groundwater": NetcdfGroundwaterDataSource,
-    }
+    type_ds_mapping = {"netcdf-groundwater": NetcdfGroundwaterDataSource}
 
     def __init__(self, ds_type, file_path):
         self.ds_type = ds_type
@@ -80,7 +78,7 @@ class DataSourceLayerManager(object):
         self._pumpline_layer = None
 
         self.type_ds_layer_func_mapping = {
-            "netcdf-groundwater": self._get_result_layers_groundwater,
+            "netcdf-groundwater": self._get_result_layers_groundwater
         }
 
     @property
