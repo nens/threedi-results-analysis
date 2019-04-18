@@ -78,7 +78,7 @@ compile: $(COMPILED_RESOURCE_FILES)
 
 test: compile transcompile
 	@echo "#### Python tests"
-	QT_QPA_PLATFORM=offscreen pytest --cov
+	QT_QPA_PLATFORM=offscreen pytest --cov --flake8
 
 docstrings:
 	@echo "#### Docstring coverage report"
@@ -208,9 +208,8 @@ pylint:
 	@echo "----------------------"
 
 
-# Run pep8 style checking
-#http://pypi.python.org/pypi/pep8
-pep8:
+# Run pep8 + pyflakes checks
+flake8:
 	@echo "#### PEP8 issues"
-	@pycodestyle --repeat
+	@flake8 .
 	@echo "No issues found."
