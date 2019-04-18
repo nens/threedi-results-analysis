@@ -38,7 +38,6 @@ class Flowline(Base):
             srid=4326,
             spatial_index=True,
             management=True,
-            use_st_prefix=False,
         ),
         nullable=False,
     )
@@ -159,7 +158,6 @@ class Node(Base):
             srid=4326,
             spatial_index=True,
             management=True,
-            use_st_prefix=False,
         ),
         nullable=False,
     )
@@ -213,7 +211,6 @@ class Pumpline(Base):
             srid=4326,
             spatial_index=True,
             management=True,
-            use_st_prefix=False,
         ),
         nullable=False,
     )

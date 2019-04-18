@@ -94,7 +94,6 @@ class ConnectionNode(Base):
             srid=4326,
             spatial_index=True,
             management=True,
-            use_st_prefix=False,
         ),
         nullable=False,
     )
@@ -105,7 +104,6 @@ class ConnectionNode(Base):
             srid=4326,
             spatial_index=False,
             management=True,
-            use_st_prefix=False,
         ),
         nullable=True,
     )

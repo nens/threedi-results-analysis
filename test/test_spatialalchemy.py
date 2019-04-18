@@ -29,8 +29,7 @@ class GeoTable(Base):
             geometry_type="POINT",
             srid=4326,
             management=True,
-            spatial_index=True,
-            use_st_prefix=False,
+            spatial_index=True
         )
     )
 
