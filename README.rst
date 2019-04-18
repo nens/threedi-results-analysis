@@ -101,7 +101,7 @@ rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
 `requirements` files changes. It is also possible to empty travis' cache in
 case something seems to be wrong.
 
-To run the full tests including coverage report::
+To run the full tests including coverage report and flake8::
 
   $ docker-compose run qgis-desktop make test
 
@@ -111,9 +111,12 @@ at the first failure::
 
   $ docker-compose run qgis-desktop pytest -x
 
-To get a "coverage" report for the docstrings::
+To get a "coverage" report for the docstrings or to run flake8::
 
   $ docker-compose run qgis-desktop make docstrings
+  $ docker-compose run qgis-desktop make flake8
+
+(Note: flake8 is pyflakes + pycodestyle/pep8).
 
 
 Release

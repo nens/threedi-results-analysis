@@ -210,6 +210,6 @@ pylint:
 
 # Run pep8 + pyflakes checks
 flake8:
-	@echo "#### PEP8 issues"
+	@echo "#### PEP8/pyflakes issues"
 	@flake8 .
 	@echo "No issues found."
