@@ -19,6 +19,7 @@ from ThreeDiToolbox.utils.user_messages import (
     pop_up_info,
     progress_bar,
 )
+
 from ..sql_models.statistics import (
     FlowlineStats,
     Node,
@@ -167,18 +168,12 @@ class StatisticsTool(object):
         """Start processing on first selected model result (netcdf).
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
-        # get links to active model database and active results (list in row)
-        if "test" in kwargs and kwargs["test"]:
-            test = True
-        else:
-            test = False
-
         self.datasource = self.ts_datasource.rows[-1].datasource()
         self.ds = DataSourceAdapter(self.datasource)
         self.result_db_qmodel = self.ts_datasource.rows[0]
 
-        # setup statistics database sqlalchemy instance and create models (if not exist) in the
-        # result cache spatialite
+        # setup statistics database sqlalchemy instance and create models (
+        # if not exist) in the result cache spatialite
         db_type = "spatialite"
         db_set = {
             "db_path": self.result_db_qmodel.spatialite_cache_filepath().replace(
@@ -189,59 +184,47 @@ class StatisticsTool(object):
         self.db = StaticsticsDatabase(db_set, db_type)
         self.db_meta = self.db.get_metadata()
 
-        if not test:
-            calculate_stats = True
-            if self.has_res_views():
-                calculate_stats = pop_up_question(
-                    "Recalculate the statistics?", "Recalculate?"
+        calculate_stats = True
+        if self.has_res_views():
+            # in test_statistics we mocked 'pop_up_question' and set return value True
+            calculate_stats = pop_up_question("Recalculate statistics?", "Recalculate?")
+
+        if calculate_stats:
+            log.info("Start calculating statistics")
+
+            try:
+                self.db.create_and_check_fields()
+            except dbapi2.OperationalError as e:
+                pop_up_info(
+                    "Database error. You could try it again, "
+                    "in most cases this fixes the problem.",
+                    "ERROR",
                 )
 
-            if calculate_stats:
-                log.info("Create statistic models if needed.")
+            with progress_bar(self.iface) as pb:
+                pb.setValue(10)
+                self.get_manhole_attributes_and_statistics()
+                pb.setValue(30)
+                self.create_node_views()
+                pb.setValue(40)
+                self.calc_flowline_statistics()
+                pb.setValue(50)
+                self.calc_pipe_and_weir_statistics()
+                pb.setValue(70)
+                self.create_line_views()
+                pb.setValue(80)
+                self.get_pump_attributes_and_statistics()
+                pb.setValue(90)
+                self.create_pump_views()
+                pb.setValue(100)
 
-                try:
-                    self.db.create_and_check_fields()
-                except dbapi2.OperationalError as e:
-                    pop_up_info(
-                        "Database error. You could try it again, in most cases this fix the problem.",
-                        "ERROR",
-                    )
-
-                with progress_bar(self.iface) as pb:
-                    # calculate the statistics
-                    pb.setValue(10)
-                    self.get_manhole_attributes_and_statistics()
-                    pb.setValue(30)
-                    self.create_node_views()
-                    pb.setValue(40)
-                    self.calc_flowline_statistics()
-                    pb.setValue(50)
-                    self.calc_pipe_and_weir_statistics()
-                    pb.setValue(70)
-                    self.create_line_views()
-                    pb.setValue(80)
-                    self.get_pump_attributes_and_statistics()
-                    pb.setValue(90)
-                    self.create_pump_views()
-                    pb.setValue(100)
-
-            # add layers to QGIS map
-            self.add_statistic_layers_to_map()
-
-        if test:
-            self.db.create_and_check_fields()
-            self.get_manhole_attributes_and_statistics()
-            self.create_node_views()
-            self.calc_flowline_statistics()
-            self.calc_pipe_and_weir_statistics()
-            self.create_line_views()
-            self.get_pump_attributes_and_statistics()
-            self.create_pump_views()
+        # add layers to QGIS map (this function is mocked in test_statistics)
+        self.add_statistic_layers_to_map()
 
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
-        log.info("Run statistic tool")
+        log.info("statistic tool finished")
 
     def has_mod_views(self):
         mod_session = self.get_modeldb_session()  # e.g. v2_bergermeer.sqlite

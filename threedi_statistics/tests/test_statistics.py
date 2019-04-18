@@ -1,14 +1,13 @@
 from builtins import object
 import unittest
+import mock
 import os.path
+from sqlite3 import dbapi2 as dbapi
 
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 
-# from pyspatialite import dbapi2 as dbapi
-from sqlite3 import dbapi2 as dbapi
-
-test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data/")
+test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 
 class DummyTimeseriesDatasourceModel(object):
@@ -37,9 +36,16 @@ class TestStatistics(unittest.TestCase):
                 os.path.join(test_data_dir, "results_3di.nc"),
             ),
         )
-
         cls.stat.get_modeldb_session()
-        cls.stat.run(test=True)
+
+    @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.progress_bar")
+    @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.pop_up_question")
+    def test_calc_stats(self, mock_pop_up_question, mock_progress_bar):
+        mock_pop_up_question.return_value = True
+        try:
+            self.stat.run()
+        except Exception as e:
+            raise AssertionError("test_calc_stats failed: " + str(e))
 
     def test_files_exist(self):
         sqlite_path = os.path.join(test_data_dir, "v2_bergermeer.sqlite")
