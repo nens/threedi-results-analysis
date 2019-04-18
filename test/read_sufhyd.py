@@ -150,7 +150,7 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data["bottom_level"], 100.00)
         self.assertEqual(obj.data["storage_area"], 80.0)
 
-    def test_bergend_oppervlak(self):
+    def test_bergend_oppervlak2(self):
         bop = "*AFV   0000011111                       9.00600000.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00        0.00     0.00     0.00"
 
         sufhyd = SufhydReader(bop)

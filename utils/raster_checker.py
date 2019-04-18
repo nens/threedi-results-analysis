@@ -15,7 +15,6 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_info,
-    messagebar_message,
     pop_up_question,
 )
 from ThreeDiToolbox.utils.raster_checker_prework import (

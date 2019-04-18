@@ -6,7 +6,6 @@ from builtins import object
 import os
 from io import IOBase
 from qgis.core import QgsProject
-from ThreeDiToolbox.utils.user_messages import pop_up_question
 
 
 class ProjectStateMixin(object):
@@ -124,7 +123,6 @@ class ProjectStateMixin(object):
                 # them when the location and with that the relative paths
                 # change
                 tool_name, description = tool.get_state_description()
-                name = self.get_tool_state_name(tool_name)
                 for key, value in list(description.items()):
                     if isinstance(value, IOBase):
                         tool_key = self.get_tool_state_name(tool_name)

@@ -8,11 +8,9 @@ standard_library.install_aliases()
 import unittest
 import tempfile
 import os.path
-import pickle
 
 from ThreeDiToolbox.utils.import_sufhyd import Importer, transform
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
 from geoalchemy2 import types
 from sqlalchemy import select
 from ThreeDiToolbox.utils.guess_indicators import Guesser
@@ -129,4 +127,4 @@ class TestGuessIndicators(unittest.TestCase):
 
         guesser = Guesser(self.db)
 
-        data = guesser.run(["manhole_indicator", "pipe_friction", "manhole_area"], True)
+        guesser.run(["manhole_indicator", "pipe_friction", "manhole_area"], True)

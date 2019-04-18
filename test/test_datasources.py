@@ -1,13 +1,10 @@
 from __future__ import print_function
 from builtins import object
-from distutils.version import LooseVersion
 import mock
 import os
-import platform
 import unittest
 import tempfile
 import shutil
-import sys
 
 try:
     from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry

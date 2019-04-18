@@ -3,7 +3,6 @@
 from sqlalchemy import Table, select
 from ThreeDiToolbox.utils.constants import (
     V2_TABLES,
-    RASTER_CHECKER_MAPPER,
     NON_SETTINGS_TBL_WITH_RASTERS,
 )
 import logging
@@ -31,16 +30,8 @@ class DataModelSource(object):
     def __init__(self, metadata):
         self.dms_metatdata = metadata
         for tblname in V2_TABLES:
-            try:
-                __table__ = Table(tblname, metadata, autoload=True)
-                setattr(self, tblname, __table__)
-            except Exception as e:
-                msg = (
-                    "table {tbl_xx} could not be converted into a "
-                    "SQLAlchemy Table".format(tbl_xx=tblname)
-                )
-                # log.error(msg)
-                # log.error(e)
+            __table__ = Table(tblname, metadata, autoload=True)
+            setattr(self, tblname, __table__)
 
 
 class RasterCheckerEntrees(object):
