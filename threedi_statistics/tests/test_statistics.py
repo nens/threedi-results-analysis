@@ -42,10 +42,7 @@ class TestStatistics(unittest.TestCase):
     @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.pop_up_question")
     def test_calc_stats(self, mock_pop_up_question, mock_progress_bar):
         mock_pop_up_question.return_value = True
-        try:
-            self.stat.run()
-        except Exception as e:
-            raise AssertionError("test_calc_stats failed: " + str(e))
+        self.stat.run()
 
     def test_files_exist(self):
         sqlite_path = os.path.join(test_data_dir, "v2_bergermeer.sqlite")
