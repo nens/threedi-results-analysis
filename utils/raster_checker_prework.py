@@ -30,8 +30,11 @@ class DataModelSource(object):
     def __init__(self, metadata):
         self.dms_metatdata = metadata
         for tblname in V2_TABLES:
-            __table__ = Table(tblname, metadata, autoload=True)
-            setattr(self, tblname, __table__)
+            try:
+                __table__ = Table(tblname, metadata, autoload=True)
+                setattr(self, tblname, __table__)
+            except Exception:
+                pass
 
 
 class RasterCheckerEntrees(object):
