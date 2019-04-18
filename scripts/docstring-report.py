@@ -1,3 +1,12 @@
+"""Helper script for generating compact docstring coverage report.
+
+The ``docstr-coverage`` package has a quite verbose output. This script
+mimicks the one-line-per-file output of ``coverage.py``.
+
+It also sets some defaults and does more elaborate filtering/exclusion than
+currently possible with the basic ``docstr-coverage`` package.
+
+"""
 from docstr_coverage import coverage
 import glob
 
@@ -6,6 +15,8 @@ FORMAT = "%-74s %5s  %5s  %3d%%"
 
 # Temp monkeypatch.
 # See https://github.com/HunterMcGushion/docstr_coverage/pull/3
+# TODO: it can be removed if a new version has been released, see Reinout's
+# comment at the end of that PR.
 def monkeypatched_open(filename, mode):
     return open(filename, mode, encoding="utf-8")
 
@@ -15,6 +26,15 @@ coverage.open = monkeypatched_open
 
 
 def main():
+    """Call docstr-coverage's main method with our preferences.
+
+    - Custom filtering.
+
+    - Some defaults (like "don't worry about __init__() methods").
+
+    - Custom one-line-per file output.
+
+    """
     filenames = glob.glob("**/*.py", recursive=True)
     filenames = [
         filename
