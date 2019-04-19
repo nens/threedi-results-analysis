@@ -29,6 +29,15 @@ class DummyTimeseriesDatasourceModel(object):
 
 
 class TestStatistics(unittest.TestCase):
+    """ In TestStatistics the gridadmin.sqlite is updated: tables are added if
+    they not exist (or removed first if they exist). ThreeDiToolbox assumes:
+    - gridadmin.sqlite is in same folder as model.sqlite and two netcdf files
+    - filename must be "gridadmin.sqlite"
+    We do not want to copy (large!) netcdfs to tempdir, therefore we
+    - create copy of gridadmin.sqlite into tempdir
+    - mock path to gridadmin.sqlite (becomes '/tmpdir/gridadmin.sqlite')
+    - remove tempdir (e.g. in a tearDownClass() is not needed apparently """
+
     @classmethod
     @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.progress_bar")
     @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.pop_up_question")
@@ -43,31 +52,27 @@ class TestStatistics(unittest.TestCase):
         tmp_filename_path = os.path.join(cls.tempdir, tmp_filename)
         shutil.copy2(orig_gridadmin_sqlite_path, tmp_filename_path)
 
-        # do some monkey path here on DummyTimeseriesDatasourceModel method
-        def tmp_gridadmin_sqlite_path():
+        def monkey_patch_return_tmp_path():
             return tmp_filename_path
+
         dummy = DummyTimeseriesDatasourceModel(
             os.path.join(test_data_dir, "v2_bergermeer.sqlite"),
             os.path.join(test_data_dir, "results_3di.nc"),
         )
-        dummy.spatialite_cache_filepath = tmp_gridadmin_sqlite_path
+        dummy.spatialite_cache_filepath = monkey_patch_return_tmp_path
 
         cls.stat = StatisticsTool(None, dummy)
-        assert (cls.stat.ts_datasource.spatialite_cache_filepath() == tmp_filename_path)
-
+        # check that path of gridadmin.sqlite is correctly update to the tmp path
+        assert cls.stat.ts_datasource.spatialite_cache_filepath() == tmp_filename_path
         cls.stat.get_modeldb_session()
+        # calculate statistics
         cls.stat.run()
 
-    @classmethod
-    def tearDownClass(cls):
-        # remove temp dir
-        shutil.rmtree(cls.tempdir)
-
     def test_files_exist(self):
-        sqlite_path = os.path.join(test_data_dir, "v2_bergermeer.sqlite")
-        sqlite1_path = os.path.join(test_data_dir, "gridadmin.sqlite")
-        self.assertTrue(os.path.exists(sqlite_path))
-        self.assertTrue(os.path.exists(sqlite1_path))
+        model_sqlite_path = os.path.join(test_data_dir, "v2_bergermeer.sqlite")
+        gridadmin_sqlite_path = os.path.join(test_data_dir, "gridadmin.sqlite")
+        self.assertTrue(os.path.exists(model_sqlite_path))
+        self.assertTrue(os.path.exists(gridadmin_sqlite_path))
 
     def test_flowline_stats_view(self):
         resultdb_path = self.stat.ts_datasource.spatialite_cache_filepath()
