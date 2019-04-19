@@ -3,6 +3,8 @@ import unittest
 import mock
 import os.path
 from sqlite3 import dbapi2 as dbapi
+import shutil
+import tempfile
 
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
@@ -28,21 +30,38 @@ class DummyTimeseriesDatasourceModel(object):
 
 class TestStatistics(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
-        cls.stat = StatisticsTool(
-            None,
-            DummyTimeseriesDatasourceModel(
-                os.path.join(test_data_dir, "v2_bergermeer.sqlite"),
-                os.path.join(test_data_dir, "results_3di.nc"),
-            ),
-        )
-        cls.stat.get_modeldb_session()
-
     @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.progress_bar")
     @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.pop_up_question")
-    def test_calc_stats(self, mock_pop_up_question, mock_progress_bar):
+    def setUpClass(cls, mock_pop_up_question, mock_progress_bar):
         mock_pop_up_question.return_value = True
-        self.stat.run()
+
+        orig_gridadmin_sqlite_path = os.path.join(test_data_dir, "gridadmin.sqlite")
+        assert os.path.exists(orig_gridadmin_sqlite_path)
+
+        cls.tempdir = tempfile.gettempdir()
+        tmp_filename = "tmp_gridadmin.sqlite"
+        tmp_filename_path = os.path.join(cls.tempdir, tmp_filename)
+        shutil.copy2(orig_gridadmin_sqlite_path, tmp_filename_path)
+
+        # do some monkey path here on DummyTimeseriesDatasourceModel method
+        def tmp_gridadmin_sqlite_path():
+            return tmp_filename_path
+        dummy = DummyTimeseriesDatasourceModel(
+            os.path.join(test_data_dir, "v2_bergermeer.sqlite"),
+            os.path.join(test_data_dir, "results_3di.nc"),
+        )
+        dummy.spatialite_cache_filepath = tmp_gridadmin_sqlite_path
+
+        cls.stat = StatisticsTool(None, dummy)
+        assert (cls.stat.ts_datasource.spatialite_cache_filepath() == tmp_filename_path)
+
+        cls.stat.get_modeldb_session()
+        cls.stat.run()
+
+    @classmethod
+    def tearDownClass(cls):
+        # remove temp dir
+        shutil.rmtree(cls.tempdir)
 
     def test_files_exist(self):
         sqlite_path = os.path.join(test_data_dir, "v2_bergermeer.sqlite")
