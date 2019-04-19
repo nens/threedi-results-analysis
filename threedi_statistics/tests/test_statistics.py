@@ -10,7 +10,6 @@ from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSo
 from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
 
 test_data_dir = os.path.dirname(netcdf_groundwater_datasource_nc_path)
-# test_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 
 class DummyTimeseriesDatasourceModel(object):

@@ -46,6 +46,19 @@ def get_line_pattern(item_field):
     return Qt.SolidLine
 
 
+def pop_up_unkown_datasource_type():
+    msg = (
+        "QGIS3 works with ThreeDiToolbox >v1.6 and can only handle \n"	
+        "results created after March 2018 (groundwater release). \n\n"	
+        "You can do two things: \n"	
+        "1. simulate this model again and load the result in QGIS3 \n"	
+        "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
+    )
+    # we only continue if self.ds_type == 'netcdf-groundwater'
+    log(msg, level="ERROR")
+    pop_up_info(msg, title="Error")
+    raise AssertionError("unknown datasource type")
+
 class ValueWithChangeSignal(object):
     def __init__(self, signal_name, signal_setting_name, init_value=None):
         self.signal_name = signal_name
@@ -85,6 +98,8 @@ class DataSourceLayerManager(object):
     def datasource(self):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
+            if self.ds_type != 'netcdf-groundwater':
+                self.pop_up_unkown_datasource_type()
             ds_class = self.type_ds_mapping[self.ds_type]
             self._datasource = ds_class(self.file_path)
         return self._datasource
