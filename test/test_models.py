@@ -1,6 +1,7 @@
 from builtins import range
 import unittest
 from qgis.PyQt.QtCore import Qt
+import mock
 
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
 from ThreeDiToolbox.models.datasources import (
@@ -253,7 +254,8 @@ class TestDataSourceLayerManager(unittest.TestCase):
     def test_smoke(self):
         DataSourceLayerManager("a type", "/tmp/to/some/where")
 
-    def test_datasource_failure(self):
+    @mock.patch("ThreeDiToolbox.models.datasources.pop_up_unkown_datasource_type")
+    def test_datasource_failure(self, mock_pop_up):
         dlm = DataSourceLayerManager("a type", "/tmp/to/some/where")
         with self.assertRaises(KeyError):
             dlm.datasource
