@@ -3,10 +3,7 @@ from builtins import object
 import logging
 import os.path
 from collections import OrderedDict
-
 import numpy as np
-
-# from pyspatialite import dbapi2
 from sqlite3 import dbapi2
 from qgis.core import QgsProject, QgsDataSourceUri, QgsVectorLayer
 from sqlalchemy import create_engine, MetaData
