@@ -99,7 +99,7 @@ class DataSourceLayerManager(object):
         """Returns an instance of a subclass of ``BaseDataSource``."""
         if self._datasource is None:
             if self.ds_type != 'netcdf-groundwater':
-                self.pop_up_unkown_datasource_type()
+                pop_up_unkown_datasource_type()
             ds_class = self.type_ds_mapping[self.ds_type]
             self._datasource = ds_class(self.file_path)
         return self._datasource
