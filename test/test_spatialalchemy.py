@@ -25,12 +25,7 @@ class GeoTable(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     geom = Column(
-        Geometry(
-            geometry_type="POINT",
-            srid=4326,
-            management=True,
-            spatial_index=True
-        )
+        Geometry(geometry_type="POINT", srid=4326, management=True, spatial_index=True)
     )
 
     def __repr__(self):

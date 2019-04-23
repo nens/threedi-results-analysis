@@ -34,10 +34,7 @@ class Flowline(Base):
     end_node_idx = Column(Integer, nullable=False)
     the_geom = Column(
         Geometry(
-            geometry_type="LINESTRING",
-            srid=4326,
-            spatial_index=True,
-            management=True,
+            geometry_type="LINESTRING", srid=4326, spatial_index=True, management=True
         ),
         nullable=False,
     )
@@ -153,12 +150,7 @@ class Node(Base):
     featuretype = Column(String(25))
     type = Column(String(25))
     the_geom = Column(
-        Geometry(
-            geometry_type="POINT",
-            srid=4326,
-            spatial_index=True,
-            management=True,
-        ),
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=True, management=True),
         nullable=False,
     )
 
@@ -207,10 +199,7 @@ class Pumpline(Base):
 
     the_geom = Column(
         Geometry(
-            geometry_type="LINESTRING",
-            srid=4326,
-            spatial_index=True,
-            management=True,
+            geometry_type="LINESTRING", srid=4326, spatial_index=True, management=True
         ),
         nullable=False,
     )
