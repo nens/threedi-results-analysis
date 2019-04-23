@@ -5,20 +5,12 @@ from __future__ import print_function
 from builtins import object
 from contextlib import contextmanager
 
-try:
-    from qgis.gui import QgsMessageBar
-except ImportError:
-    pass
-
 from qgis.PyQt.QtWidgets import QMessageBox, QProgressBar
 from qgis.PyQt.QtCore import Qt
 
 from qgis.core import Qgis
-
-try:
-    from qgis.utils import iface
-except Exception:
-    iface = None
+from qgis.utils import iface
+from qgis.core import QgsMessageLog
 
 
 def log(msg, level="INFO"):
@@ -26,17 +18,8 @@ def log(msg, level="INFO"):
     if level not in ["INFO", "CRITICAL", "WARNING"]:
         level = "INFO"
     level = level[0] + level[1:].lower()
-
-    try:
-        from qgis.core import QgsMessageLog
-    except ImportError:
-        print(msg)
-        return
-
     loglevel = getattr(Qgis, level)
     QgsMessageLog.logMessage(msg, level=loglevel)
-    if iface is None:
-        print(msg)
 
 
 def pop_up_info(msg="", title="Information", parent=None):
@@ -59,16 +42,9 @@ def messagebar_message(title, msg, level=None, duration=0):
             possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
-    try:
-        from qgis.gui import QgsMessageBar
-
-        if not level:
-            level = Qgis.Info
-    except ImportError:
-        print("%s: %s" % (title, msg))
-
-    if iface is not None:
-        iface.messageBar().pushMessage(title, msg, level, duration)
+    if not level:
+        level = Qgis.Info
+    iface.messageBar().pushMessage(title, msg, level, duration)
 
 
 def pop_up_question(msg="", title="", parent=None):

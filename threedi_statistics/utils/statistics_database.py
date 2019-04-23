@@ -27,7 +27,7 @@ class StaticsticsDatabase(ThreediDatabase):
                 os.remove(self.settings["db_file"])
 
             drv = ogr.GetDriverByName("SQLite")
-            db = drv.CreateDataSource(self.settings["db_file"], ["SPATIALITE=YES"])
+            drv.CreateDataSource(self.settings["db_file"], ["SPATIALITE=YES"])
             Base.metadata.create_all(self.engine)
 
             # todo: add settings to improve database creation speed for older

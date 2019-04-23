@@ -4,7 +4,7 @@
 from builtins import zip
 import logging
 
-from qgis.core import QgsProject, QgsFeatureRequest, QgsFeature, QgsGeometry
+from qgis.core import QgsProject, QgsFeatureRequest, QgsGeometry
 
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils import constants

@@ -9,7 +9,7 @@ installation)
 from functools import wraps
 import os
 
-from qgis.core import Qgis, QgsDataSourceUri, QgsVectorLayer, QgsWkbTypes
+from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsWkbTypes
 from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
 from qgis.PyQt.QtCore import QVariant
 from osgeo import ogr

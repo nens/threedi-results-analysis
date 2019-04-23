@@ -14,9 +14,6 @@ from qgis.PyQt.QtNetwork import QNetworkRequest
 # QNetworkAccessManager
 from qgis.core import QgsNetworkAccessManager
 
-from qgis.PyQt.QtCore import QByteArray
-from qgis.PyQt.QtCore import QVariant
-
 from .views.result_selection import ThreeDiResultSelectionWidget
 from .models.result_downloader import DownloadResultModel
 from .utils.user_messages import pop_up_info, messagebar_message

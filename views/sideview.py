@@ -230,9 +230,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         first = True
         last_channel_id = None
 
-        if len(profile) > 0:
-            total_length = float(profile[-1][-1][1])
-
         for route_part in profile:
             sub_first = True
             last_channel_id = None

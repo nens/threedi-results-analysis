@@ -8,7 +8,7 @@ import tempfile
 import shutil
 
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsPoint, QgsPointXY
+from qgis.core import QgsPointXY
 
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor

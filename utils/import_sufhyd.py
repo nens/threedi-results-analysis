@@ -7,7 +7,6 @@ from builtins import object
 import ogr
 import osr
 import logging
-import os.path
 import datetime
 from collections import OrderedDict
 from sqlalchemy.orm import load_only

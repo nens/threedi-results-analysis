@@ -65,7 +65,6 @@ def create_and_upgrade(engine, metadata):
             for c in to_check:
                 model_column = model_table.c[c]
                 db_column = db_table.c[c]
-                x = model_column == db_column
 
                 log.info(
                     "Checking column %s.%s" % (model_table.name, model_column.name)
