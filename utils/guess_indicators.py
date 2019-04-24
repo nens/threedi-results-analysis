@@ -15,7 +15,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Guesser(object):

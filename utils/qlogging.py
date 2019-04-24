@@ -37,12 +37,12 @@ class QgisHandler(logging.Handler):
 
 def setup_logging(iface=None):
 
-    log = logging.getLogger("")  # set up a root logger
+    logger = logging.getLogger("")  # set up a root logger
 
     ql = QgisHandler(iface)
     ql.setLevel(logging.INFO)
 
-    # fh = logging.FileHandler('plugin_log.log')
+    # fh = logging.FileHandler('plugin_log.logger')
     # fh.setLevel(logging.WARNING)
 
     st = logging.StreamHandler()
@@ -52,8 +52,8 @@ def setup_logging(iface=None):
     # fh.setFormatter(format)
     st.setFormatter(format)
 
-    log.addHandler(ql)
-    # log.addHandler(fh)
-    log.addHandler(st)
+    logger.addHandler(ql)
+    # logger.addHandler(fh)
+    logger.addHandler(st)
 
-    log.setLevel(logging.INFO)  # set level of root logger
+    logger.setLevel(logging.INFO)  # set level of root logger
