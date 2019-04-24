@@ -120,4 +120,6 @@ def try_to_import_dependencies():
         # (see above).
         imp.find_module("threedigrid")  # noqa
     except ImportError as e:
-        pop_up_info("Error loading threedigrid from 'external' subdirectory. error %s" % e)
+        pop_up_info(
+            "Error loading threedigrid from 'external' subdirectory. error %s" % e
+        )
