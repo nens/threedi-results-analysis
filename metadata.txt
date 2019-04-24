@@ -1,11 +1,3 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
-# is no longer supported since version 2.0.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
 name=3Di toolbox
 qgisMinimumVersion=3.0
@@ -18,12 +10,8 @@ about=Toolbox for working with hydraulic 3Di models. This includes tools for dat
 
 tracker=https://github.com/nens/ThreeDiToolbox
 repository=https://github.com/nens/ThreeDiToolbox
-# End of mandatory metadata
 
-# Recommended items:
-
-# Uncomment the following line and add your changelog:
-# changelog=
+changelog=https://github.com/nens/ThreeDiToolbox/blob/master/CHANGES.rst
 
 # Tags are comma separated with spaces allowed
 tags=analysis, dem, hydraulics, network analysis, postgis
@@ -36,4 +24,3 @@ experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
