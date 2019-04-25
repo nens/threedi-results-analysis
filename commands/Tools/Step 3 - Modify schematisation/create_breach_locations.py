@@ -13,7 +13,7 @@ from ThreeDiToolbox.views.modify_schematisation_dialogs import (
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):

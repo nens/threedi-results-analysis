@@ -2,6 +2,7 @@
 
 from builtins import object
 import os
+import logging
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from ..datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from .base import BaseModel
@@ -16,9 +17,12 @@ from ..utils.layer_from_netCDF import (
     NODES_LAYER_NAME,
     PUMPLINES_LAYER_NAME,
 )
-from ..utils.user_messages import log, pop_up_info
+from ..utils.user_messages import pop_up_info
 from ..datasource.spatialite import Spatialite
 from ..utils.user_messages import StatusProgressBar
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_line_pattern(item_field):
@@ -53,7 +57,7 @@ def pop_up_unkown_datasource_type():
         "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
     )
     # we only continue if self.ds_type == 'netcdf-groundwater'
-    log(msg, level="ERROR")
+    logger.error(msg)
     pop_up_info(msg, title="Error")
     raise AssertionError("unknown datasource type")
 
@@ -152,7 +156,7 @@ class DataSourceLayerManager(object):
                 try:
                     self._pumpline_layer = make_pumpline_layer(self.datasource, spl)
                 except KeyError:
-                    log("No pumps in netCDF", level="WARNING")
+                    logger.warning("No pumps in netCDF")
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 

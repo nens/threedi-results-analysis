@@ -6,7 +6,7 @@ import ogr
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ..sql_models.statistics import Base
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class StaticsticsDatabase(ThreediDatabase):

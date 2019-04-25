@@ -28,7 +28,7 @@ from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils import utils
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 EXTRAPLORATION_RATIO = 20
 
@@ -404,9 +404,11 @@ class BreachLocation(object):
         succces, features = self.provider_pnt.addFeatures(new_features)
         cnt_feat = len(features)
         if succces:
-            log.info("[*] Successfully added {} features to the layer".format(cnt_feat))
+            logger.info(
+                "[*] Successfully added {} features to the layer".format(cnt_feat)
+            )
         else:
-            log.error("[-] Could not add features to the layer")
+            logger.error("[-] Could not add features to the layer")
 
     def update_connected_point_layer(self, to_update):
         """

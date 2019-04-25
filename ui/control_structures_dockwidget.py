@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

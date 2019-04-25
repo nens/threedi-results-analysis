@@ -13,7 +13,7 @@ from sqlalchemy import MetaData, Table, exc
 
 _new_sa_ddl = sqlalchemy.__version__.startswith("0.7")
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_and_upgrade(engine, metadata):
@@ -27,12 +27,12 @@ def create_and_upgrade(engine, metadata):
         try:
             db_table = Table(model_table.name, db_metadata, autoload=True)
         except exc.NoSuchTableError:
-            log.info("Creating table %s" % model_table.name)
+            logger.info("Creating table %s" % model_table.name)
             model_table.create(bind=engine)
         else:
             ddl_c = engine.dialect.ddl_compiler(engine.dialect, None)
 
-            log.debug(
+            logger.debug(
                 "Table %s already exists. Checking for "
                 "missing columns" % model_table.name
             )
@@ -46,7 +46,9 @@ def create_and_upgrade(engine, metadata):
 
             for c in to_create:
                 model_column = getattr(model_table.c, c)
-                log.info("Adding column %s.%s" % (model_table.name, model_column.name))
+                logger.info(
+                    "Adding column %s.%s" % (model_table.name, model_column.name)
+                )
                 assert not model_column.constraints, (
                     "I cannot automatically add columns with constraints to "
                     "the database. Please consider fixing me if you care!"
@@ -66,14 +68,14 @@ def create_and_upgrade(engine, metadata):
                 model_column = model_table.c[c]
                 db_column = db_table.c[c]
 
-                log.info(
+                logger.info(
                     "Checking column %s.%s" % (model_table.name, model_column.name)
                 )
                 try:
                     model_col_spec = ddl_c.get_column_specification(model_column)
                     db_col_spec = ddl_c.get_column_specification(db_column)
                 except exc.CompileError:
-                    log.debug(
+                    logger.debug(
                         "error in compiling  %s.%s"
                         % (model_table.name, model_column.name)
                     )
@@ -84,7 +86,7 @@ def create_and_upgrade(engine, metadata):
                 db_col_spec = db_col_spec.replace("TINYINT", "BOOL")
 
                 if model_col_spec != db_col_spec:
-                    log.warning(
+                    logger.warning(
                         "Column %s.%s has specification %r in the model "
                         "but %r in the database"
                         % (
@@ -96,11 +98,11 @@ def create_and_upgrade(engine, metadata):
                     )
 
                 if model_column.constraints or db_column.constraints:
-                    log.debug("Column constraints not checked.")
+                    logger.debug("Column constraints not checked.")
 
             for c in to_remove:
                 model_column = getattr(db_table.c, c)
-                log.warning(
+                logger.warning(
                     "Column %s.%s in the database is not in "
                     "the model" % (model_table.name, model_column.name)
                 )

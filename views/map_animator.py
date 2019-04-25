@@ -31,7 +31,7 @@ except AttributeError:
         return QApplication.translate(context, text, disambig)
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MapAnimator(QWidget):
@@ -185,7 +185,7 @@ class MapAnimator(QWidget):
         result = self.root_tool.timeslider_widget.active_datasource
 
         if result is None:
-            # todo: log warning
+            # todo: logger warning
             return
 
         if self.node_layer is not None:

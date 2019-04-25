@@ -10,16 +10,10 @@ from qgis.PyQt.QtCore import Qt
 
 from qgis.core import Qgis
 from qgis.utils import iface
-from qgis.core import QgsMessageLog
 
 
-def log(msg, level="INFO"):
-    """Shortcut for QgsMessageLog.logMessage function."""
-    if level not in ["INFO", "CRITICAL", "WARNING"]:
-        level = "INFO"
-    level = level[0] + level[1:].lower()
-    loglevel = getattr(Qgis, level)
-    QgsMessageLog.logMessage(msg, level=loglevel)
+# There used to be a ``def log(msg, level="INFO")`` here.
+# It isn't needed anymore: just use regular python logging instead.
 
 
 def pop_up_info(msg="", title="Information", parent=None):
@@ -29,8 +23,9 @@ def pop_up_info(msg="", title="Information", parent=None):
 
 def statusbar_message(msg=""):
     """Display message in status bar """
-    if iface is not None:
-        iface.mainWindow().statusBar().showMessage(msg)
+    if iface is None:
+        return
+    iface.mainWindow().statusBar().showMessage(msg)
 
 
 def messagebar_message(title, msg, level=None, duration=0):
@@ -42,6 +37,8 @@ def messagebar_message(title, msg, level=None, duration=0):
             possible to use QgsMessage.INFO, etc
         duration: (int) how long this the message displays in seconds
     """
+    if iface is None:
+        return
     if not level:
         level = Qgis.Info
     iface.messageBar().pushMessage(title, msg, level, duration)

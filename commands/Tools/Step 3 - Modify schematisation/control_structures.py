@@ -32,7 +32,7 @@ from ThreeDiToolbox.views.control_structures_dockwidget import (
     ControlStructuresDockWidget,
 )
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):

@@ -4,7 +4,7 @@ from sqlalchemy import Table, select
 from ThreeDiToolbox.utils.constants import V2_TABLES, NON_SETTINGS_TBL_WITH_RASTERS
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class DataModelSource(object):
@@ -158,7 +158,7 @@ class RasterCheckerEntrees(object):
             if ref_column_name == "dem_file":
                 dem_used = True
         if not dem_used:
-            log.warning(
+            logger.warning(
                 "RasterChecker skips v2_global_settings id %d as"
                 "this id does not (but must) refer to an "
                 "elevation raster" % entree_id

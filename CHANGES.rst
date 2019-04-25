@@ -8,6 +8,10 @@ ThreeDiToolBox changelog
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
   minutes).
 
+- Added better logging. In qgis, our messages are now visible in the console
+  log. Also, a logfile is written (``threedi-qgis-log.txt``), which can be
+  used to investigate problems.
+
 
 1.10 (2019-03-28)
 -----------------

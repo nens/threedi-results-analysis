@@ -20,7 +20,7 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.water_balance.views.waterbalance_widget import WaterBalanceWidget
 
 
-log = logging.getLogger("DeltaresTdi." + __name__)
+logger = logging.getLogger("DeltaresTdi." + __name__)
 
 
 class WaterBalanceCalculation(object):
@@ -95,7 +95,7 @@ class WaterBalanceCalculation(object):
         # this implemented is that the on hover map highlight selects all
         # links, even when the 2D or 1D modelpart is selected in the combo box.
 
-        log.info("polygon of wb area: %s", wb_polygon.asWkt())
+        logger.info("polygon of wb area: %s", wb_polygon.asWkt())
 
         # the '_out' and '_in' indicate the draw direction of the flow_line.
         # a flow line can have in 1 simulation both positive and negative
@@ -377,7 +377,7 @@ class WaterBalanceCalculation(object):
                 elif incoming:
                     pump_selection["in"].append(pump["id"])
 
-        log.info(str(flow_lines))
+        logger.info(str(flow_lines))
         return flow_lines, pump_selection
 
     def get_nodes(self, wb_polygon, model_part):
@@ -390,7 +390,7 @@ class WaterBalanceCalculation(object):
         }
         """
 
-        log.info("polygon of wb area: %s", wb_polygon.asWkt())
+        logger.info("polygon of wb area: %s", wb_polygon.asWkt())
 
         nodes = {"1d": [], "2d": [], "2d_groundwater": []}
 
@@ -1042,7 +1042,7 @@ class WaterBalanceTool(object):
         for required_var in minimum_agg_vars:
             if required_var[0] not in check_available_vars:
                 msg = "the aggregation nc misses aggregation: %s", required_var[1]
-                log.error(msg)
+                logger.error(msg)
                 missing_vars.append(required_var[1])
         return missing_vars
 

@@ -20,7 +20,7 @@ from qgis.PyQt.QtWidgets import QDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 try:
@@ -96,7 +96,7 @@ class PredictCalcPointsDialogWidget(QDialog):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """
@@ -208,7 +208,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """
@@ -315,7 +315,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """

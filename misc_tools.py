@@ -22,7 +22,7 @@ from .utils.layer_from_netCDF import (
 # plugin due to filtering-by-name.
 IDENTIFIER_LIKE = [FLOWLINES_LAYER_NAME, NODES_LAYER_NAME, PUMPLINES_LAYER_NAME]
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class About(object):
@@ -103,7 +103,7 @@ class CacheClearer(object):
             try:
                 QgsProject.instance().removeMapLayers(loaded_layer_ids)
             except RuntimeError:
-                log.exception("Failed to delete map layer")
+                logger.exception("Failed to delete map layer")
 
             for f in cached:
                 try:
