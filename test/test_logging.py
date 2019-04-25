@@ -1,5 +1,4 @@
 import logging
-import mock
 from ThreeDiToolbox.utils.qlogging import setup_logging
 from ThreeDiToolbox.utils.qlogging import logfile_path
 
@@ -57,7 +56,7 @@ def test_plugin_logsetup():
 
 def test_logging_doesnt_crash():
     _cleanup_all_handlers()
-    setup_logging(iface=mock.Mock())
+    setup_logging()
     logger.critical("Just log something")
     logger.error("Just log something")
     logger.warning("Just log something")

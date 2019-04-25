@@ -22,6 +22,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     from .utils.qlogging import setup_logging
     from .dependencies import try_to_import_dependencies
 
-    setup_logging(iface)
+    setup_logging()
     try_to_import_dependencies()
     return ThreeDiTools(iface)
