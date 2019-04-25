@@ -5,7 +5,6 @@ from builtins import str
 import unittest
 
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsPoint
 from qgis.core import QgsPointXY
 
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line

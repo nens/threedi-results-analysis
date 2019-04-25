@@ -5,7 +5,6 @@ import os
 from osgeo import ogr
 from qgis.core import QgsFeature
 from qgis.core import QgsGeometry
-from qgis.core import QgsPoint
 from qgis.core import QgsPointXY
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsCoordinateReferenceSystem
@@ -243,104 +242,108 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     return layer
 
 
-def make_node_layer(ds, spatialite, progress_bar=None):
-    """Make a memory layer that contains all nodes.
+# TODO: the next function does not appear to be used.
+# Halfway, there's ``QgsWkbTypes.Point``, but that is undefined.
+# So the function cannot work. Commented out on 2019-04-18 by Reinout
 
-    Args:
-        ds: NetcdfDataSource
-        progress_bar: (StatusProgressBar) - progress bar instance for feedback
-            about progress. This tool will make 100 steps.
-        layer_type (string) - layer type, 'memory' or 'ogr' for a shapefile
+# def make_node_layer(ds, spatialite, progress_bar=None):
+#     """Make a memory layer that contains all nodes.
 
-    Returns:
-        (QgsVectorLayer) In memory layer with all points or shapefile layer
-    """
-    if progress_bar is None:
-        progress_bar = StatusProgressBar(100, "create node layer: ")
+#     Args:
+#         ds: NetcdfDataSource
+#         progress_bar: (StatusProgressBar) - progress bar instance for feedback
+#             about progress. This tool will make 100 steps.
+#         layer_type (string) - layer type, 'memory' or 'ogr' for a shapefile
 
-    progress_bar.increase_progress(0, "read data from netCDF")
-    # Get relevant netCDF.Variables
-    projection = ds.ds.variables["projected_coordinate_system"]
-    source_epsg = projection.epsg  # = 28992
-    # FlowElem centers:
-    flowelem_xcc = ds.ds.variables["FlowElem_xcc"]  # in meters
-    flowelem_ycc = ds.ds.variables["FlowElem_ycc"]  # in meters
+#     Returns:
+#         (QgsVectorLayer) In memory layer with all points or shapefile layer
+#     """
+#     if progress_bar is None:
+#         progress_bar = StatusProgressBar(100, "create node layer: ")
 
-    progress_bar.increase_progress(10, "create layer")
-    # create layer
-    fields = [
-        "id INTEGER",
-        "inp_id INTEGER",
-        "spatialite_id INTEGER",
-        "feature_type STRING(25)",
-        "type STRING(25)",
-    ]
+#     progress_bar.increase_progress(0, "read data from netCDF")
+#     # Get relevant netCDF.Variables
+#     projection = ds.ds.variables["projected_coordinate_system"]
+#     source_epsg = projection.epsg  # = 28992
+#     # FlowElem centers:
+#     flowelem_xcc = ds.ds.variables["FlowElem_xcc"]  # in meters
+#     flowelem_ycc = ds.ds.variables["FlowElem_ycc"]  # in meters
 
-    layer = spatialite.create_empty_layer(
-        NODES_LAYER_NAME, QgsWkbTypes.Point, fields, "id"
-    )
+#     progress_bar.increase_progress(10, "create layer")
+#     # create layer
+#     fields = [
+#         "id INTEGER",
+#         "inp_id INTEGER",
+#         "spatialite_id INTEGER",
+#         "feature_type STRING(25)",
+#         "type STRING(25)",
+#     ]
 
-    pr = layer.dataProvider()
+#     layer = spatialite.create_empty_layer(
+#         NODES_LAYER_NAME, QgsWkbTypes.Point, fields, "id"
+#     )
 
-    progress_bar.increase_progress(10, "create id mappings")
-    # create inverse mapping
+#     pr = layer.dataProvider()
 
-    if "node_mapping" not in ds.ds.variables:
-        progress_bar.increase_progress(
-            0,
-            "no node mapping found in netCDF, skip object mapping. Model "
-            "only has 2d?",
-        )
-        node_idx_to_inp_id = {}
-        inp_to_splt_mapping = {}
-    else:
-        node_idx_to_inp_id = dict(
-            [(flowid - 1, inp_id) for inp_id, flowid in ds.ds.variables["node_mapping"]]
-        )
+#     progress_bar.increase_progress(10, "create id mappings")
+#     # create inverse mapping
 
-        # create mapping of inp_id to spatialite_id and feature type
-        inp_to_splt_mapping = {}
-        for feature_type in (
-            "v2_connection_nodes",
-            "v2_manhole",
-            "v2_1d_boundary_conditions",
-        ):
-            if feature_type in ds.id_mapping:
-                for spatialite_id, inp_id in list(ds.id_mapping[feature_type].items()):
-                    inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
+#     if "node_mapping" not in ds.ds.variables:
+#         progress_bar.increase_progress(
+#             0,
+#             "no node mapping found in netCDF, skip object mapping. Model "
+#             "only has 2d?",
+#         )
+#         node_idx_to_inp_id = {}
+#         inp_to_splt_mapping = {}
+#     else:
+#         node_idx_to_inp_id = dict(
+#             [(flowid - 1, inp_id) for inp_id, flowid in ds.ds.variables["node_mapping"]]
+#         )
 
-    progress_bar.increase_progress(20, "Prepare data")
-    # add features
-    features = []
+#         # create mapping of inp_id to spatialite_id and feature type
+#         inp_to_splt_mapping = {}
+#         for feature_type in (
+#             "v2_connection_nodes",
+#             "v2_manhole",
+#             "v2_1d_boundary_conditions",
+#         ):
+#             if feature_type in ds.id_mapping:
+#                 for spatialite_id, inp_id in list(ds.id_mapping[feature_type].items()):
+#                     inp_to_splt_mapping[inp_id] = (feature_type, spatialite_id)
 
-    source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
-    dest_crs = QgsCoordinateReferenceSystem(4326)
-    transform = QgsCoordinateTransform(source_crs, dest_crs)
+#     progress_bar.increase_progress(20, "Prepare data")
+#     # add features
+#     features = []
 
-    for i in range(flowelem_xcc.shape[0]):
-        feat = QgsFeature()
+#     source_crs = QgsCoordinateReferenceSystem(int(source_epsg))
+#     dest_crs = QgsCoordinateReferenceSystem(4326)
+#     transform = QgsCoordinateTransform(source_crs, dest_crs)
 
-        p1 = transform.transform(QgsPointXY(flowelem_xcc[i], flowelem_ycc[i]))
+#     for i in range(flowelem_xcc.shape[0]):
+#         feat = QgsFeature()
 
-        feat.setGeometry(QgsGeometry.fromPointXY(p1))
+#         p1 = transform.transform(QgsPointXY(flowelem_xcc[i], flowelem_ycc[i]))
 
-        # Getting all node types, feature types, and whatnot:
-        node_type = ds.node_type_of(i)
-        inp_id = node_idx_to_inp_id.get(i, None)
-        feature_type, spatialite_id = inp_to_splt_mapping.get(inp_id, (None, None))
+#         feat.setGeometry(QgsGeometry.fromPointXY(p1))
 
-        feat.setAttributes([i, inp_id, spatialite_id, feature_type, node_type])
-        features.append(feat)
-    progress_bar.increase_progress(30, "append data to memory layer")
-    pr.addFeatures(features)
+#         # Getting all node types, feature types, and whatnot:
+#         node_type = ds.node_type_of(i)
+#         inp_id = node_idx_to_inp_id.get(i, None)
+#         feature_type, spatialite_id = inp_to_splt_mapping.get(inp_id, (None, None))
 
-    progress_bar.increase_progress(25, "update extent")
-    # update layer's extent when new features have been added
-    # because change of extent in provider is not propagated to the layer
-    layer.updateExtents()
+#         feat.setAttributes([i, inp_id, spatialite_id, feature_type, node_type])
+#         features.append(feat)
+#     progress_bar.increase_progress(30, "append data to memory layer")
+#     pr.addFeatures(features)
 
-    progress_bar.increase_progress(15, "ready")
-    return layer
+#     progress_bar.increase_progress(25, "update extent")
+#     # update layer's extent when new features have been added
+#     # because change of extent in provider is not propagated to the layer
+#     layer.updateExtents()
+
+#     progress_bar.increase_progress(15, "ready")
+#     return layer
 
 
 def make_pumpline_layer(nds, spatialite, progress_bar=None):

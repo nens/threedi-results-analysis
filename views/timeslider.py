@@ -20,10 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os.path
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import QSlider
-import qgis
 
 
 class TimesliderWidget(QSlider):

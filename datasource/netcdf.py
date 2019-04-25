@@ -250,7 +250,7 @@ def detect_netcdf_version(netcdf_file_path):
             return "netcdf-groundwater"
         else:
             return "netcdf"
-    except IOError as e:
+    except IOError:
         # old 3Di results cannot be opened with h5py. The can be opened with
         # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
         # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4

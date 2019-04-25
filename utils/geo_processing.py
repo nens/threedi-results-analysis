@@ -3,11 +3,8 @@ from qgis.core import (
     QgsFeature,
     QgsGeometry,
     QgsPoint,
-    QgsDistanceArea,
-    Qgis,
     QgsVectorLayer,
     QgsCoordinateTransform,
-    QgsDataSourceUri,
     QgsCoordinateReferenceSystem,
 )
 from qgis.core import QgsProject
@@ -82,7 +79,6 @@ def split_line_at_points(
         p2 = point_geom_on_line
 
         distance_on_subline = math.hypot(p2.x() - p1.x(), p2.y() - p1.y())
-        distance_on_subline2 = closest_seg[0]
 
         snap_points.append(
             (
@@ -102,10 +98,6 @@ def split_line_at_points(
     line_points = []
     start_point_id = start_node_id
     total_line_distance = 0
-
-    # create instance for distance calculation
-    d = QgsDistanceArea()
-    # d.setEllipsoidalMode(True) # default Ellipsoidal of WGS84 is used
 
     for i, vertex in enumerate(polyline.asPolyline()):
         line_points.append(QgsPoint(vertex[0], vertex[1]))

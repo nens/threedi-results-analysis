@@ -777,7 +777,7 @@ class WaterBalanceWidget(QDockWidget):
         t_start = max(0, t1)
         try:
             short_model_slug = ga.model_slug.rsplit("-", 1)[0]
-        except Exception as e:
+        except Exception:
             short_model_slug = ga.model_name
 
         self.wb_barchart_widget = pg.GraphicsView()

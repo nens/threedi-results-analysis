@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from qgis.PyQt.QtWidgets import QDialog
-from qgis.PyQt.QtCore import QRect, Qt, QObject, QMetaObject
+from qgis.PyQt.QtCore import QRect, Qt, QMetaObject
 from qgis.PyQt.QtWidgets import (
     QVBoxLayout,
     QGroupBox,

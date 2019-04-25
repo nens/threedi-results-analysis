@@ -77,13 +77,15 @@ compile: $(COMPILED_RESOURCE_FILES)
 	$(LRELEASE) $<
 
 test: compile transcompile
-	QT_QPA_PLATFORM=offscreen pytest
+	@echo "#### Python tests"
+	QT_QPA_PLATFORM=offscreen pytest --cov --flake8
+
+docstrings:
+	@echo "#### Docstring coverage report"
+	python3 scripts/docstring-report.py
 
 deploy: compile doc transcompile
-	@echo
-	@echo "------------------------------------------"
-	@echo "Deploying plugin to your .qgis2 directory."
-	@echo "------------------------------------------"
+	@echo "#### Deploying plugin to your .qgis2 directory."
 	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
@@ -206,12 +208,8 @@ pylint:
 	@echo "----------------------"
 
 
-# Run pep8 style checking
-#http://pypi.python.org/pypi/pep8
-pep8:
-	@echo
-	@echo "-----------"
-	@echo "PEP8 issues"
-	@echo "-----------"
-	@pycodestyle --repeat
+# Run pep8 + pyflakes checks
+flake8:
+	@echo "#### PEP8/pyflakes issues"
+	@flake8 .
 	@echo "No issues found."

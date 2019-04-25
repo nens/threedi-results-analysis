@@ -5,7 +5,7 @@ import logging
 
 import numpy as np
 from osgeo import ogr, osr
-from qgis.core import Qgis, QgsWkbTypes
+from qgis.core import QgsWkbTypes
 
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.orm.base.exporters import BaseOgrExporter

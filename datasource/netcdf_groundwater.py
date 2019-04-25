@@ -1,4 +1,3 @@
-from builtins import str
 import glob
 import logging
 import os

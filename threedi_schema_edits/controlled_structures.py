@@ -4,7 +4,6 @@ from builtins import object
 import logging
 
 from qgis.core import QgsDataSourceUri
-from qgis.gui import QgsMessageBar
 from qgis.core import Qgis
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import OperationalError

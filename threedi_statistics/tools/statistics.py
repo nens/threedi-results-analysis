@@ -3,12 +3,9 @@ from builtins import object
 import logging
 import os.path
 from collections import OrderedDict
-
 import numpy as np
-
-# from pyspatialite import dbapi2
 from sqlite3 import dbapi2
-from qgis.core import QgsProject, QgsProject, QgsDataSourceUri, QgsVectorLayer
+from qgis.core import QgsProject, QgsDataSourceUri, QgsVectorLayer
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import func
 from sqlalchemy.event import listen
@@ -19,6 +16,7 @@ from ThreeDiToolbox.utils.user_messages import (
     pop_up_info,
     progress_bar,
 )
+
 from ..sql_models.statistics import (
     FlowlineStats,
     Node,
@@ -167,18 +165,12 @@ class StatisticsTool(object):
         """Start processing on first selected model result (netcdf).
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
-        # get links to active model database and active results (list in row)
-        if "test" in kwargs and kwargs["test"]:
-            test = True
-        else:
-            test = False
-
         self.datasource = self.ts_datasource.rows[-1].datasource()
         self.ds = DataSourceAdapter(self.datasource)
         self.result_db_qmodel = self.ts_datasource.rows[0]
 
-        # setup statistics database sqlalchemy instance and create models (if not exist) in the
-        # result cache spatialite
+        # setup statistics database sqlalchemy instance and create models (
+        # if not exist) in the result cache spatialite
         db_type = "spatialite"
         db_set = {
             "db_path": self.result_db_qmodel.spatialite_cache_filepath().replace(
@@ -189,28 +181,24 @@ class StatisticsTool(object):
         self.db = StaticsticsDatabase(db_set, db_type)
         self.db_meta = self.db.get_metadata()
 
-        if test:
-            calculate_stats = False
-        else:
-            calculate_stats = True
-            if self.has_res_views():
-                calculate_stats = pop_up_question(
-                    "Recalculate the statistics?", "Recalculate?"
-                )
+        calculate_stats = True
+        if self.has_res_views():
+            # in test_statistics we mocked 'pop_up_question' and set return value True
+            calculate_stats = pop_up_question("Recalculate statistics?", "Recalculate?")
 
         if calculate_stats:
-            log.info("Create statistic models if needed.")
+            log.info("Start calculating statistics")
 
             try:
                 self.db.create_and_check_fields()
-            except dbapi2.OperationalError as e:
+            except dbapi2.OperationalError:
                 pop_up_info(
-                    "Database error. You could try it again, in most cases this fix the problem.",
+                    "Database error. You could try it again, "
+                    "in most cases this fixes the problem.",
                     "ERROR",
                 )
 
             with progress_bar(self.iface) as pb:
-                # calculate the statistics
                 pb.setValue(10)
                 self.get_manhole_attributes_and_statistics()
                 pb.setValue(30)
@@ -227,15 +215,13 @@ class StatisticsTool(object):
                 self.create_pump_views()
                 pb.setValue(100)
 
-        # add layers to QGIS map
-        if not test:
-            self.add_statistic_layers_to_map()
+        # add layers to QGIS map (this function is mocked in test_statistics)
+        self.add_statistic_layers_to_map()
 
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
-
-        log.info("Run statistic tool")
+        log.info("statistic tool finished")
 
     def has_mod_views(self):
         mod_session = self.get_modeldb_session()  # e.g. v2_bergermeer.sqlite
@@ -272,7 +258,7 @@ class StatisticsTool(object):
         log.info("Create mapping between result id and connection_node_id")
 
         nodes = res_session.query(Node.spatialite_id, Node.id).filter(
-            Node.spatialite_id != None
+            Node.spatialite_id != None  # NOQA
         )
         node_mapping = {node.spatialite_id: node.id for node in nodes}
 
@@ -557,7 +543,7 @@ class StatisticsTool(object):
                     np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
                     where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)),
                 )
-            except:
+            except Exception:
                 log.info("dh_max is not loaded for timestep: %s" % (timestamp))
                 dh_max_calc = False
 
@@ -1096,8 +1082,8 @@ class StatisticsTool(object):
         session.execute(
             """
             INSERT INTO geometry_columns (
-                f_table_name, f_geometry_column, geometry_type, 
-                coord_dimension, SRID, spatial_index_enabled) 
+                f_table_name, f_geometry_column, geometry_type,
+                coord_dimension, SRID, spatial_index_enabled)
             VALUES ('flowline_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1151,8 +1137,8 @@ class StatisticsTool(object):
         session.execute(
             """
             INSERT INTO geometry_columns (
-                f_table_name, f_geometry_column, geometry_type, 
-                coord_dimension, SRID, spatial_index_enabled) 
+                f_table_name, f_geometry_column, geometry_type,
+                coord_dimension, SRID, spatial_index_enabled)
             VALUES ('pipe_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1162,8 +1148,8 @@ class StatisticsTool(object):
         # dwa+mixed of pipestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view 
-             AS 
+            CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view
+             AS
              SELECT *
              FROM pipe_stats_view
              WHERE pipe_stats_view.sewerage_type IN (0, 2);
@@ -1178,8 +1164,8 @@ class StatisticsTool(object):
         session.execute(
             """
                 INSERT INTO geometry_columns (
-                    f_table_name, f_geometry_column, geometry_type, 
-                    coord_dimension, SRID, spatial_index_enabled) 
+                    f_table_name, f_geometry_column, geometry_type,
+                    coord_dimension, SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_dwa_mixed_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1189,8 +1175,8 @@ class StatisticsTool(object):
         # rwa views of pipestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view 
-            AS 
+            CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view
+            AS
             SELECT *
             FROM pipe_stats_view
             WHERE pipe_stats_view.sewerage_type IN (1);
@@ -1204,8 +1190,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_rwa_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1254,8 +1240,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('weir_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1299,8 +1285,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1312,7 +1298,7 @@ class StatisticsTool(object):
             """
             CREATE VIEW IF NOT EXISTS manhole_stats_dwa_mixed_view
 
-             AS 
+             AS
             SELECT *
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (0, 2);
@@ -1326,8 +1312,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_dwa_mixed_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1337,8 +1323,8 @@ class StatisticsTool(object):
         # rwa views of manholestats
         session.execute(
             """
-            CREATE VIEW IF NOT EXISTS manhole_stats_rwa_view 
-             AS 
+            CREATE VIEW IF NOT EXISTS manhole_stats_rwa_view
+             AS
             SELECT *
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (1);
@@ -1352,8 +1338,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_rwa_view', 'the_geom', 1, 2, 4326, 0);
             """
         )
@@ -1395,8 +1381,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pump_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
         )
@@ -1433,8 +1419,8 @@ class StatisticsTool(object):
         )
         session.execute(
             """
-                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension, 
-                  SRID, spatial_index_enabled) 
+                INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
+                  SRID, spatial_index_enabled)
                 VALUES ('pump_stats_point_view', 'the_geom', 1, 2, 4326, 0);
             """
         )

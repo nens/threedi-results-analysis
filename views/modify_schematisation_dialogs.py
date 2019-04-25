@@ -8,7 +8,6 @@ from qgis.PyQt import uic
 
 from qgis.PyQt.QtCore import QRect
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QGroupBox

@@ -10,9 +10,6 @@ from qgis.core import QgsVectorLayer
 from qgis.core import QgsProject
 from qgis.core import QgsField
 from qgis.core import QgsDataSourceUri
-from qgis.core import QgsCoordinateReferenceSystem
-from qgis.core import QgsCoordinateTransform
-
 
 from sqlalchemy.exc import ResourceClosedError
 

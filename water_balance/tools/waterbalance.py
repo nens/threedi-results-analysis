@@ -14,7 +14,6 @@ from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPointXY
 from ThreeDiToolbox.datasource.netcdf import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 
 # Import the code for the DockWidget
@@ -815,7 +814,6 @@ class WaterBalanceCalculation(object):
         if np_node.size > 0:
             # delta volume
             t_pref = 0
-            vol_pref = 0
             for ts_idx, t in enumerate(ts):
                 # delta volume
                 if ts_idx == 0:

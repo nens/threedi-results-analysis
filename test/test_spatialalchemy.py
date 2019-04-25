@@ -1,7 +1,6 @@
 import unittest
 import tempfile
 import os.path
-import sys
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
@@ -26,13 +25,7 @@ class GeoTable(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     geom = Column(
-        Geometry(
-            geometry_type="POINT",
-            srid=4326,
-            management=True,
-            spatial_index=True,
-            use_st_prefix=False,
-        )
+        Geometry(geometry_type="POINT", srid=4326, management=True, spatial_index=True)
     )
 
     def __repr__(self):
