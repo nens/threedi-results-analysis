@@ -67,7 +67,9 @@ class CustomCommand(CustomCommandBase):
             return
         default_epsg_code = 28992
         epsg_code = predictor.get_epsg_code() or default_epsg_code
-        logger.info("[*] Using epsg code {} to build the calc_type_dict".format(epsg_code))
+        logger.info(
+            "[*] Using epsg code {} to build the calc_type_dict".format(epsg_code)
+        )
         predictor.build_calc_type_dict(epsg_code=epsg_code)
         transform = None
         # spatialites are in WGS84 so we need a transformation

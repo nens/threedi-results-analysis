@@ -6,8 +6,12 @@ this ought to be made more explicit and verbose.
 """
 import imp
 import os
+import logging
 import sys
-from .utils.user_messages import pop_up_info, log
+from .utils.user_messages import pop_up_info
+
+
+logger = logging.getLogger(__name__)
 
 
 def try_to_import_dependencies():
@@ -24,13 +28,13 @@ def try_to_import_dependencies():
     try:
         import pyqtgraph  # noqa
 
-        log("Use local installation of pyqtgraph ")
+        logger.info("Use local installation of pyqtgraph ")
     except Exception:
         # TODO: fix this error (which is the reason of this exception):
         # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
         # could be imported.
         msg = "Error: Exception while loading pyqtgraph. Probably couldn't import PyQt"
-        log(msg)
+        logger.info(msg)
         pop_up_info(msg)
 
     try:
@@ -48,7 +52,7 @@ def try_to_import_dependencies():
         # update the plugin using the plugin manager (because it tries to delete
         # the old plugin files). Real imports are postponed as long as possible.
         imp.find_module("netCDF4")
-        log("Use local installation of python netCDF4 library")
+        logger.info("Use local installation of python netCDF4 library")
     except ImportError:
         if os.name == "nt":
             if sys.maxsize > 2 ** 32:
@@ -63,7 +67,7 @@ def try_to_import_dependencies():
                 )
                 # import netCDF4
 
-                log("Used netCDF4 library, provided with plugin.")
+                logger.info("Used netCDF4 library, provided with plugin.")
             else:
                 pop_up_info(
                     "Error: could not find netCDF4 installation. Change "
@@ -84,7 +88,7 @@ def try_to_import_dependencies():
     #                python_netcdf=netCDF4.__version__,
     #                netcdf=netCDF4.__netcdf4libversion__,
     #                hdf5=netCDF4.__hdf5libversion__)
-    #     log(msg)
+    #     logger.info(msg)
 
     try:
         # Note: we're not importing it directly using the import statement because
@@ -94,7 +98,7 @@ def try_to_import_dependencies():
         # update the plugin using the plugin manager (because it tries to delete
         # the old plugin files). Real imports are postponed as long as possible.
         imp.find_module("h5py")
-        log("Using local h5py installation.")
+        logger.info("Using local h5py installation.")
     except ImportError:
         if os.name == "nt":
             if sys.maxsize > 2 ** 32:
@@ -105,7 +109,7 @@ def try_to_import_dependencies():
                         "h5py-win64",
                     )
                 )
-                log("Using h5py provided by plugin.")
+                logger.info("Using h5py provided by plugin.")
             else:
                 pop_up_info(
                     "Error: could not find h5py installation. Change "

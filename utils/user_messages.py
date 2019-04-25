@@ -10,16 +10,10 @@ from qgis.PyQt.QtCore import Qt
 
 from qgis.core import Qgis
 from qgis.utils import iface
-from qgis.core import QgsMessageLog
 
 
-def log(msg, level="INFO"):
-    """Shortcut for QgsMessageLog.logMessage function."""
-    if level not in ["INFO", "CRITICAL", "WARNING"]:
-        level = "INFO"
-    level = level[0] + level[1:].lower()
-    loglevel = getattr(Qgis, level)
-    QgsMessageLog.logMessage(msg, level=loglevel)
+# There used to be a ``def log(msg, level="INFO")`` here.
+# It isn't needed anymore: just use regular python logging instead.
 
 
 def pop_up_info(msg="", title="Information", parent=None):

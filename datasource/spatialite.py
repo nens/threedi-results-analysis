@@ -7,6 +7,7 @@ db_manager plugin (is a standard plugin of QGIS, provided with each
 installation)
 """
 from functools import wraps
+import logging
 import os
 
 from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsWkbTypes
@@ -15,7 +16,9 @@ from qgis.PyQt.QtCore import QVariant
 from osgeo import ogr
 from osgeo import gdal
 
-from ..utils.user_messages import log
+
+logger = logging.getLogger(__name__)
+
 
 ogr.UseExceptions()  # fail fast
 
@@ -91,7 +94,7 @@ class Spatialite(SpatiaLiteDBConnector):
         if layer.isValid():
             return layer
         else:
-            log(
+            logger.error(
                 "error loading table {table_name} from spatialite file "
                 "{path}. Error message: {error}.".format(
                     table_name=table_name, path=self.path, error=layer.error()

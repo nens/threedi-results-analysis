@@ -5,12 +5,14 @@ import glob
 from itertools import starmap, product
 import json
 import os
-
+import logging
 import numpy as np
 
 from .base import BaseDataSource
-from ..utils.user_messages import log
 from ..utils import cached_property
+
+logger = logging.getLogger(__name__)
+
 
 # Explanation: aggregation using the cumulative method integrates the variable
 # over time. Therefore the units must be multiplied by the time also.
@@ -158,7 +160,7 @@ def normalized_object_type(current_layer_name):
         return layer_object_type_mapping[current_layer_name]
     else:
         msg = "Unsupported layer: %s." % current_layer_name
-        log(msg, level="WARNING")
+        logger.warning(msg)
         return None
 
 
@@ -373,7 +375,7 @@ class NetcdfDataSource(BaseDataSource):
         # Load netcdf
         if not ds:
             self.ds = Dataset(self.file_path, mode="r", format="NETCDF4")
-            log("Opened netcdf: %s" % self.file_path)
+            logger.info("Opened netcdf: %s" % self.file_path)
         else:
             self.ds = ds
         self.cache = dict()
@@ -431,7 +433,7 @@ class NetcdfDataSource(BaseDataSource):
         except IndexError:
             return None
         else:
-            log("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return Dataset(aggregation_netcdf_file, mode="r", format="NETCDF4")
 
     @cached_property
@@ -502,7 +504,7 @@ class NetcdfDataSource(BaseDataSource):
                 available_agg_vars = [v for v in POSSIBLE_AGG_VARS if v in agg_vars]
                 available_vars += available_agg_vars
             else:
-                log(
+                logger.info(
                     "No aggregation netCDF was found, only the data from the "
                     "regular netCDF will be used.",
                     level="WARNING",
@@ -632,10 +634,10 @@ class NetcdfDataSource(BaseDataSource):
         try:
             vals = ds.variables[variable][:, netcdf_id]
         except KeyError:
-            log("Variable not in netCDF: %s" % variable)
+            logger.info("Variable not in netCDF: %s" % variable)
             raise
         except IndexError:
-            log("Id %s not found for %s" % (netcdf_id, variable))
+            logger.info("Id %s not found for %s" % (netcdf_id, variable))
             raise
 
         # Zip timeseries together in (n,2) array
@@ -695,10 +697,10 @@ class NetcdfDataSource(BaseDataSource):
             # shape ds.variables['q'] array = (t, number of ids)
             vals = data[:, netcdf_ids]
         except KeyError:
-            log("Variable not in netCDF: %s" % variable)
+            logger.info("Variable not in netCDF: %s" % variable)
             raise
         except IndexError:
-            log("Id %s not found for %s" % (netcdf_ids, variable))
+            logger.info("Id %s not found for %s" % (netcdf_ids, variable))
             raise
         return vals
 

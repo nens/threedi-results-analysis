@@ -22,6 +22,7 @@
 """
 from __future__ import absolute_import
 
+import logging
 import os
 import os.path
 
@@ -40,12 +41,14 @@ from .threedi_graph import ThreeDiGraph
 from .threedi_sideview import ThreeDiSideView
 from .views.timeslider import TimesliderWidget
 from .views.map_animator import MapAnimator
-from .utils.user_messages import log
 from .models.datasources import TimeseriesDatasourceModel
 from .utils.qprojects import ProjectStateMixin
 from .utils.layer_tree_manager import LayerTreeManager
 from .threedi_statistics import StatisticsTool
 from .water_balance import WaterBalanceTool
+
+
+logger = logging.getLogger(__name__)
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
@@ -302,10 +305,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         try:
             del self.toolbar
         except AttributeError:
-            log("Error, toolbar already removed?")
+            logger.error("Error, toolbar already removed?")
 
         # remove the toolbar
         try:
             del self.toolbar_animation
         except AttributeError:
-            log("Error, toolbar animation already removed?")
+            logger.error("Error, toolbar animation already removed?")

@@ -404,7 +404,9 @@ class BreachLocation(object):
         succces, features = self.provider_pnt.addFeatures(new_features)
         cnt_feat = len(features)
         if succces:
-            logger.info("[*] Successfully added {} features to the layer".format(cnt_feat))
+            logger.info(
+                "[*] Successfully added {} features to the layer".format(cnt_feat)
+            )
         else:
             logger.error("[-] Could not add features to the layer")
 
