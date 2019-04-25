@@ -29,7 +29,7 @@ from ..sql_models.statistics import (
 )
 from ..utils.statistics_database import StaticsticsDatabase
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Proxy(object):
@@ -187,7 +187,7 @@ class StatisticsTool(object):
             calculate_stats = pop_up_question("Recalculate statistics?", "Recalculate?")
 
         if calculate_stats:
-            log.info("Start calculating statistics")
+            logger.info("Start calculating statistics")
 
             try:
                 self.db.create_and_check_fields()
@@ -221,7 +221,7 @@ class StatisticsTool(object):
         self.modeldb_engine = None
         self.modeldb_meta = None
         self.db = None
-        log.info("statistic tool finished")
+        logger.info("statistic tool finished")
 
     def has_mod_views(self):
         mod_session = self.get_modeldb_session()  # e.g. v2_bergermeer.sqlite
@@ -255,14 +255,14 @@ class StatisticsTool(object):
         res_session = self.db.get_session()
         mod_session = self.get_modeldb_session()
 
-        log.info("Create mapping between result id and connection_node_id")
+        logger.info("Create mapping between result id and connection_node_id")
 
         nodes = res_session.query(Node.spatialite_id, Node.id).filter(
             Node.spatialite_id != None  # NOQA
         )
         node_mapping = {node.spatialite_id: node.id for node in nodes}
 
-        log.info("Get information from modeldatabase about manholes")
+        logger.info("Get information from modeldatabase about manholes")
         # get info for querying model database
 
         manhole_table = self.get_modeldb_table("v2_manhole")
@@ -279,19 +279,19 @@ class StatisticsTool(object):
                 manhole_idx.append(node_mapping[manhole.connection_node_id])
                 manhole_surface_level.append(manhole.surface_level)
             else:
-                log.warning("Manhole with id '%s' not in the results.", manhole.id)
+                logger.warning("Manhole with id '%s' not in the results.", manhole.id)
 
         # create numpy arrays for index for index based reading of the netcdf and
         # surface level for calculating time on surface
         nr_manholes = len(manhole_idx)
         if nr_manholes == 0:
-            log.warning("No manholes found, skip manhoile statistics.")
+            logger.warning("No manholes found, skip manhoile statistics.")
             return
 
         manhole_idx = np.array(manhole_idx)
         manhole_surface_level = np.array(manhole_surface_level)
 
-        log.info("Read results and calculate statistics. ")
+        logger.info("Read results and calculate statistics. ")
         # check if statistic is available, otherwise make empty arrays for getting result from normal results
         if "s1_max" in self.ds.get_available_variables():
             agg_h_max = True
@@ -312,7 +312,7 @@ class StatisticsTool(object):
         # loop over timestamps and calculate statistics
         prev_timestamp = 0.0
         for i, timestamp in enumerate(self.ds.timestamps):
-            log.debug("timestamp %i - %i s", i, timestamp)
+            logger.debug("timestamp %i - %i s", i, timestamp)
 
             timestep = timestamp - prev_timestamp
             prev_timestamp = timestamp
@@ -334,7 +334,7 @@ class StatisticsTool(object):
 
         manhole_stats = []
 
-        log.info("Make manhole statistic instances ")
+        logger.info("Make manhole statistic instances ")
         for i, manhole in enumerate(
             mod_session.query(
                 manhole_table,
@@ -401,10 +401,10 @@ class StatisticsTool(object):
                 )
                 manhole_stats.append(mhs)
 
-        log.info("delete old mahole statistics from database")
+        logger.info("delete old mahole statistics from database")
         res_session.execute("Delete from {0}".format(ManholeStats.__tablename__))
 
-        log.info("Save manhole statistic instances to database ")
+        logger.info("Save manhole statistic instances to database ")
         res_session.bulk_save_objects(manhole_stats)
         res_session.commit()
 
@@ -485,7 +485,7 @@ class StatisticsTool(object):
         ds = self.ds
         res_session = self.db.get_session()
 
-        log.info("create mapping to start and end nodes of flowline.")
+        logger.info("create mapping to start and end nodes of flowline.")
         start_idx = []
         end_idx = []
         for flowline in res_session.query(Flowline).order_by(Flowline.id):
@@ -494,7 +494,7 @@ class StatisticsTool(object):
 
         start_idx = np.array(start_idx)
         end_idx = np.array(end_idx)
-        log.info("read flowline results and calculate stats")
+        logger.info("read flowline results and calculate stats")
 
         qcum, agg_q_cum = self.get_agg_cum_if_available("q_cum")
         qcum_pos, agg_q_cum_pos = self.get_agg_cum_if_available("q_cum_positive")
@@ -512,7 +512,7 @@ class StatisticsTool(object):
 
         prev_timestamp = 0.0
         for i, timestamp in enumerate(ds.timestamps):
-            log.debug("timestamp %i - %i s", i, timestamp)
+            logger.debug("timestamp %i - %i s", i, timestamp)
             timestep = timestamp - prev_timestamp
             prev_timestamp = timestamp
 
@@ -544,7 +544,7 @@ class StatisticsTool(object):
                     where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)),
                 )
             except Exception:
-                log.info("dh_max is not loaded for timestep: %s" % (timestamp))
+                logger.info("dh_max is not loaded for timestep: %s" % (timestamp))
                 dh_max_calc = False
 
             hmax_start = np.maximum(hmax_start, np.asarray(h_start))
@@ -572,7 +572,7 @@ class StatisticsTool(object):
         hend_end = hend_end.filled(-9999.0)
 
         # save stats to the database
-        log.info("prepare flowline statistics for database")
+        logger.info("prepare flowline statistics for database")
         flowline_list = []
         for i, flowline in enumerate(
             res_session.query(
@@ -608,10 +608,10 @@ class StatisticsTool(object):
             )
             flowline_list.append(fls)
 
-        log.info("delete old flowline statistics from database")
+        logger.info("delete old flowline statistics from database")
         res_session.execute("Delete from {0}".format(FlowlineStats.__tablename__))
 
-        log.info("commit flowline statistics to database")
+        logger.info("commit flowline statistics to database")
         res_session.bulk_save_objects(flowline_list)
         res_session.commit()
 
@@ -718,13 +718,13 @@ class StatisticsTool(object):
         weir_table = self.get_modeldb_table("v2_weir")
         # cnode_table = self.get_modeldb_table('v2_connection_node')
 
-        log.info("Create mapping between idx (result) and flowline_idx")
+        logger.info("Create mapping between idx (result) and flowline_idx")
         pipes = res_session.query(Flowline.spatialite_id, Flowline.id).filter(
             Flowline.type == "v2_pipe"
         )
         pipes_mapping = {pipe.spatialite_id: pipe.id for pipe in pipes}
 
-        log.info("create pipe statistic instances.")
+        logger.info("create pipe statistic instances.")
         pipe_stats = []
 
         for pipe in mod_session.query(
@@ -734,7 +734,7 @@ class StatisticsTool(object):
             profile_table.c.width,
         ).filter(pipe_table.c.cross_section_definition_id == profile_table.c.id):
             if pipe.id not in pipes_mapping:
-                log.warning("no result for pipe with spatialite id %i", pipe.id)
+                logger.warning("no result for pipe with spatialite id %i", pipe.id)
             idx = pipes_mapping[pipe.id]
             if pipe.shape in (1, 2) and pipe.width is not None:
                 height = max(pipe.width.split(" "))
@@ -754,21 +754,21 @@ class StatisticsTool(object):
             )
             pipe_stats.append(ps)
 
-        log.info("delete old pipe statistics from database")
+        logger.info("delete old pipe statistics from database")
         res_session.execute("Delete from {0}".format(PipeStats.__tablename__))
 
-        log.info("commit pipe characteristics to database")
+        logger.info("commit pipe characteristics to database")
         res_session.bulk_save_objects(pipe_stats)
         res_session.commit()
 
-        log.info("Create mapping between idx (result) and weir spatialite_id")
+        logger.info("Create mapping between idx (result) and weir spatialite_id")
         res_session = self.db.get_session()
         weirs = res_session.query(Flowline.spatialite_id, Flowline.id).filter(
             Flowline.type == "v2_weir"
         )
         weirs_mapping = {weir.spatialite_id: weir.id for weir in weirs}
 
-        log.info("create weir statistic instances.")
+        logger.info("create weir statistic instances.")
         weir_stats = []
         for weir in mod_session.query(weir_table):
             idx = weirs_mapping[weir.id]
@@ -781,10 +781,10 @@ class StatisticsTool(object):
             )
             weir_stats.append(ws)
 
-        log.info("delete old weir statistics from database")
+        logger.info("delete old weir statistics from database")
         res_session.execute("Delete from {0}".format(WeirStats.__tablename__))
 
-        log.info("commit weir characteristics to database")
+        logger.info("commit weir characteristics to database")
         res_session.bulk_save_objects(weir_stats)
         res_session.commit()
 
@@ -912,13 +912,13 @@ class StatisticsTool(object):
     def get_pump_attributes_and_statistics(self):
         """read manhole information from model spatialite and put in manhole statistic table"""
         res_session = self.db.get_session()
-        log.info("Get information from modeldatabase about pumps")
+        logger.info("Get information from modeldatabase about pumps")
         # get info for querying model database
         mod_session = self.get_modeldb_session()
         pump_table = self.get_modeldb_table("v2_pumpstation")
 
         if "q_pump" not in self.ds.get_available_variables():
-            log.info("Variable q_pump is not available, skip pump statistics")
+            logger.info("Variable q_pump is not available, skip pump statistics")
             return
 
         # get pump capacity
@@ -930,7 +930,7 @@ class StatisticsTool(object):
         # surface level for calculating time on surface
         nr_pumps = len(pump_capacity)
 
-        log.info("Read results and calculate statistics. ")
+        logger.info("Read results and calculate statistics. ")
         # make empty arrays for the results
 
         q_cum, agg_q_cum = self.get_agg_cum_if_available("q_pump_cum", nr_pumps)
@@ -940,7 +940,7 @@ class StatisticsTool(object):
         # loop over timestamps and calculate statistics
         prev_timestamp = 0.0
         for i, timestamp in enumerate(self.ds.timestamps):
-            log.debug("timestamp %i - %i s", i, timestamp)
+            logger.debug("timestamp %i - %i s", i, timestamp)
 
             timestep = timestamp - prev_timestamp
             prev_timestamp = timestamp
@@ -955,7 +955,7 @@ class StatisticsTool(object):
         q_end = self.ds.get_values_by_timestep_nr("q_pump", len(self.ds.timestamps) - 1)
 
         pump_stats = []
-        log.info("Make Pumpline statistic instances ")
+        logger.info("Make Pumpline statistic instances ")
 
         id_mapping = None
         if not self.ds.has_groundwater:
@@ -1001,10 +1001,10 @@ class StatisticsTool(object):
             )
             pump_stats.append(ps)
 
-        log.info("delete old pumpline statistics from database")
+        logger.info("delete old pumpline statistics from database")
         res_session.execute("Delete from {0}".format(PumplineStats.__tablename__))
 
-        log.info("Save pumpline statistic instances to database ")
+        logger.info("Save pumpline statistic instances to database ")
         res_session.bulk_save_objects(pump_stats)
         res_session.commit()
 

@@ -33,7 +33,7 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from .models.toolbox import ToolboxModel
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ThreeDiToolbox(object):
@@ -125,24 +125,24 @@ class ThreeDiToolbox(object):
             item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
 
-            log.debug(filename)
-            log.debug(item)
-            log.debug(path)
+            logger.debug(filename)
+            logger.debug(item)
+            logger.debug(path)
 
             curr_dir = os.path.dirname(__file__)
             module_path = os.path.join(curr_dir, "commands", *path)
             name, ext = os.path.splitext(path[-1])
             if ext != ".py":
-                log.error("Not a Python script")
+                logger.error("Not a Python script")
                 return
 
-            log.debug(module_path)
-            log.debug(name)
+            logger.debug(module_path)
+            logger.debug(name)
 
             loader = SourceFileLoader(name, module_path)
             mod = types.ModuleType(loader.name)
             loader.exec_module(mod)
-            log.debug(str(mod))
+            logger.debug(str(mod))
 
             self.command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource

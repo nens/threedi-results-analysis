@@ -16,7 +16,7 @@ from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 Base = declarative_base()
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def load_spatialite(con, connection_record):

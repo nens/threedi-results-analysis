@@ -35,8 +35,7 @@ __revision__ = "$Rev$"[6:-2]
 
 import logging
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 import re
 import types
@@ -1221,18 +1220,18 @@ class HydroObjectFactory(object):
         """
 
         self.log = data_log
-        # log.info('logging non parsed input as WARNING')
+        # logger.info('logging non parsed input as WARNING')
         result = [
             self.hydroObjectFromSUFHYD(i, strict)
             for i in re.split("[\n\r]+", input)
             if i
         ]
         result = [i for i in result if i]
-        # log.info('end of non parsed input')
+        # logger.info('end of non parsed input')
 
         ai_list = [i for i in result if i.__class__ == AlgemeneInformatie]
         if ai_list:
-            # log.info('collapsing AlgemeneInformatie to one object')
+            # logger.info('collapsing AlgemeneInformatie to one object')
             ai = self.hydroObjectFromSUFHYD("*AL1")
             for key in AlgemeneInformatie.field_names:
                 if not isSufHydKey(key):

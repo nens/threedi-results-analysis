@@ -9,7 +9,7 @@ from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -132,7 +132,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """

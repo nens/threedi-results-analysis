@@ -3,7 +3,7 @@ from builtins import str
 from builtins import object
 from collections import Counter
 from functools import reduce
-
+import logging
 import numpy as np
 import os
 import pyqtgraph as pg
@@ -42,7 +42,10 @@ from qgis.PyQt.QtWidgets import (
 from ..utils import haversine
 from ..utils.geo_processing import split_line_at_points
 from ..utils.route import Route
-from ..utils.user_messages import log, statusbar_message
+from ..utils.user_messages import statusbar_message
+
+
+logger = logging.getLogger(__name__)
 
 
 # GraphDockWidget labels related parameters.
@@ -302,7 +305,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                 ):
                     # 2a. contours based on cross section lines already added,
                     # skip for this line element based on sideview
-                    log("skip channel part")
+                    logger.info("skip channel part")
                     pass
                 elif ltype == SideViewDockWidget.CHANNEL:
                     # 2b. add all information of channel based on cross section
@@ -846,7 +849,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        log("close sideview graph")
+        logger.info("close sideview graph")
         self.profile_route_updated.disconnect(self.update_water_level_cache)
         self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
         self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)

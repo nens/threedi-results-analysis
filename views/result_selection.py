@@ -32,7 +32,7 @@ FORM_CLASS, _ = uic.loadUiType(
     )
 )
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _reshape_scenario_results(results):
@@ -63,7 +63,7 @@ class ResultsWorker(QThread):
 
     def __del__(self):
         print("Deleting worker.")
-        log.info("Deleting worker.")
+        logger.info("Deleting worker.")
         self.stop()
 
     def run(self):
@@ -73,14 +73,14 @@ class ResultsWorker(QThread):
                     print("Exiting...")
                     break
                 items = _reshape_scenario_results(results)
-                log.debug("ResultsWorker - got new data")
+                logger.debug("ResultsWorker - got new data")
                 self.output.emit(items)
         except HTTPError as e:
             message = (
                 "Something went wrong trying to connect to {0}. {1}: "
                 "{2}".format(e.url, e.code, e.reason)
             )
-            log.info(message)
+            logger.info(message)
             self.connection_failure.emit(e.code, e.reason)
 
     def stop(self):

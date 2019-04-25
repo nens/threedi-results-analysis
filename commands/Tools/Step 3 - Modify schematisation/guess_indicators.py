@@ -12,7 +12,7 @@ from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.guess_indicators import Guesser
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
@@ -57,4 +57,4 @@ class CustomCommand(CustomCommandBase):
         msg = guesser.run(action_list, only_empty_fields)
 
         messagebar_message("Guess indicators ready", msg, duration=20)
-        log.info("Guess indicators ready.\n" + msg)
+        logger.info("Guess indicators ready.\n" + msg)

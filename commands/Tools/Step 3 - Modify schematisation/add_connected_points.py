@@ -14,7 +14,7 @@ from ThreeDiToolbox.views.modify_schematisation_dialogs import (
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):

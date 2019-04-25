@@ -30,7 +30,7 @@ from gdal import GA_ReadOnly
 from osgeo import gdal, osr
 import numpy as np
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 
@@ -67,7 +67,7 @@ class RasterChecker(object):
         try:
             self.session.close()
         except Exception as e:
-            log.error(e)
+            logger.error(e)
 
     def iter_block_row(self, band, offset_y, block_height, block_width):
         ncols = int(band.XSize / block_width)
@@ -249,7 +249,7 @@ class RasterChecker(object):
                 result = False
                 detail = "found %d rasterbands" % cnt_rasterband
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -272,7 +272,7 @@ class RasterChecker(object):
                 result = False
                 detail = "nodata value is %d" % nodata
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -297,7 +297,7 @@ class RasterChecker(object):
                 result = False
                 detail = "unit is %s" % unit
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -321,7 +321,7 @@ class RasterChecker(object):
                 result = False
                 detail = "data_type is %s" % data_type_name
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -344,7 +344,7 @@ class RasterChecker(object):
                 detail = "compression_method is %s" % compr_method
         except Exception as e:
             detail = "Not able to get compression type"
-            log.error(e)
+            logger.error(e)
             result = False
         finally:
             self.results._add(
@@ -376,7 +376,7 @@ class RasterChecker(object):
             else:
                 result = True
         except Exception as e:
-            log.error(e)
+            logger.error(e)
             result = False
         finally:
             self.results._add(
@@ -406,7 +406,7 @@ class RasterChecker(object):
                     "be equal" % (xres, yres)
                 )
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -433,7 +433,7 @@ class RasterChecker(object):
                 result = False
                 detail = "found extreme values: min=%d, max=%d" % (min, max)
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -496,7 +496,7 @@ class RasterChecker(object):
                     projcs,
                 )
         except Exception as detail:
-            log.error(detail)
+            logger.error(detail)
             result = False
         finally:
             self.results._add(
@@ -974,7 +974,7 @@ class RasterChecker(object):
         fields.append(QgsField("x centre", QVariant.String))
         fields.append(QgsField("y centre", QVariant.String))
 
-        self.shape_path = self.results.log_path.split(".log")[0] + ".shp"
+        self.shape_path = self.results.log_path.split(".logger")[0] + ".shp"
         writer = QgsVectorFileWriter(
             self.shape_path,
             "CP1250",
@@ -986,7 +986,7 @@ class RasterChecker(object):
         try:
             if writer.hasError() != QgsVectorFileWriter.NoError:
                 msg = "Error while creating shapefile: " + str(writer.errorMessage())
-                log.error(msg)
+                logger.error(msg)
                 raise Exception(msg)
             else:
                 for pixel_check_dict in self.input_data_shp:
@@ -1004,7 +1004,7 @@ class RasterChecker(object):
                             feat.setAttributes([setting_id, raster, point_x, point_y])
                             writer.addFeature(feat)
         except Exception as e:
-            log.error(e)
+            logger.error(e)
             raise AssertionError("could not write XY point to shp file")
         # delete the writer to flush features to disk
         del writer
@@ -1058,7 +1058,7 @@ class RasterChecker(object):
         if a > 0 and not b and not c:
             # pop_up_info
             msg = (
-                "Found %d errors (see .log) and no wrong pixels. \n\n"
+                "Found %d errors (see .logger) and no wrong pixels. \n\n"
                 "The check results have been written to: \n "
                 "%s" % (self.results.nr_error_logrows, self.results.log_path)
             )
@@ -1067,9 +1067,9 @@ class RasterChecker(object):
         elif a > 0 and not b and c:
             # pop_up_info + warning
             msg = (
-                "Found %d errors (see .log). \n"
+                "Found %d errors (see .logger). \n"
                 "Found too many wrong pixels to write to .shp file "
-                "(see .log). \n\n "
+                "(see .logger). \n\n "
                 "The check results have been written to: \n "
                 "%s" % (self.results.nr_error_logrows, self.results.log_path)
             )
@@ -1112,7 +1112,7 @@ class RasterChecker(object):
         elif a == 0 and not b and not c:
             # pop_up_info()
             msg = (
-                "Found no errors (see .log) and no wrong pixels. \n\n "
+                "Found no errors (see .logger) and no wrong pixels. \n\n "
                 "The check results have been written to: \n "
                 "%s" % self.results.log_path
             )
@@ -1134,7 +1134,7 @@ class RasterChecker(object):
 
         self.close_session()
         self.results.sort_results()
-        # write and save log file (here the self.results.log_path is created)
+        # write and save logger file (here the self.results.log_path is created)
         self.results.write_log(self.entrees_metadata)
 
         # only create shp if wrong pixels found

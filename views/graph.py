@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from builtins import str
 from builtins import range
+import logging
 
 import pyqtgraph as pg
 
@@ -32,7 +33,7 @@ from qgis.gui import QgsVertexMarker, QgsRubberBand
 
 from ..datasource.netcdf import layer_qh_type_mapping, normalized_object_type
 from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import log, statusbar_message, messagebar_message
+from ..utils.user_messages import statusbar_message, messagebar_message
 from ..datasource.netcdf import (
     SUBGRID_MAP_VARIABLES,
     Q_TYPES,
@@ -40,6 +41,9 @@ from ..datasource.netcdf import (
     AGGREGATION_VARIABLES,
     CUMULATIVE_AGGREGATION_UNITS,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def parse_aggvarname(aggvarname):
@@ -103,7 +107,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         try:
             agg_method_display_name = verbose_agg_method[_agg_method]
         except KeyError:
-            log("Unknown agg method: %s" % _agg_method, level="CRITICAL")
+            logger.critical("Unknown agg method: %s" % _agg_method)
             agg_method_display_name = _agg_method
 
         # Adjust the unit for cumulative method
@@ -430,9 +434,8 @@ class LocationTimeseriesTable(QTableView):
                     try:
                         self.hover_exit(self._last_hovered_row)
                     except IndexError:
-                        log(
-                            "Hover row index %s out of range" % self._last_hovered_row,
-                            level="WARNING",
+                        logger.warning(
+                            "Hover row index %s out of range" % self._last_hovered_row
                         )
                     # self.hoverExitRow.emit(self._last_hovered_row)
                 # self.hoverEnterRow.emit(row)
@@ -440,7 +443,7 @@ class LocationTimeseriesTable(QTableView):
                     try:
                         self.hover_enter(row)
                     except IndexError:
-                        log("Hover row index %s out of range" % row, level="WARNING")
+                        logger.warning("Hover row index %s out of range" % row)
                 self._last_hovered_row = row
                 pass
         return QTableView.eventFilter(self, widget, event)
@@ -705,11 +708,10 @@ class GraphWidget(QWidget):
                     break
                 else:
                     object_name = "N/A"
-                    log(
+                    logger.warning(
                         "Layer has no 'display_name', it's probably a result "
                         "layer, but putting a placeholder object name just "
-                        "for safety.",
-                        level="WARNING",
+                        "for safety."
                     )
         return object_name
 
