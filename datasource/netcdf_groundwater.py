@@ -119,7 +119,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @cached_property
     def available_subgrid_map_vars(self):
-        """Available variables from 'subgrid_map.nc'."""
+        """Return a list of available variables from 'results_3di.nc'."""
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         if self.gridadmin_result.has_pumpstations:
             available_vars = (
@@ -138,6 +138,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @cached_property
     def available_aggregation_vars(self):
+        """Return a list of available variables in the 'aggregate_results_3di.nc"""
         agg = self.gridadmin_aggregate_result
         if not agg:
             return []
@@ -170,13 +171,22 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return list(available_known_vars)
 
     def get_available_variables(self):
-        # This method is used by the water balance plugin (DeltaresTdiToolbox)
+        """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars
 
     @cached_property
     def timestamps(self):
+        """Return the timestamps of the 'results_3di.nc'
+
+        All variables in the 'results_3di.nc' have the same timestamps.
+        The 'aggregate_results_3di.nc' can have different number of timestamps
+        for each variable.
+
+        :return np.array containing the timestamps in seconds.
+        """
         return self.get_timestamps()
 
+    # TODO: try to simplify/remove this method
     def _get_timeseries_schematisation_layer(
         self,
         gridadmin_result,
@@ -241,6 +251,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             raise ValueError("object_type not available")
 
+    # TODO: try to simplify/remove this method
     def _get_timeseries_result_layer(
         self, gridadmin_result, object_type, object_id, nc_variable
     ):
@@ -270,7 +281,15 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return vals
 
     def get_timeseries(self, object_type, object_id, nc_variable, fill_value=None):
+        """Return a timeseries array of object_id for the given nc_variable
 
+        :param object_type: 'result' or 'schematized'
+        :param object_id: id of the object
+        :param nc_variable: variable you are interesting in
+        :param fill_value: Null values are filled with this value
+        :return: 2d numpy array (n,2) with timestamps and corresponding
+            result variable of the given object_id.
+        """
         if nc_variable in self.available_subgrid_map_vars:
             gr = self.gridadmin_result
             ts = self.timestamps
@@ -302,14 +321,13 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # np.ma.vstack
             return np.ma.vstack((ts, values)).T
 
-    def get_datasource(self, variable):
-        """Return the
+    def get_gridadmin(self, variable):
+        """Return the datasource where the variable is stored
 
-        Args:
-            variable:
+        Datasource is either the 'results_3di.nc' or 'aggregate_results_3di.nc'
 
-        Returns:
-
+        :param variable:
+        :return: handle to GridAdminResult or AggregateGridAdminResult
         """
         if self._is_aggregation_parameter(variable):
             return self.gridadmin_aggregate_result
