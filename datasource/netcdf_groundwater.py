@@ -24,7 +24,7 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
 ALL_H_TYPES = H_TYPES + AGG_H_TYPES
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 layer_information = [
     # object_type, model_instance, model_instance_subset, qgis_layer_source
@@ -89,7 +89,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             try:
                 self._ds = h5py.File(self.file_path, "r")
             except IOError as e:
-                log.error(e)
+                logger.error(e)
         return self._ds
 
     @property
@@ -291,7 +291,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             gr = self.gridadmin_aggregate_result
             ts = self.get_timestamps(parameter=nc_variable)
         else:
-            log.error("Unsupported variable %s", nc_variable)
+            logger.error("Unsupported variable %s", nc_variable)
 
         # determine if layer is a not_schematized (e.g nodes, pumps)
         if object_type_layer_source[object_type] == "result":
@@ -370,7 +370,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             ds = self.ds_aggregation
         else:
-            log.error("Unsupported variable %s", variable)
+            logger.error("Unsupported variable %s", variable)
             raise ValueError(variable)
 
         # determine appropriate fill value from netCDF
@@ -486,8 +486,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         try:
             aggregation_netcdf_file = find_aggregation_netcdf_gw(self.file_path)
         except IndexError:
-            log.error("Could not find the aggregation netcdf.")
+            logger.error("Could not find the aggregation netcdf.")
             return None
         else:
-            log.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+            logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")

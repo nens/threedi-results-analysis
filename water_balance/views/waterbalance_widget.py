@@ -31,7 +31,7 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.ui.custom_pg_Items import RotateLabelAxisItem
 
 
-log = logging.getLogger("DeltaresTdi." + __name__)
+logger = logging.getLogger("DeltaresTdi." + __name__)
 
 try:
     _encoding = QApplication.UnicodeUTF8
@@ -287,7 +287,7 @@ class WaterbalanceItemTable(QTableView):
                     try:
                         self.hover_exit(self._last_hovered_row)
                     except IndexError:
-                        log.warning(
+                        logger.warning(
                             "Hover row index %s out of range", self._last_hovered_row
                         )
                         # self.hoverExitRow.emit(self._last_hovered_row)
@@ -296,7 +296,7 @@ class WaterbalanceItemTable(QTableView):
                     try:
                         self.hover_enter(row)
                     except IndexError:
-                        log.warning("Hover row index %s out of range", row),
+                        logger.warning("Hover row index %s out of range", row),
                 self._last_hovered_row = row
                 pass
         return QTableView.eventFilter(self, widget, event)
@@ -1371,7 +1371,7 @@ class WaterBalanceWidget(QDockWidget):
                     del input_series[serie]
                 else:
                     # throw good error message
-                    log.warning(
+                    logger.warning(
                         "serie config error: %s is an unknown "
                         "serie or is doubled in the config.",
                         serie,
@@ -1390,13 +1390,13 @@ class WaterBalanceWidget(QDockWidget):
                 serie_setting["ts_series"]["out"] = sum_neg
             else:
                 # throw config error
-                log.warning(
+                logger.warning(
                     "aggregation %s method unknown.", serie_setting["default_method"]
                 )
 
             if aggregation_type == "m3 cumulative":
 
-                log.debug("aggregate")
+                logger.debug("aggregate")
                 diff = np.append([0], np.diff(ts))
 
                 serie_setting["ts_series"]["in"] = (

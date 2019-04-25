@@ -46,7 +46,7 @@ from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 try:
@@ -117,7 +117,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """

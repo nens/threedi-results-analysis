@@ -18,7 +18,7 @@ from .views.result_selection import ThreeDiResultSelectionWidget
 from .models.result_downloader import DownloadResultModel
 from .utils.user_messages import pop_up_info, messagebar_message
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 USER_DOWNLOAD_DIRECTORY = 1111
 
@@ -204,7 +204,7 @@ class ThreeDiResultSelection(QObject):
             if r["result_type"]["code"] in result_type_codes_download
         ]
         to_download_urls = [dl["attachment_url"] for dl in to_download]
-        log.debug(item.name.value)
+        logger.debug(item.name.value)
 
         # ask user where to store download
         directory = QFileDialog.getExistingDirectory(
@@ -221,10 +221,10 @@ class ThreeDiResultSelection(QObject):
         if os.path.exists(self.download_directory):
             pop_up_info("The directory %s already exists." % self.download_directory)
             return
-        log.info("Creating download directory.")
+        logger.info("Creating download directory.")
         os.mkdir(self.download_directory)
 
-        log.debug(self.download_directory)
+        logger.debug(self.download_directory)
 
         CHUNK_SIZE = 16 * 1024
         # Important note: QNetworkAccessManager is asynchronous, which means

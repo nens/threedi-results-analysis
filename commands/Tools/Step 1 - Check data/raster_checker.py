@@ -8,7 +8,7 @@ from ThreeDiToolbox.utils.raster_checker import RasterChecker
 import logging
 import inspect
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
@@ -42,4 +42,4 @@ class CustomCommand(CustomCommandBase):
         checker = RasterChecker(db)
         msg = checker.run(action_list)
         messagebar_message("Raster checker ready", msg, duration=3)
-        log.info("Raster checker ready")
+        logger.info("Raster checker ready")

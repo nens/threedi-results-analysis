@@ -15,7 +15,7 @@ from ThreeDiToolbox.utils.threedi_database import get_databases
 import os
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     _encoding = QApplication.UnicodeUTF8
@@ -85,7 +85,7 @@ class RasterCheckerDialogWidget(QDialog):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        log.debug("Reject")
+        logger.debug("Reject")
 
     def closeEvent(self, event):
         """

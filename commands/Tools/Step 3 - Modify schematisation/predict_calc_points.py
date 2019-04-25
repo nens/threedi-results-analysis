@@ -14,7 +14,7 @@ from ThreeDiToolbox.views.modify_schematisation_dialogs import (
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
@@ -67,7 +67,7 @@ class CustomCommand(CustomCommandBase):
             return
         default_epsg_code = 28992
         epsg_code = predictor.get_epsg_code() or default_epsg_code
-        log.info("[*] Using epsg code {} to build the calc_type_dict".format(epsg_code))
+        logger.info("[*] Using epsg code {} to build the calc_type_dict".format(epsg_code))
         predictor.build_calc_type_dict(epsg_code=epsg_code)
         transform = None
         # spatialites are in WGS84 so we need a transformation
@@ -100,7 +100,7 @@ class CustomCommand(CustomCommandBase):
             cp_msg = "Creating connected points failed!"
             cp_level = 1
         messagebar_message("Finished", cp_msg, level=cp_level, duration=12)
-        log.info("Done predicting calcualtion points.\n" + msg)
+        logger.info("Done predicting calcualtion points.\n" + msg)
 
     def fresh_start(self, predictor):
         """
