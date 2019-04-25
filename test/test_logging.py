@@ -46,7 +46,7 @@ def test_logging_doesnt_crash():
     setup_logging(iface=mock.Mock())
     logger.critical("Just log something")
     logger.error("Just log something")
-    logger.warn("Just log something")
+    logger.warning("Just log something")
     logger.info("Just log something")
     logger.debug("Just log something")
 
