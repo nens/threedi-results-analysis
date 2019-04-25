@@ -118,27 +118,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     def nMesh1D_lines(self):
         return self.gridadmin.lines.subset('1D_ALL').count
 
-    def _strip_prefix(self, var_name):
-        """Strip away netCDF variable name prefixes.
-
-        Example variable names: 'Mesh2D_s1', 'Mesh1D_s1'
-
-        >>> from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
-        >>> ds = NetcdfGroundwaterDataSource()
-        >>> ds._strip_prefix('Mesh2D_s1')
-        's1'
-        >> ds._strip_prefix('Mesh1D_q')
-        'q'
-        >>> ds._strip_prefix('iets_anders')
-        'iets_anders'
-        """
-        if var_name.startswith(self.PREFIX_1D):
-            return var_name[self.PREFIX_1D_LENGTH :]
-        elif var_name.startswith(self.PREFIX_2D):
-            return var_name[self.PREFIX_2D_LENGTH :]
-        else:
-            return var_name
-
     @cached_property
     def available_subgrid_map_vars(self):
         """Available variables from 'subgrid_map.nc'."""
