@@ -7,6 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 def _cleanup_all_handlers():
+    """Logging is global, so we need to zap all handlers.
+
+    Note that we also zap the pytest log grabber, so don't count on that one
+    to exist during these tests :-)
+
+    """
     root_logger = logging.getLogger("")
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
     for handler in root_logger.handlers:
@@ -17,6 +23,14 @@ def _cleanup_all_handlers():
 
 def test_logfile_path():
     assert "threedi-qgis-log.txt" in logfile_path()
+
+
+def test_loglevel():
+    """Python's default log level is WARN. We want to see more."""
+    _cleanup_all_handlers()
+    setup_logging()
+    root_logger = logging.getLogger("")
+    assert root_logger.getEffectiveLevel() == logging.DEBUG
 
 
 def test_root_logsetup():

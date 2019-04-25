@@ -67,6 +67,10 @@ def setup_logging(iface=None):
     root_logger = logging.getLogger("")
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
 
+    # Python's default log level is WARN, but we also want to see DEBUG
+    # messages.
+    root_logger.setLevel(logging.DEBUG)
+
     log_format = logging.Formatter("%(name)s %(levelname)s %(message)s")
 
     stream_handler = logging.StreamHandler()
