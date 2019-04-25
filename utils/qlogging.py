@@ -21,7 +21,7 @@ from qgis.core import QgsMessageLog
 
 LOGFILE_NAME = "threedi-qgis-log.txt"
 PYTHON_FORMAT = "%(name)s %(levelname)s %(message)s"
-QGIS_FORMAT = "%(name)s\n%(message)s"
+QGIS_FORMAT = "%(name)s\n%(message)s"  # Note: split over two lines.
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,10 @@ class QgisLogHandler(logging.Handler):
         """Show log message in the message area
 
         We map the python log level to qgis' levels. Note: qgis doesn't
-        distinguish between ERROR and WARNING.
+        distinguish between ERROR and WARNING. Normally, we use WARNING for
+        stuff that might be wrong and ERROR for stuff that really is wrong. We
+        hardly use CRITICAL. So it is best to treat python's ERROR level as
+        ``qgis.Critical``, as that's the most useful distinction.
 
         We don't do popups or messagebar stuff: that kind of UI decisions is
         best left to the actual UI code. Some logger.error() messages should
@@ -44,7 +47,7 @@ class QgisLogHandler(logging.Handler):
         """
         msg = self.format(record)
 
-        if record.levelno >= logging.CRITICAL:
+        if record.levelno >= logging.ERROR:
             level = Qgis.Critical
         elif record.levelno >= logging.WARNING:
             level = Qgis.Warning
