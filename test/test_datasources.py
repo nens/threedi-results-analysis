@@ -7,11 +7,13 @@ import unittest
 import tempfile
 import shutil
 
+import numpy as np
 try:
     from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
     pass
 
+from threedigrid.admin import gridresultadmin
 from qgis.PyQt.QtCore import QVariant
 
 try:
@@ -179,3 +181,84 @@ def test_get_timestamps_with_parameter(netcdf_groundwater_ds):
 
 def test_get_timestamps_gridadmin(netcdf_groundwater_ds):
     netcdf_groundwater_ds.gridadmin_result.time_units
+
+
+def test_get_timeseries_node(netcdf_groundwater_ds):
+    node_id = 7000
+    timeseries_old = netcdf_groundwater_ds.get_timeseries('nodes', node_id, 's1')
+    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple('s1', node_id)
+    assert (timeseries_old.data == timeseries_new).all()
+
+
+def test_get_timeseries_line(netcdf_groundwater_ds):
+    node_id = 18000
+    # all from 'result'
+    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
+        'flowlines', node_id, 'au')
+    timeseries_old2 = netcdf_groundwater_ds.get_timeseries(
+        'line_results', node_id, 'au')
+    timeseries_old3 = netcdf_groundwater_ds.get_timeseries(
+        'line_results_groundwater', node_id, 'au')
+    assert (timeseries_old1.data == timeseries_old2.data).all()
+    assert (timeseries_old2.data == timeseries_old3.data).all()
+    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
+        'au', node_id=node_id)
+    assert (timeseries_old1.data == timeseries_new).all()
+
+
+def test_get_timeseries_schematized(netcdf_groundwater_ds):
+    node_id = 60
+    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
+        "v2_connection_nodes", node_id, "s1", fill_value=np.NaN)
+    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
+        's1', content_pk=node_id)
+    assert (timeseries_old1 == timeseries_new).all()
+    assert timeseries_new.shape == (
+        len(netcdf_groundwater_ds.gridadmin_result.nodes.timestamps), 2)
+
+
+def test_get_timeseries_no_id_filter(netcdf_groundwater_ds):
+    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple('s1')
+    assert timeseries_new.shape == (
+        len(netcdf_groundwater_ds.gridadmin_result.nodes.timestamps),
+        netcdf_groundwater_ds.gridadmin.nodes.count + 1)
+
+
+def test_get_timeseries_from_agg(netcdf_groundwater_ds):
+    node_id = 11500
+    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
+        "flowlines", node_id, "q_cum", fill_value=np.NaN)
+    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
+        'q_cum', node_id)
+    assert (timeseries_old1 == timeseries_new).all()
+    print('done')
+
+
+def test_get_gridadmin(netcdf_groundwater_ds):
+    gr = netcdf_groundwater_ds.get_gridadmin('s1')
+    assert isinstance(gr, gridresultadmin.GridH5ResultAdmin)
+    gr = netcdf_groundwater_ds.get_gridadmin('q_cum')
+    assert isinstance(gr, gridresultadmin.GridH5AggregateResultAdmin)
+
+
+def test_get_timestamps(netcdf_groundwater_ds):
+    netcdf_groundwater_ds.get_timestamps('s1')
+    netcdf_groundwater_ds.get_timestamps('q_cum')
+
+
+def test_get_timeseries_resut_and_agg_result(netcdf_groundwater_ds):
+    node_id = 60
+    timeseries1 = netcdf_groundwater_ds.get_timeseries_simple(
+        's1', node_id)
+    timeseries2 = netcdf_groundwater_ds.get_timeseries_simple(
+        'q_cum', node_id)
+    print('done')
+
+
+def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
+    # TODO: This will be fixed in in threedigrid 1.0.13 release
+    gr = netcdf_groundwater_ds.get_gridadmin('s1')
+    t = gr.get_model_instance_by_field_name('s1')
+
+    gr = netcdf_groundwater_ds.get_gridadmin('q_cum')
+    t = gr.get_model_instance_by_field_name('q_cum')

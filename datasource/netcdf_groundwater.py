@@ -5,6 +5,8 @@ import os
 import numpy as np
 import h5py
 
+from threedigrid.admin.constants import NO_DATA_VALUE
+
 from .base import BaseDataSource
 from ..utils import cached_property
 from .netcdf import (
@@ -290,6 +292,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :return: 2d numpy array (n,2) with timestamps and corresponding
             result variable of the given object_id.
         """
+        # import sys; sys.path[0:0] = ['/pycharm/pycharm-debug-py3k.egg', ]; import pydevd; pydevd.settrace('10.90.16.48', port=4445, stdoutToServer=True, stderrToServer=True, suspend=True)
+
         if nc_variable in self.available_subgrid_map_vars:
             gr = self.gridadmin_result
             ts = self.timestamps
@@ -321,10 +325,49 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # np.ma.vstack
             return np.ma.vstack((ts, values)).T
 
-    def get_gridadmin(self, variable):
-        """Return the datasource where the variable is stored
+    def get_timeseries_simple(
+            self,
+            nc_variable,
+            node_id=None,
+            content_pk=None,
+            fill_value=None):
+        """Return a timeseries array of the given variable
 
-        Datasource is either the 'results_3di.nc' or 'aggregate_results_3di.nc'
+        A 2d array is given, with first column being the timestamps in seconds.
+        The next columns are the values of the nodes of the given variable.
+        You can also filter on a specific node using node_id or content_pk,
+        in which case only the timeseries of the given node is returned.
+
+        :param nc_variable:
+        :param node_id:
+        :param content_pk:
+        :param fill_value:
+        :return:
+        """
+        gr = self.get_gridadmin(nc_variable)
+
+        result_filter = (
+            gr.get_model_instance_by_field_name(nc_variable)
+                .timeseries(indexes=slice(None))
+        )
+        if node_id:
+            result_filter = result_filter.filter(id=node_id)
+        elif content_pk:
+            result_filter = result_filter.filter(content_pk=content_pk)
+
+        data = result_filter.get_filtered_field_value(nc_variable)
+        if fill_value is not None:
+            data[data == NO_DATA_VALUE] = fill_value
+
+        timestamps = self.get_timestamps(nc_variable)
+        timestamps = timestamps.reshape(-1, 1)
+        return np.hstack([timestamps, data])
+
+    def get_gridadmin(self, variable):
+        """Return the gridadmin where the variable is stored.
+
+        Results are either stored in the 'results_3di.nc' or the
+        'aggregate_results_3di.nc'.
 
         :param variable:
         :return: handle to GridAdminResult or AggregateGridAdminResult
