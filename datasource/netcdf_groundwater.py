@@ -292,8 +292,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :return: 2d numpy array (n,2) with timestamps and corresponding
             result variable of the given object_id.
         """
-        # import sys; sys.path[0:0] = ['/pycharm/pycharm-debug-py3k.egg', ]; import pydevd; pydevd.settrace('10.90.16.48', port=4445, stdoutToServer=True, stderrToServer=True, suspend=True)
-
         if nc_variable in self.available_subgrid_map_vars:
             gr = self.gridadmin_result
             ts = self.timestamps
