@@ -11,5 +11,6 @@
         <file>icons/icon_broom.png</file>
         <file>icons/icon_statistical_analysis.png</file>
         <file>icons/weight-scale.png</file>
+        <file>icons/icon_logfile.png</file>
     </qresource>
 </RCC>
