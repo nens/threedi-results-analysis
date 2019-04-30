@@ -8,16 +8,12 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 # Don't let qgis grab python's import mechanism (which breaks pytest).
 ENV QGIS_NO_OVERRIDE_IMPORT 1
 
-ENV TZ Europe/Amsterdam
-
 ARG uid=1000
 ARG gid=1000
 RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
 
-RUN echo $TZ > /etc/timezone \
-    && apt-get -y update \
+RUN apt-get -y update \
     && apt-get -y install --no-install-recommends \
-        tzdata \
         dirmngr \
         gpg-agent \
         software-properties-common \
@@ -29,9 +25,6 @@ RUN echo $TZ > /etc/timezone \
         git \
 	strace \
 	valgrind \
-    && rm /etc/localtime \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata \
     && apt-get clean \
     && apt-get purge \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
