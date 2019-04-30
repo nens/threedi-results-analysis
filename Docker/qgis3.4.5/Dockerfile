@@ -26,22 +26,22 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 # Now install the ubuntu packages we need.
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
-        python3-dev \
-        python3-pip \
-        gdal-bin \
-        wget \
-        qgis \
-        python3-qgis \
-        qgis-provider-grass \
-        grass \
-        pyqt5-dev-tools \
-        dbus \
-        libhdf5-serial-dev \
-        python-dev \
-        build-essential \
-        git \
 	strace \
 	valgrind \
+        build-essential \
+        dbus \
+        gdal-bin \
+        git \
+        grass \
+        libhdf5-serial-dev \
+        pyqt5-dev-tools \
+        python-dev \
+        python3-dev \
+        python3-pip \
+        python3-qgis \
+        qgis \
+        qgis-provider-grass \
+        wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Seems to be a message bus used by Qt?
@@ -66,7 +66,9 @@ RUN pip3 uninstall h5py -y
 ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
 RUN pip3 install --no-binary=h5py h5py
 
-# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the PYTHONPATH.
+# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the
+PYTHONPATH. This is needed for pytest and so to find the code. (Qgis finds it
+just fine without this PYTHONPATH, of course).
 ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
 
 # Default command if nothing is specified.
