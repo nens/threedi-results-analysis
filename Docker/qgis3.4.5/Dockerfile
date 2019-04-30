@@ -13,12 +13,28 @@ ARG uid=1000
 ARG gid=1000
 RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
 
-RUN apt-get -y update \
+# Set up ubuntu for the qgis repository
+RUN apt-get update \
     && apt-get -y install --no-install-recommends \
         dirmngr \
         gpg-agent \
         software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+RUN echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
+
+# Now install the ubuntu packages we need.
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends \
+        python3-dev \
+        python3-pip \
+        gdal-bin \
         wget \
+        qgis \
+        python3-qgis \
+        qgis-provider-grass \
+        grass \
+        pyqt5-dev-tools \
         dbus \
         libhdf5-serial-dev \
         python-dev \
@@ -28,22 +44,8 @@ RUN apt-get -y update \
 	valgrind \
     && rm -rf /var/lib/apt/lists/*
 
+# Seems to be a message bus used by Qt?
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
-
-RUN echo "deb     https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
-
-RUN apt-get -y update \
-    && apt-get -y install --no-install-recommends \
-        python3-dev \
-        python3-pip \
-        gdal-bin \
-        qgis \
-        python3-qgis \
-        qgis-provider-grass \
-        grass \
-        pyqt5-dev-tools \
-    && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
