@@ -1,4 +1,4 @@
-# test deps
+# Dependencies for development and tests.
 mock
 pytest
 pytest-cov
