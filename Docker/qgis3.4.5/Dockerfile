@@ -8,6 +8,7 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 # Don't let qgis grab python's import mechanism (which breaks pytest).
 ENV QGIS_NO_OVERRIDE_IMPORT 1
 
+# User handling to get proper non-root-owned files on linux.
 ARG uid=1000
 ARG gid=1000
 RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
@@ -25,14 +26,11 @@ RUN apt-get -y update \
         git \
 	strace \
 	valgrind \
-    && apt-get clean \
-    && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/*
 
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
 RUN echo "deb     https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-#RUN echo "deb-src https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 
 RUN apt-get -y update \
@@ -45,9 +43,7 @@ RUN apt-get -y update \
         qgis-provider-grass \
         grass \
         pyqt5-dev-tools \
-    && apt-get clean \
-    && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --upgrade pip
 RUN pip3 install setuptools
