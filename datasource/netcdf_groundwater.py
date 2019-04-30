@@ -329,18 +329,21 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             node_id=None,
             content_pk=None,
             fill_value=None):
-        """Return a timeseries array of the given variable
+        """Return a time series array of the given variable
 
         A 2d array is given, with first column being the timestamps in seconds.
         The next columns are the values of the nodes of the given variable.
         You can also filter on a specific node using node_id or content_pk,
         in which case only the timeseries of the given node is returned.
 
+        If there is no data of the given variable, only the timestamps are
+        returned, i.e. an array of shape (n, 1) with n being the timestamps.
+
         :param nc_variable:
         :param node_id:
         :param content_pk:
         :param fill_value:
-        :return:
+        :return: 2D array, first column being the timestamps
         """
         gr = self.get_gridadmin(nc_variable)
 
@@ -354,6 +357,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             result_filter = result_filter.filter(content_pk=content_pk)
 
         data = result_filter.get_filtered_field_value(nc_variable)
+
         if fill_value is not None:
             data[data == NO_DATA_VALUE] = fill_value
 

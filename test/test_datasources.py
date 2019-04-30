@@ -8,6 +8,7 @@ import tempfile
 import shutil
 
 import numpy as np
+import pytest
 try:
     from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
@@ -262,3 +263,18 @@ def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
 
     gr = netcdf_groundwater_ds.get_gridadmin('q_cum')
     t = gr.get_model_instance_by_field_name('q_cum')
+
+
+def test_get_timeseries_q_pump(netcdf_groundwater_ds):
+    """q_pump has no data for the given node_id. This causes the old method
+    to raise an Attribute error. New method will only return the timestamps."""
+    gr = netcdf_groundwater_ds.get_gridadmin('q_pump')
+    with pytest.raises(AttributeError):
+        ts_old = netcdf_groundwater_ds.get_timeseries(
+            'flowlines', 5230, 'q_pump', fill_value=np.NaN
+        )
+
+    ts_new = netcdf_groundwater_ds.get_timeseries_simple(
+        'q_pump', 5230, fill_value=np.NaN
+    )
+
