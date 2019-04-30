@@ -45,8 +45,6 @@ RUN apt-get update \
         python3-sqlalchemy \
         qgis \
         qgis-provider-grass \
-        strace \
-        valgrind \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
