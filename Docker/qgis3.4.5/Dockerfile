@@ -26,8 +26,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 # Now install the ubuntu packages we need.
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
-	strace \
-	valgrind \
         build-essential \
         dbus \
         gdal-bin \
@@ -37,38 +35,31 @@ RUN apt-get update \
         pyqt5-dev-tools \
         python-dev \
         python3-dev \
+        python3-h5netcdf \
+        python3-h5py \
         python3-pip \
+        python3-pyqtgraph \
         python3-qgis \
+        python3-sqlalchemy \
         qgis \
         qgis-provider-grass \
+        strace \
+        valgrind \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Seems to be a message bus used by Qt?
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
-
+# Install some python libraries (partially already installed through apt)
 ADD requirements.txt .
 ADD requirements-dev.txt .
-RUN pip3 install -r requirements.txt -U
-RUN pip3 install -r requirements-dev.txt -U
-
-# Remove once netcdf4 is completely removed.
-ENV USE_SETUPCFG=0
-ENV HDF5_INCDIR=/usr/include/hdf5/serial
-ENV HDF5_LIBDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial
-RUN pip install netCDF4
-
-# Make sure the h5py is compiled with the same HDF5 version of QGIS.
-RUN pip3 uninstall h5py -y
-ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
-RUN pip3 install --no-binary=h5py h5py
+RUN pip3 install -U pip setuptools
+RUN pip3 install -r requirements.txt -r requirements-dev.txt
 
 # Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the
-PYTHONPATH. This is needed for pytest and so to find the code. (Qgis finds it
-just fine without this PYTHONPATH, of course).
+# PYTHONPATH. This is needed for pytest and so to find the code. (Qgis finds it
+# just fine without this PYTHONPATH, of course).
 ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
 
 # Default command if nothing is specified.
