@@ -26,6 +26,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 # Now install the ubuntu packages we need.
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
+	unzip \
+	zip \
         build-essential \
         dbus \
         gdal-bin \
