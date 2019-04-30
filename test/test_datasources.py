@@ -147,7 +147,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
         nds._ds = m
-        nds.get_timeseries("nodes", 3, "s1")
+        nds.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
@@ -180,59 +180,47 @@ def test_get_timestamps_with_parameter(netcdf_groundwater_ds):
     assert timestamps_vol_current[-1] == 1805.1862915819302
 
 
-def test_get_timestamps_gridadmin(netcdf_groundwater_ds):
-    netcdf_groundwater_ds.gridadmin_result.time_units
+def test_get_gridadmin(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable=None)
+    assert isinstance(ga, gridresultadmin.GridH5Admin)
 
 
-def test_get_timeseries_node(netcdf_groundwater_ds):
-    node_id = 7000
-    timeseries_old = netcdf_groundwater_ds.get_timeseries('nodes', node_id, 's1')
-    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple('s1', node_id)
-    assert (timeseries_old.data == timeseries_new).all()
+def test_get_gridadmin_result_var(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable='s1')
+    assert isinstance(ga, gridresultadmin.GridH5ResultAdmin)
 
 
-def test_get_timeseries_line(netcdf_groundwater_ds):
-    node_id = 18000
-    # all from 'result'
-    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
-        'flowlines', node_id, 'au')
-    timeseries_old2 = netcdf_groundwater_ds.get_timeseries(
-        'line_results', node_id, 'au')
-    timeseries_old3 = netcdf_groundwater_ds.get_timeseries(
-        'line_results_groundwater', node_id, 'au')
-    assert (timeseries_old1.data == timeseries_old2.data).all()
-    assert (timeseries_old2.data == timeseries_old3.data).all()
-    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
-        'au', node_id=node_id)
-    assert (timeseries_old1.data == timeseries_new).all()
+def test_get_gridadmin_agg_result_var(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable='u1_avg')
+    assert isinstance(ga, gridresultadmin.GridH5AggregateResultAdmin)
 
 
-def test_get_timeseries_schematized(netcdf_groundwater_ds):
-    node_id = 60
-    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
-        "v2_connection_nodes", node_id, "s1", fill_value=np.NaN)
-    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
-        's1', content_pk=node_id)
-    assert (timeseries_old1 == timeseries_new).all()
-    assert timeseries_new.shape == (
-        len(netcdf_groundwater_ds.gridadmin_result.nodes.timestamps), 2)
+def test_get_gridadmin_agg_result_var_not_available(netcdf_groundwater_ds):
+    with pytest.raises(AttributeError):
+        netcdf_groundwater_ds.get_gridadmin(variable='u1_max')
 
 
-def test_get_timeseries_no_id_filter(netcdf_groundwater_ds):
-    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple('s1')
-    assert timeseries_new.shape == (
-        len(netcdf_groundwater_ds.gridadmin_result.nodes.timestamps),
-        netcdf_groundwater_ds.gridadmin.nodes.count + 1)
+def test_get_gridadmin_unknown_var(netcdf_groundwater_ds):
+    with pytest.raises(AttributeError):
+        netcdf_groundwater_ds.get_gridadmin(variable='unknown')
 
 
-def test_get_timeseries_from_agg(netcdf_groundwater_ds):
-    node_id = 11500
-    timeseries_old1 = netcdf_groundwater_ds.get_timeseries(
-        "flowlines", node_id, "q_cum", fill_value=np.NaN)
-    timeseries_new = netcdf_groundwater_ds.get_timeseries_simple(
-        'q_cum', node_id)
-    assert (timeseries_old1 == timeseries_new).all()
-    print('done')
+def test_get_timeseries(netcdf_groundwater_ds):
+    ts = netcdf_groundwater_ds.get_timeseries('s1')
+    np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
+    assert ts.shape[1] == \
+           netcdf_groundwater_ds.get_gridadmin('s1').nodes.count + 1
+
+
+def test_get_timeseries_filter_node(netcdf_groundwater_ds):
+    with mock.patch("threedigrid.orm.base.models.Model.get_filtered_field_value") as data:
+        data.return_value = np.ones(
+            (len(netcdf_groundwater_ds.timestamps), 1)
+        )
+        ts = netcdf_groundwater_ds.get_timeseries('s1', node_id=5)
+        np.testing.assert_equal(
+            ts[:, 0], netcdf_groundwater_ds.get_timestamps())
+        np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
 
 
 def test_get_gridadmin(netcdf_groundwater_ds):
@@ -242,39 +230,15 @@ def test_get_gridadmin(netcdf_groundwater_ds):
     assert isinstance(gr, gridresultadmin.GridH5AggregateResultAdmin)
 
 
-def test_get_timestamps(netcdf_groundwater_ds):
-    netcdf_groundwater_ds.get_timestamps('s1')
-    netcdf_groundwater_ds.get_timestamps('q_cum')
-
-
-def test_get_timeseries_resut_and_agg_result(netcdf_groundwater_ds):
-    node_id = 60
-    timeseries1 = netcdf_groundwater_ds.get_timeseries_simple(
-        's1', node_id)
-    timeseries2 = netcdf_groundwater_ds.get_timeseries_simple(
-        'q_cum', node_id)
-    print('done')
-
-
 def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
-    # TODO: This will be fixed in in threedigrid 1.0.13 release
+    """Bugged function in threedigrid <= 1.0.12
+
+    Note that querying these variables, ('s1' in the gridresultadmin and
+    'q_cum' in the gridaggregateresultadmin) should not fail.
+
+    Will be fixed in threedigrid >= 1.0.13"""
     gr = netcdf_groundwater_ds.get_gridadmin('s1')
-    t = gr.get_model_instance_by_field_name('s1')
+    gr.get_model_instance_by_field_name('s1')
 
     gr = netcdf_groundwater_ds.get_gridadmin('q_cum')
-    t = gr.get_model_instance_by_field_name('q_cum')
-
-
-def test_get_timeseries_q_pump(netcdf_groundwater_ds):
-    """q_pump has no data for the given node_id. This causes the old method
-    to raise an Attribute error. New method will only return the timestamps."""
-    gr = netcdf_groundwater_ds.get_gridadmin('q_pump')
-    with pytest.raises(AttributeError):
-        ts_old = netcdf_groundwater_ds.get_timeseries(
-            'flowlines', 5230, 'q_pump', fill_value=np.NaN
-        )
-
-    ts_new = netcdf_groundwater_ds.get_timeseries_simple(
-        'q_pump', 5230, fill_value=np.NaN
-    )
-
+    gr.get_model_instance_by_field_name('q_cum')

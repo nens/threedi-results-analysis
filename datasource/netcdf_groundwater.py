@@ -188,142 +188,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """
         return self.get_timestamps()
 
-    # TODO: try to simplify/remove this method
-    def _get_timeseries_schematisation_layer(
-        self,
-        gridadmin_result,
-        object_type,
-        object_id,
-        nc_variable,
-        timeseries=None,
-        only=None,
-        data=None,
-    ):
-        """
-        -   this function retireves a timeserie when user select a
-            schematization layer and e.g. 'adds' it to the graph.
-        -   filtering for nodes/lines differs from filtering for pumps:
-            - nodes/lines:  qgisvectorlayer object_id = gridadmin content_pk
-            - pumps:        has no contect_pk, therefore we use id.
-                            Qgisvectorlayer object_id = gridadmin id + 1
-        -   slice(None) means we get all timesteps.
-        -   get_timeseries_schematisation_layer() gets strings as arguments
-            that we need to parse as atrributes
-        """
-        # get the gridadmin model instance (e.g. v2_pipe_view to lines)
-        model_instance = object_type_model_instance[object_type]
-        # get the gridadmin model instance subset (e.g. v2_pipe_view to pipes)
-        model_instance_subset = object_type_model_instance_subset[object_type]
-
-        # gr.nodes / gr.lines / gr.pumps
-        gr_model_instance = getattr(gridadmin_result, model_instance)
-
-        if model_instance in ["nodes", "lines"]:
-            # one example for v2_connection_nodes =
-            # gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).vol
-            # one example for v2_channels =
-            # gr.lines.channels.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).au
-
-            # e.g. gr.nodes.connectionnodes
-            gr_model_instance_subset = getattr(gr_model_instance, model_instance_subset)
-            # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None))
-            filter_timeseries = gr_model_instance_subset.filter(
-                content_pk=object_id
-            ).timeseries(indexes=slice(None))
-            # e.g. gr.nodes.connectionnodes.filter(content_pk=1).timeseries(
-            #   indexes=slice(None)).vol
-            filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
-            # this could return multiple timeseries, since a v2_channel can
-            # be splitted up in multiple flowlines. For now, we pick first:
-            pick_only_first_of_element = 0
-            vals = filter_timeseries_ncvar[:, pick_only_first_of_element]
-            return vals
-        elif model_instance == "pumps":
-            # TODO
-            # filtering on id still needs to be implemented in threedigrid
-            # prepare. For now, users need to use pumplines qgisvectorlayer
-            msg = (
-                "v2_pumpstation_view results are not implemented yet. Use "
-                "the 'pumplines' layer to get your results"
-            )
-            messagebar_message("Warning", msg, level=1, duration=6)
-        else:
-            raise ValueError("object_type not available")
-
-    # TODO: try to simplify/remove this method
-    def _get_timeseries_result_layer(
-        self, gridadmin_result, object_type, object_id, nc_variable
-    ):
-        """
-        -   this function retireves a timeserie when user select a
-            result layer and e.g. 'adds' it to the graph
-        -   to get a timeseries using threedigridadmin, we need to call e.g.
-            ga.nodes.filter(id=100).timeseries(indexes=slice(None)).s1
-        -   slice(None) means we get all timesteps.
-        -   get_timeseries_result_layer() gets strings as arguments
-            that we need to parse as atrributes
-        """
-        # get the gridadmin model instance (e.g. pumplines_view to pumps)
-        model_instance = object_type_model_instance[object_type]
-
-        # gr.nodes / gr.lines / gr.pumps
-        gr_model_instance = getattr(gridadmin_result, model_instance)
-
-        # gr.nodes.filter(id=100).timeseries(indexes=slice(None))
-        filter_timeseries = gr_model_instance.filter(id=object_id).timeseries(
-            indexes=slice(None)
-        )
-        # gr.nodes.filter(id=100).timeseries(indexes=slice(None)).vol
-        filter_timeseries_ncvar = getattr(filter_timeseries, nc_variable)
-        # flatten numpyarray
-        vals = filter_timeseries_ncvar.flatten()
-        return vals
-
-    def get_timeseries(self, object_type, object_id, nc_variable, fill_value=None):
-        """Return a timeseries array of object_id for the given nc_variable
-
-        :param object_type: 'result' or 'schematized'
-        :param object_id: id of the object
-        :param nc_variable: variable you are interesting in
-        :param fill_value: Null values are filled with this value
-        :return: 2d numpy array (n,2) with timestamps and corresponding
-            result variable of the given object_id.
-        """
-        if nc_variable in self.available_subgrid_map_vars:
-            gr = self.gridadmin_result
-            ts = self.timestamps
-        elif nc_variable in self.available_aggregation_vars:
-            gr = self.gridadmin_aggregate_result
-            ts = self.get_timestamps(parameter=nc_variable)
-        else:
-            logger.error("Unsupported variable %s", nc_variable)
-
-        # determine if layer is a not_schematized (e.g nodes, pumps)
-        if object_type_layer_source[object_type] == "result":
-            values = self._get_timeseries_result_layer(
-                gr, object_type, object_id, nc_variable
-            )
-        elif object_type_layer_source[object_type] == "schematized":
-            values = self._get_timeseries_schematisation_layer(
-                gr, object_type, object_id, nc_variable
-            )
-
-        # Zip timeseries together in (n,2) array
-        if fill_value is not None:
-            # transform np.array into np.MaskedArray
-            no_data_value = -9999
-            masked_array = np.ma.masked_values(values, no_data_value)
-            filled_vals = masked_array.filled(fill_value)
-            return np.vstack((ts, filled_vals)).T
-        else:
-            # values can contain masked values from netCDF, therefore we need
-            # np.ma.vstack
-            return np.ma.vstack((ts, values)).T
-
-    def get_timeseries_simple(
+    def get_timeseries(
             self,
             nc_variable,
             node_id=None,
@@ -365,19 +230,25 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         timestamps = timestamps.reshape(-1, 1)
         return np.hstack([timestamps, data])
 
-    def get_gridadmin(self, variable):
-        """Return the gridadmin where the variable is stored.
+    def get_gridadmin(self, variable=None):
+        """Return the gridadmin where the variable is stored. If no variable is
+        given, a gridadmin without results is returned.
 
         Results are either stored in the 'results_3di.nc' or the
-        'aggregate_results_3di.nc'.
+        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
+        GridH5AggregateResultAdmin to query the data respectively.
 
-        :param variable:
+        :param variable: str of the variable name, e.g. 's1', 'q_pump'
         :return: handle to GridAdminResult or AggregateGridAdminResult
         """
-        if self._is_aggregation_parameter(variable):
+        if variable is None:
+            return self.gridadmin
+        elif variable in self.available_subgrid_map_vars:
+            return self.gridadmin_result
+        elif variable in self.available_aggregation_vars:
             return self.gridadmin_aggregate_result
         else:
-            return self.gridadmin_result
+            raise AttributeError("Parameter %s unknown")
 
     def _is_aggregation_parameter(self, parameter):
         """Return if the parameter is an aggregation parameter
