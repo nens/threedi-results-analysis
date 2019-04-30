@@ -16,7 +16,6 @@ RUN echo $TZ > /etc/timezone \
     && apt-get -y install --no-install-recommends \
         tzdata \
         dirmngr \
-        apt-transport-https \
         gpg-agent \
         software-properties-common \
         wget \
