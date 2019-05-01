@@ -275,11 +275,54 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 parameter
             )
 
-    # used in map_animator
+    def get_values_by_timestep_nr_simple(
+        self, variable, timestamp_idx, index=None, use_cache=True
+    ):
+        """Return an array of values of the given variable on the specified timestamp
+
+        If index is specified, only the node_ids specified in the index will
+        be returned.
+
+        :param variable: (str) variable name, e.g. 's1', 'q_pump'
+        :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
+        :param index: 1d numpy.array of node_ids
+        :param use_cache: (bool)
+        :return: 1d numpy.array
+        """
+        ga = self.get_gridadmin(variable)
+        model = ga.get_model_instance_by_field_name(variable)
+
+        time_slice = None
+        if isinstance(timestamp_idx, int):
+            time_slice = slice(timestamp_idx, timestamp_idx+1)
+            time_index_filter = 0
+        elif isinstance(timestamp_idx, np.ndarray):
+            # ga.timeseries unfortunately does not allow for index filter on
+            # aggregate results, thus we load a bit more in memory and apply
+            # the index filter at the end.
+            time_slice = slice(min(timestamp_idx), max(timestamp_idx) + 1)
+            time_index_filter = timestamp_idx - min(timestamp_idx)
+        result_filter = model.timeseries(indexes=time_slice)
+
+        if index is not None:
+            result_filter = result_filter.filter(id__in=index)
+        else:
+            result_filter = result_filter.filter(id__gt=0)
+        result = result_filter.get_filtered_field_value(variable)
+        return result[time_index_filter]
+
     def get_values_by_timestep_nr(
         self, variable, timestamp_idx, index=None, use_cache=True
     ):
-        return self.temp_get_values_by_timestep_nr_impl(
+        """
+
+        :param variable:
+        :param timestamp_idx:
+        :param index:
+        :param use_cache:
+        :return:
+        """
+        result_old = self.temp_get_values_by_timestep_nr_impl(
             variable, timestamp_idx, index, use_cache
         )
 

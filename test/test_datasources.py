@@ -236,3 +236,57 @@ def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
 
     gr = netcdf_groundwater_ds.get_gridadmin("q_cum")
     gr.get_model_instance_by_field_name("q_cum")
+
+
+def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr('s1', 2)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple('s1', 2)
+    np.testing.assert_equal(values_old, values_new)
+
+
+def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
+    indexes = np.array([1,2,3,4,5])
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        's1', 2, index=indexes)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+        's1', 2, index=indexes)
+    np.testing.assert_equal(values_old, values_new)
+
+
+def test_get_values_by_timestep_nr_agg_var(netcdf_groundwater_ds):
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr('q_sss_cum', 2)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple('q_sss_cum', 2)
+    np.testing.assert_equal(values_old, values_new)
+
+
+def test_get_values_by_timestep_nr_with_index_agg_var(netcdf_groundwater_ds):
+    indexes = np.array([1,2,3,4,5])
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        'q_cum_positive', 2, index=indexes)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+        'q_cum_positive', 2, index=indexes)
+    np.testing.assert_equal(values_old, values_new)
+
+
+def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
+    timestamp_idxs = np.array([0, 1, 3, 4])
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        'q_cum_positive', timestamp_idx=timestamp_idxs)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+        'q_cum_positive', timestamp_idx=timestamp_idxs)
+    np.testing.assert_equal(values_old, values_new)
+
+
+def test_get_values_by_timestep_nr_duplicate_indexes(netcdf_groundwater_ds):
+    index = np.array(
+        [5211, 5212, 5229, 5230, 10918, 10956, 11107, 11108, 21622,
+         21623, 21640, 21641, 27329, 27367, 27499, 27786, 28214, 28215,
+         28297, 28562, 30221, 30221, 30222, 30222, 30237, 30237, 30291,
+         31053, 31053, 31374, 31480, 31480])  # contains duplicate indexes!!!
+    timestamp_idx = 0
+    variable = 'q_cum_positive'
+    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        variable, timestamp_idx=timestamp_idx, index=index)
+    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+        variable, timestamp_idx=timestamp_idx, index=index)
+    np.testing.assert_equal(values_old, values_new)
