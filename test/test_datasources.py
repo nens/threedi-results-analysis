@@ -224,13 +224,6 @@ def test_get_timeseries_filter_node(netcdf_groundwater_ds):
         np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
 
 
-def test_get_gridadmin(netcdf_groundwater_ds):
-    gr = netcdf_groundwater_ds.get_gridadmin("s1")
-    assert isinstance(gr, gridresultadmin.GridH5ResultAdmin)
-    gr = netcdf_groundwater_ds.get_gridadmin("q_cum")
-    assert isinstance(gr, gridresultadmin.GridH5AggregateResultAdmin)
-
-
 def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
     """Bugged function in threedigrid <= 1.0.12
 
