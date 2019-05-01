@@ -1,0 +1,4 @@
+# Exclude everything.
+*
+# We only need the two requirements files.
+!requirements*txt
