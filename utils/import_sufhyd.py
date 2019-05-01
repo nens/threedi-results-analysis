@@ -4,8 +4,8 @@
 from builtins import str
 from builtins import range
 from builtins import object
-import ogr
-import osr
+from osgeo import ogr
+from osgeo import osr
 import logging
 import datetime
 from collections import OrderedDict

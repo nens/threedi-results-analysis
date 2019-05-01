@@ -1,6 +1,17 @@
-# git+https://github.com/nens/geoalchemy2.git#egg=geoalchemy2
-GeoAlchemy2==0.6.1
-SQLAlchemy==1.1.0b3
-pyqtgraph
+# The minimum versions here are the versions provided by ubuntu 18.04.
+# The maximum versions are one minor version higher.
+SQLAlchemy >=1.1.11, <1.2
+future
+numpy >= 1.13.3, <1.14
+pyqtgraph >=0.10.0
+
+# Gdal is commented out, it is notoriously hard to install and fails to find
+# the installed python3-gdal package.
+# gdal >=2.2.3, < 2.3
+
+# Geoalchemy2 is at 0.4.2 in ubuntu 18.04, we need a newer one.
+GeoAlchemy2 >=0.6.2, <0.7
+
+# Our own custom packages.
 git+https://github.com/lizardsystem/lizard-connector.git@0.6#egg=lizard_connector
-threedigrid==1.0.10
+threedigrid ==1.0.10

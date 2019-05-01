@@ -10,7 +10,8 @@ ThreeDiToolBox changelog
 
 - Added better logging. In qgis, our messages are now visible in the console
   log. Also, a logfile is written (``threedi-qgis-log.txt``), which can be
-  used to investigate problems.
+  used to investigate problems. There's also a new button to open the logfile
+  so that you can email it.
 
 
 1.10 (2019-03-28)

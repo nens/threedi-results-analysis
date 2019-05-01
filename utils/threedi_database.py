@@ -2,7 +2,7 @@ from builtins import object
 import os
 import copy
 
-import ogr
+from osgeo import ogr
 import collections
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy.orm import sessionmaker

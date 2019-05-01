@@ -80,8 +80,8 @@ def create_and_upgrade(engine, metadata):
                         % (model_table.name, model_column.name)
                     )
 
-                model_col_spec = re.sub("[(][\d ,]+[)]", "", model_col_spec)
-                db_col_spec = re.sub("[(][\d ,]+[)]", "", db_col_spec)
+                model_col_spec = re.sub(r"[(][\d ,]+[)]", "", model_col_spec)
+                db_col_spec = re.sub(r"[(][\d ,]+[)]", "", db_col_spec)
                 db_col_spec = db_col_spec.replace("DECIMAL", "NUMERIC")
                 db_col_spec = db_col_spec.replace("TINYINT", "BOOL")
 
