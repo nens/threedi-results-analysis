@@ -124,7 +124,6 @@ class LocationTimeseriesModel(BaseModel):
             )
             if timeseries.shape[1] == 1:
                 return EMPTY_TIMESERIES
-            np.testing.assert_equal(timeseries, timeseries)
             if absolute:
                 timeseries = np.abs(timeseries)
             return timeseries

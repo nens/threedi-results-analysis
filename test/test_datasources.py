@@ -167,17 +167,17 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
 
 def test_get_timestamps_none(netcdf_groundwater_ds):
     timestamps = netcdf_groundwater_ds.get_timestamps()
-    assert timestamps.shape == (31,)
-    assert timestamps[-1] == 1805.1862915819302
+    assert timestamps.shape == (32,)
+    assert timestamps[-1] == 1863.5643704609731
 
 
 def test_get_timestamps_with_parameter(netcdf_groundwater_ds):
     timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter='q_cum')
     assert timestamps_q_cum.shape == (7,)
-    assert timestamps_q_cum[-1] == 1805.1862915819302
+    assert timestamps_q_cum[-1] == 1801.2566835460611
     timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(parameter='vol_current')
     assert timestamps_vol_current.shape == (7,)
-    assert timestamps_vol_current[-1] == 1805.1862915819302
+    assert timestamps_vol_current[-1] == 1801.2566835460611
 
 
 def test_get_gridadmin(netcdf_groundwater_ds):
@@ -191,7 +191,7 @@ def test_get_gridadmin_result_var(netcdf_groundwater_ds):
 
 
 def test_get_gridadmin_agg_result_var(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable='u1_avg')
+    ga = netcdf_groundwater_ds.get_gridadmin(variable='q_cum')
     assert isinstance(ga, gridresultadmin.GridH5AggregateResultAdmin)
 
 
