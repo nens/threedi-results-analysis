@@ -118,9 +118,7 @@ class LocationTimeseriesModel(BaseModel):
             """
             ds = self.model.datasource.rows[result_ds_nr].datasource()
             timeseries = ds.get_timeseries(
-                parameters,
-                self.object_id.value,
-                fill_value=np.NaN
+                parameters, self.object_id.value, fill_value=np.NaN
             )
             if timeseries.shape[1] == 1:
                 return EMPTY_TIMESERIES

@@ -105,19 +105,19 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def nMesh2D_nodes(self):
-        return self.gridadmin.nodes.subset('2D_ALL').count
+        return self.gridadmin.nodes.subset("2D_ALL").count
 
     @property
     def nMesh1D_nodes(self):
-        return self.gridadmin.nodes.subset('1D_ALL').count
+        return self.gridadmin.nodes.subset("1D_ALL").count
 
     @property
     def nMesh2D_lines(self):
-        return self.gridadmin.lines.subset('2D_ALL').count
+        return self.gridadmin.lines.subset("2D_ALL").count
 
     @property
     def nMesh1D_lines(self):
-        return self.gridadmin.lines.subset('1D_ALL').count
+        return self.gridadmin.lines.subset("1D_ALL").count
 
     @cached_property
     def available_subgrid_map_vars(self):
@@ -189,11 +189,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return self.get_timestamps()
 
     def get_timeseries(
-            self,
-            nc_variable,
-            node_id=None,
-            content_pk=None,
-            fill_value=None):
+        self, nc_variable, node_id=None, content_pk=None, fill_value=None
+    ):
         """Return a time series array of the given variable
 
         A 2d array is given, with first column being the timestamps in seconds.
@@ -212,9 +209,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """
         gr = self.get_gridadmin(nc_variable)
 
-        result_filter = (
-            gr.get_model_instance_by_field_name(nc_variable)
-                .timeseries(indexes=slice(None))
+        result_filter = gr.get_model_instance_by_field_name(nc_variable).timeseries(
+            indexes=slice(None)
         )
         if node_id:
             result_filter = result_filter.filter(id=node_id)
@@ -271,8 +267,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         :return: (np.array)
         """
-        if (parameter is None
-                or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]):
+        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.gridadmin_result.nodes.timestamps
         elif self._is_aggregation_parameter(parameter):
             if parameter.startswith("q_pump"):
