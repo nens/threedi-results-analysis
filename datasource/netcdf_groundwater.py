@@ -326,6 +326,12 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             variable, timestamp_idx, index, use_cache
         )
 
+        result_new = self.get_values_by_timestep_nr_simple(
+            variable, timestamp_idx, index)
+        # np.testing.assert_equal(result_new, result_old)
+
+        return result_old
+
     def _nc_from_mem(self, ds, variable, use_cache=True):
         """Get netcdf data from memory if needed."""
         if use_cache:
