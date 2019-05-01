@@ -259,30 +259,21 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         The timestamps are in seconds after the simulation has started.
 
-        Variables of the aggregation netcdf can have varying number of
+        All variables in the result_netcdf share the same timestamps.
+        Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
-        Variables from the normal netcdf are all the same.
 
-        if no parameter is given, returns the timestamps of the normal netcdf.
+        if no parameter is given, returns the timestamps of the result-netcdf.
 
         :return: (np.array)
         """
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
             return self.gridadmin_result.nodes.timestamps
-        elif self._is_aggregation_parameter(parameter):
-            if parameter.startswith("q_pump"):
-                object_type = "pumplines"
-            elif parameter in AGG_Q_TYPES:
-                object_type = "flowlines"
-            elif parameter in AGG_H_TYPES:
-                object_type = "nodes"
-            else:
-                raise ValueError("Unknown aggregation parameter: %s" % parameter)
-            grid_type = object_type_model_instance[object_type]
-            orm_obj = getattr(self.gridadmin_aggregate_result, grid_type)
-            return orm_obj.get_timestamps(parameter)
         else:
-            raise ValueError("Unknown parameter: %s" % parameter)
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).get_timestamps(
+                parameter
+            )
 
     # used in map_animator
     def get_values_by_timestep_nr(
