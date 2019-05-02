@@ -328,7 +328,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         If only one timestamp is specified, a 1d np.array is returned.  If an
         array of multiple timestamp_idx is given, a 2d np.array is returned.
 
-        If index is specified, only the node_ids specified in the index will
+        If node_ids is specified, only the node_ids specified in the nodes will
         be returned.
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
@@ -339,12 +339,18 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :return: 1d/2d numpy.array
         """
         data = self._nc_from_mem_new(variable)
-        if isinstance(timestamp_idx, np.ndarray) and len(timestamp_idx) == 1:
-            timestamp_idx = int(timestamp_idx)
+        if isinstance(timestamp_idx, int):
+            timestamp_idx = np.array([timestamp_idx])
+
         if node_ids is None:
-            return data[timestamp_idx]
+            filter_data = data[timestamp_idx]
         else:
-            return data[timestamp_idx][node_ids]
+            filter_data = data[timestamp_idx][:, node_ids]
+
+        if len(timestamp_idx) == 1:
+            return filter_data[0]
+        else:
+            return filter_data
 
     def get_values_by_timestep_nr(
         self, variable, timestamp_idx, index=None, use_cache=True

@@ -239,88 +239,56 @@ def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
 
 
 def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr('s1', 2)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple('s1', 2)
-    np.testing.assert_equal(values_old, values_new)
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple('s1', 2)
+        np.testing.assert_equal(values, np.array([6, 7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
-    indexes = np.array([1,2,3,4,5])
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        's1', 2, index=indexes)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        's1', 2, node_ids=indexes)
-    np.testing.assert_equal(values_old, values_new)
-
-
-def test_get_values_by_timestep_nr_agg_var(netcdf_groundwater_ds):
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr('q_sss_cum', 2)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple('q_sss_cum', 2)
-    np.testing.assert_equal(values_old, values_new)
-
-
-def test_get_values_by_timestep_nr_with_index_agg_var(netcdf_groundwater_ds):
-    indexes = np.array([1,2,3,4,5])
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        'q_cum_positive', 2, index=indexes)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        'q_cum_positive', 2, node_ids=indexes)
-    np.testing.assert_equal(values_old, values_new)
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', 2, node_ids=np.array([1, 2]))
+        np.testing.assert_equal(values, np.array([7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
-    timestamp_idxs = np.array([0, 1, 3, 4])
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        'q_cum_positive', timestamp_idx=timestamp_idxs)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        'q_cum_positive', timestamp_idx=timestamp_idxs)
-    np.testing.assert_equal(values_old, values_new)
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', timestamp_idx=np.array([0, 2]))
+        np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
 
-def test_get_values_by_timestep_nr_duplicate_indexes(netcdf_groundwater_ds):
-    # TODO: contains duplicate indexes is important in the old method!!!
-    index = np.array(
-        [5211, 5212, 5229, 5230, 10918, 10956, 11107, 11108, 21622,
-         21623, 21640, 21641, 27329, 27367, 27499, 27786, 28214, 28215,
-         28297, 28562, 30221, 30221, 30222, 30222, 30237, 30237, 30291,
-         31053, 31053, 31374, 31480, 31480])
-    timestamp_idx = 0
-    variable = 'q_cum_positive'
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        variable, timestamp_idx=timestamp_idx, index=index)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        variable, timestamp_idx=timestamp_idx, node_ids=index)
-    np.testing.assert_equal(values_old, values_new)
+def test_get_values_by_timestep_nr_duplicate_node_ids(netcdf_groundwater_ds):
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', timestamp_idx=1, node_ids=np.array([0, 0, 2]))
+        np.testing.assert_equal(values, np.array([3, 3, 5]))
 
 
-def test_get_values_by_timestep_nr_duplicate_indexes(netcdf_groundwater_ds):
-    # TODO: Order of the indexes is also important in the old method!!!
-    index1 = np.array([15761, 15763])
-    index2 = np.array([15763, 15761])
-    timestamp_idx = 1
-    variable = 'q_cum_positive'
-    values_old1 = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        variable, timestamp_idx=timestamp_idx, index=index1)
-    values_old2 = netcdf_groundwater_ds.get_values_by_timestep_nr(
-        variable, timestamp_idx=timestamp_idx, index=index2)
-
-    values_new1 = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        variable, timestamp_idx, index1)
-    values_new2 = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        variable, timestamp_idx, index2)
-
-    np.testing.assert_equal(values_old1, values_new1)
-    np.testing.assert_equal(values_old2, values_new2)
+def test_get_values_by_timestep_nr_unsorted_node_ids(netcdf_groundwater_ds):
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', timestamp_idx=0, node_ids=np.array([1, 0, 2]))
+        np.testing.assert_equal(values, np.array([1, 0, 2]))
 
 
-def test__get_values_by_timestep_nr_timestamp_idx_array_one(netcdf_groundwater_ds):
-    variable = 'vol_current'
-    timestamp_idx = np.array([1])
-    node_ids = np.array([87, 88])
+def test_get_values_by_timestep_nr_timestamp_idx_array_one(netcdf_groundwater_ds):
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', timestamp_idx=np.array([2]), node_ids=np.array([0, 1]))
+        np.testing.assert_equal(values, np.array([6, 7]))
 
-    values_old = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        variable, timestamp_idx, node_ids)
-    values_new = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
-        variable, timestamp_idx, node_ids)
-    np.testing.assert_equal(values_old, values_new)
 
+def test_get_values_by_timestep_nr_timestamp_and_node_ids(netcdf_groundwater_ds):
+    with mock.patch.object(netcdf_groundwater_ds,
+                           '_nc_from_mem_new') as data:
+        data.return_value = np.array(range(9)).reshape(3, 3)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr_simple(
+            's1', timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1]))
+        np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
