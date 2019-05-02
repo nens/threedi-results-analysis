@@ -2,10 +2,10 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.11 (unreleased)
+1.10.1 (2019-05-02)
 -----------------
 
-- Nothing changed yet.
+- Hotfix spatial indices: do not drop, but only disable, idx_ tables
 
 
 1.10 (2019-03-28)
