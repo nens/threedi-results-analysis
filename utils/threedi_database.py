@@ -37,7 +37,9 @@ def load_spatialite(con, connection_record):
     found = False
     for lib, entry_point in libs:
         try:
-            cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
+            cur.execute(
+                "select load_extension('{}', '{}')".format(lib, entry_point)
+            )
         except sqlite3.OperationalError:
             continue
         else:
@@ -97,7 +99,8 @@ class ThreediDatabase(object):
         if self._engine is None or get_seperate_engine:
             if self.db_type == "spatialite":
                 engine = create_engine(
-                    "sqlite:///{0}".format(self.settings["db_path"]), echo=self.echo
+                    "sqlite:///{0}".format(self.settings["db_path"]),
+                    echo=self.echo,
                 )
                 listen(engine, "connect", load_spatialite)
                 if get_seperate_engine:
@@ -244,11 +247,13 @@ class ThreediDatabase(object):
         conn.close()
 
     def check_unexpected_index_table(self, existing_tables, expected_tables):
-        too_many_index_tables = list(set(existing_tables) - set(expected_tables))
+        too_many_index_tables = list(
+            set(existing_tables) - set(expected_tables)
+        )
         if len(too_many_index_tables) > 0:
             msg = (
-                "database contains one or more index table(s) that should not exist: "
-                + str(too_many_index_tables)
+                "database contains one or more index table(s) that should not "
+                "exist: " + str(too_many_index_tables)
             )
             logger.warning(msg)
 
@@ -260,11 +265,12 @@ class ThreediDatabase(object):
             for table in existing_tables
             if table.startswith("idx_") and "v2_" in table
         ]
-        # Each table with geometry has four index tables in existing_index_tables, e.g.
-        # table with geometry = "v2_channel" has 1) idx_v2_channel_the_geom,
-        # 2) idx_v2_channel_the_geom_node, 3) idx_v2_channel_the_geom_parent,
-        # and 4) idx_v2_channel_the_geom_rowid. From these four index tables we only
-        # want to retrieve string "v2_channel"
+        # Each table with geometry has four index tables in
+        # existing_index_tables, e.g.table with geometry = "v2_channel" has
+        # 1) idx_v2_channel_the_geom, 2) idx_v2_channel_the_geom_node,
+        # 3) idx_v2_channel_the_geom_parent, and
+        # 4) idx_v2_channel_the_geom_rowid. From these four index tables
+        # we only want to retrieve string "v2_channel"
         existing_index_table_names = list(
             set(
                 [
@@ -284,13 +290,15 @@ class ThreediDatabase(object):
     def fix_spatial_indices(self):
         """ fixes spatial index all tables in spatialite in multiple steps
         1.  Create new spatial indices.
-            -   Each v2_ tbl must have spatial index, otherwise one gets an SQL error
+            -   Each v2_ tbl must have spatial index, otherwise one gets an
+            SQL error
                 while deleting an feature (row) from a table (e.g.
                 v2_2d_boundary_conditions row delete returns
                 "no such table:  main.idx_v2_2d_boundary_conditions_the_geom"
             -   Only create sp if sp not exists since this takes long
         2.  Make sure all spatial indices are valid, otherwise recover
-        3.  Disable spatial index, otherwise layers sometimes will not be shown in QGIS
+        3.  Disable spatial index, otherwise layers sometimes will not be
+        shown in QGIS
         4.  VACUUM spatialite to clean up spatialite (reclaims unused space)
         """
 
@@ -321,10 +329,18 @@ class ThreediDatabase(object):
         ]
 
         progress_percentage_vacuum = 5
-        total_progress = len(expected_index_tables) + progress_percentage_vacuum
-        progress_bar = StatusProgressBar(total_progress, "prepare schematisation")
-        expected_index_table_names = [table[0] for table in expected_index_tables]
-        missing_index_tables = self.get_missing_index_tables(expected_index_table_names)
+        total_progress = (
+            len(expected_index_tables) + progress_percentage_vacuum
+        )
+        progress_bar = StatusProgressBar(
+            total_progress, "prepare schematisation"
+        )
+        expected_index_table_names = [
+            table[0] for table in expected_index_tables
+        ]
+        missing_index_tables = self.get_missing_index_tables(
+            expected_index_table_names
+        )
         for (table, geom_column) in expected_index_tables:
             # 1. create spatial index (idx_ tables) if not exists
             if table in missing_index_tables:
@@ -422,7 +438,8 @@ class ThreediDatabase(object):
 
     def run_vacuum(self):
         """
-        call vacuum on a sqlite DB which reclaims any unused storage space from sqlite
+        call vacuum on a sqlite DB which reclaims any unused storage
+        space from sqlite
         """
         if self.db_type == "spatialite":
             statement = """VACUUM;"""
@@ -443,7 +460,9 @@ def get_databases():
         settings = {
             "key": os.path.basename(db_entry),
             "db_name": db_name,
-            "combo_key": "spatialite: {0}".format(os.path.splitext(db_name)[0]),
+            "combo_key": "spatialite: {0}".format(
+                os.path.splitext(db_name)[0]
+            ),
             "db_type": "spatialite",
             "db_settings": {"db_path": qs.value(db_entry)},
         }
@@ -471,13 +490,17 @@ def get_databases():
 
         if qs.value(prefix + "/saveUsername") == u"true":
             settings["saveUsername"] = True
-            settings["db_settings"]["username"] = qs.value(prefix + "/username")
+            settings["db_settings"]["username"] = qs.value(
+                prefix + "/username"
+            )
         else:
             settings["saveUsername"] = False
 
         if qs.value(prefix + "/savePassword") == u"true":
             settings["savePassword"] = True
-            settings["db_settings"]["password"] = qs.value(prefix + "/password")
+            settings["db_settings"]["password"] = qs.value(
+                prefix + "/password"
+            )
         else:
             settings["savePassword"] = False
 
