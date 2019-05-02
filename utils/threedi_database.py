@@ -245,10 +245,10 @@ class ThreediDatabase(object):
 
     def get_missing_index_tables(self, expected_index_tables):
 
-        existing_all_tables = self.engine.table_names()
+        existing_tables = self.engine.table_names()
         existing_index_tables = [
             table
-            for table in existing_all_tables
+            for table in existing_tables
             if table.startswith("idx_") and "v2_" in table
         ]
         # Each table with geometry has four index tables in existing_index_tables, e.g.
@@ -259,8 +259,8 @@ class ThreediDatabase(object):
         unique_index_tables = list(
             set(
                 [
-                    tbl.split("idx_")[1].split("_the_geom")[0]
-                    for tbl in existing_index_tables
+                    table.split("idx_")[1].split("_the_geom")[0]
+                    for table in existing_index_tables
                 ]
             )
         )
