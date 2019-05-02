@@ -243,22 +243,41 @@ class ThreediDatabase(object):
         conn.commit()
         conn.close()
 
-    def get_missing_idx_tbl(self, v2_table_geom):
-        existing_all_tbl = self.engine.table_names()  # gets current existing tables
-        existing_all_idx_tbl = [
-            tbl for tbl in existing_all_tbl if "idx_" in tbl and "v2_" in tbl
+    def get_missing_index_tables(self, expected_index_tables):
+
+        existing_all_tables = self.engine.table_names()
+        existing_index_tables = [
+            table
+            for table in existing_all_tables
+            if table.startswith("idx_") and "v2_" in table
         ]
-        existing_unique_idx_tbl = list(
+        # Each table with geometry has four index tables in existing_index_tables, e.g.
+        # table with geometry = "v2_channel" has 1) idx_v2_channel_the_geom,
+        # 2) idx_v2_channel_the_geom_node, 3) idx_v2_channel_the_geom_parent,
+        # and 4) idx_v2_channel_the_geom_rowid. From these four index tables we only
+        # want to retrieve string "v2_channel"
+        unique_index_tables = list(
             set(
                 [
                     tbl.split("idx_")[1].split("_the_geom")[0]
-                    for tbl in existing_all_idx_tbl
+                    for tbl in existing_index_tables
                 ]
             )
         )
-        expected_idx_tbl = [tbl[0] for tbl in v2_table_geom]
-        missing_idx_tbl = list(set(expected_idx_tbl) - set(existing_unique_idx_tbl))
-        return missing_idx_tbl
+        expected_index_table_names = [table[0] for table in expected_index_tables]
+        too_many_index_tables = list(
+            set(unique_index_tables) - set(expected_index_table_names)
+        )
+        if len(too_many_index_tables) > 0:
+            msg = (
+                "database contains one or more index table(s) that should not exist: "
+                + str(too_many_index_tables)
+            )
+            logger.warning(msg)
+        missing_index_tables = list(
+            set(expected_index_table_names) - set(unique_index_tables)
+        )
+        return missing_index_tables
 
     def fix_spatial_index(self):
         """ fixes spatial index all tables in spatialite in multiple steps
@@ -276,7 +295,7 @@ class ThreediDatabase(object):
         if self.db_type != "spatialite":
             return
 
-        v2_table_geom = [
+        expected_index_tables = [
             ("v2_2d_boundary_conditions", "the_geom"),
             ("v2_2d_lateral", "the_geom"),
             ("v2_calculation_point", "the_geom"),
@@ -300,18 +319,18 @@ class ThreediDatabase(object):
         ]
 
         progress_vacuum = 5
-        total_progress = len(v2_table_geom) + progress_vacuum
+        total_progress = len(expected_index_tables) + progress_vacuum
         progress_bar = StatusProgressBar(total_progress, "prepare schematisation")
-        missing_idx_tbl = self.get_missing_idx_tbl(v2_table_geom)
-        for (tbl, geom_column) in v2_table_geom:
+        missing_index_tables = self.get_missing_index_tables(expected_index_tables)
+        for (table, geom_column) in expected_index_tables:
             # 1. create spatial index (idx_ tables) if not exists
-            if tbl in missing_idx_tbl:
-                self.create_spatial_index(tbl, geom_column)
+            if table in missing_index_tables:
+                self.create_spatial_index(table, geom_column)
             # 2. Ensure valid spatial index
-            if not self.has_valid_spatial_index(tbl, geom_column):
-                self.recover_spatial_index(tbl, geom_column)
+            if not self.has_valid_spatial_index(table, geom_column):
+                self.recover_spatial_index(table, geom_column)
             # 3. disable spatial index
-            self.disable_spatial_index(tbl, geom_column)
+            self.disable_spatial_index(table, geom_column)
             progress_bar.increase_progress(1, "")
         # 4. Vacuum spatialite
         self.run_vacuum()
