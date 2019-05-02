@@ -282,7 +282,7 @@ class ThreediDatabase(object):
         )
         return missing_index_tables
 
-    def fix_spatial_index(self):
+    def fix_spatial_indices(self):
         """ fixes spatial index all tables in spatialite in multiple steps
         1.  Create new spatial indices.
             -   Each v2_ tbl must have spatial index, otherwise one gets an SQL error
@@ -321,8 +321,8 @@ class ThreediDatabase(object):
             ("v2_windshielding", "the_geom"),
         ]
 
-        progress_vacuum = 5
-        total_progress = len(expected_index_tables) + progress_vacuum
+        progress_percentage_vacuum = 5
+        total_progress = len(expected_index_tables) + progress_percentage_vacuum
         progress_bar = StatusProgressBar(total_progress, "prepare schematisation")
         missing_index_tables = self.get_missing_index_tables(expected_index_tables)
         for (table, geom_column) in expected_index_tables:
@@ -337,7 +337,7 @@ class ThreediDatabase(object):
             progress_bar.increase_progress(1, "")
         # 4. Vacuum spatialite
         self.run_vacuum()
-        progress_bar.increase_progress(progress_vacuum, "")
+        progress_bar.increase_progress(progress_percentage_vacuum, "")
 
     def create_spatial_index(self, table_name, geom_column):
         if self.db_type == "spatialite":
