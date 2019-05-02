@@ -262,11 +262,13 @@ class ThreediDatabase(object):
 
     def fix_spatial_index(self):
         """ fixes spatial index all tables in spatialite in multiple steps
-        1.  Create new spatial indices. Each v2_ tbl must have spatial index, otherwise
-            one gets an SQL error while deleting an feature (row) from a table (e.g.
-            v2_2d_boundary_conditions row delete returns "no such table:
-            main.idx_v2_2d_boundary_conditions_the_geom"
-        2.  Make sure all spatial indices are valid
+        1.  Create new spatial indices.
+            -   Each v2_ tbl must have spatial index, otherwise one gets an SQL error
+                while deleting an feature (row) from a table (e.g.
+                v2_2d_boundary_conditions row delete returns
+                "no such table:  main.idx_v2_2d_boundary_conditions_the_geom"
+            -   Only create sp if sp not exists since this takes long
+        2.  Make sure all spatial indices are valid, otherwise recover
         3.  Disable spatial index, otherwise layers sometimes will not be shown in QGIS
         4.  VACUUM spatialite to clean up spatialite (reclaims unused space)
         """
