@@ -320,7 +320,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             return result[time_index_filter]
 
-    def get_values_by_timestep_nr_simple(
+    def get_values_by_timestep_nr(
         self, variable, timestamp_idx, node_ids=None, use_cache=True
     ):
         """Return an array of values of the given variable on the specified timestamp(s)
@@ -351,21 +351,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             return filter_data[0]
         else:
             return filter_data
-
-    def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, index=None, use_cache=True
-    ):
-        """
-
-        :param variable:
-        :param timestamp_idx:
-        :param index:
-        :param use_cache:
-        :return:
-        """
-        result = self.get_values_by_timestep_nr_simple(
-            variable, timestamp_idx, index)
-        return result
 
     def _nc_from_mem_new(self, variable, use_cache=True):
         """Return 2d numpy array with all values of variable and cache it.
@@ -408,99 +393,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             # this returns a netCDF Variable, which behaves like a np array
             data = ds.get(variable)
         return data
-
-    def temp_get_values_by_timestep_nr_impl(
-        self, variable, timestamp_idx, index=None, use_cache=True
-    ):
-        var_2d = self.PREFIX_2D + variable
-        var_1d = self.PREFIX_1D + variable
-
-        # determine if it's an agg var
-        if variable in self.available_subgrid_map_vars:
-            ds = self.ds
-        elif variable in self.available_aggregation_vars:
-            ds = self.ds_aggregation
-        else:
-            logger.error("Unsupported variable %s", variable)
-            raise ValueError(variable)
-
-        # determine appropriate fill value from netCDF
-        if var_2d in ds.keys():
-            fill_value_2d = ds.get(var_2d).fillvalue
-            fill_value = fill_value_2d
-        if var_1d in ds.keys():
-            fill_value_1d = ds.get(var_1d).fillvalue
-            fill_value = fill_value_1d
-
-        if var_2d in ds.keys() and var_1d in ds.keys():
-            assert (
-                fill_value_1d == fill_value_2d
-            ), "Difference in fill value, can't consolidate"
-
-        if index is None:
-            if variable.startswith("q_pump"):
-                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
-            elif variable in ALL_Q_TYPES:
-                n2d = self.nMesh2D_lines
-                n1d = self.nMesh1D_lines
-            elif variable in ALL_H_TYPES:
-                n2d = self.nMesh2D_nodes
-                n1d = self.nMesh1D_nodes
-            else:
-                raise ValueError(variable)
-
-            # Note: it's possible to only have 2D or 1D
-            if var_2d in ds.keys():
-                a2d = self._nc_from_mem(ds, var_2d, use_cache)[timestamp_idx, :]
-            else:
-                a2d = np.ma.masked_all(n2d)
-
-            if var_1d in ds.keys():
-                a1d = self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
-            else:
-                a1d = np.ma.masked_all(n1d)
-
-            assert var_2d in ds.keys() or var_1d in ds.keys(), "No 2D and 1D?"
-
-            # Note: order is: 2D, then 1D
-            res = np.ma.hstack([a2d, a1d])
-        else:
-            # in the groundwater version, the node index starts from 1 instead
-            # of 0.
-            # Note: a new array is created, e.g., index doesn't get modified
-            index = index - 1  # copies the array
-
-            # hacky object_type checking mechanism, sinds we don't have
-            # that information readily available
-            if variable.startswith("q_pump"):
-                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, index]
-            elif variable in ALL_Q_TYPES:
-                threshold = self.nMesh2D_lines
-            elif variable in ALL_H_TYPES:
-                threshold = self.nMesh2D_nodes
-            else:
-                raise ValueError(variable)
-            # find indices of 2d and 1d components
-            idx_2d = np.where(index < threshold)[0]
-            idx_1d = np.where(index >= threshold)[0]
-            # make index arrays that can be used on the nc variables
-            iarr_2d = index[idx_2d]
-            iarr_1d = index[idx_1d] - threshold
-            res = np.ma.zeros(index.shape, fill_value=fill_value)
-            # Note sure if a netCDF bug or a known difference in behavior.
-            # Indexing a numpy array using [], or np.array([], dtype=int)
-            # works, but on a netCDF Variable it doesn't. Therefore we must
-            # explicitly check if the list is empty.
-            if iarr_2d.size > 0:
-                res[idx_2d] = self._nc_from_mem(ds, var_2d, use_cache)[
-                    timestamp_idx, iarr_2d
-                ]
-            if iarr_1d.size > 0:
-                res[idx_1d] = self._nc_from_mem(ds, var_1d, use_cache)[
-                    timestamp_idx, iarr_1d
-                ]
-        # note: res is a masked array
-        return res
 
     @property
     def gridadmin(self):
