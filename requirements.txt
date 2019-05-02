@@ -13,5 +13,5 @@ pyqtgraph >=0.10.0
 GeoAlchemy2 >=0.6.2, <0.7
 
 # Our own custom packages.
-git+https://github.com/lizardsystem/lizard-connector.git@0.6#egg=lizard_connector
+lizard-connector ==0.6
 threedigrid ==1.0.10
