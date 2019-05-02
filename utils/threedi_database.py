@@ -252,7 +252,7 @@ class ThreediDatabase(object):
             )
             logger.warning(msg)
 
-    def get_missing_index_tables(self, expected_index_tables):
+    def get_missing_index_tables(self, expected_index_table_names):
 
         existing_tables = self.engine.table_names()
         existing_index_tables = [
@@ -273,7 +273,6 @@ class ThreediDatabase(object):
                 ]
             )
         )
-        expected_index_table_names = [table[0] for table in expected_index_tables]
         self.check_unexpected_index_table(
             existing_index_table_names, expected_index_table_names
         )
@@ -324,7 +323,8 @@ class ThreediDatabase(object):
         progress_percentage_vacuum = 5
         total_progress = len(expected_index_tables) + progress_percentage_vacuum
         progress_bar = StatusProgressBar(total_progress, "prepare schematisation")
-        missing_index_tables = self.get_missing_index_tables(expected_index_tables)
+        expected_index_table_names = [table[0] for table in expected_index_tables]
+        missing_index_tables = self.get_missing_index_tables(expected_index_table_names)
         for (table, geom_column) in expected_index_tables:
             # 1. create spatial index (idx_ tables) if not exists
             if table in missing_index_tables:
