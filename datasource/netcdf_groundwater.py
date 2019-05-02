@@ -287,7 +287,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
         :param node_ids: 1d numpy.array of node_ids
-        :param use_cache: (bool)
         :return: 1d/2d numpy.array
         """
         ga = self.get_gridadmin(variable)
@@ -371,7 +370,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         TODO: Saving the variables in cache is currently necessary to limit
         the amount of (slow) IO with the netcdf results. However, this also
         causes much unnecessary data to be stored in memory. This can become
-        problemematic with large result files.
+        problematic with large result files.
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param use_cache: bool
