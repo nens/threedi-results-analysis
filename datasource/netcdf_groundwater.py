@@ -276,18 +276,19 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             )
 
     def get_values_by_timestep_nr_simple(
-        self, variable, timestamp_idx, index=None, use_cache=True
+        self, variable, timestamp_idx, node_ids=None, use_cache=True
     ):
-        """Return an array of values of the given variable on the specified timestamp
+        """Return an array of values of the given variable on the specified timestamp(s)
 
+        If an array of timestamps is given, a 2d numpy array is returned.
         If index is specified, only the node_ids specified in the index will
         be returned.
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
-        :param index: 1d numpy.array of node_ids
+        :param node_ids: 1d numpy.array of node_ids
         :param use_cache: (bool)
-        :return: 1d numpy.array
+        :return: 1d/2d numpy.array
         """
         ga = self.get_gridadmin(variable)
         model = ga.get_model_instance_by_field_name(variable)
@@ -298,18 +299,27 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             time_index_filter = 0
         elif isinstance(timestamp_idx, np.ndarray):
             # ga.timeseries unfortunately does not allow for index filter on
-            # aggregate results, thus we load a bit more in memory and apply
-            # the index filter at the end.
+            # aggregate results, only a slice filter. Thus we load a bit more
+            # in memory and apply the index filter at the end.
             time_slice = slice(min(timestamp_idx), max(timestamp_idx) + 1)
-            time_index_filter = timestamp_idx - min(timestamp_idx)
+            if len(timestamp_idx) == 1:
+                time_index_filter = 0
+            else:
+                time_index_filter = timestamp_idx - min(timestamp_idx)
         result_filter = model.timeseries(indexes=time_slice)
 
-        if index is not None:
-            result_filter = result_filter.filter(id__in=index)
-        else:
+        if node_ids is None:
             result_filter = result_filter.filter(id__gt=0)
         result = result_filter.get_filtered_field_value(variable)
-        return result[time_index_filter]
+
+        if node_ids is not None:
+            # Unfortunately h5py/threedigrid indexing is not as fancy as
+            # numpy, i.e. we can't use duplicate indexes/unsorted indexes.
+            # Thus we load a bit more in memory as a numpy array and then apply
+            # the final indexing with numpy.
+            return result[time_index_filter][node_ids]
+        else:
+            return result[time_index_filter]
 
     def get_values_by_timestep_nr(
         self, variable, timestamp_idx, index=None, use_cache=True
