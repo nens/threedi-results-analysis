@@ -81,11 +81,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     data is stored in the results_3di.nc or aggregate_results_3di.nc
     """
 
-    PREFIX_1D = "Mesh1D_"
-    PREFIX_2D = "Mesh2D_"
-    PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
-    PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
-
     def __init__(self, file_path=None):
         self.file_path = file_path
         self._ga = None
