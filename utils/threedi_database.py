@@ -243,16 +243,38 @@ class ThreediDatabase(object):
         conn.commit()
         conn.close()
 
-    def fix_views(self):
-        if self.db_type != "spatialite":
-            return
-        """fixes views all tables in spatialite in multiple steps:
-        1. Disable spatial index
-        2. Drop spatial index table from sqlite (e.g. idx_v2_channel_the_geom)
-        3. VACUUM spatialite to clean up spatialite
+    def get_missing_idx_tbl(self, v2_table_geom):
+        existing_all_tbl = self.engine.table_names()  # gets current existing tables
+        existing_all_idx_tbl = [
+            tbl for tbl in existing_all_tbl if "idx_" in tbl and "v2_" in tbl
+        ]
+        existing_unique_idx_tbl = list(
+            set(
+                [
+                    tbl.split("idx_")[1].split("_the_geom")[0]
+                    for tbl in existing_all_idx_tbl
+                ]
+            )
+        )
+        expected_idx_tbl = [tbl[0] for tbl in v2_table_geom]
+        missing_idx_tbl = list(set(expected_idx_tbl) - set(existing_unique_idx_tbl))
+        return missing_idx_tbl
+
+    def fix_spatial_index(self):
+        """ fixes spatial index all tables in spatialite in multiple steps
+        1.  Create new spatial indices. Each v2_ tbl must have spatial index, otherwise
+            one gets an SQL error while deleting an attribute from a table (e.g.
+            v2_2d_boundary_conditions row delete returns "no such table:
+            main.idx_v2_2d_boundary_conditions_the_geom"
+        2.  Make sure all spatial indices are valid
+        3.  Disable spatial index, otherwise layers sometimes will not be shown in QGIS
+        4.  VACUUM spatialite to clean up spatialite (reclaims unused space)
         """
 
-        disable_view_v2_tables = [
+        if self.db_type != "spatialite":
+            return
+
+        v2_table_geom = [
             ("v2_2d_boundary_conditions", "the_geom"),
             ("v2_2d_lateral", "the_geom"),
             ("v2_calculation_point", "the_geom"),
@@ -270,26 +292,38 @@ class ThreediDatabase(object):
             ("v2_initial_waterlevel", "the_geom"),
             ("v2_levee", "the_geom"),
             ("v2_obstacle", "the_geom"),
-            ("v2_outlet", "the_geom"),
             ("v2_pumped_drainage_area", "the_geom"),
             ("v2_surface", "the_geom"),
             ("v2_windshielding", "the_geom"),
         ]
 
-        # disable_spatial_index() takes some time (all tables in 10sec) which
-        # is too long for user if no progress bar or-the-like is shown
-        nr_tbls = len(disable_view_v2_tables)
-        progress_bar = StatusProgressBar(nr_tbls, "prepare schematisation")
-
-        for (tbl, geom_column) in disable_view_v2_tables:
+        progress_vacuum = 5
+        total_progress = len(v2_table_geom) + progress_vacuum
+        progress_bar = StatusProgressBar(total_progress, "prepare schematisation")
+        missing_idx_tbl = self.get_missing_idx_tbl(v2_table_geom)
+        for (tbl, geom_column) in v2_table_geom:
+            # 1. create spatial index (idx_ tables) if not exists
+            if tbl in missing_idx_tbl:
+                self.create_spatial_index(tbl, geom_column)
+            # 2. Ensure valid spatial index
+            if not self.has_valid_spatial_index(tbl, geom_column):
+                self.recover_spatial_index(tbl, geom_column)
+            # 3. disable spatial index
             self.disable_spatial_index(tbl, geom_column)
             progress_bar.increase_progress(1, "")
-
-        all_tables = self.engine.table_names()  # gets current existing tables
-        idx_v2_tables = [tbl for tbl in all_tables if "idx_" in tbl and "v2_" in tbl]
-        for idx_name in idx_v2_tables:
-            self.drop_idx_table_if_exists(idx_name)
+        # 4. Vacuum spatialite
         self.run_vacuum()
+        progress_bar.increase_progress(progress_vacuum, "")
+
+    def create_spatial_index(self, table_name, geom_column):
+        if self.db_type == "spatialite":
+            select_statement = """
+               SELECT CreateSpatialIndex('{table_name}', '{geom_column}');
+            """.format(
+                table_name=table_name, geom_column=geom_column
+            )
+            with self.engine.begin() as connection:
+                connection.execute(text(select_statement))
 
     def delete_from(self, table_name):
         del_statement = """DELETE FROM {}""".format(table_name)
@@ -364,7 +398,7 @@ class ThreediDatabase(object):
 
     def run_vacuum(self):
         """
-        call vacuum on a sqlite DB
+        call vacuum on a sqlite DB which reclaims any unused storage space from sqlite
         """
         if self.db_type == "spatialite":
             statement = """VACUUM;"""
