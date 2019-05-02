@@ -243,6 +243,15 @@ class ThreediDatabase(object):
         conn.commit()
         conn.close()
 
+    def check_unexpected_index_table(self, existing_tables, expected_tables):
+        too_many_index_tables = list(set(existing_tables) - set(expected_tables))
+        if len(too_many_index_tables) > 0:
+            msg = (
+                "database contains one or more index table(s) that should not exist: "
+                + str(too_many_index_tables)
+            )
+            logger.warning(msg)
+
     def get_missing_index_tables(self, expected_index_tables):
 
         existing_tables = self.engine.table_names()
@@ -256,7 +265,7 @@ class ThreediDatabase(object):
         # 2) idx_v2_channel_the_geom_node, 3) idx_v2_channel_the_geom_parent,
         # and 4) idx_v2_channel_the_geom_rowid. From these four index tables we only
         # want to retrieve string "v2_channel"
-        unique_index_tables = list(
+        existing_index_table_names = list(
             set(
                 [
                     table.split("idx_")[1].split("_the_geom")[0]
@@ -265,17 +274,11 @@ class ThreediDatabase(object):
             )
         )
         expected_index_table_names = [table[0] for table in expected_index_tables]
-        too_many_index_tables = list(
-            set(unique_index_tables) - set(expected_index_table_names)
+        self.check_unexpected_index_table(
+            existing_index_table_names, expected_index_table_names
         )
-        if len(too_many_index_tables) > 0:
-            msg = (
-                "database contains one or more index table(s) that should not exist: "
-                + str(too_many_index_tables)
-            )
-            logger.warning(msg)
         missing_index_tables = list(
-            set(expected_index_table_names) - set(unique_index_tables)
+            set(expected_index_table_names) - set(existing_index_table_names)
         )
         return missing_index_tables
 
