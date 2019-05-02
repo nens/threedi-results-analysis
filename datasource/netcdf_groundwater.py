@@ -275,8 +275,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 parameter
             )
 
-    def get_values_by_timestep_nr_simple(
-        self, variable, timestamp_idx, node_ids=None, use_cache=True
+    def get_values_by_timestep_nr_simple_no_caching(
+        self, variable, timestamp_idx, node_ids=None
     ):
         """Return an array of values of the given variable on the specified timestamp(s)
 
@@ -321,6 +321,32 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             return result[time_index_filter]
 
+    def get_values_by_timestep_nr_simple(
+        self, variable, timestamp_idx, node_ids=None, use_cache=True
+    ):
+        """Return an array of values of the given variable on the specified timestamp(s)
+
+        If only one timestamp is specified, a 1d np.array is returned.  If an
+        array of multiple timestamp_idx is given, a 2d np.array is returned.
+
+        If index is specified, only the node_ids specified in the index will
+        be returned.
+
+        :param variable: (str) variable name, e.g. 's1', 'q_pump'
+        :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
+        :param node_ids: 1d numpy.array of node_ids or None in which case all
+            nodes are returned.
+        :param use_cache: (bool)
+        :return: 1d/2d numpy.array
+        """
+        data = self._nc_from_mem_new(variable)
+        if isinstance(timestamp_idx, np.ndarray) and len(timestamp_idx) == 1:
+            timestamp_idx = int(timestamp_idx)
+        if node_ids is None:
+            return data[timestamp_idx]
+        else:
+            return data[timestamp_idx][node_ids]
+
     def get_values_by_timestep_nr(
         self, variable, timestamp_idx, index=None, use_cache=True
     ):
@@ -332,15 +358,36 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param use_cache:
         :return:
         """
-        result_old = self.temp_get_values_by_timestep_nr_impl(
-            variable, timestamp_idx, index, use_cache
-        )
-
-        result_new = self.get_values_by_timestep_nr_simple(
+        result = self.get_values_by_timestep_nr_simple(
             variable, timestamp_idx, index)
-        # np.testing.assert_equal(result_new, result_old)
+        return result
 
-        return result_old
+    def _nc_from_mem_new(self, variable, use_cache=True):
+        """Return 2d numpy array with all values of variable and cache it.
+
+        Everyting of the variables is cached, both in time and space, i.e. all
+        timesteps and all nodes of the variable.
+
+        TODO: Saving the variables in cache is currently necessary to limit
+        the amount of (slow) IO with the netcdf results. However, this also
+        causes much unnecessary data to be stored in memory. This can become
+        problemematic with large result files.
+
+        :param variable: (str) variable name, e.g. 's1', 'q_pump'
+        :param use_cache: bool
+        :return: 2d numpy array
+        """
+        if variable in self._cache and use_cache:
+            data = self._cache[variable]
+        else:
+            logger.debug(
+                "Variable %s not yet in cache, fetching from result files" % variable)
+            ga = self.get_gridadmin(variable)
+            model = ga.get_model_instance_by_field_name(variable)
+            time_filter = model.timeseries(indexes=slice(None))
+            data = time_filter.get_filtered_field_value(variable)
+            self._cache[variable] = data
+        return data
 
     def _nc_from_mem(self, ds, variable, use_cache=True):
         """Get netcdf data from memory if needed."""
