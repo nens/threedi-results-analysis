@@ -184,7 +184,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         available_known_vars = available_vars & known_vars
         return list(available_known_vars)
 
-    def get_available_variables(self):
+    def get_available_vars(self):
         """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars
 
