@@ -185,7 +185,7 @@ class LayerTreeManager(object):
         # adjust spatialite for correct visualization of layers
         threedi_db = ThreediDatabase({"db_path": filename})
         threedi_db.create_views()
-        threedi_db.fix_views()
+        threedi_db.fix_spatial_indices()
 
         if self.model_layergroup is None:
             # todo: see if we can set 'tracer' as custom property to identify
