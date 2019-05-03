@@ -18,9 +18,7 @@ class DummyTimeseriesDatasourceModel(object):
     def __init__(self, modeldb_path, resultnc_path):
         self.model_spatialite_filepath = modeldb_path
         self.resultnc_path = resultnc_path
-        self.ds = NetcdfGroundwaterDataSource(
-            resultnc_path, load_properties=False, ds="ignored"
-        )
+        self.ds = NetcdfGroundwaterDataSource(resultnc_path)
         self.rows = [self]
 
     def datasource(self):

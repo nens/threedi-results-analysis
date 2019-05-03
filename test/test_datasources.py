@@ -7,11 +7,15 @@ import unittest
 import tempfile
 import shutil
 
+import numpy as np
+import pytest
+
 try:
     from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
     pass
 
+from threedigrid.admin import gridresultadmin
 from qgis.PyQt.QtCore import QVariant
 
 try:
@@ -129,15 +133,9 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_sanity(self):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
+        nds._datasource = m
         # sanity test
         self.assertEqual(nds.ds, m)
-
-    def test_get_timestamps(self):
-        nds = NetcdfGroundwaterDataSource()
-        m = mock.MagicMock()
-        nds._ds = m
-        nds.get_timestamps()
 
     @mock.patch(
         "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",
@@ -149,8 +147,8 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_get_timeseries(self, gridadmin_result_mock):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
-        nds.get_timeseries("nodes", 3, "s1")
+        nds._datasource = m
+        nds.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
@@ -166,3 +164,82 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
                 aggfile.write("doesnt matter")
             agg_path_found = find_aggregation_netcdf_gw(nc_path)
             self.assertEqual(agg_path, agg_path_found)
+
+
+def test_get_timestamps_shape(netcdf_groundwater_ds):
+    timestamps = netcdf_groundwater_ds.get_timestamps()
+    assert timestamps.shape == (32,)
+
+
+def test_get_timestamps_last_timestep(netcdf_groundwater_ds):
+    timestamps = netcdf_groundwater_ds.get_timestamps()
+    assert timestamps[-1] == 1863.5643704609731
+
+
+def test_get_timestamps_with_agg_parameter_q_cum(netcdf_groundwater_ds):
+    timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter="q_cum")
+    assert timestamps_q_cum.shape == (7,)
+    assert timestamps_q_cum[-1] == 1801.2566835460611
+
+
+def test_get_timestamps_with_agg_parameter_vol_current(netcdf_groundwater_ds):
+    timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(
+        parameter="vol_current"
+    )
+    assert timestamps_vol_current.shape == (7,)
+    assert timestamps_vol_current[-1] == 1801.2566835460611
+
+
+def test_get_gridadmin(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable=None)
+    assert isinstance(ga, gridresultadmin.GridH5Admin)
+
+
+def test_get_gridadmin_result_var(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable="s1")
+    assert isinstance(ga, gridresultadmin.GridH5ResultAdmin)
+
+
+def test_get_gridadmin_agg_result_var(netcdf_groundwater_ds):
+    ga = netcdf_groundwater_ds.get_gridadmin(variable="q_cum")
+    assert isinstance(ga, gridresultadmin.GridH5AggregateResultAdmin)
+
+
+def test_get_gridadmin_agg_result_var_not_available(netcdf_groundwater_ds):
+    with pytest.raises(AttributeError):
+        netcdf_groundwater_ds.get_gridadmin(variable="u1_max")
+
+
+def test_get_gridadmin_unknown_var(netcdf_groundwater_ds):
+    with pytest.raises(AttributeError):
+        netcdf_groundwater_ds.get_gridadmin(variable="unknown")
+
+
+def test_get_timeseries(netcdf_groundwater_ds):
+    ts = netcdf_groundwater_ds.get_timeseries("s1")
+    np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
+    assert ts.shape[1] == netcdf_groundwater_ds.get_gridadmin("s1").nodes.count + 1
+
+
+def test_get_timeseries_filter_node(netcdf_groundwater_ds):
+    with mock.patch(
+        "threedigrid.orm.base.models.Model.get_filtered_field_value"
+    ) as data:
+        data.return_value = np.ones((len(netcdf_groundwater_ds.timestamps), 1))
+        ts = netcdf_groundwater_ds.get_timeseries("s1", node_id=5)
+        np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
+        np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
+
+
+def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
+    """A bug in threedigrid <= 1.0.12
+
+    Note that querying these variables, ('s1' in the gridresultadmin and
+    'q_cum' in the gridaggregateresultadmin) should not fail.
+
+    Will be fixed in threedigrid >= 1.0.13"""
+    gr = netcdf_groundwater_ds.get_gridadmin("s1")
+    gr.get_model_instance_by_field_name("s1")
+
+    gr = netcdf_groundwater_ds.get_gridadmin("q_cum")
+    gr.get_model_instance_by_field_name("q_cum")

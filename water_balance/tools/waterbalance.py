@@ -790,7 +790,7 @@ class WaterBalanceCalculation(object):
         ]:
 
             if node.size > 0:
-                if parameter + agg_method in ds.get_available_variables():
+                if parameter + agg_method in ds.available_vars():
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
                         values = ds.get_values_by_timestep_nr(
@@ -965,7 +965,7 @@ class WaterBalanceTool(object):
         """
 
         selected_ds = self.ts_datasource.rows[0].datasource()
-        check_available_vars = selected_ds.get_available_variables()
+        check_available_vars = selected_ds.available_vars()
 
         ga = self.ts_datasource.rows[0].datasource().gridadmin
         gr = self.ts_datasource.rows[0].datasource().gridadmin_result

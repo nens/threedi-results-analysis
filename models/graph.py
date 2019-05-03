@@ -116,23 +116,12 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            try:
-                timeseries = (
-                    self.model.datasource.rows[result_ds_nr]
-                    .datasource()
-                    .get_timeseries(
-                        self.object_type.value,
-                        self.object_id.value,
-                        parameters,
-                        fill_value=np.NaN,
-                    )
-                )
-                if absolute:
-                    timeseries = np.abs(timeseries)
-            except (KeyError, IndexError, ValueError, AttributeError):
-                # TODO: we're catching way too many errors here, maybe we need
-                # a custom type
-                logger.exception("Error getting timeseries table")
-                # Return an empty array so that the graph won't crash.
-                timeseries = EMPTY_TIMESERIES
+            ds = self.model.datasource.rows[result_ds_nr].datasource()
+            timeseries = ds.get_timeseries(
+                parameters, self.object_id.value, fill_value=np.NaN
+            )
+            if timeseries.shape[1] == 1:
+                return EMPTY_TIMESERIES
+            if absolute:
+                timeseries = np.abs(timeseries)
             return timeseries
