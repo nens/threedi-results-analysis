@@ -74,29 +74,41 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
 
 
 class NetcdfGroundwaterDataSource(BaseDataSource):
-    """NetcdfGroundwaterDatasource provides an abstraction layer to query
-    result data from a 3Di simulation stored in a netcdf
+    """Provides access to result data from a 3Di simulation
 
-    It provides an abstraction so you don't need to worry about whether the
-    data is stored in the results_3di.nc or aggregate_results_3di.nc
+    Result data of 3di is stored in netcdf4. Two types of result data
+    exists: normal results and aggregated results. Usually the files are named
+    'results_3di.nc' and 'aggregate_results_3di.nc' respectively.
+
+    This class allows access to the results via threedigrid:
+        -  GridH5ResultAdmin
+        - GridH5AggregateResultAdmin
+    For more information about threedigrid see https://threedigrid.readthedocs.io/en/latest/
+
+    Some helper methods are available query the result data using a variable
+    name (example of variable names: 's1', 'q_cum', 'vol', etc)
+
+    This class also provides for direct access to the data files via h5py.
+    However, it is recommended to use threedigrid instead.
     """
 
     def __init__(self, file_path=None):
         self.file_path = file_path
-        self._ga = None
-        self._ga_result = None
-        self._ds = None
+        self._gridadmin = None
+        self._gridadmin_result = None
+        self._datasource = None
         self._cache = {}
 
     @property
     def ds(self):
-        if self._ds is None:
+        # TODO: move to constructor or make cached_property
+        if self._datasource is None:
             try:
-                self._ds = h5py.File(self.file_path, "r")
+                self._datasource = h5py.File(self.file_path, "r")
             except IOError as e:
-                logger.error(e)
+                logger.exception(e)
                 raise e
-        return self._ds
+        return self._datasource
 
     @property
     def nMesh2D_nodes(self):
@@ -167,7 +179,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         available_known_vars = available_vars & known_vars
         return list(available_known_vars)
 
-    def get_available_variables(self):
+    def available_vars(self):
         """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars
 
@@ -179,9 +191,33 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         The 'aggregate_results_3di.nc' can have different number of timestamps
         for each variable.
 
-        :return np.array containing the timestamps in seconds.
+        :return 1d np.array containing the timestamps in seconds.
         """
         return self.get_timestamps()
+
+    def get_timestamps(self, parameter=None):
+        """Return an array of timestamps for the given parameter
+
+        The timestamps are in seconds after the start of the simulation.
+
+        All variables in the result_netcdf share the same timestamps.
+        Variables of the result_aggregation_netcdf can have varying number of
+        timestamps and their step size can differ.
+
+        If no parameter is given, returns the timestamps of the result-netcdf.
+
+        :return: 1d np.array
+        """
+        # TODO: the property self.timestamps is cached but this method is not.
+        #  This might cause performance issues. Check if these timestamps are
+        #  often queried and cause performance issues.
+        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
+            return self.gridadmin_result.nodes.timestamps
+        else:
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).get_timestamps(
+                parameter
+            )
 
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None
@@ -193,7 +229,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         You can also filter on a specific node using node_id or content_pk,
         in which case only the timeseries of the given node is returned.
 
-        If there is no data of the given variable, only the timestamps are
+        If there is no values of the given variable, only the timestamps are
         returned, i.e. an array of shape (n, 1) with n being the timestamps.
 
         :param nc_variable:
@@ -202,24 +238,24 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param fill_value:
         :return: 2D array, first column being the timestamps
         """
-        gr = self.get_gridadmin(nc_variable)
+        ga = self.get_gridadmin(nc_variable)
 
-        result_filter = gr.get_model_instance_by_field_name(nc_variable).timeseries(
+        filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
             indexes=slice(None)
         )
         if node_id:
-            result_filter = result_filter.filter(id=node_id)
+            filtered_result = filtered_result.filter(id=node_id)
         elif content_pk:
-            result_filter = result_filter.filter(content_pk=content_pk)
+            filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        data = result_filter.get_filtered_field_value(nc_variable)
+        values = filtered_result.get_filtered_field_value(nc_variable)
 
         if fill_value is not None:
-            data[data == NO_DATA_VALUE] = fill_value
+            values[values == NO_DATA_VALUE] = fill_value
 
         timestamps = self.get_timestamps(nc_variable)
-        timestamps = timestamps.reshape(-1, 1)
-        return np.hstack([timestamps, data])
+        timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
+        return np.hstack([timestamps, values])
 
     def get_gridadmin(self, variable=None):
         """Return the gridadmin where the variable is stored. If no variable is
@@ -239,36 +275,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             return self.gridadmin_aggregate_result
         else:
-            raise AttributeError("Parameter %s unknown")
-
-    def _is_aggregation_parameter(self, parameter):
-        """Return if the parameter is an aggregation parameter
-
-        Aggregation parameters are variables which are stored inside the
-        aggregation-result-netcdf.
-        """
-        return parameter in POSSIBLE_AGG_VARS
-
-    def get_timestamps(self, parameter=None):
-        """Returns an array of timestamps of the given parameter.
-
-        The timestamps are in seconds after the simulation has started.
-
-        All variables in the result_netcdf share the same timestamps.
-        Variables of the result_aggregation_netcdf can have varying number of
-        timestamps and their step size can differ.
-
-        if no parameter is given, returns the timestamps of the result-netcdf.
-
-        :return: (np.array)
-        """
-        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.gridadmin_result.nodes.timestamps
-        else:
-            ga = self.get_gridadmin(variable=parameter)
-            return ga.get_model_instance_by_field_name(parameter).get_timestamps(
-                parameter
-            )
+            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     def get_values_by_timestep_nr_simple_no_caching(
         self, variable, timestamp_idx, node_ids=None
@@ -376,17 +383,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def gridadmin(self):
-        if not self._ga:
+        if not self._gridadmin:
             h5 = find_h5_file(self.file_path)
-            self._ga = GridH5Admin(h5)
-        return self._ga
+            self._gridadmin = GridH5Admin(h5)
+        return self._gridadmin
 
     @property
     def gridadmin_result(self):
-        if not self._ga_result:
+        if not self._gridadmin_result:
             h5 = find_h5_file(self.file_path)
-            self._ga_result = GridH5ResultAdmin(h5, self.file_path)
-        return self._ga_result
+            self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
+        return self._gridadmin_result
 
     @cached_property
     def gridadmin_aggregate_result(self):

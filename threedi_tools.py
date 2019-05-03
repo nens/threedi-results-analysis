@@ -34,7 +34,7 @@ from qgis.PyQt.QtGui import QIcon
 from . import resources  # NoQa
 
 # Import the code of the tools
-from .misc_tools import About, CacheClearer
+from .misc_tools import About, CacheClearer, ShowLogfile
 from .threedi_result_selection import ThreeDiResultSelection
 from .threedi_toolbox import ThreeDiToolbox
 from .threedi_graph import ThreeDiGraph
@@ -119,6 +119,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.sideview_tool,
             self.stats_tool,
             self.water_balance_tool,
+            ShowLogfile(iface),
         ]
 
         self.active_datasource = None

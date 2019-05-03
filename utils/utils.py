@@ -87,7 +87,7 @@ def parse_db_source_info(source_info):
     if not source_info[:6] == "dbname":
         return
     layer_info = source_info.replace("'", '"')
-    raw_dict = dict(re.findall('(\S+)="?(.*?)"? ', layer_info))
+    raw_dict = dict(re.findall(r'(\S+)="?(.*?)"? ', layer_info))
     info_dict["database"] = raw_dict.get("dbname", "")
     info_dict["username"] = raw_dict.get("user", "")
     info_dict["password"] = raw_dict.get("password", "")

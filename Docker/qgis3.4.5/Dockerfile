@@ -2,81 +2,65 @@ FROM ubuntu:bionic
 MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Inspired by https://hub.docker.com/r/timcera/qgis-desktop-ubuntu/~/dockerfile/
 
+# Debian docker config settings.
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
+# Don't let qgis grab python's import mechanism (which breaks pytest).
+ENV QGIS_NO_OVERRIDE_IMPORT 1
 
-ENV TZ Europe/Amsterdam
-
+# User handling to get proper non-root-owned files on linux.
 ARG uid=1000
 ARG gid=1000
 RUN groupadd -g $gid nens && useradd -lm -u $uid -g $gid nens
 
-RUN echo $TZ > /etc/timezone \
-    && apt-get -y update \
+# Set up ubuntu for the qgis repository
+RUN apt-get update \
     && apt-get -y install --no-install-recommends \
-        tzdata \
         dirmngr \
-        apt-transport-https \
         gpg-agent \
         software-properties-common \
-        wget \
-        dbus \
-        libhdf5-serial-dev \
-        python-dev \
-        build-essential \
-        git \
-	strace \
-	valgrind \
-    && rm /etc/localtime \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata \
-    && apt-get clean \
-    && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN dbus-uuidgen > /var/lib/dbus/machine-id
-
-RUN echo "deb     https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-#RUN echo "deb-src https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
+    && rm -rf /var/lib/apt/lists/*
+RUN echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 
-RUN apt-get -y update \
+# Now install the ubuntu packages we need.
+RUN apt-get update \
     && apt-get -y install --no-install-recommends \
-        python3-dev \
-        python3-pip \
+	unzip \
+	zip \
+        build-essential \
+        dbus \
         gdal-bin \
-        qgis \
-        python3-qgis \
-        qgis-provider-grass \
+        git \
         grass \
+        libhdf5-serial-dev \
         pyqt5-dev-tools \
-    && apt-get clean \
-    && apt-get purge \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        python-dev \
+        python3-dev \
+        python3-h5netcdf \
+        python3-h5py \
+        python3-pip \
+        python3-pyqtgraph \
+        python3-qgis \
+        python3-sqlalchemy \
+        qgis \
+        qgis-provider-grass \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
+# Seems to be a message bus used by Qt?
+RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
+# Install some python libraries (partially already installed through apt)
 ADD requirements.txt .
 ADD requirements-dev.txt .
-RUN pip3 install -r requirements.txt -U
-RUN pip3 install -r requirements-dev.txt -U
+RUN pip3 install -U pip setuptools
+RUN pip3 install -r requirements.txt -r requirements-dev.txt
 
-# Remove once netcdf4 is completely removed.
-ENV USE_SETUPCFG=0
-ENV HDF5_INCDIR=/usr/include/hdf5/serial
-ENV HDF5_LIBDIR=/usr/lib/x86_64-linux-gnu/hdf5/serial
-RUN pip install netCDF4
-
-# Make sure the h5py is compiled with the same HDF5 version of QGIS.
-RUN pip3 uninstall h5py -y
-ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial/
-RUN pip3 install --no-binary=h5py h5py
-
-# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the PYTHONPATH.
+# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the
+# PYTHONPATH. This is needed for pytest and so to find the code. (Qgis finds it
+# just fine without this PYTHONPATH, of course).
 ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
-# Don't let qgis grab python's import mechanism (which breaks pytest).
-ENV QGIS_NO_OVERRIDE_IMPORT 1
 
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]

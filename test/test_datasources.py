@@ -133,7 +133,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_sanity(self):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
+        nds._datasource = m
         # sanity test
         self.assertEqual(nds.ds, m)
 
@@ -147,7 +147,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_get_timeseries(self, gridadmin_result_mock):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
+        nds._datasource = m
         nds.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
@@ -166,16 +166,23 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
             self.assertEqual(agg_path, agg_path_found)
 
 
-def test_get_timestamps_none(netcdf_groundwater_ds):
+def test_get_timestamps_shape(netcdf_groundwater_ds):
     timestamps = netcdf_groundwater_ds.get_timestamps()
     assert timestamps.shape == (32,)
+
+
+def test_get_timestamps_last_timestep(netcdf_groundwater_ds):
+    timestamps = netcdf_groundwater_ds.get_timestamps()
     assert timestamps[-1] == 1863.5643704609731
 
 
-def test_get_timestamps_with_parameter(netcdf_groundwater_ds):
+def test_get_timestamps_with_agg_parameter_q_cum(netcdf_groundwater_ds):
     timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter="q_cum")
     assert timestamps_q_cum.shape == (7,)
     assert timestamps_q_cum[-1] == 1801.2566835460611
+
+
+def test_get_timestamps_with_agg_parameter_vol_current(netcdf_groundwater_ds):
     timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(
         parameter="vol_current"
     )
@@ -225,7 +232,7 @@ def test_get_timeseries_filter_node(netcdf_groundwater_ds):
 
 
 def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
-    """Bugged function in threedigrid <= 1.0.12
+    """A bug in threedigrid <= 1.0.12
 
     Note that querying these variables, ('s1' in the gridresultadmin and
     'q_cum' in the gridaggregateresultadmin) should not fail.

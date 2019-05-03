@@ -293,7 +293,7 @@ class StatisticsTool(object):
 
         logger.info("Read results and calculate statistics. ")
         # check if statistic is available, otherwise make empty arrays for getting result from normal results
-        if "s1_max" in self.ds.get_available_variables():
+        if "s1_max" in self.ds.available_vars():
             agg_h_max = True
             h_max = np.full(nr_manholes, -9999.0)
             for i, timestamp in enumerate(self.ds.get_timestamps(parameter="s1_max")):
@@ -469,7 +469,7 @@ class StatisticsTool(object):
         if nr is None:
             nr = self.ds.nFlowLine
 
-        if parameter_name in self.ds.get_available_variables():
+        if parameter_name in self.ds.available_vars():
             agg_cum = True
             result = self.ds.get_values_by_timestep_nr(
                 parameter_name,
@@ -917,7 +917,7 @@ class StatisticsTool(object):
         mod_session = self.get_modeldb_session()
         pump_table = self.get_modeldb_table("v2_pumpstation")
 
-        if "q_pump" not in self.ds.get_available_variables():
+        if "q_pump" not in self.ds.available_vars():
             logger.info("Variable q_pump is not available, skip pump statistics")
             return
 
