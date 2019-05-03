@@ -99,20 +99,20 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     def __init__(self, file_path=None):
         self.file_path = file_path
-        self._ga = None
-        self._ga_result = None
-        self._ds = None
+        self._gridadmin = None
+        self._gridadmin_result = None
+        self._datasource = None
         self._cache = {}
 
     @property
     def ds(self):
-        if self._ds is None:
+        if self._datasource is None:
             try:
-                self._ds = h5py.File(self.file_path, "r")
+                self._datasource = h5py.File(self.file_path, "r")
             except IOError as e:
                 logger.error(e)
                 raise e
-        return self._ds
+        return self._datasource
 
     @property
     def nMesh2D_nodes(self):
@@ -404,17 +404,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def gridadmin(self):
-        if not self._ga:
+        if not self._gridadmin:
             h5 = find_h5_file(self.file_path)
-            self._ga = GridH5Admin(h5)
-        return self._ga
+            self._gridadmin = GridH5Admin(h5)
+        return self._gridadmin
 
     @property
     def gridadmin_result(self):
-        if not self._ga_result:
+        if not self._gridadmin_result:
             h5 = find_h5_file(self.file_path)
-            self._ga_result = GridH5ResultAdmin(h5, self.file_path)
-        return self._ga_result
+            self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
+        return self._gridadmin_result
 
     @cached_property
     def gridadmin_aggregate_result(self):

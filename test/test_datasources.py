@@ -133,7 +133,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_sanity(self):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
+        nds._datasource = m
         # sanity test
         self.assertEqual(nds.ds, m)
 
@@ -147,7 +147,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_get_timeseries(self, gridadmin_result_mock):
         nds = NetcdfGroundwaterDataSource()
         m = mock.MagicMock()
-        nds._ds = m
+        nds._datasource = m
         nds.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
