@@ -99,7 +99,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             try:
                 self._ds = h5py.File(self.file_path, "r")
             except IOError as e:
-                logger.error(e)
+                logger.exception(e)
                 raise e
         return self._ds
 
