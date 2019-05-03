@@ -83,7 +83,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     PREFIX_1D = "Mesh1D_"
     PREFIX_2D = "Mesh2D_"
-    PREFIX_1D_LENGTH = 7  # just so we don't have to recalculate
+    PREFIX_1D_LENGTH = len(PREFIX_1D)  # just so we don't have to recalculate
     PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
 
     def __init__(self, file_path=None):
