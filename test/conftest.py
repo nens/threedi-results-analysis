@@ -3,10 +3,6 @@ import os
 import pytest
 
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
-from ThreeDiToolbox.utils.patched_threedigrid import (
-    GridH5ResultAdmin,
-    GridH5AggregateResultAdmin,
-)
 
 
 current_dir = os.path.dirname(__file__)
