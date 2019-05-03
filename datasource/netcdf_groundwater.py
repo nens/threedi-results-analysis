@@ -193,12 +193,34 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """Return the timestamps of the 'results_3di.nc'
 
         All variables in the 'results_3di.nc' have the same timestamps.
-        The 'aggregate_results_3di.nc' can have different number of timestamps
-        for each variable.
 
-        :return np.array containing the timestamps in seconds.
+        :return 1d np.array containing the timestamps in seconds.
         """
         return self.get_timestamps()
+
+    def get_timestamps(self, parameter=None):
+        """Returns an array of timestamps of the given parameter.
+
+        The timestamps are in seconds after the simulation has started.
+
+        All variables in the result_netcdf share the same timestamps.
+        Variables of the result_aggregation_netcdf can have varying number of
+        timestamps and their step size can differ.
+
+        if no parameter is given, returns the timestamps of the result-netcdf.
+
+        :return: 1d np.array
+        """
+        # TODO: the property self.timestamps is cached but this method is not.
+        #  This might cause performance issues. Check if these timestamps are
+        #  often queried and cause performance issues.
+        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
+            return self.gridadmin_result.nodes.timestamps
+        else:
+            ga = self.get_gridadmin(variable=parameter)
+            return ga.get_model_instance_by_field_name(parameter).get_timestamps(
+                parameter
+            )
 
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None
@@ -265,27 +287,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         aggregation-result-netcdf.
         """
         return parameter in POSSIBLE_AGG_VARS
-
-    def get_timestamps(self, parameter=None):
-        """Returns an array of timestamps of the given parameter.
-
-        The timestamps are in seconds after the simulation has started.
-
-        All variables in the result_netcdf share the same timestamps.
-        Variables of the result_aggregation_netcdf can have varying number of
-        timestamps and their step size can differ.
-
-        if no parameter is given, returns the timestamps of the result-netcdf.
-
-        :return: (np.array)
-        """
-        if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.gridadmin_result.nodes.timestamps
-        else:
-            ga = self.get_gridadmin(variable=parameter)
-            return ga.get_model_instance_by_field_name(parameter).get_timestamps(
-                parameter
-            )
 
     # used in map_animator
     def get_values_by_timestep_nr(
