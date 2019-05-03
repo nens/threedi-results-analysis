@@ -106,6 +106,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
     @property
     def ds(self):
+        # TODO: move to constructor or make cached_property
         if self._datasource is None:
             try:
                 self._datasource = h5py.File(self.file_path, "r")
