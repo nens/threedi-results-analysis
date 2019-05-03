@@ -199,15 +199,15 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return self.get_timestamps()
 
     def get_timestamps(self, parameter=None):
-        """Returns an array of timestamps of the given parameter.
+        """Return an array of timestamps for the given parameter
 
-        The timestamps are in seconds after the simulation has started.
+        The timestamps are in seconds after the start of the simulation.
 
         All variables in the result_netcdf share the same timestamps.
         Variables of the result_aggregation_netcdf can have varying number of
         timestamps and their step size can differ.
 
-        if no parameter is given, returns the timestamps of the result-netcdf.
+        If no parameter is given, returns the timestamps of the result-netcdf.
 
         :return: 1d np.array
         """
@@ -278,7 +278,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             return self.gridadmin_aggregate_result
         else:
-            raise AttributeError("Parameter %s unknown")
+            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     def _is_aggregation_parameter(self, parameter):
         """Return if the parameter is an aggregation parameter

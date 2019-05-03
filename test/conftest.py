@@ -9,8 +9,8 @@ from ThreeDiToolbox.utils.patched_threedigrid import (
 )
 
 
-cur_dir = os.path.dirname(__file__)
-data_dir = os.path.join(cur_dir, "data")
+current_dir = os.path.dirname(__file__)
+data_dir = os.path.join(current_dir, "data")
 bergermeer_dir = os.path.join(data_dir, "testmodel", "v2_bergermeer")
 
 gridadmin_path = os.path.join(bergermeer_dir, "gridadmin.h5")
@@ -20,13 +20,9 @@ aggregate_results_3di_path = os.path.join(bergermeer_dir, "aggregate_results_3di
 
 @pytest.fixture()
 def netcdf_groundwater_ds():
+    """Return a instance of NetcdfGroundwaterDataSource
+
+    The instance contains result data of the model 'v2_bergermeer'. It contains
+    both results and aggregate result data.
+    """
     return NetcdfGroundwaterDataSource(file_path=results_3di_path)
-
-
-@pytest.fixture()
-def grid_result():
-    return GridH5ResultAdmin(gridadmin_path, results_3di_path)
-
-
-def grid_aggr_result():
-    return GridH5AggregateResultAdmin(gridadmin_path, aggregate_results_3di_path)
