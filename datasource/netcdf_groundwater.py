@@ -354,40 +354,25 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         timesteps and all nodes of the variable.
 
         TODO: Saving the variables in cache is currently necessary to limit
-        the amount of (slow) IO with the netcdf results. However, this also
-        causes much unnecessary data to be stored in memory. This can become
-        problematic with large result files.
+         the amount of (slow) IO with the netcdf results. However, this also
+         causes much unnecessary values to be stored in memory. This can become
+         problematic with large result files.
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param use_cache: bool
         :return: 2d numpy array
         """
         if variable in self._cache and use_cache:
-            data = self._cache[variable]
+            values = self._cache[variable]
         else:
             logger.debug(
-                "Variable %s not yet in cache, fetching from result files" % variable)
+                "Variable %s not yet in cache, fetching from result file" % variable)
             ga = self.get_gridadmin(variable)
-            model = ga.get_model_instance_by_field_name(variable)
-            time_filter = model.timeseries(indexes=slice(None))
-            data = time_filter.get_filtered_field_value(variable)
-            self._cache[variable] = data
-        return data
-
-    def _nc_from_mem(self, ds, variable, use_cache=True):
-        """Get netcdf data from memory if needed."""
-        if use_cache:
-            try:
-                data = self._cache[variable]
-            except KeyError:
-                # Keep the whole netCDF array for a variable in memory for
-                # performance
-                data = ds.get(variable)[:]
-                self._cache[variable] = data
-        else:
-            # this returns a netCDF Variable, which behaves like a np array
-            data = ds.get(variable)
-        return data
+            model_instance = ga.get_model_instance_by_field_name(variable)
+            timeseries_filtered = model_instance.timeseries(indexes=slice(None))
+            values = timeseries_filtered.get_filtered_field_value(variable)
+            self._cache[variable] = values
+        return values
 
     @property
     def gridadmin(self):
