@@ -74,11 +74,22 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
 
 
 class NetcdfGroundwaterDataSource(BaseDataSource):
-    """NetcdfGroundwaterDatasource provides an abstraction layer to query
-    result data from a 3Di simulation stored in a netcdf
+    """Provides access to result data from a 3Di simulation
 
-    It provides an abstraction so you don't need to worry about whether the
-    data is stored in the results_3di.nc or aggregate_results_3di.nc
+    Result data of 3di is stored in netcdf4. Two types of result data
+    exists: normal results and aggregated results. Usually the files are named
+    'results_3di.nc' and 'aggregate_results_3di.nc' respectively.
+
+    This class allows access to the results via threedigrid:
+        -  GridH5ResultAdmin
+        - GridH5AggregateResultAdmin
+    For more information about threedigrid see https://threedigrid.readthedocs.io/en/latest/
+
+    Some helper methods are available query the result data using a variable
+    name (example of variable names: 's1', 'q_cum', 'vol', etc)
+
+    This class also provides for direct access to the data files via h5py.
+    However, it is recommended to use threedigrid instead.
     """
 
     PREFIX_1D = "Mesh1D_"
