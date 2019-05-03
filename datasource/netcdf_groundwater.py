@@ -241,9 +241,9 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param fill_value:
         :return: 2D array, first column being the timestamps
         """
-        gr = self.get_gridadmin(nc_variable)
+        ga = self.get_gridadmin(nc_variable)
 
-        filtered_result = gr.get_model_instance_by_field_name(nc_variable).timeseries(
+        filtered_result = ga.get_model_instance_by_field_name(nc_variable).timeseries(
             indexes=slice(None)
         )
         if node_id:
@@ -279,14 +279,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             return self.gridadmin_aggregate_result
         else:
             raise AttributeError("Unknown subgrid or aggregate variable: %s")
-
-    def _is_aggregation_parameter(self, parameter):
-        """Return if the parameter is an aggregation parameter
-
-        Aggregation parameters are variables which are stored inside the
-        aggregation-result-netcdf.
-        """
-        return parameter in POSSIBLE_AGG_VARS
 
     # used in map_animator
     def get_values_by_timestep_nr(
