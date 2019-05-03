@@ -232,7 +232,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         You can also filter on a specific node using node_id or content_pk,
         in which case only the timeseries of the given node is returned.
 
-        If there is no data of the given variable, only the timestamps are
+        If there is no values of the given variable, only the timestamps are
         returned, i.e. an array of shape (n, 1) with n being the timestamps.
 
         :param nc_variable:
@@ -243,22 +243,22 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """
         gr = self.get_gridadmin(nc_variable)
 
-        result_filter = gr.get_model_instance_by_field_name(nc_variable).timeseries(
+        filtered_result = gr.get_model_instance_by_field_name(nc_variable).timeseries(
             indexes=slice(None)
         )
         if node_id:
-            result_filter = result_filter.filter(id=node_id)
+            filtered_result = filtered_result.filter(id=node_id)
         elif content_pk:
-            result_filter = result_filter.filter(content_pk=content_pk)
+            filtered_result = filtered_result.filter(content_pk=content_pk)
 
-        data = result_filter.get_filtered_field_value(nc_variable)
+        values = filtered_result.get_filtered_field_value(nc_variable)
 
         if fill_value is not None:
-            data[data == NO_DATA_VALUE] = fill_value
+            values[values == NO_DATA_VALUE] = fill_value
 
         timestamps = self.get_timestamps(nc_variable)
-        timestamps = timestamps.reshape(-1, 1)
-        return np.hstack([timestamps, data])
+        timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
+        return np.hstack([timestamps, values])
 
     def get_gridadmin(self, variable=None):
         """Return the gridadmin where the variable is stored. If no variable is
