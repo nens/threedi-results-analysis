@@ -323,8 +323,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             return result[time_index_filter]
 
     def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, node_ids=None, use_cache=True
-    ):
+            self, variable, timestamp_idx, node_ids=None, use_cache=True):
         """Return an array of values of the given variable on the specified timestamp(s)
 
         If only one timestamp is specified, a 1d np.array is returned.  If an
@@ -340,12 +339,14 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param use_cache: (bool)
         :return: 1d/2d numpy.array
         """
-        data = self._nc_from_mem_new(variable)
+        data = self._nc_from_mem(variable)
         if isinstance(timestamp_idx, int):
             timestamp_idx = np.array([timestamp_idx])
 
         if node_ids is None:
-            filter_data = data[timestamp_idx]
+            # If no node_ids are specified, we don't want to return the first
+            # element, which is a trash element.
+            filter_data = data[timestamp_idx, 1:]
         else:
             filter_data = data[timestamp_idx][:, node_ids]
 
@@ -354,7 +355,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             return filter_data
 
-    def _nc_from_mem_new(self, variable, use_cache=True):
+    def _nc_from_mem(self, variable, use_cache=True):
         """Return 2d numpy array with all values of variable and cache it.
 
         Everyting of the variables is cached, both in time and space, i.e. all
@@ -362,7 +363,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         TODO: Saving the variables in cache is currently necessary to limit
          the amount of (slow) IO with the netcdf results. However, this also
-         causes much unnecessary values to be stored in memory. This can become
+         causes many unnecessary values to be stored in memory. This can become
          problematic with large result files.
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
