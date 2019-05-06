@@ -358,7 +358,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             return filtered_data
 
-    def _nc_from_mem(self, variable, use_cache=True):
+    def _nc_from_mem(self, variable):
         """Return 2d numpy array with all values of variable and cache it.
 
         Everyting of the variables is cached, both in time and space, i.e. all
@@ -373,7 +373,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         :param use_cache: bool
         :return: 2d numpy array
         """
-        if variable in self._cache and use_cache:
+        if variable in self._cache:
             values = self._cache[variable]
         else:
             logger.debug(
