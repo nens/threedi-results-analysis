@@ -247,7 +247,9 @@ def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
 
 def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
     with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
-        data.return_value = np.array(range(9)).reshape(3, 3)
+        trash_elements = np.zeros((3, 1))
+        variable_data = np.array(range(9)).reshape(3, 3)
+        data.return_value = np.hstack((trash_elements, variable_data))
         values = netcdf_groundwater_ds.get_values_by_timestep_nr('s1', 2)
         np.testing.assert_equal(values, np.array([6, 7, 8]))
 
@@ -262,7 +264,9 @@ def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
 
 def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
     with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
-        data.return_value = np.array(range(9)).reshape(3, 3)
+        trash_elements = np.zeros((3, 1))
+        variable_data = np.array(range(9)).reshape(3, 3)
+        data.return_value = np.hstack((trash_elements, variable_data))
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
             's1', timestamp_idx=np.array([0, 2]))
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
@@ -277,7 +281,7 @@ def test_get_values_by_timestep_nr_duplicate_node_ids(netcdf_groundwater_ds):
 
 
 def test_get_values_by_timestep_nr_unsorted_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '__nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
             's1', timestamp_idx=0, node_ids=np.array([1, 0, 2]))
