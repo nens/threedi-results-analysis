@@ -382,6 +382,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             model_instance = ga.get_model_instance_by_field_name(variable)
             timeseries_all = model_instance.timeseries(indexes=slice(None))
             values = timeseries_all.get_filtered_field_value(variable)
+            logger.debug('Caching additional {:.3f} MB of data'.format(
+                values.nbytes / 1000 / 1000))
             self._cache[variable] = values
         return values
 
