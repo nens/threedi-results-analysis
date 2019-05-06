@@ -297,7 +297,7 @@ class StatisticsTool(object):
             agg_h_max = True
             h_max = np.full(nr_manholes, -9999.0)
             for i, timestamp in enumerate(self.ds.get_timestamps(parameter="s1_max")):
-                h = self.ds.get_values_by_timestep_nr("s1_max", i, index=manhole_idx)
+                h = self.ds.get_values_by_timestep_nr("s1_max", i, node_ids=manhole_idx)
                 # unmask result (dry cells no have -9999 values
                 h_array = np.asarray(h)
                 h_max = np.maximum(h_max, h_array)
@@ -317,7 +317,7 @@ class StatisticsTool(object):
             timestep = timestamp - prev_timestamp
             prev_timestamp = timestamp
             # read data from netcdf using index to get only manholes
-            h = self.ds.get_values_by_timestep_nr("s1", i, index=manhole_idx)
+            h = self.ds.get_values_by_timestep_nr("s1", i, node_ids=manhole_idx)
 
             # unmask result (dry cells no have -9999 values
             h_array = np.asarray(h)
@@ -328,9 +328,8 @@ class StatisticsTool(object):
             t_water_surface[h >= manhole_surface_level] += timestep
 
         h_end = self.ds.get_values_by_timestep_nr(
-            "s1", len(self.ds.timestamps) - 1, index=manhole_idx
+            "s1", len(self.ds.timestamps) - 1, node_ids=manhole_idx
         )
-        h_end = h_end.filled(-9999.0)
 
         manhole_stats = []
 
@@ -534,14 +533,13 @@ class StatisticsTool(object):
             vmax = np.maximum(vmax, v)
             vmin = np.minimum(vmin, v)
 
-            h_start = ds.get_values_by_timestep_nr("s1", i, index=start_idx)
-            h_end = ds.get_values_by_timestep_nr("s1", i, index=end_idx)
+            h_start = ds.get_values_by_timestep_nr("s1", i, node_ids=start_idx)
+            h_end = ds.get_values_by_timestep_nr("s1", i, node_ids=end_idx)
 
             try:
                 np.copyto(
                     dh_max,
                     np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
-                    where=np.logical_not(np.logical_or(h_start.mask, h_end.mask)),
                 )
             except Exception:
                 logger.info("dh_max is not loaded for timestep: %s" % (timestamp))
@@ -563,13 +561,11 @@ class StatisticsTool(object):
         qend = ds.get_values_by_timestep_nr("q", len(ds.timestamps) - 1)
         vend = ds.get_values_by_timestep_nr("u1", len(ds.timestamps) - 1)
         hend_start = ds.get_values_by_timestep_nr(
-            "s1", len(ds.timestamps) - 1, index=start_idx
+            "s1", len(ds.timestamps) - 1, node_ids=start_idx
         )
-        hend_start = hend_start.filled(-9999.0)
         hend_end = ds.get_values_by_timestep_nr(
-            "s1", len(ds.timestamps) - 1, index=end_idx
+            "s1", len(ds.timestamps) - 1, node_ids=end_idx
         )
-        hend_end = hend_end.filled(-9999.0)
 
         # save stats to the database
         logger.info("prepare flowline statistics for database")
