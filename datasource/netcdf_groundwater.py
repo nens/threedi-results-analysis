@@ -277,7 +277,7 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
-    def get_values_by_timestep_nr_simple_no_caching(
+    def get_values_by_timestep_nr_no_caching(
         self, variable, timestamp_idx, node_ids=None
     ):
         """Return an array of values of the given variable on the specified timestamp(s)

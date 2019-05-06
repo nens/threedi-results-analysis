@@ -22,9 +22,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     from .utils.qlogging import setup_logging
     from .dependencies import try_to_import_dependencies
 
-    import sys; sys.path[0:0] = ['/pycharm/pycharm-debug-py3k.egg', ]; import pydevd; pydevd.settrace('10.90.16.48', port=4445, stdoutToServer=True, stderrToServer=True, suspend=False)
-
-
     setup_logging()
     try_to_import_dependencies()
     return ThreeDiTools(iface)
