@@ -11,48 +11,13 @@ from .base import BaseDataSource
 from ..utils import cached_property
 from .netcdf import (
     SUBGRID_MAP_VARIABLES,
-    AGG_Q_TYPES,
-    AGG_H_TYPES,
-    Q_TYPES,
-    H_TYPES,
-    POSSIBLE_AGG_VARS,
     find_h5_file,
 )
-from ..utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
-# all possible var names from regular netcdf AND agg netcdf
-ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
-ALL_H_TYPES = H_TYPES + AGG_H_TYPES
-
 logger = logging.getLogger(__name__)
-
-layer_information = [
-    # object_type, model_instance, model_instance_subset, qgis_layer_source
-    ("v2_connection_nodes", "nodes", "connectionnodes", "schematized"),
-    ("v2_pipe_view", "lines", "pipes", "schematized"),
-    ("v2_channel", "lines", "channels", "schematized"),
-    ("v2_culvert_view", "lines", "culverts", "schematized"),
-    ("v2_manhole_view", "nodes", "manholes", "schematized"),
-    # Todo:
-    # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
-    ("v2_pumpstation_view", "pumps", "pumps", "schematized"),
-    ("v2_weir_view", "lines", "weirs", "schematized"),
-    ("v2_orifice_view", "lines", "orifices", "schematized"),
-    ("flowlines", "lines", "lines", "result"),
-    ("nodes", "nodes", "nodes", "result"),
-    ("pumplines", "pumps", "pumps", "result"),
-    ("node_results", "nodes", "nodes", "result"),
-    ("node_results_groundwater", "nodes", "nodes", "result"),
-    ("line_results", "lines", "lines", "result"),
-    ("line_results_groundwater", "lines", "lines", "result"),
-]
-
-object_type_model_instance = dict([(a[0], a[1]) for a in layer_information])
-object_type_model_instance_subset = dict([(a[0], a[2]) for a in layer_information])
-object_type_layer_source = dict([(a[0], a[3]) for a in layer_information])
 
 
 def find_aggregation_netcdf_gw(netcdf_file_path):
