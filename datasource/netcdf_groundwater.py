@@ -380,8 +380,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 "Variable %s not yet in cache, fetching from result file" % variable)
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
-            timeseries_filtered = model_instance.timeseries(indexes=slice(None))
-            values = timeseries_filtered.get_filtered_field_value(variable)
+            timeseries_all = model_instance.timeseries(indexes=slice(None))
+            values = timeseries_all.get_filtered_field_value(variable)
             self._cache[variable] = values
         return values
 

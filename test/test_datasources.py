@@ -303,3 +303,8 @@ def test_get_values_by_timestep_nr_timestamp_and_node_ids(netcdf_groundwater_ds)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
             's1', timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1]))
         np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
+
+
+def test__nc_from_mem(netcdf_groundwater_ds):
+    netcdf_groundwater_ds._nc_from_mem('s1')
+    assert 's1' in netcdf_groundwater_ds._cache.keys()
