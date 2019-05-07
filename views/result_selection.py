@@ -255,21 +255,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     )
                     return False
             elif ds_type == "netcdf":
-                try:
-                    find_id_mapping_file(filename)
-                except IndexError:
-                    pop_up_info(
-                        "You selected a netcdf that was created "
-                        "(before June 2018) with a 3Di calculation "
-                        "core that is not able to include groundwater "
-                        "calculations. The ThreeDiToolbox reads this "
-                        "netcdf together with an id_mapping file, "
-                        "we could however not find this id_mapping "
-                        "file. Please add this file next to the "
-                        "netcdf and try again",
-                        title="Error",
-                    )
-                    return False
+                pop_up_info(
+                    "The selected result data is too old and no longer "
+                    "supported in this version of ThreediToolbox. Please "
+                    "recalculate the results with a newer version of the "
+                    "threedicore or use the ThreediToolbox plugin for QGIS 2",
+                    title="Error"
+                )
 
             items = [
                 {

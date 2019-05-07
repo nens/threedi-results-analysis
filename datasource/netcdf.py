@@ -49,39 +49,6 @@ def find_id_mapping_file(netcdf_file_path):
     return inpfiles[0]
 
 
-# TODO: remove
-def detect_netcdf_version(netcdf_file_path):
-    """An ad-hoc way to detect whether we work with
-    1. or an regular netcdf: one that has been made with on "old" calculation
-    core (without groundater). This netcdf does not include an attribute
-    'threedicore_version'
-    2. or an groundwater netcdf: one that has been made with on "new"
-    calculation core (with optional groundater calculations). This netcdf
-    does include an attribute 'threedicore_version'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the version (a string) of the netcdf
-            - 'netcdf'
-            - 'netcdf-groundwater'
-
-    """
-    import h5py
-
-    try:
-        dataset = h5py.File(netcdf_file_path, mode="r")
-        if "threedicore_version" in dataset.attrs:
-            return "netcdf-groundwater"
-        else:
-            return "netcdf"
-    except IOError:
-        # old 3Di results cannot be opened with h5py. The can be opened with
-        # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
-        # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
-        return "netcdf"
-
 # TODO Below can all be removed:
 
 # TODO: this function doesn't work correctly because multiple links can
