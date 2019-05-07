@@ -8,16 +8,44 @@ import h5py
 from threedigrid.admin.constants import NO_DATA_VALUE
 
 from .base import BaseDataSource
+from .result_constants import SUBGRID_MAP_VARIABLES
 from ..utils import cached_property
-from .netcdf import (
-    SUBGRID_MAP_VARIABLES,
-    find_h5_file,
-)
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
 logger = logging.getLogger(__name__)
+
+
+def find_h5_file(netcdf_file_path):
+    """An ad-hoc way to get the h5_file.
+
+    We assume the h5_file file is in on of the following locations (note:
+    this order is also the searching order):
+
+    1) . (in the same dir as the netcdf)
+    2) ../preprocessed
+
+    relative to the netcdf file and has extension '.h5'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        h5_file path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = "*.h5"
+    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "preprocessed")
+    resultdir = os.path.dirname(netcdf_file_path)
+
+    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
+    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
+
+    inpfiles = from_resultdir + from_inpdir
+    return inpfiles[0]
 
 
 def find_aggregation_netcdf_gw(netcdf_file_path):

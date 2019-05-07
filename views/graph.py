@@ -31,16 +31,12 @@ from qgis.core import (
 )
 from qgis.gui import QgsVertexMarker, QgsRubberBand
 
-from ..datasource.netcdf import layer_qh_type_mapping, normalized_object_type
+from ..datasource.netcdf import normalized_object_type
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import statusbar_message, messagebar_message
-from ..datasource.netcdf import (
-    SUBGRID_MAP_VARIABLES,
-    Q_TYPES,
-    H_TYPES,
-    AGGREGATION_VARIABLES,
-)
-from datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
+from datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS, Q_TYPES, \
+    H_TYPES, SUBGRID_MAP_VARIABLES, AGGREGATION_VARIABLES, \
+    layer_qh_type_mapping
 
 logger = logging.getLogger(__name__)
 
