@@ -6,10 +6,7 @@ NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit"])
 WATERLEVEL = NcVar("s1", "waterlevel", "m MSL")
 DISCHARGE = NcVar("q", "discharge", "m3/s")
 VELOCITY = NcVar("u1", "velocity", "m/s")
-# Volume is called 'vol' in subgrid_map.nc but 'vol1' in the aggregation
-# netcdf
 VOLUME = NcVar("vol", "volume", "m3")
-VOLUME_AGG = NcVar("vol1", "volume", "m3")
 DISCHARGE_PUMP = NcVar("q_pump", "discharge pump", "m3/s")
 DISCHARGE_INTERFLOW = NcVar("qp", "discharge interflow", "m3/s")
 DISCHARGE_LATERAL = NcVar("q_lat", "discharge lateral", "m3/s")
@@ -57,10 +54,7 @@ AGGREGATION_VARIABLES = [
     VELOCITY,
     VELOCITY_INTERFLOW,
     WATERLEVEL,
-    # TODO: for some reason it's called 'vol' in the groundwater netcdf, while
-    # it's called 'vol1' in the old one
     VOLUME,
-    VOLUME_AGG,
     RAIN_INTENSITY,
     WET_SURFACE_AREA,
     INFILTRATION,
