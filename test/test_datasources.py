@@ -166,145 +166,145 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
             self.assertEqual(agg_path, agg_path_found)
 
 
-def test_get_timestamps_shape(netcdf_groundwater_ds):
-    timestamps = netcdf_groundwater_ds.get_timestamps()
+def test_get_timestamps_shape(threedi_result):
+    timestamps = threedi_result.get_timestamps()
     assert timestamps.shape == (32,)
 
 
-def test_get_timestamps_last_timestep(netcdf_groundwater_ds):
-    timestamps = netcdf_groundwater_ds.get_timestamps()
+def test_get_timestamps_last_timestep(threedi_result):
+    timestamps = threedi_result.get_timestamps()
     assert timestamps[-1] == 1863.5643704609731
 
 
-def test_get_timestamps_with_agg_parameter_q_cum(netcdf_groundwater_ds):
-    timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter="q_cum")
+def test_get_timestamps_with_agg_parameter_q_cum(threedi_result):
+    timestamps_q_cum = threedi_result.get_timestamps(parameter="q_cum")
     assert timestamps_q_cum.shape == (7,)
     assert timestamps_q_cum[-1] == 1801.2566835460611
 
 
-def test_get_timestamps_with_agg_parameter_vol_current(netcdf_groundwater_ds):
-    timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(
+def test_get_timestamps_with_agg_parameter_vol_current(threedi_result):
+    timestamps_vol_current = threedi_result.get_timestamps(
         parameter="vol_current"
     )
     assert timestamps_vol_current.shape == (7,)
     assert timestamps_vol_current[-1] == 1801.2566835460611
 
 
-def test_get_gridadmin(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable=None)
+def test_get_gridadmin(threedi_result):
+    ga = threedi_result.get_gridadmin(variable=None)
     assert isinstance(ga, gridresultadmin.GridH5Admin)
 
 
-def test_get_gridadmin_result_var(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable="s1")
+def test_get_gridadmin_result_var(threedi_result):
+    ga = threedi_result.get_gridadmin(variable="s1")
     assert isinstance(ga, gridresultadmin.GridH5ResultAdmin)
 
 
-def test_get_gridadmin_agg_result_var(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable="q_cum")
+def test_get_gridadmin_agg_result_var(threedi_result):
+    ga = threedi_result.get_gridadmin(variable="q_cum")
     assert isinstance(ga, gridresultadmin.GridH5AggregateResultAdmin)
 
 
-def test_get_gridadmin_agg_result_var_not_available(netcdf_groundwater_ds):
+def test_get_gridadmin_agg_result_var_not_available(threedi_result):
     with pytest.raises(AttributeError):
-        netcdf_groundwater_ds.get_gridadmin(variable="u1_max")
+        threedi_result.get_gridadmin(variable="u1_max")
 
 
-def test_get_gridadmin_unknown_var(netcdf_groundwater_ds):
+def test_get_gridadmin_unknown_var(threedi_result):
     with pytest.raises(AttributeError):
-        netcdf_groundwater_ds.get_gridadmin(variable="unknown")
+        threedi_result.get_gridadmin(variable="unknown")
 
 
-def test_get_timeseries(netcdf_groundwater_ds):
-    ts = netcdf_groundwater_ds.get_timeseries("s1")
-    np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
-    assert ts.shape[1] == netcdf_groundwater_ds.get_gridadmin("s1").nodes.count + 1
+def test_get_timeseries(threedi_result):
+    ts = threedi_result.get_timeseries("s1")
+    np.testing.assert_equal(ts[:, 0], threedi_result.get_timestamps())
+    assert ts.shape[1] == threedi_result.get_gridadmin("s1").nodes.count + 1
 
 
-def test_get_timeseries_filter_node(netcdf_groundwater_ds):
+def test_get_timeseries_filter_node(threedi_result):
     with mock.patch(
         "threedigrid.orm.base.models.Model.get_filtered_field_value"
     ) as data:
-        data.return_value = np.ones((len(netcdf_groundwater_ds.timestamps), 1))
-        ts = netcdf_groundwater_ds.get_timeseries("s1", node_id=5)
-        np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
+        data.return_value = np.ones((len(threedi_result.timestamps), 1))
+        ts = threedi_result.get_timeseries("s1", node_id=5)
+        np.testing.assert_equal(ts[:, 0], threedi_result.get_timestamps())
         np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
 
 
-def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
+def test_get_model_instance_by_field_name(threedi_result):
     """A bug in threedigrid <= 1.0.12
 
     Note that querying these variables, ('s1' in the gridresultadmin and
     'q_cum' in the gridaggregateresultadmin) should not fail.
 
     Will be fixed in threedigrid >= 1.0.13"""
-    gr = netcdf_groundwater_ds.get_gridadmin("s1")
+    gr = threedi_result.get_gridadmin("s1")
     gr.get_model_instance_by_field_name("s1")
 
-    gr = netcdf_groundwater_ds.get_gridadmin("q_cum")
+    gr = threedi_result.get_gridadmin("q_cum")
     gr.get_model_instance_by_field_name("q_cum")
 
 
-def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr('s1', 2)
+        values = threedi_result.get_values_by_timestep_nr('s1', 2)
         np.testing.assert_equal(values, np.array([6, 7, 8]))
 
 
-def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr_with_index(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', 2, node_ids=np.array([1, 2]))
         np.testing.assert_equal(values, np.array([7, 8]))
 
 
-def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr_with_multipe_timestamps(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', timestamp_idx=np.array([0, 2]))
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
 
-def test_get_values_by_timestep_nr_duplicate_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr_duplicate_node_ids(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', timestamp_idx=1, node_ids=np.array([0, 0, 2]))
         np.testing.assert_equal(values, np.array([3, 3, 5]))
 
 
-def test_get_values_by_timestep_nr_unsorted_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr_unsorted_node_ids(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', timestamp_idx=0, node_ids=np.array([1, 0, 2]))
         np.testing.assert_equal(values, np.array([1, 0, 2]))
 
 
-def test_get_values_by_timestep_nr_timestamp_idx_array_one(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+def test_get_values_by_timestep_nr_timestamp_idx_array_one(threedi_result):
+    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', timestamp_idx=np.array([2]), node_ids=np.array([0, 1]))
         np.testing.assert_equal(values, np.array([6, 7]))
 
 
-def test_get_values_by_timestep_nr_timestamp_and_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds,
+def test_get_values_by_timestep_nr_timestamp_and_node_ids(threedi_result):
+    with mock.patch.object(threedi_result,
                            '_nc_from_mem') as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             's1', timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1]))
         np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
 
 
-def test__nc_from_mem(netcdf_groundwater_ds):
-    netcdf_groundwater_ds._nc_from_mem('s1')
-    assert 's1' in netcdf_groundwater_ds._cache.keys()
+def test__nc_from_mem(threedi_result):
+    threedi_result._nc_from_mem('s1')
+    assert 's1' in threedi_result._cache.keys()

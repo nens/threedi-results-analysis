@@ -15,7 +15,7 @@ aggregate_results_3di_path = os.path.join(bergermeer_dir, "aggregate_results_3di
 
 
 @pytest.fixture()
-def netcdf_groundwater_ds():
+def threedi_result():
     """Return a instance of ThreediResult
 
     The instance contains result data of the model 'v2_bergermeer'. It contains
