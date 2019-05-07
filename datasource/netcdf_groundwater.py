@@ -7,12 +7,10 @@ import h5py
 
 from threedigrid.admin.constants import NO_DATA_VALUE
 
-from datasource.netcdf import logger
-from datasource.result_constants import layer_object_type_mapping
-
+from .result_constants import layer_object_type_mapping
 from .base import BaseDataSource
 from .result_constants import SUBGRID_MAP_VARIABLES
-from ..utils import cached_property
+from ThreeDiToolbox.utils import cached_property
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
