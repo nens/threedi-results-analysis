@@ -8,7 +8,7 @@ from ThreeDiToolbox.models.datasources import (
     TimeseriesDatasourceModel,
     DataSourceLayerManager,
 )
-from ThreeDiToolbox.datasource.threedi_results import ResultData
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
 
 
@@ -246,7 +246,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**test_values)
         ncds = item.datasource()
-        self.assertTrue(isinstance(ncds, ResultData))
+        self.assertTrue(isinstance(ncds, ThreediResult))
         self.assertTrue(ncds.ds)
 
 

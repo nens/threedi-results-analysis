@@ -4,7 +4,7 @@ from builtins import object
 import os
 import logging
 from qgis.PyQt.QtCore import Qt, pyqtSignal
-from ..datasource.threedi_results import ResultData
+from ..datasource.threedi_results import ThreediResult
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
@@ -81,7 +81,7 @@ class DataSourceLayerManager(object):
     Abstracts away datasource-layer specifics.
     """
 
-    type_ds_mapping = {"netcdf-groundwater": ResultData}
+    type_ds_mapping = {"netcdf-groundwater": ThreediResult}
 
     def __init__(self, ds_type, file_path):
         self.ds_type = ds_type

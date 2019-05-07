@@ -71,7 +71,7 @@ class DataSourceAdapter(Proxy):
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == "ResultData"
+        return self.obj.__class__.__name__ == "ThreediResult"
 
     @property
     def timestamps(self):

@@ -18,7 +18,7 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 logger = logging.getLogger(__name__)
 
 
-class ResultData(BaseDataSource):
+class ThreediResult(BaseDataSource):
     """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data

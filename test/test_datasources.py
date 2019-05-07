@@ -25,7 +25,7 @@ except ImportError:
     Spatialite = None
 from datasource.threedi_results import find_h5_file, find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import (
-    ResultData,
+    ThreediResult,
     find_aggregation_netcdf_gw,
 )
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
@@ -128,24 +128,24 @@ class TestSpatialiteDataSource(unittest.TestCase):
 class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
-        ResultData()
+        ThreediResult()
 
     def test_sanity(self):
-        nds = ResultData()
+        nds = ThreediResult()
         m = mock.MagicMock()
         nds._datasource = m
         # sanity test
         self.assertEqual(nds.ds, m)
 
     @mock.patch(
-        "ThreeDiToolbox.datasource.netcdf_groundwater.ResultData.available_subgrid_map_vars",
+        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
     )
     @mock.patch(
-        "ThreeDiToolbox.datasource.netcdf_groundwater.ResultData.gridadmin_result"
+        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.gridadmin_result"
     )
     def test_get_timeseries(self, gridadmin_result_mock):
-        nds = ResultData()
+        nds = ThreediResult()
         m = mock.MagicMock()
         nds._datasource = m
         nds.get_timeseries("s1", 3)

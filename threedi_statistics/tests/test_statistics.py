@@ -7,7 +7,7 @@ import shutil
 import tempfile
 
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
-from ThreeDiToolbox.datasource.threedi_results import ResultData
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
 
@@ -18,7 +18,7 @@ class DummyTimeseriesDatasourceModel(object):
     def __init__(self, modeldb_path, resultnc_path):
         self.model_spatialite_filepath = modeldb_path
         self.resultnc_path = resultnc_path
-        self.ds = ResultData(resultnc_path)
+        self.ds = ThreediResult(resultnc_path)
         self.rows = [self]
 
     def datasource(self):
