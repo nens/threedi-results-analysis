@@ -39,7 +39,7 @@ def find_aggregation_netcdf_gw(netcdf_file_path):
 
 
 class NetcdfGroundwaterDataSource(BaseDataSource):
-    """Provides access to result data from a 3Di simulation
+    """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data
     exists: normal results and aggregated results. Usually the files are named
@@ -63,17 +63,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         self._gridadmin_result = None
         self._datasource = None
         self._cache = {}
-
-    @property
-    def ds(self):
-        # TODO: move to constructor or make cached_property
-        if self._datasource is None:
-            try:
-                self._datasource = h5py.File(self.file_path, "r")
-            except IOError as e:
-                logger.exception(e)
-                raise e
-        return self._datasource
 
     @property
     def nMesh2D_nodes(self):
@@ -184,6 +173,27 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
                 parameter
             )
 
+    def get_gridadmin(self, variable=None):
+        """Return the gridadmin where the variable is stored. If no variable is
+        given, a gridadmin without results is returned.
+
+        Results are either stored in the 'results_3di.nc' or the
+        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
+        GridH5AggregateResultAdmin to query the data respectively.
+
+        :param variable: str of the variable name, e.g. 's1', 'q_pump'
+        :return: handle to GridAdminResult or AggregateGridAdminResult
+        """
+        if variable is None:
+            return self.gridadmin
+        elif variable in self.available_subgrid_map_vars:
+            return self.gridadmin_result
+        elif variable in self.available_aggregation_vars:
+            return self.gridadmin_aggregate_result
+        else:
+            raise AttributeError(
+                "Unknown subgrid or aggregate variable: %s")
+
     def get_timeseries(
         self, nc_variable, node_id=None, content_pk=None, fill_value=None
     ):
@@ -221,26 +231,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         timestamps = self.get_timestamps(nc_variable)
         timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
         return np.hstack([timestamps, values])
-
-    def get_gridadmin(self, variable=None):
-        """Return the gridadmin where the variable is stored. If no variable is
-        given, a gridadmin without results is returned.
-
-        Results are either stored in the 'results_3di.nc' or the
-        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
-        GridH5AggregateResultAdmin to query the data respectively.
-
-        :param variable: str of the variable name, e.g. 's1', 'q_pump'
-        :return: handle to GridAdminResult or AggregateGridAdminResult
-        """
-        if variable is None:
-            return self.gridadmin
-        elif variable in self.available_subgrid_map_vars:
-            return self.gridadmin_result
-        elif variable in self.available_aggregation_vars:
-            return self.gridadmin_aggregate_result
-        else:
-            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     # This method is similar as get_values_by_timestep_nr but does not cache
     # values. Moreover, it tries to only query the minimum needed data needed.
@@ -374,6 +364,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             return GridH5AggregateResultAdmin(h5, agg_path)
         except IndexError:
             return None
+
+    @property
+    def ds(self):
+        # TODO: move to constructor or make cached_property
+        if self._datasource is None:
+            try:
+                self._datasource = h5py.File(self.file_path, "r")
+            except IOError as e:
+                logger.exception(e)
+                raise e
+        return self._datasource
 
     @cached_property
     def ds_aggregation(self):
