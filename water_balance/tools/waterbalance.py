@@ -12,7 +12,7 @@ import numpy.ma as ma
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsFeatureRequest, QgsPointXY
-from datasource.threedi_results import find_h5_file
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
 
