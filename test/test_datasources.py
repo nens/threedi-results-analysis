@@ -23,7 +23,6 @@ try:
 except ImportError:
     print("Can't import Spatialite.")
     Spatialite = None
-from datasource.threedi_results import find_h5_file, find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import (
     ThreediResult,
     find_aggregation_netcdf_gw,
@@ -42,22 +41,6 @@ netcdf_groundwater_datasource_nc_path = os.path.join(
     "v2_bergermeer",
     "results_3di.nc",
 )
-
-
-def result_data_is_available(flow_agg_must_exist=False):
-    """Check if we have the necessary result data for the tests."""
-    if not os.path.exists(netcdf_groundwater_datasource_nc_path):
-        return False
-    try:
-        find_h5_file(netcdf_groundwater_datasource_nc_path)
-    except IndexError:
-        return False
-    if flow_agg_must_exist:
-        try:
-            find_aggregation_netcdf(netcdf_groundwater_datasource_nc_path)
-        except IndexError:
-            return False
-    return True
 
 
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")

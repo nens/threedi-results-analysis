@@ -66,14 +66,14 @@ class ThreediResult(BaseDataSource):
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         if self.gridadmin_result.has_pumpstations:
             available_vars = (
-                self.gridadmin_result.nodes._field_names
-                | self.gridadmin_result.lines._field_names
-                | self.gridadmin_result.pumps._field_names
+                    self.gridadmin_result.nodes._field_names
+                    | self.gridadmin_result.lines._field_names
+                    | self.gridadmin_result.pumps._field_names
             )
         else:
             available_vars = (
-                self.gridadmin_result.nodes._field_names
-                | self.gridadmin_result.lines._field_names
+                    self.gridadmin_result.nodes._field_names
+                    | self.gridadmin_result.lines._field_names
             )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
@@ -97,7 +97,7 @@ class ThreediResult(BaseDataSource):
 
             # all available fields, including hdf5 fields
             available_vars = (
-                agg.nodes._field_names | agg.lines._field_names | agg.pumps._field_names
+                    agg.nodes._field_names | agg.lines._field_names | agg.pumps._field_names
             )
         else:
             known_vars = set(
@@ -175,7 +175,7 @@ class ThreediResult(BaseDataSource):
                 "Unknown subgrid or aggregate variable: %s")
 
     def get_timeseries(
-        self, nc_variable, node_id=None, content_pk=None, fill_value=None
+            self, nc_variable, node_id=None, content_pk=None, fill_value=None
     ):
         """Return a time series array of the given variable
 
@@ -414,23 +414,6 @@ def find_h5_file(netcdf_file_path):
 
     inpfiles = from_resultdir + from_inpdir
     return inpfiles[0]
-
-
-def find_aggregation_netcdf(netcdf_file_path):
-    """An ad-hoc way to find the aggregation netcdf file.
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the aggregation netcdf path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "flow_aggregate.nc"
-    result_dir = os.path.dirname(netcdf_file_path)
-    return glob.glob(os.path.join(result_dir, pattern))[0]
 
 
 def find_aggregation_netcdf_gw(netcdf_file_path):
