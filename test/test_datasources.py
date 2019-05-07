@@ -25,7 +25,7 @@ except ImportError:
     Spatialite = None
 from ThreeDiToolbox.datasource.threedi_results import (
     ThreediResult,
-    find_aggregation_netcdf_gw,
+    find_aggregation_netcdf,
 )
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
@@ -137,7 +137,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         with TemporaryDirectory() as tempdir:
             nc_path = os.path.join(tempdir, "bla.nc")
             with self.assertRaises(IndexError):
-                find_aggregation_netcdf_gw(nc_path)
+                find_aggregation_netcdf(nc_path)
 
     def test_find_agg_success(self):
         with TemporaryDirectory() as tempdir:
@@ -145,7 +145,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
             agg_path = os.path.join(tempdir, "aggregate_results_3di.nc")
             with open(agg_path, "w") as aggfile:
                 aggfile.write("doesnt matter")
-            agg_path_found = find_aggregation_netcdf_gw(nc_path)
+            agg_path_found = find_aggregation_netcdf(nc_path)
             self.assertEqual(agg_path, agg_path_found)
 
 

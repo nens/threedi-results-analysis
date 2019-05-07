@@ -339,7 +339,7 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def gridadmin_aggregate_result(self):
         try:
-            agg_path = find_aggregation_netcdf_gw(self.file_path)
+            agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
             return GridH5AggregateResultAdmin(h5, agg_path)
         except IndexError:
@@ -366,7 +366,7 @@ class ThreediResult(BaseDataSource):
 
         # Load aggregation netcdf
         try:
-            aggregation_netcdf_file = find_aggregation_netcdf_gw(self.file_path)
+            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
         except IndexError:
             logger.error("Could not find the aggregation netcdf.")
             return None
@@ -416,9 +416,8 @@ def find_h5_file(netcdf_file_path):
     return inpfiles[0]
 
 
-def find_aggregation_netcdf_gw(netcdf_file_path):
-    """An ad-hoc way to find the aggregation netcdf file for groundwater
-    results.
+def find_aggregation_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file
 
     Args:
         netcdf_file_path: path to the result netcdf
