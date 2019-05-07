@@ -18,25 +18,7 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 logger = logging.getLogger(__name__)
 
 
-def find_aggregation_netcdf_gw(netcdf_file_path):
-    """An ad-hoc way to find the aggregation netcdf file for groundwater
-    results.
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the aggregation netcdf path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "aggregate_results_3di.nc"
-    result_dir = os.path.dirname(netcdf_file_path)
-    return glob.glob(os.path.join(result_dir, pattern))[0]
-
-
-class NetcdfGroundwaterDataSource(BaseDataSource):
+class ResultData(BaseDataSource):
     """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data
@@ -447,6 +429,24 @@ def find_aggregation_netcdf(netcdf_file_path):
         IndexError if nothing is found
     """
     pattern = "flow_aggregate.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    return glob.glob(os.path.join(result_dir, pattern))[0]
+
+
+def find_aggregation_netcdf_gw(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file for groundwater
+    results.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = "aggregate_results_3di.nc"
     result_dir = os.path.dirname(netcdf_file_path)
     return glob.glob(os.path.join(result_dir, pattern))[0]
 

@@ -16,7 +16,7 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog
 from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.PyQt import uic
 
-from datasource.netcdf_groundwater import find_h5_file, detect_netcdf_version
+from datasource.threedi_results import find_h5_file, detect_netcdf_version
 from datasource.result_constants import layer_qh_type_mapping
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
