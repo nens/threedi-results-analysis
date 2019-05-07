@@ -31,7 +31,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsVertexMarker, QgsRubberBand
 
-from ..datasource.netcdf import normalized_object_type
+from datasource.netcdf_groundwater import normalized_object_type
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import statusbar_message, messagebar_message
 from datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS, Q_TYPES, \

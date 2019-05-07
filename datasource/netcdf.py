@@ -7,25 +7,17 @@ import os
 import logging
 import numpy as np
 
+from datasource.netcdf_groundwater import normalized_object_type, \
+    find_aggregation_netcdf
 from datasource.result_constants import Q_TYPES, H_TYPES, \
-    SUBGRID_MAP_VARIABLES, AGGREGATION_VARIABLES, AGGREGATION_OPTIONS, \
-    layer_object_type_mapping
+    SUBGRID_MAP_VARIABLES, AGGREGATION_VARIABLES, AGGREGATION_OPTIONS
 from .base import BaseDataSource
 from ..utils import cached_property
 
 logger = logging.getLogger(__name__)
 
 
-def normalized_object_type(current_layer_name):
-    """Get a normalized object type for internal purposes."""
-    if current_layer_name in list(layer_object_type_mapping.keys()):
-        return layer_object_type_mapping[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        logger.warning(msg)
-        return None
-
-
+# TODO: remove
 def find_id_mapping_file(netcdf_file_path):
     """An ad-hoc way to get the id_mapping file.
 
@@ -57,37 +49,7 @@ def find_id_mapping_file(netcdf_file_path):
     return inpfiles[0]
 
 
-def find_h5_file(netcdf_file_path):
-    """An ad-hoc way to get the h5_file.
-
-    We assume the h5_file file is in on of the following locations (note:
-    this order is also the searching order):
-
-    1) . (in the same dir as the netcdf)
-    2) ../preprocessed
-
-    relative to the netcdf file and has extension '.h5'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        h5_file path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "*.h5"
-    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "preprocessed")
-    resultdir = os.path.dirname(netcdf_file_path)
-
-    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
-    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
-
-    inpfiles = from_resultdir + from_inpdir
-    return inpfiles[0]
-
-
+# TODO: remove
 def detect_netcdf_version(netcdf_file_path):
     """An ad-hoc way to detect whether we work with
     1. or an regular netcdf: one that has been made with on "old" calculation
@@ -120,23 +82,7 @@ def detect_netcdf_version(netcdf_file_path):
         # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
         return "netcdf"
 
-
-def find_aggregation_netcdf(netcdf_file_path):
-    """An ad-hoc way to find the aggregation netcdf file.
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the aggregation netcdf path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "flow_aggregate.nc"
-    result_dir = os.path.dirname(netcdf_file_path)
-    return glob.glob(os.path.join(result_dir, pattern))[0]
-
+# TODO Below can all be removed:
 
 # TODO: this function doesn't work correctly because multiple links can
 # belong to one inp id.

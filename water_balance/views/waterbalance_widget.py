@@ -26,7 +26,7 @@ from qgis.core import QgsGeometry, QgsCoordinateTransform, QgsFeatureRequest, Qg
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
-from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from datasource.netcdf_groundwater import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.ui.custom_pg_Items import RotateLabelAxisItem
 

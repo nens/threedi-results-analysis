@@ -7,6 +7,9 @@ import h5py
 
 from threedigrid.admin.constants import NO_DATA_VALUE
 
+from datasource.netcdf import logger
+from datasource.result_constants import layer_object_type_mapping
+
 from .base import BaseDataSource
 from .result_constants import SUBGRID_MAP_VARIABLES
 from ..utils import cached_property
@@ -15,37 +18,6 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
 logger = logging.getLogger(__name__)
-
-
-def find_h5_file(netcdf_file_path):
-    """An ad-hoc way to get the h5_file.
-
-    We assume the h5_file file is in on of the following locations (note:
-    this order is also the searching order):
-
-    1) . (in the same dir as the netcdf)
-    2) ../preprocessed
-
-    relative to the netcdf file and has extension '.h5'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        h5_file path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "*.h5"
-    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "preprocessed")
-    resultdir = os.path.dirname(netcdf_file_path)
-
-    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
-    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
-
-    inpfiles = from_resultdir + from_inpdir
-    return inpfiles[0]
 
 
 def find_aggregation_netcdf_gw(netcdf_file_path):
@@ -421,3 +393,61 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")
+
+
+def normalized_object_type(current_layer_name):
+    """Get a normalized object type for internal purposes."""
+    if current_layer_name in list(layer_object_type_mapping.keys()):
+        return layer_object_type_mapping[current_layer_name]
+    else:
+        msg = "Unsupported layer: %s." % current_layer_name
+        logger.warning(msg)
+        return None
+
+
+def find_h5_file(netcdf_file_path):
+    """An ad-hoc way to get the h5_file.
+
+    We assume the h5_file file is in on of the following locations (note:
+    this order is also the searching order):
+
+    1) . (in the same dir as the netcdf)
+    2) ../preprocessed
+
+    relative to the netcdf file and has extension '.h5'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        h5_file path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = "*.h5"
+    inpdir = os.path.join(os.path.dirname(netcdf_file_path), "..", "preprocessed")
+    resultdir = os.path.dirname(netcdf_file_path)
+
+    from_inpdir = glob.glob(os.path.join(inpdir, pattern))
+    from_resultdir = glob.glob(os.path.join(resultdir, pattern))
+
+    inpfiles = from_resultdir + from_inpdir
+    return inpfiles[0]
+
+
+def find_aggregation_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file.
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        IndexError if nothing is found
+    """
+    pattern = "flow_aggregate.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    return glob.glob(os.path.join(result_dir, pattern))[0]

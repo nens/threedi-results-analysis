@@ -23,7 +23,7 @@ try:
 except ImportError:
     print("Can't import Spatialite.")
     Spatialite = None
-from ThreeDiToolbox.datasource.netcdf import find_h5_file, find_aggregation_netcdf
+from datasource.netcdf_groundwater import find_h5_file, find_aggregation_netcdf
 from ThreeDiToolbox.datasource.netcdf_groundwater import (
     NetcdfGroundwaterDataSource,
     find_aggregation_netcdf_gw,
