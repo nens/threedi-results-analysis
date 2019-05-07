@@ -9,7 +9,7 @@ from ThreeDiToolbox.models.datasources import (
     DataSourceLayerManager,
 )
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
+from ThreeDiToolbox.test.test_datasources import results_3di_path
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -234,12 +234,12 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         setattr(item, "_datasource_layer_manager", "yo")
         self.assertEqual(item.datasource_layer_manager(), "yo")
 
-    def test_datasource_netcdf_groundwater(self):
+    def test_datasource_threedi_results(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
             "active": False,
             "name": "jaa",
-            "file_path": netcdf_groundwater_datasource_nc_path,
+            "file_path": results_3di_path,
             "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }

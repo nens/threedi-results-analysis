@@ -22,3 +22,4 @@ To run the test enter the following command::
 Check PEP8::
 
     $ docker-compose run qgis-desktop make pep8
+

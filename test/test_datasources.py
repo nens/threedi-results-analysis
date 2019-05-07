@@ -34,7 +34,7 @@ spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
 
-netcdf_groundwater_datasource_nc_path = os.path.join(
+results_3di_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "data",
     "testmodel",
