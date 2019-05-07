@@ -44,22 +44,6 @@ class ThreediResult(BaseDataSource):
         self._datasource = None
         self._cache = {}
 
-    @property
-    def nMesh2D_nodes(self):
-        return self.gridadmin.nodes.subset("2D_ALL").count
-
-    @property
-    def nMesh1D_nodes(self):
-        return self.gridadmin.nodes.subset("1D_ALL").count
-
-    @property
-    def nMesh2D_lines(self):
-        return self.gridadmin.lines.subset("2D_ALL").count
-
-    @property
-    def nMesh1D_lines(self):
-        return self.gridadmin.lines.subset("1D_ALL").count
-
     @cached_property
     def available_subgrid_map_vars(self):
         """Return a list of available variables from 'results_3di.nc'."""
