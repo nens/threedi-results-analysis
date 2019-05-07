@@ -39,9 +39,8 @@ from ..datasource.netcdf import (
     Q_TYPES,
     H_TYPES,
     AGGREGATION_VARIABLES,
-    CUMULATIVE_AGGREGATION_UNITS,
 )
-
+from datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
 
 logger = logging.getLogger(__name__)
 
