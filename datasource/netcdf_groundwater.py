@@ -92,11 +92,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     However, it is recommended to use threedigrid instead.
     """
 
-    PREFIX_1D = "Mesh1D_"
-    PREFIX_2D = "Mesh2D_"
-    PREFIX_1D_LENGTH = len(PREFIX_1D)  # just so we don't have to recalculate
-    PREFIX_2D_LENGTH = 7  # just so we don't have to recalculate
-
     def __init__(self, file_path=None):
         self.file_path = file_path
         self._gridadmin = None
@@ -193,6 +188,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         """Return the timestamps of the 'results_3di.nc'
 
         All variables in the 'results_3di.nc' have the same timestamps.
+        The 'aggregate_results_3di.nc' can have different number of timestamps
+        for each variable.
 
         :return 1d np.array containing the timestamps in seconds.
         """
@@ -280,121 +277,115 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         else:
             raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
-    # used in map_animator
+    # This method is similar as get_values_by_timestep_nr but does not cache
+    # values. Moreover, it tries to only query the minimum needed data needed.
+    # def get_values_by_timestep_nr_no_caching(
+    #     self, variable, timestamp_idx, node_ids=None
+    # ):
+    #     """Return an array of values of the given variable on the specified timestamp(s)
+    #
+    #     If an array of timestamps is given, a 2d numpy array is returned.
+    #     If index is specified, only the node_ids specified in the index will
+    #     be returned.
+    #
+    #     :param variable: (str) variable name, e.g. 's1', 'q_pump'
+    #     :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
+    #     :param node_ids: 1d numpy.array of node_ids
+    #     :return: 1d/2d numpy.array
+    #     """
+    #     ga = self.get_gridadmin(variable)
+    #     model = ga.get_model_instance_by_field_name(variable)
+    #
+    #     time_slice = None
+    #     if isinstance(timestamp_idx, int):
+    #         time_slice = slice(timestamp_idx, timestamp_idx+1)
+    #         time_index_filter = 0
+    #     elif isinstance(timestamp_idx, np.ndarray):
+    #         # ga.timeseries unfortunately does not allow for index filter on
+    #         # aggregate results, only a slice filter. Thus we load a bit more
+    #         # in memory and apply the index filter at the end.
+    #         time_slice = slice(min(timestamp_idx), max(timestamp_idx) + 1)
+    #         if len(timestamp_idx) == 1:
+    #             time_index_filter = 0
+    #         else:
+    #             time_index_filter = timestamp_idx - min(timestamp_idx)
+    #     result_filter = model.timeseries(indexes=time_slice)
+    #
+    #     if node_ids is None:
+    #         result_filter = result_filter.filter(id__gt=0)
+    #     result = result_filter.get_filtered_field_value(variable)
+    #
+    #     if node_ids is not None:
+    #         # Unfortunately h5py/threedigrid indexing is not as fancy as
+    #         # numpy, i.e. we can't use duplicate indexes/unsorted indexes.
+    #         # Thus we load a bit more in memory as a numpy array and then apply
+    #         # the final indexing with numpy.
+    #         return result[time_index_filter][node_ids]
+    #     else:
+    #         return result[time_index_filter]
+
     def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, index=None, use_cache=True
-    ):
-        return self.temp_get_values_by_timestep_nr_impl(
-            variable, timestamp_idx, index, use_cache
-        )
+            self, variable, timestamp_idx, node_ids=None, use_cache=True):
+        """Return an array of values of the given variable on the specified timestamp(s)
 
-    def _nc_from_mem(self, ds, variable, use_cache=True):
-        """Get netcdf data from memory if needed."""
-        if use_cache:
-            try:
-                data = self._cache[variable]
-            except KeyError:
-                # Keep the whole netCDF array for a variable in memory for
-                # performance
-                data = ds.get(variable)[:]
-                self._cache[variable] = data
+        If only one timestamp is specified, a 1d np.array is returned.  If an
+        array of multiple timestamp_idx is given, a 2d np.array is returned.
+
+        If node_ids is specified, only the node_ids specified in the nodes will
+        be returned.
+
+        :param variable: (str) variable name, e.g. 's1', 'q_pump'
+        :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
+        :param node_ids: 1d numpy.array of node_ids or None in which case all
+            nodes are returned.
+        :param use_cache: (bool)
+        :return: 1d/2d numpy.array
+        """
+        values = self._nc_from_mem(variable)
+        if isinstance(timestamp_idx, int):
+            timestamp_idx = np.array([timestamp_idx])
+
+        if node_ids is None:
+            # The first element is a trash element which we don't want to return
+            filtered_data = values[timestamp_idx, 1:]
         else:
-            # this returns a netCDF Variable, which behaves like a np array
-            data = ds.get(variable)
-        return data
+            # node_ids should never be 0 thus the trash element gets filtered out.
+            filtered_data = values[timestamp_idx][:, node_ids]
 
-    def temp_get_values_by_timestep_nr_impl(
-        self, variable, timestamp_idx, index=None, use_cache=True
-    ):
-        var_2d = self.PREFIX_2D + variable
-        var_1d = self.PREFIX_1D + variable
-
-        # determine if it's an agg var
-        if variable in self.available_subgrid_map_vars:
-            ds = self.ds
-        elif variable in self.available_aggregation_vars:
-            ds = self.ds_aggregation
+        if len(timestamp_idx) == 1:
+            # if only one timestamp is specified, an 1d array is returned
+            return filtered_data[0]
         else:
-            logger.error("Unsupported variable %s", variable)
-            raise ValueError(variable)
+            return filtered_data
 
-        # determine appropriate fill value from netCDF
-        if var_2d in ds.keys():
-            fill_value_2d = ds.get(var_2d).fillvalue
-            fill_value = fill_value_2d
-        if var_1d in ds.keys():
-            fill_value_1d = ds.get(var_1d).fillvalue
-            fill_value = fill_value_1d
+    def _nc_from_mem(self, variable):
+        """Return 2d numpy array with all values of variable and cache it.
 
-        if var_2d in ds.keys() and var_1d in ds.keys():
-            assert (
-                fill_value_1d == fill_value_2d
-            ), "Difference in fill value, can't consolidate"
+        Everyting of the variables is cached, both in time and space, i.e. all
+        timesteps and all nodes of the variable.
 
-        if index is None:
-            if variable.startswith("q_pump"):
-                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
-            elif variable in ALL_Q_TYPES:
-                n2d = self.nMesh2D_lines
-                n1d = self.nMesh1D_lines
-            elif variable in ALL_H_TYPES:
-                n2d = self.nMesh2D_nodes
-                n1d = self.nMesh1D_nodes
-            else:
-                raise ValueError(variable)
+        TODO: Saving the variables in cache is currently necessary to limit
+         the amount of (slow) IO with the netcdf results. However, this also
+         causes many unnecessary values to be stored in memory. This can become
+         problematic with large result files.
 
-            # Note: it's possible to only have 2D or 1D
-            if var_2d in ds.keys():
-                a2d = self._nc_from_mem(ds, var_2d, use_cache)[timestamp_idx, :]
-            else:
-                a2d = np.ma.masked_all(n2d)
-
-            if var_1d in ds.keys():
-                a1d = self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, :]
-            else:
-                a1d = np.ma.masked_all(n1d)
-
-            assert var_2d in ds.keys() or var_1d in ds.keys(), "No 2D and 1D?"
-
-            # Note: order is: 2D, then 1D
-            res = np.ma.hstack([a2d, a1d])
+        :param variable: (str) variable name, e.g. 's1', 'q_pump'
+        :param use_cache: bool
+        :return: 2d numpy array
+        """
+        if variable in self._cache:
+            values = self._cache[variable]
         else:
-            # in the groundwater version, the node index starts from 1 instead
-            # of 0.
-            # Note: a new array is created, e.g., index doesn't get modified
-            index = index - 1  # copies the array
-
-            # hacky object_type checking mechanism, sinds we don't have
-            # that information readily available
-            if variable.startswith("q_pump"):
-                return self._nc_from_mem(ds, var_1d, use_cache)[timestamp_idx, index]
-            elif variable in ALL_Q_TYPES:
-                threshold = self.nMesh2D_lines
-            elif variable in ALL_H_TYPES:
-                threshold = self.nMesh2D_nodes
-            else:
-                raise ValueError(variable)
-            # find indices of 2d and 1d components
-            idx_2d = np.where(index < threshold)[0]
-            idx_1d = np.where(index >= threshold)[0]
-            # make index arrays that can be used on the nc variables
-            iarr_2d = index[idx_2d]
-            iarr_1d = index[idx_1d] - threshold
-            res = np.ma.zeros(index.shape, fill_value=fill_value)
-            # Note sure if a netCDF bug or a known difference in behavior.
-            # Indexing a numpy array using [], or np.array([], dtype=int)
-            # works, but on a netCDF Variable it doesn't. Therefore we must
-            # explicitly check if the list is empty.
-            if iarr_2d.size > 0:
-                res[idx_2d] = self._nc_from_mem(ds, var_2d, use_cache)[
-                    timestamp_idx, iarr_2d
-                ]
-            if iarr_1d.size > 0:
-                res[idx_1d] = self._nc_from_mem(ds, var_1d, use_cache)[
-                    timestamp_idx, iarr_1d
-                ]
-        # note: res is a masked array
-        return res
+            logger.debug(
+                "Variable %s not yet in cache, fetching from result file", variable)
+            ga = self.get_gridadmin(variable)
+            model_instance = ga.get_model_instance_by_field_name(variable)
+            unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
+            values = unfiltered_timeseries.get_filtered_field_value(variable)
+            logger.debug('Caching additional {:.3f} MB of data'.format(
+                values.nbytes / 1000 / 1000))
+            self._cache[variable] = values
+        return values
 
     @property
     def gridadmin(self):
