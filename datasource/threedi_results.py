@@ -66,37 +66,28 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def available_aggregation_vars(self):
         """Return a list of available variables in the 'aggregate_results_3di.nc"""
-        agg = self.gridadmin_aggregate_result
-        if not agg:
+        ga = self.gridadmin_aggregate_result
+        if not ga:
             return []
         # hardcoded whitelist
-        if agg.has_pumpstations:
-            known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys())
-                + list(agg.lines.Meta.subset_fields.keys())
-                + list(agg.nodes.Meta.composite_fields.keys())
-                + list(agg.nodes.Meta.subset_fields.keys())
-                + list(agg.pumps.Meta.composite_fields.keys())
-            )
+        whitelist_vars = set(
+            list(ga.lines.Meta.composite_fields.keys())
+            + list(ga.lines.Meta.subset_fields.keys())
+            + list(ga.nodes.Meta.composite_fields.keys())
+            + list(ga.nodes.Meta.subset_fields.keys())
+        )
+        if ga.has_pumpstations:
+            whitelist_vars |= set(list(ga.pumps.Meta.composite_fields.keys()))
 
-            # all available fields, including hdf5 fields
-            available_vars = (
-                    agg.nodes._field_names | agg.lines._field_names | agg.pumps._field_names
-            )
-        else:
-            known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys())
-                + list(agg.lines.Meta.subset_fields.keys())
-                + list(agg.nodes.Meta.composite_fields.keys())
-                + list(agg.nodes.Meta.subset_fields.keys())
-            )
+        # all available fields, including hdf5 fields
+        available_vars = ga.nodes._field_names | ga.lines._field_names
+        if ga.has_pumpstations:
+            available_vars |= ga.pumps._field_names
 
-            # all available fields, including hdf5 fields
-            available_vars = agg.nodes._field_names | agg.lines._field_names
+        available_aggregation_vars = available_vars & whitelist_vars
+        return list(available_aggregation_vars)
 
-        available_known_vars = available_vars & known_vars
-        return list(available_known_vars)
-
+    @property
     def available_vars(self):
         """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars

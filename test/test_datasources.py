@@ -291,3 +291,39 @@ def test_get_values_by_timestep_nr_timestamp_and_node_ids(threedi_result):
 def test__nc_from_mem(threedi_result):
     threedi_result._nc_from_mem('s1')
     assert 's1' in threedi_result._cache.keys()
+
+
+def test_available_subgrid_map_vars(threedi_result):
+    actual_vars = threedi_result.available_subgrid_map_vars
+    expected_vars = {
+        'au', 'q', 'q_lat', 'q_pump', 'rain', 's1', 'su', 'u1', 'vol',
+        'intercepted_volume', 'leak', 'q_sss',
+    }
+    assert set(actual_vars) == expected_vars
+
+
+def test_available_aggregation_vars(threedi_result):
+    actual_aggregation_vars = threedi_result.available_aggregation_vars
+    expected_aggregation_vars = {
+        'q_cum', 'q_cum_positive', 'q_cum_negative', 'q_lat_cum', 'q_pump_cum',
+        'rain_cum', 'vol_current', 'infiltration_rate_simple_cum',
+        'intercepted_volume_current', 'leak_cum', 'q_sss_cum', 'rain_cum',
+        'infiltration_rate_simple_cum',
+    }
+    assert set(actual_aggregation_vars) == expected_aggregation_vars
+
+
+def test_available_vars(threedi_result):
+    actual = threedi_result.available_vars
+    normal_vars = {
+        'au', 'q', 'q_lat', 'q_pump', 'rain', 's1', 'su', 'u1', 'vol',
+        'intercepted_volume', 'leak', 'q_sss',
+    }
+    agg_vars = {
+        'q_cum', 'q_cum_positive', 'q_cum_negative', 'q_lat_cum', 'q_pump_cum',
+        'rain_cum', 'vol_current', 'infiltration_rate_simple_cum',
+        'intercepted_volume_current', 'leak_cum', 'q_sss_cum', 'rain_cum',
+        'infiltration_rate_simple_cum',
+    }
+    expected = normal_vars | agg_vars
+    assert set(actual) == expected
