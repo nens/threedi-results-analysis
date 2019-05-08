@@ -8,7 +8,7 @@ from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
-    PredictCalcPointsDialogWidget
+    PredictCalcPointsDialogWidget,
 )
 
 import logging

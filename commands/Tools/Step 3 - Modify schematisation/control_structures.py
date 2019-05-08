@@ -12,21 +12,21 @@ from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures
+    ControlledStructures,
 )
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.views.control_structures_create_control_group_dialog import (
-    CreateControlGroupDialogWidget
+    CreateControlGroupDialogWidget,
 )
 from ThreeDiToolbox.views.control_structures_create_measuring_group import (
-    CreateMeasuringGroupDialogWidget
+    CreateMeasuringGroupDialogWidget,
 )
 from ThreeDiToolbox.views.control_structures_create_table_control_dialog import (
-    CreateTableControlDialogWidget
+    CreateTableControlDialogWidget,
 )
 from ThreeDiToolbox.views.control_structures_dockwidget import (
-    ControlStructuresDockWidget
+    ControlStructuresDockWidget,
 )
 
 import logging

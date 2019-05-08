@@ -15,16 +15,16 @@ from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures
+    ControlledStructures,
 )
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    MEASURE_VARIABLE_WATERLEVEL
+    MEASURE_VARIABLE_WATERLEVEL,
 )
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    RULE_OPERATOR_BOTTOM_UP
+    RULE_OPERATOR_BOTTOM_UP,
 )
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    RULE_OPERATOR_TOP_DOWN
+    RULE_OPERATOR_TOP_DOWN,
 )
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID

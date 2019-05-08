@@ -12,7 +12,7 @@ from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures
+    ControlledStructures,
 )
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.threedi_database import get_databases
