@@ -24,6 +24,7 @@ import collections
 import itertools
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 EXTRAPLORATION_RATIO = 20

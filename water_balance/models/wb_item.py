@@ -10,6 +10,7 @@ from ThreeDiToolbox.models.base_fields import ValueField
 
 import numpy as np
 
+
 COLOR_LIST = [
     (34, 34, 34),
     (243, 195, 0),

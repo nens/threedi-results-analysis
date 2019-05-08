@@ -8,6 +8,7 @@ from qgis.PyQt.QtWidgets import QDockWidget
 import logging
 import os
 
+
 logger = logging.getLogger(__name__)
 
 try:

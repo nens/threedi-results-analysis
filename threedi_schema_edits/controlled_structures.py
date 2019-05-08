@@ -10,6 +10,7 @@ from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 RULE_OPERATOR_BOTTOM_UP = ">"

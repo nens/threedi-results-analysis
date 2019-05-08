@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 logger = logging.getLogger(__name__)
 
 STYLES_ROOT = os.path.join(

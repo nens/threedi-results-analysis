@@ -14,14 +14,18 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     ControlledStructures
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     MEASURE_VARIABLE_WATERLEVEL
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     RULE_OPERATOR_BOTTOM_UP
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+)
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     RULE_OPERATOR_TOP_DOWN
+)
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -31,6 +35,7 @@ from ThreeDiToolbox.utils.threedi_database import get_databases
 import csv
 import logging
 import os
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

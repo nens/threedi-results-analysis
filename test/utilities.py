@@ -7,6 +7,7 @@ import logging
 import shutil
 import tempfile
 
+
 logger = logging.getLogger(__name__)
 _singletons = {}
 

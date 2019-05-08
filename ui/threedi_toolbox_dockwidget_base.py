@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import QTreeView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:

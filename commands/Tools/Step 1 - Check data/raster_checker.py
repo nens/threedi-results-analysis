@@ -9,6 +9,7 @@ from ThreeDiToolbox.views.raster_checker_dialog import RasterCheckerDialogWidget
 import inspect
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 

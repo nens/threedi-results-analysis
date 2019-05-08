@@ -20,6 +20,7 @@ from ThreeDiToolbox.utils import log_traceback_monkeypatch  # noqa
 import logging
 import os
 
+
 LOGFILE_NAME = "threedi-qgis-log.txt"
 PYTHON_FORMAT = "%(name)s %(levelname)s %(message)s"
 QGIS_FORMAT = "%(name)s\n%(message)s"  # Note: split over two lines.

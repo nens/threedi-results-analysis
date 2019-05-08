@@ -7,6 +7,7 @@ from qgis.PyQt.QtGui import QStandardItemModel
 import inspect
 import os
 
+
 DEFAULT_TOOLBOX_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
     "..",

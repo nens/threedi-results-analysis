@@ -41,6 +41,7 @@ from qgis.PyQt.QtWidgets import QWidget
 import logging
 import pyqtgraph as pg
 
+
 logger = logging.getLogger(__name__)
 
 

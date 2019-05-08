@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QVBoxLayout
 
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:

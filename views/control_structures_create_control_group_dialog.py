@@ -12,12 +12,14 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     ControlledStructures
+)
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 
 import logging
 import os
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

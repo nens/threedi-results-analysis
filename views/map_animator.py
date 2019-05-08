@@ -15,6 +15,7 @@ import logging
 import numpy as np
 import os
 
+
 try:
     _encoding = QApplication.UnicodeUTF8
 

@@ -12,6 +12,7 @@ import logging
 import numpy as np
 import pyqtgraph as pg
 
+
 logger = logging.getLogger(__name__)
 
 

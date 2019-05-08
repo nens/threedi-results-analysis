@@ -13,6 +13,7 @@ import logging
 import re
 import sqlalchemy
 
+
 _new_sa_ddl = sqlalchemy.__version__.startswith("0.7")
 
 logger = logging.getLogger(__name__)

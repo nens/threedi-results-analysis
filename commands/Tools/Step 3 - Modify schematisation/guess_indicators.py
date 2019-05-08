@@ -11,6 +11,7 @@ from ThreeDiToolbox.views.guess_indicator_dialog import GuessIndicatorDialogWidg
 import inspect
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 

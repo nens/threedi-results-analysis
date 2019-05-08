@@ -27,6 +27,7 @@ from qgis.PyQt.QtWidgets import QDockWidget
 
 import os
 
+
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(
         os.path.dirname(__file__), "..", "ui", "threedi_toolbox_dockwidget_base.ui"

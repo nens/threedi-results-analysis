@@ -14,6 +14,7 @@ from qgis.core import QgsVectorLayer
 
 import os
 
+
 # Hardcoded default names
 FLOWLINES_LAYER_NAME = "flowlines"
 NODES_LAYER_NAME = "nodes"

@@ -8,6 +8,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QCursor
 
+
 RGBA = 255, 0, 0
 
 

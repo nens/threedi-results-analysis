@@ -64,6 +64,7 @@ import re
 import types
 import unittest
 
+
 handler = mock.Handler(level=logging.DEBUG)
 
 # 2019-04-18 Reinout: disabled this handler as it spams the log when

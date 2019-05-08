@@ -14,6 +14,7 @@ from sqlalchemy.orm import relationship
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 Base = declarative_base()
 

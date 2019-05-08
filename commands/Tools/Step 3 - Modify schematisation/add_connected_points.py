@@ -9,10 +9,12 @@ from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.views.modify_schematisation_dialogs import \
+from ThreeDiToolbox.views.modify_schematisation_dialogs import (
     AddCoonnectedPointsDialogWidget
+)
 
 import logging
+
 
 logger = logging.getLogger(__name__)
 

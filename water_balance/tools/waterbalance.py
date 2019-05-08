@@ -16,6 +16,7 @@ import numpy as np
 import numpy.ma as ma
 import os.path
 
+
 logger = logging.getLogger("DeltaresTdi." + __name__)
 
 
