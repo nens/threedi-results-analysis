@@ -20,10 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-# Initialize Qt resources from file resources.py
-from . import resources  # NoQa
-
-# Import the code of the tools
+from . import resources  # NoQa, initialize the Qt resources.
 from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
