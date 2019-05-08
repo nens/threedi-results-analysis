@@ -256,10 +256,10 @@ class ThreediResult(BaseDataSource):
             timestamp_idx = np.array([timestamp_idx])
 
         if node_ids is None:
-            # If no node_ids are specified, we don't want to return the first
-            # element, which is a trash element.
+            # The first element is a trash element which we don't want to return
             filtered_data = values[timestamp_idx, 1:]
         else:
+            # node_ids should never be 0 thus the trash element gets filtered out.
             filtered_data = values[timestamp_idx][:, node_ids]
 
         if len(timestamp_idx) == 1:
@@ -287,11 +287,11 @@ class ThreediResult(BaseDataSource):
             values = self._cache[variable]
         else:
             logger.debug(
-                "Variable %s not yet in cache, fetching from result file" % variable)
+                "Variable %s not yet in cache, fetching from result file", variable)
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
-            timeseries_all = model_instance.timeseries(indexes=slice(None))
-            values = timeseries_all.get_filtered_field_value(variable)
+            unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
+            values = unfiltered_timeseries.get_filtered_field_value(variable)
             logger.debug('Caching additional {:.3f} MB of data'.format(
                 values.nbytes / 1000 / 1000))
             self._cache[variable] = values
