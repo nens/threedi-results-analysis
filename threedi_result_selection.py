@@ -6,6 +6,7 @@ from .utils.user_messages import messagebar_message
 from .utils.user_messages import pop_up_info
 from .views.result_selection import ThreeDiResultSelectionWidget
 from builtins import str
+
 # QNetworkAccessManager
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal

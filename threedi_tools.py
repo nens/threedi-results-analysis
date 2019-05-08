@@ -22,6 +22,7 @@
 """
 # Initialize Qt resources from file resources.py
 from . import resources  # NoQa
+
 # Import the code of the tools
 from .misc_tools import About
 from .misc_tools import CacheClearer
