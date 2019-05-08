@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-import os
-import logging
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtWidgets import QDialog, QFileDialog
-from qgis.PyQt.QtSql import QSqlDatabase
-from qgis.PyQt import uic
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QFileDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
+
+import logging
+import os
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,7 @@
-import os
-
-import pytest
-
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 
+import os
+import pytest
 
 current_dir = os.path.dirname(__file__)
 data_dir = os.path.join(current_dir, "data")

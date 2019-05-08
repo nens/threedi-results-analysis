@@ -5,11 +5,13 @@ https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-an
 """
 
 from builtins import str
+from sqlalchemy import exc
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+
 import logging
 import re
-
 import sqlalchemy
-from sqlalchemy import MetaData, Table, exc
 
 _new_sa_ddl = sqlalchemy.__version__.startswith("0.7")
 

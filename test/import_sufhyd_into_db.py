@@ -1,19 +1,19 @@
 """integration test for the full process of importing sewer data from a
 sufhyd file into the database"""
-from __future__ import print_function
-
 from future import standard_library
-
-standard_library.install_aliases()
-import unittest
-import tempfile
-import os.path
-
-from ThreeDiToolbox.utils.import_sufhyd import Importer, transform
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from geoalchemy2 import types
 from sqlalchemy import select
 from ThreeDiToolbox.utils.guess_indicators import Guesser
+from ThreeDiToolbox.utils.import_sufhyd import Importer
+from ThreeDiToolbox.utils.import_sufhyd import transform
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
+import os.path
+import tempfile
+import unittest
+
+standard_library.install_aliases()
+
 
 test_file = os.path.join("c://tmp", "test.hyd")
 

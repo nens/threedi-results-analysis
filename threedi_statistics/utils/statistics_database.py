@@ -1,10 +1,10 @@
+from ..sql_models.statistics import Base
+from osgeo import ogr
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
 import copy
 import logging
 import os
-
-from osgeo import ogr
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ..sql_models.statistics import Base
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 """Monkeypatch sys.excepthook with one that logs the exception."""
-import sys
 import logging
-
+import sys
 
 root_logger = logging.getLogger("")
 

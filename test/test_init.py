@@ -3,6 +3,11 @@
 
 from future import standard_library
 
+import configparser
+import logging
+import os
+import unittest
+
 standard_library.install_aliases()
 __author__ = "Tim Sutton <tim@linfiniti.com>"
 __revision__ = "$Format:%H$"
@@ -11,10 +16,6 @@ __license__ = "GPL"
 __copyright__ = "Copyright 2012, Australia Indonesia Facility for "
 __copyright__ += "Disaster Reduction"
 
-import os
-import unittest
-import logging
-import configparser
 
 LOGGER = logging.getLogger("QGIS")
 

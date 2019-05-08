@@ -1,22 +1,19 @@
-from __future__ import absolute_import
-from builtins import range
-import os
-import logging
-
-from qgis.PyQt.QtWidgets import (
-    QWidget,
-    QHBoxLayout,
-    QPushButton,
-    QApplication,
-    QComboBox,
-)
-from qgis.PyQt.QtCore import QVariant
-from qgis.core import QgsField, QgsProject
-import numpy as np
-
-from .graph import generate_parameter_config
 from ..utils.geo_processing import copy_layer_into_memory_layer
 from ..utils.user_messages import messagebar_message
+from .graph import generate_parameter_config
+from builtins import range
+from qgis.core import QgsField
+from qgis.core import QgsProject
+from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QWidget
+
+import logging
+import numpy as np
+import os
 
 try:
     _encoding = QApplication.UnicodeUTF8

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-import os
-
 from qgis.core import QgsProject
-from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
+from qgis.PyQt.QtWidgets import QDialog
 
+import os
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), os.pardir, "ui", "tool_dialog.ui")

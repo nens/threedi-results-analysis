@@ -1,17 +1,16 @@
-from builtins import str
-from builtins import range
-from collections import OrderedDict
-import logging
-
-import numpy as np
-from osgeo import ogr, osr
-from qgis.core import QgsWkbTypes
-
-from threedigrid.admin.constants import TYPE_FUNC_MAP
-from threedigrid.orm.base.exporters import BaseOgrExporter
-from threedigrid.admin.utils import KCUDescriptor
-
 from ..datasource.spatialite import Spatialite
+from builtins import range
+from builtins import str
+from collections import OrderedDict
+from osgeo import ogr
+from osgeo import osr
+from qgis.core import QgsWkbTypes
+from threedigrid.admin.constants import TYPE_FUNC_MAP
+from threedigrid.admin.utils import KCUDescriptor
+from threedigrid.orm.base.exporters import BaseOgrExporter
+
+import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

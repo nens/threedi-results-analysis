@@ -23,14 +23,16 @@ __copyright__ = (
     "Copyright (c) 2014 Tim Sutton, tim@linfiniti.com"
 )
 
-import logging
-import sys
-
-from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
 from qgis.core import QgsApplication
 from qgis.core import QgsProject
 from qgis.gui import QgsMapCanvasLayer
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QObject
 
+import atexit
+import logging
+import sys
 
 logger = logging.getLogger("QGIS")
 
@@ -44,7 +46,6 @@ qgis = QgsApplication.setPrefixPath(u"/usr", True)  # linux
 qgis = QgsApplication([], True)
 qgis.initQgis()
 
-import atexit
 
 atexit.register(qgis.exitQgis)
 

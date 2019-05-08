@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
-import logging
-
-from qgis.PyQt.QtWidgets import QDialog
-from qgis.PyQt.QtSql import QSqlDatabase
-from qgis.PyQt.QtCore import QRect, Qt, QMetaObject
-from qgis.PyQt.QtWidgets import (
-    QVBoxLayout,
-    QGroupBox,
-    QComboBox,
-    QSizePolicy,
-    QCheckBox,
-    QDialogButtonBox,
-    QApplication,
-)
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
-
+from qgis.PyQt.QtCore import QMetaObject
+from qgis.PyQt.QtCore import QRect
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtSql import QSqlDatabase
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialogButtonBox
+from qgis.PyQt.QtWidgets import QGroupBox
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QVBoxLayout
 from ThreeDiToolbox.utils.threedi_database import get_databases
+
+import logging
 
 logger = logging.getLogger(__name__)
 

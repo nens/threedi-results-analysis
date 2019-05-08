@@ -2,15 +2,14 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from builtins import object
-import logging
-import inspect
-
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.utils.guess_indicators import Guesser
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.guess_indicator_dialog import GuessIndicatorDialogWidget
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.utils.guess_indicators import Guesser
 
+import inspect
+import logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
-import os
-
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
+
+import os
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), os.pardir, "ui", "login_dialog.ui")

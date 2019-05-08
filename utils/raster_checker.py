@@ -1,34 +1,31 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from gdal import GA_ReadOnly
+from osgeo import gdal
+from osgeo import osr
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsFeature
+from qgis.core import QgsField
+from qgis.core import QgsFields
+from qgis.core import QgsGeometry
+from qgis.core import QgsPointXY
+from qgis.core import QgsVectorFileWriter
+from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.core import (
-    QgsField,
-    QgsFields,
-    QgsVectorFileWriter,
-    QgsFeature,
-    QgsGeometry,
-    QgsPointXY,
-    QgsCoordinateReferenceSystem,
-    QgsWkbTypes,
-)
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.utils.user_messages import pop_up_info, pop_up_question
-from ThreeDiToolbox.utils.raster_checker_prework import (
-    DataModelSource,
-    RasterCheckerEntrees,
-)
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import (
-    RasterCheckerResults,
-    RasterCheckerProgressBar,
-)
+from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerProgressBar
+from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
+from ThreeDiToolbox.utils.raster_checker_prework import DataModelSource
+from ThreeDiToolbox.utils.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_question
+
+import logging
+import numpy as np
 import os
 import string
-import logging
-from gdal import GA_ReadOnly
-from osgeo import gdal, osr
-import numpy as np
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()

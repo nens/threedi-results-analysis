@@ -1,5 +1,7 @@
+from abc import ABCMeta
+from abc import abstractmethod
+from abc import abstractproperty
 from builtins import object
-from abc import ABCMeta, abstractmethod, abstractproperty
 from future.utils import with_metaclass
 
 

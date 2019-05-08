@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
-from builtins import str
 from builtins import object
+from builtins import str
+from qgis.analysis import QgsGraphAnalyzer
+from qgis.analysis import QgsGraphBuilder
+from qgis.analysis import QgsNetworkDistanceStrategy
+from qgis.analysis import QgsNetworkStrategy
+from qgis.core import QgsFeature
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsField
+from qgis.core import QgsGeometry
+from qgis.core import QgsPoint
+from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
-
-from qgis.analysis import (
-    QgsGraphBuilder,
-    QgsNetworkDistanceStrategy,
-    QgsGraphAnalyzer,
-    QgsNetworkStrategy,
-)
-
-from qgis.core import (
-    QgsVectorLayer,
-    QgsField,
-    QgsFeature,
-    QgsGeometry,
-    QgsFeatureRequest,
-    QgsPoint,
-)
 
 
 class AttributeProperter(QgsNetworkStrategy):

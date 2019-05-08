@@ -1,15 +1,16 @@
-from builtins import str
+from ..utils import cached_property
+from .base import BaseDataSource
 from builtins import range
+from builtins import str
 from collections import namedtuple
+from itertools import product
+from itertools import starmap
+
 import glob
-from itertools import starmap, product
 import json
-import os
 import logging
 import numpy as np
-
-from .base import BaseDataSource
-from ..utils import cached_property
+import os
 
 logger = logging.getLogger(__name__)
 

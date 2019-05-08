@@ -1,12 +1,13 @@
-import unittest
-import tempfile
-import os.path
-
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
 from geoalchemy2.types import Geometry
-
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
+import os.path
+import tempfile
+import unittest
 
 Base = declarative_base()
 

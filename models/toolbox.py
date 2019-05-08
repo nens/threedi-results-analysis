@@ -1,12 +1,11 @@
 from builtins import object
-import os
-import inspect
-
+from functools import reduce
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
-from functools import reduce
 
+import inspect
+import os
 
 DEFAULT_TOOLBOX_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),

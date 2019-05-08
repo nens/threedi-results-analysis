@@ -1,33 +1,31 @@
-from builtins import str
+from ..sql_models.statistics import Flowline
+from ..sql_models.statistics import FlowlineStats
+from ..sql_models.statistics import ManholeStats
+from ..sql_models.statistics import Node
+from ..sql_models.statistics import PipeStats
+from ..sql_models.statistics import PumplineStats
+from ..sql_models.statistics import StatSource
+from ..sql_models.statistics import WeirStats
+from ..utils.statistics_database import StaticsticsDatabase
 from builtins import object
-import logging
-import os.path
+from builtins import str
 from collections import OrderedDict
-import numpy as np
-from sqlite3 import dbapi2
-from qgis.core import QgsProject, QgsDataSourceUri, QgsVectorLayer
-from sqlalchemy import create_engine, MetaData
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from sqlalchemy import create_engine
 from sqlalchemy import func
+from sqlalchemy import MetaData
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
+from sqlite3 import dbapi2
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_question
+from ThreeDiToolbox.utils.user_messages import progress_bar
 
-from ThreeDiToolbox.utils.user_messages import (
-    pop_up_question,
-    pop_up_info,
-    progress_bar,
-)
-
-from ..sql_models.statistics import (
-    FlowlineStats,
-    Node,
-    ManholeStats,
-    Flowline,
-    PipeStats,
-    WeirStats,
-    PumplineStats,
-    StatSource,
-)
-from ..utils.statistics_database import StaticsticsDatabase
+import logging
+import numpy as np
+import os.path
 
 logger = logging.getLogger(__name__)
 

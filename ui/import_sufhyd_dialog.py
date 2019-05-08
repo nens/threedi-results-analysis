@@ -8,16 +8,17 @@
 # WARNING! All changes made in this file will be lost!
 
 from builtins import object
-from qgis.PyQt import QtCore, QtGui
-from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt import QtCore
+from qgis.PyQt import QtGui
 from qgis.PyQt.QtWidgets import QApplication
-from qgis.PyQt.QtWidgets import QVBoxLayout
-from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QSizePolicy
-from qgis.PyQt.QtWidgets import QPushButton
-from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QDialogButtonBox
+from qgis.PyQt.QtWidgets import QGroupBox
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

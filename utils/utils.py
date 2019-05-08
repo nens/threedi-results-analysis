@@ -1,11 +1,10 @@
 """Imported in __init__.py"""
-from builtins import next
 from builtins import map
+from builtins import next
 from builtins import object
-import math
-
-
 from itertools import tee
+
+import math
 
 
 class cached_property(object):

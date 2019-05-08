@@ -1,15 +1,14 @@
 from builtins import object
-import unittest
+from sqlite3 import dbapi2 as dbapi
+from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
+from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
+
 import mock
 import os.path
-from sqlite3 import dbapi2 as dbapi
 import shutil
 import tempfile
-
-from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
-from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
-
-from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
+import unittest
 
 test_data_dir = os.path.dirname(netcdf_groundwater_datasource_nc_path)
 

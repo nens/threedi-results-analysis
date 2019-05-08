@@ -2,13 +2,13 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from builtins import object
-import logging
-import inspect
-
-from ThreeDiToolbox.views.import_sufhyd_dialog import ImportSufhydDialogWidget
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.import_sufhyd import Importer
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from ThreeDiToolbox.views.import_sufhyd_dialog import ImportSufhydDialogWidget
+
+import inspect
+import logging
 
 logger = logging.getLogger(__name__)
 

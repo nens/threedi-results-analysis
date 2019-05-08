@@ -1,35 +1,42 @@
-from builtins import object
-import copy
-import functools
-import logging
-import os
-
-import numpy as np
-import pyqtgraph as pg
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, QMetaObject, pyqtSignal
-from qgis.PyQt.QtGui import QColor, QBrush, QTransform, QPalette, QPixmap
-from qgis.PyQt.QtWidgets import (
-    QTableView,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QSizePolicy,
-    QPushButton,
-    QSpacerItem,
-    QApplication,
-    QDockWidget,
-    QComboBox,
-    QLabel,
-)
-from qgis.core import QgsGeometry, QgsCoordinateTransform, QgsFeatureRequest, QgsProject
-
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
+from builtins import object
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsGeometry
+from qgis.core import QgsProject
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QEvent
+from qgis.PyQt.QtCore import QMetaObject
+from qgis.PyQt.QtCore import QSize
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QBrush
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QPalette
+from qgis.PyQt.QtGui import QPixmap
+from qgis.PyQt.QtGui import QTransform
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QTableView
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.datasource.netcdf import find_h5_file
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.ui.custom_pg_Items import RotateLabelAxisItem
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
+import copy
+import functools
+import logging
+import numpy as np
+import os
+import pyqtgraph as pg
 
 logger = logging.getLogger("DeltaresTdi." + __name__)
 

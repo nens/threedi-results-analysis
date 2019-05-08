@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import str
 from builtins import range
-import logging
-
+from builtins import str
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QLabel
@@ -12,25 +10,21 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures,
-)
-from ThreeDiToolbox.views.control_structures_create_measuring_group import (
-    CreateMeasuringGroupDialogWidget,
-)
-from ThreeDiToolbox.views.control_structures_create_table_control_dialog import (
-    CreateTableControlDialogWidget,
-)
-from ThreeDiToolbox.views.control_structures_create_control_group_dialog import (
-    CreateControlGroupDialogWidget,
-)
-from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.threedi_schema_edits.controlled_structures import \
+    ControlledStructures
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
-from ThreeDiToolbox.views.control_structures_dockwidget import (
-    ControlStructuresDockWidget,
-)
+from ThreeDiToolbox.utils.threedi_database import get_databases
+from ThreeDiToolbox.views.control_structures_create_control_group_dialog import \
+    CreateControlGroupDialogWidget
+from ThreeDiToolbox.views.control_structures_create_measuring_group import \
+    CreateMeasuringGroupDialogWidget
+from ThreeDiToolbox.views.control_structures_create_table_control_dialog import \
+    CreateTableControlDialogWidget
+from ThreeDiToolbox.views.control_structures_dockwidget import \
+    ControlStructuresDockWidget
+
+import logging
 
 logger = logging.getLogger(__name__)
 

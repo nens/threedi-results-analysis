@@ -1,14 +1,13 @@
 from builtins import str
-from qgis.core import (
-    QgsFeature,
-    QgsGeometry,
-    QgsPoint,
-    QgsVectorLayer,
-    QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem,
-)
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsFeature
+from qgis.core import QgsGeometry
+from qgis.core import QgsPoint
 from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
+
 import math
 
 

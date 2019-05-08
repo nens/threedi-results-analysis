@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from __future__ import absolute_import
-from builtins import str
-from builtins import range
-from builtins import object
-import logging
-
 from ...sql_models.constants import Constants
 from .turtleurbanclasses import HydroObjectFactory
+from builtins import object
+from builtins import range
+from builtins import str
 
+import logging
 
 logger = logging.getLogger(__name__)
 

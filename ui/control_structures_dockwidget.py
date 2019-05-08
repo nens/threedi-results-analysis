@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-import os
-import logging
-
-from qgis.PyQt import uic
 from qgis.PyQt import QtCore
+from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
+
+import logging
+import os
 
 logger = logging.getLogger(__name__)
 

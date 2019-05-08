@@ -1,22 +1,19 @@
-from builtins import zip
-from builtins import range
 from builtins import object
-from qgis.PyQt.QtCore import QVariant
-
-from qgis.PyQt import QtSql
-from qgis.core import QgsFeature
-from qgis.core import QgsGeometry
-from qgis.core import QgsVectorLayer
-from qgis.core import QgsProject
-from qgis.core import QgsField
+from builtins import range
+from builtins import zip
 from qgis.core import QgsDataSourceUri
-
+from qgis.core import QgsFeature
+from qgis.core import QgsField
+from qgis.core import QgsGeometry
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from qgis.PyQt import QtSql
+from qgis.PyQt.QtCore import QVariant
 from sqlalchemy.exc import ResourceClosedError
-
 from ThreeDiToolbox.utils import constants
+from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
 from ThreeDiToolbox.utils.raw_sql import get_query_strings
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
 
 import logging
 

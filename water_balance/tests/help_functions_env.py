@@ -1,8 +1,5 @@
-from __future__ import print_function
-import os.path
-
 import numpy as np
-
+import os.path
 import ThreeDiToolbox.datasource.netcdf
 
 NetcdfDataSource = ThreeDiToolbox.datasource.netcdf.NetcdfDataSource

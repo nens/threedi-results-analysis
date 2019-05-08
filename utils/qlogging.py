@@ -12,13 +12,13 @@ TODO: there probably needs to be some tweaking of log levels. Perhaps the
 verbosity ought to be made configurable.
 
 """
-import logging
-import os
-
 from qgis.core import Qgis
 from qgis.core import QgsApplication
 from qgis.core import QgsMessageLog
 from ThreeDiToolbox.utils import log_traceback_monkeypatch  # noqa
+
+import logging
+import os
 
 LOGFILE_NAME = "threedi-qgis-log.txt"
 PYTHON_FORMAT = "%(name)s %(levelname)s %(message)s"

@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-import logging
-
-from qgis.core import QgsProject
 from qgis.core import Qgis
-
+from qgis.core import QgsProject
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
-from ThreeDiToolbox.views.modify_schematisation_dialogs import (
-    CreateBreachLocationsDialogWidget,
-)
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.views.modify_schematisation_dialogs import \
+    CreateBreachLocationsDialogWidget
 
+import logging
 
 logger = logging.getLogger(__name__)
 

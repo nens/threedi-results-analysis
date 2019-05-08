@@ -1,16 +1,12 @@
-from __future__ import print_function
-
 # If you don't include this import the test 'test_set_and_load_list'
 # test_project will fail! WTF?
 from builtins import object
 from contextlib import contextmanager
-
-from qgis.PyQt.QtWidgets import QMessageBox, QProgressBar
-from qgis.PyQt.QtCore import Qt
-
 from qgis.core import Qgis
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QProgressBar
 from qgis.utils import iface
-
 
 # There used to be a ``def log(msg, level="INFO")`` here.
 # It isn't needed anymore: just use regular python logging instead.
