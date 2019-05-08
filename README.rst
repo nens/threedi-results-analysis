@@ -122,6 +122,10 @@ To get a "coverage" report for the docstrings or to run flake8::
 
 (Note: flake8 is pyflakes + pycodestyle/pep8).
 
+To sort the imports::
+
+  $ docker-compose run qgis-desktop isort -y
+
 
 Release
 -------
