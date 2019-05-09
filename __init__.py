@@ -7,11 +7,6 @@ import faulthandler
 faulthandler.enable()
 
 
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "external")
-)
-
-
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load ThreeDiToolbox class from file ThreeDiToolbox.
