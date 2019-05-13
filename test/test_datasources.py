@@ -166,9 +166,7 @@ def test_get_timestamps_with_agg_parameter_q_cum(threedi_result):
 
 
 def test_get_timestamps_with_agg_parameter_vol_current(threedi_result):
-    timestamps_vol_current = threedi_result.get_timestamps(
-        parameter="vol_current"
-    )
+    timestamps_vol_current = threedi_result.get_timestamps(parameter="vol_current")
     assert timestamps_vol_current.shape == (7,)
     assert timestamps_vol_current[-1] == 1801.2566835460611
 
@@ -229,75 +227,90 @@ def test_get_model_instance_by_field_name(threedi_result):
 
 
 def test_get_values_by_timestep_nr(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = threedi_result.get_values_by_timestep_nr('s1', 2)
+        values = threedi_result.get_values_by_timestep_nr("s1", 2)
         np.testing.assert_equal(values, np.array([6, 7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_index(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = threedi_result.get_values_by_timestep_nr(
-            's1', 2, node_ids=np.array([1, 2]))
+            "s1", 2, node_ids=np.array([1, 2])
+        )
         np.testing.assert_equal(values, np.array([7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_multipe_timestamps(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
         values = threedi_result.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([0, 2]))
+            "s1", timestamp_idx=np.array([0, 2])
+        )
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
 
 def test_get_values_by_timestep_nr_duplicate_node_ids(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = threedi_result.get_values_by_timestep_nr(
-            's1', timestamp_idx=1, node_ids=np.array([0, 0, 2]))
+            "s1", timestamp_idx=1, node_ids=np.array([0, 0, 2])
+        )
         np.testing.assert_equal(values, np.array([3, 3, 5]))
 
 
 def test_get_values_by_timestep_nr_unsorted_node_ids(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = threedi_result.get_values_by_timestep_nr(
-            's1', timestamp_idx=0, node_ids=np.array([1, 0, 2]))
+            "s1", timestamp_idx=0, node_ids=np.array([1, 0, 2])
+        )
         np.testing.assert_equal(values, np.array([1, 0, 2]))
 
 
 def test_get_values_by_timestep_nr_timestamp_idx_array_one(threedi_result):
-    with mock.patch.object(threedi_result, '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = threedi_result.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([2]), node_ids=np.array([0, 1]))
+            "s1", timestamp_idx=np.array([2]), node_ids=np.array([0, 1])
+        )
         np.testing.assert_equal(values, np.array([6, 7]))
 
 
 def test_get_values_by_timestep_nr_timestamp_and_node_ids(threedi_result):
-    with mock.patch.object(threedi_result,
-                           '_nc_from_mem') as data:
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = threedi_result.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1]))
+            "s1", timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1])
+        )
         np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
 
 
 def test__nc_from_mem(threedi_result):
-    threedi_result._nc_from_mem('s1')
-    assert 's1' in threedi_result._cache.keys()
+    threedi_result._nc_from_mem("s1")
+    assert "s1" in threedi_result._cache.keys()
 
 
 def test_available_subgrid_map_vars(threedi_result):
     actual_vars = threedi_result.available_subgrid_map_vars
     expected_vars = {
-        'au', 'q', 'q_lat', 'q_pump', 'rain', 's1', 'su', 'u1', 'vol',
-        'intercepted_volume', 'leak', 'q_sss',
+        "au",
+        "q",
+        "q_lat",
+        "q_pump",
+        "rain",
+        "s1",
+        "su",
+        "u1",
+        "vol",
+        "intercepted_volume",
+        "leak",
+        "q_sss",
     }
     assert set(actual_vars) == expected_vars
 
@@ -305,10 +318,19 @@ def test_available_subgrid_map_vars(threedi_result):
 def test_available_aggregation_vars(threedi_result):
     actual_aggregation_vars = threedi_result.available_aggregation_vars
     expected_aggregation_vars = {
-        'q_cum', 'q_cum_positive', 'q_cum_negative', 'q_lat_cum', 'q_pump_cum',
-        'rain_cum', 'vol_current', 'infiltration_rate_simple_cum',
-        'intercepted_volume_current', 'leak_cum', 'q_sss_cum', 'rain_cum',
-        'infiltration_rate_simple_cum',
+        "q_cum",
+        "q_cum_positive",
+        "q_cum_negative",
+        "q_lat_cum",
+        "q_pump_cum",
+        "rain_cum",
+        "vol_current",
+        "infiltration_rate_simple_cum",
+        "intercepted_volume_current",
+        "leak_cum",
+        "q_sss_cum",
+        "rain_cum",
+        "infiltration_rate_simple_cum",
     }
     assert set(actual_aggregation_vars) == expected_aggregation_vars
 
@@ -316,14 +338,33 @@ def test_available_aggregation_vars(threedi_result):
 def test_available_vars(threedi_result):
     actual = threedi_result.available_vars
     normal_vars = {
-        'au', 'q', 'q_lat', 'q_pump', 'rain', 's1', 'su', 'u1', 'vol',
-        'intercepted_volume', 'leak', 'q_sss',
+        "au",
+        "q",
+        "q_lat",
+        "q_pump",
+        "rain",
+        "s1",
+        "su",
+        "u1",
+        "vol",
+        "intercepted_volume",
+        "leak",
+        "q_sss",
     }
     agg_vars = {
-        'q_cum', 'q_cum_positive', 'q_cum_negative', 'q_lat_cum', 'q_pump_cum',
-        'rain_cum', 'vol_current', 'infiltration_rate_simple_cum',
-        'intercepted_volume_current', 'leak_cum', 'q_sss_cum', 'rain_cum',
-        'infiltration_rate_simple_cum',
+        "q_cum",
+        "q_cum_positive",
+        "q_cum_negative",
+        "q_lat_cum",
+        "q_pump_cum",
+        "rain_cum",
+        "vol_current",
+        "infiltration_rate_simple_cum",
+        "intercepted_volume_current",
+        "leak_cum",
+        "q_sss_cum",
+        "rain_cum",
+        "infiltration_rate_simple_cum",
     }
     expected = normal_vars | agg_vars
     assert set(actual) == expected
