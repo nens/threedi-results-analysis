@@ -9,7 +9,7 @@ from ThreeDiToolbox.models.datasources import (
     DataSourceLayerManager,
 )
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.test.test_datasources import results_3di_path
+from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
@@ -239,7 +239,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         test_values = {
             "active": False,
             "name": "jaa",
-            "file_path": results_3di_path,
+            "file_path": THREEDI_RESULTS_PATH,
             "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }

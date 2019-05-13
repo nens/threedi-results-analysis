@@ -9,9 +9,9 @@ import tempfile
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
-from ThreeDiToolbox.test.test_datasources import results_3di_path
+from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
-test_data_dir = os.path.dirname(results_3di_path)
+test_data_dir = os.path.dirname(THREEDI_RESULTS_PATH)
 
 
 class DummyTimeseriesDatasourceModel(object):

@@ -34,7 +34,7 @@ spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
 
-results_3di_path = os.path.join(
+THREEDI_RESULTS_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "data",
     "testmodel",
@@ -114,11 +114,11 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         ThreediResult()
 
     def test_sanity(self):
-        nds = ThreediResult()
+        threedi_result = ThreediResult()
         m = mock.MagicMock()
-        nds._datasource = m
+        threedi_result._datasource = m
         # sanity test
-        self.assertEqual(nds.datasource, m)
+        self.assertEqual(threedi_result.datasource, m)
 
     @mock.patch(
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
@@ -128,10 +128,10 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.gridadmin_result"
     )
     def test_get_timeseries(self, gridadmin_result_mock):
-        nds = ThreediResult()
+        threedi_result = ThreediResult()
         m = mock.MagicMock()
-        nds._datasource = m
-        nds.get_timeseries("s1", 3)
+        threedi_result._datasource = m
+        threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
