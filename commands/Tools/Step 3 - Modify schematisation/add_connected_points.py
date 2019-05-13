@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import zip
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsGeometry
 from qgis.core import QgsProject

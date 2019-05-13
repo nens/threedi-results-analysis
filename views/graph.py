@@ -9,8 +9,6 @@ from ..datasource.netcdf import SUBGRID_MAP_VARIABLES
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import messagebar_message
 from ..utils.user_messages import statusbar_message
-from builtins import range
-from builtins import str
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri

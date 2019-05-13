@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from builtins import object
-from builtins import str
 from qgis.analysis import QgsGraphAnalyzer
 from qgis.analysis import QgsGraphBuilder
 from qgis.analysis import QgsNetworkDistanceStrategy

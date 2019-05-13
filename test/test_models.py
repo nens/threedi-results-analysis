@@ -1,4 +1,3 @@
-from builtins import range
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from ThreeDiToolbox.models.datasources import DataSourceLayerManager

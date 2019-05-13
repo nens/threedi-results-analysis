@@ -1,4 +1,3 @@
-from builtins import object
 from functools import reduce
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem

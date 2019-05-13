@@ -4,7 +4,6 @@ Copied from stackoverflow:
 https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-and-create-corresponding-column-in-table
 """
 
-from builtins import str
 from sqlalchemy import exc
 from sqlalchemy import MetaData
 from sqlalchemy import Table

@@ -1,7 +1,5 @@
 from ..utils import cached_property
 from .base import BaseDataSource
-from builtins import range
-from builtins import str
 from collections import namedtuple
 from itertools import product
 from itertools import starmap

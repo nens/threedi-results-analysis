@@ -1,7 +1,6 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
 from ..datasource.spatialite import disable_sqlite_synchronous
 from .user_messages import StatusProgressBar
-from builtins import range
 from osgeo import ogr
 from qgis.core import Qgis
 from qgis.core import QgsCoordinateReferenceSystem

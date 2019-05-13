@@ -1,4 +1,3 @@
-from builtins import object
 from sqlite3 import dbapi2 as dbapi
 from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
 from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path

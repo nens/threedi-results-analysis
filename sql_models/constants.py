@@ -1,4 +1,3 @@
-from builtins import object
 
 
 def reversed_dict(d):

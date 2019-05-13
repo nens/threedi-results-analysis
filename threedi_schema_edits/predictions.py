@@ -1,6 +1,3 @@
-from builtins import object
-from builtins import range
-from builtins import zip
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsFeature
 from qgis.core import QgsField

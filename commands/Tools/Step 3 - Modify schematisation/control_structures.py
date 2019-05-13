@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import range
-from builtins import str
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QLabel

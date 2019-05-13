@@ -1,7 +1,4 @@
 """Imported in __init__.py"""
-from builtins import map
-from builtins import next
-from builtins import object
 from itertools import tee
 
 import math

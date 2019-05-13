@@ -1,7 +1,6 @@
 """
 Test geo utils.
 """
-from builtins import str
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized

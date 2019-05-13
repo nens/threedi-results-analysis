@@ -1,6 +1,4 @@
 from ..datasource.spatialite import Spatialite
-from builtins import range
-from builtins import str
 from collections import OrderedDict
 from osgeo import ogr
 from osgeo import osr

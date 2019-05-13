@@ -1,7 +1,6 @@
 from ..config.waterbalance.sum_configs import serie_settings
 from ..models.wb_item import WaterbalanceItemModel
 from ..utils.maptools.polygon_draw import PolygonDrawTool
-from builtins import object
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsGeometry

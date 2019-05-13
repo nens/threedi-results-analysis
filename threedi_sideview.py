@@ -21,8 +21,6 @@
  ***************************************************************************/
 """
 from .views.sideview import SideViewDockWidget
-from builtins import object
-from builtins import range
 from qgis.PyQt.QtCore import Qt
 
 import os.path

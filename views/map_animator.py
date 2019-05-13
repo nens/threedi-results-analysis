@@ -1,7 +1,6 @@
 from ..utils.geo_processing import copy_layer_into_memory_layer
 from ..utils.user_messages import messagebar_message
 from .graph import generate_parameter_config
-from builtins import range
 from qgis.core import QgsField
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import QVariant

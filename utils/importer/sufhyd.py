@@ -3,9 +3,6 @@
 
 from ...sql_models.constants import Constants
 from .turtleurbanclasses import HydroObjectFactory
-from builtins import object
-from builtins import range
-from builtins import str
 
 import logging
 

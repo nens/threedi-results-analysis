@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from builtins import range
-from builtins import str
 from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QSettings

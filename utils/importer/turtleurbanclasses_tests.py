@@ -54,9 +54,6 @@ from .turtleurbanclasses import Overstort_Tak
 from .turtleurbanclasses import UitlaatMetKeerklep
 from .turtleurbanclasses import UitlaatMetKeerklep_Knoop
 from .turtleurbanclasses import UitlaatMetKeerklep_Tak
-from builtins import map
-from builtins import object
-from builtins import range
 
 import logging
 import mock

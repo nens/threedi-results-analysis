@@ -1,6 +1,3 @@
-from builtins import object
-from builtins import range
-from builtins import str
 from qgis.core import Qgis
 from qgis.core import QgsDataSourceUri
 from sqlalchemy.exc import OperationalError

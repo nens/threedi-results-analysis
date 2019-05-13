@@ -22,9 +22,6 @@
 """this file contains a Python implementation of things defined in the
 *Green Book* of hydrological objects.
 """
-from builtins import object
-from builtins import range
-from builtins import zip
 from future import standard_library
 
 import logging

@@ -21,8 +21,6 @@
  ***************************************************************************/
 """
 from .views.graph import GraphDockWidget
-from builtins import object
-from builtins import range
 from qgis.PyQt.QtCore import Qt
 
 import os.path

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import object
 from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.guess_indicators import Guesser
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase

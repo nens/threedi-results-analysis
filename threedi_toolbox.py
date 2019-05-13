@@ -22,8 +22,6 @@
 """
 from .models.toolbox import ToolboxModel
 from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
-from builtins import object
-from builtins import str
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView

@@ -3,8 +3,6 @@ from .base import BaseModel
 from .base_fields import CheckboxField
 from .base_fields import ColorField
 from .base_fields import ValueField
-from builtins import object
-from builtins import str
 from collections import OrderedDict
 from random import randint
 

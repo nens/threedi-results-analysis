@@ -1,7 +1,3 @@
-from builtins import map
-from builtins import object
-from builtins import range
-from builtins import str
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.PyQt.QtCore import Qt

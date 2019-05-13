@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import object
-from builtins import str
-from builtins import zip
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField

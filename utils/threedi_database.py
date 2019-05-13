@@ -1,5 +1,4 @@
 from .sqlalchemy_add_columns import create_and_upgrade
-from builtins import object
 from osgeo import ogr
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy import create_engine

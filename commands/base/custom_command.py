@@ -1,4 +1,3 @@
-from builtins import object
 from future.utils import with_metaclass
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 

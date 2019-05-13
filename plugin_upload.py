@@ -4,7 +4,6 @@
         Authors: A. Pasotti, V. Picavet
         git sha              : $TemplateVCSFormat
 """
-from builtins import input
 from future import standard_library
 from optparse import OptionParser
 

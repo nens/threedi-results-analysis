@@ -1,6 +1,5 @@
 # If you don't include this import the test 'test_set_and_load_list'
 # test_project will fail! WTF?
-from builtins import object
 from contextlib import contextmanager
 from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt

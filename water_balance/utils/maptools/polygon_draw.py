@@ -1,4 +1,3 @@
-from builtins import object
 from qgis.core import QgsGeometry
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsMapTool

@@ -3,8 +3,6 @@ from ..utils import haversine
 from ..utils.geo_processing import split_line_at_points
 from ..utils.route import Route
 from ..utils.user_messages import statusbar_message
-from builtins import object
-from builtins import str
 from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsNetworkStrategy

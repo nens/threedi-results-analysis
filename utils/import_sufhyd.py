@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import object
-from builtins import range
-from builtins import str
 from collections import OrderedDict
 from copy import copy
 from osgeo import ogr

@@ -9,7 +9,6 @@ from .utils.layer_from_netCDF import NODES_LAYER_NAME
 from .utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from .utils.user_messages import pop_up_info
 from .utils.user_messages import pop_up_question
-from builtins import object
 from qgis.core import QgsProject
 from ThreeDiToolbox.utils import qlogging
 

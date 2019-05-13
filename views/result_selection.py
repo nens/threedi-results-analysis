@@ -5,7 +5,6 @@ from ..datasource.netcdf import find_id_mapping_file
 from ..datasource.netcdf import layer_qh_type_mapping
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
-from builtins import str
 from future import standard_library
 from lizard_connector.connector import Endpoint
 from qgis.PyQt import uic

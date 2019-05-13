@@ -7,7 +7,6 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from builtins import object
 from qgis.PyQt import QtCore
 from qgis.PyQt import QtGui
 from qgis.PyQt.QtWidgets import QApplication
