@@ -244,65 +244,70 @@ def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
 
 
 def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr('s1', 2)
+        values = netcdf_groundwater_ds.get_values_by_timestep_nr("s1", 2)
         np.testing.assert_equal(values, np.array([6, 7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', 2, node_ids=np.array([1, 2]))
+            "s1", 2, node_ids=np.array([1, 2])
+        )
         np.testing.assert_equal(values, np.array([7, 8]))
 
 
 def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([0, 2]))
+            "s1", timestamp_idx=np.array([0, 2])
+        )
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
 
 def test_get_values_by_timestep_nr_duplicate_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', timestamp_idx=1, node_ids=np.array([0, 0, 2]))
+            "s1", timestamp_idx=1, node_ids=np.array([0, 0, 2])
+        )
         np.testing.assert_equal(values, np.array([3, 3, 5]))
 
 
 def test_get_values_by_timestep_nr_unsorted_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', timestamp_idx=0, node_ids=np.array([1, 0, 2]))
+            "s1", timestamp_idx=0, node_ids=np.array([1, 0, 2])
+        )
         np.testing.assert_equal(values, np.array([1, 0, 2]))
 
 
 def test_get_values_by_timestep_nr_timestamp_idx_array_one(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([2]), node_ids=np.array([0, 1]))
+            "s1", timestamp_idx=np.array([2]), node_ids=np.array([0, 1])
+        )
         np.testing.assert_equal(values, np.array([6, 7]))
 
 
 def test_get_values_by_timestep_nr_timestamp_and_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds,
-                           '_nc_from_mem') as data:
+    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
         values = netcdf_groundwater_ds.get_values_by_timestep_nr(
-            's1', timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1]))
+            "s1", timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1])
+        )
         np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
 
 
 def test__nc_from_mem(netcdf_groundwater_ds):
-    netcdf_groundwater_ds._nc_from_mem('s1')
-    assert 's1' in netcdf_groundwater_ds._cache.keys()
+    netcdf_groundwater_ds._nc_from_mem("s1")
+    assert "s1" in netcdf_groundwater_ds._cache.keys()
