@@ -11,6 +11,7 @@ from sqlalchemy import func
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.utils.user_messages import (
     pop_up_question,
     pop_up_info,
@@ -71,7 +72,7 @@ class DataSourceAdapter(Proxy):
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == "ThreediResult"
+        return isinstance(self.obj, ThreediResult)
 
     @property
     def timestamps(self):

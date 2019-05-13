@@ -199,9 +199,9 @@ def test_get_gridadmin_unknown_var(threedi_result):
 
 
 def test_get_timeseries(threedi_result):
-    ts = threedi_result.get_timeseries("s1")
-    np.testing.assert_equal(ts[:, 0], threedi_result.get_timestamps())
-    assert ts.shape[1] == threedi_result.get_gridadmin("s1").nodes.count + 1
+    time_series = threedi_result.get_timeseries("s1")
+    np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+    assert time_series.shape[1] == threedi_result.get_gridadmin("s1").nodes.count + 1
 
 
 def test_get_timeseries_filter_node(threedi_result):
@@ -209,9 +209,9 @@ def test_get_timeseries_filter_node(threedi_result):
         "threedigrid.orm.base.models.Model.get_filtered_field_value"
     ) as data:
         data.return_value = np.ones((len(threedi_result.timestamps), 1))
-        ts = threedi_result.get_timeseries("s1", node_id=5)
-        np.testing.assert_equal(ts[:, 0], threedi_result.get_timestamps())
-        np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
+        time_series = threedi_result.get_timeseries("s1", node_id=5)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
 
 
 def test_get_model_instance_by_field_name(threedi_result):
