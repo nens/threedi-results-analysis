@@ -7,16 +7,7 @@ import os
 import unittest
 
 
-__author__ = "Tim Sutton <tim@linfiniti.com>"
-__revision__ = "$Format:%H$"
-__date__ = "17/10/2010"
-__license__ = "GPL"
-__copyright__ = "Copyright 2012, Australia Indonesia Facility for "
-__copyright__ += "Disaster Reduction"
-
-
-LOGGER = logging.getLogger("QGIS")
-# TODO: fix logger name
+logger = logging.getLogger(__name__)
 
 
 class TestInit(unittest.TestCase):
@@ -49,7 +40,7 @@ class TestInit(unittest.TestCase):
         file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), os.pardir, "metadata.txt")
         )
-        LOGGER.info(file_path)
+        logger.info(file_path)
         metadata = []
         parser = configparser.ConfigParser()
         parser.optionxform = str
