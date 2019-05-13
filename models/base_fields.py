@@ -1,6 +1,6 @@
-from builtins import object
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QColor
+
 
 VALUE_FIELD = 0
 CHECKBOX_FIELD = 10

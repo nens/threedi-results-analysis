@@ -1,42 +1,44 @@
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import range
-import logging
+from ..datasource.threedi_results import AGGREGATION_VARIABLES
+from ..datasource.threedi_results import CUMULATIVE_AGGREGATION_UNITS
+from ..datasource.threedi_results import H_TYPES
+from ..datasource.threedi_results import LAYER_QH_TYPE_MAPPING
+from ..datasource.threedi_results import normalized_object_type
+from ..datasource.threedi_results import Q_TYPES
+from ..datasource.threedi_results import SUBGRID_MAP_VARIABLES
+from ..models.graph import LocationTimeseriesModel
+from ..utils.user_messages import messagebar_message
+from ..utils.user_messages import statusbar_message
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsProject
+from qgis.core import QgsWkbTypes
+from qgis.gui import QgsRubberBand
+from qgis.gui import QgsVertexMarker
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QEvent
+from qgis.PyQt.QtCore import QMetaObject
+from qgis.PyQt.QtCore import QSize
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QTableView
+from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
 
+import logging
 import pyqtgraph as pg
 
-from qgis.PyQt.QtCore import Qt, QSize, QEvent, pyqtSignal, QMetaObject
-from qgis.PyQt.QtWidgets import (
-    QTableView,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QSizePolicy,
-    QPushButton,
-    QSpacerItem,
-    QApplication,
-    QTabWidget,
-    QDockWidget,
-    QComboBox,
-    QMessageBox,
-    QCheckBox,
-)
-from qgis.core import (
-    QgsDataSourceUri,
-    QgsFeatureRequest,
-    QgsCoordinateTransform,
-    QgsCoordinateReferenceSystem,
-    QgsWkbTypes,
-    QgsProject,
-)
-from qgis.gui import QgsVertexMarker, QgsRubberBand
-
-from ..datasource.threedi_results import normalized_object_type
-from ..datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS, Q_TYPES, \
-    H_TYPES, SUBGRID_MAP_VARIABLES, AGGREGATION_VARIABLES, \
-    LAYER_QH_TYPE_MAPPING
-from ..models.graph import LocationTimeseriesModel
-from ..utils.user_messages import statusbar_message, messagebar_message
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,7 @@
-import os
-
-import pytest
-
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+
+import os
+import pytest
 
 
 current_dir = os.path.dirname(__file__)

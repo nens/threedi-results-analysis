@@ -1,15 +1,12 @@
-from builtins import range
-import unittest
 from qgis.PyQt.QtCore import Qt
-import mock
-
-from ThreeDiToolbox.models.graph import LocationTimeseriesModel
-from ThreeDiToolbox.models.datasources import (
-    TimeseriesDatasourceModel,
-    DataSourceLayerManager,
-)
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.models.datasources import DataSourceLayerManager
+from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.models.graph import LocationTimeseriesModel
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
+
+import mock
+import unittest
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):

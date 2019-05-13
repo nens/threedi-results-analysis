@@ -1,48 +1,49 @@
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import object
-from collections import Counter
-from functools import reduce
-import logging
-import numpy as np
-import os
-import pyqtgraph as pg
-from qgis.analysis import QgsNetworkStrategy, QgsVectorLayerDirector
-from qgis.core import (
-    QgsPointXY,
-    QgsRectangle,
-    QgsCoordinateTransform,
-    QgsVectorLayer,
-    QgsField,
-    QgsFeature,
-    QgsGeometry,
-    QgsProject,
-    QgsFeatureRequest,
-    QgsDistanceArea,
-    QgsUnitTypes,
-    QgsWkbTypes,
-    QgsDataSourceUri,
-)
-from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QMetaObject, QVariant
-from qgis.PyQt.QtGui import QColor, QCursor
-from qgis.PyQt.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QSizePolicy,
-    QPushButton,
-    QLabel,
-    QSpacerItem,
-    QApplication,
-    QTabWidget,
-    QDockWidget,
-)
-
 from ..utils import haversine
 from ..utils.geo_processing import split_line_at_points
 from ..utils.route import Route
 from ..utils.user_messages import statusbar_message
+from collections import Counter
+from functools import reduce
+from qgis.analysis import QgsNetworkStrategy
+from qgis.analysis import QgsVectorLayerDirector
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsDistanceArea
+from qgis.core import QgsFeature
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsField
+from qgis.core import QgsGeometry
+from qgis.core import QgsPointXY
+from qgis.core import QgsProject
+from qgis.core import QgsRectangle
+from qgis.core import QgsUnitTypes
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
+from qgis.gui import QgsMapTool
+from qgis.gui import QgsRubberBand
+from qgis.gui import QgsVertexMarker
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QMetaObject
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QCursor
+from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QSpacerItem
+from qgis.PyQt.QtWidgets import QTabWidget
+from qgis.PyQt.QtWidgets import QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget
+
+import logging
+import numpy as np
+import os
+import pyqtgraph as pg
 
 
 logger = logging.getLogger(__name__)

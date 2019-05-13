@@ -1,23 +1,15 @@
-from __future__ import division
-
-from builtins import str
-from builtins import map
-from builtins import range
-from builtins import object
-import logging
-import os.path
-
-import numpy as np
-import numpy.ma as ma
+from qgis.core import QgsFeatureRequest
+from qgis.core import QgsPointXY
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsFeatureRequest, QgsPointXY
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-
-
-# Import the code for the DockWidget
 from ThreeDiToolbox.water_balance.views.waterbalance_widget import WaterBalanceWidget
+
+import logging
+import numpy as np
+import numpy.ma as ma
+import os.path
 
 
 logger = logging.getLogger("DeltaresTdi." + __name__)

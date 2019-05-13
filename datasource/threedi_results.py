@@ -1,18 +1,18 @@
-import glob
-import logging
-import os
-
-import h5py
-import numpy as np
-from threedigrid.admin.constants import NO_DATA_VALUE
-
-from ThreeDiToolbox.utils import cached_property
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from .base import BaseDataSource
 from .result_constants import LAYER_OBJECT_TYPE_MAPPING
 from .result_constants import SUBGRID_MAP_VARIABLES
+from ThreeDiToolbox.utils import cached_property
+from threedigrid.admin.constants import NO_DATA_VALUE
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+
+import glob
+import h5py
+import logging
+import numpy as np
+import os
+
 
 logger = logging.getLogger(__name__)
 

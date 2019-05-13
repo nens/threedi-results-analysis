@@ -1,15 +1,14 @@
-from builtins import object
-import unittest
-import mock
-import os.path
 from sqlite3 import dbapi2 as dbapi
-import shutil
-import tempfile
-
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
+
+import mock
+import os.path
+import shutil
+import tempfile
+import unittest
+
 
 test_data_dir = os.path.dirname(THREEDI_RESULTS_PATH)
 

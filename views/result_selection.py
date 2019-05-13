@@ -1,25 +1,23 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
-from __future__ import print_function
-
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import str
-import logging
-import os
-from urllib.error import HTTPError
-
-from lizard_connector.connector import Endpoint
-from qgis.PyQt.QtCore import pyqtSignal, QSettings, QModelIndex, QThread, Qt
-from qgis.PyQt.QtWidgets import QWidget, QFileDialog
-from qgis.PyQt.QtCore import QSortFilterProxyModel
-from qgis.PyQt import uic
-
-from ..datasource.threedi_results import find_h5_file, detect_netcdf_version
+from ..datasource.threedi_results import detect_netcdf_version
+from ..datasource.threedi_results import find_h5_file
 from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
+from lizard_connector.connector import Endpoint
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QModelIndex
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtCore import QSortFilterProxyModel
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QThread
+from qgis.PyQt.QtWidgets import QFileDialog
+from qgis.PyQt.QtWidgets import QWidget
+from urllib.error import HTTPError
+
+import logging
+import os
 
 
 FORM_CLASS, _ = uic.loadUiType(

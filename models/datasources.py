@@ -4,7 +4,6 @@ from builtins import object
 import os
 import logging
 from qgis.PyQt.QtCore import Qt, pyqtSignal
-from ..datasource.threedi_results import ThreediResult
 from .base import BaseModel
 from .base_fields import CheckboxField, ValueField
 from ..utils.layer_from_netCDF import (
@@ -19,7 +18,25 @@ from ..utils.layer_from_netCDF import (
 )
 from ..utils.user_messages import pop_up_info
 from ..datasource.spatialite import Spatialite
+from ..datasource.threedi_results import ThreediResult
+from ..utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
+from ..utils.layer_from_netCDF import get_or_create_flowline_layer
+from ..utils.layer_from_netCDF import get_or_create_node_layer
+from ..utils.layer_from_netCDF import get_or_create_pumpline_layer
+from ..utils.layer_from_netCDF import make_flowline_layer
+from ..utils.layer_from_netCDF import make_pumpline_layer
+from ..utils.layer_from_netCDF import NODES_LAYER_NAME
+from ..utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
+from ..utils.user_messages import pop_up_info
 from ..utils.user_messages import StatusProgressBar
+from .base import BaseModel
+from .base_fields import CheckboxField
+from .base_fields import ValueField
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import Qt
+
+import logging
+import os
 
 
 logger = logging.getLogger(__name__)

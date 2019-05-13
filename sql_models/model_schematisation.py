@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import logging
-
-from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey
+from .constants import Constants
+from geoalchemy2.types import Geometry
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from geoalchemy2.types import Geometry
 
-from .constants import Constants
+import logging
+
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()

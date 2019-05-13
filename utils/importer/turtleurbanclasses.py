@@ -22,23 +22,15 @@
 """this file contains a Python implementation of things defined in the
 *Green Book* of hydrological objects.
 """
-from __future__ import print_function
+import logging
+import re
+import types
 
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import zip
-from builtins import range
-from builtins import object
 
 __revision__ = "$Rev$"[6:-2]
 
-import logging
 
 logger = logging.getLogger(__name__)
-
-import re
-import types
 
 
 def isSufHydKey(key):

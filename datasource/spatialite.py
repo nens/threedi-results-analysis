@@ -6,15 +6,17 @@ database or table name could not be specified. Changed to classes of the
 db_manager plugin (is a standard plugin of QGIS, provided with each
 installation)
 """
+from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
 from functools import wraps
+from osgeo import gdal
+from osgeo import ogr
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
+from qgis.PyQt.QtCore import QVariant
+
 import logging
 import os
-
-from qgis.core import QgsDataSourceUri, QgsVectorLayer, QgsWkbTypes
-from db_manager.db_plugins.spatialite.connector import SpatiaLiteDBConnector
-from qgis.PyQt.QtCore import QVariant
-from osgeo import ogr
-from osgeo import gdal
 
 
 logger = logging.getLogger(__name__)

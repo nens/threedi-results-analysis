@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import math
-
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDistanceArea
 from qgis.core import QgsProject
-
 from ThreeDiToolbox.utils import constants
+
+import math
 
 
 def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):

@@ -1,10 +1,11 @@
 # Dependencies for development and tests.
+coverage
+coveralls
+docstr-coverage >= 1.0.4
+flake8
+isort
 mock
+pycodestyle
 pytest
 pytest-cov
 pytest-flake8
-coverage
-pycodestyle
-flake8
-docstr-coverage >= 1.0.4
-coveralls
