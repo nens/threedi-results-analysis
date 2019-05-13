@@ -316,7 +316,7 @@ class ThreediResult(BaseDataSource):
             agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
             return GridH5AggregateResultAdmin(h5, agg_path)
-        except IndexError:
+        except FileNotFoundError:
             return None
 
     @property
@@ -341,7 +341,7 @@ class ThreediResult(BaseDataSource):
         # Load aggregation netcdf
         try:
             aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
-        except IndexError:
+        except FileNotFoundError:
             logger.error("Could not find the aggregation netcdf.")
             return None
         else:
@@ -400,11 +400,14 @@ def find_aggregation_netcdf(netcdf_file_path):
         the aggregation netcdf path
 
     Raises:
-        IndexError if nothing is found
+        FileNotFoundError if nothing is found
     """
     pattern = "aggregate_results_3di.nc"
     result_dir = os.path.dirname(netcdf_file_path)
-    return glob.glob(os.path.join(result_dir, pattern))[0]
+    aggregate_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if aggregate_result_files:
+        return aggregate_result_files[0]
+    raise FileNotFoundError("'aggregate_results_3di.nc' file not found.")
 
 
 def detect_netcdf_version(netcdf_file_path):

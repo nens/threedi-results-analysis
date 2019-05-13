@@ -136,7 +136,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
             nc_path = os.path.join(tempdir, "bla.nc")
-            with self.assertRaises(IndexError):
+            with self.assertRaises(FileNotFoundError):
                 find_aggregation_netcdf(nc_path)
 
     def test_find_agg_success(self):
