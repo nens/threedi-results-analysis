@@ -247,7 +247,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         item = tds._create_item(**test_values)
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, ThreediResult))
-        self.assertTrue(ncds.ds)
+        self.assertTrue(ncds.datasource)
 
 
 class TestDataSourceLayerManager(unittest.TestCase):

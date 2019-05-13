@@ -2,18 +2,17 @@ import glob
 import logging
 import os
 
-import numpy as np
 import h5py
-
+import numpy as np
 from threedigrid.admin.constants import NO_DATA_VALUE
 
-from .result_constants import LAYER_OBJECT_TYPE_MAPPING
-from .base import BaseDataSource
-from .result_constants import SUBGRID_MAP_VARIABLES
 from ThreeDiToolbox.utils import cached_property
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+from .base import BaseDataSource
+from .result_constants import LAYER_OBJECT_TYPE_MAPPING
+from .result_constants import SUBGRID_MAP_VARIABLES
 
 logger = logging.getLogger(__name__)
 
@@ -321,7 +320,7 @@ class ThreediResult(BaseDataSource):
             return None
 
     @property
-    def ds(self):
+    def datasource(self):
         # TODO: move to constructor or make cached_property
         if self._datasource is None:
             try:
@@ -363,7 +362,7 @@ def normalized_object_type(current_layer_name):
 def find_h5_file(netcdf_file_path):
     """An ad-hoc way to get the h5_file.
 
-    We assume the h5_file file is in on of the following locations (note:
+    We assume the h5_file file is in one of the following locations (note:
     this order is also the searching order):
 
     1) . (in the same dir as the netcdf)

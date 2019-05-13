@@ -118,7 +118,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         m = mock.MagicMock()
         nds._datasource = m
         # sanity test
-        self.assertEqual(nds.ds, m)
+        self.assertEqual(nds.datasource, m)
 
     @mock.patch(
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",

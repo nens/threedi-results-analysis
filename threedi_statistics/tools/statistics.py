@@ -64,8 +64,8 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds.get("nMesh2D_lines").size
-                    + self.obj.ds.get("nMesh1D_lines").size
+                    self.obj.datasource.get("nMesh2D_lines").size
+                    + self.obj.datasource.get("nMesh1D_lines").size
                 )
         return self._nflowlines
 

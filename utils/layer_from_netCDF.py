@@ -113,14 +113,14 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
 
     progress_bar.increase_progress(0, "read data from netCDF")
     # Get relevant netCDF.Variables
-    projection = ds.ds.variables["projected_coordinate_system"]
+    projection = ds.datasource.variables["projected_coordinate_system"]
     source_epsg = projection.epsg
     # Connections (2, nFlowLine):
-    flowline_connection = ds.ds.variables["FlowLine_connection"]
+    flowline_connection = ds.datasource.variables["FlowLine_connection"]
 
     # FlowElem centers:
-    flowelem_xcc = ds.ds.variables["FlowElem_xcc"]  # in meters
-    flowelem_ycc = ds.ds.variables["FlowElem_ycc"]  # in meters
+    flowelem_xcc = ds.datasource.variables["FlowElem_xcc"]  # in meters
+    flowelem_ycc = ds.datasource.variables["FlowElem_ycc"]  # in meters
 
     # -1 probably because of fortran indexing
     flowline_p1 = flowline_connection[:, 0].astype(int) - 1
@@ -154,7 +154,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
 
     progress_bar.increase_progress(10, "create id mappings")
     # create inverse mapping
-    if "channel_mapping" not in ds.ds.variables:
+    if "channel_mapping" not in ds.datasource.variables:
         progress_bar.increase_progress(
             0,
             "no channel mapping found in netCDF, skip object mapping. Model "
@@ -165,7 +165,7 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     else:
         pass
         flowid_to_inp_mapping = dict(
-            [(flowid, inp_id) for inp_id, flowid in ds.ds.variables["channel_mapping"]]
+            [(flowid, inp_id) for inp_id, flowid in ds.datasource.variables["channel_mapping"]]
         )
 
         # create mapping of inp_id to spatialite_id and feature type
@@ -353,14 +353,14 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
         nds: netCDF Datasource
     """
     # Get relevant netCDF.Variables
-    projection = nds.ds.variables["projected_coordinate_system"]
+    projection = nds.datasource.variables["projected_coordinate_system"]
     source_epsg = projection.epsg  # = 28992
     # Pumpline connections (2, jap1d):
-    pumpline = nds.ds.variables["PumpLine_connection"]
+    pumpline = nds.datasource.variables["PumpLine_connection"]
 
     # FlowElem centers:
-    flowelem_xcc = nds.ds.variables["FlowElem_xcc"]  # in meters
-    flowelem_ycc = nds.ds.variables["FlowElem_ycc"]  # in meters
+    flowelem_xcc = nds.datasource.variables["FlowElem_xcc"]  # in meters
+    flowelem_ycc = nds.datasource.variables["FlowElem_ycc"]  # in meters
 
     # -1 probably because of fortran indexing
     # CAUTION: pumpline index can be 0, (which means it is pumping out of the,
