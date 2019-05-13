@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from ..datasource.threedi_results import AGGREGATION_VARIABLES
-from ..datasource.threedi_results import CUMULATIVE_AGGREGATION_UNITS
-from ..datasource.threedi_results import H_TYPES
-from ..datasource.threedi_results import LAYER_QH_TYPE_MAPPING
+from ..datasource.result_constants import AGGREGATION_VARIABLES
+from ..datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
+from ..datasource.result_constants import H_TYPES
+from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
+from ..datasource.result_constants import Q_TYPES
+from ..datasource.result_constants import SUBGRID_MAP_VARIABLES
 from ..datasource.threedi_results import normalized_object_type
-from ..datasource.threedi_results import Q_TYPES
-from ..datasource.threedi_results import SUBGRID_MAP_VARIABLES
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import messagebar_message
 from ..utils.user_messages import statusbar_message
