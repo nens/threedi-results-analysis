@@ -7,43 +7,52 @@ this ought to be made more explicit and verbose.
 from .utils.user_messages import pop_up_info
 
 import imp
+import importlib
 import logging
 import os
 import sys
 
-
 logger = logging.getLogger(__name__)
+
+
+def _check_importability(necessary_import, not_findable):
+    """Check if necessary_import is importable, add the name to ``not_findable`` if not."""
+    spec = importlib.util.find_spec(necessary_import)
+    if spec is None:
+        logger.warning("Cannot import '%s'", necessary_import)
+        not_findable.append(necessary_import)
+        return
+    logger.info(
+        "Dependency %s found. Name=%s, origin=%s",
+        necessary_import,
+        spec.name,
+        spec.origin,
+    )
 
 
 def try_to_import_dependencies():
     """Try to import everything we need and pop up an error upon failures."""
-    try:
-        import sqlalchemy  # noqa
-        import geoalchemy2  # noqa
-    except ImportError as e:
+    logger.debug("Starting to look at dependencies...")
+    logger.debug("sys.path: %s", sys.path)
+    necessary_imports = [
+        "sqlalchemy",
+        "geoalchemy2",
+        "pyqtgraph",
+        "lizard_connector",
+        "h5py",
+        "threedigrid",
+    ]
+    not_findable = []
+    for necessary_import in necessary_imports:
+        _check_importability(necessary_import, not_findable)
+
+    if not_findable:
         pop_up_info(
-            "Error loading sqlalchemy or geoalchemy2 from "
-            "'external' subdirectory. error %s" % e
+            "Error loading modules: %s", ", ".join(not_findable)
         )
 
-    try:
-        import pyqtgraph  # noqa
-
-        logger.info("Use local installation of pyqtgraph ")
-    except Exception:
-        # TODO: fix this error (which is the reason of this exception):
-        # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
-        # could be imported.
-        msg = "Error: Exception while loading pyqtgraph. Probably couldn't import PyQt"
-        logger.info(msg)
-        pop_up_info(msg)
-
-    try:
-        import lizard_connector  # noqa
-    except ImportError as e:
-        pop_up_info(
-            "Error loading lizard_connector from 'external' subdirectory. error %s" % e
-        )
+    current_directory = os.path.basename(__file__)
+    python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
 
     try:
         # Note: we're not importing it directly using the import statement because
@@ -76,12 +85,3 @@ def try_to_import_dependencies():
                 "Error: could not find h5py installation. Please "
                 "install the h5py package manually."
             )
-
-    try:
-        # Note: threedigrid depends on h5py and netCDF, so don't import it directly
-        # (see above).
-        imp.find_module("threedigrid")  # noqa
-    except ImportError as e:
-        pop_up_info(
-            "Error loading threedigrid from 'external' subdirectory. error %s" % e
-        )
