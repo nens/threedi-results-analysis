@@ -46,6 +46,7 @@ _H_TYPES = [
 Q_TYPES = [v.name for v in _Q_TYPES]
 H_TYPES = [v.name for v in _H_TYPES]
 
+# TODO: look at the name
 SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
 
 AGGREGATION_VARIABLES = [
