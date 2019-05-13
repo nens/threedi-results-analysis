@@ -4,6 +4,7 @@ SQLAlchemy >=1.1.11, <1.2
 future
 numpy >= 1.13.3, <1.14
 pyqtgraph >=0.10.0
+setuptools
 
 # Gdal is commented out, it is notoriously hard to install and fails to find
 # the installed python3-gdal package.

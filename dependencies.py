@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,16 +31,28 @@ def _check_importability(necessary_import, not_findable):
     )
 
 
+def _check_requirements(requirements):
+    """Require all requirements, this raises an error if something is missing."""
+    import pkg_resources  # It might be missing.
+
+    requirements = [r.strip() for r in requirements]
+    requirements = [r for r in sorted(requirements) if r and not r.startswith("#")]
+    missing = []
+    for requirement in requirements:
+        pkg_resources.require(requirement)
+
+
 def try_to_import_dependencies():
     """Try to import everything we need and pop up an error upon failures."""
     logger.debug("Starting to look at dependencies...")
     logger.debug("sys.path: %s", sys.path)
     necessary_imports = [
-        "sqlalchemy",
         "geoalchemy2",
-        "pyqtgraph",
-        "lizard_connector",
         "h5py",
+        "lizard_connector",
+        "pkg_resources",  # setuptools
+        "pyqtgraph",
+        "sqlalchemy",
         "threedigrid",
     ]
     not_findable = []
@@ -47,12 +60,16 @@ def try_to_import_dependencies():
         _check_importability(necessary_import, not_findable)
 
     if not_findable:
-        pop_up_info(
-            "Error loading modules: %s", ", ".join(not_findable)
-        )
+        pop_up_info("Error loading modules: %s", ", ".join(not_findable))
 
-    current_directory = os.path.basename(__file__)
-    python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
+    current_directory = os.path.dirname(__file__)
+    requirements_txt = os.path.join(current_directory, "requirements.txt")
+    requirements = open(requirements_txt).read().strip().split("\n")
+    # python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
+    try:
+        _check_requirements(requirements)
+    except Exception:
+        logger.exception("Not all requirements are OK")
 
     try:
         # Note: we're not importing it directly using the import statement because
