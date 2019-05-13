@@ -535,8 +535,7 @@ class StatisticsTool(object):
 
             try:
                 np.copyto(
-                    dh_max,
-                    np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end))),
+                    dh_max, np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end)))
                 )
             except Exception:
                 logger.info("dh_max is not loaded for timestep: %s" % (timestamp))

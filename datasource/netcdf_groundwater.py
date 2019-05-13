@@ -320,7 +320,8 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     #         return result[time_index_filter]
 
     def get_values_by_timestep_nr(
-            self, variable, timestamp_idx, node_ids=None, use_cache=True):
+        self, variable, timestamp_idx, node_ids=None, use_cache=True
+    ):
         """Return an array of values of the given variable on the specified timestamp(s)
 
         If only one timestamp is specified, a 1d np.array is returned.  If an
@@ -372,13 +373,17 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
             values = self._cache[variable]
         else:
             logger.debug(
-                "Variable %s not yet in cache, fetching from result file", variable)
+                "Variable %s not yet in cache, fetching from result file", variable
+            )
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
             values = unfiltered_timeseries.get_filtered_field_value(variable)
-            logger.debug('Caching additional {:.3f} MB of data'.format(
-                values.nbytes / 1000 / 1000))
+            logger.debug(
+                "Caching additional {:.3f} MB of data".format(
+                    values.nbytes / 1000 / 1000
+                )
+            )
             self._cache[variable] = values
         return values
 
