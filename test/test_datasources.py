@@ -125,9 +125,9 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         ["s1"],
     )
     @mock.patch(
-        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.gridadmin_result"
+        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin"
     )
-    def test_get_timeseries(self, gridadmin_result_mock):
+    def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
         m = mock.MagicMock()
         threedi_result._datasource = m

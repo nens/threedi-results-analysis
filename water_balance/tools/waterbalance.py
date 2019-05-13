@@ -968,7 +968,7 @@ class WaterBalanceTool(object):
         check_available_vars = selected_ds.available_vars
 
         ga = self.ts_datasource.rows[0].datasource().gridadmin
-        gr = self.ts_datasource.rows[0].datasource().gridadmin_result
+        gr = self.ts_datasource.rows[0].datasource().result_admin
 
         minimum_agg_vars = [
             ("q_cum_negative", "negative cumulative discharge"),

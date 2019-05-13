@@ -47,16 +47,16 @@ class ThreediResult(BaseDataSource):
     def available_subgrid_map_vars(self):
         """Return a list of available variables from 'results_3di.nc'."""
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
-        if self.gridadmin_result.has_pumpstations:
+        if self.result_admin.has_pumpstations:
             available_vars = (
-                    self.gridadmin_result.nodes._field_names
-                    | self.gridadmin_result.lines._field_names
-                    | self.gridadmin_result.pumps._field_names
+                    self.result_admin.nodes._field_names
+                    | self.result_admin.lines._field_names
+                    | self.result_admin.pumps._field_names
             )
         else:
             available_vars = (
-                    self.gridadmin_result.nodes._field_names
-                    | self.gridadmin_result.lines._field_names
+                    self.result_admin.nodes._field_names
+                    | self.result_admin.lines._field_names
             )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
@@ -65,7 +65,7 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def available_aggregation_vars(self):
         """Return a list of available variables in the 'aggregate_results_3di.nc"""
-        ga = self.gridadmin_aggregate_result
+        ga = self.aggregate_result_admin
         if not ga:
             return []
         # hardcoded whitelist
@@ -120,7 +120,7 @@ class ThreediResult(BaseDataSource):
         #  This might cause performance issues. Check if these timestamps are
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.gridadmin_result.nodes.timestamps
+            return self.result_admin.nodes.timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(
@@ -141,9 +141,9 @@ class ThreediResult(BaseDataSource):
         if variable is None:
             return self.gridadmin
         elif variable in self.available_subgrid_map_vars:
-            return self.gridadmin_result
+            return self.result_admin
         elif variable in self.available_aggregation_vars:
-            return self.gridadmin_aggregate_result
+            return self.aggregate_result_admin
         else:
             raise AttributeError(
                 "Unknown subgrid or aggregate variable: %s")
@@ -304,14 +304,14 @@ class ThreediResult(BaseDataSource):
         return self._gridadmin
 
     @property
-    def gridadmin_result(self):
+    def result_admin(self):
         if not self._gridadmin_result:
             h5 = find_h5_file(self.file_path)
             self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
         return self._gridadmin_result
 
     @cached_property
-    def gridadmin_aggregate_result(self):
+    def aggregate_result_admin(self):
         try:
             agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
