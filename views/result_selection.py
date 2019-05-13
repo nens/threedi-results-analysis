@@ -17,7 +17,7 @@ from qgis.PyQt.QtCore import QSortFilterProxyModel
 from qgis.PyQt import uic
 
 from ..datasource.threedi_results import find_h5_file, detect_netcdf_version
-from ..datasource.result_constants import layer_qh_type_mapping
+from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
 
@@ -291,7 +291,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         tdi_spatialites = []
         for layer in self.iface.layerTreeView().selectedLayers():
             if (
-                layer.name() in list(layer_qh_type_mapping.keys())
+                layer.name() in list(LAYER_QH_TYPE_MAPPING.keys())
                 and layer.dataProvider().name() == "spatialite"
             ):
                 source = layer.dataProvider().dataSourceUri().split("'")[1]

@@ -20,6 +20,7 @@ LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s")
 INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3")
 SOURCES_AND_SINKS = NcVar("q_sss", "sources and sinks", "m3/s")
 
+# TODO: rename Line_types
 _Q_TYPES = [
     DISCHARGE,
     DISCHARGE_INTERFLOW,
@@ -28,6 +29,7 @@ _Q_TYPES = [
     VELOCITY_INTERFLOW,
     WET_CROSS_SECTION_AREA,
 ]
+# TODO: rename node_types
 _H_TYPES = [
     WATERLEVEL,
     VOLUME,
@@ -77,7 +79,7 @@ AGGREGATION_OPTIONS = {
 }
 
 # Explanation: aggregation using the cumulative method integrates the variable
-# over time. Therefore the units must be multiplied by the time.
+# over time. Therefore the units must be multiplied by time.
 CUMULATIVE_AGGREGATION_UNITS = {
     "s1": "m MSL",
     "q": "m3",
@@ -97,33 +99,32 @@ CUMULATIVE_AGGREGATION_UNITS = {
     "intercepted_volume": "m3",
     "q_sss": "m3",
 }
-
+# layer name, (normalized) object_type, q/h type
+LayerInformation = namedtuple("LayerInformation",
+                              ["layer_name", "object_type", "qh_type"])
 layer_information = [
-    # layer name, (normalized) object_type, q/h type
-    # Note: the reason why this is plural is because this is (inconsistently)
-    # also plural in the id mapping json, in contrast to all other object
-    # types
-    ("v2_connection_nodes", "connection_nodes", "h"),
-    ("v2_pipe_view", "pipe", "q"),
-    ("v2_channel", "channel", "q"),
-    ("v2_culvert_view", "culvert", "q"),
-    ("v2_manhole_view", "manhole", "h"),
-    ("v2_pumpstation", "pumpstation", "q"),
-    ("v2_pumpstation_view", "pumpstation", "q"),
-    ("v2_weir_view", "weir", "q"),
-    ("v2_orifice_view", "orifice", "q"),
-    ("sewerage_manhole", "manhole", "h"),
-    ("sewerage_pipe_view", "pipe", "q"),
-    ("sewerage_pumpstation", "pumpstation", "q"),
-    ("sewerage_pumpstation_view", "pumpstation", "q"),
-    ("sewerage_weir_view", "weir", "q"),
-    ("sewerage_orifice_view", "orifice", "q"),
-    ("flowlines", "flowline", "q"),
-    ("nodes", "node", "h"),
-    ("pumplines", "pumpline", "q"),
-    ("line_results", "flowline", "q"),
-    ("node_results", "node", "h"),
+    LayerInformation("v2_connection_nodes", "connection_nodes", "h"),
+    LayerInformation("v2_pipe_view", "pipe", "q"),
+    LayerInformation("v2_channel", "channel", "q"),
+    LayerInformation("v2_culvert_view", "culvert", "q"),
+    LayerInformation("v2_manhole_view", "manhole", "h"),
+    LayerInformation("v2_pumpstation", "pumpstation", "q"),
+    LayerInformation("v2_pumpstation_view", "pumpstation", "q"),
+    LayerInformation("v2_weir_view", "weir", "q"),
+    LayerInformation("v2_orifice_view", "orifice", "q"),
+    LayerInformation("sewerage_manhole", "manhole", "h"),
+    LayerInformation("sewerage_pipe_view", "pipe", "q"),
+    LayerInformation("sewerage_pumpstation", "pumpstation", "q"),
+    LayerInformation("sewerage_pumpstation_view", "pumpstation", "q"),
+    LayerInformation("sewerage_weir_view", "weir", "q"),
+    LayerInformation("sewerage_orifice_view", "orifice", "q"),
+    LayerInformation("flowlines", "flowline", "q"),
+    LayerInformation("nodes", "node", "h"),
+    LayerInformation("pumplines", "pumpline", "q"),
+    LayerInformation("line_results", "flowline", "q"),
+    LayerInformation("node_results", "node", "h"),
 ]
 
-layer_object_type_mapping = dict([(a[0], a[1]) for a in layer_information])
-layer_qh_type_mapping = dict([(a[0], a[2]) for a in layer_information])
+# TODO: QH is also defined above.
+LAYER_OBJECT_TYPE_MAPPING = dict([(a[0], a[1]) for a in layer_information])
+LAYER_QH_TYPE_MAPPING = dict([(a[0], a[2]) for a in layer_information])

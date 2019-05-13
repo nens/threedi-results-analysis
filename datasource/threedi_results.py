@@ -7,7 +7,7 @@ import h5py
 
 from threedigrid.admin.constants import NO_DATA_VALUE
 
-from .result_constants import layer_object_type_mapping
+from .result_constants import LAYER_OBJECT_TYPE_MAPPING
 from .base import BaseDataSource
 from .result_constants import SUBGRID_MAP_VARIABLES
 from ThreeDiToolbox.utils import cached_property
@@ -352,8 +352,8 @@ class ThreediResult(BaseDataSource):
 
 def normalized_object_type(current_layer_name):
     """Get a normalized object type for internal purposes."""
-    if current_layer_name in list(layer_object_type_mapping.keys()):
-        return layer_object_type_mapping[current_layer_name]
+    if current_layer_name in list(LAYER_OBJECT_TYPE_MAPPING.keys()):
+        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
     else:
         msg = "Unsupported layer: %s." % current_layer_name
         logger.warning(msg)

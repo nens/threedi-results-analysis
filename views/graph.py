@@ -34,7 +34,7 @@ from qgis.gui import QgsVertexMarker, QgsRubberBand
 from ..datasource.threedi_results import normalized_object_type
 from ..datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS, Q_TYPES, \
     H_TYPES, SUBGRID_MAP_VARIABLES, AGGREGATION_VARIABLES, \
-    layer_qh_type_mapping
+    LAYER_QH_TYPE_MAPPING
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import statusbar_message, messagebar_message
 
@@ -929,7 +929,7 @@ class GraphDockWidget(QDockWidget):
         if provider.name() not in VALID_PROVIDERS:
             return
 
-        if current_layer.name() not in list(layer_qh_type_mapping.keys()):
+        if current_layer.name() not in list(LAYER_QH_TYPE_MAPPING.keys()):
             if current_layer.name() not in ("flowlines", "nodes"):
                 # todo: feedback layer not supported
                 return
@@ -949,7 +949,7 @@ class GraphDockWidget(QDockWidget):
             )
             return
 
-        if layer_qh_type_mapping[current_layer.name()] == "q":
+        if LAYER_QH_TYPE_MAPPING[current_layer.name()] == "q":
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
