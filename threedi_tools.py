@@ -20,32 +20,33 @@
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import absolute_import
+from . import resources  # NoQa, initialize the Qt resources.
+from .misc_tools import About
+from .misc_tools import CacheClearer
+from .misc_tools import ShowLogfile
+from .models.datasources import TimeseriesDatasourceModel
+from .threedi_graph import ThreeDiGraph
+from .threedi_result_selection import ThreeDiResultSelection
+from .threedi_sideview import ThreeDiSideView
+from .threedi_statistics import StatisticsTool
+from .threedi_toolbox import ThreeDiToolbox
+from .utils.layer_tree_manager import LayerTreeManager
+from .utils.qprojects import ProjectStateMixin
+from .views.map_animator import MapAnimator
+from .views.timeslider import TimesliderWidget
+from .water_balance import WaterBalanceTool
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import QSettings
+from qgis.PyQt.QtCore import QTranslator
+from qgis.PyQt.QtCore import qVersion
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QLCDNumber
 
 import logging
 import os
 import os.path
-
-from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QObject
-from qgis.PyQt.QtWidgets import QAction, QLCDNumber
-from qgis.PyQt.QtGui import QIcon
-
-# Initialize Qt resources from file resources.py
-from . import resources  # NoQa
-
-# Import the code of the tools
-from .misc_tools import About, CacheClearer, ShowLogfile
-from .threedi_result_selection import ThreeDiResultSelection
-from .threedi_toolbox import ThreeDiToolbox
-from .threedi_graph import ThreeDiGraph
-from .threedi_sideview import ThreeDiSideView
-from .views.timeslider import TimesliderWidget
-from .views.map_animator import MapAnimator
-from .models.datasources import TimeseriesDatasourceModel
-from .utils.qprojects import ProjectStateMixin
-from .utils.layer_tree_manager import LayerTreeManager
-from .threedi_statistics import StatisticsTool
-from .water_balance import WaterBalanceTool
 
 
 logger = logging.getLogger(__name__)

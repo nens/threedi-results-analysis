@@ -1,32 +1,28 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import str
-from builtins import range
-from builtins import object
+from collections import OrderedDict
+from copy import copy
 from osgeo import ogr
 from osgeo import osr
-import logging
-import datetime
-from collections import OrderedDict
 from sqlalchemy.orm import load_only
-from copy import copy
-
-from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
-from ThreeDiToolbox.sql_models.model_schematisation import (
-    ConnectionNode,
-    Manhole,
-    BoundaryCondition1D,
-    Pipe,
-    CrossSectionDefinition,
-    Orifice,
-    Weir,
-    Pumpstation,
-    ImperviousSurface,
-    ImperviousSurfaceMap,
-)
 from ThreeDiToolbox.sql_models.constants import Constants
+from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
+from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
+from ThreeDiToolbox.sql_models.model_schematisation import CrossSectionDefinition
+from ThreeDiToolbox.sql_models.model_schematisation import ImperviousSurface
+from ThreeDiToolbox.sql_models.model_schematisation import ImperviousSurfaceMap
+from ThreeDiToolbox.sql_models.model_schematisation import Manhole
+from ThreeDiToolbox.sql_models.model_schematisation import Orifice
+from ThreeDiToolbox.sql_models.model_schematisation import Pipe
+from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
+from ThreeDiToolbox.sql_models.model_schematisation import Weir
+from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+
+import datetime
+import logging
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import object
+from .base import BaseModel
+from .base_fields import CheckboxField
+from .base_fields import ColorField
+from .base_fields import ValueField
 from collections import OrderedDict
-import logging
 from random import randint
 
-from .base import BaseModel
-from .base_fields import ValueField, ColorField, CheckboxField
-
+import logging
 import numpy as np
 import pyqtgraph as pg
 

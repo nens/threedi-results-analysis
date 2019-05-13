@@ -1,7 +1,7 @@
-from builtins import object
-import abc
-from ThreeDiToolbox.utils.user_messages import pop_up_info
 from future.utils import with_metaclass
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+
+import abc
 
 
 class CustomCommandBase(with_metaclass(abc.ABCMeta, object)):

@@ -1,20 +1,13 @@
-from __future__ import print_function
-from builtins import str
-from builtins import range
-from builtins import object
-import os.path
-
-from qgis.core import (
-    QgsProject,
-    QgsDataSourceUri,
-    QgsVectorLayer,
-    QgsRectangle,
-    QgsLayerTreeNode,
-    QgsCoordinateTransform,
-)
-
 from . import styler
 from .threedi_database import ThreediDatabase
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsDataSourceUri
+from qgis.core import QgsLayerTreeNode
+from qgis.core import QgsProject
+from qgis.core import QgsRectangle
+from qgis.core import QgsVectorLayer
+
+import os.path
 
 
 def _clone_vector_layer(layer):

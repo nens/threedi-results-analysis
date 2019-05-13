@@ -8,7 +8,9 @@ currently possible with the basic ``docstr-coverage`` package.
 
 """
 from docstr_coverage import coverage
+
 import glob
+
 
 FORMAT = "%-74s %5s  %5s  %3d%%"
 

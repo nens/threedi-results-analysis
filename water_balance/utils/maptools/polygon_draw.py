@@ -1,10 +1,12 @@
-from builtins import object
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor, QCursor
-
 from qgis.core import QgsGeometry
 from qgis.core import QgsWkbTypes
-from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMapTool
+from qgis.gui import QgsMapTool
+from qgis.gui import QgsRubberBand
+from qgis.gui import QgsVertexMarker
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QCursor
+
 
 RGBA = 255, 0, 0
 

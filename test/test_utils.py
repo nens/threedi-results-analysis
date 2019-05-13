@@ -1,10 +1,10 @@
 """
 Test utils.
 """
-import unittest
-
 from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
 from ThreeDiToolbox.utils.utils import parse_db_source_info
+
+import unittest
 
 
 class TestLayerFuncs(unittest.TestCase):

@@ -4,16 +4,12 @@
         Authors: A. Pasotti, V. Picavet
         git sha              : $TemplateVCSFormat
 """
-from __future__ import print_function
-
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import input
-import sys
-import getpass
-import xmlrpc.client
 from optparse import OptionParser
+
+import getpass
+import sys
+import xmlrpc.client
+
 
 # Configuration
 PROTOCOL = "http"

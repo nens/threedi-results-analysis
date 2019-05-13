@@ -20,18 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 """
-from builtins import str
-from builtins import object
+from .models.toolbox import ToolboxModel
+from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from importlib.machinery import SourceFileLoader
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QAbstractItemView
+
 import logging
 import os.path
 import types
 
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QAbstractItemView
-
-from .models.toolbox import ToolboxModel
-from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 
 logger = logging.getLogger(__name__)
 

@@ -20,7 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QSlider
 
 

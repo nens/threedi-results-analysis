@@ -1,16 +1,14 @@
-from ThreeDiToolbox.utils.raster_checker import RasterChecker
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
-from ThreeDiToolbox.utils.raster_checker_prework import (
-    DataModelSource,
-    RasterCheckerEntrees,
-)
-
-from sqlalchemy import MetaData
-import unittest
-import os
 from gdal import GA_ReadOnly
 from osgeo import gdal
+from sqlalchemy import MetaData
+from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.utils.raster_checker import RasterChecker
+from ThreeDiToolbox.utils.raster_checker_prework import DataModelSource
+from ThreeDiToolbox.utils.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+
+import os
+import unittest
 import unittest.mock
 
 

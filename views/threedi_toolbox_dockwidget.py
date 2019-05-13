@@ -21,11 +21,12 @@
  ***************************************************************************/
 """
 
-import os
-
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QDockWidget
+
+import os
+
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(
