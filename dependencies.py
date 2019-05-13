@@ -52,52 +52,6 @@ def try_to_import_dependencies():
         # program (at least with Windows), which is problematic when trying to
         # update the plugin using the plugin manager (because it tries to delete
         # the old plugin files). Real imports are postponed as long as possible.
-        imp.find_module("netCDF4")
-        logger.info("Use local installation of python netCDF4 library")
-    except ImportError:
-        if os.name == "nt":
-            if sys.maxsize > 2 ** 32:
-                # Windows 64 bit
-                # use netCDF in external map
-                sys.path.append(
-                    os.path.join(
-                        os.path.dirname(os.path.realpath(__file__)),
-                        "external",
-                        "netCDF4-win64",
-                    )
-                )
-                # import netCDF4
-
-                logger.info("Used netCDF4 library, provided with plugin.")
-            else:
-                pop_up_info(
-                    "Error: could not find netCDF4 installation. Change "
-                    "to the 64-bit version of QGIS or try to install the "
-                    "netCDF4 python libary yourself."
-                )
-                # netCDF4 = None
-        else:
-            pop_up_info(
-                "Error: could not find netCDF4 installation. Please "
-                "install python-netCDF4 package."
-            )
-            # netCDF4 = None
-
-    # if netCDF4 is not None:
-    #     msg += 'Python-netcdf version {python_netcdf}, netCDF4 version ' \
-    #            '{netcdf} and HDF5 version {netcdf}.'.format(
-    #                python_netcdf=netCDF4.__version__,
-    #                netcdf=netCDF4.__netcdf4libversion__,
-    #                hdf5=netCDF4.__hdf5libversion__)
-    #     logger.info(msg)
-
-    try:
-        # Note: we're not importing it directly using the import statement because
-        # this will cause .pyd files to be loaded in dynamically. Because the
-        # loaded files are open in QGIS you can't delete them unless you close the
-        # program (at least with Windows), which is problematic when trying to
-        # update the plugin using the plugin manager (because it tries to delete
-        # the old plugin files). Real imports are postponed as long as possible.
         imp.find_module("h5py")
         logger.info("Using local h5py installation.")
     except ImportError:
