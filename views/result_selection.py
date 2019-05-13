@@ -237,7 +237,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             if ds_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
-                except IndexError:
+                except FileNotFoundError:
                     pop_up_info(
                         "You selected a netcdf that was created "
                         "(after May 2018) with a 3Di calculation"
