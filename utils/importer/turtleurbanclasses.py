@@ -22,14 +22,10 @@
 """this file contains a Python implementation of things defined in the
 *Green Book* of hydrological objects.
 """
-from future import standard_library
-
 import logging
 import re
 import types
 
-
-standard_library.install_aliases()
 
 __revision__ = "$Rev$"[6:-2]
 

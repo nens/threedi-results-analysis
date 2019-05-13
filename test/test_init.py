@@ -1,15 +1,12 @@
 # coding=utf-8
 """Tests QGIS plugin init."""
 
-from future import standard_library
-
 import configparser
 import logging
 import os
 import unittest
 
 
-standard_library.install_aliases()
 __author__ = "Tim Sutton <tim@linfiniti.com>"
 __revision__ = "$Format:%H$"
 __date__ = "17/10/2010"
@@ -19,6 +16,7 @@ __copyright__ += "Disaster Reduction"
 
 
 LOGGER = logging.getLogger("QGIS")
+# TODO: fix logger name
 
 
 class TestInit(unittest.TestCase):

@@ -4,15 +4,12 @@
         Authors: A. Pasotti, V. Picavet
         git sha              : $TemplateVCSFormat
 """
-from future import standard_library
 from optparse import OptionParser
 
 import getpass
 import sys
 import xmlrpc.client
 
-
-standard_library.install_aliases()
 
 # Configuration
 PROTOCOL = "http"

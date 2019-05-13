@@ -1,6 +1,5 @@
 """integration test for the full process of importing sewer data from a
 sufhyd file into the database"""
-from future import standard_library
 from geoalchemy2 import types
 from sqlalchemy import select
 from ThreeDiToolbox.utils.guess_indicators import Guesser
@@ -13,10 +12,8 @@ import tempfile
 import unittest
 
 
-standard_library.install_aliases()
-
-
 test_file = os.path.join("c://tmp", "test.hyd")
+# ^^^ TODO Opknopen is te goed.
 
 
 @unittest.skipIf(not os.path.exists(test_file), "Path to test sufhyd doesn't exist.")

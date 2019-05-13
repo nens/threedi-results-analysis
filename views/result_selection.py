@@ -5,7 +5,6 @@ from ..datasource.netcdf import find_id_mapping_file
 from ..datasource.netcdf import layer_qh_type_mapping
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
-from future import standard_library
 from lizard_connector.connector import Endpoint
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -20,9 +19,6 @@ from urllib.error import HTTPError
 
 import logging
 import os
-
-
-standard_library.install_aliases()
 
 
 FORM_CLASS, _ = uic.loadUiType(
