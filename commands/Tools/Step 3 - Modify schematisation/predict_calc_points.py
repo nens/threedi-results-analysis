@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import logging
-
 from qgis.core import QgsProject
-
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
     PredictCalcPointsDialogWidget,
 )
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
+
+import logging
+
 
 logger = logging.getLogger(__name__)
 

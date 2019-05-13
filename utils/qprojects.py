@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import str
-from builtins import object
-import os
 from io import IOBase
 from qgis.core import QgsProject
+
+import os
 
 
 class ProjectStateMixin(object):

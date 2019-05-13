@@ -1,9 +1,12 @@
-from __future__ import absolute_import
-from builtins import range
-from builtins import object
-from qgis.PyQt.QtCore import Qt, QAbstractTableModel, QModelIndex, QSize
+from .base_fields import CHECKBOX_FIELD
+from .base_fields import COLOR_FIELD
+from .base_fields import VALUE_FIELD
+from qgis.PyQt.QtCore import QAbstractTableModel
+from qgis.PyQt.QtCore import QModelIndex
+from qgis.PyQt.QtCore import QSize
+from qgis.PyQt.QtCore import Qt
+
 import inspect
-from .base_fields import COLOR_FIELD, CHECKBOX_FIELD, VALUE_FIELD
 
 
 class BaseModelItem(object):

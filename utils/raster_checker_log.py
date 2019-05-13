@@ -1,11 +1,13 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-import time
-import os
-import logging
-from jinja2 import Template
 from ..utils.user_messages import StatusProgressBar
+from jinja2 import Template
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+
+import logging
+import os
+import time
+
 
 logger = logging.getLogger(__name__)
 

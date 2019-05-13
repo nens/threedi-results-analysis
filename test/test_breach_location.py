@@ -1,22 +1,20 @@
 """
 Test breach locations.
 """
-import unittest
-import os
-import collections
-import tempfile
-import shutil
-
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
-
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
-
-from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.utils.geo_utils import set_layer_crs
+
+import collections
+import os
+import shutil
+import tempfile
+import unittest
 
 
 class TestBreachLocationDryRun(unittest.TestCase):

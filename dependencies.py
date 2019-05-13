@@ -4,11 +4,12 @@ TODO: for now, this is try/except code copied out of ``__init__.py``, later on
 this ought to be made more explicit and verbose.
 
 """
-import imp
-import os
-import logging
-import sys
 from .utils.user_messages import pop_up_info
+
+import imp
+import logging
+import os
+import sys
 
 
 logger = logging.getLogger(__name__)

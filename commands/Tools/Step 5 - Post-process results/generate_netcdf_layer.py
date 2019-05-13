@@ -1,10 +1,9 @@
 """This script generates node and line layers from netCDF.
 """
 from qgis.core import QgsProject
-
+from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.views.tool_dialog import ToolDialogWidget
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
 
 
 class CustomCommand(CustomCommandBase):

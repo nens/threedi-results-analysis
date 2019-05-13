@@ -1,33 +1,17 @@
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import range
-import csv
-import os
-import logging
-
-
 from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-
-    def _fromUtf8(s):
-        return s
-
-
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     ControlledStructures,
 )
@@ -43,8 +27,21 @@ from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
-from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
+from ThreeDiToolbox.utils.threedi_database import get_databases
+
+import csv
+import logging
+import os
+
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+
+    def _fromUtf8(s):
+        return s
+
 
 logger = logging.getLogger(__name__)
 

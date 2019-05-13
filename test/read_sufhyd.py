@@ -1,7 +1,7 @@
-import unittest
-
-from ..utils.importer.sufhyd import SufhydReader
 from ..tools.importer import Importer
+from ..utils.importer.sufhyd import SufhydReader
+
+import unittest
 
 
 class TestReadSufhyd(unittest.TestCase):

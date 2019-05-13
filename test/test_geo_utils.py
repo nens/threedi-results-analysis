@@ -1,17 +1,15 @@
 """
 Test geo utils.
 """
-from builtins import str
-import unittest
-
-from qgis.core import QgsVectorLayer
 from qgis.core import QgsPointXY
-
+from qgis.core import QgsVectorLayer
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
+from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
 from ThreeDiToolbox.utils.geo_utils import get_distance
 from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
-from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+
+import unittest
 
 
 class TestGeoUtils(unittest.TestCase):

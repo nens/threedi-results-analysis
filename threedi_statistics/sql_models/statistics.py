@@ -1,9 +1,15 @@
-import logging
-
-from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey
+from geoalchemy2.types import Geometry
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from geoalchemy2.types import Geometry
+
+import logging
+
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()

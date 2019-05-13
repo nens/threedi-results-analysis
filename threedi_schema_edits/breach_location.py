@@ -1,32 +1,26 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import str
-from builtins import zip
-from builtins import object
-import logging
-import itertools
-import collections
-
-from qgis.core import QgsFeatureRequest
 from qgis.core import QgsFeature
-from qgis.core import QgsGeometry
-from qgis.core import QgsVectorLayer
-from qgis.core import QgsPointXY
+from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField
-
+from qgis.core import QgsGeometry
+from qgis.core import QgsPointXY
+from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
-
+from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
+from ThreeDiToolbox.utils import constants
+from ThreeDiToolbox.utils import utils
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import get_distance
 from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
 from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
-
 from ThreeDiToolbox.utils.utils import parse_db_source_info
 
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
-from ThreeDiToolbox.utils import constants
-from ThreeDiToolbox.utils import utils
+import collections
+import itertools
+import logging
+
 
 logger = logging.getLogger(__name__)
 

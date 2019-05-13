@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
 from .base import BaseModel
 from .base_fields import ValueField
 

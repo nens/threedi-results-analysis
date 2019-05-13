@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from builtins import str
-from builtins import object
 from collections import OrderedDict
 from random import randint
+from ThreeDiToolbox.models.base import BaseModel
+from ThreeDiToolbox.models.base_fields import CheckboxField
+from ThreeDiToolbox.models.base_fields import ColorField
+from ThreeDiToolbox.models.base_fields import ValueField
 
 import numpy as np
-from ThreeDiToolbox.models.base import BaseModel
-from ThreeDiToolbox.models.base_fields import ValueField, ColorField, CheckboxField
+
 
 COLOR_LIST = [
     (34, 34, 34),

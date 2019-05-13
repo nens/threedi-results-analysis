@@ -1,7 +1,7 @@
-import unittest
-
-from ThreeDiToolbox.views.graph import parse_aggvarname
 from ThreeDiToolbox.views.graph import generate_parameter_config
+from ThreeDiToolbox.views.graph import parse_aggvarname
+
+import unittest
 
 
 class TestGraph(unittest.TestCase):

@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
-import os
-import logging
-
 from qgis.core import QgsProject
-
 from qgis.PyQt import uic
-
+from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QRect
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QMetaObject
-from qgis.PyQt.QtWidgets import QVBoxLayout
-from qgis.PyQt.QtWidgets import QGroupBox
-from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QSizePolicy
-from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDialog
-
-from ThreeDiToolbox.utils.threedi_database import get_databases
+from qgis.PyQt.QtWidgets import QDialogButtonBox
+from qgis.PyQt.QtWidgets import QGroupBox
+from qgis.PyQt.QtWidgets import QSizePolicy
+from qgis.PyQt.QtWidgets import QVBoxLayout
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
+from ThreeDiToolbox.utils.threedi_database import get_databases
+
+import logging
+import os
+
 
 logger = logging.getLogger(__name__)
 

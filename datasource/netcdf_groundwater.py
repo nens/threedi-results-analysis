@@ -1,27 +1,22 @@
+from ..utils import cached_property
+from .base import BaseDataSource
+from .netcdf import AGG_H_TYPES
+from .netcdf import AGG_Q_TYPES
+from .netcdf import find_h5_file
+from .netcdf import H_TYPES
+from .netcdf import Q_TYPES
+from .netcdf import SUBGRID_MAP_VARIABLES
+from threedigrid.admin.constants import NO_DATA_VALUE
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
+from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+
 import glob
+import h5py
 import logging
+import numpy as np
 import os
 
-import numpy as np
-import h5py
-
-from threedigrid.admin.constants import NO_DATA_VALUE
-
-from .base import BaseDataSource
-from ..utils import cached_property
-from .netcdf import (
-    SUBGRID_MAP_VARIABLES,
-    AGG_Q_TYPES,
-    AGG_H_TYPES,
-    Q_TYPES,
-    H_TYPES,
-    POSSIBLE_AGG_VARS,
-    find_h5_file,
-)
-from ..utils.user_messages import messagebar_message
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 
 # all possible var names from regular netcdf AND agg netcdf
 ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES

@@ -1,8 +1,12 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from sqlalchemy import Table, select
-from ThreeDiToolbox.utils.constants import V2_TABLES, NON_SETTINGS_TBL_WITH_RASTERS
+from sqlalchemy import select
+from sqlalchemy import Table
+from ThreeDiToolbox.utils.constants import NON_SETTINGS_TBL_WITH_RASTERS
+from ThreeDiToolbox.utils.constants import V2_TABLES
+
 import logging
+
 
 logger = logging.getLogger(__name__)
 

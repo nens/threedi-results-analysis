@@ -1,15 +1,12 @@
-from builtins import str
-from builtins import range
-from builtins import object
-import logging
-
-from qgis.core import QgsDataSourceUri
 from qgis.core import Qgis
-from sqlalchemy.exc import ProgrammingError
+from qgis.core import QgsDataSourceUri
 from sqlalchemy.exc import OperationalError
-
+from sqlalchemy.exc import ProgrammingError
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
+
+import logging
+
 
 logger = logging.getLogger(__name__)
 

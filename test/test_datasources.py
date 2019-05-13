@@ -1,35 +1,33 @@
-from __future__ import print_function
+from qgis.PyQt.QtCore import QVariant
+from threedigrid.admin import gridresultadmin
+from ThreeDiToolbox.datasource.netcdf import find_aggregation_netcdf
+from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.datasource.netcdf_groundwater import find_aggregation_netcdf_gw
+from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.test.utilities import TemporaryDirectory
 
 # from builtins import object
 import mock
-import os
-import unittest
-import tempfile
-import shutil
-
 import numpy as np
+import os
 import pytest
+import shutil
+import tempfile
+import unittest
+
 
 try:
     from qgis.core import QgsVectorLayer, QgsFeature, QgsPointXY, QgsField, QgsGeometry
 except ImportError:
     pass
 
-from threedigrid.admin import gridresultadmin
-from qgis.PyQt.QtCore import QVariant
 
 try:
     from ThreeDiToolbox.datasource.spatialite import Spatialite
 except ImportError:
     print("Can't import Spatialite.")
     Spatialite = None
-from ThreeDiToolbox.datasource.netcdf import find_h5_file, find_aggregation_netcdf
-from ThreeDiToolbox.datasource.netcdf_groundwater import (
-    NetcdfGroundwaterDataSource,
-    find_aggregation_netcdf_gw,
-)
-from ThreeDiToolbox.test.utilities import TemporaryDirectory
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"

@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from builtins import object
-import logging
-
 from sqlalchemy import select
 from sqlalchemy import update
-
 from ThreeDiToolbox.sql_models.constants import Constants
 from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
 from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
 from ThreeDiToolbox.sql_models.model_schematisation import Manhole
 from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
+
+import logging
 
 
 logger = logging.getLogger(__name__)
