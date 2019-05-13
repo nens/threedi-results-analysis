@@ -428,8 +428,6 @@ def detect_netcdf_version(netcdf_file_path):
             - 'netcdf-groundwater'
 
     """
-    import h5py
-
     try:
         dataset = h5py.File(netcdf_file_path, mode="r")
         if "threedicore_version" in dataset.attrs:
