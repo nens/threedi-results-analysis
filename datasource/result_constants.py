@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 # NetCDF variable information
 NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit"])
 

@@ -4,6 +4,7 @@ from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
+
 import mock
 import numpy as np
 import os
