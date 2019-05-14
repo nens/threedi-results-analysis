@@ -1,11 +1,7 @@
-from ..utils import cached_property
 from .base import BaseDataSource
-from .netcdf import AGG_H_TYPES
-from .netcdf import AGG_Q_TYPES
-from .netcdf import find_h5_file
-from .netcdf import H_TYPES
-from .netcdf import Q_TYPES
-from .netcdf import SUBGRID_MAP_VARIABLES
+from .result_constants import LAYER_OBJECT_TYPE_MAPPING
+from .result_constants import SUBGRID_MAP_VARIABLES
+from ThreeDiToolbox.utils import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
@@ -18,58 +14,11 @@ import numpy as np
 import os
 
 
-# all possible var names from regular netcdf AND agg netcdf
-ALL_Q_TYPES = Q_TYPES + AGG_Q_TYPES
-ALL_H_TYPES = H_TYPES + AGG_H_TYPES
-
 logger = logging.getLogger(__name__)
 
-layer_information = [
-    # object_type, model_instance, model_instance_subset, qgis_layer_source
-    ("v2_connection_nodes", "nodes", "connectionnodes", "schematized"),
-    ("v2_pipe_view", "lines", "pipes", "schematized"),
-    ("v2_channel", "lines", "channels", "schematized"),
-    ("v2_culvert_view", "lines", "culverts", "schematized"),
-    ("v2_manhole_view", "nodes", "manholes", "schematized"),
-    # Todo:
-    # 'v2_manhole_view', 'nodes', 'manholes', 'schematized'),
-    ("v2_pumpstation_view", "pumps", "pumps", "schematized"),
-    ("v2_weir_view", "lines", "weirs", "schematized"),
-    ("v2_orifice_view", "lines", "orifices", "schematized"),
-    ("flowlines", "lines", "lines", "result"),
-    ("nodes", "nodes", "nodes", "result"),
-    ("pumplines", "pumps", "pumps", "result"),
-    ("node_results", "nodes", "nodes", "result"),
-    ("node_results_groundwater", "nodes", "nodes", "result"),
-    ("line_results", "lines", "lines", "result"),
-    ("line_results_groundwater", "lines", "lines", "result"),
-]
 
-object_type_model_instance = dict([(a[0], a[1]) for a in layer_information])
-object_type_model_instance_subset = dict([(a[0], a[2]) for a in layer_information])
-object_type_layer_source = dict([(a[0], a[3]) for a in layer_information])
-
-
-def find_aggregation_netcdf_gw(netcdf_file_path):
-    """An ad-hoc way to find the aggregation netcdf file for groundwater
-    results.
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the aggregation netcdf path
-
-    Raises:
-        IndexError if nothing is found
-    """
-    pattern = "aggregate_results_3di.nc"
-    result_dir = os.path.dirname(netcdf_file_path)
-    return glob.glob(os.path.join(result_dir, pattern))[0]
-
-
-class NetcdfGroundwaterDataSource(BaseDataSource):
-    """Provides access to result data from a 3Di simulation
+class ThreediResult(BaseDataSource):
+    """Provides access to result data of a 3Di simulation
 
     Result data of 3di is stored in netcdf4. Two types of result data
     exists: normal results and aggregated results. Usually the files are named
@@ -94,47 +43,20 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         self._datasource = None
         self._cache = {}
 
-    @property
-    def ds(self):
-        # TODO: move to constructor or make cached_property
-        if self._datasource is None:
-            try:
-                self._datasource = h5py.File(self.file_path, "r")
-            except IOError as e:
-                logger.exception(e)
-                raise e
-        return self._datasource
-
-    @property
-    def nMesh2D_nodes(self):
-        return self.gridadmin.nodes.subset("2D_ALL").count
-
-    @property
-    def nMesh1D_nodes(self):
-        return self.gridadmin.nodes.subset("1D_ALL").count
-
-    @property
-    def nMesh2D_lines(self):
-        return self.gridadmin.lines.subset("2D_ALL").count
-
-    @property
-    def nMesh1D_lines(self):
-        return self.gridadmin.lines.subset("1D_ALL").count
-
     @cached_property
     def available_subgrid_map_vars(self):
         """Return a list of available variables from 'results_3di.nc'."""
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
-        if self.gridadmin_result.has_pumpstations:
+        if self.result_admin.has_pumpstations:
             available_vars = (
-                self.gridadmin_result.nodes._field_names
-                | self.gridadmin_result.lines._field_names
-                | self.gridadmin_result.pumps._field_names
+                    self.result_admin.nodes._field_names
+                    | self.result_admin.lines._field_names
+                    | self.result_admin.pumps._field_names
             )
         else:
             available_vars = (
-                self.gridadmin_result.nodes._field_names
-                | self.gridadmin_result.lines._field_names
+                    self.result_admin.nodes._field_names
+                    | self.result_admin.lines._field_names
             )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
@@ -143,37 +65,28 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
     @cached_property
     def available_aggregation_vars(self):
         """Return a list of available variables in the 'aggregate_results_3di.nc"""
-        agg = self.gridadmin_aggregate_result
-        if not agg:
+        ga = self.aggregate_result_admin
+        if not ga:
             return []
         # hardcoded whitelist
-        if agg.has_pumpstations:
-            known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys())
-                + list(agg.lines.Meta.subset_fields.keys())
-                + list(agg.nodes.Meta.composite_fields.keys())
-                + list(agg.nodes.Meta.subset_fields.keys())
-                + list(agg.pumps.Meta.composite_fields.keys())
-            )
+        whitelist_vars = set(
+            list(ga.lines.Meta.composite_fields.keys())
+            + list(ga.lines.Meta.subset_fields.keys())
+            + list(ga.nodes.Meta.composite_fields.keys())
+            + list(ga.nodes.Meta.subset_fields.keys())
+        )
+        if ga.has_pumpstations:
+            whitelist_vars |= set(list(ga.pumps.Meta.composite_fields.keys()))
 
-            # all available fields, including hdf5 fields
-            available_vars = (
-                agg.nodes._field_names | agg.lines._field_names | agg.pumps._field_names
-            )
-        else:
-            known_vars = set(
-                list(agg.lines.Meta.composite_fields.keys())
-                + list(agg.lines.Meta.subset_fields.keys())
-                + list(agg.nodes.Meta.composite_fields.keys())
-                + list(agg.nodes.Meta.subset_fields.keys())
-            )
+        # all available fields, including hdf5 fields
+        available_vars = ga.nodes._field_names | ga.lines._field_names
+        if ga.has_pumpstations:
+            available_vars |= ga.pumps._field_names
 
-            # all available fields, including hdf5 fields
-            available_vars = agg.nodes._field_names | agg.lines._field_names
+        available_aggregation_vars = available_vars & whitelist_vars
+        return list(available_aggregation_vars)
 
-        available_known_vars = available_vars & known_vars
-        return list(available_known_vars)
-
+    @property
     def available_vars(self):
         """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars
@@ -207,15 +120,36 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         #  This might cause performance issues. Check if these timestamps are
         #  often queried and cause performance issues.
         if parameter is None or parameter in [v[0] for v in SUBGRID_MAP_VARIABLES]:
-            return self.gridadmin_result.nodes.timestamps
+            return self.result_admin.nodes.timestamps
         else:
             ga = self.get_gridadmin(variable=parameter)
             return ga.get_model_instance_by_field_name(parameter).get_timestamps(
                 parameter
             )
 
+    def get_gridadmin(self, variable=None):
+        """Return the gridadmin where the variable is stored. If no variable is
+        given, a gridadmin without results is returned.
+
+        Results are either stored in the 'results_3di.nc' or the
+        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
+        GridH5AggregateResultAdmin to query the data respectively.
+
+        :param variable: str of the variable name, e.g. 's1', 'q_pump'
+        :return: handle to GridAdminResult or AggregateGridAdminResult
+        """
+        if variable is None:
+            return self.gridadmin
+        elif variable in self.available_subgrid_map_vars:
+            return self.result_admin
+        elif variable in self.available_aggregation_vars:
+            return self.aggregate_result_admin
+        else:
+            raise AttributeError(
+                "Unknown subgrid or aggregate variable: %s")
+
     def get_timeseries(
-        self, nc_variable, node_id=None, content_pk=None, fill_value=None
+            self, nc_variable, node_id=None, content_pk=None, fill_value=None
     ):
         """Return a time series array of the given variable
 
@@ -251,26 +185,6 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         timestamps = self.get_timestamps(nc_variable)
         timestamps = timestamps.reshape(-1, 1)  # reshape (n,) to (n, 1)
         return np.hstack([timestamps, values])
-
-    def get_gridadmin(self, variable=None):
-        """Return the gridadmin where the variable is stored. If no variable is
-        given, a gridadmin without results is returned.
-
-        Results are either stored in the 'results_3di.nc' or the
-        'aggregate_results_3di.nc'. These make use of the GridH5ResultAdmin and
-        GridH5AggregateResultAdmin to query the data respectively.
-
-        :param variable: str of the variable name, e.g. 's1', 'q_pump'
-        :return: handle to GridAdminResult or AggregateGridAdminResult
-        """
-        if variable is None:
-            return self.gridadmin
-        elif variable in self.available_subgrid_map_vars:
-            return self.gridadmin_result
-        elif variable in self.available_aggregation_vars:
-            return self.gridadmin_aggregate_result
-        else:
-            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     # This method is similar as get_values_by_timestep_nr but does not cache
     # values. Moreover, it tries to only query the minimum needed data needed.
@@ -390,20 +304,31 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
         return self._gridadmin
 
     @property
-    def gridadmin_result(self):
+    def result_admin(self):
         if not self._gridadmin_result:
             h5 = find_h5_file(self.file_path)
             self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
         return self._gridadmin_result
 
     @cached_property
-    def gridadmin_aggregate_result(self):
+    def aggregate_result_admin(self):
         try:
-            agg_path = find_aggregation_netcdf_gw(self.file_path)
+            agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
             return GridH5AggregateResultAdmin(h5, agg_path)
-        except IndexError:
+        except FileNotFoundError:
             return None
+
+    @property
+    def datasource(self):
+        # TODO: move to constructor or make cached_property
+        if self._datasource is None:
+            try:
+                self._datasource = h5py.File(self.file_path, "r")
+            except IOError as e:
+                logger.exception(e)
+                raise e
+        return self._datasource
 
     @cached_property
     def ds_aggregation(self):
@@ -415,10 +340,102 @@ class NetcdfGroundwaterDataSource(BaseDataSource):
 
         # Load aggregation netcdf
         try:
-            aggregation_netcdf_file = find_aggregation_netcdf_gw(self.file_path)
-        except IndexError:
+            aggregation_netcdf_file = find_aggregation_netcdf(self.file_path)
+        except FileNotFoundError:
             logger.error("Could not find the aggregation netcdf.")
             return None
         else:
             logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")
+
+
+def normalized_object_type(current_layer_name):
+    """Get a normalized object type for internal purposes."""
+    if current_layer_name in list(LAYER_OBJECT_TYPE_MAPPING.keys()):
+        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
+    else:
+        msg = "Unsupported layer: %s." % current_layer_name
+        logger.warning(msg)
+        return None
+
+
+def find_h5_file(netcdf_file_path):
+    """An ad-hoc way to get the h5_file.
+
+    We assume the h5_file file is in one of the following locations (note:
+    this order is also the searching order):
+
+    1) . (in the same dir as the netcdf)
+    2) ../preprocessed
+
+    relative to the netcdf file and has extension '.h5'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        h5_file path
+
+    Raises:
+        FileNotFoundError if no file can be found
+    """
+    pattern = "*.h5"
+    resultdir = os.path.dirname(netcdf_file_path)
+    inpdir = os.path.join(resultdir, os.path.pardir, "preprocessed")
+
+    for directory in [resultdir, inpdir]:
+        h5_files = glob.glob(os.path.join(directory, pattern))
+        if h5_files:
+            return h5_files[0]
+    raise FileNotFoundError("'.h5' file not found.")
+
+
+def find_aggregation_netcdf(netcdf_file_path):
+    """An ad-hoc way to find the aggregation netcdf file
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the aggregation netcdf path
+
+    Raises:
+        FileNotFoundError if nothing is found
+    """
+    pattern = "aggregate_results_3di.nc"
+    result_dir = os.path.dirname(netcdf_file_path)
+    aggregate_result_files = glob.glob(os.path.join(result_dir, pattern))
+    if aggregate_result_files:
+        return aggregate_result_files[0]
+    raise FileNotFoundError("'aggregate_results_3di.nc' file not found.")
+
+
+def detect_netcdf_version(netcdf_file_path):
+    """An ad-hoc way to detect whether we work with
+    1. or an regular netcdf: one that has been made with on "old" calculation
+    core (without groundater). This netcdf does not include an attribute
+    'threedicore_version'
+    2. or an groundwater netcdf: one that has been made with on "new"
+    calculation core (with optional groundater calculations). This netcdf
+    does include an attribute 'threedicore_version'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the version (a string) of the netcdf
+            - 'netcdf'
+            - 'netcdf-groundwater'
+
+    """
+    try:
+        dataset = h5py.File(netcdf_file_path, mode="r")
+        if "threedicore_version" in dataset.attrs:
+            return "netcdf-groundwater"
+        else:
+            return "netcdf"
+    except IOError:
+        # old 3Di results cannot be opened with h5py. The can be opened with
+        # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
+        # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
+        return "netcdf"

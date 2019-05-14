@@ -1,9 +1,9 @@
 from qgis.PyQt.QtCore import Qt
-from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.datasources import DataSourceLayerManager
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.models.graph import LocationTimeseriesModel
-from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
+from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
 import mock
 import unittest
@@ -231,20 +231,20 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         setattr(item, "_datasource_layer_manager", "yo")
         self.assertEqual(item.datasource_layer_manager(), "yo")
 
-    def test_datasource_netcdf_groundwater(self):
+    def test_datasource_threedi_results(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
             "active": False,
             "name": "jaa",
-            "file_path": netcdf_groundwater_datasource_nc_path,
+            "file_path": THREEDI_RESULTS_PATH,
             "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }
         tds = TimeseriesDatasourceModel()
         item = tds._create_item(**test_values)
         ncds = item.datasource()
-        self.assertTrue(isinstance(ncds, NetcdfGroundwaterDataSource))
-        self.assertTrue(ncds.ds)
+        self.assertTrue(isinstance(ncds, ThreediResult))
+        self.assertTrue(ncds.datasource)
 
 
 class TestDataSourceLayerManager(unittest.TestCase):

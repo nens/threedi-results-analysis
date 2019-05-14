@@ -26,7 +26,7 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.ui.custom_pg_Items import RotateLabelAxisItem
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 
