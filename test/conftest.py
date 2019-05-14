@@ -1,4 +1,4 @@
-from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 import os
 import pytest
@@ -14,10 +14,10 @@ aggregate_results_3di_path = os.path.join(bergermeer_dir, "aggregate_results_3di
 
 
 @pytest.fixture()
-def netcdf_groundwater_ds():
-    """Return a instance of NetcdfGroundwaterDataSource
+def threedi_result():
+    """Return a instance of ThreediResult
 
     The instance contains result data of the model 'v2_bergermeer'. It contains
     both results and aggregate result data.
     """
-    return NetcdfGroundwaterDataSource(file_path=results_3di_path)
+    return ThreediResult(file_path=results_3di_path)

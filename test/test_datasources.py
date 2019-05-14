@@ -1,13 +1,9 @@
 from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin import gridresultadmin
-from ThreeDiToolbox.datasource.netcdf import find_aggregation_netcdf
-from ThreeDiToolbox.datasource.netcdf import find_h5_file
-from ThreeDiToolbox.datasource.netcdf_groundwater import find_aggregation_netcdf_gw
-from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
+from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
-
-# from builtins import object
 import mock
 import numpy as np
 import os
@@ -33,29 +29,13 @@ spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
 
-netcdf_groundwater_datasource_nc_path = os.path.join(
+THREEDI_RESULTS_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "data",
     "testmodel",
     "v2_bergermeer",
     "results_3di.nc",
 )
-
-
-def result_data_is_available(flow_agg_must_exist=False):
-    """Check if we have the necessary result data for the tests."""
-    if not os.path.exists(netcdf_groundwater_datasource_nc_path):
-        return False
-    try:
-        find_h5_file(netcdf_groundwater_datasource_nc_path)
-    except IndexError:
-        return False
-    if flow_agg_must_exist:
-        try:
-            find_aggregation_netcdf(netcdf_groundwater_datasource_nc_path)
-        except IndexError:
-            return False
-    return True
 
 
 @unittest.skipIf(Spatialite is None, "Can't import Spatialite datasource")
@@ -126,33 +106,33 @@ class TestSpatialiteDataSource(unittest.TestCase):
 class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     def test_constructor(self):
         """Test empty constructor."""
-        NetcdfGroundwaterDataSource()
+        ThreediResult()
 
     def test_sanity(self):
-        nds = NetcdfGroundwaterDataSource()
+        threedi_result = ThreediResult()
         m = mock.MagicMock()
-        nds._datasource = m
+        threedi_result._datasource = m
         # sanity test
-        self.assertEqual(nds.ds, m)
+        self.assertEqual(threedi_result.datasource, m)
 
     @mock.patch(
-        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.available_subgrid_map_vars",
+        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
     )
     @mock.patch(
-        "ThreeDiToolbox.datasource.netcdf_groundwater.NetcdfGroundwaterDataSource.gridadmin_result"
+        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin"
     )
-    def test_get_timeseries(self, gridadmin_result_mock):
-        nds = NetcdfGroundwaterDataSource()
+    def test_get_timeseries(self, result_admin_mock):
+        threedi_result = ThreediResult()
         m = mock.MagicMock()
-        nds._datasource = m
-        nds.get_timeseries("s1", 3)
+        threedi_result._datasource = m
+        threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
         with TemporaryDirectory() as tempdir:
             nc_path = os.path.join(tempdir, "bla.nc")
-            with self.assertRaises(IndexError):
-                find_aggregation_netcdf_gw(nc_path)
+            with self.assertRaises(FileNotFoundError):
+                find_aggregation_netcdf(nc_path)
 
     def test_find_agg_success(self):
         with TemporaryDirectory() as tempdir:
@@ -160,154 +140,226 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
             agg_path = os.path.join(tempdir, "aggregate_results_3di.nc")
             with open(agg_path, "w") as aggfile:
                 aggfile.write("doesnt matter")
-            agg_path_found = find_aggregation_netcdf_gw(nc_path)
+            agg_path_found = find_aggregation_netcdf(nc_path)
             self.assertEqual(agg_path, agg_path_found)
 
 
-def test_get_timestamps_shape(netcdf_groundwater_ds):
-    timestamps = netcdf_groundwater_ds.get_timestamps()
+def test_get_timestamps_shape(threedi_result):
+    timestamps = threedi_result.get_timestamps()
     assert timestamps.shape == (32,)
 
 
-def test_get_timestamps_last_timestep(netcdf_groundwater_ds):
-    timestamps = netcdf_groundwater_ds.get_timestamps()
+def test_get_timestamps_last_timestep(threedi_result):
+    timestamps = threedi_result.get_timestamps()
     assert timestamps[-1] == 1863.5643704609731
 
 
-def test_get_timestamps_with_agg_parameter_q_cum(netcdf_groundwater_ds):
-    timestamps_q_cum = netcdf_groundwater_ds.get_timestamps(parameter="q_cum")
+def test_get_timestamps_with_agg_parameter_q_cum(threedi_result):
+    timestamps_q_cum = threedi_result.get_timestamps(parameter="q_cum")
     assert timestamps_q_cum.shape == (7,)
     assert timestamps_q_cum[-1] == 1801.2566835460611
 
 
-def test_get_timestamps_with_agg_parameter_vol_current(netcdf_groundwater_ds):
-    timestamps_vol_current = netcdf_groundwater_ds.get_timestamps(
-        parameter="vol_current"
-    )
+def test_get_timestamps_with_agg_parameter_vol_current(threedi_result):
+    timestamps_vol_current = threedi_result.get_timestamps(parameter="vol_current")
     assert timestamps_vol_current.shape == (7,)
     assert timestamps_vol_current[-1] == 1801.2566835460611
 
 
-def test_get_gridadmin(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable=None)
+def test_get_gridadmin(threedi_result):
+    ga = threedi_result.get_gridadmin(variable=None)
     assert isinstance(ga, gridresultadmin.GridH5Admin)
 
 
-def test_get_gridadmin_result_var(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable="s1")
+def test_get_gridadmin_result_var(threedi_result):
+    ga = threedi_result.get_gridadmin(variable="s1")
     assert isinstance(ga, gridresultadmin.GridH5ResultAdmin)
 
 
-def test_get_gridadmin_agg_result_var(netcdf_groundwater_ds):
-    ga = netcdf_groundwater_ds.get_gridadmin(variable="q_cum")
+def test_get_gridadmin_agg_result_var(threedi_result):
+    ga = threedi_result.get_gridadmin(variable="q_cum")
     assert isinstance(ga, gridresultadmin.GridH5AggregateResultAdmin)
 
 
-def test_get_gridadmin_agg_result_var_not_available(netcdf_groundwater_ds):
+def test_get_gridadmin_agg_result_var_not_available(threedi_result):
     with pytest.raises(AttributeError):
-        netcdf_groundwater_ds.get_gridadmin(variable="u1_max")
+        threedi_result.get_gridadmin(variable="u1_max")
 
 
-def test_get_gridadmin_unknown_var(netcdf_groundwater_ds):
+def test_get_gridadmin_unknown_var(threedi_result):
     with pytest.raises(AttributeError):
-        netcdf_groundwater_ds.get_gridadmin(variable="unknown")
+        threedi_result.get_gridadmin(variable="unknown")
 
 
-def test_get_timeseries(netcdf_groundwater_ds):
-    ts = netcdf_groundwater_ds.get_timeseries("s1")
-    np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
-    assert ts.shape[1] == netcdf_groundwater_ds.get_gridadmin("s1").nodes.count + 1
+def test_get_timeseries(threedi_result):
+    time_series = threedi_result.get_timeseries("s1")
+    np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+    assert time_series.shape[1] == threedi_result.get_gridadmin("s1").nodes.count + 1
 
 
-def test_get_timeseries_filter_node(netcdf_groundwater_ds):
+def test_get_timeseries_filter_node(threedi_result):
     with mock.patch(
         "threedigrid.orm.base.models.Model.get_filtered_field_value"
     ) as data:
-        data.return_value = np.ones((len(netcdf_groundwater_ds.timestamps), 1))
-        ts = netcdf_groundwater_ds.get_timeseries("s1", node_id=5)
-        np.testing.assert_equal(ts[:, 0], netcdf_groundwater_ds.get_timestamps())
-        np.testing.assert_equal(ts[:, 1], data.return_value[:, 0])
+        data.return_value = np.ones((len(threedi_result.timestamps), 1))
+        time_series = threedi_result.get_timeseries("s1", node_id=5)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
 
 
-def test_get_model_instance_by_field_name(netcdf_groundwater_ds):
+def test_get_model_instance_by_field_name(threedi_result):
     """A bug in threedigrid <= 1.0.12
 
     Note that querying these variables, ('s1' in the gridresultadmin and
     'q_cum' in the gridaggregateresultadmin) should not fail.
 
     Will be fixed in threedigrid >= 1.0.13"""
-    gr = netcdf_groundwater_ds.get_gridadmin("s1")
+    gr = threedi_result.get_gridadmin("s1")
     gr.get_model_instance_by_field_name("s1")
 
-    gr = netcdf_groundwater_ds.get_gridadmin("q_cum")
+    gr = threedi_result.get_gridadmin("q_cum")
     gr.get_model_instance_by_field_name("q_cum")
 
 
-def test_get_values_by_timestep_nr(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr("s1", 2)
+        values = threedi_result.get_values_by_timestep_nr("s1", 2)
         np.testing.assert_equal(values, np.array([6, 7, 8]))
 
 
-def test_get_values_by_timestep_nr_with_index(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_with_index(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", 2, node_ids=np.array([1, 2])
         )
         np.testing.assert_equal(values, np.array([7, 8]))
 
 
-def test_get_values_by_timestep_nr_with_multipe_timestamps(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_with_multipe_timestamps(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         trash_elements = np.zeros((3, 1))
         variable_data = np.array(range(9)).reshape(3, 3)
         data.return_value = np.hstack((trash_elements, variable_data))
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", timestamp_idx=np.array([0, 2])
         )
         np.testing.assert_equal(values, np.array([[0, 1, 2], [6, 7, 8]]))
 
 
-def test_get_values_by_timestep_nr_duplicate_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_duplicate_node_ids(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", timestamp_idx=1, node_ids=np.array([0, 0, 2])
         )
         np.testing.assert_equal(values, np.array([3, 3, 5]))
 
 
-def test_get_values_by_timestep_nr_unsorted_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_unsorted_node_ids(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", timestamp_idx=0, node_ids=np.array([1, 0, 2])
         )
         np.testing.assert_equal(values, np.array([1, 0, 2]))
 
 
-def test_get_values_by_timestep_nr_timestamp_idx_array_one(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_timestamp_idx_array_one(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", timestamp_idx=np.array([2]), node_ids=np.array([0, 1])
         )
         np.testing.assert_equal(values, np.array([6, 7]))
 
 
-def test_get_values_by_timestep_nr_timestamp_and_node_ids(netcdf_groundwater_ds):
-    with mock.patch.object(netcdf_groundwater_ds, "_nc_from_mem") as data:
+def test_get_values_by_timestep_nr_timestamp_and_node_ids(threedi_result):
+    with mock.patch.object(threedi_result, "_nc_from_mem") as data:
         data.return_value = np.array(range(9)).reshape(3, 3)
-        values = netcdf_groundwater_ds.get_values_by_timestep_nr(
+        values = threedi_result.get_values_by_timestep_nr(
             "s1", timestamp_idx=np.array([1, 2]), node_ids=np.array([0, 1])
         )
         np.testing.assert_equal(values, np.array([[3, 4], [6, 7]]))
 
 
-def test__nc_from_mem(netcdf_groundwater_ds):
-    netcdf_groundwater_ds._nc_from_mem("s1")
-    assert "s1" in netcdf_groundwater_ds._cache.keys()
+def test__nc_from_mem(threedi_result):
+    threedi_result._nc_from_mem("s1")
+    assert "s1" in threedi_result._cache.keys()
+
+
+def test_available_subgrid_map_vars(threedi_result):
+    actual_vars = threedi_result.available_subgrid_map_vars
+    expected_vars = {
+        "au",
+        "q",
+        "q_lat",
+        "q_pump",
+        "rain",
+        "s1",
+        "su",
+        "u1",
+        "vol",
+        "intercepted_volume",
+        "leak",
+        "q_sss",
+    }
+    assert set(actual_vars) == expected_vars
+
+
+def test_available_aggregation_vars(threedi_result):
+    actual_aggregation_vars = threedi_result.available_aggregation_vars
+    expected_aggregation_vars = {
+        "q_cum",
+        "q_cum_positive",
+        "q_cum_negative",
+        "q_lat_cum",
+        "q_pump_cum",
+        "rain_cum",
+        "vol_current",
+        "infiltration_rate_simple_cum",
+        "intercepted_volume_current",
+        "leak_cum",
+        "q_sss_cum",
+        "rain_cum",
+        "infiltration_rate_simple_cum",
+    }
+    assert set(actual_aggregation_vars) == expected_aggregation_vars
+
+
+def test_available_vars(threedi_result):
+    actual = threedi_result.available_vars
+    normal_vars = {
+        "au",
+        "q",
+        "q_lat",
+        "q_pump",
+        "rain",
+        "s1",
+        "su",
+        "u1",
+        "vol",
+        "intercepted_volume",
+        "leak",
+        "q_sss",
+    }
+    agg_vars = {
+        "q_cum",
+        "q_cum_positive",
+        "q_cum_negative",
+        "q_lat_cum",
+        "q_pump_cum",
+        "rain_cum",
+        "vol_current",
+        "infiltration_rate_simple_cum",
+        "intercepted_volume_current",
+        "leak_cum",
+        "q_sss_cum",
+        "rain_cum",
+        "infiltration_rate_simple_cum",
+    }
+    expected = normal_vars | agg_vars
+    assert set(actual) == expected

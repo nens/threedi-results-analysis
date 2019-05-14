@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from ..datasource.netcdf import AGGREGATION_VARIABLES
-from ..datasource.netcdf import CUMULATIVE_AGGREGATION_UNITS
-from ..datasource.netcdf import H_TYPES
-from ..datasource.netcdf import layer_qh_type_mapping
-from ..datasource.netcdf import normalized_object_type
-from ..datasource.netcdf import Q_TYPES
-from ..datasource.netcdf import SUBGRID_MAP_VARIABLES
+from ..datasource.result_constants import AGGREGATION_VARIABLES
+from ..datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
+from ..datasource.result_constants import H_TYPES
+from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
+from ..datasource.result_constants import Q_TYPES
+from ..datasource.result_constants import SUBGRID_MAP_VARIABLES
+from ..datasource.threedi_results import normalized_object_type
 from ..models.graph import LocationTimeseriesModel
 from ..utils.user_messages import messagebar_message
 from ..utils.user_messages import statusbar_message
@@ -931,7 +931,7 @@ class GraphDockWidget(QDockWidget):
         if provider.name() not in VALID_PROVIDERS:
             return
 
-        if current_layer.name() not in list(layer_qh_type_mapping.keys()):
+        if current_layer.name() not in list(LAYER_QH_TYPE_MAPPING.keys()):
             if current_layer.name() not in ("flowlines", "nodes"):
                 # todo: feedback layer not supported
                 return
@@ -951,7 +951,7 @@ class GraphDockWidget(QDockWidget):
             )
             return
 
-        if layer_qh_type_mapping[current_layer.name()] == "q":
+        if LAYER_QH_TYPE_MAPPING[current_layer.name()] == "q":
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)

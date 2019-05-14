@@ -2,7 +2,7 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
-from ThreeDiToolbox.datasource.netcdf import find_h5_file
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.water_balance.views.waterbalance_widget import WaterBalanceWidget
 
@@ -782,7 +782,7 @@ class WaterBalanceCalculation(object):
         ]:
 
             if node.size > 0:
-                if parameter + agg_method in ds.available_vars():
+                if parameter + agg_method in ds.available_vars:
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
                         values = ds.get_values_by_timestep_nr(
@@ -957,10 +957,10 @@ class WaterBalanceTool(object):
         """
 
         selected_ds = self.ts_datasource.rows[0].datasource()
-        check_available_vars = selected_ds.available_vars()
+        check_available_vars = selected_ds.available_vars
 
         ga = self.ts_datasource.rows[0].datasource().gridadmin
-        gr = self.ts_datasource.rows[0].datasource().gridadmin_result
+        gr = self.ts_datasource.rows[0].datasource().result_admin
 
         minimum_agg_vars = [
             ("q_cum_negative", "negative cumulative discharge"),

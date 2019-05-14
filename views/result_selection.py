@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from ..datasource.netcdf import detect_netcdf_version
-from ..datasource.netcdf import find_h5_file
-from ..datasource.netcdf import find_id_mapping_file
-from ..datasource.netcdf import layer_qh_type_mapping
+from ..datasource.threedi_results import detect_netcdf_version
+from ..datasource.threedi_results import find_h5_file
+from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ..utils.user_messages import pop_up_info
 from .log_in_dialog import LoginDialog
 from lizard_connector.connector import Endpoint
@@ -236,7 +235,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             if ds_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
-                except IndexError:
+                except FileNotFoundError:
                     pop_up_info(
                         "You selected a netcdf that was created "
                         "(after May 2018) with a 3Di calculation"
@@ -250,21 +249,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     )
                     return False
             elif ds_type == "netcdf":
-                try:
-                    find_id_mapping_file(filename)
-                except IndexError:
-                    pop_up_info(
-                        "You selected a netcdf that was created "
-                        "(before June 2018) with a 3Di calculation "
-                        "core that is not able to include groundwater "
-                        "calculations. The ThreeDiToolbox reads this "
-                        "netcdf together with an id_mapping file, "
-                        "we could however not find this id_mapping "
-                        "file. Please add this file next to the "
-                        "netcdf and try again",
-                        title="Error",
-                    )
-                    return False
+                pop_up_info(
+                    "The selected result data is too old and no longer "
+                    "supported in this version of ThreediToolbox. Please "
+                    "recalculate the results with a newer version of the "
+                    "threedicore or use the ThreediToolbox plugin for QGIS 2",
+                    title="Error"
+                )
 
             items = [
                 {
@@ -298,7 +289,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         tdi_spatialites = []
         for layer in self.iface.layerTreeView().selectedLayers():
             if (
-                layer.name() in list(layer_qh_type_mapping.keys())
+                layer.name() in list(LAYER_QH_TYPE_MAPPING.keys())
                 and layer.dataProvider().name() == "spatialite"
             ):
                 source = layer.dataProvider().dataSourceUri().split("'")[1]

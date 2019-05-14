@@ -17,6 +17,7 @@ from sqlalchemy import MetaData
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
@@ -61,14 +62,14 @@ class DataSourceAdapter(Proxy):
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.ds.get("nMesh2D_lines").size
-                    + self.obj.ds.get("nMesh1D_lines").size
+                    self.obj.datasource.get("nMesh2D_lines").size
+                    + self.obj.datasource.get("nMesh1D_lines").size
                 )
         return self._nflowlines
 
     @property
     def has_groundwater(self):
-        return self.obj.__class__.__name__ == "NetcdfGroundwaterDataSource"
+        return isinstance(self.obj, ThreediResult)
 
     @property
     def timestamps(self):
@@ -290,7 +291,7 @@ class StatisticsTool(object):
 
         logger.info("Read results and calculate statistics. ")
         # check if statistic is available, otherwise make empty arrays for getting result from normal results
-        if "s1_max" in self.ds.available_vars():
+        if "s1_max" in self.ds.available_vars:
             agg_h_max = True
             h_max = np.full(nr_manholes, -9999.0)
             for i, timestamp in enumerate(self.ds.get_timestamps(parameter="s1_max")):
@@ -465,7 +466,7 @@ class StatisticsTool(object):
         if nr is None:
             nr = self.ds.nFlowLine
 
-        if parameter_name in self.ds.available_vars():
+        if parameter_name in self.ds.available_vars:
             agg_cum = True
             result = self.ds.get_values_by_timestep_nr(
                 parameter_name,
@@ -909,7 +910,7 @@ class StatisticsTool(object):
         mod_session = self.get_modeldb_session()
         pump_table = self.get_modeldb_table("v2_pumpstation")
 
-        if "q_pump" not in self.ds.available_vars():
+        if "q_pump" not in self.ds.available_vars:
             logger.info("Variable q_pump is not available, skip pump statistics")
             return
 

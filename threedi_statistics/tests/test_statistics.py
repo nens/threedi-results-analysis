@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2 as dbapi
-from ThreeDiToolbox.datasource.netcdf_groundwater import NetcdfGroundwaterDataSource
-from ThreeDiToolbox.test.test_datasources import netcdf_groundwater_datasource_nc_path
 from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
 import mock
 import os.path
@@ -10,14 +10,14 @@ import tempfile
 import unittest
 
 
-test_data_dir = os.path.dirname(netcdf_groundwater_datasource_nc_path)
+test_data_dir = os.path.dirname(THREEDI_RESULTS_PATH)
 
 
 class DummyTimeseriesDatasourceModel(object):
     def __init__(self, modeldb_path, resultnc_path):
         self.model_spatialite_filepath = modeldb_path
         self.resultnc_path = resultnc_path
-        self.ds = NetcdfGroundwaterDataSource(resultnc_path)
+        self.ds = ThreediResult(resultnc_path)
         self.rows = [self]
 
     def datasource(self):
