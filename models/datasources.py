@@ -1,22 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
-import os
-import logging
-from qgis.PyQt.QtCore import Qt, pyqtSignal
-from .base import BaseModel
-from .base_fields import CheckboxField, ValueField
-from ..utils.layer_from_netCDF import (
-    get_or_create_flowline_layer,
-    get_or_create_node_layer,
-    get_or_create_pumpline_layer,
-    make_flowline_layer,
-    make_pumpline_layer,
-    FLOWLINES_LAYER_NAME,
-    NODES_LAYER_NAME,
-    PUMPLINES_LAYER_NAME,
-)
-from ..utils.user_messages import pop_up_info
 from ..datasource.spatialite import Spatialite
 from ..datasource.threedi_results import ThreediResult
 from ..utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
@@ -32,6 +15,7 @@ from ..utils.user_messages import StatusProgressBar
 from .base import BaseModel
 from .base_fields import CheckboxField
 from .base_fields import ValueField
+from builtins import object
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
 
