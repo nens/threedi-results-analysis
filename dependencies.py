@@ -16,28 +16,36 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-def _check_importability(necessary_import, not_findable):
+def _check_importability(necessary_imports):
     """Check if necessary_import is importable, add the name to ``not_findable`` if not."""
-    spec = importlib.util.find_spec(necessary_import)
-    if spec is None:
-        logger.warning("Cannot import '%s'", necessary_import)
-        not_findable.append(necessary_import)
-        return
-    logger.info(
-        "Import '%s' found. Name=%s, origin=%s",
-        necessary_import,
-        spec.name,
-        spec.origin,
-    )
+    missing = []
+    for necessary_import in necessary_imports:
+        spec = importlib.util.find_spec(necessary_import)
+        if spec is None:
+            logger.warning("Cannot import '%s'", necessary_import)
+            missing.append(necessary_import)
+            continue
+        logger.info(
+            "Import '%s' found. Name=%s, origin=%s",
+            necessary_import,
+            spec.name,
+            spec.origin,
+        )
+    return missing
 
 
 def _check_requirements(requirements):
     """Require all requirements, this raises an error if something is missing."""
-    import pkg_resources  # It might be missing.
+    import pkg_resources  # Not imported yet to allow _check_importability() check.
     missing = []
     for requirement in requirements:
-        distributions = pkg_resources.require(requirement)
-        logger.info("Requirement '%s' found: %s", requirement, distributions)
+        try:
+            distributions = pkg_resources.require(requirement)
+            logger.info("Requirement '%s' found: %s", requirement, distributions)
+        except pkg_resources.DistributionNotFound:
+            logger.exception("Requirement '%s' not found")
+            missing.append(requirement)
+    return missing
 
 
 def try_to_import_dependencies():
@@ -53,10 +61,7 @@ def try_to_import_dependencies():
         "sqlalchemy",
         "threedigrid",
     ]
-    not_findable = []
-    for necessary_import in necessary_imports:
-        _check_importability(necessary_import, not_findable)
-
+    not_findable = _check_importability(necessary_imports)
     if not_findable:
         pop_up_info("Error loading modules: %s", ", ".join(not_findable))
 
@@ -65,10 +70,9 @@ def try_to_import_dependencies():
     requirements = open(requirements_txt).read().strip().split("\n")
     requirements = [r.strip() for r in requirements]
     requirements = [r for r in sorted(requirements) if r and not r.startswith("#")]
-    try:
-        _check_requirements(requirements)
-    except Exception:
-        logger.exception("Not all requirements are OK")
+    not_installed = _check_requirements(requirements)
+    if not_findable:
+        pop_up_info("Not all requirements are fulfilled: '%s'", "', '".join(not_findable))
 
     # TODO: use next location to do some "pip install" magic with the external
     # directory as index location.

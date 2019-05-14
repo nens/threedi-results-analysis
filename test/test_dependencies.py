@@ -5,17 +5,15 @@ import pytest
 
 
 def test_check_importability_1():
-    missing = []
-    importable = "numpy"
-    dependencies._check_importability(importable, missing)
+    importable = ["numpy"]
+    missing = dependencies._check_importability(importable)
     assert missing == [], "numpy isn't missing"
 
 
 def test_check_importability_2():
-    missing = []
-    not_importable = "reinout"
-    dependencies._check_importability(not_importable, missing)
-    assert missing == ["reinout"], "reinout is not importable, so missing"
+    partially_not_importable = ["numpy", "reinout"]
+    missing = dependencies._check_importability(partially_not_importable)
+    assert missing == ["reinout"], "reinout is not importable, so it should be missing"
 
 
 def test_check_requirements_1():
@@ -25,8 +23,8 @@ def test_check_requirements_1():
 
 def test_check_requirements_2():
     requirements_some_missing = ["numpy", "reinout"]
-    with pytest.raises(pkg_resources.DistributionNotFound):
-        dependencies._check_requirements(requirements_some_missing)
+    missing = dependencies._check_requirements(requirements_some_missing)
+    assert missing == ["reinout"], "reinout is not installed, so it should be missing"
 
 
 def test_try_to_import_dependencies_smoke():
