@@ -19,14 +19,14 @@ def test_check_importability_2():
 
 
 def test_check_requirements_1():
-    requirements = ["numpy", "setuptools"]
-    dependencies._check_requirements(requirements)
+    requirements_that_are_present = ["numpy", "setuptools"]
+    dependencies._check_requirements(requirements_that_are_present)
 
 
 def test_check_requirements_2():
-    requirements = ["numpy", "reinout"]
+    requirements_some_missing = ["numpy", "reinout"]
     with pytest.raises(pkg_resources.DistributionNotFound):
-        dependencies._check_requirements(requirements)
+        dependencies._check_requirements(requirements_some_missing)
 
 
 def test_try_to_import_dependencies_smoke():
