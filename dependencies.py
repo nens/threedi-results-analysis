@@ -24,7 +24,7 @@ def _check_importability(necessary_import, not_findable):
         not_findable.append(necessary_import)
         return
     logger.info(
-        "Dependency %s found. Name=%s, origin=%s",
+        "Import '%s' found. Name=%s, origin=%s",
         necessary_import,
         spec.name,
         spec.origin,
@@ -34,12 +34,10 @@ def _check_importability(necessary_import, not_findable):
 def _check_requirements(requirements):
     """Require all requirements, this raises an error if something is missing."""
     import pkg_resources  # It might be missing.
-
-    requirements = [r.strip() for r in requirements]
-    requirements = [r for r in sorted(requirements) if r and not r.startswith("#")]
     missing = []
     for requirement in requirements:
-        pkg_resources.require(requirement)
+        distributions = pkg_resources.require(requirement)
+        logger.info("Requirement '%s' found: %s", requirement, distributions)
 
 
 def try_to_import_dependencies():
@@ -65,11 +63,16 @@ def try_to_import_dependencies():
     current_directory = os.path.dirname(__file__)
     requirements_txt = os.path.join(current_directory, "requirements.txt")
     requirements = open(requirements_txt).read().strip().split("\n")
-    # python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
+    requirements = [r.strip() for r in requirements]
+    requirements = [r for r in sorted(requirements) if r and not r.startswith("#")]
     try:
         _check_requirements(requirements)
     except Exception:
         logger.exception("Not all requirements are OK")
+
+    # TODO: use next location to do some "pip install" magic with the external
+    # directory as index location.
+    # python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
 
     try:
         # Note: we're not importing it directly using the import statement because
