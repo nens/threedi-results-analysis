@@ -4,6 +4,7 @@ ThreeDiToolBox changelog
 
 1.11 (unreleased)
 -----------------
+- Isolate tools into seperate packages
 
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
   minutes).
