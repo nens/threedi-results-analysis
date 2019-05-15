@@ -36,9 +36,7 @@ LOCALES =
 
 
 # translation
-SOURCES = \
-	__init__.py \
-	threedi_toolbox.py threedi_toolbox_dockwidget.py
+SOURCES = __init__.py threedi_toolbox.py threedi_toolbox_dockwidget.py
 
 PLUGINNAME = ThreeDiToolbox
 
@@ -51,20 +49,11 @@ EXTRAS = metadata.txt icon.png
 
 COMPILED_RESOURCE_FILES = resources.py
 
-
-#################################################
-# Normally you would not need to edit below here
-#################################################
-
 HELP = help/build/html
 
 PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
-
-# TODO: most of this makefile needs fixing: it isn't qgis2 anymore.
-# So most of the targets won't work.
-QGISDIR=.qgis2
 
 default: compile
 
@@ -83,43 +72,6 @@ test: compile transcompile
 docstrings:
 	@echo "#### Docstring coverage report"
 	python3 scripts/docstring-report.py
-
-deploy: compile doc transcompile
-	@echo "#### Deploying plugin to your .qgis2 directory."
-	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
-
-# The dclean target removes compiled python files from plugin directory
-# also deletes any .git entry
-dclean:
-	@echo
-	@echo "-----------------------------------"
-	@echo "Removing any compiled python files."
-	@echo "-----------------------------------"
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
-
-derase:
-	@echo
-	@echo "-------------------------"
-	@echo "Removing deployed plugin."
-	@echo "-------------------------"
-	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-
-zip_old_unused: deploy dclean
-	@echo
-	@echo "---------------------------"
-	@echo "Creating plugin zip bundle."
-	@echo "---------------------------"
-	# The zip target deploys the plugin and creates a zip file with the deployed
-	# content. You can then upload the zip file on http://plugins.qgis.org
-	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
 zip: compile transcompile
 	@echo
