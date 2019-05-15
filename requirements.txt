@@ -1,7 +1,6 @@
 # The minimum versions here are the versions provided by ubuntu 18.04.
 # The maximum versions are one minor version higher.
 SQLAlchemy >=1.1.11, <1.2
-future
 pyqtgraph >=0.10.0
 setuptools
 
