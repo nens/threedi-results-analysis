@@ -1,8 +1,5 @@
 from ThreeDiToolbox import dependencies
 
-import pkg_resources
-import pytest
-
 
 def test_check_importability_1():
     importable = ["numpy"]
