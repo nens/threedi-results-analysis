@@ -20,13 +20,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from . import resources  # NoQa, initialize the Qt resources.
 from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
 from .threedi_graph import ThreeDiGraph
-from .threedi_result_selection import ThreeDiResultSelection
+from ThreeDiToolbox.tool_result_selection.threedi_result_selection \
+    import ThreeDiResultSelection
 from .threedi_sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox

@@ -5,7 +5,10 @@ import os
 
 
 FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "login_dialog.ui")
+    os.path.join(os.path.dirname(__file__),
+                 os.pardir,
+                 "tool_result_selection",
+                 "login_dialog.ui")
 )
 
 
