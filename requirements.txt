@@ -2,14 +2,8 @@
 # The maximum versions are one minor version higher.
 SQLAlchemy >=1.1.11, <1.2
 future
-numpy >= 1.13.3, <1.14
 pyqtgraph >=0.10.0
 setuptools
-h5py >= 2.7.1
-
-# Gdal is commented out, it is notoriously hard to install and fails to find
-# the installed python3-gdal package.
-# gdal >=2.2.3, < 2.3
 
 # Geoalchemy2 is at 0.4.2 in ubuntu 18.04, we need a newer one.
 GeoAlchemy2 >=0.6.2, <0.7
