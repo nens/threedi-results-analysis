@@ -1,2 +1,2 @@
 [tool.black]
-exclude = "external/"
+exclude = '\( external/ | external-dependencies/ \)'

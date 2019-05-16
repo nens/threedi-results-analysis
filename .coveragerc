@@ -1,6 +1,6 @@
 [run]
 source = .
-omit = external utils/importer test
+omit = external external-dependencies utils/importer test
 
 [report]
 show_missing = true
