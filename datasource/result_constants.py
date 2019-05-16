@@ -15,7 +15,9 @@ VELOCITY_INTERFLOW = NcVar("up1", "velocity interflow", "m/s")
 RAIN_INTENSITY = NcVar("rain", "rain intensity", "m3/s")
 WET_SURFACE_AREA = NcVar("su", "wet surface area", "m2")
 INFILTRATION = NcVar("infiltration_rate", "infiltration rate", "m3/s")
-INFILTRATION_RATE_SIMPLE = NcVar("infiltration_rate_simple", "infiltration_rate_simple", "m3/s")
+INFILTRATION_RATE_SIMPLE = NcVar(
+    "infiltration_rate_simple", "infiltration_rate_simple", "m3/s"
+)
 WET_CROSS_SECTION_AREA = NcVar("au", "wet cross section area", "m2")
 LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s")
 INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3")
@@ -102,8 +104,9 @@ CUMULATIVE_AGGREGATION_UNITS = {
     "q_sss": "m3",
 }
 # layer name, (normalized) object_type, q/h type
-LayerInformation = namedtuple("LayerInformation",
-                              ["layer_name", "object_type", "qh_type"])
+LayerInformation = namedtuple(
+    "LayerInformation", ["layer_name", "object_type", "qh_type"]
+)
 layer_information = [
     LayerInformation("v2_connection_nodes", "connection_nodes", "h"),
     LayerInformation("v2_pipe_view", "pipe", "q"),

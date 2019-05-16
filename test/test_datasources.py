@@ -120,9 +120,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
     )
-    @mock.patch(
-        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin"
-    )
+    @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
         m = mock.MagicMock()

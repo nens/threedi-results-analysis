@@ -49,14 +49,14 @@ class ThreediResult(BaseDataSource):
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         if self.result_admin.has_pumpstations:
             available_vars = (
-                    self.result_admin.nodes._field_names
-                    | self.result_admin.lines._field_names
-                    | self.result_admin.pumps._field_names
+                self.result_admin.nodes._field_names
+                | self.result_admin.lines._field_names
+                | self.result_admin.pumps._field_names
             )
         else:
             available_vars = (
-                    self.result_admin.nodes._field_names
-                    | self.result_admin.lines._field_names
+                self.result_admin.nodes._field_names
+                | self.result_admin.lines._field_names
             )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
@@ -145,11 +145,10 @@ class ThreediResult(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
         else:
-            raise AttributeError(
-                "Unknown subgrid or aggregate variable: %s")
+            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     def get_timeseries(
-            self, nc_variable, node_id=None, content_pk=None, fill_value=None
+        self, nc_variable, node_id=None, content_pk=None, fill_value=None
     ):
         """Return a time series array of the given variable
 
