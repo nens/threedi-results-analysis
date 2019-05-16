@@ -57,7 +57,13 @@ RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g'
 
 default: compile
 
-compile: $(COMPILED_RESOURCE_FILES)
+compile: $(COMPILED_RESOURCE_FILES) external-dependencies/.generated.marker
+
+external-dependencies/.generated.marker: constraints.txt
+	cd external-dependencies && ./populate.sh
+
+constraints.txt: dependencies.py
+	python3 -m ThreeDiToolbox.dependencies
 
 %.py : %.qrc $(RESOURCES_SRC)
 	pyrcc5 -o $*.py  $<
