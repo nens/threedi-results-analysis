@@ -27,15 +27,34 @@ Hmmmmmmm..... .pth files.... They'd have to point at the proper OS version. So I
 
 """
 from .utils.user_messages import pop_up_info
+from collections import namedtuple
+from pathlib import Path
 
 import imp
 import importlib
 import logging
 import os
+import pkg_resources
 import sys
 
 
+Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
+
+DEPENDENCIES = [
+    Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
+    Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
+    Dependency("h5py", "h5py", ">= 2.7.1"),
+    Dependency("lizard-connector", "lizard_connector", "==0.6"),
+    Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
+    Dependency("threedigrid", "threedigrid", "==1.0.13"),
+]
+
 logger = logging.getLogger(__name__)
+
+
+def ensure_everything_installed():
+    """Check if DEPENDENCIES are installed and install them if missing."""
+    missing = _check_presence(DEPENDENCIES)
 
 
 def _check_importability(necessary_imports):
@@ -56,17 +75,21 @@ def _check_importability(necessary_imports):
     return missing
 
 
-def _check_requirements(requirements):
-    """Require all requirements, this raises an error if something is missing."""
-    import pkg_resources  # Not imported yet to allow _check_importability() check.
+def _check_presence(dependencies):
+    """Check if all dependencies are present. Return missing dependencies."""
     missing = []
-    for requirement in requirements:
+    for dependency in dependencies:
+        requirement = dependency.name + dependency.constraint
         try:
             distributions = pkg_resources.require(requirement)
-            logger.info("Requirement '%s' found: %s", requirement, distributions)
+            logger.info("Dependency '%s' found: %s", dependency.name, distributions)
         except pkg_resources.DistributionNotFound:
-            logger.exception("Requirement '%s' not found")
-            missing.append(requirement)
+            logger.exception(
+                "Dependency '%s' (%s) not found",
+                dependency.name,
+                dependency.constraint,
+            )
+            missing.append(dependency)
     return missing
 
 
@@ -86,15 +109,6 @@ def try_to_import_dependencies():
     not_findable = _check_importability(necessary_imports)
     if not_findable:
         pop_up_info("Error loading modules: %s", ", ".join(not_findable))
-
-    current_directory = os.path.dirname(__file__)
-    requirements_txt = os.path.join(current_directory, "requirements.txt")
-    requirements = open(requirements_txt).read().strip().split("\n")
-    requirements = [r.strip() for r in requirements]
-    requirements = [r for r in sorted(requirements) if r and not r.startswith("#")]
-    not_installed = _check_requirements(requirements)
-    if not_findable:
-        pop_up_info("Not all requirements are fulfilled: '%s'", "', '".join(not_findable))
 
     # TODO: use next location to do some "pip install" magic with the external
     # directory as index location.
@@ -131,3 +145,16 @@ def try_to_import_dependencies():
                 "Error: could not find h5py installation. Please "
                 "install the h5py package manually."
             )
+
+
+def generate_constraints_txt():
+    our_dir = Path(__file__).parent
+    constraints_file = our_dir / "constraints.txt"
+    lines = [(dependency.name + dependency.constraint) for dependency in DEPENDENCIES]
+    lines.append('')
+    constraints_file.write_text('\n'.join(lines))
+    print("Wrote constraints to %s" % constraints_file)
+
+
+if __name__ == "__main__":
+    generate_constraints_txt()
