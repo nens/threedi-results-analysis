@@ -11,10 +11,11 @@ def classFactory(iface):  # pylint: disable=invalid-name
 
     :param iface: QgsInterface. A QGIS interface instance.
     """
-    from .threedi_tools import ThreeDiTools
     from .utils.qlogging import setup_logging
-    from .dependencies import try_to_import_dependencies
+    from .dependencies import ensure_everything_installed
 
     setup_logging()
-    try_to_import_dependencies()
+    ensure_everything_installed()
+
+    from .threedi_tools import ThreeDiTools
     return ThreeDiTools(iface)

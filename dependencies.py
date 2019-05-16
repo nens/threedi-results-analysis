@@ -61,6 +61,7 @@ def ensure_everything_installed():
     setup_custom_library_dir()
     missing = _check_presence(DEPENDENCIES)
     _install_dependencies(missing)
+    # TODO: check importability.
 
 
 def setup_custom_library_dir():
@@ -106,9 +107,12 @@ def _install_dependencies(dependencies, target_dir=CUSTOM_LIBRARY_DIR):
                 str(target_dir),
                 (dependency.name + dependency.constraint),
             ],
-            text=True,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
-        result.check_return_code()  # Raises CalledProcessError upon failure.
+        print(result.stdout)
+        result.check_returncode()  # Raises CalledProcessError upon failure.
         logger.info("Installed %s into %s", dependency.name, target_dir)
 
 
@@ -121,65 +125,11 @@ def _check_presence(dependencies):
             distributions = pkg_resources.require(requirement)
             logger.info("Dependency '%s' found: %s", dependency.name, distributions)
         except pkg_resources.DistributionNotFound:
-            logger.exception(
+            logger.warning(
                 "Dependency '%s' (%s) not found", dependency.name, dependency.constraint
             )
             missing.append(dependency)
     return missing
-
-
-def try_to_import_dependencies():
-    """Try to import everything we need and pop up an error upon failures."""
-    logger.debug("Starting to look at dependencies...")
-    logger.debug("sys.path: %s", sys.path)
-    necessary_imports = [
-        "geoalchemy2",
-        "h5py",
-        "lizard_connector",
-        "pkg_resources",  # setuptools
-        "pyqtgraph",
-        "sqlalchemy",
-        "threedigrid",
-    ]
-    not_findable = _check_importability(necessary_imports)
-    if not_findable:
-        pop_up_info("Error loading modules: %s", ", ".join(not_findable))
-
-    # TODO: use next location to do some "pip install" magic with the external
-    # directory as index location.
-    # python_dir_in_profile = os.path.abspath(os.path.join(current_directory, "..", ".."))
-
-    try:
-        # Note: we're not importing it directly using the import statement because
-        # this will cause .pyd files to be loaded in dynamically. Because the
-        # loaded files are open in QGIS you can't delete them unless you close the
-        # program (at least with Windows), which is problematic when trying to
-        # update the plugin using the plugin manager (because it tries to delete
-        # the old plugin files). Real imports are postponed as long as possible.
-        imp.find_module("h5py")
-        logger.info("Using local h5py installation.")
-    except ImportError:
-        if os.name == "nt":
-            if sys.maxsize > 2 ** 32:
-                sys.path.append(
-                    os.path.join(
-                        os.path.dirname(os.path.realpath(__file__)),
-                        "external",
-                        "h5py-win64",
-                    )
-                )
-                logger.info("Using h5py provided by plugin.")
-            else:
-                pop_up_info(
-                    "Error: could not find h5py installation. Change "
-                    "to the 64-bit version of QGIS or try to install the "
-                    "h5py python libary yourself."
-                )
-        else:
-            pop_up_info(
-                "Error: could not find h5py installation. Please "
-                "install the h5py package manually."
-            )
 
 
 def generate_constraints_txt():
