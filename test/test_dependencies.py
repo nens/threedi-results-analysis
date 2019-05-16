@@ -25,7 +25,9 @@ def test_check_presence_1():
 def test_check_presence_2():
     dependencies_some_missing = [available_dependency, missing_dependency]
     missing = dependencies._check_presence(dependencies_some_missing)
-    assert missing == [missing_dependency], "reinout is not installed, so it should be missing"
+    assert missing == [
+        missing_dependency
+    ], "reinout is not installed, so it should be missing"
 
 
 def test_try_to_import_dependencies_smoke():
