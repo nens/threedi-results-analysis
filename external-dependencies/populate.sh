@@ -14,7 +14,7 @@ cd build
 
 # Grab sqlalchemy. Use a small trick to get a universal egg.
 pip3 download --constraint ../../constraints.txt SQLAlchemy
-tar -xvf SQLAlchemy*gz
+tar -xzf SQLAlchemy*gz
 rm SQLAlchemy*gz
 sed -i 's/distclass/\#distclass/g' SQLAlchemy*/setup.py
 DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
