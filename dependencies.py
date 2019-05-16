@@ -49,12 +49,27 @@ DEPENDENCIES = [
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
 ]
 
+our_dir = Path(__file__).parent
+CUSTOM_LIBRARY_DIR = our_dir.parent.parent / "threeditoolbox-libraries"
+
 logger = logging.getLogger(__name__)
 
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
+    setup_custom_library_dir()
     missing = _check_presence(DEPENDENCIES)
+    _install_dependencies(missing)
+
+
+def setup_custom_library_dir():
+    if not CUSTOM_LIBRARY_DIR.exists():
+        CUSTOM_LIBRARY_DIR.mkdir(parents=True)
+        logger.info("Created custom library dir %s", CUSTOM_LIBRARY_DIR)
+    if CUSTOM_LIBRARY_DIR not in sys.path:
+        sys.path.insert(0, CUSTOM_LIBRARY_DIR)
+        logger.info("Added custom library dir %s to sys.path", CUSTOM_LIBRARY_DIR)
+        logger.debug("sys.path: %s", sys.path)
 
 
 def _check_importability(necessary_imports):
@@ -75,6 +90,11 @@ def _check_importability(necessary_imports):
     return missing
 
 
+def _install_dependencies(dependencies, target_dir=CUSTOM_LIBRARY_DIR):
+    for dependency in dependencies:
+        pass
+
+
 def _check_presence(dependencies):
     """Check if all dependencies are present. Return missing dependencies."""
     missing = []
@@ -85,9 +105,7 @@ def _check_presence(dependencies):
             logger.info("Dependency '%s' found: %s", dependency.name, distributions)
         except pkg_resources.DistributionNotFound:
             logger.exception(
-                "Dependency '%s' (%s) not found",
-                dependency.name,
-                dependency.constraint,
+                "Dependency '%s' (%s) not found", dependency.name, dependency.constraint
             )
             missing.append(dependency)
     return missing
@@ -148,11 +166,10 @@ def try_to_import_dependencies():
 
 
 def generate_constraints_txt():
-    our_dir = Path(__file__).parent
     constraints_file = our_dir / "constraints.txt"
     lines = [(dependency.name + dependency.constraint) for dependency in DEPENDENCIES]
-    lines.append('')
-    constraints_file.write_text('\n'.join(lines))
+    lines.append("")
+    constraints_file.write_text("\n".join(lines))
     print("Wrote constraints to %s" % constraints_file)
 
 
