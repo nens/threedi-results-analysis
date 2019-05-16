@@ -2,6 +2,8 @@
 # The maximum versions are one minor version higher.
 SQLAlchemy >=1.1.11, <1.2
 pyqtgraph >=0.10.0
+
+# Included with qgis on windows
 setuptools
 
 # Geoalchemy2 is at 0.4.2 in ubuntu 18.04, we need a newer one.

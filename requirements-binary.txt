@@ -1,5 +1,7 @@
 # The minimum versions here are the versions provided by ubuntu 18.04.
 # The maximum versions are one minor version higher.
+
+# numpy is included on windows
 numpy >= 1.13.3, <1.14
 h5py >= 2.7.1
 

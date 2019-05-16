@@ -1,7 +1,29 @@
 """Handle dependencies
 
-TODO: for now, this is try/except code copied out of ``__init__.py``, later on
-this ought to be made more explicit and verbose.
+sqlalchemy: not pure python, but only for some speedups which have a python fallback.
+Perhaps use a source dist? Pass "don't compile" option?
+
+geoalchemy2: wheel or sdist, on linux "pip install"
+
+lizard-connector: wheel or sdist, on linux "pip install"
+
+threedigrid: wheel or sdist, on linux "pip install"
+
+h5py: on windows, an osgeo zip download and then extract a subdir.
+On linux: assume an "apt-get"
+
+
+
+Hmmmmm.... lets just prepare a zip and unzip that in the
+/python/threeditoolbox-dependencies/ folder, add it to the path and be done with it.
+
+Everything except h5py can be just the linux version. Perhaps do a special thingy for sqlalchemy to get a proper windows wheel/egg.
+
+
+Ideally, this means we just use regular import-finding-mechanisms, like
+properly naming eggs/wheels.
+
+Hmmmmmmm..... .pth files.... They'd have to point at the proper OS version. So I probably still have to call pip to install it.
 
 """
 from .utils.user_messages import pop_up_info
