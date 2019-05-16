@@ -1,4 +1,5 @@
 # Dependencies for development and tests.
+black
 coverage
 coveralls
 docstr-coverage >= 1.0.4
