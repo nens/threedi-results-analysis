@@ -59,7 +59,7 @@ default: compile
 
 compile: $(COMPILED_RESOURCE_FILES) external-dependencies/.generated.marker
 
-external-dependencies/.generated.marker: constraints.txt
+external-dependencies/.generated.marker: constraints.txt external-dependencies/populate.sh
 	cd external-dependencies && ./populate.sh
 
 constraints.txt: dependencies.py
