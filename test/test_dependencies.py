@@ -1,6 +1,10 @@
 from ThreeDiToolbox import dependencies
 
 
+available_dependency = dependencies.Dependency("numpy", "numpy", "")
+missing_dependency = dependencies.Dependency("reinout", "reinout", "")
+
+
 def test_check_importability_1():
     importable = ["numpy"]
     missing = dependencies._check_importability(importable)
@@ -13,15 +17,15 @@ def test_check_importability_2():
     assert missing == ["reinout"], "reinout is not importable, so it should be missing"
 
 
-def test_check_requirements_1():
-    requirements_that_are_present = ["numpy", "setuptools"]
-    dependencies._check_requirements(requirements_that_are_present)
+def test_check_presence_1():
+    dependencys_that_are_present = [available_dependency]
+    dependencies._check_presence(dependencys_that_are_present)
 
 
-def test_check_requirements_2():
-    requirements_some_missing = ["numpy", "reinout"]
-    missing = dependencies._check_requirements(requirements_some_missing)
-    assert missing == ["reinout"], "reinout is not installed, so it should be missing"
+def test_check_presence_2():
+    dependencies_some_missing = [available_dependency, missing_dependency]
+    missing = dependencies._check_presence(dependencies_some_missing)
+    assert missing == [missing_dependency], "reinout is not installed, so it should be missing"
 
 
 def test_try_to_import_dependencies_smoke():
