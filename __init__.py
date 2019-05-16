@@ -1,7 +1,5 @@
 """This script initializes the plugin, making it known to QGIS."""
 import faulthandler
-import os
-import sys
 
 
 faulthandler.enable()
