@@ -36,6 +36,7 @@ import logging
 import os
 import pkg_resources
 import sys
+import subprocess
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -92,7 +93,23 @@ def _check_importability(necessary_imports):
 
 def _install_dependencies(dependencies, target_dir=CUSTOM_LIBRARY_DIR):
     for dependency in dependencies:
-        pass
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--no-deps",
+                "--find-links",
+                str(our_dir / "external-dependencies"),
+                "--target",
+                str(target_dir),
+                (dependency.name + dependency.constraint),
+            ],
+            text=True,
+        )
+        result.check_return_code()  # Raises CalledProcessError upon failure.
+        logger.info("Installed %s into %s", dependency.name, target_dir)
 
 
 def _check_presence(dependencies):
