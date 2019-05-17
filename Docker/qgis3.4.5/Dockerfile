@@ -33,15 +33,12 @@ RUN apt-get update \
         gdal-bin \
         git \
         grass \
-        libhdf5-serial-dev \
         pyqt5-dev-tools \
         python-dev \
         python3-dev \
         python3-h5py \
         python3-pip \
-        python3-pyqtgraph \
         python3-qgis \
-        python3-sqlalchemy \
         qgis \
         qgis-provider-grass \
         wget \
