@@ -26,13 +26,12 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
 # Now install the ubuntu packages we need.
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
-	unzip \
-	zip \
         build-essential \
         dbus \
         gdal-bin \
         git \
         grass \
+        less \
         pyqt5-dev-tools \
         python-dev \
         python3-dev \
@@ -41,7 +40,9 @@ RUN apt-get update \
         python3-qgis \
         qgis \
         qgis-provider-grass \
+        unzip \
         wget \
+        zip \
     && rm -rf /var/lib/apt/lists/*
 
 # Seems to be a message bus used by Qt?
