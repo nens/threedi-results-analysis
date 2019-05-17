@@ -4,8 +4,9 @@
 from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.tool_result_selection.result_selection_view import \
-    ThreeDiResultSelectionWidget
+from ThreeDiToolbox.tool_result_selection.result_selection_view import (
+    ThreeDiResultSelectionWidget,
+)
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QObject

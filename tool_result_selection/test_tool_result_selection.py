@@ -1,31 +1,14 @@
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
-
-
-from ThreeDiToolbox.tool_result_selection.result_selection_view import (
-    FORM_CLASS,
-    ThreeDiResultSelectionWidget,
-)
 from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
 
-
+from ThreeDiToolbox.tool_result_selection.result_selection_view import (
+    ThreeDiResultSelectionWidget,
+)
 from qgis.PyQt.QtWidgets import QWidget
+
 import mock
 import unittest
-import os
-
-
-spatialite_datasource_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
-)
-
-THREEDI_RESULTS_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    "data",
-    "testmodel",
-    "v2_bergermeer",
-    "results_3di.nc",
-)
 
 
 class TestThreeDiResultSelection(unittest.TestCase):
@@ -37,20 +20,14 @@ class TestThreeDiResultSelection(unittest.TestCase):
         self.download_result_model = DownloadResultModel()
         parent_class = mock.Mock()
 
-        # TODO: mock self.dialog ??
-        #
-        # try:
-        #     self.dialog = ThreeDiResultSelectionWidget(
-        #         parent=None,
-        #         iface=iface,
-        #         ts_datasource=self.ts_datasource,
-        #         download_result_model=self.download_result_model,
-        #         parent_class=parent_class,
-        #     )
-        # except Exception as e:
-        #     print(e)
-        #
-        # self.result_selection_view = ThreeDiResultSelectionWidget(QWidget, FORM_CLASS)
+        # TODO: ThreeDiResultSelection contains a self.dialog that must be mocked ??
+        # since below does not work:
+        # self.dialog = ThreeDiResultSelectionWidget(
+        #     parent=None,
+        #     iface=iface,
+        #     ts_datasource=self.ts_datasource,
+        #     download_result_model=self.download_result_model,
+        #     parent_class=parent_class)
 
     def test_icon_path_is_set(self):
         self.assertEqual(

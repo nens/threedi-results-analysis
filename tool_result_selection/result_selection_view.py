@@ -254,7 +254,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     "supported in this version of ThreediToolbox. Please "
                     "recalculate the results with a newer version of the "
                     "threedicore or use the ThreediToolbox plugin for QGIS 2",
-                    title="Error"
+                    title="Error",
                 )
 
             items = [
