@@ -6,7 +6,6 @@ docstr-coverage >= 1.0.4
 flake8
 isort
 mock
-pycodestyle
 pytest
 pytest-cov
 pytest-flake8
