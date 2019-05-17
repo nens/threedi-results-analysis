@@ -51,12 +51,13 @@ RUN dbus-uuidgen > /var/lib/dbus/machine-id
 ADD requirements.txt .
 ADD requirements-dev.txt .
 RUN pip3 install -U pip setuptools
-RUN pip3 install -r requirements.txt -r requirements-dev.txt
+RUN pip3 install -r requirements-dev.txt
 
-# Add the qgis-core plugins (like 'db_manager') and our own plugin dir to the
-# PYTHONPATH. This is needed for pytest and so to find the code. (Qgis finds it
-# just fine without this PYTHONPATH, of course).
-ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
+# Add the qgis-core plugins (like 'db_manager') and our own plugin dir and the
+# python dirto the PYTHONPATH. This is needed for pytest and so to find the
+# code. (Qgis finds it just fine without this PYTHONPATH, of course, it is set
+# in Qgis's "python/user.py").
+ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
 
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]
