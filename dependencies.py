@@ -46,6 +46,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
 ]
+INTERESTING_IMPORTS = ["numpy", "gdal"]
 
 our_dir = Path(__file__).parent
 PROFILE_LIBRARY_DIR = our_dir.parent.parent
@@ -71,11 +72,11 @@ def check_importability():
     gets executed before any logging has been configured.
 
     """
-    for dependency in DEPENDENCIES:
-        imported_package = importlib.import_module(dependency.package)
-        logger.info(
-            "Import '%s' found at '%s'", dependency.package, imported_package.__file__
-        )
+    packages = [dependency.package for dependency in DEPENDENCIES]
+    packages += INTERESTING_IMPORTS
+    for package in packages:
+        imported_package = importlib.import_module(package)
+        logger.info("Import '%s' found at '%s'", package, imported_package.__file__)
 
 
 def _install_dependencies(dependencies, target_dir=PROFILE_LIBRARY_DIR):
@@ -110,10 +111,11 @@ def _check_presence(dependencies):
     for dependency in dependencies:
         requirement = dependency.name + dependency.constraint
         try:
-            distributions = pkg_resources.require(requirement)
+            pkg_resources.require(requirement)
         except pkg_resources.DistributionNotFound:
             print(
-                "Dependency '%s' (%s) not found" % (dependency.name, dependency.constraint)
+                "Dependency '%s' (%s) not found"
+                % (dependency.name, dependency.constraint)
             )
             missing.append(dependency)
     return missing
