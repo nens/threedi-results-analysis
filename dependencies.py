@@ -46,7 +46,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
 ]
-INTERESTING_IMPORTS = ["numpy", "gdal"]
+INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
 
 our_dir = Path(__file__).parent
 PROFILE_LIBRARY_DIR = our_dir.parent.parent
