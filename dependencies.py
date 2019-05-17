@@ -1,29 +1,22 @@
-"""Handle dependencies
+"""Handle dependencies: installation and checking/logging.
 
-sqlalchemy: not pure python, but only for some speedups which have a python fallback.
-Perhaps use a source dist? Pass "don't compile" option?
+See ``external-dependencies/README.rst`` for a full explanation of the
+dependency handling.
 
-geoalchemy2: wheel or sdist, on linux "pip install"
+``python dependencies.py`` runs ``main()``: it generates ``constraints.txt``.
 
-lizard-connector: wheel or sdist, on linux "pip install"
+``ensure_everything_installed()`` checks if ``DEPENDENCIES`` are installed and
+installs them if needed.
 
-threedigrid: wheel or sdist, on linux "pip install"
+``check_importability()`` double-checks if everything is importable. It also
+logs the locations.
 
-h5py: on windows, an osgeo zip download and then extract a subdir.
-On linux: assume an "apt-get"
+Note that we use logging in ``check_importability()`` as we want to have the
+result in the logfile. The rest of the module uses ``print()`` statements
+because it gets executed before any logging has been configured.
 
-
-
-Hmmmmm.... lets just prepare a zip and unzip that in the
-/python/threeditoolbox-dependencies/ folder, add it to the path and be done with it.
-
-Everything except h5py can be just the linux version. Perhaps do a special thingy for sqlalchemy to get a proper windows wheel/egg.
-
-
-Ideally, this means we just use regular import-finding-mechanisms, like
-properly naming eggs/wheels.
-
-Hmmmmmmm..... .pth files.... They'd have to point at the proper OS version. So I probably still have to call pip to install it.
+As we're called directly from ``__init__.py``, the imports should be
+resticted. No qgis message boxes and so!
 
 """
 from collections import namedtuple
@@ -66,10 +59,6 @@ def check_importability():
     If something is not importable, which should not happen, it raises an
     ImportError automatically. Which is exactly what we want, because we
     cannot continue.
-
-    Note that we use logging here as we want to have the result in the
-    logfile. The rest of the module uses ``print()`` statements because it
-    gets executed before any logging has been configured.
 
     """
     packages = [dependency.package for dependency in DEPENDENCIES]
