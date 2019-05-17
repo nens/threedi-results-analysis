@@ -1,6 +1,7 @@
 """This script initializes the plugin, making it known to QGIS."""
-import faulthandler
 from ThreeDiToolbox import dependencies
+
+import faulthandler
 
 
 faulthandler.enable()
@@ -19,4 +20,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     dependencies.check_importability()
 
     from .threedi_tools import ThreeDiTools
+
     return ThreeDiTools(iface)
