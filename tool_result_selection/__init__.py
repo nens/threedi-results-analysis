@@ -1,4 +1,4 @@
-from ThreeDiToolbox.tool_result_selection.threedi_result_selection import ThreeDiResultSelection
+from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 
 
 ThreeDiResultSelection  # flake8

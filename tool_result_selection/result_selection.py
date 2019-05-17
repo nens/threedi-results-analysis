@@ -1,452 +1,267 @@
 # -*- coding: utf-8 -*-
-from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
-from lizard_connector.connector import Endpoint
-from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtCore import QModelIndex
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtCore import QSortFilterProxyModel
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QThread
-from qgis.PyQt.QtWidgets import QFileDialog
-from qgis.PyQt.QtWidgets import QWidget
-from urllib.error import HTTPError
+# (c) Nelen & Schuurmans, see LICENSE.rst.
 
+from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.tool_result_selection.result_selection_view import \
+    ThreeDiResultSelectionWidget
+from qgis.core import QgsNetworkAccessManager
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtNetwork import QNetworkRequest
+from qgis.PyQt.QtWidgets import QFileDialog
+
+import json
 import logging
 import os
+import re
 
-
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(
-        os.path.dirname(__file__), os.pardir, "ui", "threedi_result_selection_dialog.ui"
-    )
-)
 
 logger = logging.getLogger(__name__)
 
+USER_DOWNLOAD_DIRECTORY = 1111
 
-def _reshape_scenario_results(results):
-    MEBIBYTE = 1048576
-    return [
-        {
-            "name": r["name"],
-            "url": r["url"],
-            "size_mebibytes": round(r["total_size"] / MEBIBYTE, 1),
-            "results": r["result_set"],
-        }
-        for r in results
-    ]
+assert (
+    QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax
+), "User defined attribute codes must be between User and UserMax."
 
 
-class ResultsWorker(QThread):
-    """Thread for getting scenario results API data from Lizard."""
+# From Django:
+# https://github.com/django/django/blob/master/django/utils/text.py
+def get_valid_filename(s):
+    """
+    Return the given string converted to a string that can be used for a clean
+    filename. Remove leading and trailing spaces; convert other spaces to
+    underscores; and remove anything that is not an alphanumeric, dash,
+    underscore, or dot.
+    >>> get_valid_filename("john's portrait in 2004.jpg")
+    'johns_portrait_in_2004.jpg'
+    """
+    s = str(s).strip().replace(" ", "_")
+    return re.sub(r"(?u)[^-\w.]", "", s)
 
-    output = pyqtSignal(object)
-    connection_failure = pyqtSignal(int, str)
 
-    def __init__(self, parent=None, endpoint=None, username=None, password=None):
-        self.endpoint = endpoint
-        self.username = username
-        self.password = password
-        self.exiting = False
-        super(ResultsWorker, self).__init__(parent)
+class ThreeDiResultSelection(QObject):
+    """QGIS Plugin Implementation."""
 
-    def __del__(self):
-        print("Deleting worker.")
-        logger.info("Deleting worker.")
-        self.stop()
+    state_changed = pyqtSignal([str, str, list])
+
+    tool_name = "result_selection"
+
+    def __init__(self, iface, ts_datasource):
+        """Constructor.
+
+        :param iface: An interface instance that will be passed to this class
+            which provides the hook by which you can manipulate the QGIS
+            application at run time.
+        :type iface: QgsInterface
+        """
+        # Save reference to the QGIS interface
+        QObject.__init__(self)
+        self.iface = iface
+
+        self.ts_datasource = ts_datasource
+        # TODO: unsure if this is the right place for initializing this model
+        self.download_result_model = DownloadResultModel()
+
+        # TODO: fix this fugly shizzle
+        self.download_directory = None
+        self.username = None
+        self.password = None
+
+        # download administration
+        self.network_manager = QgsNetworkAccessManager(self)
+
+        # initialize plugin directory
+        self.plugin_dir = os.path.dirname(__file__)
+
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_add_datasource.png"
+        self.menu_text = u"Select 3Di results"
+
+        self.is_active = False
+        self.dialog = None
+        self.ts_datasource.model_schematisation_change.connect(self.on_state_changed)
+        self.ts_datasource.results_change.connect(self.on_state_changed)
+
+    def on_unload(self):
+        """Cleanup necessary items here when dialog is closed"""
+
+        # disconnects
+        if self.dialog:
+            self.dialog.close()
+
+    def on_close_dialog(self):
+        """Cleanup necessary items here when dialog is closed"""
+
+        self.dialog.closingDialog.disconnect(self.on_close_dialog)
+
+        self.dialog = None
+        self.is_active = False
 
     def run(self):
-        try:
-            for results in self.endpoint:
-                if self.exiting:
-                    print("Exiting...")
-                    break
-                items = _reshape_scenario_results(results)
-                logger.debug("ResultsWorker - got new data")
-                self.output.emit(items)
-        except HTTPError as e:
-            message = (
-                "Something went wrong trying to connect to {0}. {1}: "
-                "{2}".format(e.url, e.code, e.reason)
-            )
-            logger.info(message)
-            self.connection_failure.emit(e.code, e.reason)
+        """Run method that loads and starts the plugin"""
 
-    def stop(self):
-        """Stop the thread gracefully."""
-        print("Stopping worker.")
-        self.exiting = True
-        self.wait()
+        if not self.is_active:
 
+            self.is_active = True
 
-class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
-    """Dialog for selecting model (spatialite and result files netCDFs)"""
-
-    closingDialog = pyqtSignal()
-
-    def __init__(
-        self,
-        parent=None,
-        iface=None,
-        ts_datasource=None,
-        download_result_model=None,
-        parent_class=None,
-    ):
-        """Constructor
-
-        :parent: Qt parent Widget
-        :iface: QGiS interface
-        :ts_datasource: TimeseriesDatasourceModel instance
-        :download_result_model: DownloadResultModel instance
-        :parent_class: the tool class which instantiated this widget. Is used
-             here for storing volatile information
-        """
-        super(ThreeDiResultSelectionWidget, self).__init__(parent)
-
-        self.parent_class = parent_class
-        self.iface = iface
-        self.setupUi(self)
-
-        # login administration
-        self.login_dialog = LoginDialog()
-        # NOTE: autoDefault was set on ``log_in_button`` (via Qt Designer),
-        # which makes pressing Enter work for logging in.
-        self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
-
-        # set models on table views and update view columns
-        self.ts_datasource = ts_datasource
-        self.resultTableView.setModel(self.ts_datasource)
-        self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
-
-        self.download_result_model = download_result_model
-        self.download_proxy_model = QSortFilterProxyModel()
-        self.download_proxy_model.setSourceModel(download_result_model)
-        self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.filterLineEdit.textChanged.connect(
-            self.download_proxy_model.setFilterFixedString
-        )
-        self.downloadResultTableView.setModel(self.download_proxy_model)
-
-        self.toggle_login_interface()
-
-        # connect signals
-        self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
-        self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.connect(
-            self.select_model_spatialite_file
-        )
-        self.loginButton.clicked.connect(self.on_login_button_clicked)
-
-        # set combobox list
-        combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
-
-        if (
-            self.ts_datasource.model_spatialite_filepath
-            and self.ts_datasource.model_spatialite_filepath not in combo_list
-        ):
-            combo_list.append(self.ts_datasource.model_spatialite_filepath)
-
-        if not self.ts_datasource.model_spatialite_filepath:
-            combo_list.append("")
-
-        self.modelSpatialiteComboBox.addItems(combo_list)
-
-        if self.ts_datasource.model_spatialite_filepath:
-            current_index = self.modelSpatialiteComboBox.findText(
-                self.ts_datasource.model_spatialite_filepath
-            )
-
-            self.modelSpatialiteComboBox.setCurrentIndex(current_index)
-        else:
-            current_index = self.modelSpatialiteComboBox.findText("")
-            self.modelSpatialiteComboBox.setCurrentIndex(current_index)
-
-        self.modelSpatialiteComboBox.currentIndexChanged.connect(
-            self.model_spatialite_change
-        )
-
-        self.thread = None
-
-    def on_close(self):
-        """
-        Clean object on close
-        """
-        self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
-        self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_ds)
-        self.selectModelSpatialiteButton.clicked.disconnect(
-            self.select_model_spatialite_file
-        )
-        self.loginButton.clicked.disconnect(self.on_login_button_clicked)
-
-        # stop the thread when we close the widget
-        if self.thread:
-            self.thread.output.disconnect(self.update_download_result_model)
-            self.thread.stop()
-
-    def closeEvent(self, event):
-        """
-        Close widget, called by Qt on close
-        :param event: QEvent, close event
-        """
-        self.closingDialog.emit()
-        self.on_close()
-        event.accept()
-
-    def keyPressEvent(self, event):
-        """Handle key press events on the widget."""
-        # Close window if the Escape key is pressed
-        if event.key() == Qt.Key_Escape:
-            self.close()
-
-    def select_ts_datasource(self):
-        """
-        Open File dialog for selecting netCDF result files, triggered by button
-        :return: boolean, if file is selected
-        """
-
-        settings = QSettings("3di", "qgisplugin")
-
-        try:
-            init_path = settings.value("last_used_datasource_path", type=str)
-        except TypeError:
-            init_path = os.path.expanduser("~")
-
-        filename, __ = QFileDialog.getOpenFileName(
-            self,
-            "Open resultaten file",
-            init_path,
-            "NetCDF (subgrid_map.nc results_3di.nc)",
-        )
-
-        if filename:
-            # Little test for checking if there is an id mapping file available
-            # If not we check if an .h5 file is available
-            # If not we're not going to proceed
-
-            ds_type = detect_netcdf_version(filename)
-
-            if ds_type == "netcdf-groundwater":
-                try:
-                    find_h5_file(filename)
-                except FileNotFoundError:
-                    pop_up_info(
-                        "You selected a netcdf that was created "
-                        "(after May 2018) with a 3Di calculation"
-                        "core that is able to include groundwater"
-                        " calculations. The ThreeDiToolbox reads "
-                        "this netcdf together with an .h5 file, we "
-                        "could however not find this .h5 file. Please "
-                        "add this file next to the netcdf and try "
-                        "again",
-                        title="Error",
-                    )
-                    return False
-            elif ds_type == "netcdf":
-                pop_up_info(
-                    "The selected result data is too old and no longer "
-                    "supported in this version of ThreediToolbox. Please "
-                    "recalculate the results with a newer version of the "
-                    "threedicore or use the ThreediToolbox plugin for QGIS 2",
-                    title="Error"
+            if self.dialog is None:
+                # Create the dialog (after translation) and keep reference
+                self.dialog = ThreeDiResultSelectionWidget(
+                    parent=None,
+                    iface=self.iface,
+                    ts_datasource=self.ts_datasource,
+                    download_result_model=self.download_result_model,
+                    parent_class=self,
                 )
 
-            items = [
-                {
-                    "type": ds_type,
-                    "name": os.path.basename(filename).lower().rstrip(".nc"),
-                    "file_path": filename,
-                }
-            ]
-            self.ts_datasource.insertRows(items)
-            settings.setValue("last_used_datasource_path", os.path.dirname(filename))
-            return True
-        return False
+                # download signals; signal connections should persist after
+                # closing the dialog.
+                self.dialog.downloadResultButton.clicked.connect(self.handle_download)
 
-    def remove_selected_ts_ds(self):
-        """
-        Remove selected result files from model, called by 'remove' button
-        """
+            # connect to provide cleanup on closing of dockwidget
+            self.dialog.closingDialog.connect(self.on_close_dialog)
 
-        selection_model = self.resultTableView.selectionModel()
-        # get unique rows in selected fields
-        rows = set([index.row() for index in selection_model.selectedIndexes()])
-        for row in reversed(sorted(rows)):
-            self.ts_datasource.removeRows(row, 1)
-
-    def get_3di_spatialites_legendlist(self):
-        """
-        Get list of spatialite data sources currently active in canvas
-        :return: list of strings, unique spatialite paths
-        """
-
-        tdi_spatialites = []
-        for layer in self.iface.layerTreeView().selectedLayers():
-            if (
-                layer.name() in list(LAYER_QH_TYPE_MAPPING.keys())
-                and layer.dataProvider().name() == "spatialite"
-            ):
-                source = layer.dataProvider().dataSourceUri().split("'")[1]
-                if source not in tdi_spatialites:
-                    tdi_spatialites.append(source)
-
-        return tdi_spatialites
-
-    def model_spatialite_change(self, nr):
-        """
-        Change active modelsource. Called by combobox when selected
-        spatialite changed
-        :param nr: integer, nr of item selected in combobox
-        """
-
-        self.ts_datasource.model_spatialite_filepath = (
-            self.modelSpatialiteComboBox.currentText()
-        )
-        # Just emitting some dummy model indices cuz what else can we do, there
-        # is no corresponding rows/columns that's been changed
-        self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
-
-    def select_model_spatialite_file(self):
-        """
-        Open file dialog on click on button 'load model'
-        :return: Boolean, if file is selected
-        """
-
-        settings = QSettings("3di", "qgisplugin")
-
-        try:
-            init_path = settings.value("last_used_spatialite_path", type=str)
-        except TypeError:
-            init_path = os.path.expanduser("~")
-
-        filename, __ = QFileDialog.getOpenFileName(
-            self, "Open 3Di model spatialite file", init_path, "Spatialite (*.sqlite)"
-        )
-
-        if filename == "":
-            return False
-
-        self.ts_datasource.spatialite_filepath = filename
-        index_nr = self.modelSpatialiteComboBox.findText(filename)
-
-        if index_nr < 0:
-            self.modelSpatialiteComboBox.addItem(filename)
-            index_nr = self.modelSpatialiteComboBox.findText(filename)
-
-        self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
-
-        settings.setValue("last_used_spatialite_path", os.path.dirname(filename))
-        return True
-
-    def on_login_button_clicked(self):
-        """Handle log in and out."""
-        if self.logged_in:
-            self.handle_log_out()
+            # show the widget
+            self.dialog.show()
         else:
-            self.login_dialog.user_name_input.setFocus()
-            self.login_dialog.show()
-
-    def handle_log_out(self):
-        self.set_logged_out_status()
-        if self.thread:
-            self.thread.stop()
-        num_rows = len(self.download_result_model.rows)
-        self.download_result_model.removeRows(0, num_rows)
-        self.toggle_login_interface()
-
-    def toggle_login_interface(self):
-        """Enable/disable aspects of the interface based on login status."""
-        # TODO: better to use signals maybe?
-        if self.logged_in:
-            self.loginButton.setText("Log out")
-            self.downloadResultTableView.setEnabled(True)
-            self.downloadResultButton.setEnabled(True)
-        else:
-            self.loginButton.setText("Log in")
-            self.downloadResultTableView.setEnabled(False)
-            self.downloadResultButton.setEnabled(False)
-
-    def handle_log_in(self):
-        """Handle logging in and populating DownloadResultModel."""
-        # Get the username and password
-        username = self.login_dialog.user_name_input.text()
-        password = self.login_dialog.user_password_input.text()
-
-        if username == "" or password == "":
-            pop_up_info("Username or password cannot be empty.")
-            return
-
-        try:
-            scenarios_endpoint = Endpoint(
-                username=username, password=password, endpoint="scenarios"
+            self.dialog.setWindowState(
+                self.dialog.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
             )
-            endpoint = scenarios_endpoint.download_paginated(page_size=10)
-        except HTTPError as e:
-            if e.code == 401:
-                pop_up_info("Incorrect username and/or password.")
-            else:
-                pop_up_info(str(e))
+            self.dialog.raise_()
+
+    def on_state_changed(self, setting_key, value):
+
+        if setting_key == "result_directories":
+            output = []
+            for result in value:
+                output.append(
+                    json.JSONEncoder().encode(
+                        {
+                            "active": result.active.value,
+                            "name": result.name.value,
+                            "file_path": result.file_path.value,
+                            "type": result.type.value,
+                        }
+                    )
+                )
         else:
-            self.set_logged_in_status(username, password)
-            self.toggle_login_interface()
-            # don't persist info in the dialog: useful when logged out
-            self.login_dialog.user_name_input.clear()
-            self.login_dialog.user_password_input.clear()
+            output = value
 
-            # start thread
-            self.thread = ResultsWorker(
-                endpoint=endpoint, username=username, password=password
-            )
-            self.thread.connection_failure.connect(self.handle_connection_failure)
-            self.thread.output.connect(self.update_download_result_model)
-            self.thread.start()
+        self.state_changed.emit(self.tool_name, setting_key, [output])
 
-            # return to widget
-            self.login_dialog.close()
+    def set_state(self, setting_dict):
+        self.ts_datasource.reset()
 
-    def update_download_result_model(self, items):
-        self.download_result_model.insertRows(items)
-
-    def handle_connection_failure(self, status, reason):
-        pop_up_info(
-            "Something went wrong trying to connect to "
-            "lizard: {0} {1}".format(status, reason)
+        self.ts_datasource.model_spatialite_filepath = setting_dict.get(
+            "model_schematisation", None
         )
-        self.handle_log_out()
 
-    @property
-    def username(self):
-        return self.parent_class.username
+        result_list = setting_dict.get("result_directories", None)
+        if result_list is not None:
+            for result_json in result_list:
+                result = json.JSONDecoder().decode(result_json)
+                self.ts_datasource.insertRows([result])
 
-    @username.setter
-    def username(self, username):
-        self.parent_class.username = username
+    def get_state_description(self):
+        from io import IOBase
 
-    @property
-    def password(self):
-        return self.parent_class.password
-
-    @password.setter
-    def password(self, password):
-        self.parent_class.password = password
+        return (
+            self.tool_name,
+            {"model_schematisation": IOBase, "result_directories": list},  # file,
+        )
 
     @property
     def logged_in(self):
-        """Return the logged in status."""
-        return self.parent_class.logged_in
+        return self.username is not None and self.password is not None
 
-    def set_logged_in_status(self, username, password):
-        """Set logged in status to True."""
-        self.username = username
-        self.password = password
+    def handle_download(self):
+        result_type_codes_download = [
+            "logfiles",
+            # non-groundwater codes
+            "subgrid_map",
+            "flow-aggregate",
+            "id-mapping",
+            # groundwater codes
+            "results-3di",
+            "aggregate-results-3di",
+            "grid-admin",
+        ]
+        selection_model = self.dialog.downloadResultTableView.selectionModel()
+        proxy_indexes = selection_model.selectedIndexes()
+        if len(proxy_indexes) != 1:
+            pop_up_info("Please select one result.")
+            return
+        proxy_selection_index = proxy_indexes[0]
+        selection_index = self.dialog.download_proxy_model.mapToSource(
+            proxy_selection_index
+        )
+        item = self.download_result_model.rows[selection_index.row()]
+        to_download = [
+            r
+            for r in item.results.value
+            if r["result_type"]["code"] in result_type_codes_download
+        ]
+        to_download_urls = [dl["attachment_url"] for dl in to_download]
+        logger.debug(item.name.value)
 
-    def set_logged_out_status(self):
-        """Set logged in status to False."""
-        self.username = None
-        self.password = None
+        # ask user where to store download
+        directory = QFileDialog.getExistingDirectory(
+            None, "Choose a directory", os.path.expanduser("~")
+        )
+        if not directory:
+            return
+        dir_name = get_valid_filename(item.name.value)
+        self.download_directory = os.path.join(directory, dir_name)
+
+        # For now, only work with empty directories that we create ourselves.
+        # Because the files are downloaded and processed in chunks, we cannot
+        # guarantee data integrity with existing files.
+        if os.path.exists(self.download_directory):
+            pop_up_info("The directory %s already exists." % self.download_directory)
+            return
+        logger.info("Creating download directory.")
+        os.mkdir(self.download_directory)
+
+        logger.debug(self.download_directory)
+
+        CHUNK_SIZE = 16 * 1024
+        # Important note: QNetworkAccessManager is asynchronous, which means
+        # the downloads are processed asynchronous using callbacks.
+        for url in to_download_urls:
+            request = QNetworkRequest(QUrl(url))
+            request.setRawHeader(b"username", bytes(self.username, "utf-8"))
+            request.setRawHeader(b"password", bytes(self.password, "utf-8"))
+            request.setAttribute(USER_DOWNLOAD_DIRECTORY, self.download_directory)
+
+            reply = self.network_manager.get(request)
+            # Get replies in chunks, and process them
+            reply.setReadBufferSize(CHUNK_SIZE)
+            reply.readyRead.connect(self.on_single_download_ready_to_read_chunk)
+            reply.finished.connect(self.on_single_download_finished)
+        pop_up_info("Download started.")
+
+    def on_single_download_ready_to_read_chunk(self):
+        """Process a chunk of the downloaded data."""
+        # TODO: do some exception handling if the download did not succeed
+        reply = self.sender()
+        raw_chunk = reply.readAll()  # QByteArray
+        filename = reply.url().toString().split("/")[-1]
+        download_directory = reply.request().attribute(USER_DOWNLOAD_DIRECTORY)
+        if not download_directory:
+            raise RuntimeError(
+                "Request is not set up properly, USER_DOWNLOAD_DIRECTORY is "
+                "required to locate the download directory."
+            )
+        with open(os.path.join(download_directory, filename), "ab") as f:
+            f.write(raw_chunk)
+
+    def on_single_download_finished(self):
+        """Usage: mostly for notifying the user the download has finished."""
+        reply = self.sender()
+        filename = reply.url().toString().split("/")[-1]
+        reply.close()
+        messagebar_message("Done", "Finished downloading %s" % filename)
