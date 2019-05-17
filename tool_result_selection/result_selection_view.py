@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from ..datasource.threedi_results import detect_netcdf_version
-from ..datasource.threedi_results import find_h5_file
-from ..datasource.result_constants import LAYER_QH_TYPE_MAPPING
-from ..utils.user_messages import pop_up_info
-from .log_in_dialog import LoginDialog
+from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
+from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
 from lizard_connector.connector import Endpoint
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -254,7 +254,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     "supported in this version of ThreediToolbox. Please "
                     "recalculate the results with a newer version of the "
                     "threedicore or use the ThreediToolbox plugin for QGIS 2",
-                    title="Error"
+                    title="Error",
                 )
 
             items = [

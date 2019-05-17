@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from .models.result_downloader import DownloadResultModel
-from .utils.user_messages import messagebar_message
-from .utils.user_messages import pop_up_info
-from .views.result_selection import ThreeDiResultSelectionWidget
+from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.tool_result_selection.result_selection_view import (
+    ThreeDiResultSelectionWidget,
+)
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QObject
@@ -45,6 +47,9 @@ def get_valid_filename(s):
 
 class ThreeDiResultSelection(QObject):
     """QGIS Plugin Implementation."""
+
+    # TODO: Reinout suggests to use requests library and get rid e.g. QNetworkRequest,
+    # QgsNetworkAccessManager
 
     state_changed = pyqtSignal([str, str, list])
 
