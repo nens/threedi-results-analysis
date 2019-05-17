@@ -5,16 +5,9 @@ available_dependency = dependencies.Dependency("numpy", "numpy", "")
 missing_dependency = dependencies.Dependency("reinout", "reinout", "")
 
 
-def test_check_importability_1():
-    importable = ["numpy"]
-    missing = dependencies._check_importability(importable)
-    assert missing == [], "numpy isn't missing"
-
-
-def test_check_importability_2():
-    partially_not_importable = ["numpy", "reinout"]
-    missing = dependencies._check_importability(partially_not_importable)
-    assert missing == ["reinout"], "reinout is not importable, so it should be missing"
+def test_check_importability():
+    # Everything should just be importable.
+    dependencies.check_importability()
 
 
 def test_check_presence_1():
@@ -30,6 +23,6 @@ def test_check_presence_2():
     ], "reinout is not installed, so it should be missing"
 
 
-def test_try_to_import_dependencies_smoke():
+def test_ensure_everything_installed_smoke():
     # Should just run without errors as we have a correct test setup.
-    dependencies.try_to_import_dependencies()
+    dependencies.ensure_everything_installed()
