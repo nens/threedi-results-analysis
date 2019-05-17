@@ -2,11 +2,6 @@ from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultS
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
 
-from ThreeDiToolbox.tool_result_selection.result_selection_view import (
-    ThreeDiResultSelectionWidget,
-)
-from qgis.PyQt.QtWidgets import QWidget
-
 import mock
 import unittest
 
@@ -18,7 +13,7 @@ class TestThreeDiResultSelection(unittest.TestCase):
         self.ts_datasource = TimeseriesDatasourceModel()
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
         self.download_result_model = DownloadResultModel()
-        parent_class = mock.Mock()
+        # parent_class = mock.Mock()
 
         # TODO: ThreeDiResultSelection contains a self.dialog that must be mocked ??
         # since below does not work:
