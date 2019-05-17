@@ -24,7 +24,7 @@ import re
 logger = logging.getLogger(__name__)
 
 USER_DOWNLOAD_DIRECTORY = 1111
-h
+
 assert (
     QNetworkRequest.User < USER_DOWNLOAD_DIRECTORY < QNetworkRequest.UserMax
 ), "User defined attribute codes must be between User and UserMax."
@@ -47,6 +47,7 @@ def get_valid_filename(s):
 
 class ThreeDiResultSelection(QObject):
     """QGIS Plugin Implementation."""
+
     # TODO: Reinout suggests to use requests library and get rid e.g. QNetworkRequest,
     # QgsNetworkAccessManager
 
