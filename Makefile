@@ -63,7 +63,7 @@ external-dependencies/.generated.marker: constraints.txt external-dependencies/p
 	cd external-dependencies && ./populate.sh
 
 constraints.txt: dependencies.py
-	python3 -m ThreeDiToolbox.dependencies
+	python3 dependencies.py
 
 %.py : %.qrc $(RESOURCES_SRC)
 	pyrcc5 -o $*.py  $<
