@@ -27,64 +27,41 @@ Take a look at the `Wiki`_ for more information.
 .. _`Wiki`: https://github.com/nens/ThreeDiToolbox/wiki
 
 
-Installing requirements
+Installation on windows
 -----------------------
 
-- QGIS 3 (64 bit)
-- pyqtgraph
-- sqlalchemy
-- geoalchemy2
-- h5py
-- lizard-connector
-- threedigrid
+You need to install Qgis 3.4 (the "long term release"). Either the stand-alone
+installer or the osgeo4w install is fine. For osgeo4w, pick the "qgis LTR
+full" version.
 
-The requirements are included and will be automatically "pip-installed" into
-the profile's python/ directory.
+Add the Lizard QGIS repository: via the QGIS menu bar go to "Plugins > Manage
+And Install Plugins... > Settings". Add
+``https://plugins.lizard.net/plugins.xml`` and reload. Install the plugin by
+selecting ThreeDiToolbox.
 
-On linux, only h5py is missing and should be installed with "apt install
-python3-h5py".
+The extra dependencies that we need are bundled with the plugins and
+automatically installed into the ``python\`` directory of your qgis profile.
 
 
-Windows
-^^^^^^^
+Installation on linux
+---------------------
 
-The package includes the dependencies 'netCDF4' and 'h5py' for 64 bit
-installations of QGIS under Windows (tested on Windows 7 SP1 and Windows 10).
-If you are using the 32 bit version of QGIS, it is best to upgrade to the 64
-bit version or build the python packages netCDF4 and h5py including C bindings
-yourself. When building these packages, make sure to use the HDF5 version used
-in Qgis (1.8.11)::
+You need to install Qgis 3.4 (the "long term release"). On ubuntu 18.04
+(bionic), the following works::
 
-    $ python -m pip install --no-binary=h5py --no-deps --global-option=build_ext --global-option="-IC:\Program Files\QGIS 3.4\include" --global-option="-LC:\Program Files\QGIS 3.4\lib" h5py
+  $ echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
+  $ apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
+  $ apt-get update
+  $ apt-get install qgis python3-h5py
 
-Linux
-^^^^^
+This installs qgis and the necessary ``h5py`` dependency.
 
-For Linux, NetCDF and h5py dependencies are **not** included, so you have to
-install them::
+Inside qgis, add https://plugins.lizard.net/plugins.xml as a package
+index. Now you can install ThreeDiToolbox.
 
-$ sudo apt-get install libhdf5-serial-dev libnetcdf-dev
-
-Install Python packages globally because we don't include them for Linux::
-
-$ sudo pip install -r requirements-dev.txt -U
-
-You might need to install the Qt4 PostgreSQL driver for loading sufhyd::
-
-$ sudo apt-get install libqt4-sql-psql
-
-
-Installation
-------------
-
-The plugin can be added using one of the following ways:
-
-- Using the Lizard QGIS repository: via the QGIS menu bar go to
-  Plugins > Manage And Install Plugins... > Settings; add ``https://plugins.lizard.net/plugins.xml`` and reload.
-  Install the plugin by selecting ThreeDiToolbox.
-- Copy or symlink the repo directory to your plugin directory (on Linux:
-  ``~/.qgis2/python/plugins``, on Windows: ``C:\\Users\<username>\.qgis2\python\plugins\``); make sure to install
-  external dependencies (see Requirements section).
+The extra dependencies that we need (apart from ``h5py``) are bundled with the
+plugins and automatically installed into the ``python\`` directory of your
+qgis profile.
 
 
 Local development
@@ -121,13 +98,11 @@ at the first failure::
 To get a "coverage" report for the docstrings or to run flake8::
 
   $ docker-compose run qgis-desktop make docstrings
-  $ docker-compose run qgis-desktop make flake8
 
-(Note: flake8 is pyflakes + pycodestyle/pep8).
+To run black (standard pep8-compatible code formatting), isort (import
+sorting) and flake8 (reporting missing imports and so), run::
 
-To sort the imports::
-
-  $ docker-compose run qgis-desktop isort -y
+  $ docker-compose run qgis-desktop make beautiful
 
 
 Release
@@ -142,15 +117,6 @@ see: [1]_)::
 Manually copy to server::
 
     $ scp ThreeDiToolbox.0.2.zip <user.name>@packages-server.example.local:/srv/packages.lizardsystem.nl/var/plugins
-
-
-Tests
------
-
-Make sure test deps from ``requirements-dev.txt`` are installed. Run tests with::
-
-    $ source scripts/run-env-linux.sh /usr  # this should be automated (e.g. using Makefile)
-    $ make test
 
 
 Notes
