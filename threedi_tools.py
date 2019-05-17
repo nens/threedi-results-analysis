@@ -26,7 +26,7 @@ from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
 from .threedi_graph import ThreeDiGraph
-from .threedi_result_selection import ThreeDiResultSelection
+from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .threedi_sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox
@@ -105,22 +105,26 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
 
         # Init the rest of the tools
+        self.about_tool = About(iface)
+        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
+        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
+        self.toolbox_tool = ThreeDiToolbox(iface, self.ts_datasource)
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
-        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
         self.stats_tool = StatisticsTool(iface, self.ts_datasource)
         self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasource)
+        self.logfile_tool = ShowLogfile(iface)
 
         self.tools = [
-            About(iface),
+            self.about_tool,
             self.cache_clearer,
-            ThreeDiResultSelection(iface, self.ts_datasource),
-            ThreeDiToolbox(iface, self.ts_datasource),
+            self.result_selection_tool,
+            self.toolbox_tool,
             self.graph_tool,
             self.sideview_tool,
             self.stats_tool,
             self.water_balance_tool,
-            ShowLogfile(iface),
+            self.logfile_tool,
         ]
 
         self.active_datasource = None
@@ -266,13 +270,14 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         """
         # Enable/disable tools that depend on netCDF results.
         # For side views also the spatialite needs to be imported or else it
-        # crashes with a  segmentation fault
+        # crashes with a segmentation fault
         if self.ts_datasource.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
+
         if (
             self.ts_datasource.rowCount() > 0
             and self.ts_datasource.model_spatialite_filepath is not None

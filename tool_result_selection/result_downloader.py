@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .base import BaseModel
-from .base_fields import ValueField
+from ThreeDiToolbox.models.base import BaseModel
+from ThreeDiToolbox.models.base_fields import ValueField
 
 
 class DownloadResultModel(BaseModel):

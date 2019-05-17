@@ -15,6 +15,7 @@ from ..utils.user_messages import StatusProgressBar
 from .base import BaseModel
 from .base_fields import CheckboxField
 from .base_fields import ValueField
+from builtins import object
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
 
