@@ -26,17 +26,14 @@ properly naming eggs/wheels.
 Hmmmmmmm..... .pth files.... They'd have to point at the proper OS version. So I probably still have to call pip to install it.
 
 """
-from .utils.user_messages import pop_up_info
 from collections import namedtuple
 from pathlib import Path
 
-import imp
 import importlib
 import logging
-import os
 import pkg_resources
-import sys
 import subprocess
+import sys
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -51,49 +48,40 @@ DEPENDENCIES = [
 ]
 
 our_dir = Path(__file__).parent
-CUSTOM_LIBRARY_DIR = our_dir.parent.parent / "threeditoolbox-libraries"
+PROFILE_LIBRARY_DIR = our_dir.parent.parent
 
 logger = logging.getLogger(__name__)
 
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
-    setup_custom_library_dir()
     missing = _check_presence(DEPENDENCIES)
     _install_dependencies(missing)
-    # TODO: check importability.
 
 
-def setup_custom_library_dir():
-    if not CUSTOM_LIBRARY_DIR.exists():
-        CUSTOM_LIBRARY_DIR.mkdir(parents=True)
-        logger.info("Created custom library dir %s", CUSTOM_LIBRARY_DIR)
-    if CUSTOM_LIBRARY_DIR not in sys.path:
-        sys.path.insert(0, CUSTOM_LIBRARY_DIR)
-        logger.info("Added custom library dir %s to sys.path", CUSTOM_LIBRARY_DIR)
-        logger.debug("sys.path: %s", sys.path)
+def check_importability():
+    """Check if the dependendies are importable and log the locations.
 
+    If something is not importable, which should not happen, it raises an
+    ImportError automatically. Which is exactly what we want, because we
+    cannot continue.
 
-def _check_importability(necessary_imports):
-    """Check if necessary_import is importable, add the name to ``not_findable`` if not."""
-    missing = []
-    for necessary_import in necessary_imports:
-        spec = importlib.util.find_spec(necessary_import)
-        if spec is None:
-            logger.warning("Cannot import '%s'", necessary_import)
-            missing.append(necessary_import)
-            continue
+    Note that we use logging here as we want to have the result in the
+    logfile. The rest of the module uses ``print()`` statements because it
+    gets executed before any logging has been configured.
+
+    """
+    for dependency in DEPENDENCIES:
+        imported_package = importlib.import_module(dependency.package)
         logger.info(
-            "Import '%s' found. Name=%s, origin=%s",
-            necessary_import,
-            spec.name,
-            spec.origin,
+            "Import '%s' found at '%s'", dependency.package, imported_package.__file__
         )
-    return missing
 
 
-def _install_dependencies(dependencies, target_dir=CUSTOM_LIBRARY_DIR):
+def _install_dependencies(dependencies, target_dir=PROFILE_LIBRARY_DIR):
     for dependency in dependencies:
+        print(sys.path)
+        print("Installing '%s' into %s" % (dependency.name, target_dir))
         result = subprocess.run(
             [
                 sys.executable,
@@ -113,7 +101,7 @@ def _install_dependencies(dependencies, target_dir=CUSTOM_LIBRARY_DIR):
         )
         print(result.stdout)
         result.check_returncode()  # Raises CalledProcessError upon failure.
-        logger.info("Installed %s into %s", dependency.name, target_dir)
+        print("Installed %s into %s" % (dependency.name, target_dir))
 
 
 def _check_presence(dependencies):
@@ -123,10 +111,9 @@ def _check_presence(dependencies):
         requirement = dependency.name + dependency.constraint
         try:
             distributions = pkg_resources.require(requirement)
-            logger.info("Dependency '%s' found: %s", dependency.name, distributions)
         except pkg_resources.DistributionNotFound:
-            logger.warning(
-                "Dependency '%s' (%s) not found", dependency.name, dependency.constraint
+            print(
+                "Dependency '%s' (%s) not found" % (dependency.name, dependency.constraint)
             )
             missing.append(dependency)
     return missing
