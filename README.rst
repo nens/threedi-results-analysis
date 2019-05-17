@@ -64,6 +64,13 @@ plugins and automatically installed into the ``python\`` directory of your
 qgis profile.
 
 
+Installation on OSX
+-------------------
+
+Running the plugin on OSX *should* be possible, but you need to make sure to
+install qgis LTR with gdal, numpy and h5py.
+
+
 Local development
 -----------------
 
