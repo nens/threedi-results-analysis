@@ -24,7 +24,7 @@ tags=analysis, dem, hydraulics, network analysis, postgis
 homepage=https://github.com/nens/ThreeDiToolbox
 category=Plugins
 icon=icon.png
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
