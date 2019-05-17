@@ -32,15 +32,18 @@ Installing requirements
 
 - QGIS 3 (64 bit)
 - pyqtgraph
-- sqlalchemy version 1.1.0 or higher
-- geoalchemy2 with custom modifications, source available here: https://github.com/nens/geoalchemy2
-- h5py (included for Windows)
+- sqlalchemy
+- geoalchemy2
+- h5py
+- lizard-connector
+- threedigrid
 
-These Python dependencies are included in the **distribution** of the plugin,
-but if you clone this repository you need to manually install them in the
-``external`` directory::
+The requirements are included and will be automatically "pip-installed" into
+the profile's python/ directory.
 
-    $ pip install -r requirements.txt --target=external --no-deps -U
+On linux, only h5py is missing and should be installed with "apt install
+python3-h5py".
+
 
 Windows
 ^^^^^^^

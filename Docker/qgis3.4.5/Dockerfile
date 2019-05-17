@@ -48,7 +48,6 @@ RUN apt-get update \
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
 # Install some python libraries (partially already installed through apt)
-ADD requirements.txt .
 ADD requirements-dev.txt .
 RUN pip3 install -U pip setuptools
 RUN pip3 install -r requirements-dev.txt
