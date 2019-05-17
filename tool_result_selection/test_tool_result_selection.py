@@ -1,6 +1,6 @@
-from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
+from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 
 import mock
 import unittest

@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
 from lizard_connector.connector import Endpoint
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
@@ -14,6 +9,11 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QThread
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
+from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
+from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
+from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
+from ThreeDiToolbox.utils.user_messages import pop_up_info
 from urllib.error import HTTPError
 
 import logging
