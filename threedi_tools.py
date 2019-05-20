@@ -26,13 +26,13 @@ from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
 from .threedi_graph import ThreeDiGraph
+from .tool_animation.map_animator import MapAnimator
 from .tool_sideview.sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox
 from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .utils.layer_tree_manager import LayerTreeManager
 from .utils.qprojects import ProjectStateMixin
-from .views.map_animator import MapAnimator
 from .views.timeslider import TimesliderWidget
 from .water_balance import WaterBalanceTool
 from qgis.PyQt.QtCore import QCoreApplication
