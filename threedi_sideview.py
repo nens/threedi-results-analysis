@@ -20,7 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from .views.sideview import SideViewDockWidget
+from ThreeDiToolbox.tool_sideview.sideview_view import SideViewDockWidget
 from qgis.PyQt.QtCore import Qt
 
 import os.path
