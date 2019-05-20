@@ -30,9 +30,9 @@ Take a look at the `Wiki`_ for more information.
 Installation on windows
 -----------------------
 
-You need to install Qgis 3.4 (the "long term release"). Either the stand-alone
-installer or the osgeo4w install is fine. For osgeo4w, pick the "qgis LTR
-full" version.
+You need to install Qgis 3.4.5+ (the "long term release"). Either the
+stand-alone installer or the osgeo4w install is fine. For osgeo4w, pick the
+"qgis LTR full" version.
 
 Add the Lizard QGIS repository: via the QGIS menu bar go to "Plugins > Manage
 And Install Plugins... > Settings". Add
