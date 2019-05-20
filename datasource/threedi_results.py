@@ -1,8 +1,8 @@
 from .base import BaseDataSource
 from .result_constants import LAYER_OBJECT_TYPE_MAPPING
 from .result_constants import SUBGRID_MAP_VARIABLES
-from ThreeDiToolbox.utils import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
+from ThreeDiToolbox.utils import cached_property
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
@@ -49,14 +49,14 @@ class ThreediResult(BaseDataSource):
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
         if self.result_admin.has_pumpstations:
             available_vars = (
-                    self.result_admin.nodes._field_names
-                    | self.result_admin.lines._field_names
-                    | self.result_admin.pumps._field_names
+                self.result_admin.nodes._field_names
+                | self.result_admin.lines._field_names
+                | self.result_admin.pumps._field_names
             )
         else:
             available_vars = (
-                    self.result_admin.nodes._field_names
-                    | self.result_admin.lines._field_names
+                self.result_admin.nodes._field_names
+                | self.result_admin.lines._field_names
             )
         # filter using a hardcoded 'whitelist'
         available_known_vars = available_vars & known_subgrid_map_vars
@@ -145,11 +145,10 @@ class ThreediResult(BaseDataSource):
         elif variable in self.available_aggregation_vars:
             return self.aggregate_result_admin
         else:
-            raise AttributeError(
-                "Unknown subgrid or aggregate variable: %s")
+            raise AttributeError("Unknown subgrid or aggregate variable: %s")
 
     def get_timeseries(
-            self, nc_variable, node_id=None, content_pk=None, fill_value=None
+        self, nc_variable, node_id=None, content_pk=None, fill_value=None
     ):
         """Return a time series array of the given variable
 
@@ -234,7 +233,8 @@ class ThreediResult(BaseDataSource):
     #         return result[time_index_filter]
 
     def get_values_by_timestep_nr(
-            self, variable, timestamp_idx, node_ids=None, use_cache=True):
+        self, variable, timestamp_idx, node_ids=None, use_cache=True
+    ):
         """Return an array of values of the given variable on the specified timestamp(s)
 
         If only one timestamp is specified, a 1d np.array is returned.  If an
@@ -286,13 +286,17 @@ class ThreediResult(BaseDataSource):
             values = self._cache[variable]
         else:
             logger.debug(
-                "Variable %s not yet in cache, fetching from result file", variable)
+                "Variable %s not yet in cache, fetching from result file", variable
+            )
             ga = self.get_gridadmin(variable)
             model_instance = ga.get_model_instance_by_field_name(variable)
             unfiltered_timeseries = model_instance.timeseries(indexes=slice(None))
             values = unfiltered_timeseries.get_filtered_field_value(variable)
-            logger.debug('Caching additional {:.3f} MB of data'.format(
-                values.nbytes / 1000 / 1000))
+            logger.debug(
+                "Caching additional {:.3f} MB of data".format(
+                    values.nbytes / 1000 / 1000
+                )
+            )
             self._cache[variable] = values
         return values
 

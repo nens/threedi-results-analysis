@@ -4,6 +4,7 @@ from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.test.utilities import TemporaryDirectory
+
 import mock
 import numpy as np
 import os
@@ -119,9 +120,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
     )
-    @mock.patch(
-        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin"
-    )
+    @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
         m = mock.MagicMock()
