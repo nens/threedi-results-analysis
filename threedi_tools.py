@@ -27,7 +27,7 @@ from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
 from .threedi_graph import ThreeDiGraph
 from .tool_result_selection.result_selection import ThreeDiResultSelection
-from .threedi_sideview import ThreeDiSideView
+from .tool_sideview.sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox
 from .utils.layer_tree_manager import LayerTreeManager
@@ -50,6 +50,10 @@ import os.path
 
 
 logger = logging.getLogger(__name__)
+
+# Pycharm's refactor option "move" automatically deletes unused import statements,
+# If "from . import resources" is deleted then tool-icons wont show up. Lets call it
+resources
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
