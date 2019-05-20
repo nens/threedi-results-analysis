@@ -1,15 +1,11 @@
 """This script initializes the plugin, making it known to QGIS."""
+from ThreeDiToolbox import dependencies
+
 import faulthandler
-import os
-import sys
 
 
 faulthandler.enable()
-
-
-sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "external")
-)
+dependencies.ensure_everything_installed()
 
 
 # noinspection PyPep8Naming
@@ -18,10 +14,11 @@ def classFactory(iface):  # pylint: disable=invalid-name
 
     :param iface: QgsInterface. A QGIS interface instance.
     """
-    from .threedi_tools import ThreeDiTools
     from .utils.qlogging import setup_logging
-    from .dependencies import try_to_import_dependencies
 
     setup_logging()
-    try_to_import_dependencies()
+    dependencies.check_importability()
+
+    from .threedi_tools import ThreeDiTools
+
     return ThreeDiTools(iface)

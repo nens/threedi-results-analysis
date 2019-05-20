@@ -164,7 +164,10 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
     else:
         pass
         flowid_to_inp_mapping = dict(
-            [(flowid, inp_id) for inp_id, flowid in ds.datasource.variables["channel_mapping"]]
+            [
+                (flowid, inp_id)
+                for inp_id, flowid in ds.datasource.variables["channel_mapping"]
+            ]
         )
 
         # create mapping of inp_id to spatialite_id and feature type

@@ -1,133 +1,123 @@
-"""Handle dependencies
+"""Handle dependencies: installation and checking/logging.
 
-TODO: for now, this is try/except code copied out of ``__init__.py``, later on
-this ought to be made more explicit and verbose.
+See ``external-dependencies/README.rst`` for a full explanation of the
+dependency handling.
+
+``python dependencies.py`` runs ``main()``: it generates ``constraints.txt``.
+
+``ensure_everything_installed()`` checks if ``DEPENDENCIES`` are installed and
+installs them if needed.
+
+``check_importability()`` double-checks if everything is importable. It also
+logs the locations.
+
+Note that we use logging in ``check_importability()`` as we want to have the
+result in the logfile. The rest of the module uses ``print()`` statements
+because it gets executed before any logging has been configured.
+
+As we're called directly from ``__init__.py``, the imports should be
+resticted. No qgis message boxes and so!
 
 """
-from .utils.user_messages import pop_up_info
+from collections import namedtuple
+from pathlib import Path
 
-import imp
+import importlib
 import logging
-import os
+import pkg_resources
+import subprocess
 import sys
 
+
+Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
+
+DEPENDENCIES = [
+    Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
+    Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
+    Dependency("h5py", "h5py", ">= 2.7.0"),
+    Dependency("lizard-connector", "lizard_connector", "==0.6"),
+    Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
+    Dependency("threedigrid", "threedigrid", "==1.0.13"),
+]
+INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
+
+our_dir = Path(__file__).parent
+PROFILE_LIBRARY_DIR = our_dir.parent.parent
 
 logger = logging.getLogger(__name__)
 
 
-def try_to_import_dependencies():
-    """Try to import everything we need and pop up an error upon failures."""
-    try:
-        import sqlalchemy  # noqa
-        import geoalchemy2  # noqa
-    except ImportError as e:
-        pop_up_info(
-            "Error loading sqlalchemy or geoalchemy2 from "
-            "'external' subdirectory. error %s" % e
+def ensure_everything_installed():
+    """Check if DEPENDENCIES are installed and install them if missing."""
+    missing = _check_presence(DEPENDENCIES)
+    _install_dependencies(missing)
+
+
+def check_importability():
+    """Check if the dependendies are importable and log the locations.
+
+    If something is not importable, which should not happen, it raises an
+    ImportError automatically. Which is exactly what we want, because we
+    cannot continue.
+
+    """
+    packages = [dependency.package for dependency in DEPENDENCIES]
+    packages += INTERESTING_IMPORTS
+    for package in packages:
+        imported_package = importlib.import_module(package)
+        logger.info("Import '%s' found at '%s'", package, imported_package.__file__)
+
+
+def _install_dependencies(dependencies, target_dir=PROFILE_LIBRARY_DIR):
+    for dependency in dependencies:
+        print(sys.path)
+        print("Installing '%s' into %s" % (dependency.name, target_dir))
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--no-deps",
+                "--find-links",
+                str(our_dir / "external-dependencies"),
+                "--target",
+                str(target_dir),
+                (dependency.name + dependency.constraint),
+            ],
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
+        print(result.stdout)
+        result.check_returncode()  # Raises CalledProcessError upon failure.
+        print("Installed %s into %s" % (dependency.name, target_dir))
 
-    try:
-        import pyqtgraph  # noqa
 
-        logger.info("Use local installation of pyqtgraph ")
-    except Exception:
-        # TODO: fix this error (which is the reason of this exception):
-        # Exception: PyQtGraph requires either PyQt4 or PySide; neither package
-        # could be imported.
-        msg = "Error: Exception while loading pyqtgraph. Probably couldn't import PyQt"
-        logger.info(msg)
-        pop_up_info(msg)
-
-    try:
-        import lizard_connector  # noqa
-    except ImportError as e:
-        pop_up_info(
-            "Error loading lizard_connector from 'external' subdirectory. error %s" % e
-        )
-
-    try:
-        # Note: we're not importing it directly using the import statement because
-        # this will cause .pyd files to be loaded in dynamically. Because the
-        # loaded files are open in QGIS you can't delete them unless you close the
-        # program (at least with Windows), which is problematic when trying to
-        # update the plugin using the plugin manager (because it tries to delete
-        # the old plugin files). Real imports are postponed as long as possible.
-        imp.find_module("netCDF4")
-        logger.info("Use local installation of python netCDF4 library")
-    except ImportError:
-        if os.name == "nt":
-            if sys.maxsize > 2 ** 32:
-                # Windows 64 bit
-                # use netCDF in external map
-                sys.path.append(
-                    os.path.join(
-                        os.path.dirname(os.path.realpath(__file__)),
-                        "external",
-                        "netCDF4-win64",
-                    )
-                )
-                # import netCDF4
-
-                logger.info("Used netCDF4 library, provided with plugin.")
-            else:
-                pop_up_info(
-                    "Error: could not find netCDF4 installation. Change "
-                    "to the 64-bit version of QGIS or try to install the "
-                    "netCDF4 python libary yourself."
-                )
-                # netCDF4 = None
-        else:
-            pop_up_info(
-                "Error: could not find netCDF4 installation. Please "
-                "install python-netCDF4 package."
+def _check_presence(dependencies):
+    """Check if all dependencies are present. Return missing dependencies."""
+    missing = []
+    for dependency in dependencies:
+        requirement = dependency.name + dependency.constraint
+        try:
+            pkg_resources.require(requirement)
+        except pkg_resources.DistributionNotFound:
+            print(
+                "Dependency '%s' (%s) not found"
+                % (dependency.name, dependency.constraint)
             )
-            # netCDF4 = None
+            missing.append(dependency)
+    return missing
 
-    # if netCDF4 is not None:
-    #     msg += 'Python-netcdf version {python_netcdf}, netCDF4 version ' \
-    #            '{netcdf} and HDF5 version {netcdf}.'.format(
-    #                python_netcdf=netCDF4.__version__,
-    #                netcdf=netCDF4.__netcdf4libversion__,
-    #                hdf5=netCDF4.__hdf5libversion__)
-    #     logger.info(msg)
 
-    try:
-        # Note: we're not importing it directly using the import statement because
-        # this will cause .pyd files to be loaded in dynamically. Because the
-        # loaded files are open in QGIS you can't delete them unless you close the
-        # program (at least with Windows), which is problematic when trying to
-        # update the plugin using the plugin manager (because it tries to delete
-        # the old plugin files). Real imports are postponed as long as possible.
-        imp.find_module("h5py")
-        logger.info("Using local h5py installation.")
-    except ImportError:
-        if os.name == "nt":
-            if sys.maxsize > 2 ** 32:
-                sys.path.append(
-                    os.path.join(
-                        os.path.dirname(os.path.realpath(__file__)),
-                        "external",
-                        "h5py-win64",
-                    )
-                )
-                logger.info("Using h5py provided by plugin.")
-            else:
-                pop_up_info(
-                    "Error: could not find h5py installation. Change "
-                    "to the 64-bit version of QGIS or try to install the "
-                    "h5py python libary yourself."
-                )
-        else:
-            pop_up_info(
-                "Error: could not find h5py installation. Please "
-                "install the h5py package manually."
-            )
+def generate_constraints_txt():
+    constraints_file = our_dir / "constraints.txt"
+    lines = ["# Generated by dependencies.py"]
+    lines += [(dependency.name + dependency.constraint) for dependency in DEPENDENCIES]
+    lines.append("")
+    constraints_file.write_text("\n".join(lines))
+    print("Wrote constraints to %s" % constraints_file)
 
-    try:
-        # Note: threedigrid depends on h5py and netCDF, so don't import it directly
-        # (see above).
-        imp.find_module("threedigrid")  # noqa
-    except ImportError as e:
-        pop_up_info(
-            "Error loading threedigrid from 'external' subdirectory. error %s" % e
-        )
+
+if __name__ == "__main__":
+    generate_constraints_txt()

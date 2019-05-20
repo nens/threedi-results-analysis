@@ -30,6 +30,7 @@ from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .tool_sideview.sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox
+from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .utils.layer_tree_manager import LayerTreeManager
 from .utils.qprojects import ProjectStateMixin
 from .views.map_animator import MapAnimator
