@@ -25,9 +25,9 @@ from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
-from .threedi_graph import ThreeDiGraph
 from .threedi_toolbox import ThreeDiToolbox
 from .tool_animation.map_animator import MapAnimator
+from .tool_graph.graph import ThreeDiGraph
 from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .tool_sideview.sideview import ThreeDiSideView
 from .tool_statistics import StatisticsTool

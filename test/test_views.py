@@ -1,4 +1,5 @@
-from ThreeDiToolbox.utils.utils import parse_aggvarname, generate_parameter_config
+from ThreeDiToolbox.utils.utils import generate_parameter_config
+from ThreeDiToolbox.utils.utils import parse_aggvarname
 
 import unittest
 
