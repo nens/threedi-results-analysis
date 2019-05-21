@@ -89,7 +89,7 @@ zip: compile transcompile
 	cd /tmp; cp -r $(CURDIR) $(PLUGINNAME)
 	rm -rf /tmp/$(PLUGINNAME)/test
 	rm -rf /tmp/$(PLUGINNAME)/tool_statistics/tests
-	rm -rf /tmp/$(PLUGINNAME)/tool_balance/tests
+	rm -rf /tmp/$(PLUGINNAME)/tool_water_balance/tests
 	rm -rf /tmp/$(PLUGINNAME)/.git
 	rm -rf /tmp/$(PLUGINNAME)/*.zip
 	rm -rf /tmp/$(PLUGINNAME)/Docker
