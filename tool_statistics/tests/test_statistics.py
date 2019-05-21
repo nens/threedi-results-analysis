@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2 as dbapi
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
-from ThreeDiToolbox.threedi_statistics.tools.statistics import StatisticsTool
+from ThreeDiToolbox.tool_statistics.tools.statistics import StatisticsTool
 
 import mock
 import os.path
@@ -38,8 +38,8 @@ class TestStatistics(unittest.TestCase):
     - remove tempdir (e.g. in a tearDownClass() is not needed apparently """
 
     @classmethod
-    @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.progress_bar")
-    @mock.patch("ThreeDiToolbox.threedi_statistics.tools.statistics.pop_up_question")
+    @mock.patch("ThreeDiToolbox.tool_statistics.tools.statistics.progress_bar")
+    @mock.patch("ThreeDiToolbox.tool_statistics.tools.statistics.pop_up_question")
     def setUpClass(cls, mock_pop_up_question, mock_progress_bar):
         mock_pop_up_question.return_value = True
 
