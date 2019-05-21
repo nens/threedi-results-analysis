@@ -1,13 +1,33 @@
-from qgis.core import QgsCoordinateReferenceSystem
-from qgis.core import QgsCoordinateTransform
-from qgis.core import QgsFeature
-from qgis.core import QgsGeometry
-from qgis.core import QgsPoint
-from qgis.core import QgsProject
-from qgis.core import QgsVectorLayer
-from qgis.core import QgsWkbTypes
-
 import math
+from qgis.core import (
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsProject,
+    QgsGeometry,
+    QgsFeature,
+    QgsPoint,
+)
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+
+    Source: http://gis.stackexchange.com/a/56589
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = list(map(math.radians, [lon1, lat1, lon2, lat2]))
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+    km = 6367 * c
+    return km
 
 
 def split_line_at_points(
@@ -148,24 +168,3 @@ def split_line_at_points(
     )
 
     return line_parts
-
-
-def copy_layer_into_memory_layer(source_layer, layer_name):
-
-    source_provider = source_layer.dataProvider()
-
-    uri = "{0}?crs=EPSG:{1}".format(
-        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip("WKB"),
-        str(source_provider.crs().postgisSrid()),
-    )
-
-    dest_layer = QgsVectorLayer(uri, layer_name, "memory")
-    dest_provider = dest_layer.dataProvider()
-
-    dest_provider.addAttributes(source_provider.fields())
-    dest_layer.updateFields()
-
-    dest_provider.addFeatures([f for f in source_provider.getFeatures()])
-    dest_layer.updateExtents()
-
-    return dest_layer

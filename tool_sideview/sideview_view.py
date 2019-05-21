@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from ..utils import haversine
-from ..utils.geo_processing import split_line_at_points
-from ..utils.route import Route
-from ..utils.user_messages import statusbar_message
+from ThreeDiToolbox.tool_sideview.utils import haversine, split_line_at_points
+from ThreeDiToolbox.tool_sideview.route import Route
+from ThreeDiToolbox.utils.user_messages import statusbar_message
 from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsNetworkStrategy

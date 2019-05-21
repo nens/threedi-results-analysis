@@ -42,8 +42,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"ThreeDiToolbox"
-copyright = u"2013, Nelen&Schuurmans"
+project = "ThreeDiToolbox"
+copyright = "2013, Nelen&Schuurmans"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -183,8 +183,8 @@ latex_documents = [
     (
         "index",
         "ThreeDiToolbox.tex",
-        u"ThreeDiToolbox Documentation",
-        u"Nelen&Schuurmans",
+        "ThreeDiToolbox Documentation",
+        "Nelen&Schuurmans",
         "manual",
     )
 ]
@@ -221,8 +221,8 @@ man_pages = [
     (
         "index",
         "TemplateClass",
-        u"ThreeDiToolbox Documentation",
-        [u"Nelen&Schuurmans"],
+        "ThreeDiToolbox Documentation",
+        ["Nelen&Schuurmans"],
         1,
     )
 ]

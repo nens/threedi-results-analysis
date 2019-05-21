@@ -26,13 +26,13 @@ from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
 from .threedi_graph import ThreeDiGraph
-from .threedi_sideview import ThreeDiSideView
 from .threedi_statistics import StatisticsTool
 from .threedi_toolbox import ThreeDiToolbox
+from .tool_animation.map_animator import MapAnimator
 from .tool_result_selection.result_selection import ThreeDiResultSelection
+from .tool_sideview.sideview import ThreeDiSideView
 from .utils.layer_tree_manager import LayerTreeManager
 from .utils.qprojects import ProjectStateMixin
-from .views.map_animator import MapAnimator
 from .views.timeslider import TimesliderWidget
 from .water_balance import WaterBalanceTool
 from qgis.PyQt.QtCore import QCoreApplication
@@ -50,6 +50,10 @@ import os.path
 
 
 logger = logging.getLogger(__name__)
+
+# Pycharm's refactor option "move" automatically deletes unused import statements,
+# If "from . import resources" is deleted then tool-icons wont show up. Lets call it.
+resources  # noqa
 
 
 class ThreeDiTools(QObject, ProjectStateMixin):
@@ -91,10 +95,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.ts_datasource = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar(u"ThreeDiTools")
-        self.toolbar.setObjectName(u"ThreeDiTools")
-        self.toolbar_animation = self.iface.addToolBar(u"ThreeDiAnimation")
-        self.toolbar_animation.setObjectName(u"ThreeDiAnimation")
+        self.toolbar = self.iface.addToolBar("ThreeDiTools")
+        self.toolbar.setObjectName("ThreeDiTools")
+        self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
+        self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
         self.timeslider_widget = TimesliderWidget(
             self.toolbar_animation, self.iface, self.ts_datasource
