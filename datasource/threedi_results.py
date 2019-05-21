@@ -17,6 +17,16 @@ import os
 logger = logging.getLogger(__name__)
 
 
+def normalized_object_type(current_layer_name):
+    """Get a normalized object type for internal purposes."""
+    if current_layer_name in list(LAYER_OBJECT_TYPE_MAPPING.keys()):
+        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
+    else:
+        msg = "Unsupported layer: %s." % current_layer_name
+        logger.warning(msg)
+        return None
+
+
 class ThreediResult(BaseDataSource):
     """Provides access to result data of a 3Di simulation
 
@@ -351,16 +361,6 @@ class ThreediResult(BaseDataSource):
         else:
             logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")
-
-
-def normalized_object_type(current_layer_name):
-    """Get a normalized object type for internal purposes."""
-    if current_layer_name in list(LAYER_OBJECT_TYPE_MAPPING.keys()):
-        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        logger.warning(msg)
-        return None
 
 
 def find_h5_file(netcdf_file_path):

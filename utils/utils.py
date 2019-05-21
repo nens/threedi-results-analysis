@@ -3,7 +3,14 @@ from itertools import tee
 
 from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES, \
     AGGREGATION_VARIABLES, Q_TYPES, H_TYPES, CUMULATIVE_AGGREGATION_UNITS
-from ThreeDiToolbox.tool_graph.graph_view import logger
+
+# werkt niet
+# from ThreeDiToolbox.tool_graph.graph_view import logger
+
+# werkt wel
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 def pairwise(iterable):
