@@ -2,10 +2,10 @@ from .base import BaseDataSource
 from .result_constants import LAYER_OBJECT_TYPE_MAPPING
 from .result_constants import SUBGRID_MAP_VARIABLES
 from threedigrid.admin.constants import NO_DATA_VALUE
-from ThreeDiToolbox.utils import cached_property
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+from ThreeDiToolbox.utils.utils import cached_property
 
 import glob
 import h5py
@@ -15,6 +15,16 @@ import os
 
 
 logger = logging.getLogger(__name__)
+
+
+def normalized_object_type(current_layer_name):
+    """Get a normalized object type for internal purposes."""
+    if current_layer_name in LAYER_OBJECT_TYPE_MAPPING:
+        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
+    else:
+        msg = "Unsupported layer: %s." % current_layer_name
+        logger.warning(msg)
+        return None
 
 
 class ThreediResult(BaseDataSource):
@@ -351,16 +361,6 @@ class ThreediResult(BaseDataSource):
         else:
             logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
             return h5py.File(aggregation_netcdf_file, mode="r")
-
-
-def normalized_object_type(current_layer_name):
-    """Get a normalized object type for internal purposes."""
-    if current_layer_name in list(LAYER_OBJECT_TYPE_MAPPING.keys()):
-        return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
-    else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        logger.warning(msg)
-        return None
 
 
 def find_h5_file(netcdf_file_path):

@@ -9,7 +9,7 @@ from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.views.graph import generate_parameter_config
+from ThreeDiToolbox.utils.utils import generate_parameter_config
 
 import logging
 import numpy as np
