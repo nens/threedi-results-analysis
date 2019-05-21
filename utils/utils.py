@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def pairwise(iterable):
     # from https://docs.python.org/2/library/
     # itertools.html#recipes
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    """s  -> (s0,s1), (s1,s2), (s2, s3), ..."""
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
@@ -154,7 +154,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     return config
 
 
-class CachedProperty(object):
+class cached_property(object):
     """ A property that is only computed once per instance and then replaces
         itself with an ordinary attribute. Deleting the attribute resets the
         property.

@@ -5,7 +5,7 @@ from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
-from ThreeDiToolbox.utils.utils import CachedProperty
+from ThreeDiToolbox.utils.utils import cached_property
 
 import glob
 import h5py
@@ -53,7 +53,7 @@ class ThreediResult(BaseDataSource):
         self._datasource = None
         self._cache = {}
 
-    @CachedProperty
+    @cached_property
     def available_subgrid_map_vars(self):
         """Return a list of available variables from 'results_3di.nc'."""
         known_subgrid_map_vars = set([v.name for v in SUBGRID_MAP_VARIABLES])
@@ -72,7 +72,7 @@ class ThreediResult(BaseDataSource):
         available_known_vars = available_vars & known_subgrid_map_vars
         return list(available_known_vars)
 
-    @CachedProperty
+    @cached_property
     def available_aggregation_vars(self):
         """Return a list of available variables in the 'aggregate_results_3di.nc"""
         ga = self.aggregate_result_admin
@@ -101,7 +101,7 @@ class ThreediResult(BaseDataSource):
         """Return a list of all available variables"""
         return self.available_subgrid_map_vars + self.available_aggregation_vars
 
-    @CachedProperty
+    @cached_property
     def timestamps(self):
         """Return the timestamps of the 'results_3di.nc'
 
@@ -324,7 +324,7 @@ class ThreediResult(BaseDataSource):
             self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
         return self._gridadmin_result
 
-    @CachedProperty
+    @cached_property
     def aggregate_result_admin(self):
         try:
             agg_path = find_aggregation_netcdf(self.file_path)
@@ -344,7 +344,7 @@ class ThreediResult(BaseDataSource):
                 raise e
         return self._datasource
 
-    @CachedProperty
+    @cached_property
     def ds_aggregation(self):
         """The aggregation netcdf dataset."""
         # Note: we don't want module level imports of dynamically loaded
