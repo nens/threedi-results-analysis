@@ -1,12 +1,11 @@
+from qgis.core import QgsCoordinateReferenceSystem
+from qgis.core import QgsCoordinateTransform
+from qgis.core import QgsFeature
+from qgis.core import QgsGeometry
+from qgis.core import QgsPoint
+from qgis.core import QgsProject
+
 import math
-from qgis.core import (
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsProject,
-    QgsGeometry,
-    QgsFeature,
-    QgsPoint,
-)
 
 
 def haversine(lon1, lat1, lon2, lat2):

@@ -1,6 +1,6 @@
-from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
-from ThreeDiToolbox.threedi_tools import ThreeDiToolbox
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.threedi_tools import ThreeDiToolbox
+from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 
 import mock
 import unittest
