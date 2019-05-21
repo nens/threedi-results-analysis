@@ -2,7 +2,7 @@ from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.datasources import DataSourceLayerManager
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
-from ThreeDiToolbox.models.graph import LocationTimeseriesModel
+from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
 import mock

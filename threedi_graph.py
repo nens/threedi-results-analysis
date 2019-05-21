@@ -20,7 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from .views.graph import GraphDockWidget
+from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
 from qgis.PyQt.QtCore import Qt
 
 import os.path

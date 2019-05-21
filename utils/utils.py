@@ -1,26 +1,9 @@
 """Imported in __init__.py"""
 from itertools import tee
 
-
-class cached_property(object):
-    """ A property that is only computed once per instance and then replaces
-        itself with an ordinary attribute. Deleting the attribute resets the
-        property.
-
-        Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-
-        See also: http://www.pydanny.com/cached-property.html
-        """
-
-    def __init__(self, func):
-        self.__doc__ = getattr(func, "__doc__")
-        self.func = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.func.__name__] = self.func(obj)
-        return value
+from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES, \
+    AGGREGATION_VARIABLES, Q_TYPES, H_TYPES, CUMULATIVE_AGGREGATION_UNITS
+from ThreeDiToolbox.tool_graph.graph_view import logger
 
 
 def pairwise(iterable):
@@ -81,3 +64,106 @@ def parse_db_source_info(source_info):
         info_dict["table_name"] = table_name.strip('"')
         info_dict["db_type"] = "postgres"
     return info_dict
+
+
+def parse_aggvarname(aggvarname):
+    """Parse a combined agg var name.
+
+    >>> parse_aggvarname('s1_max')
+    ('s1', 'max')
+    >>> parse_aggvarname('s1_cum_negative')
+    ('s1', 'cum_negative')
+    >>> parse_aggvarname('infiltration_rate_cum_positive')
+    ('infiltration_rate', 'cum_positive')
+    """
+    # Aggregation methods unfortunately can contain underscores; for now only
+    # these two cases are known.
+    # TODO: improve this, e.g., make more generic, because extra cases will
+    # need to be added later
+    if aggvarname.endswith("cum_positive") or aggvarname.endswith("cum_negative"):
+        varname, agg_method, sign = aggvarname.rsplit("_", 2)
+        return varname, "_".join([agg_method, sign])
+
+    # Works only for aggregation methods without underscores
+    varname, agg_method = aggvarname.rsplit("_", 1)  # maxsplit = 1
+    return varname, agg_method
+
+
+def generate_parameter_config(subgrid_map_vars, agg_vars):
+    """Dynamically create the parameter config.
+
+    Args:
+        subgrid_map_vars: available vars from subgrid_map.nc
+        agg_vars: available vars from aggregation netCDF
+    """
+    subgrid_map_vars_mapping = {
+        var: (lbl, unit) for (var, lbl, unit) in SUBGRID_MAP_VARIABLES
+    }
+    agg_vars_mapping = {var: (lbl, unit) for (var, lbl, unit) in AGGREGATION_VARIABLES}
+    config = {"q": [], "h": []}
+
+    verbose_agg_method = {
+        "min": "minimum",
+        "max": "maximum",
+        "cum": "net cumulative",
+        "avg": "average",
+        "med": "median",
+        "cum_positive": "positive cumulative",
+        "cum_negative": "negative cumulative",
+    }
+
+    for varname in subgrid_map_vars:
+        varinfo = subgrid_map_vars_mapping[varname]
+        d = {"name": varinfo[0].capitalize(), "unit": varinfo[1], "parameters": varname}
+        if varname in Q_TYPES:
+            config["q"].append(d)
+        elif varname in H_TYPES:
+            config["h"].append(d)
+
+    for aggvarname in agg_vars:
+        _varname, _agg_method = parse_aggvarname(aggvarname)
+        varinfo = agg_vars_mapping[_varname]
+
+        try:
+            agg_method_display_name = verbose_agg_method[_agg_method]
+        except KeyError:
+            logger.critical("Unknown agg method: %s" % _agg_method)
+            agg_method_display_name = _agg_method
+
+        # Adjust the unit for cumulative method
+        if _agg_method.startswith("cum"):
+            unit = CUMULATIVE_AGGREGATION_UNITS[_varname]
+        else:
+            unit = varinfo[1]
+
+        d = {
+            "name": "%s %s" % (agg_method_display_name.capitalize(), varinfo[0]),
+            "unit": unit,
+            "parameters": aggvarname,
+        }
+        if _varname in Q_TYPES:
+            config["q"].append(d)
+        elif _varname in H_TYPES:
+            config["h"].append(d)
+    return config
+
+
+class CachedProperty(object):
+    """ A property that is only computed once per instance and then replaces
+        itself with an ordinary attribute. Deleting the attribute resets the
+        property.
+
+        Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
+
+        See also: http://www.pydanny.com/cached-property.html
+        """
+
+    def __init__(self, func):
+        self.__doc__ = getattr(func, "__doc__")
+        self.func = func
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        value = obj.__dict__[self.func.__name__] = self.func(obj)
+        return value

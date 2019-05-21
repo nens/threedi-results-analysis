@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from .base import BaseModel
-from .base_fields import CheckboxField
-from .base_fields import ColorField
-from .base_fields import ValueField
 from collections import OrderedDict
 from random import randint
+from ThreeDiToolbox.models.base import BaseModel
+from ThreeDiToolbox.models.base_fields import CheckboxField
+from ThreeDiToolbox.models.base_fields import ColorField
+from ThreeDiToolbox.models.base_fields import ValueField
 
 import logging
 import numpy as np
