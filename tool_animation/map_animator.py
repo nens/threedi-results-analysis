@@ -1,13 +1,13 @@
-from qgis.core import QgsWkbTypes, QgsVectorLayer
 from qgis.core import QgsField
 from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QWidget
-
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.graph import generate_parameter_config
 
