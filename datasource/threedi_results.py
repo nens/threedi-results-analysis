@@ -385,14 +385,14 @@ def find_h5_file(netcdf_file_path):
         FileNotFoundError if no file can be found
     """
     pattern = "*.h5"
-    resultdir = os.path.dirname(netcdf_file_path)
-    inpdir = os.path.join(resultdir, os.path.pardir, "preprocessed")
+    result_dir = os.path.dirname(netcdf_file_path)
+    inpdir = os.path.join(result_dir, os.path.pardir, "preprocessed")
 
-    for directory in [resultdir, inpdir]:
+    for directory in [result_dir, inpdir]:
         h5_files = glob.glob(os.path.join(directory, pattern))
         if h5_files:
             return h5_files[0]
-    raise FileNotFoundError("'.h5' file not found relative to %s." % resultdir)
+    raise FileNotFoundError("'.h5' file not found relative to %s." % result_dir)
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -413,7 +413,7 @@ def find_aggregation_netcdf(netcdf_file_path):
     if aggregate_result_files:
         return aggregate_result_files[0]
     raise FileNotFoundError(
-        "'aggregate_results_3di.nc' file not found relative to %s" % resultdir
+        "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
     )
 
 
