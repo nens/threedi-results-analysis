@@ -318,6 +318,9 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def result_admin(self):
         h5 = find_h5_file(self.file_path)
+        # TODO: there's no FileNotFound try/except here like for
+        # aggregates. Richard says that a missing regular result file is just
+        # as likely.
         return GridH5ResultAdmin(h5, self.file_path)
 
     @cached_property
