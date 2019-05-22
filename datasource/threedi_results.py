@@ -326,11 +326,13 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def aggregate_result_admin(self):
         try:
+            # Note: both of these might raise the FileNotFoundError
             agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
-            return GridH5AggregateResultAdmin(h5, agg_path)
         except FileNotFoundError:
+            logger.exception("Aggregate result not found")
             return None
+        return GridH5AggregateResultAdmin(h5, agg_path)
 
     @property
     def datasource(self):
