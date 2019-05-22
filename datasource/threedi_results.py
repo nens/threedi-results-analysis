@@ -310,19 +310,15 @@ class ThreediResult(BaseDataSource):
             self._cache[variable] = values
         return values
 
-    @property
+    @cached_property
     def gridadmin(self):
-        if not self._gridadmin:
-            h5 = find_h5_file(self.file_path)
-            self._gridadmin = GridH5Admin(h5)
-        return self._gridadmin
+        h5 = find_h5_file(self.file_path)
+        return GridH5Admin(h5)
 
-    @property
+    @cached_property
     def result_admin(self):
-        if not self._gridadmin_result:
-            h5 = find_h5_file(self.file_path)
-            self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
-        return self._gridadmin_result
+        h5 = find_h5_file(self.file_path)
+        return GridH5ResultAdmin(h5, self.file_path)
 
     @cached_property
     def aggregate_result_admin(self):
