@@ -46,19 +46,6 @@ VALID_PROVIDERS = ["spatialite", "memory", "ogr"]
 PROVIDERS_WITHOUT_PRIMARY_KEY = ["memory", "ogr"]
 
 
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
-
-
 class GraphPlot(pg.PlotWidget):
     """Graph element"""
 
@@ -562,14 +549,6 @@ class GraphWidget(QWidget):
             QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         )
 
-        self.retranslateUi()
-
-    def retranslateUi(self):
-        """
-        set translated widget text
-        """
-        self.remove_timeseries_button.setText(_translate("DockWidget", "Delete", None))
-
     def parameter_change(self, nr):
         """
         set current selected parameter and trigger refresh of graphs
@@ -923,11 +902,4 @@ class GraphDockWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dockWidgetContent)
-        self.retranslate_ui(dock_widget)
         QMetaObject.connectSlotsByName(dock_widget)
-
-    def retranslate_ui(self, DockWidget):
-        DockWidget.setWindowTitle(
-            _translate("DockWidget", "3Di result plots %i" % self.nr, None)
-        )
-        self.addSelectedObjectButton.setText(_translate("DockWidget", "Add", None))
