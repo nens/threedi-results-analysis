@@ -338,9 +338,9 @@ class ThreediResult(BaseDataSource):
         if self._datasource is None:
             try:
                 self._datasource = h5py.File(self.file_path, "r")
-            except IOError as e:
-                logger.exception(e)
-                raise e
+            except IOError:
+                logger.exception("Datasource %s could not be opened", self.file_path)
+                raise
         return self._datasource
 
     @cached_property
@@ -390,7 +390,7 @@ def find_h5_file(netcdf_file_path):
         h5_files = glob.glob(os.path.join(directory, pattern))
         if h5_files:
             return h5_files[0]
-    raise FileNotFoundError("'.h5' file not found.")
+    raise FileNotFoundError("'.h5' file not found relative to %s." % resultdir)
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -410,7 +410,9 @@ def find_aggregation_netcdf(netcdf_file_path):
     aggregate_result_files = glob.glob(os.path.join(result_dir, pattern))
     if aggregate_result_files:
         return aggregate_result_files[0]
-    raise FileNotFoundError("'aggregate_results_3di.nc' file not found.")
+    raise FileNotFoundError(
+        "'aggregate_results_3di.nc' file not found relative to %s" % resultdir
+    )
 
 
 def detect_netcdf_version(netcdf_file_path):
