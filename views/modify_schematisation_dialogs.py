@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QMetaObject

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsNetworkStrategy

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import OrderedDict
 from random import randint
 from ThreeDiToolbox.models.base import BaseModel

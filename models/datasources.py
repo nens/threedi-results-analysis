@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ..datasource.spatialite import Spatialite
 from ..datasource.threedi_results import ThreediResult
 from ..utils.layer_from_netCDF import FLOWLINES_LAYER_NAME

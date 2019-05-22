@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from qgis.core import QgsCoordinateReferenceSystem
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri

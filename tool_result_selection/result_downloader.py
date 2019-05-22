@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import ValueField
 

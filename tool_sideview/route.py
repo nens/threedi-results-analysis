@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from qgis.analysis import QgsGraphAnalyzer
 from qgis.analysis import QgsGraphBuilder
 from qgis.analysis import QgsNetworkDistanceStrategy
