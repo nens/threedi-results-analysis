@@ -155,7 +155,9 @@ class DataSourceLayerManager(object):
                 try:
                     self._pumpline_layer = make_pumpline_layer(self.datasource, spl)
                 except KeyError:
-                    logger.warning("No pumps in netCDF")
+                    # TODO: we assume there are no pumps, but a keyerror can
+                    # occur in many places inside that huge function.
+                    logger.exception("No pumps in netCDF")
 
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
