@@ -236,6 +236,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             # add file remote_debugger_settings.py in main directory to use
             # debugger
             import remote_debugger_settings  # noqa
+
             # TODO ^^^ is that used by anyone?
         except ImportError:
             logger.debug("No remote_debugger_settings.py found, skipping that")
