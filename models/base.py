@@ -7,6 +7,10 @@ from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
 
 import inspect
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseModelItem(object):
