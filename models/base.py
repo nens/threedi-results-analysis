@@ -260,6 +260,7 @@ class BaseModel(QAbstractTableModel):
             # is a workaround for that case.
             # TODO: the graph view should use ``model()`` instead of setting
             # to model.
+            logger.exception("TODO: fix the graph view")
             if table_view.model is None:
                 raise RuntimeError("No model set on view.")
 
