@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 from qgis.PyQt import uic

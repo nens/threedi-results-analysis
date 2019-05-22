@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from lizard_connector.connector import Endpoint
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal

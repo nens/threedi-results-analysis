@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'ui\threedi_toolbox_dockwidget_base.ui'
 #
 # Created: Sat Mar 19 07:00:22 2016

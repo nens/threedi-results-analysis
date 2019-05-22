@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'ui/guess_indicator_dialog.ui'
 #
 # Created: Fri Sep 02 08:58:15 2016

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ function for adding fields ot tables based on sqlalchmy orm definitions.
 Copied from stackoverflow:
 https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-and-create-corresponding-column-in-table

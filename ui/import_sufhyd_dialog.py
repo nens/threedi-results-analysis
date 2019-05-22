@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'ui/import_sufhyd_dialog.ui'
 #
 # Created: Fri Sep 02 00:03:50 2016
