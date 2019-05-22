@@ -113,11 +113,11 @@ class CacheClearer(object):
         # by another process"
         all_layers = list(QgsProject.instance().mapLayers().values())
         loaded_layers = [
-            l
-            for l in all_layers
-            if any(identifier in l.name() for identifier in IDENTIFIER_LIKE)
+            layer
+            for layer in all_layers
+            if any(identifier in layer.name() for identifier in IDENTIFIER_LIKE)
         ]
-        loaded_layer_ids = [l.id() for l in loaded_layers]
+        loaded_layer_ids = [layer.id() for layer in loaded_layers]
 
         yes = pop_up_question(
             "The following files will be deleted:\n"
@@ -129,13 +129,16 @@ class CacheClearer(object):
             try:
                 QgsProject.instance().removeMapLayers(loaded_layer_ids)
             except RuntimeError:
-                logger.exception("Failed to delete map layer")
+                logger.exception("Failed to delete map layers")
 
-            for f in cached:
+            for cached_spatialite_file in cached:
                 try:
-                    os.remove(f)
+                    os.remove(cached_spatialite_file)
                 except OSError:
-                    pop_up_info("Failed to delete %s." % f)
+                    msg = "Failed to delete %s." % cached_spatialite_file
+                    logger.exception(msg)
+                    pop_up_info(msg)
+
             pop_up_info(
                 "Cache cleared. You may need to restart QGIS and reload your data."
             )
