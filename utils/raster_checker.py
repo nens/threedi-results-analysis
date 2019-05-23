@@ -64,8 +64,8 @@ class RasterChecker(object):
     def close_session(self):
         try:
             self.session.close()
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Error closing session")
 
     def iter_block_row(self, band, offset_y, block_height, block_width):
         ncols = int(band.XSize / block_width)
@@ -246,10 +246,12 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "found %d rasterbands" % cnt_rasterband
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking singleband")
             result = False
         finally:
+            # TODO: the method "just" checks, but apparently it also adds to
+            # the results?
             self.results._add(
                 setting_id=setting_id,
                 raster=rast_item,
@@ -269,8 +271,8 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "nodata value is %d" % nodata
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking nodata")
             result = False
         finally:
             self.results._add(
@@ -294,8 +296,8 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "unit is %s" % unit
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking projection")
             result = False
         finally:
             self.results._add(
@@ -318,8 +320,8 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "data_type is %s" % data_type_name
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking float32")
             result = False
         finally:
             self.results._add(
@@ -340,9 +342,9 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "compression_method is %s" % compr_method
-        except Exception as e:
+        except Exception:
             detail = "Not able to get compression type"
-            logger.error(e)
+            logger.exception(detail)
             result = False
         finally:
             self.results._add(
@@ -373,8 +375,8 @@ class RasterChecker(object):
                 )
             else:
                 result = True
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Error checking pixel decimal resolution")
             result = False
         finally:
             self.results._add(
@@ -403,8 +405,8 @@ class RasterChecker(object):
                     "we found %d and %d for x- and y-resolution. Must "
                     "be equal" % (xres, yres)
                 )
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking square pixels")
             result = False
         finally:
             self.results._add(
@@ -430,8 +432,8 @@ class RasterChecker(object):
             else:
                 result = False
                 detail = "found extreme values: min=%d, max=%d" % (min, max)
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking extreme values")
             result = False
         finally:
             self.results._add(
@@ -493,8 +495,8 @@ class RasterChecker(object):
                     rast_item,
                     projcs,
                 )
-        except Exception as detail:
-            logger.error(detail)
+        except Exception:
+            logger.exception("Error checking projection")
             result = False
         finally:
             self.results._add(
@@ -1001,8 +1003,10 @@ class RasterChecker(object):
                             )
                             feat.setAttributes([setting_id, raster, point_x, point_y])
                             writer.addFeature(feat)
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            # TODO: there's a "raise" inside the try, there's a raise
+            # below. What's the intention?
+            logger.exception("Error creating shapefile")
             raise AssertionError("could not write XY point to shp file")
         # delete the writer to flush features to disk
         del writer
