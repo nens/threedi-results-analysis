@@ -134,11 +134,9 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == "type":
                     raw_value = node_data[fname][i]
-                    _value = TYPE_FUNC_MAP[field_type](raw_value)
-                    try:
-                        value = self.INT_TO_TYPE_STR[_value]
-                    except KeyError:
-                        value = _value
+                    value = TYPE_FUNC_MAP[field_type](raw_value)
+                    if value in self.INT_TO_TYPE_STR:
+                        value = self.INT_TO_TYPE_STR[value]
                     # OGR dislikes unicode for some reason...
                     value = str(value)
                 else:
@@ -146,7 +144,9 @@ class QgisNodesOgrExporter(BaseOgrExporter):
                         raw_value = node_data[fname][i]
                         value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
-                        logger.debug("Error getting index %s from %s array", i, fname)
+                        logger.exception(
+                            "Error getting index %s from %s array", i, fname
+                        )
                         value = None
                 if value is not None:
                     feature.SetField(str(field_name), value)
@@ -345,7 +345,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                     except IndexError:
                         # threedigrid weirdness, if a field is unavailable,
                         # it just returns a ``np.array(None, dtype=object)``
-                        logger.debug("Failed to get index %s from content_type", i)
+                        logger.exception("Failed to get index %s from content_type", i)
                         cont_type_raw_value = None
 
                     if cont_type_raw_value:
@@ -359,7 +359,9 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                         try:
                             value = str(kcu_dict[int(line_data["kcu"][i])])
                         except KeyError:
-                            pass
+                            logger.exception(
+                                "TODO: can we handle this keyerror more elegantly?"
+                            )
                 elif field_name == "start_node_idx":
                     value = TYPE_FUNC_MAP[field_type](node_a[i])
                 elif field_name == "end_node_idx":
@@ -458,21 +460,15 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
             for node_id in [node1_id, node2_id]:
                 if node_id == -9999:
-                    try:
-                        line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node1_id] + 5,
-                            self.node_data["coordinates"][1][node1_id] + 5,
-                        )
-                    except IndexError:
-                        logger.debug("Invalid node id: %s" % node_id)
-                else:
-                    try:
-                        line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node_id],
-                            self.node_data["coordinates"][1][node_id],
-                        )
-                    except IndexError:
-                        logger.debug("Invalid node id: %s" % node_id)
+                    # Use the first one. TODO: is this a useful decision?
+                    node_id = node1_id
+                try:
+                    line.AddPoint_2D(
+                        self.node_data["coordinates"][0][node_id],
+                        self.node_data["coordinates"][1][node_id],
+                    )
+                except IndexError:
+                    logger.exception("Invalid node id: %s", node_id)
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
