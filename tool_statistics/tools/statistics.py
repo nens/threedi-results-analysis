@@ -21,6 +21,7 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
+from ThreeDiToolbox.utils.utils import cached_property
 
 import logging
 import numpy as np
@@ -40,37 +41,31 @@ class DataSourceAdapter(object):
             proxied_datasource: BaseDataSource instance that is being proxied
         """
         self.proxied_datasource = proxied_datasource
-        self._nflowlines = None
-        self._timestamps = None
 
     def __getattr__(self, attr):
         # __getattr__ runs only on undefined attribute accesses, which is
         # the desired behavior
         return getattr(self.proxied_datasource, attr)
 
-    @property
+    @cached_property
     def nFlowLine(self):
-        if self._nflowlines is None:
-            try:
-                self._nflowlines = self.proxied_datasource.nFlowLine
-            except AttributeError:
-                # TODO: minus 1?
-                self._nflowlines = (
-                    self.proxied_datasource.datasource.get("nMesh2D_lines").size
-                    + self.proxied_datasource.datasource.get("nMesh1D_lines").size
-                )
-        return self._nflowlines
+        if hasattr(self.proxied_datasource, "nFlowLine"):
+            return self.proxied_datasource.nFlowLine
+        else:
+            # TODO: minus 1?
+            return (
+                self.proxied_datasource.datasource.get("nMesh2D_lines").size
+                + self.proxied_datasource.datasource.get("nMesh1D_lines").size
+            )
 
     @property
     def has_groundwater(self):
         return isinstance(self.proxied_datasource, ThreediResult)
 
-    @property
+    @cached_property
     def timestamps(self):
-        if self._timestamps is None:
-            # ``get_timestamps`` is a public method, we should use that
-            self._timestamps = self.proxied_datasource.get_timestamps()
-        return self._timestamps
+        # ``get_timestamps`` is a public method, we should use that
+        return self.proxied_datasource.get_timestamps()
 
 
 def load_spatialite(con, connection_record):
