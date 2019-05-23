@@ -1,7 +1,5 @@
-from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QTableWidget
@@ -18,28 +16,7 @@ import logging
 import os
 
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-
-    def _fromUtf8(s):
-        return s
-
-
 logger = logging.getLogger(__name__)
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -154,6 +131,7 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
                 self.control_structure.get_attributes(table_name, attribute_name)[0]
             )
         except ValueError:
+            logger.exception("Error determining max id, using 0")
             max_id_measure_map = 0
         new_max_id_measure_map = max_id_measure_map + 1
         # Populate the new row in the table
@@ -181,6 +159,9 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
         try:
             measuring_point_weight = tablewidget.item(0, 2).text()
         except AttributeError:
+            logger.exception(
+                "Error determining measuring point weight, using emty string"
+            )
             measuring_point_weight = ""
         tablewidget.setItem(row_position, 2, QTableWidgetItem(measuring_point_weight))
         measuring_point_remove_widget = QPushButton("Remove")
@@ -263,6 +244,7 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
                         )[0]
                     )
                 except ValueError:
+                    logger.exception("Error determining max measure point id, using 0")
                     max_id_measure_point = 0
                 new_measuring_point_id = max_id_measure_point + 1
                 measure_point_attributes = self.get_measuring_point_attributes(
@@ -320,6 +302,11 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
                 row_nr, 1
             ).text()
         except AttributeError:
+            # TODO: I've seen this measuring_point_table_id try/except
+            # before. Can it be unified?
+            logger.exception(
+                "Error grabbing measuring point table id, using current text"
+            )
             measuring_point_table_id = self.tablewidget_measuring_point.cellWidget(
                 row_nr, 1
             ).currentText()
@@ -328,6 +315,9 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
                 row_nr, 2
             ).text()
         except AttributeError:
+            logger.exception(
+                "Error grabbing measuring point weight, using empty string"
+            )
             measuring_point_weight = ""
         attributes = {
             "id": new_measuring_point_id,

@@ -1,7 +1,5 @@
-from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
 
 import logging
@@ -9,27 +7,6 @@ import os
 
 
 logger = logging.getLogger(__name__)
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-
-    def _fromUtf8(s):
-        return s
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
-
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(

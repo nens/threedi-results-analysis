@@ -1,8 +1,6 @@
-from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QLabel
@@ -34,28 +32,7 @@ import logging
 import os
 
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-
-    def _fromUtf8(s):
-        return s
-
-
 logger = logging.getLogger(__name__)
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -222,6 +199,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         try:
             init_path = settings.value("last_used_import_path", type=str)
         except TypeError:
+            logger.warning("last_used_import_path is not set, using home dir")
             init_path = os.path.expanduser("~")
         if file_type == "csv":
             filename, __ = QFileDialog.getOpenFileName(
@@ -262,10 +240,12 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             try:
                 measure_value = tablewidget.item(row_number, 0).text()
             except AttributeError:
+                logger.exception("measure value cannot be grabbed, using empty string")
                 measure_value = ""
             try:
                 action_value = tablewidget.item(row_number, 1).text()
             except AttributeError:
+                logger.exception("action value cannot be grabbed, using empty string")
                 action_value = ""
             list_of_values_table_control.append([measure_value, action_value])
         table_control["action_table"] = self.control_structure.create_action_table(
@@ -357,10 +337,12 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             try:
                 measure_value = tablewidget_dialog.item(row_number, 0).text()
             except AttributeError:
+                logger.exception("measure value cannot be grabbed, using empty string")
                 measure_value = ""
             try:
                 action_value = tablewidget_dialog.item(row_number, 1).text()
             except AttributeError:
+                logger.exception("action value cannot be grabbed, using empty string")
                 action_value = ""
             list_of_values_table_control.append([measure_value, action_value])
             # Populate new tab of "Rule" tab
