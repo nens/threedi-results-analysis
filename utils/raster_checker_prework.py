@@ -35,7 +35,10 @@ class DataModelSource(object):
                 __table__ = Table(tblname, metadata, autoload=True)
                 setattr(self, tblname, __table__)
             except Exception:
-                pass
+                logger.exception(
+                    "Something not-quite-unexpected went wrong when adding a %s table",
+                    tblname,
+                )
 
 
 class RasterCheckerEntrees(object):

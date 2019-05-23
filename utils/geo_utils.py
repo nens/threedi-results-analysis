@@ -6,7 +6,11 @@ from qgis.core import QgsDistanceArea
 from qgis.core import QgsProject
 from ThreeDiToolbox.utils import constants
 
+import logging
 import math
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_extrapolated_point(starting_pnt, end_pnt, extrapolation_ration=3):
@@ -79,7 +83,11 @@ def get_epsg_code_from_layer(layer_instance):
     try:
         return int(epsg_info.split(":")[1])
     except IndexError:
-        pass
+        logger.exception(
+            "CRS not defined (or at least there's no ':' in there): '%s', "
+            "we simply return None",
+            epsg_info,
+        )
 
 
 def set_layer_crs(layer_instance, epsg_code):
