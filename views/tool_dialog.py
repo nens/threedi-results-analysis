@@ -46,13 +46,13 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         # the items the first time you open the dialog, we've got to
         # explicitly set the the first item as being implicitly selected
         # already because that's what most users would expect.
-        try:
+        if self.layers:
             self.selected_layer = self.layers[0].layer()
-        except IndexError:
+        else:
             self.selected_layer = None
-        try:
+        if self.ts_datasource.rows:
             self.selected_datasource = self.ts_datasource.rows[0]
-        except IndexError:
+        else:
             self.selected_datasource = None
 
         # Connect signals
