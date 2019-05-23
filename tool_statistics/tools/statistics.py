@@ -22,6 +22,7 @@ from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
 from ThreeDiToolbox.utils.utils import cached_property
+from ThreeDiToolbox.utils.threedi_database import load_spatialite
 
 import logging
 import numpy as np
@@ -32,7 +33,13 @@ logger = logging.getLogger(__name__)
 
 
 class DataSourceAdapter(object):
-    """Adapter or proxy-like for a datasource."""
+    """Adapter or proxy-like for a datasource.
+
+    TODO: this whole adapter is only used in the statisticstool below. Can it
+    not use the datasource directly? Perhaps timestamps and the "nflowline"
+    should be cached on the actual datasource?
+
+    """
 
     def __init__(self, proxied_datasource):
         """Contructor.
@@ -66,34 +73,6 @@ class DataSourceAdapter(object):
     def timestamps(self):
         # ``get_timestamps`` is a public method, we should use that
         return self.proxied_datasource.get_timestamps()
-
-
-def load_spatialite(con, connection_record):
-    import sqlite3
-
-    con.enable_load_extension(True)
-    cur = con.cursor()
-    libs = [
-        # SpatiaLite >= 4.2 and Sqlite >= 3.7.17, should work on all platforms
-        ("mod_spatialite", "sqlite3_modspatialite_init"),
-        # SpatiaLite >= 4.2 and Sqlite < 3.7.17 (Travis)
-        ("mod_spatialite.so", "sqlite3_modspatialite_init"),
-        # SpatiaLite < 4.2 (linux)
-        ("libspatialite.so", "sqlite3_extension_init"),
-    ]
-    found = False
-    for lib, entry_point in libs:
-        try:
-            cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
-        except sqlite3.OperationalError:
-            continue
-        else:
-            found = True
-            break
-    if not found:
-        raise RuntimeError("Cannot find any suitable spatialite module")
-    cur.close()
-    con.enable_load_extension(False)
 
 
 class StatisticsTool(object):
@@ -179,6 +158,9 @@ class StatisticsTool(object):
             try:
                 self.db.create_and_check_fields()
             except dbapi2.OperationalError:
+                logger.exception(
+                    "Database error, we're suggesting the user to try it again"
+                )
                 pop_up_info(
                     "Database error. You could try it again, "
                     "in most cases this fixes the problem.",
@@ -528,7 +510,8 @@ class StatisticsTool(object):
                     dh_max, np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end)))
                 )
             except Exception:
-                logger.info("dh_max is not loaded for timestep: %s" % (timestamp))
+                # TODO: this is quite a broad exception. Is that necessary?
+                logger.exception("dh_max is not loaded for timestep: %s", timestamp)
                 dh_max_calc = False
 
             hmax_start = np.maximum(hmax_start, np.asarray(h_start))
