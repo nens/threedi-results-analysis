@@ -53,7 +53,7 @@ class ThreeDiToolbox(object):
         self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_toolbox.png"
-        self.menu_text = u"Toolbox for working with 3Di models"
+        self.menu_text = u"Commands for working with 3Di models"
 
         self.pluginIsActive = False
         self.dockwidget = None
