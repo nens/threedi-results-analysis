@@ -19,11 +19,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from ThreeDiToolbox.models.toolbox import CommandModel
-from ThreeDiToolbox.views.threedi_toolbox_dockwidget import CommandBoxDockWidget
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
+from ThreeDiToolbox.models.toolbox import CommandModel
+from ThreeDiToolbox.views.threedi_toolbox_dockwidget import CommandBoxDockWidget
 
 import logging
 import os.path
@@ -58,6 +58,7 @@ class CommandBox(object):
         self.pluginIsActive = False
         self.dockwidget = None
 
+        self.commandboxmodel = None
         self.commandbox = None
 
     def on_unload(self):
@@ -105,9 +106,7 @@ class CommandBox(object):
         if not q_model_index.parent().isValid():
             return [q_model_index.data()]
         else:
-            return CommandBox.leaf_path(q_model_index.parent()) + [
-                q_model_index.data()
-            ]
+            return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
@@ -141,10 +140,10 @@ class CommandBox(object):
             loader.exec_module(mod)
             logger.debug(str(mod))
 
-            self.command = mod.CustomCommand(
+            command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource
             )
-            self.command.run()
+            command.run()
 
     def add_commands(self):
         self.commandboxmodel = CommandModel()

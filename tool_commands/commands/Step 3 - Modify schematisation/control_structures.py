@@ -7,10 +7,10 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     ControlledStructures,
 )
+from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.views.control_structures_create_control_group_dialog import (

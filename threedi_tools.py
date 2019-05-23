@@ -24,8 +24,8 @@ from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
-from .tool_commands.command_box import CommandBox
 from .tool_animation.map_animator import MapAnimator
+from .tool_commands.command_box import CommandBox
 from .tool_graph.graph import ThreeDiGraph
 from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .tool_sideview.sideview import ThreeDiSideView
