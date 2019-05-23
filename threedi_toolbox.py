@@ -127,7 +127,7 @@ class ThreeDiToolbox(object):
             logger.debug(path)
 
             curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, "commands", *path)
+            module_path = os.path.join(curr_dir, "tool_commands", *path)
             name, ext = os.path.splitext(path[-1])
             if ext != ".py":
                 logger.error("Not a Python script")

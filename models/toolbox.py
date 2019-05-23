@@ -10,7 +10,7 @@ import os
 DEFAULT_TOOLBOX_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
     "..",
-    "commands",
+    "tool_commands",
     "Tools",
 )
 

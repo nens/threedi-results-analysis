@@ -1,4 +1,4 @@
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 
 import pytest
 
