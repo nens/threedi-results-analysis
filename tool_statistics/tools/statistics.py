@@ -30,19 +30,8 @@ import os.path
 logger = logging.getLogger(__name__)
 
 
-class Proxy(object):
-    # Proxy objects of other classes
-    def __init__(self, obj):
-        self.obj = obj
-
-    def __getattr__(self, attr):
-        # __getattr__ runs only on undefined attribute accesses, which is
-        # the desired behavior
-        return getattr(self.obj, attr)
-
-
-class DataSourceAdapter(Proxy):
-    """Adapter or proxy-like for a BaseDataSource."""
+class DataSourceAdapter(object):
+    """Adapter or proxy-like for a datasource."""
 
     def __init__(self, proxied_datasource):
         """Contructor.
@@ -50,32 +39,37 @@ class DataSourceAdapter(Proxy):
         Args:
             proxied_datasource: BaseDataSource instance that is being proxied
         """
-        super(DataSourceAdapter, self).__init__(proxied_datasource)
+        self.proxied_datasource = proxied_datasource
         self._nflowlines = None
         self._timestamps = None
+
+    def __getattr__(self, attr):
+        # __getattr__ runs only on undefined attribute accesses, which is
+        # the desired behavior
+        return getattr(self.proxied_datasource, attr)
 
     @property
     def nFlowLine(self):
         if self._nflowlines is None:
             try:
-                self._nflowlines = self.obj.nFlowLine
+                self._nflowlines = self.proxied_datasource.nFlowLine
             except AttributeError:
                 # TODO: minus 1?
                 self._nflowlines = (
-                    self.obj.datasource.get("nMesh2D_lines").size
-                    + self.obj.datasource.get("nMesh1D_lines").size
+                    self.proxied_datasource.datasource.get("nMesh2D_lines").size
+                    + self.proxied_datasource.datasource.get("nMesh1D_lines").size
                 )
         return self._nflowlines
 
     @property
     def has_groundwater(self):
-        return isinstance(self.obj, ThreediResult)
+        return isinstance(self.proxied_datasource, ThreediResult)
 
     @property
     def timestamps(self):
         if self._timestamps is None:
             # ``get_timestamps`` is a public method, we should use that
-            self._timestamps = self.obj.get_timestamps()
+            self._timestamps = self.proxied_datasource.get_timestamps()
         return self._timestamps
 
 
