@@ -233,13 +233,16 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we're not going to proceed
 
             ds_type = detect_netcdf_version(filename)
-            logger.info("Netcdf result file selected: %s, type is %s", filename, ds_type)
+            logger.info(
+                "Netcdf result file selected: %s, type is %s", filename, ds_type
+            )
             if ds_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
                 except FileNotFoundError:
-                    logger.warning("Groundwater h5 not found (%s), warning the user.",
-                                   filename)
+                    logger.warning(
+                        "Groundwater h5 not found (%s), warning the user.", filename
+                    )
                     pop_up_info(
                         "You selected a netcdf that was created "
                         "(after May 2018) with a 3Di calculation"
@@ -253,8 +256,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     )
                     return False
             elif ds_type == "netcdf":
-                logger.warning("Result file (%s) version is too old. Warning the user.",
-                               filename)
+                logger.warning(
+                    "Result file (%s) version is too old. Warning the user.", filename
+                )
                 pop_up_info(
                     "The selected result data is too old and no longer "
                     "supported in this version of ThreediToolbox. Please "
