@@ -40,18 +40,6 @@ import pyqtgraph as pg
 
 logger = logging.getLogger(__name__)
 
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
-
 
 serie_settings = {s["name"]: s for s in serie_settings}
 
@@ -1153,15 +1141,9 @@ class WaterBalanceWidget(QDockWidget):
 
             self.iface.mapCanvas().setMapTool(self.polygon_tool)
 
-            self.select_polygon_button.setText(
-                _translate("DockWidget", "Finalize polygon", None)
-            )
         else:
             self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
             self.update_wb()
-            self.select_polygon_button.setText(
-                _translate("DockWidget", "Draw new polygon", None)
-            )
 
     def activate_layers(self):
         for item in self.model.rows:
@@ -1538,20 +1520,4 @@ class WaterBalanceWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
-        self.retranslate_ui(dock_widget)
         QMetaObject.connectSlotsByName(dock_widget)
-
-    def retranslate_ui(self, dock_widget):
-        pass
-        dock_widget.setWindowTitle(_translate("DockWidget", "3Di water balance", None))
-        self.select_polygon_button.setText(
-            _translate("DockWidget", "Draw new polygon", None)
-        )
-        self.chart_button.setText(_translate("DockWidget", "Show total balance", None))
-        self.reset_waterbalans_button.setText(
-            _translate("DockWidget", "Hide on map", None)
-        )
-        self.activate_all_button.setText(_translate("DockWidget", "activate all", None))
-        self.deactivate_all_button.setText(
-            _translate("DockWidget", "deactivate all", None)
-        )
