@@ -18,11 +18,11 @@ from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.utils.threedi_database import load_spatialite
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
 from ThreeDiToolbox.utils.utils import cached_property
-from ThreeDiToolbox.utils.threedi_database import load_spatialite
 
 import logging
 import numpy as np
