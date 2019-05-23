@@ -174,15 +174,17 @@ class Guesser(object):
         self.reset_messages()  # start with no messages
 
         for check in checks:
-            try:
-                guess_method = getattr(self, "guess_{}".format(check))
-            except AttributeError:
+            guess_method_name = "guess_{}".format(check)
+            if not hasattr(self, guess_method_name):
                 self.messages.append("[ERROR] could not handle {} guess.".format(check))
-            else:
-                try:
-                    guess_method(only_empty_fields)
-                except BaseException as e:
-                    self.messages.append("[ERROR] guessing {}: {}.".format(check, e))
+                continue
+
+            guess_method = getattr(self, guess_method_name)
+            try:
+                guess_method(only_empty_fields)
+            except Exception as e:
+                logger.exception("Guessing for %s failed", check)
+                self.messages.append("[ERROR] guessing {}: {}.".format(check, e))
 
         if self.messages:
             return " ".join(self.messages)
