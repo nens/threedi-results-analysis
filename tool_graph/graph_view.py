@@ -11,7 +11,6 @@ from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget

@@ -3,7 +3,6 @@ from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
