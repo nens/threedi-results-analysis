@@ -773,6 +773,10 @@ class WaterBalanceWidget(QDockWidget):
         try:
             short_model_slug = ga.model_slug.rsplit("-", 1)[0]
         except Exception:
+            logger.exception(
+                "TODO: overly broad exception while splitting model_slug. "
+                "Using model_name"
+            )
             short_model_slug = ga.model_name
 
         self.wb_barchart_widget = pg.GraphicsView()
