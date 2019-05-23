@@ -330,13 +330,17 @@ class HydroObject(object):
         try:
             return self.knp_yco
         except AttributeError:
+            # TODO: refactor this. It probably depends on set_start_point()
+            # having been called.
+            logger.warning("y of first point not set")
             return None
 
     def shift_start_point(self, shift):
+        # TODO: what does this do?
         (x, y) = (self.knp_xco, self.knp_yco)
         try:
             dx, dy = shift
-        except:
+        except Exception:
             dx = dy = shift
         self.set_start_point((x + dx, y + dy))
 
