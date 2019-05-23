@@ -199,9 +199,9 @@ class SufhydReader(object):
         return self.output
 
     def get_shape(self, shape_code, record_code):
-        try:
-            return shape_mapping[shape_code]
-        except KeyError:
+        shape = shape_mapping.get(shape_code)
+        if shape is None:
+            logger.warning("Unkown shape '%s' for record '%s'", shape_code, record_code)
             self.log.add(
                 logging.WARNING,
                 "Unknown profile shape in sufhyd record",
@@ -209,12 +209,14 @@ class SufhydReader(object):
                 "shape code '{shape}' for record with code {record_id}",
                 {"shape": shape_code, "record_id": record_code},
             )
-            return None
+        return shape
 
     def get_manhole_shape(self, shape_code, record_code):
-        try:
-            return manhole_shape_mapping[shape_code]
-        except KeyError:
+        manhole_shape = manhole_shape_mapping.get(shape_code)
+        if manhole_shape is None:
+            logger.warning(
+                "Unkown manhole shape '%s' for record '%s'", shape_code, record_code
+            )
             self.log.add(
                 logging.WARNING,
                 "Unknown manhole shape in sufhyd record",
@@ -222,12 +224,14 @@ class SufhydReader(object):
                 "shape code '{shape}' for record with code {record_id}",
                 {"shape": shape_code, "record_id": record_code},
             )
-            return None
+        return manhole_shape
 
     def get_material_type(self, material_code, record_code):
-        try:
-            return material_mapping[material_code]
-        except KeyError:
+        material_type = material_mapping.get(material_code)
+        if material_type is None:
+            logger.warning(
+                "Unknown material '%s' for record '%s'", material_code, record_code
+            )
             self.log.add(
                 logging.WARNING,
                 "Unknown material type in sufhyd record",
@@ -235,13 +239,14 @@ class SufhydReader(object):
                 "Material code '{material_code}' for record with code {record_id}",
                 {"material_code": material_code, "record_id": record_code},
             )
-
-            return None
+        return material_type
 
     def get_sewerage_type(self, pipe_type_code, record_code):
-        try:
-            return pipe_type_mapping[pipe_type_code]
-        except KeyError:
+        sewerage_type = pipe_type_mapping.get(pipe_type_code)
+        if sewerage_type is None:
+            logger.warning(
+                "Unknown pipe type '%s' for record '%s'", pipe_type_code, record_code
+            )
             self.log.add(
                 logging.WARNING,
                 "Unknown sewerage type in sufhyd record",
@@ -249,23 +254,19 @@ class SufhydReader(object):
                 "Sewarege type code '{pipe_type_code}' for record with code {record_id}",
                 {"pipe_type_code": pipe_type_code, "record_id": record_code},
             )
-            return None
+        return sewerage_type
 
     def get_surface_class(self, surface_field_code):
-        try:
-
-            return surface_class_mapping[surface_field_code]
-        except KeyError:
-            logger.error("unknown surface_class %s", surface_field_code)
-            return None
+        surface_class = surface_class_mapping.get(surface_field_code)
+        if surface_class is None:
+            logger.error("Unknown surface_class %s", surface_field_code)
+        return surface_class
 
     def get_surface_inclination(self, surface_field_code):
-        try:
-
-            return surface_inclination_mapping[surface_field_code]
-        except KeyError:
-            logger.error("unknown surface_class %s", surface_field_code)
-            return None
+        surface_inclination = surface_inclination_mapping.get(surface_field_code)
+        if surface_inclination is None:
+            logger.error("Unknown surface_class %s", surface_field_code)
+        return surface_inclination
 
     @staticmethod
     def get_pipe_type(pipe_type_code):
@@ -456,6 +457,9 @@ class SufhydReader(object):
         try:
             str_rch = int(doorlaat.str_rch)
         except ValueError:
+            logger.exception(
+                "doorlaat.str_rch si not an integer: '%s', using 0", doorlaat.str_rch
+            )
             str_rch = 0
 
         if str_rch in (1, 3):
@@ -512,6 +516,9 @@ class SufhydReader(object):
         try:
             str_rch = int(overstort.str_rch)
         except ValueError:
+            logger.exception(
+                "overstort.str_rch is not an int: '%s', using 0", overstort.str_rch
+            )
             str_rch = 0
 
         if str_rch in (1, 3):
