@@ -7,7 +7,7 @@ import inspect
 import os
 
 
-DEFAULT_TOOLBOX_DIR = os.path.join(
+DEFAULT_COMMAND_DIR = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
     "..",
     "tool_commands",
@@ -40,13 +40,13 @@ class ToolGroup(object):
         self.subnodes.append(child)
 
 
-class ToolboxModel(QStandardItemModel):
+class CommandModel(QStandardItemModel):
     def __init__(self, toolbox_dir=None, parent=None):
-        super(ToolboxModel, self).__init__(parent)
+        super(CommandModel, self).__init__(parent)
 
         self.directory = toolbox_dir
         if self.directory is None:
-            self.directory = DEFAULT_TOOLBOX_DIR
+            self.directory = DEFAULT_COMMAND_DIR
 
         self.file_structure = self.get_directory_structure(self.directory)
         self.add_items(self, self.file_structure)
@@ -62,11 +62,11 @@ class ToolboxModel(QStandardItemModel):
                 item.setIcon(icon_commands)
                 self.add_items(item, children)
             else:
-                # show the hammer icon for the actual tool scripts
+                # show the hammer icon for the actual command scripts
                 if text.endswith(".py"):
                     item.setIcon(icon_hammer)
                 else:
-                    # empty toolbox directory should have the command icon
+                    # empty command directory should have the command icon
                     item.setIcon(icon_commands)
 
     def get_directory_structure(self, rootdir):

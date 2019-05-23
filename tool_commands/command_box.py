@@ -19,8 +19,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from .models.toolbox import ToolboxModel
-from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
+from ThreeDiToolbox.models.toolbox import CommandModel
+from ThreeDiToolbox.views.threedi_toolbox_dockwidget import CommandBoxDockWidget
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
@@ -33,7 +33,7 @@ import types
 logger = logging.getLogger(__name__)
 
 
-class ThreeDiToolbox(object):
+class CommandBox(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -58,7 +58,7 @@ class ThreeDiToolbox(object):
         self.pluginIsActive = False
         self.dockwidget = None
 
-        self.toolbox = None
+        self.commandbox = None
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -85,7 +85,7 @@ class ThreeDiToolbox(object):
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget is None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = ThreeDiToolboxDockWidget()
+                self.dockwidget = CommandBoxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingWidget.connect(self.on_close_child_widget)
@@ -93,7 +93,7 @@ class ThreeDiToolbox(object):
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
-            self.add_tools()
+            self.add_commands()
 
     @staticmethod
     def is_leaf(q_model_index):
@@ -105,7 +105,7 @@ class ThreeDiToolbox(object):
         if not q_model_index.parent().isValid():
             return [q_model_index.data()]
         else:
-            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + [
+            return CommandBox.leaf_path(q_model_index.parent()) + [
                 q_model_index.data()
             ]
 
@@ -119,7 +119,7 @@ class ThreeDiToolbox(object):
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
             filename = qm_idx.data()
-            item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
+            item = self.commandboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
 
             logger.debug(filename)
@@ -146,8 +146,8 @@ class ThreeDiToolbox(object):
             )
             self.command.run()
 
-    def add_tools(self):
-        self.toolboxmodel = ToolboxModel()
-        self.dockwidget.treeView.setModel(self.toolboxmodel)
+    def add_commands(self):
+        self.commandboxmodel = CommandModel()
+        self.dockwidget.treeView.setModel(self.commandboxmodel)
         self.dockwidget.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget.treeView.doubleClicked.connect(self.run_script)

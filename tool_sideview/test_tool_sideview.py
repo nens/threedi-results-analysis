@@ -1,5 +1,5 @@
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
-from ThreeDiToolbox.threedi_tools import ThreeDiToolbox
+from ThreeDiToolbox.threedi_tools import CommandBox
 from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 
 import mock
@@ -12,7 +12,7 @@ class TestThreeDiSideView(unittest.TestCase):
         iface = mock.Mock()
         ts_datasource = TimeseriesDatasourceModel()
         # tdi_root_tool = mock.Mock()
-        tdi_root_tool = ThreeDiToolbox(iface, ts_datasource)
+        tdi_root_tool = CommandBox(iface, ts_datasource)
         self.sideview = ThreeDiSideView(iface, tdi_root_tool)
 
     def test_icon_path_is_set(self):
