@@ -229,18 +229,6 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
-        try:
-            # load optional settings for remote debugging for development
-            # purposes
-            # add file remote_debugger_settings.py in main directory to use
-            # debugger
-            import remote_debugger_settings  # noqa
-
-            # TODO ^^^ is that used by anyone?
-        except ImportError:
-            logger.debug("No remote_debugger_settings.py found, skipping that")
-
         for tool in self.tools:
             self.add_action(
                 tool,
