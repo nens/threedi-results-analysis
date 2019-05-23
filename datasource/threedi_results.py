@@ -310,28 +310,29 @@ class ThreediResult(BaseDataSource):
             self._cache[variable] = values
         return values
 
-    @property
+    @cached_property
     def gridadmin(self):
-        if not self._gridadmin:
-            h5 = find_h5_file(self.file_path)
-            self._gridadmin = GridH5Admin(h5)
-        return self._gridadmin
+        h5 = find_h5_file(self.file_path)
+        return GridH5Admin(h5)
 
-    @property
+    @cached_property
     def result_admin(self):
-        if not self._gridadmin_result:
-            h5 = find_h5_file(self.file_path)
-            self._gridadmin_result = GridH5ResultAdmin(h5, self.file_path)
-        return self._gridadmin_result
+        h5 = find_h5_file(self.file_path)
+        # TODO: there's no FileNotFound try/except here like for
+        # aggregates. Richard says that a missing regular result file is just
+        # as likely.
+        return GridH5ResultAdmin(h5, self.file_path)
 
     @cached_property
     def aggregate_result_admin(self):
         try:
+            # Note: both of these might raise the FileNotFoundError
             agg_path = find_aggregation_netcdf(self.file_path)
             h5 = find_h5_file(self.file_path)
-            return GridH5AggregateResultAdmin(h5, agg_path)
         except FileNotFoundError:
+            logger.exception("Aggregate result not found")
             return None
+        return GridH5AggregateResultAdmin(h5, agg_path)
 
     @property
     def datasource(self):
@@ -339,9 +340,9 @@ class ThreediResult(BaseDataSource):
         if self._datasource is None:
             try:
                 self._datasource = h5py.File(self.file_path, "r")
-            except IOError as e:
-                logger.exception(e)
-                raise e
+            except IOError:
+                logger.exception("Datasource %s could not be opened", self.file_path)
+                raise
         return self._datasource
 
     @cached_property
@@ -384,14 +385,14 @@ def find_h5_file(netcdf_file_path):
         FileNotFoundError if no file can be found
     """
     pattern = "*.h5"
-    resultdir = os.path.dirname(netcdf_file_path)
-    inpdir = os.path.join(resultdir, os.path.pardir, "preprocessed")
+    result_dir = os.path.dirname(netcdf_file_path)
+    inpdir = os.path.join(result_dir, os.path.pardir, "preprocessed")
 
-    for directory in [resultdir, inpdir]:
+    for directory in [result_dir, inpdir]:
         h5_files = glob.glob(os.path.join(directory, pattern))
         if h5_files:
             return h5_files[0]
-    raise FileNotFoundError("'.h5' file not found.")
+    raise FileNotFoundError("'.h5' file not found relative to %s." % result_dir)
 
 
 def find_aggregation_netcdf(netcdf_file_path):
@@ -411,7 +412,9 @@ def find_aggregation_netcdf(netcdf_file_path):
     aggregate_result_files = glob.glob(os.path.join(result_dir, pattern))
     if aggregate_result_files:
         return aggregate_result_files[0]
-    raise FileNotFoundError("'aggregate_results_3di.nc' file not found.")
+    raise FileNotFoundError(
+        "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
+    )
 
 
 def detect_netcdf_version(netcdf_file_path):

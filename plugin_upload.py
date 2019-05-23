@@ -15,6 +15,8 @@ import xmlrpc.client
 PROTOCOL = "http"
 SERVER = "plugins.qgis.org"
 PORT = "80"
+# ^^^ TODO: it is https now. This generated file probably needs to be adjusted
+# if we actually start using it.
 ENDPOINT = "/plugins/RPC2/"
 VERBOSE = False
 

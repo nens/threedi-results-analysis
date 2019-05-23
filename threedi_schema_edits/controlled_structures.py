@@ -120,12 +120,15 @@ class ControlledStructures(object):
                 else:
                     list_of_attributes += attributes
         except OperationalError as e:
+            logger.exception("Error grabbing list of attributes")
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
+            logger.exception("Error grabbing list of attributes")
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
+            logger.exception("Error grabbing list of attributes")
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         return list_of_attributes
@@ -158,12 +161,15 @@ class ControlledStructures(object):
                 features = rs.fetchall()
                 list_of_features = [feature for feature in features]
         except OperationalError as e:
+            logger.exception("Error grabbing list of features")
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
+            logger.exception("Error grabbing list of features")
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
+            logger.exception("Error grabbing list of features")
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         return list_of_features
@@ -193,6 +199,7 @@ class ControlledStructures(object):
                 self.get_attributes(table_name, attribute_name)[0]
             )
         except ValueError:
+            logger.exception("Error grabbing max id")
             max_id_control_table = 0
         new_id_control_table = max_id_control_table + 1
         # Insert the variables in the v2_control_table
@@ -232,12 +239,15 @@ class ControlledStructures(object):
                     )
                 )
         except OperationalError as e:
+            logger.exception("Error inserting into table %s", table_name)
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
+            logger.exception("Error inserting into table %s", table_name)
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
+            logger.exception("Error inserting into table %s", table_name)
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
 
@@ -258,12 +268,15 @@ class ControlledStructures(object):
                     )
                 )
         except OperationalError as e:
+            logger.exception("Error deleting from table %s", table_name)
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except ProgrammingError as e:
+            logger.exception("Error deleting from table %s", table_name)
             msg = str(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
         except Exception as e:
+            logger.exception("Error deleting from table %s", table_name)
             msg = "An unknown exception occured: {}".format(e)
             messagebar_message("Error", msg, level=Qgis.Critical, duration=5)
 

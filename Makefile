@@ -74,7 +74,7 @@ constraints.txt: dependencies.py
 
 test: compile transcompile
 	@echo "#### Python tests"
-	QT_QPA_PLATFORM=offscreen pytest --cov --flake8
+	QT_QPA_PLATFORM=offscreen pytest --cov
 
 docstrings:
 	@echo "#### Docstring coverage report"

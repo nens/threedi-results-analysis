@@ -236,8 +236,10 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             # add file remote_debugger_settings.py in main directory to use
             # debugger
             import remote_debugger_settings  # noqa
+
+            # TODO ^^^ is that used by anyone?
         except ImportError:
-            pass
+            logger.debug("No remote_debugger_settings.py found, skipping that")
 
         for tool in self.tools:
             self.add_action(
@@ -296,8 +298,6 @@ class ThreeDiTools(QObject, ProjectStateMixin):
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        # print "** UNLOAD ThreeDiToolbox"
-
         self.unload_state_sync()
 
         for action in self.actions:
@@ -311,14 +311,12 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         self.timeslider_widget.valueChanged.disconnect(self.on_slider_change)
 
-        # remove the toolbar
         try:
             del self.toolbar
         except AttributeError:
-            logger.error("Error, toolbar already removed?")
+            logger.exception("Error, toolbar already removed?")
 
-        # remove the toolbar
         try:
             del self.toolbar_animation
         except AttributeError:
-            logger.error("Error, toolbar animation already removed?")
+            logger.exception("Error, toolbar animation already removed?")

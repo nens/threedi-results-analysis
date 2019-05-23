@@ -5,9 +5,13 @@ from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
+import logging
 import os.path
 import tempfile
 import unittest
+
+
+logger = logging.getLogger(__name__)
 
 
 Base = declarative_base()
@@ -52,6 +56,9 @@ def load_spatialite(con, connection_record):
         try:
             cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
         except sqlite3.OperationalError:
+            logger.exception(
+                "Loading extension %s from %s failed, trying the next", entry_point, lib
+            )
             continue
         else:
             found = True

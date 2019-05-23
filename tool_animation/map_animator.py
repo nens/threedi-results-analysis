@@ -3,7 +3,6 @@ from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
@@ -14,19 +13,6 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 import logging
 import numpy as np
 import os
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 logger = logging.getLogger(__name__)
@@ -413,8 +399,3 @@ class MapAnimator(QWidget):
 
         self.HLayout.addWidget(self.line_parameter_combo_box)
         self.HLayout.addWidget(self.node_parameter_combo_box)
-
-        self.retranslate_ui(self)
-
-    def retranslate_ui(self, widget):
-        widget.activateButton.setText(_translate("MapAnimator", "Animation on", None))

@@ -18,6 +18,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# TODO: refactor this class. The db URI handling seems funny, for
+# instance. And several private attributes are set in funny places. A couple
+# of @cached_property instances could help to get everything proper again :-)
 class Predictor(object):
     _QUERY_TYPE_DICT = {
         "postgres": "QPSQL",
@@ -55,7 +58,7 @@ class Predictor(object):
             'schema' --> database schema name
 
          """
-
+        # TODO: this get_uri() method doesn't seem to be used.
         self._uri = QgsDataSourceUri()
         host = kwargs["host"]
         port = kwargs["port"]
@@ -110,6 +113,8 @@ class Predictor(object):
         try:
             db.setPort(int(uri.port()))
         except ValueError:
+            # Non-integer port. TODO: could we use "if uri.port()"? And why
+            # don't we use the .get_uri() method?
             pass
         db.setDatabaseName(uri.database())
         db.setUserName(uri.username())
@@ -143,7 +148,7 @@ class Predictor(object):
             try:
                 rows = res.fetchall()
             except ResourceClosedError:
-                logger.warning(
+                logger.exception(
                     "[!] The proxy object has been consumed because the "
                     "query has returned no results."
                 )
@@ -283,7 +288,13 @@ class Predictor(object):
 
                 entry_start = self.network_dict.get(connection_node_start)
                 if entry_start is None:
-                    try:
+                    if connection_node_start is None:
+                        logger.debug(
+                            "KeyError, connection_node_start is None."
+                            "This is fine for manholes, the current "
+                            "content type is {}".format(name)
+                        )
+                    else:
                         # a brand new entry
                         self.network_dict[connection_node_start] = {
                             "calc_type": calc_type,
@@ -293,13 +304,6 @@ class Predictor(object):
                             "start_points": [],
                             "end_point": "",
                         }
-                    except KeyError:
-                        logger.debug(
-                            "KeyError, connection_node_start is None."
-                            "This is fine for manholes, the current "
-                            "content type is {}".format(name)
-                        )
-                        pass
                 else:
                     # already entry for this connection node, we need to
                     # check if the current calculation type is
