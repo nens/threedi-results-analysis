@@ -52,22 +52,22 @@ class ToolboxModel(QStandardItemModel):
         self.add_items(self, self.file_structure)
 
     def add_items(self, parent, elements):
-        icon_toolbox = QIcon(":/plugins/ThreeDiToolbox/icons/icon_toolbox_small.png")
-        icon_tool = QIcon(":/plugins/ThreeDiToolbox/icons/icon_hammer_small.png")
+        icon_commands = QIcon(":/plugins/ThreeDiToolbox/icons/icon_commands_small.png")
+        icon_hammer = QIcon(":/plugins/ThreeDiToolbox/icons/icon_hammer_small.png")
 
         for text, children in iter(sorted(elements.items())):
             item = QStandardItem(text)
             parent.appendRow(item)
             if children:
-                item.setIcon(icon_toolbox)
+                item.setIcon(icon_commands)
                 self.add_items(item, children)
             else:
                 # show the hammer icon for the actual tool scripts
                 if text.endswith(".py"):
-                    item.setIcon(icon_tool)
+                    item.setIcon(icon_hammer)
                 else:
-                    # empty toolbox directory should have the toolbox icon
-                    item.setIcon(icon_toolbox)
+                    # empty toolbox directory should have the command icon
+                    item.setIcon(icon_commands)
 
     def get_directory_structure(self, rootdir):
         """
