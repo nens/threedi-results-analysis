@@ -365,8 +365,9 @@ class RasterCheckerResults(object):
 
         try:
             self.log_file = open(self.log_path, "a+")
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Error writing custom log")
+            # TODO: can we just remove the try/except?
             raise Exception(
                 "RasterChecker can not write to logfile directory %s" % self.log_path
             )
