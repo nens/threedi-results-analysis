@@ -644,7 +644,9 @@ class GraphWidget(QWidget):
         try:
             filename = conn_info.split("'")[1]
         except IndexError:
-            filename = "nofilename"
+            raise RuntimeError(
+                "Active database (%s) doesn't look like an sqlite filename" % conn_info
+            )
 
         # get attribute information from selected layers
         existing_items = [

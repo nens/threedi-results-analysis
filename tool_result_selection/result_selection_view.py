@@ -73,7 +73,7 @@ class ResultsWorker(QThread):
                 "Something went wrong trying to connect to {0}. {1}: "
                 "{2}".format(e.url, e.code, e.reason)
             )
-            logger.info(message)
+            logger.exception(message)
             self.connection_failure.emit(e.code, e.reason)
 
     def stop(self):
@@ -215,6 +215,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         try:
             init_path = settings.value("last_used_datasource_path", type=str)
         except TypeError:
+            logger.debug(
+                "Last used datasource path is no string, setting it to our home dir."
+            )
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(
@@ -230,11 +233,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we're not going to proceed
 
             ds_type = detect_netcdf_version(filename)
-
+            logger.info("Netcdf result file selected: %s, type is %s", filename, ds_type)
             if ds_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
                 except FileNotFoundError:
+                    logger.warning("Groundwater h5 not found (%s), warning the user.",
+                                   filename)
                     pop_up_info(
                         "You selected a netcdf that was created "
                         "(after May 2018) with a 3Di calculation"
@@ -248,6 +253,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     )
                     return False
             elif ds_type == "netcdf":
+                logger.warning("Result file (%s) version is too old. Warning the user.",
+                               filename)
                 pop_up_info(
                     "The selected result data is too old and no longer "
                     "supported in this version of ThreediToolbox. Please "
@@ -255,6 +262,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     "threedicore or use the ThreediToolbox plugin for QGIS 2",
                     title="Error",
                 )
+                # TODO: the below "return False" was previously missing. Check
+                # if Reinout was right in adding it :-)
+                return False
 
             items = [
                 {
@@ -322,6 +332,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         try:
             init_path = settings.value("last_used_spatialite_path", type=str)
         except TypeError:
+            logger.debug(
+                "Last used datasource path is no string, setting it to our home dir."
+            )
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(
@@ -387,27 +400,29 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             )
             endpoint = scenarios_endpoint.download_paginated(page_size=10)
         except HTTPError as e:
+            logger.exception("Error trying to log in")
             if e.code == 401:
                 pop_up_info("Incorrect username and/or password.")
             else:
                 pop_up_info(str(e))
-        else:
-            self.set_logged_in_status(username, password)
-            self.toggle_login_interface()
-            # don't persist info in the dialog: useful when logged out
-            self.login_dialog.user_name_input.clear()
-            self.login_dialog.user_password_input.clear()
+            return
 
-            # start thread
-            self.thread = ResultsWorker(
-                endpoint=endpoint, username=username, password=password
-            )
-            self.thread.connection_failure.connect(self.handle_connection_failure)
-            self.thread.output.connect(self.update_download_result_model)
-            self.thread.start()
+        self.set_logged_in_status(username, password)
+        self.toggle_login_interface()
+        # don't persist info in the dialog: useful when logged out
+        self.login_dialog.user_name_input.clear()
+        self.login_dialog.user_password_input.clear()
 
-            # return to widget
-            self.login_dialog.close()
+        # start thread
+        self.thread = ResultsWorker(
+            endpoint=endpoint, username=username, password=password
+        )
+        self.thread.connection_failure.connect(self.handle_connection_failure)
+        self.thread.output.connect(self.update_download_result_model)
+        self.thread.start()
+
+        # return to widget
+        self.login_dialog.close()
 
     def update_download_result_model(self, items):
         self.download_result_model.insertRows(items)
@@ -442,6 +457,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     def set_logged_in_status(self, username, password):
         """Set logged in status to True."""
+        # TODO: it doesn't really do that. I *suspect* that the parent class
+        # has a logged_in() method that checks if username and password are
+        # set there. It's all quite indirect.
         self.username = username
         self.password = password
 
