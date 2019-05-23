@@ -511,7 +511,10 @@ class StatisticsTool(object):
                 )
             except Exception:
                 # TODO: this is quite a broad exception. Is that necessary?
-                logger.exception("dh_max is not loaded for timestep: %s", timestamp)
+                logger.exception(
+                    "dh_max is not loaded for timestep %s, setting dh_max_calc to False",
+                    timestamp,
+                )
                 dh_max_calc = False
 
             hmax_start = np.maximum(hmax_start, np.asarray(h_start))
