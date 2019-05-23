@@ -256,17 +256,8 @@ class BaseModel(QAbstractTableModel):
 
         :table_view: table view instance that uses this model
         """
-        try:
-            if table_view.model() is None:
-                raise RuntimeError("No model set on view.")
-        except TypeError:
-            # in the graph view the ``model`` attribute is overwritten. This
-            # is a workaround for that case.
-            # TODO: the graph view should use ``model()`` instead of setting
-            # to model.
-            logger.exception("TODO: fix the graph view")
-            if table_view.model is None:
-                raise RuntimeError("No model set on view.")
+        if table_view.model is None:
+            raise RuntimeError("No model set on view.")
 
         for col_nr in range(0, self.columnCount()):
             width = self.columns[col_nr].column_width
