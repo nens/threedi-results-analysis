@@ -262,11 +262,10 @@ class HydroObject(object):
 
         try:
             value = definition[0](self.fields[key].strip())
-        except:
+        except Exception:
+            logger.exception("TODO broad exception")
             value = None
         self.__dict__[key] = value
-
-        pass
 
     def toSufHyd(self):
         repr = []
@@ -299,7 +298,8 @@ class HydroObject(object):
         glue = geb and "_" or ""
         try:
             return geb + glue + self.ide_kn1
-        except:
+        except Exception:
+            logger.warning("self.ide_kn1 is not addable: %s", self.ide_kn1)
             return geb + glue + self.ide_knp
 
     def get_end_pointId(self):
@@ -322,6 +322,9 @@ class HydroObject(object):
         try:
             return self.knp_xco
         except AttributeError:
+            # TODO: refactor this. It probably depends on set_start_point()
+            # having been called.
+            logger.warning("x of first point not set")
             return None
 
     def y(self):
@@ -718,10 +721,8 @@ class BijzonderLeidingprofiel(HydroObject):
                     self.fields["pro_nv_%03d" % i] = self.fields["pro_nv_%03d" % j]
                     self.fields["pro_hs_%03d" % i] = self.fields["pro_hs_%03d" % j]
         except AttributeError:
-            ## empty profile, created from empty fake data.
+            logger.exception("empty profile, created from empty fake data, apparently")
             return
-
-    pass
 
 
 class BijzondereInloopparameters(HydroObject):
@@ -1165,7 +1166,7 @@ class HydroObjectFactory(object):
         try:
             that_class = cls.WhichHydroObject[class_name][variant]
         except KeyError:
-            print("no class for such name (%s)" % class_name)
+            logger.exception("No class '%s' or variant '%s' found", class_name, variant)
             return
         print("\n".join(that_class.greenBookDef()[:trim_at]))
 
@@ -1184,9 +1185,9 @@ class HydroObjectFactory(object):
                     tryingClass = resultClass
                     return resultClass(persid)
                 except RuntimeError:
-                    pass
+                    logger.exception("Error trying to create object from string")
         except (KeyError, TypeError):
-            pass
+            logger.exception("Error trying to create object from string")
 
         if not tryingClass:
             self.log.add(
