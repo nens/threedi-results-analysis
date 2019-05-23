@@ -15,7 +15,6 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QPalette
 from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt.QtGui import QTransform
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
