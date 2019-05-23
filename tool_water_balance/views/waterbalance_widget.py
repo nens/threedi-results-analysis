@@ -1103,30 +1103,22 @@ class WaterBalanceWidget(QDockWidget):
         else:
             raise ValueError("Unknown type %s" % sum_type)
 
-        try:
+        line_geoms = []
+        if name in name_to_line_type:
             types_line = name_to_line_type[name]
-        except KeyError:
-            line_geoms = []
-        else:
-            line_geoms = []
             for t in types_line:
-                try:
+                if t in self.qgs_lines:
                     geoms = self.qgs_lines[t]
-                except KeyError:
-                    continue
-                line_geoms.extend(geoms)
-        try:
+                    line_geoms.extend(geoms)
+
+        point_geoms = []
+        if name in NAME_TO_NODE_TYPES:
             types_node = NAME_TO_NODE_TYPES[name]
-        except KeyError:
-            point_geoms = []
-        else:
-            point_geoms = []
             for t in types_node:
-                try:
+                if t in self.qgs_points:
                     geoms = self.qgs_points[t]
-                except KeyError:
-                    continue
-                point_geoms.extend(geoms)
+                    point_geoms.extend(geoms)
+
         self.polygon_tool.selection_vis.update(line_geoms, point_geoms)
 
     def hover_exit_map_visualization(self, *args):
