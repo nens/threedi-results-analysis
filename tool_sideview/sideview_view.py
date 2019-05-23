@@ -817,9 +817,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                         ts = ds.get_timeseries(
                             "s1", content_pk=node["id"], fill_value=np.NaN
                         )
-                    node["timeseries"] = ts
                 except KeyError:
-                    node["timeseries"] = None
+                    # This can be "idx", "nr" or "id": are both equally
+                    # innocent?  TODO check if an `if "nr" not in node`-like
+                    # condition is nicer/friendlier/cleaner.
+                    logger.exception(
+                        "node has no ids/nr/id key, setting timeries to None"
+                    )
+                    ts = None
+                node["timeseries"] = ts
 
             self.draw_waterlevel_line()
 
