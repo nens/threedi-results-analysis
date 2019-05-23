@@ -37,7 +37,9 @@ class About(object):
         with open(os.path.join(os.path.dirname(__file__), "version.rst"), "r") as f:
             version = f.readline().rstrip()
 
-        pop_up_info("3Di Tools versie %s" % version, "About", self.iface.mainWindow())
+        pop_up_info(
+            "3Di Toolbox version %s" % version, "About", self.iface.mainWindow()
+        )
 
     def on_unload(self):
         pass

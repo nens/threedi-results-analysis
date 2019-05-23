@@ -29,18 +29,18 @@ import os
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(
-        os.path.dirname(__file__), "..", "ui", "threedi_toolbox_dockwidget_base.ui"
+        os.path.dirname(__file__), "..", "ui", "threedi_command_dockwidget_base.ui"
     )
 )
 
 
-class ThreeDiToolboxDockWidget(QDockWidget, FORM_CLASS):
+class CommandBoxDockWidget(QDockWidget, FORM_CLASS):
 
     closingWidget = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(ThreeDiToolboxDockWidget, self).__init__(parent)
+        super(CommandBoxDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
         self.setupUi(self)
 

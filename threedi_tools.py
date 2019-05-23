@@ -24,8 +24,8 @@ from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
 from .models.datasources import TimeseriesDatasourceModel
-from .threedi_toolbox import ThreeDiToolbox
 from .tool_animation.map_animator import MapAnimator
+from .tool_commands.command_box import CommandBox
 from .tool_graph.graph import ThreeDiGraph
 from .tool_result_selection.result_selection import ThreeDiResultSelection
 from .tool_sideview.sideview import ThreeDiSideView
@@ -111,7 +111,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.about_tool = About(iface)
         self.cache_clearer = CacheClearer(iface, self.ts_datasource)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
-        self.toolbox_tool = ThreeDiToolbox(iface, self.ts_datasource)
+        self.toolbox_tool = CommandBox(iface, self.ts_datasource)
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.stats_tool = StatisticsTool(iface, self.ts_datasource)
