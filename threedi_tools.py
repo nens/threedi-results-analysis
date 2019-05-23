@@ -302,9 +302,11 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         try:
             del self.toolbar
         except AttributeError:
-            logger.exception("Error, toolbar already removed?")
+            logger.exception("Error, toolbar already removed? Continuing anyway.")
 
         try:
             del self.toolbar_animation
         except AttributeError:
-            logger.exception("Error, toolbar animation already removed?")
+            logger.exception(
+                "Error, toolbar animation already removed? Continuing anyway."
+            )
