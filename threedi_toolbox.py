@@ -52,7 +52,7 @@ class ThreeDiToolbox(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_toolbox.png"
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_commands.png"
         self.menu_text = u"Commands for working with 3Di models"
 
         self.pluginIsActive = False
