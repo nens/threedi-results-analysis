@@ -3,7 +3,6 @@
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QRect
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDialog
@@ -18,18 +17,6 @@ import os
 
 
 logger = logging.getLogger(__name__)
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 class RasterCheckerDialogWidget(QDialog):
@@ -140,29 +127,6 @@ class RasterCheckerDialogWidget(QDialog):
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
-        self.retranslateUi()
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
-
-    def retranslateUi(self):
-        self.setWindowTitle(_translate("self", "Raster Checker", None))
-        self.groupBox_2.setTitle(
-            _translate("self", "Model schematisation database", None)
-        )
-
-        self.groupBox.setTitle(_translate("Import_dialog", "Options", None))
-
-        self.check_all_rasters.setText(
-            _translate(
-                "Import_dialog",
-                "1. Check all rasters of all v2_global_settings rows",
-                None,
-            )
-        )
-
-        # TODO: write improve function first
-        # self.improve_when_necessary.setText(_translate(
-        #     "Import_dialog",
-        #     "2. Improve when necessary (only in combination with option 1)",
-        #     None))
