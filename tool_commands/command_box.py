@@ -22,8 +22,8 @@
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from ThreeDiToolbox.models.toolbox import CommandModel
-from ThreeDiToolbox.views.threedi_toolbox_dockwidget import CommandBoxDockWidget
+from ThreeDiToolbox.tool_commands.command_model import CommandModel
+from ThreeDiToolbox.tool_commands.command_view import CommandBoxDockWidget
 
 import logging
 import os.path
@@ -52,7 +52,7 @@ class CommandBox(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_commands.png"
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
         self.menu_text = u"Commands for working with 3Di models"
 
         self.pluginIsActive = False
@@ -126,7 +126,7 @@ class CommandBox(object):
             logger.debug(path)
 
             curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, "tool_commands", *path)
+            module_path = os.path.join(curr_dir, *path)
             name, ext = os.path.splitext(path[-1])
             if ext != ".py":
                 logger.error("Not a Python script")

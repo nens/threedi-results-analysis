@@ -3,41 +3,12 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
 
-import inspect
 import os
 
 
 DEFAULT_COMMAND_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
-    "..",
-    "tool_commands",
-    "commands",
+    os.path.dirname(os.path.abspath(__file__)), "commands"
 )
-
-
-class Tool(object):
-    def __init__(self, parent, tool_file):
-        self.tool_file = tool_file
-        self.parent = parent
-
-        self.subnodes = None
-
-        if parent is not None:
-            self.parent.addChild(self)
-
-
-class ToolGroup(object):
-    def __init__(self, parent, directory):
-        self.directory = directory
-        self.parent = parent
-
-        self.subnodes = []
-
-        if parent is not None:
-            self.parent.addChild(self)
-
-    def addChild(self, child):
-        self.subnodes.append(child)
 
 
 class CommandModel(QStandardItemModel):
@@ -52,14 +23,14 @@ class CommandModel(QStandardItemModel):
         self.add_items(self, self.file_structure)
 
     def add_items(self, parent, elements):
-        icon_commands = QIcon(":/plugins/ThreeDiToolbox/icons/icon_commands_small.png")
+        icon_command = QIcon(":/plugins/ThreeDiToolbox/icons/icon_command_small.png")
         icon_hammer = QIcon(":/plugins/ThreeDiToolbox/icons/icon_hammer_small.png")
 
         for text, children in iter(sorted(elements.items())):
             item = QStandardItem(text)
             parent.appendRow(item)
             if children:
-                item.setIcon(icon_commands)
+                item.setIcon(icon_command)
                 self.add_items(item, children)
             else:
                 # show the hammer icon for the actual command scripts
@@ -67,7 +38,7 @@ class CommandModel(QStandardItemModel):
                     item.setIcon(icon_hammer)
                 else:
                     # empty command directory should have the command icon
-                    item.setIcon(icon_commands)
+                    item.setIcon(icon_command)
 
     def get_directory_structure(self, rootdir):
         """
