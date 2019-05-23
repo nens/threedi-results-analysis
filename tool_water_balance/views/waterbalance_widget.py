@@ -38,7 +38,7 @@ import os
 import pyqtgraph as pg
 
 
-logger = logging.getLogger("DeltaresTdi." + __name__)
+logger = logging.getLogger(__name__)
 
 try:
     _encoding = QApplication.UnicodeUTF8
