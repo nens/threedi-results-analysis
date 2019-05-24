@@ -19,11 +19,11 @@
  *                                                                         *
  ***************************************************************************/
 """
-from .models.toolbox import ToolboxModel
-from .views.threedi_toolbox_dockwidget import ThreeDiToolboxDockWidget
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
+from ThreeDiToolbox.tool_commands.command_model import CommandModel
+from ThreeDiToolbox.tool_commands.command_view import CommandBoxDockWidget
 
 import logging
 import os.path
@@ -33,7 +33,7 @@ import types
 logger = logging.getLogger(__name__)
 
 
-class ThreeDiToolbox(object):
+class CommandBox(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface, ts_datasource):
@@ -52,13 +52,14 @@ class ThreeDiToolbox(object):
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_toolbox.png"
-        self.menu_text = u"Toolbox for working with 3Di models"
+        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
+        self.menu_text = u"Commands for working with 3Di models"
 
         self.pluginIsActive = False
         self.dockwidget = None
 
-        self.toolbox = None
+        self.commandboxmodel = None
+        self.commandbox = None
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -85,7 +86,7 @@ class ThreeDiToolbox(object):
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget is None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = ThreeDiToolboxDockWidget()
+                self.dockwidget = CommandBoxDockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingWidget.connect(self.on_close_child_widget)
@@ -93,7 +94,7 @@ class ThreeDiToolbox(object):
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
-            self.add_tools()
+            self.add_commands()
 
     @staticmethod
     def is_leaf(q_model_index):
@@ -105,9 +106,7 @@ class ThreeDiToolbox(object):
         if not q_model_index.parent().isValid():
             return [q_model_index.data()]
         else:
-            return ThreeDiToolbox.leaf_path(q_model_index.parent()) + [
-                q_model_index.data()
-            ]
+            return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
@@ -119,7 +118,7 @@ class ThreeDiToolbox(object):
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
             filename = qm_idx.data()
-            item = self.toolboxmodel.item(qm_idx.row(), qm_idx.column())
+            item = self.commandboxmodel.item(qm_idx.row(), qm_idx.column())
             path = self.leaf_path(qm_idx)
 
             logger.debug(filename)
@@ -127,7 +126,7 @@ class ThreeDiToolbox(object):
             logger.debug(path)
 
             curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, "commands", *path)
+            module_path = os.path.join(curr_dir, *path)
             name, ext = os.path.splitext(path[-1])
             if ext != ".py":
                 logger.error("Not a Python script")
@@ -141,13 +140,13 @@ class ThreeDiToolbox(object):
             loader.exec_module(mod)
             logger.debug(str(mod))
 
-            self.command = mod.CustomCommand(
+            command = mod.CustomCommand(
                 iface=self.iface, ts_datasource=self.ts_datasource
             )
-            self.command.run()
+            command.run()
 
-    def add_tools(self):
-        self.toolboxmodel = ToolboxModel()
-        self.dockwidget.treeView.setModel(self.toolboxmodel)
+    def add_commands(self):
+        self.commandboxmodel = CommandModel()
+        self.dockwidget.treeView.setModel(self.commandboxmodel)
         self.dockwidget.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dockwidget.treeView.doubleClicked.connect(self.run_script)

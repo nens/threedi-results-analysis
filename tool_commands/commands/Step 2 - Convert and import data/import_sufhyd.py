@@ -1,6 +1,6 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from ThreeDiToolbox.commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.utils.import_sufhyd import Importer
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.views.import_sufhyd_dialog import ImportSufhydDialogWidget

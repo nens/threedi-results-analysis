@@ -2,8 +2,8 @@
     <qresource prefix="/plugins/ThreeDiToolbox" >
         <file>icons/icon.png</file>
         <file>icons/icon_graph.png</file>
-        <file>icons/icon_toolbox.png</file>
-        <file>icons/icon_toolbox_small.png</file>
+        <file>icons/icon_command.png</file>
+        <file>icons/icon_command_small.png</file>
         <file>icons/icon_hammer_small.png</file>
         <file>icons/icon_add_datasource.png</file>
         <file>icons/icon_route.png</file>
