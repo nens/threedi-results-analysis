@@ -1136,9 +1136,11 @@ class WaterBalanceWidget(QDockWidget):
 
             self.iface.mapCanvas().setMapTool(self.polygon_tool)
 
+            self.select_polygon_button.setText("Finalize polygon")
         else:
             self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
             self.update_wb()
+            self.select_polygon_button.setText("Draw new polygon")
 
     def activate_layers(self):
         for item in self.model.rows:
@@ -1515,4 +1517,13 @@ class WaterBalanceWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
+        self.retranslate_ui(dock_widget)
         QMetaObject.connectSlotsByName(dock_widget)
+
+    def retranslate_ui(self, dock_widget):
+        dock_widget.setWindowTitle("3Di water balance")
+        self.select_polygon_button.setText("Draw new polygon")
+        self.chart_button.setText("Show total balance")
+        self.reset_waterbalans_button.setText("Hide on map")
+        self.activate_all_button.setText("activate all")
+        self.deactivate_all_button.setText("deactivate all")

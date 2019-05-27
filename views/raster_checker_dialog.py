@@ -127,6 +127,17 @@ class RasterCheckerDialogWidget(QDialog):
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
+        self.retranslateUi()
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
+
+    def retranslateUi(self):
+        self.setWindowTitle("Raster Checker")
+        self.groupBox_2.setTitle("Model schematisation database")
+
+        self.groupBox.setTitle("Options")
+
+        self.check_all_rasters.setText(
+            "1. Check all rasters of all v2_global_settings rows"
+        )

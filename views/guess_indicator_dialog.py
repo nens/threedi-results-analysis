@@ -192,6 +192,17 @@ class GuessIndicatorDialogWidget(QDialog):
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
+        self.retranslateUi()
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         QMetaObject.connectSlotsByName(self)
+
+    def retranslateUi(self):
+        self.setWindowTitle("Guess indicators")
+        self.groupBox_2.setTitle("Model schematisation database")
+
+        self.groupBox.setTitle("Guess")
+        self.check_pipe_friction.setText("Pipe friction")
+        self.check_manhole_indicator.setText("Manhole indicator")
+        self.check_only_empty_fields.setText("Only fill NULL fields")
+        self.check_manhole_area.setText("Manhole area (only fills NULL fields)")
