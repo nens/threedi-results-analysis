@@ -35,7 +35,7 @@ class PredictCalcPointsDialogWidget(QDialog):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(PredictCalcPointsDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi()
 
         self.command = command
@@ -141,7 +141,7 @@ class AddCoonnectedPointsDialogWidget(QDialog):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(AddCoonnectedPointsDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi()
 
         self.command = command
@@ -251,7 +251,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(CreateBreachLocationsDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi(self)
         # default maximum for QSpinBox is 99, so setValue is limited to 99.
         # That's why we set the Maximum to 5000

@@ -162,7 +162,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
 class QgisKCUDescriptor(KCUDescriptor):
     def __init__(self, *args, **kwargs):
-        super(QgisKCUDescriptor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._descr = {
             0: "1d",

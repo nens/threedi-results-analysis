@@ -38,7 +38,7 @@ class TimesliderWidget(QSlider):
         :type iface: QgsInterface
         """
         # Save reference to the QGIS interface
-        super(TimesliderWidget, self).__init__(Qt.Horizontal)
+        super().__init__(Qt.Horizontal)
 
         self.iface = iface
         self.ts_datasource = ts_datasource

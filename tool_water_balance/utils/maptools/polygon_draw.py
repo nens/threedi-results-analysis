@@ -120,7 +120,7 @@ class PolygonDrawTool(QgsMapTool):
         self.setButton(button)
 
     def activate(self):
-        super(PolygonDrawTool, self).activate()
+        super().activate()
         self.canvas.setCursor(QCursor(Qt.CrossCursor))
 
     def reset(self):
@@ -147,7 +147,7 @@ class PolygonDrawTool(QgsMapTool):
             return
 
     def deactivate(self):
-        super(PolygonDrawTool, self).deactivate()
+        super().deactivate()
         self.canvas.setCursor(QCursor(Qt.ArrowCursor))
 
     def close(self):

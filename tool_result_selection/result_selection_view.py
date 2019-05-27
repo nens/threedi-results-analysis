@@ -52,7 +52,7 @@ class ResultsWorker(QThread):
         self.username = username
         self.password = password
         self.exiting = False
-        super(ResultsWorker, self).__init__(parent)
+        super().__init__(parent)
 
     def __del__(self):
         print("Deleting worker.")
@@ -105,7 +105,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :parent_class: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
-        super(ThreeDiResultSelectionWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.parent_class = parent_class
         self.iface = iface

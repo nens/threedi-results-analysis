@@ -54,7 +54,7 @@ class GraphPlot(pg.PlotWidget):
         :param parent: Qt parent widget
         """
 
-        super(GraphPlot, self).__init__(parent)
+        super().__init__(parent)
 
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "Time", "s")
@@ -286,7 +286,7 @@ class LocationTimeseriesTable(QTableView):
     hoverEnterRow = pyqtSignal(int, str)
 
     def __init__(self, parent=None):
-        super(LocationTimeseriesTable, self).__init__(parent)
+        super().__init__(parent)
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.model = None
@@ -357,7 +357,7 @@ class LocationTimeseriesTable(QTableView):
             item.hover.value = True
 
     def setModel(self, model):
-        super(LocationTimeseriesTable, self).setModel(model)
+        super().setModel(model)
         self.model = model
         # https://stackoverflow.com/questions/3433664/how-to-make-sure-
         # columns-in-qtableview-are-resized-to-the-maximum
@@ -381,7 +381,7 @@ class GraphWidget(QWidget):
         name="",
         geometry_type=QgsWkbTypes.Point,
     ):
-        super(GraphWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.name = name
         self.ts_datasource = ts_datasource
@@ -711,7 +711,7 @@ class GraphDockWidget(QDockWidget):
         root_tool=None,
     ):
         """Constructor"""
-        super(GraphDockWidget, self).__init__(parent_widget)
+        super().__init__(parent_widget)
 
         self.iface = iface
         self.parent_class = parent_class

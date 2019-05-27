@@ -13,7 +13,7 @@ DEFAULT_COMMAND_DIR = os.path.join(
 
 class CommandModel(QStandardItemModel):
     def __init__(self, toolbox_dir=None, parent=None):
-        super(CommandModel, self).__init__(parent)
+        super().__init__(parent)
 
         self.directory = toolbox_dir
         if self.directory is None:

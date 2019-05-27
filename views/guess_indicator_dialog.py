@@ -30,7 +30,7 @@ class GuessIndicatorDialogWidget(QDialog):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(GuessIndicatorDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.checks = checks
         self.setupUi(checks)
 

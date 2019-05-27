@@ -66,7 +66,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
                 This dockwidget is populated with the new table control
                 upon pressing OK.
         """
-        super(CreateTableControlDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         # Show gui
         self.setupUi(self)
 
