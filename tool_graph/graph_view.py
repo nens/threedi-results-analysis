@@ -548,6 +548,14 @@ class GraphWidget(QWidget):
             QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         )
 
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        """
+        set translated widget text
+        """
+        self.remove_timeseries_button.setText("Delete")
+
     def parameter_change(self, nr):
         """
         set current selected parameter and trigger refresh of graphs
@@ -903,4 +911,9 @@ class GraphDockWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dockWidgetContent)
+        self.retranslate_ui(dock_widget)
         QMetaObject.connectSlotsByName(dock_widget)
+
+    def retranslate_ui(self, DockWidget):
+        DockWidget.setWindowTitle("3Di result plots %i" % self.nr)
+        self.addSelectedObjectButton.setText("Add")
