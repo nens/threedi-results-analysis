@@ -1,3 +1,4 @@
+from pathlib import Path
 from ThreeDiToolbox import dependencies
 
 
@@ -26,3 +27,21 @@ def test_check_presence_2():
 def test_ensure_everything_installed_smoke():
     # Should just run without errors as we have a correct test setup.
     dependencies.ensure_everything_installed()
+
+
+def test_install_dependencies(tmpdir):
+    small_dependencies = [
+        dependency
+        for dependency in dependencies.DEPENDENCIES
+        if dependency.name == "lizard-connector"
+    ]
+    dependencies._install_dependencies(small_dependencies, target_dir=tmpdir)
+    installed_directory = Path(tmpdir) / "lizard_connector"
+    assert installed_directory.exists()
+
+
+def test_generate_constraints_txt(tmpdir):
+    target_dir = Path(tmpdir)
+    dependencies.generate_constraints_txt(target_dir=target_dir)
+    generated_file = target_dir / "constraints.txt"
+    assert "lizard-connector" in generated_file.read_text()
