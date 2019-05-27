@@ -4,7 +4,6 @@ from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QRect
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtSql import QSqlDatabase
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDialog
@@ -18,19 +17,6 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 class GuessIndicatorDialogWidget(QDialog):
@@ -99,6 +85,8 @@ class GuessIndicatorDialogWidget(QDialog):
                     # port can be an empty string, e.g. for spatialite db's
                     db.setPort(int(uri.port()))
                 except ValueError:
+                    # TODO: I've seen this uri.port() handling before in some
+                    # other file, this can probably be refactored.
                     pass
                 db.setUserName(uri.username())
                 db.setPassword(uri.password())
@@ -210,21 +198,11 @@ class GuessIndicatorDialogWidget(QDialog):
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle(_translate("self", "Guess indicators", None))
-        self.groupBox_2.setTitle(
-            _translate("self", "Model schematisation database", None)
-        )
+        self.setWindowTitle("Guess indicators")
+        self.groupBox_2.setTitle("Model schematisation database")
 
-        self.groupBox.setTitle(_translate("Import_dialog", "Guess", None))
-        self.check_pipe_friction.setText(
-            _translate("Import_dialog", "Pipe friction", None)
-        )
-        self.check_manhole_indicator.setText(
-            _translate("Import_dialog", "Manhole indicator", None)
-        )
-        self.check_only_empty_fields.setText(
-            _translate("Import_dialog", "Only fill NULL fields", None)
-        )
-        self.check_manhole_area.setText(
-            _translate("Import_dialog", "Manhole area (only fills NULL fields)", None)
-        )
+        self.groupBox.setTitle("Guess")
+        self.check_pipe_friction.setText("Pipe friction")
+        self.check_manhole_indicator.setText("Manhole indicator")
+        self.check_only_empty_fields.setText("Only fill NULL fields")
+        self.check_manhole_area.setText("Manhole area (only fills NULL fields)")

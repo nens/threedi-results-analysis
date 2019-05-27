@@ -3,7 +3,11 @@
 from io import IOBase
 from qgis.core import QgsProject
 
+import logging
 import os
+
+
+logger = logging.getLogger()
 
 
 class ProjectStateMixin(object):
@@ -260,7 +264,10 @@ class ProjectStateMixin(object):
                     try:
                         value = self._get_relative_path(value)
                     except ValueError:
-                        # Empty file path, not sure about this solution...
-                        pass
+                        logger.exception(
+                            "Could not create relative path from %s, "
+                            "leaving the value as-is",
+                            value,
+                        )
 
             QgsProject.instance().writeEntry(name, key, value)

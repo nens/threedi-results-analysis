@@ -18,9 +18,11 @@ from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.utils.threedi_database import load_spatialite
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
+from ThreeDiToolbox.utils.utils import cached_property
 
 import logging
 import numpy as np
@@ -30,19 +32,14 @@ import os.path
 logger = logging.getLogger(__name__)
 
 
-class Proxy(object):
-    # Proxy objects of other classes
-    def __init__(self, obj):
-        self.obj = obj
+class DataSourceAdapter(object):
+    """Adapter or proxy-like for a datasource.
 
-    def __getattr__(self, attr):
-        # __getattr__ runs only on undefined attribute accesses, which is
-        # the desired behavior
-        return getattr(self.obj, attr)
+    TODO: this whole adapter is only used in the statisticstool below. Can it
+    not use the datasource directly? Perhaps timestamps and the "nflowline"
+    should be cached on the actual datasource?
 
-
-class DataSourceAdapter(Proxy):
-    """Adapter or proxy-like for a BaseDataSource."""
+    """
 
     def __init__(self, proxied_datasource):
         """Contructor.
@@ -50,61 +47,32 @@ class DataSourceAdapter(Proxy):
         Args:
             proxied_datasource: BaseDataSource instance that is being proxied
         """
-        super(DataSourceAdapter, self).__init__(proxied_datasource)
-        self._nflowlines = None
-        self._timestamps = None
+        self.proxied_datasource = proxied_datasource
 
-    @property
+    def __getattr__(self, attr):
+        # __getattr__ runs only on undefined attribute accesses, which is
+        # the desired behavior
+        return getattr(self.proxied_datasource, attr)
+
+    @cached_property
     def nFlowLine(self):
-        if self._nflowlines is None:
-            try:
-                self._nflowlines = self.obj.nFlowLine
-            except AttributeError:
-                # TODO: minus 1?
-                self._nflowlines = (
-                    self.obj.datasource.get("nMesh2D_lines").size
-                    + self.obj.datasource.get("nMesh1D_lines").size
-                )
-        return self._nflowlines
+        if hasattr(self.proxied_datasource, "nFlowLine"):
+            return self.proxied_datasource.nFlowLine
+        else:
+            # TODO: minus 1?
+            return (
+                self.proxied_datasource.datasource.get("nMesh2D_lines").size
+                + self.proxied_datasource.datasource.get("nMesh1D_lines").size
+            )
 
     @property
     def has_groundwater(self):
-        return isinstance(self.obj, ThreediResult)
+        return isinstance(self.proxied_datasource, ThreediResult)
 
-    @property
+    @cached_property
     def timestamps(self):
-        if self._timestamps is None:
-            # ``get_timestamps`` is a public method, we should use that
-            self._timestamps = self.obj.get_timestamps()
-        return self._timestamps
-
-
-def load_spatialite(con, connection_record):
-    import sqlite3
-
-    con.enable_load_extension(True)
-    cur = con.cursor()
-    libs = [
-        # SpatiaLite >= 4.2 and Sqlite >= 3.7.17, should work on all platforms
-        ("mod_spatialite", "sqlite3_modspatialite_init"),
-        # SpatiaLite >= 4.2 and Sqlite < 3.7.17 (Travis)
-        ("mod_spatialite.so", "sqlite3_modspatialite_init"),
-        # SpatiaLite < 4.2 (linux)
-        ("libspatialite.so", "sqlite3_extension_init"),
-    ]
-    found = False
-    for lib, entry_point in libs:
-        try:
-            cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
-        except sqlite3.OperationalError:
-            continue
-        else:
-            found = True
-            break
-    if not found:
-        raise RuntimeError("Cannot find any suitable spatialite module")
-    cur.close()
-    con.enable_load_extension(False)
+        # ``get_timestamps`` is a public method, we should use that
+        return self.proxied_datasource.get_timestamps()
 
 
 class StatisticsTool(object):
@@ -190,6 +158,9 @@ class StatisticsTool(object):
             try:
                 self.db.create_and_check_fields()
             except dbapi2.OperationalError:
+                logger.exception(
+                    "Database error, we're suggesting the user to try it again"
+                )
                 pop_up_info(
                     "Database error. You could try it again, "
                     "in most cases this fixes the problem.",
@@ -539,7 +510,11 @@ class StatisticsTool(object):
                     dh_max, np.maximum(dh_max, np.asarray(np.absolute(h_start - h_end)))
                 )
             except Exception:
-                logger.info("dh_max is not loaded for timestep: %s" % (timestamp))
+                # TODO: this is quite a broad exception. Is that necessary?
+                logger.exception(
+                    "dh_max is not loaded for timestep %s, setting dh_max_calc to False",
+                    timestamp,
+                )
                 dh_max_calc = False
 
             hmax_start = np.maximum(hmax_start, np.asarray(h_start))

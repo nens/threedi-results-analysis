@@ -1,7 +1,5 @@
-from qgis.PyQt import QtCore
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QAbstractItemView
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
@@ -18,28 +16,7 @@ import logging
 import os
 
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-
-    def _fromUtf8(s):
-        return s
-
-
 logger = logging.getLogger(__name__)
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -131,7 +108,8 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
                 list_of_measure_group_ids
             )
         except Exception:
-            pass
+            logger.exception("Error adding measure group IDs, continuing anyway.")
+
         # Rule id's
         try:
             self.combobox_input_rule_id.clear()
@@ -141,7 +119,7 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
             self.combobox_input_rule_id.addItems(list_of_rule_ids)
             self.update_structure_ids()
         except Exception:
-            pass
+            logger.exception("Error adding measure rule IDs, continuing anyway.")
 
     def update_structure_ids(self):
         db = get_database_properties(self.db_key)
@@ -194,7 +172,10 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
             )
         # Empty v2_control
         except Exception:
-            pass
+            logger.exception(
+                "Error updating structure IDs (due to empty "
+                "v2_control?), continuing anyway."
+            )
 
     def create_new_control(self):
         """Create a new control."""

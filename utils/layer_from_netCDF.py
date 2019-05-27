@@ -11,7 +11,11 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 
+import logging
 import os
+
+
+logger = logging.getLogger(__name__)
 
 
 # Hardcoded default names
@@ -209,10 +213,10 @@ def make_flowline_layer(ds, spatialite, progress_bar=None):
         spatialite_tbl = None
         spatialite_id = None
 
-        try:
-            inp_id = int(flowid_to_inp_mapping[i + 1])
+        inp_id = int(flowid_to_inp_mapping[i + 1])
+        if inp_id in inp_to_splt_mapping:
             spatialite_tbl, spatialite_id = inp_to_splt_mapping[inp_id]
-        except KeyError:
+        else:
             cat = ds.line_type_of(i)
             if cat == "1d":
                 cat = "1d_2d"
@@ -415,6 +419,9 @@ def make_pumpline_layer(nds, spatialite, progress_bar=None):
             p4 = QgsPointXY(start_coord[0], start_coord[1] + 15)
             geom = QgsGeometry.fromPolylineXY([p1, p2, p3, p4])
         except ValueError:
+            logger.exception(
+                "Error determining points for pumpline, using simpler geometry"
+            )
             p1 = QgsPointXY(coord1[0], coord1[1])
             p2 = QgsPointXY(coord2[0], coord2[1])
             geom = QgsGeometry.fromPolylineXY([p1, p2])

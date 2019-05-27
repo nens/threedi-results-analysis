@@ -14,7 +14,7 @@ import numpy.ma as ma
 import os.path
 
 
-logger = logging.getLogger("DeltaresTdi." + __name__)
+logger = logging.getLogger(__name__)
 
 
 class WaterBalanceCalculation(object):

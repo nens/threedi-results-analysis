@@ -3,7 +3,6 @@ from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QRect
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QDialogButtonBox
@@ -18,19 +17,6 @@ import os
 
 
 logger = logging.getLogger(__name__)
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -140,10 +126,8 @@ class PredictCalcPointsDialogWidget(QDialog):
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle(_translate("self", "Predict calc points", None))
-        self.groupBox_2.setTitle(
-            _translate("self", "Model schematisation database", None)
-        )
+        self.setWindowTitle("Predict calc points")
+        self.groupBox_2.setTitle("Model schematisation database")
 
 
 class AddCoonnectedPointsDialogWidget(QDialog):
@@ -253,8 +237,8 @@ class AddCoonnectedPointsDialogWidget(QDialog):
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle(_translate("self", "Add connected points", None))
-        self.groupBox_2.setTitle(_translate("self", "Load from model database", None))
+        self.setWindowTitle("Add connected points")
+        self.groupBox_2.setTitle("Load from model database")
 
 
 class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
@@ -275,7 +259,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
         self.spinbox_search_distance.setMinimum(2)
         self.spinbox_levee_distace.setMaximum(5000)
         self.spinbox_levee_distace.setMinimum(1)
-        self.setWindowTitle(_translate("self", "Create breach locations", None))
+        self.setWindowTitle("Create breach locations")
         tool_help = """
         Move connected points across the nearest levee. You can limit your
         point set to your current selection. Using the dry-run option will

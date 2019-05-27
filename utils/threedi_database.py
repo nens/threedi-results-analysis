@@ -39,6 +39,9 @@ def load_spatialite(con, connection_record):
         try:
             cur.execute("select load_extension('{}', '{}')".format(lib, entry_point))
         except sqlite3.OperationalError:
+            logger.exception(
+                "Loading extension %s from %s failed, trying the next", entry_point, lib
+            )
             continue
         else:
             found = True

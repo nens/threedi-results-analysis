@@ -817,9 +817,15 @@ class SideViewPlotWidget(pg.PlotWidget):
                         ts = ds.get_timeseries(
                             "s1", content_pk=node["id"], fill_value=np.NaN
                         )
-                    node["timeseries"] = ts
                 except KeyError:
-                    node["timeseries"] = None
+                    # This can be "idx", "nr" or "id": are both equally
+                    # innocent?  TODO check if an `if "nr" not in node`-like
+                    # condition is nicer/friendlier/cleaner.
+                    logger.exception(
+                        "node has no ids/nr/id key, setting timeries to None"
+                    )
+                    ts = None
+                node["timeseries"] = ts
 
             self.draw_waterlevel_line()
 
@@ -1354,9 +1360,11 @@ class SideViewDockWidget(QDockWidget):
                 end_upper_level = pump["start_level_delivery_side"]
                 start_lower_level = pump["stop_level_suction_side"]
                 end_lower_level = pump["stop_level_delivery_side"]
-
             except KeyError:
-
+                logger.exception(
+                    "Pump is missing one of the suction/delivery side levels: "
+                    "using start_level and lower_stop_level instead"
+                )
                 start_upper_level = pump["start_level"]
                 end_upper_level = start_upper_level
                 start_lower_level = pump["lower_stop_level"]
@@ -1384,6 +1392,10 @@ class SideViewDockWidget(QDockWidget):
             if start_upper_level is not None and start_lower_level is not None:
                 start_height = float(start_upper_level) - float(start_lower_level)
                 end_height = float(end_upper_level) - float(end_lower_level)
+
+            # TODO: ^^^ perhaps add some logger.debug() to those 20 lines
+            # above? It smells to me like there could possibly be some
+            # unintended side effects.
 
             pump_def = {
                 "id": "pump_" + str(pump["id"]),

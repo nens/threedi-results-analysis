@@ -15,7 +15,6 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtGui import QPalette
 from qgis.PyQt.QtGui import QPixmap
 from qgis.PyQt.QtGui import QTransform
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -38,19 +37,7 @@ import os
 import pyqtgraph as pg
 
 
-logger = logging.getLogger("DeltaresTdi." + __name__)
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
+logger = logging.getLogger(__name__)
 
 
 serie_settings = {s["name"]: s for s in serie_settings}
@@ -785,6 +772,10 @@ class WaterBalanceWidget(QDockWidget):
         try:
             short_model_slug = ga.model_slug.rsplit("-", 1)[0]
         except Exception:
+            logger.exception(
+                "TODO: overly broad exception while splitting model_slug. "
+                "Using model_name"
+            )
             short_model_slug = ga.model_name
 
         self.wb_barchart_widget = pg.GraphicsView()
@@ -1111,30 +1102,22 @@ class WaterBalanceWidget(QDockWidget):
         else:
             raise ValueError("Unknown type %s" % sum_type)
 
-        try:
+        line_geoms = []
+        if name in name_to_line_type:
             types_line = name_to_line_type[name]
-        except KeyError:
-            line_geoms = []
-        else:
-            line_geoms = []
             for t in types_line:
-                try:
+                if t in self.qgs_lines:
                     geoms = self.qgs_lines[t]
-                except KeyError:
-                    continue
-                line_geoms.extend(geoms)
-        try:
+                    line_geoms.extend(geoms)
+
+        point_geoms = []
+        if name in NAME_TO_NODE_TYPES:
             types_node = NAME_TO_NODE_TYPES[name]
-        except KeyError:
-            point_geoms = []
-        else:
-            point_geoms = []
             for t in types_node:
-                try:
+                if t in self.qgs_points:
                     geoms = self.qgs_points[t]
-                except KeyError:
-                    continue
-                point_geoms.extend(geoms)
+                    point_geoms.extend(geoms)
+
         self.polygon_tool.selection_vis.update(line_geoms, point_geoms)
 
     def hover_exit_map_visualization(self, *args):
@@ -1153,15 +1136,11 @@ class WaterBalanceWidget(QDockWidget):
 
             self.iface.mapCanvas().setMapTool(self.polygon_tool)
 
-            self.select_polygon_button.setText(
-                _translate("DockWidget", "Finalize polygon", None)
-            )
+            self.select_polygon_button.setText("Finalize polygon")
         else:
             self.iface.mapCanvas().unsetMapTool(self.polygon_tool)
             self.update_wb()
-            self.select_polygon_button.setText(
-                _translate("DockWidget", "Draw new polygon", None)
-            )
+            self.select_polygon_button.setText("Draw new polygon")
 
     def activate_layers(self):
         for item in self.model.rows:
@@ -1542,16 +1521,9 @@ class WaterBalanceWidget(QDockWidget):
         QMetaObject.connectSlotsByName(dock_widget)
 
     def retranslate_ui(self, dock_widget):
-        pass
-        dock_widget.setWindowTitle(_translate("DockWidget", "3Di water balance", None))
-        self.select_polygon_button.setText(
-            _translate("DockWidget", "Draw new polygon", None)
-        )
-        self.chart_button.setText(_translate("DockWidget", "Show total balance", None))
-        self.reset_waterbalans_button.setText(
-            _translate("DockWidget", "Hide on map", None)
-        )
-        self.activate_all_button.setText(_translate("DockWidget", "activate all", None))
-        self.deactivate_all_button.setText(
-            _translate("DockWidget", "deactivate all", None)
-        )
+        dock_widget.setWindowTitle("3Di water balance")
+        self.select_polygon_button.setText("Draw new polygon")
+        self.chart_button.setText("Show total balance")
+        self.reset_waterbalans_button.setText("Hide on map")
+        self.activate_all_button.setText("activate all")
+        self.deactivate_all_button.setText("deactivate all")

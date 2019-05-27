@@ -56,6 +56,9 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         try:
             init_path = settings.value("last_used_import_path", type=str)
         except TypeError:
+            # TODO: this last_used_import_path try/except is found in at least
+            # ten files. Make a util function out of it.
+            logger.warning("last_used_import_path is not set, using home dir")
             init_path = os.path.expanduser("~")
 
         filename, __ = QFileDialog.getOpenFileName(

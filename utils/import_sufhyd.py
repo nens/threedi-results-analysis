@@ -485,6 +485,7 @@ class Importer(object):
                 else:
                     con_dict[link["end_node.code"]] = con_dict[link["start_node.code"]]
             except KeyError:
+                logger.exception("Node of link not found while adding extra references")
                 self.log.add(
                     logging.ERROR,
                     "node of link not found in nodes",
@@ -518,6 +519,7 @@ class Importer(object):
             try:
                 pipe["connection_node_start_id"] = con_dict[pipe["start_node.code"]]
             except KeyError:
+                logger.exception("Start node of pipe not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "Start node of pipe not found in nodes",
@@ -529,6 +531,7 @@ class Importer(object):
             try:
                 pipe["connection_node_end_id"] = con_dict[pipe["end_node.code"]]
             except KeyError:
+                logger.exception("End node of pipe not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "End node of pipe not found in nodes",
@@ -556,6 +559,7 @@ class Importer(object):
             try:
                 pump["connection_node_start_id"] = con_dict[pump["start_node.code"]]
             except KeyError:
+                logger.exception("Start node of pump not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "Start node of pump not found in nodes",
@@ -567,6 +571,7 @@ class Importer(object):
             try:
                 pump["connection_node_end_id"] = con_dict[pump["end_node.code"]]
             except KeyError:
+                logger.exception("End node of pump not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "End node of pump not found in nodes",
@@ -584,6 +589,7 @@ class Importer(object):
             try:
                 weir["connection_node_start_id"] = con_dict[weir["start_node.code"]]
             except KeyError:
+                logger.exception("Start node of weir not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "Start node of weir not found in nodes",
@@ -595,6 +601,7 @@ class Importer(object):
             try:
                 weir["connection_node_end_id"] = con_dict[weir["end_node.code"]]
             except KeyError:
+                logger.exception("End node of weir not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "End node of weir not found in nodes",
@@ -617,6 +624,7 @@ class Importer(object):
             try:
                 orif["connection_node_start_id"] = con_dict[orif["start_node.code"]]
             except KeyError:
+                logger.exception("Start node of orifice not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "Start node of orifice not found in nodes",
@@ -628,6 +636,7 @@ class Importer(object):
             try:
                 orif["connection_node_end_id"] = con_dict[orif["end_node.code"]]
             except KeyError:
+                logger.exception("End node of orifice not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "End node of orifice not found in nodes",
@@ -660,6 +669,7 @@ class Importer(object):
                 del outlet["node.code"]
                 outlet_list.append(BoundaryCondition1D(**outlet))
             except KeyError:
+                logger.exception("Node of outlet not found in nodes")
                 self.log.add(
                     logging.ERROR,
                     "node of outlet not found in nodes",
@@ -696,6 +706,7 @@ class Importer(object):
             try:
                 imp_map["connection_node_id"] = con_dict[imp_map["node.code"]]
             except KeyError:
+                logger.exception("Manhole connected to impervious surface not found")
                 self.log.add(
                     logging.ERROR,
                     "Manhole connected to impervious surface not found",

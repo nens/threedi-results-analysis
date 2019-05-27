@@ -399,3 +399,8 @@ class MapAnimator(QWidget):
 
         self.HLayout.addWidget(self.line_parameter_combo_box)
         self.HLayout.addWidget(self.node_parameter_combo_box)
+
+        self.retranslate_ui(self)
+
+    def retranslate_ui(self, widget):
+        widget.activateButton.setText("Animation on")
