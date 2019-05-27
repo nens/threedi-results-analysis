@@ -460,15 +460,21 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
 
             for node_id in [node1_id, node2_id]:
                 if node_id == -9999:
-                    # Use the first one. TODO: is this a useful decision?
-                    node_id = node1_id
-                try:
-                    line.AddPoint_2D(
-                        self.node_data["coordinates"][0][node_id],
-                        self.node_data["coordinates"][1][node_id],
-                    )
-                except IndexError:
-                    logger.exception("Invalid node id: %s", node_id)
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data["coordinates"][0][node1_id] + 5,
+                            self.node_data["coordinates"][1][node1_id] + 5,
+                        )
+                    except IndexError:
+                        logger.exception("Invalid node id: %s", node_id)
+                else:
+                    try:
+                        line.AddPoint_2D(
+                            self.node_data["coordinates"][0][node_id],
+                            self.node_data["coordinates"][1][node_id],
+                        )
+                    except IndexError:
+                        logger.exception("Invalid node id: %s", node_id)
             line.Transform(transform)
 
             feature = ogr.Feature(_definition)
