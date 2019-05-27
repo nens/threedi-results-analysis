@@ -1,6 +1,8 @@
 from pathlib import Path
 from ThreeDiToolbox import dependencies
 
+import mock
+
 
 available_dependency = dependencies.Dependency("numpy", "numpy", "")
 missing_dependency = dependencies.Dependency("reinout", "reinout", "")
@@ -45,3 +47,17 @@ def test_generate_constraints_txt(tmpdir):
     dependencies.generate_constraints_txt(target_dir=target_dir)
     generated_file = target_dir / "constraints.txt"
     assert "lizard-connector" in generated_file.read_text()
+
+
+def test_dependencies_target_dir_smoke():
+    assert "python" in str(dependencies._dependencies_target_dir())
+
+
+def test_dependencies_target_dir_somewhere_else(tmpdir):
+    # The tmpdir is not a regular your_profile/python/plugins/ThreeDiToolbox dir.
+    # So _dependencies_target_dir() will ask qgis for your profile's settings path.
+    # We mock that and check that it is used.
+    with mock.patch("qgis.core.QgsApplication.qgisSettingsDirPath") as patched:
+        patched.return_value = "/some/profile/dir"
+        result = str(dependencies._dependencies_target_dir(tmpdir))
+        assert "/some/profile/dir/python" == result
