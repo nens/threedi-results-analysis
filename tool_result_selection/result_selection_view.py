@@ -55,7 +55,6 @@ class ResultsWorker(QThread):
         super().__init__(parent)
 
     def __del__(self):
-        print("Deleting worker.")
         logger.info("Deleting worker.")
         self.stop()
 
@@ -63,7 +62,7 @@ class ResultsWorker(QThread):
         try:
             for results in self.endpoint:
                 if self.exiting:
-                    print("Exiting...")
+                    logger.info("Exiting...")
                     break
                 items = _reshape_scenario_results(results)
                 logger.debug("ResultsWorker - got new data")
@@ -78,7 +77,7 @@ class ResultsWorker(QThread):
 
     def stop(self):
         """Stop the thread gracefully."""
-        print("Stopping worker.")
+        logger.info("Stopping worker...")
         self.exiting = True
         self.wait()
 
