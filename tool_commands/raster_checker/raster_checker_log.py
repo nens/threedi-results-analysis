@@ -1,8 +1,8 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from ..utils.user_messages import StatusProgressBar
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from jinja2 import Template
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
 
 import logging
 import os

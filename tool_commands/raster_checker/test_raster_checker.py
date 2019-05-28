@@ -1,15 +1,30 @@
 from gdal import GA_ReadOnly
 from osgeo import gdal
 from sqlalchemy import MetaData
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker import RasterChecker
-from ThreeDiToolbox.utils.raster_checker_prework import DataModelSource
-from ThreeDiToolbox.utils.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import RasterChecker
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import DataModelSource
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import RasterCheckerEntrees
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
+import mock
 import os
 import unittest
 import unittest.mock
+
+
+spatialite_datasource_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
+)
+
+TESTDATA_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "data",
+    "testmodel",
+    "v2_bergermeer",
+    "results_3di.nc",
+)
+
 
 
 class TestRasterCheckerEntrees(unittest.TestCase):
@@ -27,18 +42,9 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         self.metadata = MetaData(bind=engine)
         self.datamodel = DataModelSource(self.metadata)
         self.rc_entrees = RasterCheckerEntrees(self.datamodel, session)
-        self.all_raster_ref_expect = [
-            ("v2_global_settings", 1, "dem_file", "rasters/test1.tif"),
-            ("v2_global_settings", 2, "dem_file", "rasters/test3.tif"),
-            ("v2_global_settings", 2, "frict_coef_file", "rasters/test2.tif"),
-            ("v2_groundwater", 4, "leakage_file", "rasters/test2.tif"),
-            ("v2_interflow", 1, "porosity_file", "rasters/test1.tif"),
-        ]
 
-    def test_datamodel_v2weir_name(self):
-        self.assertEqual(self.datamodel.v2_weir.name, "v2_weir")
-
-    def test_sqlite_and_rasters_found(self):
+    def test_if_testdata_exists(self):
+        """ we need 1 sqlite and 3 rasters """
         # sqlite exists?
         self.assertTrue(os.path.isfile(self.test_sqlite_path))
         # rasters exists?
@@ -46,11 +52,21 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         for tif in ["test1.tif", "test2.tif", "test3.tif"]:
             self.assertTrue(os.path.isfile(os.path.join(here, "data", "rasters", tif)))
 
+    def test_datamodel_v2weir_name(self):
+        self.assertEqual(self.datamodel.v2_weir.name, "v2_weir")
+
     def test_get_all_raster_ref(self):
+        all_raster_ref_expect = [
+            ("v2_global_settings", 1, "dem_file", "rasters/test1.tif"),
+            ("v2_global_settings", 2, "dem_file", "rasters/test3.tif"),
+            ("v2_global_settings", 2, "frict_coef_file", "rasters/test2.tif"),
+            ("v2_groundwater", 4, "leakage_file", "rasters/test2.tif"),
+            ("v2_interflow", 1, "porosity_file", "rasters/test1.tif"),
+        ]
+
         self.assertTrue(hasattr(self.rc_entrees, "all_raster_ref"))
         all_raster_ref = self.rc_entrees.all_raster_ref
-        self.assertEqual(len(all_raster_ref), len(self.all_raster_ref_expect))
-        self.assertEqual(sorted(all_raster_ref), sorted(self.all_raster_ref_expect))
+        self.assertEqual(sorted(all_raster_ref), sorted(all_raster_ref_expect))
 
     def test_get_foreign_keys(self):
         self.assertTrue(hasattr(self.rc_entrees, "foreign_keys"))
@@ -59,7 +75,6 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             ("v2_global_settings", 1, "groundwater_settings_id", 4),
         ]
         foreign_keys = self.rc_entrees.foreign_keys
-        self.assertEqual(len(foreign_keys), len(foreign_keys_expect))
         self.assertEqual(sorted(foreign_keys), sorted(foreign_keys_expect))
 
     def test_get_unique_setting_ids(self):
@@ -88,26 +103,28 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             (2, "v2_global_settings", "frict_coef_file", "rasters/test2.tif"),
             (2, "v2_interflow", "porosity_file", "rasters/test1.tif"),
         ]
-        self.assertEqual(len(entrees), len(entrees_meta_expect))
         self.assertEqual(sorted(entrees), sorted(entrees_meta_expect))
 
 
 class TestRasterChecker(unittest.TestCase):
     """Test the QGIS Environment"""
 
-    def setUp(self):
+    def setUp(self,):
         here = os.path.split(os.path.abspath(__file__))[0]
-        sqlite_filename = "small_2019_01_2entree_4tiff.sqlite"
-        self.test_sqlite_path = os.path.join(here, "data", sqlite_filename)
-        self.test_sqlite_dir = os.path.split(self.test_sqlite_path)[0]
-        db_type = "spatialite"
-        db_set = {"db_path": self.test_sqlite_path}
-        self.db = ThreediDatabase(db_set, db_type)
-        self.checker = RasterChecker(self.db)
-        self.entrees_expect = {
-            1: ("rasters/test1.tif", "rasters/test2.tif"),
-            2: ("rasters/test3.tif", "rasters/test2.tif", "rasters/test12.tif"),
-        }
+        self.test_sqlite_dir = os.path.join(here, "data")
+        db = mock.MagicMock()
+        self.checker = RasterChecker(db)
+        # we do not need a sqlite, but we need a sqlite_dir (3di rasters are expected
+        # in a subfolder of sqlite_dir. Usually checker.sqlite_dir is set with db,
+        # which is mocked in TestRasterChecker. We set it now
+        self.checker.sqlite_dir = self.test_sqlite_dir
+
+    def test_if_testdata_exists(self):
+        """ TestRasterChecker does not use the sqlite, but only needs some rasters """
+        for tif in ["test1.tif", "test2.tif", "test3.tif"]:
+            self.assertTrue(
+                os.path.isfile(os.path.join(self.test_sqlite_dir, "rasters", tif))
+            )
 
     def test_has_raster_checker_run_method(self):
         self.assertTrue(hasattr(self.checker, "run"))

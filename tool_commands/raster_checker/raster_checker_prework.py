@@ -2,8 +2,8 @@
 
 from sqlalchemy import select
 from sqlalchemy import Table
-from ThreeDiToolbox.utils.constants import NON_SETTINGS_TBL_WITH_RASTERS
-from ThreeDiToolbox.utils.constants import V2_TABLES
+from ThreeDiToolbox.tool_commands.raster_checker.constants import V2_TABLES, \
+    NON_SETTINGS_TBL_WITH_RASTERS
 
 import logging
 

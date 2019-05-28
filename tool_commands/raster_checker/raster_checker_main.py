@@ -14,11 +14,11 @@ from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerProgressBar
-from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
-from ThreeDiToolbox.utils.raster_checker_prework import DataModelSource
-from ThreeDiToolbox.utils.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import RasterCheckerProgressBar
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import RasterCheckerResults
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import DataModelSource
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import RasterCheckerEntrees
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
