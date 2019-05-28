@@ -1,9 +1,7 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.models.datasources import DataSourceLayerManager
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
-import mock
 import unittest
 
 
