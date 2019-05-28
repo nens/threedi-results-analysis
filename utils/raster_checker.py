@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
+from cached_property import cached_property
 from gdal import GA_ReadOnly
 from osgeo import gdal
 from osgeo import osr
