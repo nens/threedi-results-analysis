@@ -33,6 +33,7 @@ class BaseItemField(object):
         if value is not None:
             self._value = value
         else:
+            # TODO: use iscallable()?
             if hasattr(self.field.default_value, "__call__"):
                 self._value = self.field.default_value(self)
             else:

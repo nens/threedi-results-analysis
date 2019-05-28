@@ -18,6 +18,8 @@ class BaseModelItem(object):
 
         self.model = model
         self._plots = {}
+        # ^^^ TODO: this *might* be used in tool_water_balance and tool_graph,
+        # though using such a private attribute is a bit weird.
 
         for field_name, field_class in self._fields:
             value = None
