@@ -1,3 +1,4 @@
+from cached_property import cached_property
 from qgis.core import QgsGeometry
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsMapTool
@@ -17,15 +18,12 @@ class SelectionVisualisation(object):
     def __init__(self, canvas, color=QColor(*RGBA)):
         self.canvas = canvas
         self.color = color
-
-        self.rb_line = self._get_rubberband()
-
         self.vertex_markers = []
-
         self.lines = []
         self.points = []
 
-    def _get_rubberband(self):
+    @cached_property
+    def rb_line(self):
         rb_line = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
         rb_line.setColor(self.color)
         rb_line.setLineStyle(Qt.DotLine)
