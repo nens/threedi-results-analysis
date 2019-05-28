@@ -38,7 +38,9 @@ DEPENDENCIES = [
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
+    Dependency("cached-property", "cached_property", ""),
 ]
+# If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
 
 OUR_DIR = Path(__file__).parent

@@ -5,3 +5,4 @@ h5py>= 2.7.0
 lizard-connector==0.6
 pyqtgraph>=0.10.0
 threedigrid==1.0.13
+cached-property
