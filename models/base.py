@@ -74,7 +74,7 @@ class BaseModel(QAbstractTableModel):
         """
         self._rows = []
 
-        super(BaseModel, self).__init__(parent)
+        super().__init__(parent)
 
         self.datasource = datasource
 

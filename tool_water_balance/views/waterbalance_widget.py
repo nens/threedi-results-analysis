@@ -238,7 +238,7 @@ class WaterbalanceItemTable(QTableView):
     hoverEnterRow = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        super(WaterbalanceItemTable, self).__init__(parent)
+        super().__init__(parent)
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
         self.model = None
@@ -335,7 +335,7 @@ class WaterbalanceItemTable(QTableView):
             item.hover.value = True
 
     def setModel(self, model):
-        super(WaterbalanceItemTable, self).setModel(model)
+        super().setModel(model)
 
         self.model = model
 
@@ -346,7 +346,7 @@ class WaterbalanceItemTable(QTableView):
 class WaterBalancePlotWidget(pg.PlotWidget):
     def __init__(self, parent=None, name=""):
 
-        super(WaterBalancePlotWidget, self).__init__(parent)
+        super().__init__(parent)
         self.name = name
         self.showGrid(True, True, 0.5)
         self.setLabel("bottom", "time", "s")
@@ -661,7 +661,7 @@ class WaterBalanceWidget(QDockWidget):
 
     def __init__(self, parent=None, iface=None, ts_datasource=None, wb_calc=None):
         """Constructor."""
-        super(WaterBalanceWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.iface = iface
         self.ts_datasource = ts_datasource

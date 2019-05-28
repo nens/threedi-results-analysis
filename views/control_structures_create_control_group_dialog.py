@@ -50,7 +50,7 @@ class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
                 This dockwidget is populated with the new control group
                 upon pressing OK.
         """
-        super(CreateControlGroupDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.dockwidget_controlled_structures = dockwidget_controlled_structures
         self.db_key = db_key
         self.control_group_id = control_group_id

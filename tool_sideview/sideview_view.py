@@ -125,7 +125,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         :param parent: Qt parent widget
         """
-        super(SideViewPlotWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.name = name
         self.nr = nr
@@ -1096,7 +1096,7 @@ class SideViewDockWidget(QDockWidget):
         self, iface, parent_widget=None, parent_class=None, nr=0, tdi_root_tool=None
     ):
         """Constructor"""
-        super(SideViewDockWidget, self).__init__(parent_widget)
+        super().__init__(parent_widget)
 
         self.iface = iface
         self.parent_class = parent_class

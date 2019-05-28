@@ -44,7 +44,7 @@ class ControlStructuresDockWidget(QDockWidget, FORM_CLASS):
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(ControlStructuresDockWidget, self).__init__(parent)
+        super().__init__(parent)
         # Set up the user interface from Designer.
         self.setupUi(self)
 

@@ -30,7 +30,7 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(ImportSufhydDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi(self)
 
         self.iface = iface

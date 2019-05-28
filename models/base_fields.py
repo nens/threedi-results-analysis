@@ -156,7 +156,7 @@ class ValueField(BaseField):
     which can be showed in plain text (string, int, float)"""
 
     def __init__(self, *args, **kwargs):
-        super(ValueField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.field_type = VALUE_FIELD
 
 
@@ -166,7 +166,7 @@ class ColorField(BaseField):
     def __init__(self, *args, **kwargs):
         """same as BaseField. Color values are a list of three color values
         in the range of 0-256. For example (68, 55, 204)"""
-        super(ColorField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.field_type = COLOR_FIELD
 
 
@@ -174,5 +174,5 @@ class CheckboxField(BaseField):
     """Field implementation for booleans with checkboxes"""
 
     def __init__(self, **kwargs):
-        super(CheckboxField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.field_type = CHECKBOX_FIELD

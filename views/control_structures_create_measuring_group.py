@@ -47,7 +47,7 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
-        super(CreateMeasuringGroupDialogWidget, self).__init__(parent)
+        super().__init__(parent)
         # Show gui
         self.setupUi(self)
 
