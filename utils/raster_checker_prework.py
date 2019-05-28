@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
+from cached_property import cached_property
 from sqlalchemy import select
 from sqlalchemy import Table
 from ThreeDiToolbox.utils.constants import NON_SETTINGS_TBL_WITH_RASTERS
@@ -49,16 +49,11 @@ class RasterCheckerEntrees(object):
     def __init__(self, datamodel, session):
         self.datamodel_pre = datamodel
         self.session_pre = session
-        self._all_raster_ref = None
-        self._foreign_keys = None
-        self._entrees = None
-        self._entrees_metadata = None
-        self._unique_setting_ids = None
 
     def get_all_v2_tables(self):
         return list(set([a for a in dir(self.datamodel_pre) if a.startswith("v2_")]))
 
-    @property
+    @cached_property
     def all_raster_ref(self):
         """
         get all raster references from the sqlite datamodel
@@ -71,10 +66,6 @@ class RasterCheckerEntrees(object):
             ('v2_interflow', 1, 'porosity_file', 'rasters/test2.tif'),
             ('v2_groundwater', 4, 'leakage_file', 'rasters/test2.tif')]
         """
-
-        if self._all_raster_ref:
-            return self._all_raster_ref
-
         file_tbl = []
         file_id = []
         file_column = []
@@ -95,10 +86,9 @@ class RasterCheckerEntrees(object):
                     file_column.append(column)
                     file_name.append(str(row[column]))
         # in python3 zip returns iterator so return the list of zip object
-        self._all_raster_ref = list(zip(file_tbl, file_id, file_column, file_name))
-        return self._all_raster_ref
+        return list(zip(file_tbl, file_id, file_column, file_name))
 
-    @property
+    @cached_property
     def foreign_keys(self):
         """
         get all foreign keys from v2_global_settings to other tables that may
@@ -109,9 +99,6 @@ class RasterCheckerEntrees(object):
             ('v2_global_settings', 1, 'groundwater_settings_id', 4),
             ('v2_global_settings', 2, 'interflow_settings_id', 1)]
         """
-        if self._foreign_keys:
-            return self._foreign_keys
-
         file_tbl = []
         file_id = []
         file_column = []
@@ -132,10 +119,9 @@ class RasterCheckerEntrees(object):
                         file_column.append(column)
                         file_name.append(row[column])
         # in python3 zip returns iterator so return the list of zip object
-        self._foreign_keys = list(zip(file_tbl, file_id, file_column, file_name))
-        return self._foreign_keys
+        return list(zip(file_tbl, file_id, file_column, file_name))
 
-    @property
+    @cached_property
     def unique_setting_ids(self):
         """
         get all unique_ids from v2_global_settings
@@ -143,10 +129,7 @@ class RasterCheckerEntrees(object):
         :param
         :return:
         """
-        if self._unique_setting_ids:
-            return self._unique_setting_ids
-
-        self._unique_setting_ids = list(
+        unique_setting_ids = list(
             set(
                 [
                     item[1]
@@ -155,8 +138,8 @@ class RasterCheckerEntrees(object):
                 ]
             )
         )
-        self._unique_setting_ids.sort()
-        return self._unique_setting_ids
+        unique_setting_ids.sort()
+        return unique_setting_ids
 
     def check_dem_used(self, entree_id):
         dem_used = False
@@ -172,7 +155,7 @@ class RasterCheckerEntrees(object):
             )
         return dem_used
 
-    @property
+    @cached_property
     def entrees_metadata(self):
         """
         get all raster references (and other metadata) per model_entree_id
@@ -184,9 +167,6 @@ class RasterCheckerEntrees(object):
              (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
              (2, 'v2_interflow', 'porosity_file', 'rasters/test2.tif'))
         """
-        if self._entrees_metadata:
-            return self._entrees_metadata
-
         entrees_dict_log_file = []
 
         model_entree_ids = self.unique_setting_ids
@@ -254,15 +234,14 @@ class RasterCheckerEntrees(object):
         entrees_dict_log_file.sort(key=self.sort_by_setting_id)
         # convert list with tuple to tuple with tuples so that dem is always
         # on the first index (important in the rest of the RasterChecker)
-        self._entrees_metadata = tuple(entrees_dict_log_file)
-        return self._entrees_metadata
+        return tuple(entrees_dict_log_file)
 
     def sort_by_setting_id(self, elem):
         if len(elem) != 4:
             raise AssertionError("should have 4 elements setting_id on 1st")
         return elem[0]
 
-    @property
+    @cached_property
     def entrees(self):
         """
         abstracts only necessary info (setting_id and rasternames) from
@@ -279,8 +258,6 @@ class RasterCheckerEntrees(object):
           2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test2.tif')}
         :return: self._entrees (dict)
         """
-        if self._entrees:
-            return self._entrees
         entrees = {}
         for unique_id in self.unique_setting_ids:
             entrees.setdefault(unique_id, ())
@@ -289,5 +266,4 @@ class RasterCheckerEntrees(object):
                 raster = row[3]
                 if unique_id == setting_id:
                     entrees[setting_id] = entrees[setting_id] + (raster,)
-        self._entrees = entrees
-        return self._entrees
+        return entrees
