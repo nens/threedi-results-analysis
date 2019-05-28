@@ -93,7 +93,9 @@ def check_importability():
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
     for package in packages:
         imported_package = importlib.import_module(package)
-        logger.info("Import '%s' found at \n    '%s'", package, imported_package.__file__)
+        logger.info(
+            "Import '%s' found at \n    '%s'", package, imported_package.__file__
+        )
 
 
 def _install_dependencies(dependencies, target_dir):
