@@ -53,7 +53,6 @@ class RasterChecker(object):
 
         self.progress_bar = None
         self.unique_id_name = []
-        self._nr_phases = None
         self.too_many_wrong_pixels = False
 
         # some check constants
@@ -794,12 +793,9 @@ class RasterChecker(object):
             if chck.get("phase") == check_phase
         ]
 
-    @property
+    @cached_property
     def nr_phases(self):
-        if self._nr_phases:
-            return self._nr_phases
-        self._nr_phases = max([chck.get("phase") for chck in RASTER_CHECKER_MAPPER])
-        return self._nr_phases
+        return max([chck.get("phase") for chck in RASTER_CHECKER_MAPPER])
 
     def dem_to_first_index(self, rasters_orig, rasters_ready):
         # assumes dem is in both arguments !!
