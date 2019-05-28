@@ -48,9 +48,6 @@ class ThreediResult(BaseDataSource):
 
     def __init__(self, file_path=None):
         self.file_path = file_path
-        self._gridadmin = None
-        self._gridadmin_result = None
-        self._datasource = None
         self._cache = {}
 
     @cached_property
@@ -288,6 +285,9 @@ class ThreediResult(BaseDataSource):
          causes many unnecessary values to be stored in memory. This can become
          problematic with large result files.
 
+        TODO: replace by a @lru_cache?
+        https://docs.python.org/3/library/functools.html#functools.lru_cache
+
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
         :param use_cache: bool
         :return: 2d numpy array
@@ -334,16 +334,13 @@ class ThreediResult(BaseDataSource):
             return None
         return GridH5AggregateResultAdmin(h5, agg_path)
 
-    @property
+    @cached_property
     def datasource(self):
-        # TODO: move to constructor or make cached_property
-        if self._datasource is None:
-            try:
-                self._datasource = h5py.File(self.file_path, "r")
-            except IOError:
-                logger.exception("Datasource %s could not be opened", self.file_path)
-                raise
-        return self._datasource
+        try:
+            return h5py.File(self.file_path, "r")
+        except IOError:
+            logger.exception("Datasource %s could not be opened", self.file_path)
+            raise
 
     @cached_property
     def ds_aggregation(self):
