@@ -67,8 +67,8 @@ class ThreediDatabase(object):
         self.echo = echo
 
         self._engine = None
-        self._combined_base = None
-        self._base = None
+        self._combined_base = None  # TODO: unused?
+        self._base = None  # TODO: unused?
         self._base_metadata = None
 
     def create_and_check_fields(self):
@@ -93,6 +93,7 @@ class ThreediDatabase(object):
 
     @property
     def engine(self):
+        # TODO: can this become a cached_property? Depends on the following method.
         return self.get_engine()
 
     def get_engine(self, get_seperate_engine=False):
