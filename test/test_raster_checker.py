@@ -27,13 +27,6 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         self.metadata = MetaData(bind=engine)
         self.datamodel = DataModelSource(self.metadata)
         self.rc_entrees = RasterCheckerEntrees(self.datamodel, session)
-        self.all_raster_ref_expect = [
-            ("v2_global_settings", 1, "dem_file", "rasters/test1.tif"),
-            ("v2_global_settings", 2, "dem_file", "rasters/test3.tif"),
-            ("v2_global_settings", 2, "frict_coef_file", "rasters/test2.tif"),
-            ("v2_groundwater", 4, "leakage_file", "rasters/test2.tif"),
-            ("v2_interflow", 1, "porosity_file", "rasters/test1.tif"),
-        ]
 
     def test_datamodel_v2weir_name(self):
         self.assertEqual(self.datamodel.v2_weir.name, "v2_weir")
@@ -47,10 +40,17 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(here, "data", "rasters", tif)))
 
     def test_get_all_raster_ref(self):
+        all_raster_ref_expect = [
+            ("v2_global_settings", 1, "dem_file", "rasters/test1.tif"),
+            ("v2_global_settings", 2, "dem_file", "rasters/test3.tif"),
+            ("v2_global_settings", 2, "frict_coef_file", "rasters/test2.tif"),
+            ("v2_groundwater", 4, "leakage_file", "rasters/test2.tif"),
+            ("v2_interflow", 1, "porosity_file", "rasters/test1.tif"),
+        ]
+
         self.assertTrue(hasattr(self.rc_entrees, "all_raster_ref"))
         all_raster_ref = self.rc_entrees.all_raster_ref
-        self.assertEqual(len(all_raster_ref), len(self.all_raster_ref_expect))
-        self.assertEqual(sorted(all_raster_ref), sorted(self.all_raster_ref_expect))
+        self.assertEqual(sorted(all_raster_ref), sorted(all_raster_ref_expect))
 
     def test_get_foreign_keys(self):
         self.assertTrue(hasattr(self.rc_entrees, "foreign_keys"))
@@ -59,7 +59,6 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             ("v2_global_settings", 1, "groundwater_settings_id", 4),
         ]
         foreign_keys = self.rc_entrees.foreign_keys
-        self.assertEqual(len(foreign_keys), len(foreign_keys_expect))
         self.assertEqual(sorted(foreign_keys), sorted(foreign_keys_expect))
 
     def test_get_unique_setting_ids(self):
@@ -88,7 +87,6 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             (2, "v2_global_settings", "frict_coef_file", "rasters/test2.tif"),
             (2, "v2_interflow", "porosity_file", "rasters/test1.tif"),
         ]
-        self.assertEqual(len(entrees), len(entrees_meta_expect))
         self.assertEqual(sorted(entrees), sorted(entrees_meta_expect))
 
 
@@ -104,10 +102,25 @@ class TestRasterChecker(unittest.TestCase):
         db_set = {"db_path": self.test_sqlite_path}
         self.db = ThreediDatabase(db_set, db_type)
         self.checker = RasterChecker(self.db)
-        self.entrees_expect = {
+
+    # nieuw
+    def test_entrees(self):
+        entrees_expect = {
             1: ("rasters/test1.tif", "rasters/test2.tif"),
             2: ("rasters/test3.tif", "rasters/test2.tif", "rasters/test12.tif"),
         }
+
+        session = self.db.get_session()
+        engine = self.db.get_engine()
+        metadata = MetaData(bind=engine)
+        self.datamodel = DataModelSource(metadata)
+        rc_entrees = RasterCheckerEntrees(self.datamodel, session)
+
+        self.assertTrue(hasattr(rc_entrees, "entrees"))
+        entrees = rc_entrees.entrees
+        # do not sort entrees as dictvalues (=tuple with strings) must
+        # have specific order (dem = first)
+        self.assertEqual(entrees, entrees_expect)
 
     def test_has_raster_checker_run_method(self):
         self.assertTrue(hasattr(self.checker, "run"))
