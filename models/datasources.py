@@ -14,6 +14,7 @@ from .base import BaseModel
 from .base_fields import CheckboxField
 from .base_fields import ValueField
 from builtins import object
+from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
 
@@ -86,8 +87,7 @@ class DataSourceLayerManager(object):
         self.ds_type = ds_type
         self.file_path = file_path
 
-        self._datasource = None
-
+        # The following three are filled by self._get_result_layers_*()
         self._line_layer = None
         self._node_layer = None
         self._pumpline_layer = None
@@ -96,15 +96,13 @@ class DataSourceLayerManager(object):
             "netcdf-groundwater": self._get_result_layers_groundwater
         }
 
-    @property
+    @cached_property
     def datasource(self):
         """Returns an instance of a subclass of ``BaseDataSource``."""
-        if self._datasource is None:
-            if self.ds_type != "netcdf-groundwater":
-                pop_up_unkown_datasource_type()
-            ds_class = self.type_ds_mapping[self.ds_type]
-            self._datasource = ds_class(self.file_path)
-        return self._datasource
+        if self.ds_type != "netcdf-groundwater":
+            pop_up_unkown_datasource_type()
+        ds_class = self.type_ds_mapping[self.ds_type]
+        return ds_class(self.file_path)
 
     @property
     def datasource_dir(self):
