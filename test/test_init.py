@@ -10,6 +10,9 @@ import unittest
 logger = logging.getLogger(__name__)
 
 
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+
 class TestInit(unittest.TestCase):
     """Test that the plugin init is usable for QGIS.
 

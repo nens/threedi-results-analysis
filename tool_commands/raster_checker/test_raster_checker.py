@@ -1,10 +1,17 @@
 from gdal import GA_ReadOnly
 from osgeo import gdal
 from sqlalchemy import MetaData
+from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import RasterChecker
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import DataModelSource
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
+    RasterChecker,
+)
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
+    DataModelSource,
+)
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
+    RasterCheckerEntrees,
+)
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
 import mock
@@ -13,27 +20,12 @@ import unittest
 import unittest.mock
 
 
-spatialite_datasource_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
-)
-
-TESTDATA_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    "data",
-    "testmodel",
-    "v2_bergermeer",
-    "results_3di.nc",
-)
-
-
-
 class TestRasterCheckerEntrees(unittest.TestCase):
     """Test the QGIS Environment"""
 
     def setUp(self):
-        here = os.path.split(os.path.abspath(__file__))[0]
         sqlite_filename = "rasterchecker_2entree_5tiff.sqlite"
-        self.test_sqlite_path = os.path.join(here, "data", sqlite_filename)
+        self.test_sqlite_path = os.path.join(TEST_DATA_DIR, sqlite_filename)
         db_type = "spatialite"
         db_set = {"db_path": self.test_sqlite_path}
         db = ThreediDatabase(db_set, db_type)
@@ -45,12 +37,9 @@ class TestRasterCheckerEntrees(unittest.TestCase):
 
     def test_if_testdata_exists(self):
         """ we need 1 sqlite and 3 rasters """
-        # sqlite exists?
         self.assertTrue(os.path.isfile(self.test_sqlite_path))
-        # rasters exists?
-        here = os.path.split(os.path.abspath(__file__))[0]
         for tif in ["test1.tif", "test2.tif", "test3.tif"]:
-            self.assertTrue(os.path.isfile(os.path.join(here, "data", "rasters", tif)))
+            self.assertTrue(os.path.isfile(os.path.join(TEST_DATA_DIR, "rasters", tif)))
 
     def test_datamodel_v2weir_name(self):
         self.assertEqual(self.datamodel.v2_weir.name, "v2_weir")
@@ -110,8 +99,7 @@ class TestRasterChecker(unittest.TestCase):
     """Test the QGIS Environment"""
 
     def setUp(self,):
-        here = os.path.split(os.path.abspath(__file__))[0]
-        self.test_sqlite_dir = os.path.join(here, "data")
+        self.test_sqlite_dir = TEST_DATA_DIR
         db = mock.MagicMock()
         self.checker = RasterChecker(db)
         # we do not need a sqlite, but we need a sqlite_dir (3di rasters are expected
@@ -122,9 +110,7 @@ class TestRasterChecker(unittest.TestCase):
     def test_if_testdata_exists(self):
         """ TestRasterChecker does not use the sqlite, but only needs some rasters """
         for tif in ["test1.tif", "test2.tif", "test3.tif"]:
-            self.assertTrue(
-                os.path.isfile(os.path.join(self.test_sqlite_dir, "rasters", tif))
-            )
+            self.assertTrue(os.path.isfile(os.path.join(TEST_DATA_DIR, "rasters", tif)))
 
     def test_has_raster_checker_run_method(self):
         self.assertTrue(hasattr(self.checker, "run"))
