@@ -99,13 +99,12 @@ class TestRasterChecker(unittest.TestCase):
     """Test the QGIS Environment"""
 
     def setUp(self,):
-        self.test_sqlite_dir = TEST_DATA_DIR
         db = mock.MagicMock()
         self.checker = RasterChecker(db)
         # we do not need a sqlite, but we need a sqlite_dir (3di rasters are expected
         # in a subfolder of sqlite_dir. Usually checker.sqlite_dir is set with db,
-        # which is mocked in TestRasterChecker. We set it now
-        self.checker.sqlite_dir = self.test_sqlite_dir
+        # which is mocked in TestRasterChecker. So lets set it by hand
+        self.checker.sqlite_dir = TEST_DATA_DIR
 
     def test_if_testdata_exists(self):
         """ TestRasterChecker does not use the sqlite, but only needs some rasters """
@@ -283,7 +282,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertFalse(self.get_result())  # True as filename is invalid
 
     def test_check_singleband(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -294,7 +293,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())  # True as test1.tif is singleband
 
     def test_check_nodata(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -305,7 +304,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())  # True as test1.tif nodata=-9999
 
     def test_check_proj_unit(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -316,7 +315,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())  # True as unit is 'metre'
 
     def test_check_flt32(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -327,7 +326,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     def test_check_compress(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -338,7 +337,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     def test_check_pixel_decimal(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -349,7 +348,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     def test_check_square_pixel(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -360,7 +359,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     def test_check_extreme_value(self):
-        raster_path = os.path.join(self.test_sqlite_dir, "rasters/test1.tif")
+        raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
         rast_item = "rasters/test1.tif"
@@ -381,8 +380,8 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_proj(self):
         dem = "rasters/test1.tif"
         rast_item = "rasters/test2.tif"
-        dem_path = os.path.join(self.test_sqlite_dir, dem)
-        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_path = os.path.join(TEST_DATA_DIR, dem)
+        other_path = os.path.join(TEST_DATA_DIR, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
         setting_id = 2
@@ -396,8 +395,8 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_pixelsize(self):
         dem = "rasters/test1.tif"
         rast_item = "rasters/test2.tif"
-        dem_path = os.path.join(self.test_sqlite_dir, dem)
-        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_path = os.path.join(TEST_DATA_DIR, dem)
+        other_path = os.path.join(TEST_DATA_DIR, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
         setting_id = 2
@@ -416,8 +415,8 @@ class TestRasterChecker(unittest.TestCase):
         self.checker.results.store_cnt_data_nodata = []
         dem = "rasters/test1.tif"
         rast_item = "rasters/test2.tif"
-        dem_path = os.path.join(self.test_sqlite_dir, dem)
-        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_path = os.path.join(TEST_DATA_DIR, dem)
+        other_path = os.path.join(TEST_DATA_DIR, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
         setting_id = 1
@@ -445,8 +444,8 @@ class TestRasterChecker(unittest.TestCase):
     def test_check_extent(self):
         dem = "rasters/test1.tif"
         rast_item = "rasters/test2.tif"
-        dem_path = os.path.join(self.test_sqlite_dir, dem)
-        other_path = os.path.join(self.test_sqlite_dir, rast_item)
+        dem_path = os.path.join(TEST_DATA_DIR, dem)
+        other_path = os.path.join(TEST_DATA_DIR, rast_item)
         dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
         src_ds = gdal.Open(other_path, GA_ReadOnly)
         setting_id = 2

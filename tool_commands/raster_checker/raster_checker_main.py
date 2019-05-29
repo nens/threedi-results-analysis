@@ -14,19 +14,9 @@ from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
+from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
+from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_prework
 from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import (
-    RasterCheckerProgressBar,
-)
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import (
-    RasterCheckerResults,
-)
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
-    DataModelSource,
-)
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
-    RasterCheckerEntrees,
-)
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -49,15 +39,17 @@ class RasterChecker(object):
         self.engine = self.db.get_engine()
         self.metadata = MetaData(bind=self.engine)
 
-        datamodel = DataModelSource(self.metadata)
+        datamodel = raster_checker_prework.DataModelSource(self.metadata)
 
-        raster_checker_entrees = RasterCheckerEntrees(datamodel, self.session)
+        raster_checker_entrees = raster_checker_prework.RasterCheckerEntrees(
+            datamodel, self.session
+        )
         self.entrees = raster_checker_entrees.entrees
         self.entrees_metadata = raster_checker_entrees.entrees_metadata
 
         sqlite_path = str(self.db.settings["db_path"])
         self.sqlite_dir = os.path.split(sqlite_path)[0]
-        self.results = RasterCheckerResults(sqlite_path)
+        self.results = raster_checker_log.RasterCheckerResults(sqlite_path)
 
         self.progress_bar = None
         self.unique_id_name = []
@@ -906,7 +898,7 @@ class RasterChecker(object):
         ps: adding or deleting a check can be done via RASTER_CHECKER_MAPPER
         """
 
-        self.progress_bar = RasterCheckerProgressBar(
+        self.progress_bar = raster_checker_log.RasterCheckerProgressBar(
             self.nr_phases, maximum=100, message_title="Raster Checker"
         )
 
