@@ -10,7 +10,7 @@ from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
     DataModelSource,
 )
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
-    RasterCheckerEntrees,
+    RasterCheckerEntries,
 )
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
@@ -20,11 +20,11 @@ import unittest
 import unittest.mock
 
 
-class TestRasterCheckerEntrees(unittest.TestCase):
+class TestRasterCheckerEntries(unittest.TestCase):
     """Test the QGIS Environment"""
 
     def setUp(self):
-        sqlite_filename = "rasterchecker_2entree_5tiff.sqlite"
+        sqlite_filename = "rasterchecker_2entries_5tiff.sqlite"
         self.test_sqlite_path = os.path.join(TEST_DATA_DIR, sqlite_filename)
         db_type = "spatialite"
         db_set = {"db_path": self.test_sqlite_path}
@@ -33,7 +33,7 @@ class TestRasterCheckerEntrees(unittest.TestCase):
         engine = db.get_engine()
         self.metadata = MetaData(bind=engine)
         self.datamodel = DataModelSource(self.metadata)
-        self.rc_entrees = RasterCheckerEntrees(self.datamodel, session)
+        self.rc_entries = RasterCheckerEntries(self.datamodel, session)
 
     def test_if_testdata_exists(self):
         """ we need 1 sqlite and 3 rasters """
@@ -53,52 +53,52 @@ class TestRasterCheckerEntrees(unittest.TestCase):
             ("v2_interflow", 1, "porosity_file", "rasters/test1.tif"),
         ]
 
-        self.assertTrue(hasattr(self.rc_entrees, "all_raster_ref"))
-        all_raster_ref = self.rc_entrees.all_raster_ref
+        self.assertTrue(hasattr(self.rc_entries, "all_raster_ref"))
+        all_raster_ref = self.rc_entries.all_raster_ref
         self.assertEqual(sorted(all_raster_ref), sorted(all_raster_ref_expect))
 
     def test_get_foreign_keys(self):
-        self.assertTrue(hasattr(self.rc_entrees, "foreign_keys"))
+        self.assertTrue(hasattr(self.rc_entries, "foreign_keys"))
         foreign_keys_expect = [
             ("v2_global_settings", 2, "interflow_settings_id", 1),
             ("v2_global_settings", 1, "groundwater_settings_id", 4),
         ]
-        foreign_keys = self.rc_entrees.foreign_keys
+        foreign_keys = self.rc_entries.foreign_keys
         self.assertEqual(sorted(foreign_keys), sorted(foreign_keys_expect))
 
     def test_get_unique_setting_ids(self):
-        self.assertTrue(hasattr(self.rc_entrees, "unique_setting_ids"))
-        unique_setting_ids = self.rc_entrees.unique_setting_ids
+        self.assertTrue(hasattr(self.rc_entries, "unique_setting_ids"))
+        unique_setting_ids = self.rc_entries.unique_setting_ids
         self.assertEqual(unique_setting_ids, [1, 2])
 
-    def test_entrees(self):
-        self.assertTrue(hasattr(self.rc_entrees, "entrees"))
-        entrees = self.rc_entrees.entrees
-        entrees_expect = {
+    def test_entries(self):
+        self.assertTrue(hasattr(self.rc_entries, "entries"))
+        entries = self.rc_entries.entries
+        entries_expect = {
             1: ("rasters/test1.tif", "rasters/test2.tif"),
             2: ("rasters/test3.tif", "rasters/test2.tif", "rasters/test1.tif"),
         }
-        # do not sort entrees as dictvalues (=tuple with strings) must
+        # do not sort entries as dictvalues (=tuple with strings) must
         # have specific order (dem = first)
-        self.assertEqual(entrees, entrees_expect)
+        self.assertEqual(entries, entries_expect)
 
-    def test_entrees_metadata(self):
-        self.assertTrue(hasattr(self.rc_entrees, "entrees_metadata"))
-        entrees = self.rc_entrees.entrees_metadata
-        entrees_meta_expect = [
+    def test_entries_metadata(self):
+        self.assertTrue(hasattr(self.rc_entries, "entries_metadata"))
+        entries = self.rc_entries.entries_metadata
+        entries_meta_expect = [
             (1, "v2_global_settings", "dem_file", "rasters/test1.tif"),
             (1, "v2_groundwater", "leakage_file", "rasters/test2.tif"),
             (2, "v2_global_settings", "dem_file", "rasters/test3.tif"),
             (2, "v2_global_settings", "frict_coef_file", "rasters/test2.tif"),
             (2, "v2_interflow", "porosity_file", "rasters/test1.tif"),
         ]
-        self.assertEqual(sorted(entrees), sorted(entrees_meta_expect))
+        self.assertEqual(sorted(entries), sorted(entries_meta_expect))
 
 
 class TestRasterChecker(unittest.TestCase):
     """Test the QGIS Environment"""
 
-    def setUp(self,):
+    def setUp(self):
         db = mock.MagicMock()
         self.checker = RasterChecker(db)
         # we do not need a sqlite, but we need a sqlite_dir (3di rasters are expected

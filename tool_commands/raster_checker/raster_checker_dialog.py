@@ -58,7 +58,7 @@ class RasterCheckerDialogWidget(QDialog):
             msg = "sqlite %s not found" % str(db_set["db_path"])
             raise Exception(msg)
 
-        # TODO: check_all_rasters always runs. Enable check per model entree
+        # TODO: check_all_rasters always runs. Enable check per model entry
         checks = []
         if self.check_all_rasters.isChecked():
             checks.append("check all rasters")
