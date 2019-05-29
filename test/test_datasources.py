@@ -102,13 +102,6 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         """Test empty constructor."""
         ThreediResult()
 
-    def test_sanity(self):
-        threedi_result = ThreediResult()
-        m = mock.MagicMock()
-        threedi_result._datasource = m
-        # sanity test
-        self.assertEqual(threedi_result.datasource, m)
-
     @mock.patch(
         "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
@@ -116,8 +109,7 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
-        m = mock.MagicMock()
-        threedi_result._datasource = m
+        threedi_result._datasource = mock.MagicMock()
         threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):

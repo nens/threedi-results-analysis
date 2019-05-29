@@ -38,7 +38,9 @@ DEPENDENCIES = [
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
+    Dependency("cached-property", "cached_property", ""),
 ]
+# If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
 
 OUR_DIR = Path(__file__).parent
@@ -48,6 +50,9 @@ logger = logging.getLogger(__name__)
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
+    print("sys.path:")
+    for directory in sys.path:
+        print("  - %s" % directory)
     missing = _check_presence(DEPENDENCIES)
     target_dir = _dependencies_target_dir()
     _install_dependencies(missing, target_dir=target_dir)
@@ -85,14 +90,16 @@ def check_importability():
     """
     packages = [dependency.package for dependency in DEPENDENCIES]
     packages += INTERESTING_IMPORTS
+    logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
     for package in packages:
         imported_package = importlib.import_module(package)
-        logger.info("Import '%s' found at '%s'", package, imported_package.__file__)
+        logger.info(
+            "Import '%s' found at \n    '%s'", package, imported_package.__file__
+        )
 
 
 def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
-        print(sys.path)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         result = subprocess.run(
             [
