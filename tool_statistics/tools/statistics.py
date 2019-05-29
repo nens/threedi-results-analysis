@@ -7,6 +7,7 @@ from ..sql_models.statistics import PumplineStats
 from ..sql_models.statistics import StatSource
 from ..sql_models.statistics import WeirStats
 from ..utils.statistics_database import StaticsticsDatabase
+from cached_property import cached_property
 from collections import OrderedDict
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsProject
@@ -22,7 +23,6 @@ from ThreeDiToolbox.utils.threedi_database import load_spatialite
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.utils.user_messages import progress_bar
-from ThreeDiToolbox.utils.utils import cached_property
 
 import logging
 import numpy as np

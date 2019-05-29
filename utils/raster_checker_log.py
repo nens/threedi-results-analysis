@@ -1,6 +1,6 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
 from ..utils.user_messages import StatusProgressBar
+from cached_property import cached_property
 from jinja2 import Template
 from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
 
@@ -19,7 +19,6 @@ class RasterCheckerResults(object):
         self.result_per_phase = []
         self.store_cnt_data_nodata = []
         self.log_path = None
-        self._last_phase = None
         self.nr_error_logrows = 0
 
     def __repr__(self):
@@ -268,14 +267,10 @@ class RasterCheckerResults(object):
             render_msg = temp_msg.render(check_id=check_id)
             self.log_file.write(render_msg + "\n")
 
-    @property
+    @cached_property
     def last_check_phase(self):
         """ returns last checkphase (int) of RASTER_CHECKER_MAPPER """
-        if self._last_phase is None:
-            self._last_phase = max(
-                [chck.get("phase") for chck in RASTER_CHECKER_MAPPER]
-            )
-        return self._last_phase
+        return max([chck.get("phase") for chck in RASTER_CHECKER_MAPPER])
 
     def add_intro(self):
         """ enters some (general) explaining lines."""

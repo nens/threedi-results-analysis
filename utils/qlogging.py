@@ -78,10 +78,14 @@ def setup_logging():
     """
     root_logger = logging.getLogger("")
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
+    verbose_pyqt_logger = logging.getLogger("PyQt5.uic")
 
     # Python's default log level is WARN, but we also want to see DEBUG
     # messages.
     root_logger.setLevel(logging.DEBUG)
+    # But we don't want all the "PyQt5.uic.properties DEBUG setting property text"
+    # messages.
+    verbose_pyqt_logger.setLevel(logging.INFO)
 
     python_formatter = logging.Formatter(PYTHON_FORMAT)
     qgis_formatter = logging.Formatter(QGIS_FORMAT)
