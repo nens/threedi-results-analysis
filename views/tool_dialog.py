@@ -2,8 +2,11 @@ from qgis.core import QgsProject
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
 
+import logging
 import os
 
+
+logger = logging.getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), os.pardir, "ui", "tool_dialog.ui")
@@ -62,14 +65,14 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
         self.buttonBox.rejected.connect(self.on_reject)
 
     def on_layerbox_activate(self, idx):
-        print(idx)
         self.selected_layer = self.layers[idx].layer()
-        print("Selected layer: %s" % self.selected_layer.name())
+        logger.debug("Selected layer: %s", self.selected_layer.name())
 
     def on_datasourcebox_activate(self, idx):
-        print(idx)
         self.selected_datasource = self.datasources[idx]
-        print("Selected datasource: %s" % self.selected_datasource.file_path.value)
+        logger.debug(
+            "Selected datasource: %s", self.selected_datasource.file_path.value
+        )
 
     def on_accept(self):
         """Accept and run the Command.run_it method."""
@@ -81,7 +84,6 @@ class ToolDialogWidget(QDialog, FORM_CLASS):
     def on_reject(self):
         """Cancel"""
         self.reject()
-        print("Reject")
 
     def closeEvent(self, event):
         """

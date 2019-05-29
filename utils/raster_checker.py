@@ -1026,7 +1026,7 @@ class RasterChecker(object):
 
         layer = iface.addVectorLayer(self.shape_path, basename, provider)
         if not layer:
-            print("Layer failed to load!")
+            logger.error("Layer %s failed to load!", self.shape_path)
 
     def pop_up_finished_or_question(self):
         """3 things (columns below) can be true or false. Dependent on that we
