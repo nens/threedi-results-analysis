@@ -24,7 +24,6 @@
 """
 import logging
 import re
-import types
 
 
 __revision__ = "$Rev$"[6:-2]
@@ -692,8 +691,8 @@ class BijzonderLeidingprofiel(HydroObject):
                 ]
             )
         try:
-            ## if any profile point is empty, shift fields to the left
-            ## TODO 2069
+            # if any profile point is empty, shift fields to the left
+            # TODO 2069
             while (
                 self.pro_br_000
                 == self.pro_no_000
@@ -991,15 +990,15 @@ class HydroObjectFactory(object):
         "*GEM": (Gemaal_Tak,),
         "*AFV": (AfvoerendOppervlak_Tak,),
         "*DRL": (Doorlaat,),
-        #'*DWA': (DWAVerloopPerInwoner,),
+        # '*DWA': (DWAVerloopPerInwoner,),
         "*KPG": (Koppeling,),
-        #'*LZD': (DWALozingMetDagcyclus,),
+        # '*LZD': (DWALozingMetDagcyclus,),
         "*OVS": (Overstort_Tak,),
         "*UIT": (UitlaatMetKeerklep_Tak,),
-        #'*AFK': (AfvoerendOppervlakMetBijzondereKenmerken_Tak, ),
-        #'*PRO': (BijzonderLeidingprofiel,),
-        #'*INL': (BijzondereInloopparameters,),
-        #'*INI': (InitieleLeidingWaarden,),
+        # '*AFK': (AfvoerendOppervlakMetBijzondereKenmerken_Tak, ),
+        # '*PRO': (BijzonderLeidingprofiel,),
+        # '*INL': (BijzondereInloopparameters,),
+        # '*INI': (InitieleLeidingWaarden,),
         "*AL1": (AlgemeneInformatie,),
         "*AL2": (AlgemeneInformatie,),
         "*AL3": (AlgemeneInformatie,),
