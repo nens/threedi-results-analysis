@@ -1,6 +1,8 @@
 # coding=utf-8
 """Tests QGIS plugin init."""
 
+from pathlib import Path
+
 import configparser
 import logging
 import os
@@ -8,6 +10,8 @@ import unittest
 
 
 logger = logging.getLogger(__name__)
+
+TEST_DATA_DIR = Path(__file__).parent.joinpath("data")
 
 
 class TestInit(unittest.TestCase):

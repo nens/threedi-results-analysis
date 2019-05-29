@@ -14,11 +14,9 @@ from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerProgressBar
-from ThreeDiToolbox.utils.raster_checker_log import RasterCheckerResults
-from ThreeDiToolbox.utils.raster_checker_prework import DataModelSource
-from ThreeDiToolbox.utils.raster_checker_prework import RasterCheckerEntrees
+from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
+from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_prework
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -41,15 +39,17 @@ class RasterChecker(object):
         self.engine = self.db.get_engine()
         self.metadata = MetaData(bind=self.engine)
 
-        datamodel = DataModelSource(self.metadata)
+        datamodel = raster_checker_prework.DataModelSource(self.metadata)
 
-        raster_checker_entrees = RasterCheckerEntrees(datamodel, self.session)
-        self.entrees = raster_checker_entrees.entrees
-        self.entrees_metadata = raster_checker_entrees.entrees_metadata
+        raster_checker_entries = raster_checker_prework.RasterCheckerEntries(
+            datamodel, self.session
+        )
+        self.entries = raster_checker_entries.entries
+        self.entries_metadata = raster_checker_entries.entries_metadata
 
         sqlite_path = str(self.db.settings["db_path"])
         self.sqlite_dir = os.path.split(sqlite_path)[0]
-        self.results = RasterCheckerResults(sqlite_path)
+        self.results = raster_checker_log.RasterCheckerResults(sqlite_path)
 
         self.progress_bar = None
         self.unique_id_name = []
@@ -58,7 +58,7 @@ class RasterChecker(object):
         # some check constants
         self.no_data_value_int = -9999
         self.no_data_value_flt = -9999.0
-        self.max_pixels_allow = 1000000000  # 1 billion all rasters 1 entree
+        self.max_pixels_allow = 1000000000  # 1 billion all rasters 1 entry
 
     def close_session(self):
         try:
@@ -645,7 +645,7 @@ class RasterChecker(object):
 
         current_status = self.progress_bar.current_status
         progress_per_raster = self.progress_bar.get_progress_per_raster(
-            self.entrees, self.results, current_status
+            self.entries, self.results, current_status
         )
         self.progress_bar.increase_progress(progress_per_raster)
 
@@ -716,7 +716,7 @@ class RasterChecker(object):
         We dont analyse whole raster at once, but blockwise (per boundingbox).
         Each pixel is represented by a column nr (in the end used to get
         x-coor) and a row nr (in the end used to get y-coor).
-        :param setting_id: int (v2_global_setting id of model_entree)
+        :param setting_id: int (v2_global_setting id of model entry)
         :param bbox1:
         :param compare_mask:
         :return: coords
@@ -898,7 +898,7 @@ class RasterChecker(object):
         ps: adding or deleting a check can be done via RASTER_CHECKER_MAPPER
         """
 
-        self.progress_bar = RasterCheckerProgressBar(
+        self.progress_bar = raster_checker_log.RasterCheckerProgressBar(
             self.nr_phases, maximum=100, message_title="Raster Checker"
         )
 
@@ -906,14 +906,14 @@ class RasterChecker(object):
 
         phase = 1
         self.progress_bar.set_progress(0)
-        for setting_id, rasters in self.entrees.items():
+        for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
         self.progress_bar.increase_progress(progress_per_phase, "done phase 1")
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
-        for setting_id, rasters in self.entrees.items():
+        for setting_id, rasters in self.entries.items():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             if rasters_ready:
@@ -922,8 +922,8 @@ class RasterChecker(object):
         self.progress_bar.increase_progress(progress_per_phase, "done phase 2")
 
         phase = 3
-        # cumulative pixels of all rasters in 1 entree not too much?
-        for setting_id, rasters in self.entrees.items():
+        # cumulative pixels of all rasters in 1 entry not too much?
+        for setting_id, rasters in self.entries.items():
             # we only check rasters that passed blocking checks previous phase
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
@@ -931,12 +931,12 @@ class RasterChecker(object):
         self.progress_bar.increase_progress(progress_per_phase, "done phase 3")
 
         phase = 4
-        # compare rasters with dem in same entree
-        for setting_id, rasters in self.entrees.items():
+        # compare rasters with dem in same entry
+        for setting_id, rasters in self.entries.items():
             # we only check rasters that passed blocking checks of phase 2
             rasters_ready = self.results.get_rasters_ready(setting_id, 3)
             # We will compare the dem with other rasters. We need:
-            # - at least two rasters per entree and
+            # - at least two rasters per entry and
             # - the dem_file (which is the first value (rasters[0])
             if len(rasters_ready) >= 2 and rasters[0] in rasters_ready:
                 # make sure again that dem is on first index
@@ -947,7 +947,7 @@ class RasterChecker(object):
 
         phase = 5
         self.input_data_shp = []
-        for setting_id, rasters in self.entrees.items():
+        for setting_id, rasters in self.entries.items():
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             # Note that the dem always passed the previous phase (as we then
             # compared the dem with other rasters). If other raster was
@@ -1133,7 +1133,7 @@ class RasterChecker(object):
         self.close_session()
         self.results.sort_results()
         # write and save logger file (here the self.results.log_path is created)
-        self.results.write_log(self.entrees_metadata)
+        self.results.write_log(self.entries_metadata)
 
         # only create shp if wrong pixels found
         self.need_to_create_shp = bool(self.input_data_shp)

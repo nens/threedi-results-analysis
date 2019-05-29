@@ -2,8 +2,10 @@
 from cached_property import cached_property
 from sqlalchemy import select
 from sqlalchemy import Table
-from ThreeDiToolbox.utils.constants import NON_SETTINGS_TBL_WITH_RASTERS
-from ThreeDiToolbox.utils.constants import V2_TABLES
+from ThreeDiToolbox.tool_commands.raster_checker.constants import (
+    NON_SETTINGS_TBL_WITH_RASTERS,
+)
+from ThreeDiToolbox.tool_commands.raster_checker.constants import V2_TABLES
 
 import logging
 
@@ -41,7 +43,7 @@ class DataModelSource(object):
                 )
 
 
-class RasterCheckerEntrees(object):
+class RasterCheckerEntries(object):
     """
     Class for getting all rasters references in a sqlite
     """
@@ -141,7 +143,7 @@ class RasterCheckerEntrees(object):
         unique_setting_ids.sort()
         return unique_setting_ids
 
-    def check_dem_used(self, entree_id):
+    def check_dem_used(self, entry_id):
         dem_used = False
         for ref_item in self.all_raster_ref:
             ref_column_name = ref_item[2]
@@ -151,29 +153,29 @@ class RasterCheckerEntrees(object):
             logger.warning(
                 "RasterChecker skips v2_global_settings id %d as"
                 "this id does not (but must) refer to an "
-                "elevation raster" % entree_id
+                "elevation raster" % entry_id
             )
         return dem_used
 
     @cached_property
-    def entrees_metadata(self):
+    def entries_metadata(self):
         """
-        get all raster references (and other metadata) per model_entree_id
-        :return: _entrees_metadata: a tuple with with tuples with metadata:
-            ((model entree id, table name, column name, raster name)) e.g.:
+        get all raster references (and other metadata) per model entry id
+        :return: _entries_metadata: a tuple with with tuples with metadata:
+            ((model entry id, table name, column name, raster name)) e.g.:
             ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'),
              (1, 'v2_groundwater', 'leakage_file', 'rasters/test2.tif'),
              (2, 'v2_global_settings', 'dem_file', 'rasters/test3.tif'),
              (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
              (2, 'v2_interflow', 'porosity_file', 'rasters/test2.tif'))
         """
-        entrees_dict_log_file = []
+        entries_dict_log_file = []
 
-        model_entree_ids = self.unique_setting_ids
-        for entree_id in model_entree_ids:
+        model_entries_ids = self.unique_setting_ids
+        for entry_id in model_entries_ids:
 
-            if not self.check_dem_used(entree_id):
-                # no elevation raster here, so go to next model_entree
+            if not self.check_dem_used(entry_id):
+                # no elevation raster here, so go to next model entry
                 continue
             # first find the dem (assumed that this is always in the
             # v2_global_settings table)
@@ -183,12 +185,12 @@ class RasterCheckerEntrees(object):
                 ref_column_name = ref_item[2]
                 ref_raster_str = ref_item[3]
                 if (
-                    ref_setting_id == entree_id
+                    ref_setting_id == entry_id
                     and ref_tbl_name == "v2_global_settings"
                     and ref_column_name == "dem_file"
                 ):
-                    entrees_dict_log_file.append(
-                        (entree_id, ref_tbl_name, ref_column_name, ref_raster_str)
+                    entries_dict_log_file.append(
+                        (entry_id, ref_tbl_name, ref_column_name, ref_raster_str)
                     )
             # now the rest of the rasters (in the v2_global_settings)
             for ref_item in self.all_raster_ref:
@@ -197,12 +199,12 @@ class RasterCheckerEntrees(object):
                 ref_column_name = ref_item[2]
                 ref_raster_str = ref_item[3]
                 if (
-                    ref_setting_id == entree_id
+                    ref_setting_id == entry_id
                     and ref_tbl_name == "v2_global_settings"
                     and ref_column_name != "dem_file"
                 ):
-                    entrees_dict_log_file.append(
-                        (entree_id, ref_tbl_name, ref_column_name, ref_raster_str)
+                    entries_dict_log_file.append(
+                        (entry_id, ref_tbl_name, ref_column_name, ref_raster_str)
                     )
             # now the rest of the rasters outside of the v2_global_settings
             for ref_item in self.all_raster_ref:
@@ -217,13 +219,13 @@ class RasterCheckerEntrees(object):
                             fk_column_name = fk_item[2]
                             fk_id = fk_item[3]
                             if (
-                                fk_setting_id == entree_id
+                                fk_setting_id == entry_id
                                 and fk_column_name == col
                                 and fk_id == ref_setting_id
                             ):
-                                entrees_dict_log_file.append(
+                                entries_dict_log_file.append(
                                     (
-                                        entree_id,
+                                        entry_id,
                                         ref_tbl_name,
                                         ref_column_name,
                                         ref_raster_str,
@@ -231,10 +233,10 @@ class RasterCheckerEntrees(object):
                                 )
         # sort the list with tuple based on the first element of tuple, which
         # is the setting_id
-        entrees_dict_log_file.sort(key=self.sort_by_setting_id)
+        entries_dict_log_file.sort(key=self.sort_by_setting_id)
         # convert list with tuple to tuple with tuples so that dem is always
         # on the first index (important in the rest of the RasterChecker)
-        return tuple(entrees_dict_log_file)
+        return tuple(entries_dict_log_file)
 
     def sort_by_setting_id(self, elem):
         if len(elem) != 4:
@@ -242,28 +244,28 @@ class RasterCheckerEntrees(object):
         return elem[0]
 
     @cached_property
-    def entrees(self):
+    def entries(self):
         """
         abstracts only necessary info (setting_id and rasternames) from
-        self.entrees_metadata and puts it in a dictionary. Each element in that
-        dict is a modelentree
-        So from this (self.entrees_metadata)
+        self.entries_metadata and puts it in a dictionary. Each element in that
+        dict is a model entry
+        So from this (self.entries_metadata)
             ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'),
              (1, 'v2_groundwater', 'leakage_file', 'rasters/test2.tif'),
              (2, 'v2_global_settings', 'dem_file', 'rasters/test3.tif'),
              (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
              (2, 'v2_interflow', 'porosity_file', 'rasters/test2.tif'))
-        to this: (self._entrees)
+        to this: (self._entries)
          {1: ('rasters/test1.tif', 'rasters/test2.tif'),
           2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test2.tif')}
-        :return: self._entrees (dict)
+        :return: self._entries (dict)
         """
-        entrees = {}
+        entries = {}
         for unique_id in self.unique_setting_ids:
-            entrees.setdefault(unique_id, ())
-            for row in self.entrees_metadata:
+            entries.setdefault(unique_id, ())
+            for row in self.entries_metadata:
                 setting_id = row[0]
                 raster = row[3]
                 if unique_id == setting_id:
-                    entrees[setting_id] = entrees[setting_id] + (raster,)
-        return entrees
+                    entries[setting_id] = entries[setting_id] + (raster,)
+        return entries

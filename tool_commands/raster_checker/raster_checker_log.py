@@ -1,8 +1,8 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-from ..utils.user_messages import StatusProgressBar
 from cached_property import cached_property
 from jinja2 import Template
-from ThreeDiToolbox.utils.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 import os
@@ -226,15 +226,15 @@ class RasterCheckerResults(object):
         )
         return msg
 
-    def add_found_rasters(self, entrees_metadata):
+    def add_found_rasters(self, entries_metadata):
         """ write some logger file lines about which rasters have been checked
-        :param entrees_metadata: tuple with tuples e.g:
+        :param entries_metadata: tuple with tuples e.g:
         ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'))
         :return: none
         """
         msg = "\n-- Found following raster references: -- \n"
         self.log_file.write(msg)
-        for rast_tuple in entrees_metadata:
+        for rast_tuple in entries_metadata:
             setting_id = rast_tuple[0]
             tbl = rast_tuple[1]
             column = rast_tuple[2]
@@ -352,7 +352,7 @@ class RasterCheckerResults(object):
             msg = "all checks have been done on all rasters"
             self.log_file.write(msg)
 
-    def write_log(self, entrees_metadata):
+    def write_log(self, entries_metadata):
         timestr = time.strftime("_%Y%m%d_%H%M")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
@@ -368,7 +368,7 @@ class RasterCheckerResults(object):
             )
 
         self.add_intro()
-        self.add_found_rasters(entrees_metadata)
+        self.add_found_rasters(entries_metadata)
         self.result_per_check_to_log()
         self.result_per_phase_to_log()
         self.log_file.close()
@@ -380,7 +380,7 @@ class RasterCheckerProgressBar(StatusProgressBar):
         self.maximum = maximum
         self.progress_per_phase = int(maximum / nr_phases)
 
-    def get_progress_per_raster(self, entrees, results, current_status):
+    def get_progress_per_raster(self, entries, results, current_status):
         """
         if pixel_alignment has been chose by user, then the progress_bar is
         filled up to e.g 80% at the start of that last phase (pixel alignment)
@@ -393,7 +393,7 @@ class RasterCheckerProgressBar(StatusProgressBar):
         pixel alignment
         """
         count_rasters = 0
-        for setting_id, rasters in entrees.items():
+        for setting_id, rasters in entries.items():
             rasters_ready = results.get_rasters_ready(setting_id, 5)
             if len(rasters_ready) >= 1:
                 count_rasters += len(rasters_ready)
