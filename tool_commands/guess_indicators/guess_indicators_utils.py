@@ -34,11 +34,8 @@ class Guesser(object):
         """Reset messages."""
         self.messages = []
 
-    def guess_manhole_indicator(self, only_empty_fields=True):
-        """Guess the manhole indicator."""
-        session = self.db.get_session()
+    def _manhole_indicator_pumpstation(self, session, only_empty_fields=True):
         update_counter = 0
-
         # note: sqlite can not use a join with another table in an update
         # statement, so use 'in'
         up = (
@@ -55,7 +52,12 @@ class Guesser(object):
         ret = session.execute(up)
         update_counter += ret.rowcount
         session.commit()
+        self.messages.append(
+            "Manhole indicator updated {0} pumpstation manholes.".format(update_counter)
+        )
 
+    def _manhole_indicator_outlet(self, session, only_empty_fields=True):
+        update_counter = 0
         up = (
             update(Manhole)
             .where(
@@ -70,7 +72,12 @@ class Guesser(object):
         ret = session.execute(up)
         update_counter += ret.rowcount
         session.commit()
+        self.messages.append(
+            "Manhole indicator updated {0} outlet manholes.".format(update_counter)
+        )
 
+    def _manhole_indicator_manhole(self, session, only_empty_fields=True):
+        update_counter = 0
         up = (
             update(Manhole)
             .where(Manhole.manhole_indicator.is_(None))
@@ -81,12 +88,17 @@ class Guesser(object):
         ret = session.execute(up)
         update_counter += ret.rowcount
         session.commit()
-
-        session.close()
-
         self.messages.append(
             "Manhole indicator updated {0} manholes.".format(update_counter)
         )
+
+    def guess_manhole_indicator(self, only_empty_fields=True):
+        """Guess the manhole indicator."""
+        session = self.db.get_session()
+        self._manhole_indicator_pumpstation(session, only_empty_fields)
+        self._manhole_indicator_outlet(session, only_empty_fields)
+        self._manhole_indicator_manhole(session, only_empty_fields)
+        session.close()
 
     def guess_pipe_friction(self, only_empty_fields=True):
         """Guess the pipe friction."""
