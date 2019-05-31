@@ -1,6 +1,6 @@
 from sqlite3 import dbapi2 as dbapi
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
+from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_statistics.tools.statistics import StatisticsTool
 
 import mock
@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 
-test_data_dir = os.path.dirname(THREEDI_RESULTS_PATH)
+test_data_dir = TEST_DATA_DIR.joinpath("testmodel", "v2_bergermeer")
 
 
 class DummyTimeseriesDatasourceModel(object):
