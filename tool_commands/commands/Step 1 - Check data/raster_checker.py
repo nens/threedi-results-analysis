@@ -1,6 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_dialog import (
     RasterCheckerDialogWidget,
 )
@@ -9,6 +8,7 @@ from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
 )
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
+from tool_commands.custom_command_base import CustomCommandBase
 
 import inspect
 import logging
