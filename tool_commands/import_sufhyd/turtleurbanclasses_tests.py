@@ -1917,8 +1917,6 @@ class Bug02713(object):  # (unittest.TestCase):
 *LEI   20           20.2\000      1   -4.87   -4.87  22.05 01 00     0.300        00                                        0 3.00\000\001\xFF
 """
 
-    # skipping tests requires python 2.7
-    # @unittest.skip("this test is not yet working, so it's not included")
     def test01(self):
         "bug02713 - test as of ticket"
         obj_list = HydroObjectFactory.hydroObjectListFromSUFHYD(self.ticket_test)
