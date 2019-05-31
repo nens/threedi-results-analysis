@@ -4,7 +4,7 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsGeometry
 from qgis.core import QgsProject
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
-from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
+from tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (

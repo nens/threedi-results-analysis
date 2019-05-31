@@ -1,10 +1,10 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
-from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.utils.guess_indicators import Guesser
+from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
+from ThreeDiToolbox.tool_commands.guess_indicators.guess_indicators_utils import Guesser
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.views.guess_indicator_dialog import GuessIndicatorDialogWidget
+from ThreeDiToolbox.tool_commands.guess_indicators.guess_indicator_view import GuessIndicatorDialogWidget
 
 import inspect
 import logging
