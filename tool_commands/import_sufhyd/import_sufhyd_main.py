@@ -16,7 +16,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import Orifice
 from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.sql_models.model_schematisation import Weir
-from ThreeDiToolbox.utils.importer.sufhyd import SufhydReader
+from ThreeDiToolbox.tool_commands.import_sufhyd.sufhyd_importer import SufhydReader
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 import datetime

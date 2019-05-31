@@ -30,35 +30,34 @@
 # * initial date       :  2008-07-28
 # **********************************************************************
 
-from .turtleurbanclasses import AfvoerendOppervlak
-from .turtleurbanclasses import AfvoerendOppervlak_Knoop
-from .turtleurbanclasses import AfvoerendOppervlak_Tak
-from .turtleurbanclasses import AlgemeneInformatie
-from .turtleurbanclasses import BergendOppervlakKnoop
-from .turtleurbanclasses import Doorlaat
-from .turtleurbanclasses import DWALozingMetDagcyclus
-from .turtleurbanclasses import DWAVerloopPerInwoner
-from .turtleurbanclasses import End
-from .turtleurbanclasses import Gemaal
-from .turtleurbanclasses import Gemaal_Knoop
-from .turtleurbanclasses import Gemaal_Tak
-from .turtleurbanclasses import GeslotenLeiding
-from .turtleurbanclasses import GmlElement
-from .turtleurbanclasses import HydroObjectFactory
-from .turtleurbanclasses import InitieleLeidingWaarden
-from .turtleurbanclasses import isSufHydKey
-from .turtleurbanclasses import Knoop
-from .turtleurbanclasses import Overstort
-from .turtleurbanclasses import Overstort_Knoop
-from .turtleurbanclasses import Overstort_Tak
-from .turtleurbanclasses import UitlaatMetKeerklep
-from .turtleurbanclasses import UitlaatMetKeerklep_Knoop
-from .turtleurbanclasses import UitlaatMetKeerklep_Tak
+from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak
+from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak_Knoop
+from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak_Tak
+from tool_commands.import_sufhyd.turtleurbanclasses import AlgemeneInformatie
+from tool_commands.import_sufhyd.turtleurbanclasses import BergendOppervlakKnoop
+from tool_commands.import_sufhyd.turtleurbanclasses import Doorlaat
+from tool_commands.import_sufhyd.turtleurbanclasses import DWALozingMetDagcyclus
+from tool_commands.import_sufhyd.turtleurbanclasses import DWAVerloopPerInwoner
+from tool_commands.import_sufhyd.turtleurbanclasses import End
+from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal
+from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal_Knoop
+from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal_Tak
+from tool_commands.import_sufhyd.turtleurbanclasses import GeslotenLeiding
+from tool_commands.import_sufhyd.turtleurbanclasses import GmlElement
+from tool_commands.import_sufhyd.turtleurbanclasses import HydroObjectFactory
+from tool_commands.import_sufhyd.turtleurbanclasses import InitieleLeidingWaarden
+from tool_commands.import_sufhyd.turtleurbanclasses import isSufHydKey
+from tool_commands.import_sufhyd.turtleurbanclasses import Knoop
+from tool_commands.import_sufhyd.turtleurbanclasses import Overstort
+from tool_commands.import_sufhyd.turtleurbanclasses import Overstort_Knoop
+from tool_commands.import_sufhyd.turtleurbanclasses import Overstort_Tak
+from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep
+from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Knoop
+from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Tak
 
 import logging
 import mock
 import re
-import types
 import unittest
 
 
@@ -70,7 +69,7 @@ handler = mock.Handler(level=logging.DEBUG)
 # TODO: replace with pytest log fixture
 
 
-class MockWriter(file):
+class MockWriter:
     laws = [
         ("gml:boundedBy", "geometry", True),
         ('<?xml version="1.0" encoding="UTF-8"?>', "header", True),
@@ -91,7 +90,7 @@ class MockWriter(file):
             self.buffer.append(s)
             for pattern, key, value in self.laws:
                 if s.find(pattern) != -1:
-                    if value == True:
+                    if value:
                         self.got[key] = True
                     else:
                         expected, next = value
@@ -1918,8 +1917,6 @@ class Bug02713(object):  # (unittest.TestCase):
 *LEI   20           20.2\000      1   -4.87   -4.87  22.05 01 00     0.300        00                                        0 3.00\000\001\xFF
 """
 
-    ## skipping tests requires python 2.7
-    ## @unittest.skip("this test is not yet working, so it's not included")
     def test01(self):
         "bug02713 - test as of ticket"
         obj_list = HydroObjectFactory.hydroObjectListFromSUFHYD(self.ticket_test)

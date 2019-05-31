@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "import_sufhyd_dialog.ui")
+    os.path.join(os.path.dirname(__file__), "import_sufhyd_dialog.ui")
 )
 
 
