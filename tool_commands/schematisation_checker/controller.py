@@ -7,7 +7,7 @@ from threedi_modelchecker.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
 FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), 'model_checker_view.ui')
+    os.path.join(os.path.dirname(__file__), 'view.ui')
 )
 
 
