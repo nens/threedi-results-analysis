@@ -10,6 +10,7 @@ from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker.controller import \
     SchemaCheckerDialogWidget
 from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import progress_bar
 
 logger = logging.getLogger(__name__)
 
@@ -55,13 +56,21 @@ class CustomCommand(CustomCommandBase):
             pop_up_info(user_message)
             return
 
-        model_errors = []
-        for check, error in model_checker.get_model_error_iterator():
-            formatted_model_error = format_check_results(check, error)
-            model_errors.append(formatted_model_error)
         output_filename = 'Model_errors.txt'
         output_file_path = os.path.join(self.plugin_dir, output_filename)
-        exporters.export_to_file(model_errors, output_file_path)
+
+        session = model_checker.db.get_session()
+
+        total_checks = len(model_checker.config.checks)
+        with progress_bar(self.iface, max_value=total_checks) as pb, \
+                open(output_file_path, "w") as output_file:
+            for i, check in enumerate(model_checker.get_check_iterator()):
+                model_errors = check.get_invalid(session)
+                for error_row in model_errors:
+                    formatted_error = format_check_results(check, error_row)
+                    output_file.write(formatted_error)
+                    output_file.write('\n')
+                pb.setValue(i)
 
         logger.info("Successfully finished running threedi-modelchecker")
         pop_up_info("Finished, see result in <a href='file:/%s'>%s</a>" %
