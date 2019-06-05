@@ -82,7 +82,7 @@ def provide_migration_details(model_checker):
     migration_id, migration_name = model_checker.schema.get_latest_migration()
     logger.info("The selected 3Di model does not have the latest migration")
     logger.info(
-        "Migration id: %s Migration name: %s Expected migration id: %s",
+        "Migration id: %s \nMigration name: %s \nExpected migration id: %s\n",
         migration_id,
         migration_name,
         LATEST_MIGRATION_ID,
@@ -94,11 +94,11 @@ def provide_migration_details(model_checker):
         )
     elif migration_id > LATEST_MIGRATION_ID:
         message = (
-            "The 3Di model has a higher migration than expected, do you have"
+            "The 3Di model has a higher migration than expected, do you have "
             "the latest version of ThreediToolbox?"
         )
     else:
         raise AssertionError(
-            "This should not be possible, get_latest_migration contains a bug"
+            "This should not be possible, get_latest_migration contains a bug?"
         )
     return message
