@@ -9,4 +9,5 @@ mock
 pytest
 pytest-cov
 pytest-flake8
+pytest-qt
 wheel
