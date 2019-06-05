@@ -3,6 +3,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
 from ThreeDiToolbox.sql_models.model_schematisation import Manhole
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
+from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_commands.guess_indicators.guess_indicators_utils import Guesser
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
@@ -59,13 +60,55 @@ def get_manholes(session, outlet_bool=False, pump_bool=False, all_bool=False):
     return manholes_id_indicator
 
 
-def empty_manhole_selection(session, manholes_pre_empty):
+def get_all_pipes(session):
+    pipes = {}
+    # only return manhole
+    sql_pipes = session.query(Pipe)
+    for pipe in sql_pipes:
+        # fill dict
+        pipes[pipe.id] = (pipe.friction_type, pipe.friction_value, pipe.material)
+    return pipes
+
+
+# def get_all_pipes_friction_type(session):
+#     pipes_id_friction_type = {}
+#     # only return manhole
+#     sql_pipes = session.query(Pipe)
+#     for pipe in sql_pipes:
+#         # fill dict
+#         pipes_id_friction_type[pipe.id] = pipe.friction_type
+#     return pipes_id_friction_type
+#
+#
+# def get_all_pipes_friction_value(session):
+#     pipes_id_friction_value = {}
+#     # only return manhole
+#     sql_pipes = session.query(Pipe)
+#     for pipe in sql_pipes:
+#         # fill dict
+#         pipes_id_friction_value[pipe.id] = pipe.friction_value
+#     return pipes_id_friction_value
+
+
+def empty_manhole_indicator(session, manholes_pre_empty):
     """ empty column manhole_indicator (set is to NULL) of table v2_manhole """
     manholes_ids = list(manholes_pre_empty)
     up = (
         update(Manhole)
         .where(Manhole.id.in_(manholes_ids))
         .values(manhole_indicator=None)
+    )
+    session.execute(up)
+    session.commit()
+
+
+def empty_pipe_friction_value(session, pipes_pre_empty):
+    """ empty column manhole_indicator (set is to NULL) of table v2_manhole """
+    pipes_ids = list(pipes_pre_empty)
+    up = (
+        update(Pipe)
+        .where(Pipe.id.in_(pipes_ids))
+        .values(friction_value=None, friction_type=None)
     )
     session.execute(up)
     session.commit()
@@ -106,13 +149,13 @@ def test_guess_manhole_indicator(db, guesser):
     if not all_manholes_pre_empty:
         # skip this test as there are no manholes in sqlite..
         return
-    # now lets empty column in all manholes the column 'manhole_indicator'
-    empty_manhole_selection(session, all_manholes_pre_empty)
+    # now lets empty column 'manhole_indicator' in all manholes
+    empty_manhole_indicator(session, all_manholes_pre_empty)
 
     all_manholes_pre_guess = get_manholes(session, all_bool=True)
     # all dict values should be None (<-- still test-prework, not actual testing), If
     # it fails then empty_manhole_selection() does not a good job
-    assert not (all(list(all_manholes_pre_guess.values())))
+    assert not all(list(all_manholes_pre_guess.values()))
 
     # now put guesser to work
     guesser.guess_manhole_indicator(only_empty_fields=False)
@@ -146,3 +189,50 @@ def test_guess_manhole_indicator(db, guesser):
     result_list = list(all_manholes_after_guess.values())
     expected_value = Constants.MANHOLE_INDICATOR_MANHOLE
     assert all([expected_value == ele for ele in result_list])
+
+
+def test_guess_pipe_friction(db, guesser):
+    session = db.get_session()
+    pipes_pre_emtpy = get_all_pipes(session)
+    if not pipes_pre_emtpy:
+        # skip this test as there are no pipes in sqlite..
+        return
+
+    # now lets empty columns 'friction_type' and 'friction_value' in all pipes
+    empty_pipe_friction_value(session, pipes_pre_emtpy)
+
+    pipes_after_emtpy = get_all_pipes(session)
+    friction_types = [x[0] for x in list(pipes_after_emtpy.values())]
+    friction_values = [x[1] for x in list(pipes_after_emtpy.values())]
+    # all friction_types and friction_values should be None (<-- still test-prework,
+    # not actual testing), If it fails then empty_pipe_friction_value() doesnt work
+    assert not all(friction_types)
+    assert not all(friction_values)
+
+    # now put guesser to work
+    guesser.guess_pipe_friction(only_empty_fields=False)
+
+    # get a new session
+    session = db.get_session()
+    pipes_after_guess = get_all_pipes(session)
+
+    # all friction_types must have been updated to FRICTION_TYPE_MANNING
+    assert all(
+        [
+            x[0] == Constants.FRICTION_TYPE_MANNING
+            for x in list(pipes_after_guess.values())
+        ]
+    )
+
+    material_firctionvalue_dict = {}
+    for k, v in Constants.TABLE_MANNING:  # Constants.TABLE_MANNING is a set with tup
+        material_firctionvalue_dict[k] = v
+
+    # all friction_values 'x[1]' must have been updated to correct friction_value
+    # this friction_values depends on material 'x[2]'
+    assert all(
+        [
+            x[1] == material_firctionvalue_dict[x[2]]
+            for x in list(pipes_after_guess.values())
+        ]
+    )

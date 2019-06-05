@@ -105,19 +105,7 @@ class Guesser(object):
         session = self.db.get_session()
         update_counter = 0
 
-        table_manning = {
-            (Constants.MATERIAL_TYPE_CONCRETE, 0.0145),
-            (Constants.MATERIAL_TYPE_PVC, 0.0110),
-            (Constants.MATERIAL_TYPE_STONEWARE, 0.0115),
-            (Constants.MATERIAL_TYPE_CAST_IRON, 0.0135),
-            (Constants.MATERIAL_TYPE_BRICKWORK, 0.0160),
-            (Constants.MATERIAL_TYPE_HPE, 0.0110),
-            (Constants.MATERIAL_TYPE_HPDE, 0.0110),
-            (Constants.MATERIAL_TYPE_SHEET_IRON, 0.0135),
-            (Constants.MATERIAL_TYPE_STEEL, 0.0130),
-        }
-
-        for material_code, friction in table_manning:
+        for material_code, friction in Constants.TABLE_MANNING:
             up = (
                 update(Pipe)
                 .where(Pipe.material == material_code)
