@@ -7,10 +7,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtWidgets import QFileDialog
-from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
-from ThreeDiToolbox.tool_result_selection.result_selection_view import (
-    ThreeDiResultSelectionWidget,
-)
+from ThreeDiToolbox.tool_result_selection import result_downloader
+from ThreeDiToolbox.tool_result_selection import result_selection_view
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 
@@ -68,7 +66,7 @@ class ThreeDiResultSelection(QObject):
 
         self.ts_datasource = ts_datasource
         # TODO: unsure if this is the right place for initializing this model
-        self.download_result_model = DownloadResultModel()
+        self.download_result_model = result_downloader.DownloadResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None
@@ -113,7 +111,7 @@ class ThreeDiResultSelection(QObject):
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(
+                self.dialog = result_selection_view.ThreeDiResultSelectionWidget(
                     parent=None,
                     iface=self.iface,
                     ts_datasource=self.ts_datasource,
