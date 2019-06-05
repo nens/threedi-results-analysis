@@ -22,7 +22,6 @@
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
 
-import os.path
 import qgis
 
 

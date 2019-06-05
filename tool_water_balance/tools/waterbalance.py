@@ -11,7 +11,6 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 import logging
 import numpy as np
 import numpy.ma as ma
-import os.path
 
 
 logger = logging.getLogger(__name__)

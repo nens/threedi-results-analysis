@@ -22,7 +22,6 @@
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.tool_sideview.sideview_view import SideViewDockWidget
 
-import os.path
 import qgis
 
 
