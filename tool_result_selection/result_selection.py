@@ -76,9 +76,6 @@ class ThreeDiResultSelection(QObject):
         # download administration
         self.network_manager = QgsNetworkAccessManager(self)
 
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_add_datasource.png"
         self.menu_text = u"Select 3Di results"
 

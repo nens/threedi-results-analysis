@@ -869,9 +869,6 @@ class WaterBalanceTool(object):
         self.iface = iface
         self.ts_datasource = ts_datasource
 
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/weight-scale.png"
         self.menu_text = u"Water Balance Tool"
 

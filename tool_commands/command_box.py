@@ -49,9 +49,6 @@ class CommandBox(object):
 
         self.ts_datasource = ts_datasource
 
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
         self.menu_text = u"Commands for working with 3Di models"
 

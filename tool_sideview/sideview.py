@@ -43,9 +43,6 @@ class ThreeDiSideView(object):
         self.iface = iface
         self.tdi_root_tool = tdi_root_tool
 
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
-
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_route.png"
         self.menu_text = u"Show sideview of 3Di model with results"
 
