@@ -73,8 +73,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         # initialize locale
         locale = QSettings().value("locale/userLocale")[0:2]
+        plugin_dir = os.path.dirname(__file__)
         locale_path = os.path.join(
-            self.plugin_dir, "i18n", "ThreeDiTools_{}.qm".format(locale)
+            plugin_dir, "i18n", "ThreeDiTools_{}.qm".format(locale)
         )
 
         if os.path.exists(locale_path):
