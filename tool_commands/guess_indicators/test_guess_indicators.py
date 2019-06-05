@@ -5,14 +5,14 @@ from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_commands.guess_indicators.guess_indicators_utils import Guesser
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from ThreeDiToolbox.sql_models.constants import Constants
 
-import os
 import shutil
-import tempfile
-import unittest.mock
+import pytest
+from pathlib import Path
 
 
-def get_manholes_id_indicator(session):
+def get_manholes_pumpstation(session):
     """ get manholes that are on same connection node as start point of pumpstation
     :return: a list with tuples (manhole.id, manhole.manhole_indicator)  """
     manholes_id_indicator = {}
@@ -28,60 +28,72 @@ def get_manholes_id_indicator(session):
     return manholes_id_indicator
 
 
-class TestGuessser(unittest.TestCase):
-    """ We test 3 methods of Guesser that affect ThreediDatabase:
-        methodname --> table --> column
-            guess_manhole_indicator() --> v2_manhole --> manhole_indicators
-            guess_pipe_friction --> v2_pipe --> frictions
-            guess_manhole_area --> v2_connection_node --> storage_area """
+@pytest.fixture()
+def tmp_sqlite_path(tmpdir):
+    sqlite_filename = "v2_bergermeer.sqlite"
+    orig_sqlite_path = TEST_DATA_DIR.joinpath(
+        "testmodel", "v2_bergermeer", sqlite_filename
+    )
+    tmp_sqlite_dir = Path(tmpdir)
+    tmp_sqlite_path = tmp_sqlite_dir.joinpath(sqlite_filename)
+    shutil.copy2(orig_sqlite_path, tmp_sqlite_path)
+    return tmp_sqlite_path
 
-    def setUp(self):
-        sqlite_filename = "v2_bergermeer.sqlite"
-        self.test_sqlite_path = os.path.join(
-            TEST_DATA_DIR, "testmodel", "v2_bergermeer", sqlite_filename
-        )
 
-        tempdir = tempfile.gettempdir()
-        tmp_filename = "tmp_sqlite.sqlite"
-        tmp_filename_path = os.path.join(tempdir, tmp_filename)
-        tmp_sqlite = shutil.copy2(self.test_sqlite_path, tmp_filename_path)
+@pytest.fixture()
+def db(tmp_sqlite_path):
+    db_type = "spatialite"
+    db_set = {"db_path": tmp_sqlite_path}
+    db = ThreediDatabase(db_set, db_type)
+    return db
 
-        db_type = "spatialite"
-        db_set = {"db_path": tmp_sqlite}
-        self.db = ThreediDatabase(db_set, db_type)
-        self.guesser = Guesser(self.db)
 
-    def test_manhole_indicator(self):
-        session = self.db.get_session()
+@pytest.fixture()
+def guesser(db):
+    return Guesser(db)
 
-        manhole_pre_empty = get_manholes_id_indicator(session)
-        if not manhole_pre_empty:
-            # skip this test
-            return
-        # now lets empty column 'manhole_indicator'
-        manhole_ids = list(manhole_pre_empty)
-        up = (
-            update(Manhole)
-            .where(Manhole.id.in_(manhole_ids))
-            .values(manhole_indicator=None)
-        )
-        session.execute(up)
-        session.commit()
 
-        manhole_pre_guess = get_manholes_id_indicator(session)
-        # all dict values should be None (<-- still test-prework, not actual testing)
-        self.assertFalse(all(list(manhole_pre_guess.values())))
+def test_manhole_indicator_pumpstation(db, guesser):
+    session = db.get_session()
 
-        # now put guesser to work
-        self.guesser.guess_manhole_indicator(only_empty_fields=False)
+    # before we empty manholes, first get their [(id, manhole_indicator)]
+    manholes_pre_empty = get_manholes_pumpstation(session)
+    if not manholes_pre_empty:
+        # skip this test as there are no manholes in sqlite..
+        return
+    # now lets empty column 'manhole_indicator'
+    manholes_ids = list(manholes_pre_empty)
+    up = (
+        update(Manhole)
+        .where(Manhole.id.in_(manholes_ids))
+        .values(manhole_indicator=None)
+    )
+    session.execute(up)
+    session.commit()
 
-        session = self.db.get_session()
-        # all dict values should be not None (<-- this is the actual test)
-        manhole_after_guess = get_manholes_id_indicator(session)
-        self.assertTrue(all(list(manhole_after_guess.values())))
+    manhole_pre_guess = get_manholes_pumpstation(session)
+    # all dict values should be None (<-- still test-prework, not actual testing)
+    assert not (all(list(manhole_pre_guess.values())))
 
-    def test_pipe_friction(self):
-        pass
+    # now put guesser to work
+    guesser.guess_manhole_indicator(only_empty_fields=False)
 
-    def test_manhole_area(self):
-        pass
+    # get a new session
+    session = db.get_session()
+    manhole_after_guess = get_manholes_pumpstation(session)
+    result_list = list(manhole_after_guess.values())
+    expected_value = Constants.MANHOLE_INDICATOR_PUMPSTATION
+    # actual test: all updated manhole_indicators should match expected_value
+    assert all([expected_value == ele for ele in result_list])
+
+
+# def test_manhole_indicator_outlet(db, guesser):
+#     session = db.get_session()
+#
+#     # before we empty manholes, first get their [(id, manhole_indicator)]
+#     manholes_pre_empty = get_manholes_pumpstation(session)
+#     if not manholes_pre_empty:
+#         # skip this test as there are no manholes in sqlite..
+#         return
+#
+
