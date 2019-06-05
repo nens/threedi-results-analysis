@@ -141,7 +141,9 @@ class CommandBox(object):
             logger.debug(str(mod))
 
             command = mod.CustomCommand(
-                iface=self.iface, ts_datasource=self.ts_datasource
+                iface=self.iface,
+                ts_datasource=self.ts_datasource,
+                plugin_dir=self.plugin_dir
             )
             command.run()
 
