@@ -60,8 +60,8 @@ class ThreeDiResultSelection(QObject):
             application at run time.
         :type iface: QgsInterface
         """
+        super().__init__()
         # Save reference to the QGIS interface
-        QObject.__init__(self)
         self.iface = iface
 
         self.ts_datasource = ts_datasource
