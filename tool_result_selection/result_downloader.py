@@ -3,7 +3,6 @@ from ThreeDiToolbox.models.base_fields import ValueField
 
 
 class DownloadResultModel(BaseModel):
-
     class Fields(object):
         name = ValueField(show=True, column_width=250, column_name="Name")
         size_mebibytes = ValueField(
