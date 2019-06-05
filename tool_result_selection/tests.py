@@ -1,7 +1,7 @@
 from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection import log_in_dialog
-from ThreeDiToolbox.tool_result_selection import result_selection
 from ThreeDiToolbox.tool_result_selection import result_downloader
+from ThreeDiToolbox.tool_result_selection import result_selection
 
 import mock
 
@@ -25,5 +25,7 @@ def test_download_result_model():
 def test_result_selection_tool_init():
     iface = mock.Mock()
     ts_datasource = TimeseriesDatasourceModel()
-    result_selection_tool = result_selection.ThreeDiResultSelection(iface, ts_datasource)
+    result_selection_tool = result_selection.ThreeDiResultSelection(
+        iface, ts_datasource
+    )
     assert "icon_add_datasource.png" in result_selection_tool.icon_path
