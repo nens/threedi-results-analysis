@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
+from io import IOBase
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QObject
@@ -165,7 +165,6 @@ class ThreeDiResultSelection(QObject):
                 self.ts_datasource.insertRows([result])
 
     def get_state_description(self):
-        from io import IOBase
 
         return (
             self.tool_name,
