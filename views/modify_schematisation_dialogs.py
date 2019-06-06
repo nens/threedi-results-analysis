@@ -10,7 +10,7 @@ from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from ThreeDiToolbox.utils.threedi_database import get_databases
-from tool_commands.create_breach_locations.breach_location import BreachLocation
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location
 
 import logging
 import os
@@ -283,7 +283,7 @@ class CreateBreachLocationsDialogWidget(QDialog, FORM_CLASS):
     def on_accept(self):
         """Accept and run the Command.run_it method."""
 
-        breach_loc = BreachLocation(
+        breach_loc = breach_location.BreachLocation(
             search_distance=self.spinbox_search_distance.value(),
             distance_to_levee=self.spinbox_levee_distace.value(),
             use_selection=self.checkBox_feat.isChecked(),

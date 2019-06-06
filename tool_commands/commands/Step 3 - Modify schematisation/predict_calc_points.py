@@ -3,12 +3,12 @@
 from qgis.core import QgsProject
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils import constants
+from ThreeDiToolbox.utils.predictions import Predictor
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
     PredictCalcPointsDialogWidget,
 )
-from utils.predictions import Predictor
 
 import logging
 
