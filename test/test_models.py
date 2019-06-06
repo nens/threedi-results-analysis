@@ -21,13 +21,6 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
             itemvalue = getattr(item, k).value
             self.assertEqual(itemvalue, v)
 
-    def test_datasource_layer_manager_smoke(self):
-        """Smoke test the ``datasource_layer_manager()`` method."""
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**self.test_values)
-        setattr(item, "_datasource_layer_manager", "yo")
-        self.assertEqual(item.datasource_layer_manager(), "yo")
-
     def test_datasource_threedi_results(self):
         """Test the datasource() method with netcdf file."""
         test_values = {
