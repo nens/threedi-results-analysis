@@ -83,7 +83,14 @@ class DownloadWorker(QThread):
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
-    """Dialog for selecting model (spatialite and result files netCDFs)"""
+    """Dialog for selecting model (spatialite and result files netCDFs)
+
+    TODO: actually, it is two dialogs in one: a selector of results and a
+    separate downloader of results. They are not really connected. So
+    splitting them makes the code simpler. And, more importantly, it makes the
+    UI clearer.
+
+    """
 
     closingDialog = pyqtSignal()
 
@@ -123,7 +130,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         self.downloadable_results = downloadable_results
         self.download_proxy_model = QSortFilterProxyModel()
-        self.download_proxy_model.setSourceModel(downloadable_results)
+        self.download_proxy_model.setSourceModel(self.downloadable_results)
         self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filterLineEdit.textChanged.connect(
             self.download_proxy_model.setFilterFixedString
