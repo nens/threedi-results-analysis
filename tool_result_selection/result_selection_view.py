@@ -41,7 +41,7 @@ def _reshape_scenario_results(results):
     ]
 
 
-class ResultsWorker(QThread):
+class DownloadWorker(QThread):
     """Thread for getting scenario results API data from Lizard."""
 
     output = pyqtSignal(object)
@@ -55,7 +55,7 @@ class ResultsWorker(QThread):
         super().__init__(parent)
 
     def __del__(self):
-        logger.info("Deleting worker.")
+        logger.info("Deleting download-worker.")
         self.stop()
 
     def run(self):
@@ -65,7 +65,7 @@ class ResultsWorker(QThread):
                     logger.info("Exiting...")
                     break
                 items = _reshape_scenario_results(results)
-                logger.debug("ResultsWorker - got new data")
+                logger.debug("DownloadWorker - got new data")
                 self.output.emit(items)
         except HTTPError as e:
             message = (
@@ -77,7 +77,7 @@ class ResultsWorker(QThread):
 
     def stop(self):
         """Stop the thread gracefully."""
-        logger.info("Stopping worker...")
+        logger.info("Stopping download-worker...")
         self.exiting = True
         self.wait()
 
@@ -417,7 +417,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.user_password_input.clear()
 
         # start thread
-        self.thread = ResultsWorker(
+        self.thread = DownloadWorker(
             endpoint=endpoint, username=username, password=password
         )
         self.thread.connection_failure.connect(self.handle_connection_failure)
