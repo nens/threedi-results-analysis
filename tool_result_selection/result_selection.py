@@ -113,7 +113,7 @@ class ThreeDiResultSelection(QObject):
                     iface=self.iface,
                     ts_datasource=self.ts_datasource,
                     download_result_model=self.download_result_model,
-                    parent_class=self,
+                    tool=self,
                 )
 
                 # download signals; signal connections should persist after
