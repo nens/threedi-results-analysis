@@ -1,10 +1,10 @@
 import logging
 import os
 
-from threedi_modelchecker import exporters
+from sqlalchemy.exc import OperationalError
+from threedi_modelchecker import errors
 from threedi_modelchecker.exporters import format_check_results
 from threedi_modelchecker.model_checks import ThreediModelChecker
-from threedi_modelchecker.threedi_model.constants import LATEST_MIGRATION_ID
 
 from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker.controller import \
@@ -39,22 +39,38 @@ class CustomCommand(CustomCommandBase):
         validated. Next, any model errors are written to a text file.
         """
         logger.info("Starting threedi-modelchecker")
-
         try:
-            threedi_db.check_connection()
-        except Exception as e:
+            model_checker = ThreediModelChecker(threedi_db)
+            model_checker.db.check_connection()
+        except OperationalError as exc:
+            logger.exception("Failed to start a connection with the database.")
             pop_up_info(
-                "Unable to start a connection with the database, please check"
-                " the connection settings.")
-            logger.exception("Unable to start a connection with the database")
+                "Something went wrong trying to connect to the database, please check"
+                " the connection settings: %s" % exc.args[0]
+            )
             return
-
-        model_checker = ThreediModelChecker(threedi_db)
-
-        if not model_checker.schema.is_latest_migration():
-            user_message = provide_migration_details(model_checker)
-            pop_up_info(user_message)
+        except errors.MigrationMissingError:
+            logger.exception("The selected 3Di model does not have the latest "
+                             "migration")
+            pop_up_info(
+                "The selected 3Di model does not have the latest migration, please "
+                "migrate your model to the latest version."
+            )
             return
+        except errors.MigrationTooHighError:
+            logger.exception(
+                "The selected 3Di model has a higher migration than expected."
+            )
+            pop_up_info(
+                "The 3Di model has a higher migration than expected, do you have "
+                "the latest version of ThreediToolbox?"
+            )
+            return
+        except errors.MigrationNameError:
+            logger.exception(
+                "Unexpected migration name, but migration id is matching. "
+                "We are gonna continue for now and hope for the best."
+            )
 
         output_filename = 'Model_errors.txt'
         output_file_path = os.path.join(self.plugin_dir, output_filename)
@@ -64,7 +80,7 @@ class CustomCommand(CustomCommandBase):
         total_checks = len(model_checker.config.checks)
         with progress_bar(self.iface, max_value=total_checks) as pb, \
                 open(output_file_path, "w") as output_file:
-            for i, check in enumerate(model_checker.get_check_iterator()):
+            for i, check in enumerate(model_checker.checks()):
                 model_errors = check.get_invalid(session)
                 for error_row in model_errors:
                     formatted_error = format_check_results(check, error_row)
@@ -75,39 +91,3 @@ class CustomCommand(CustomCommandBase):
         logger.info("Successfully finished running threedi-modelchecker")
         pop_up_info("Finished, see result in <a href='file:/%s'>%s</a>" %
                     (output_file_path, output_filename))
-
-
-def provide_migration_details(model_checker):
-    """Return a user-message about the `model_checker` migration.
-
-    The migration is checked in the south_migration_history table and is checked
-    against the threed-modelchecker expected migration.
-
-    :param model_checker: (ThreediModelChecker)
-    :return: (str) containing a user-message
-    """
-    if model_checker.schema.is_latest_migration():
-        return "The selected 3Di model is up to date."
-    migration_id, migration_name = model_checker.schema.get_latest_migration()
-    logger.info("The selected 3Di model does not have the latest migration")
-    logger.info(
-        "Migration id: %s \nMigration name: %s \nExpected migration id: %s\n",
-        migration_id,
-        migration_name,
-        LATEST_MIGRATION_ID,
-    )
-    if migration_id < LATEST_MIGRATION_ID:
-        message = (
-            "The selected 3Di model does not have the latest migration, please "
-            "migrate your model to the latest version."
-        )
-    elif migration_id > LATEST_MIGRATION_ID:
-        message = (
-            "The 3Di model has a higher migration than expected, do you have "
-            "the latest version of ThreediToolbox?"
-        )
-    else:
-        raise AssertionError(
-            "This should not be possible, get_latest_migration contains a bug?"
-        )
-    return message
