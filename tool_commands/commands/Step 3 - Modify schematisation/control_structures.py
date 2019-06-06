@@ -10,6 +10,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
     ControlledStructures,
 )
+from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.views.control_structures_create_control_group_dialog import (
@@ -24,7 +25,6 @@ from ThreeDiToolbox.views.control_structures_create_table_control_dialog import 
 from ThreeDiToolbox.views.control_structures_dockwidget import (
     ControlStructuresDockWidget,
 )
-from tool_commands.custom_command_base import CustomCommandBase
 
 import logging
 
