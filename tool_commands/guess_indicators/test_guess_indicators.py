@@ -91,7 +91,7 @@ def get_all_pipes(session):
 
 
 def empty_manhole_indicator(session, manholes_pre_empty):
-    """ empty column manhole_indicator (set is to NULL) of table v2_manhole """
+    """Empty column manhole_indicator (set is to NULL) of table v2_manhole."""
     manholes_ids = list(manholes_pre_empty)
     up = (
         update(Manhole)
