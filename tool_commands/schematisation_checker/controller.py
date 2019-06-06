@@ -31,7 +31,6 @@ class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
 
         threedi_db = ThreediDatabase(connection_settings, db_type=db_type)
         self.command.run_it(threedi_db)
-        print('accept!')
 
     def on_cancel(self):
-        print('reject!')
+        self.close()
