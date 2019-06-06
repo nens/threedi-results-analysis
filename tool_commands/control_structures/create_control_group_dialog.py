@@ -1,3 +1,4 @@
+from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QDialog
@@ -7,26 +8,17 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures,
-)
+from ThreeDiToolbox.tool_commands.control_structures.main import ControlledStructures
 from ThreeDiToolbox.utils.threedi_database import get_database_properties
 
 import logging
-import os
 
 
 logger = logging.getLogger(__name__)
 
-
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(
-        os.path.dirname(__file__),
-        os.pardir,
-        "ui",
-        "controlled_structures_create_control_group_dialog.ui",
-    )
-)
+ui_file = Path(__file__).parent / "create_control_group_dialog.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 
 class CreateControlGroupDialogWidget(QDialog, FORM_CLASS):
