@@ -1,5 +1,5 @@
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.threedi_tools import CommandBox
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import mock
 import unittest

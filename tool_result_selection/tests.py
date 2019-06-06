@@ -1,7 +1,7 @@
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection import log_in_dialog
 from ThreeDiToolbox.tool_result_selection import result_downloader
 from ThreeDiToolbox.tool_result_selection import result_selection
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import mock
 
