@@ -2,8 +2,6 @@ from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
 
-import os
-
 
 ui_file = Path(__file__).parent / "login_dialog.ui"
 assert ui_file.is_file()
