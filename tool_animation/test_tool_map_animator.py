@@ -1,4 +1,4 @@
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.threedi_tools import CommandBox
 
 import mock

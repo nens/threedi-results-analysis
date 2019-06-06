@@ -10,10 +10,9 @@ from ..utils.layer_from_netCDF import NODES_LAYER_NAME
 from ..utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from ..utils.user_messages import pop_up_info
 from ..utils.user_messages import StatusProgressBar
-from .base import BaseModel
-from .base_fields import CheckboxField
-from .base_fields import ValueField
-from builtins import object
+from ThreeDiToolbox.models.base import BaseModel
+from ThreeDiToolbox.models.base_fields import CheckboxField
+from ThreeDiToolbox.models.base_fields import ValueField
 from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt

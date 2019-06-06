@@ -3,7 +3,7 @@ from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
 from qgis.core import QgsProject
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
 
 import os.path

@@ -1,5 +1,5 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
 
 import unittest

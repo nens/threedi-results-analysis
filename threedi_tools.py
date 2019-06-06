@@ -23,7 +23,7 @@ from . import resources  # NoQa, initialize the Qt resources.
 from .misc_tools import About
 from .misc_tools import CacheClearer
 from .misc_tools import ShowLogfile
-from .models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from .tool_animation.map_animator import MapAnimator
 from .tool_commands.command_box import CommandBox
 from .tool_graph.graph import ThreeDiGraph
