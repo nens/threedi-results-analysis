@@ -206,21 +206,18 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
+        @cached_property
         def datasource_layer_manager(self):
-            if not hasattr(self, "_datasource_layer_manager"):
-                self._datasource_layer_manager = DataSourceLayerManager(
-                    self.type.value, self.file_path.value
-                )
-            return self._datasource_layer_manager
+            return DataSourceLayerManager(self.type.value, self.file_path.value)
 
         def datasource(self):
-            return self.datasource_layer_manager().datasource
+            return self.datasource_layer_manager.datasource
 
         def spatialite_cache_filepath(self):
-            return self.datasource_layer_manager().spatialite_cache_filepath
+            return self.datasource_layer_manager.spatialite_cache_filepath
 
         def get_result_layers(self):
-            return self.datasource_layer_manager().get_result_layers()
+            return self.datasource_layer_manager.get_result_layers()
 
     def reset(self):
 
