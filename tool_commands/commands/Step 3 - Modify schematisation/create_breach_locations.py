@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 from qgis.core import Qgis
 from qgis.core import QgsProject
-from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
+from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
