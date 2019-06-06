@@ -1,3 +1,4 @@
+from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QSettings
 from qgis.PyQt.QtWidgets import QAbstractItemView
@@ -9,18 +10,7 @@ from qgis.PyQt.QtWidgets import QTableWidget
 from qgis.PyQt.QtWidgets import QTableWidgetItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    ControlledStructures,
-)
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    MEASURE_VARIABLE_WATERLEVEL,
-)
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    RULE_OPERATOR_BOTTOM_UP,
-)
-from ThreeDiToolbox.threedi_schema_edits.controlled_structures import (
-    RULE_OPERATOR_TOP_DOWN,
-)
+from ThreeDiToolbox.tool_commands.control_structures import main
 from ThreeDiToolbox.utils.constants import DICT_ACTION_TYPES
 from ThreeDiToolbox.utils.constants import DICT_TABLE_ID
 from ThreeDiToolbox.utils.constants import DICT_TABLE_NAMES
@@ -34,15 +24,9 @@ import os
 
 logger = logging.getLogger(__name__)
 
-
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(
-        os.path.dirname(__file__),
-        os.pardir,
-        "ui",
-        "controlled_structures_create_table_control_dialog.ui",
-    )
-)
+ui_file = Path(__file__).parent / "create_table_control_dialog.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 
 class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
@@ -76,7 +60,7 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
         self.db_key = db_key
         self.databases = get_databases()
         self.db = get_database_properties(self.db_key)
-        self.control_structure = ControlledStructures(
+        self.control_structure = main.ControlledStructures(
             flavor=self.db["db_entry"]["db_type"]
         )
         self.setup_ids()
@@ -252,15 +236,15 @@ class CreateTableControlDialogWidget(QDialog, FORM_CLASS):
             list_of_values_table_control
         )
         if self.combobox_input_rule_operator.currentText() == "Bottom up":
-            measure_operator = RULE_OPERATOR_BOTTOM_UP
+            measure_operator = main.RULE_OPERATOR_BOTTOM_UP
         else:
-            measure_operator = RULE_OPERATOR_TOP_DOWN
+            measure_operator = main.RULE_OPERATOR_TOP_DOWN
         table_control["measure_operator"] = measure_operator
         table_control["target_id"] = self.combobox_input_structure_id.currentText()
         structure_table = self.combobox_input_structure_table.currentText()
         table_control["target_type"] = DICT_TABLE_NAMES.get(structure_table, "")
         table_control["action_type"] = self.combobox_input_action_type.currentText()
-        measure_variable = MEASURE_VARIABLE_WATERLEVEL
+        measure_variable = main.MEASURE_VARIABLE_WATERLEVEL
         table_control["measure_variable"] = measure_variable
         table_control["id"] = self.table_control_id
         return table_control
