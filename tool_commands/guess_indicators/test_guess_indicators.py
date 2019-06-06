@@ -103,30 +103,22 @@ def empty_pipe_friction_value(session, pipes_pre_empty):
 
 
 @pytest.fixture()
-def tmp_sqlite_path(tmpdir):
-    """Copy original sqlite to a tmpdir, as we change sqlite date (with sqlalchemy)."""
+def db(tmpdir):
+    """Copy original sqlite to tmpdir as we modify the sqlite data (with sqlalchemy
+     in these tests. Pytest fixes cleanup op tmpdir: "entries older than 3 temporary
+     directories will be removed"."""
     sqlite_filename = "v2_bergermeer.sqlite"
     orig_sqlite_path = TEST_DATA_DIR / "testmodel" / "v2_bergermeer" / sqlite_filename
     tmp_sqlite_dir = Path(tmpdir)
     tmp_sqlite_path = tmp_sqlite_dir / sqlite_filename
     shutil.copy2(orig_sqlite_path, tmp_sqlite_path)
-    return tmp_sqlite_path
-
-
-@pytest.fixture()
-def db(tmp_sqlite_path):
     db_type = "spatialite"
     db_set = {"db_path": tmp_sqlite_path}
     db = ThreediDatabase(db_set, db_type)
     return db
 
 
-@pytest.fixture()
-def guesser(db):
-    return guess_indicators_utils.Guesser(db)
-
-
-def test_guess_manhole_indicator(db, guesser):
+def test_guess_manhole_indicator(db):
     session = db.get_session()
 
     # before we empty manholes, first get their [(id, manhole_indicator)]
@@ -145,6 +137,7 @@ def test_guess_manhole_indicator(db, guesser):
     assert not all(list(all_manholes_pre_guess.values()))
 
     # now put guesser to work
+    guesser = guess_indicators_utils.Guesser(db)
     guesser.guess_manhole_indicator(only_empty_fields=False)
 
     # get a new session
@@ -181,7 +174,7 @@ def test_guess_manhole_indicator(db, guesser):
     assert all([expected_value == manhole for manhole in all_manholes])
 
 
-def test_guess_pipe_friction(db, guesser):
+def test_guess_pipe_friction(db):
     session = db.get_session()
     pipes_pre_empty = get_all_pipes(session)
     if not pipes_pre_empty:
@@ -200,6 +193,7 @@ def test_guess_pipe_friction(db, guesser):
     assert not all(friction_values)
 
     # now put guesser to work
+    guesser = guess_indicators_utils.Guesser(db)
     guesser.guess_pipe_friction(only_empty_fields=False)
 
     # get a new session
