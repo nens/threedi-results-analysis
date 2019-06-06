@@ -93,7 +93,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         iface=None,
         ts_datasource=None,
         download_result_model=None,
-        parent_class=None,
+        tool=None,
     ):
         """Constructor
 
@@ -101,12 +101,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :iface: QGiS interface
         :ts_datasource: TimeseriesDatasourceModel instance
         :download_result_model: DownloadResultModel instance
-        :parent_class: the tool class which instantiated this widget. Is used
+        :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
         super().__init__(parent)
 
-        self.parent_class = parent_class
+        self.tool = tool
         self.iface = iface
         self.setupUi(self)
 
@@ -439,24 +439,24 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     @property
     def username(self):
-        return self.parent_class.username
+        return self.tool.username
 
     @username.setter
     def username(self, username):
-        self.parent_class.username = username
+        self.tool.username = username
 
     @property
     def password(self):
-        return self.parent_class.password
+        return self.tool.password
 
     @password.setter
     def password(self, password):
-        self.parent_class.password = password
+        self.tool.password = password
 
     @property
     def logged_in(self):
         """Return the logged in status."""
-        return self.parent_class.logged_in
+        return self.tool.logged_in
 
     def set_logged_in_status(self, username, password):
         """Set logged in status to True."""

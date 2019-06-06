@@ -7,7 +7,7 @@ import unittest
 
 class TestMapAnimator(unittest.TestCase):
     def setUp(self):
-        """test whether ThreeDiResultSelection can be instantiated """
+        """test whether ThreeDiAnimation can be instantiated """
         ts_datasource = TimeseriesDatasourceModel()
         self.iface = mock.Mock()
         self.tdi_root_tool = CommandBox(self.iface, ts_datasource)

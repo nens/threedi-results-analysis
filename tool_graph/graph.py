@@ -22,7 +22,6 @@
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
 
-import os.path
 import qgis
 
 
@@ -41,9 +40,6 @@ class ThreeDiGraph(object):
         self.iface = iface
         self.ts_datasource = ts_datasource
         self.root_tool = root_tool
-
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_graph.png"
         self.menu_text = u"Show 3Di results in Graph"
