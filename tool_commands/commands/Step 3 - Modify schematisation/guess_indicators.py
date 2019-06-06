@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
-from ThreeDiToolbox.tool_commands.guess_indicators import guess_indicator_view
+from ThreeDiToolbox.tool_commands.guess_indicators import guess_indicator_dialog
 from ThreeDiToolbox.tool_commands.guess_indicators import guess_indicators_utils
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -43,7 +43,7 @@ class CustomCommand(CustomCommandBase):
     def show_gui(self):
 
         checks = []
-        self.tool_dialog_widget = guess_indicator_view.GuessIndicatorDialogWidget(
+        self.tool_dialog_widget = guess_indicator_dialog.GuessIndicatorDialogWidget(
             checks=checks, command=self
         )
         self.tool_dialog_widget.exec_()  # block execution
