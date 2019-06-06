@@ -1,12 +1,11 @@
+from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
 
-import os
 
-
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), os.pardir, "ui", "login_dialog.ui")
-)
+ui_file = Path(__file__).parent / "login_dialog.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 
 class LoginDialog(QDialog, FORM_CLASS):
