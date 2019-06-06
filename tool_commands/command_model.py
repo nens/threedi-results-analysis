@@ -2,6 +2,7 @@ from functools import reduce
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
+
 import os
 
 
