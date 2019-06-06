@@ -92,7 +92,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         parent=None,
         iface=None,
         ts_datasource=None,
-        download_result_model=None,
+        downloadable_results=None,
         tool=None,
     ):
         """Constructor
@@ -100,7 +100,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :parent: Qt parent Widget
         :iface: QGiS interface
         :ts_datasource: TimeseriesDatasourceModel instance
-        :download_result_model: DownloadResultModel instance
+        :downloadable_results: DownloadResultModel instance
         :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
@@ -121,9 +121,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.resultTableView.setModel(self.ts_datasource)
         self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
 
-        self.download_result_model = download_result_model
+        self.downloadable_results = downloadable_results
         self.download_proxy_model = QSortFilterProxyModel()
-        self.download_proxy_model.setSourceModel(download_result_model)
+        self.download_proxy_model.setSourceModel(downloadable_results)
         self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filterLineEdit.textChanged.connect(
             self.download_proxy_model.setFilterFixedString
@@ -371,8 +371,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.set_logged_out_status()
         if self.thread:
             self.thread.stop()
-        num_rows = len(self.download_result_model.rows)
-        self.download_result_model.removeRows(0, num_rows)
+        num_rows = len(self.downloadable_results.rows)
+        self.downloadable_results.removeRows(0, num_rows)
         self.toggle_login_interface()
 
     def toggle_login_interface(self):
@@ -428,7 +428,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.close()
 
     def update_download_result_model(self, items):
-        self.download_result_model.insertRows(items)
+        self.downloadable_results.insertRows(items)
 
     def handle_connection_failure(self, status, reason):
         pop_up_info(

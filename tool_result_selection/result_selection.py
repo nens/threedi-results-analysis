@@ -66,7 +66,7 @@ class ThreeDiResultSelection(QObject):
 
         self.ts_datasource = ts_datasource
         # TODO: unsure if this is the right place for initializing this model
-        self.download_result_model = result_downloader.DownloadResultModel()
+        self.downloadable_results = result_downloader.DownloadResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None
@@ -112,7 +112,7 @@ class ThreeDiResultSelection(QObject):
                     parent=None,
                     iface=self.iface,
                     ts_datasource=self.ts_datasource,
-                    download_result_model=self.download_result_model,
+                    downloadable_results=self.downloadable_results,
                     tool=self,
                 )
 
@@ -196,7 +196,7 @@ class ThreeDiResultSelection(QObject):
         selection_index = self.dialog.download_proxy_model.mapToSource(
             proxy_selection_index
         )
-        item = self.download_result_model.rows[selection_index.row()]
+        item = self.downloadable_results.rows[selection_index.row()]
         to_download = [
             r
             for r in item.results.value
