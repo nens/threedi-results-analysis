@@ -169,8 +169,8 @@ def test_guess_manhole_indicator(db, guesser):
         for k in manholes_outlets_pre_empty:
             all_manholes_after_guess.pop(k, None)
 
-    # rest of the manholes should have been updated to MANHOLE_INDICATOR_MANHOLE
-    # to check this, we first pop the manholes_pumps and manholes_outlets from
+    # The rest of the manholes should have been updated to MANHOLE_INDICATOR_MANHOLE
+    # To check this, we first pop the manholes_pumps and manholes_outlets from
     # all_manholes
     for manhole_dict in [manholes_pumps_pre_empty, manholes_outlets_pre_empty]:
         for manhole_id in manhole_dict:
