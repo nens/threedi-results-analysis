@@ -3,12 +3,15 @@ Test breach locations.
 """
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
+from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
+    BreachLocation,
+)
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
+from ThreeDiToolbox.utils.predictions import Predictor
 
 import collections
 import os
@@ -25,13 +28,14 @@ class TestBreachLocationDryRun(unittest.TestCase):
 
     def setUp(self):
         ensure_qgis_app_is_initialized()
-        # os.path.abspath(__file__)
-        here = os.path.split(os.path.abspath(__file__))[0]
-        test_db = os.path.join(here, "data", "simple_breach_test.sqlite")
+
+        sqlite_path = TEST_DATA_DIR / "simple_breach_test.sqlite"
+        assert sqlite_path.is_file(), "test data does not exist.."
+
         db_kwargs = {
-            "database": test_db,
-            "host": test_db,
-            "db_path": test_db,
+            "database": sqlite_path,
+            "host": sqlite_path,
+            "db_path": sqlite_path,
             "password": "",
             "port": "",
             "srid": "",
