@@ -19,6 +19,7 @@ import logging
 import os
 
 
+MEBIBYTE = 1048576
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(
         os.path.dirname(__file__), os.pardir, "ui", "threedi_result_selection_dialog.ui"
@@ -29,15 +30,14 @@ logger = logging.getLogger(__name__)
 
 
 def _reshape_scenario_results(results):
-    MEBIBYTE = 1048576
     return [
         {
-            "name": r["name"],
-            "url": r["url"],
-            "size_mebibytes": round(r["total_size"] / MEBIBYTE, 1),
-            "results": r["result_set"],
+            "name": result["name"],
+            "url": result["url"],
+            "size_mebibytes": round(result["total_size"] / MEBIBYTE, 1),
+            "results": result["result_set"],
         }
-        for r in results
+        for result in results
     ]
 
 
