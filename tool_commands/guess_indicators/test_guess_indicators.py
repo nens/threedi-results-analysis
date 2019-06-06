@@ -125,9 +125,10 @@ def test_guess_manhole_indicator(db):
     manholes_pumps_pre_empty = get_manholes(session, get_only_pumps=True)
     manholes_outlets_pre_empty = get_manholes(session, get_only_outlets=True)
     all_manholes_pre_empty = get_manholes(session, get_all=True)
-    if not all_manholes_pre_empty:
-        # skip this test as there are no manholes in sqlite..
-        return
+    assert all_manholes_pre_empty, (
+        "sqlite should have manholes, otherwise there is " "nothing to test"
+    )
+
     # now lets empty column 'manhole_indicator' in all manholes
     empty_manhole_indicator(session, all_manholes_pre_empty)
 
@@ -177,9 +178,9 @@ def test_guess_manhole_indicator(db):
 def test_guess_pipe_friction(db):
     session = db.get_session()
     pipes_pre_empty = get_all_pipes(session)
-    if not pipes_pre_empty:
-        # skip this test as there are no pipes in sqlite.
-        return
+    assert pipes_pre_empty, (
+        "sqlite should have pipes, otherwise there is nothing to " "test"
+    )
 
     # now lets empty columns 'friction_type' and 'friction_value' in all pipes
     empty_pipe_friction_value(session, pipes_pre_empty)
