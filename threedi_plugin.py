@@ -129,6 +129,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         ]
 
         self.active_datasource = None
+        # ^^^ TODO: this doesn't seem to be set in here!
         self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None
 

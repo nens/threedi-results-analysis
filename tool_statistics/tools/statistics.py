@@ -128,6 +128,9 @@ class StatisticsTool(object):
         """Start processing on first selected model result (netcdf).
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
+        # TODO: the last ts_datasource is taken instead of the first.
+        # And there are at lieast two kinds of datasources.
+        # And result_db_qmodel is called active_datasource in the rest of the code.
         self.datasource = self.ts_datasources.rows[-1].datasource()
         self.ds = DataSourceAdapter(self.datasource)
         self.result_db_qmodel = self.ts_datasources.rows[0]
