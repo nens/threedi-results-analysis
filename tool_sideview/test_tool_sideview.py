@@ -10,9 +10,9 @@ class TestThreeDiSideView(unittest.TestCase):
     def setUp(self):
         """test whether ThreeDiSideView can be instantiated """
         iface = mock.Mock()
-        ts_datasource = TimeseriesDatasourceModel()
+        ts_datasources = TimeseriesDatasourceModel()
         # tdi_root_tool = mock.Mock()
-        tdi_root_tool = CommandBox(iface, ts_datasource)
+        tdi_root_tool = CommandBox(iface, ts_datasources)
         self.sideview = ThreeDiSideView(iface, tdi_root_tool)
 
     def test_icon_path_is_set(self):

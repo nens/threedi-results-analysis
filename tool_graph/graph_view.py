@@ -376,7 +376,7 @@ class GraphWidget(QWidget):
     def __init__(
         self,
         parent=None,
-        ts_datasource=None,
+        ts_datasources=None,
         parameter_config=[],
         name="",
         geometry_type=QgsWkbTypes.Point,
@@ -384,15 +384,15 @@ class GraphWidget(QWidget):
         super().__init__(parent)
 
         self.name = name
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.parent = parent
         self.geometry_type = geometry_type
 
         self.setup_ui()
 
-        self.model = LocationTimeseriesModel(datasource=self.ts_datasource)
+        self.model = LocationTimeseriesModel(datasource=self.ts_datasources)
         self.graph_plot.set_location_model(self.model)
-        self.graph_plot.set_ds_model(self.ts_datasource)
+        self.graph_plot.set_ds_model(self.ts_datasources)
         self.location_timeseries_table.setModel(self.model)
 
         # set listeners
@@ -707,7 +707,7 @@ class GraphDockWidget(QDockWidget):
         parent_widget=None,
         parent_class=None,
         nr=0,
-        ts_datasource=None,
+        ts_datasources=None,
         root_tool=None,
     ):
         """Constructor"""
@@ -716,7 +716,7 @@ class GraphDockWidget(QDockWidget):
         self.iface = iface
         self.parent_class = parent_class
         self.nr = nr
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.root_tool = root_tool
 
         self.setup_ui(self)
@@ -726,14 +726,14 @@ class GraphDockWidget(QDockWidget):
         # add graph widgets
         self.q_graph_widget = GraphWidget(
             self,
-            self.ts_datasource,
+            self.ts_datasources,
             parameter_config["q"],
             "Q graph",
             QgsWkbTypes.LineString,
         )
         self.h_graph_widget = GraphWidget(
             self,
-            self.ts_datasource,
+            self.ts_datasources,
             parameter_config["h"],
             "H graph",
             QgsWkbTypes.Point,

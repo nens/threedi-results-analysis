@@ -1122,7 +1122,7 @@ class SideViewDockWidget(QDockWidget):
             line = None
 
         self.line_layer, self.point_dict, self.channel_profiles = self.create_combined_layers(
-            self.tdi_root_tool.ts_datasource.model_spatialite_filepath, line
+            self.tdi_root_tool.ts_datasources.model_spatialite_filepath, line
         )
 
         self.sideviews = []

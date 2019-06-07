@@ -97,7 +97,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self,
         parent=None,
         iface=None,
-        ts_datasource=None,
+        ts_datasources=None,
         downloadable_results=None,
         tool=None,
     ):
@@ -105,7 +105,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         :parent: Qt parent Widget
         :iface: QGiS interface
-        :ts_datasource: TimeseriesDatasourceModel instance
+        :ts_datasources: TimeseriesDatasourceModel instance
         :downloadable_results: DownloadResultModel instance
         :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
@@ -123,9 +123,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
 
         # set models on table views and update view columns
-        self.ts_datasource = ts_datasource
-        self.resultTableView.setModel(self.ts_datasource)
-        self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+        self.ts_datasources = ts_datasources
+        self.resultTableView.setModel(self.ts_datasources)
+        self.ts_datasources.set_column_sizes_on_view(self.resultTableView)
 
         self.downloadable_results = downloadable_results
         self.download_proxy_model = QSortFilterProxyModel()
@@ -151,19 +151,19 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
 
         if (
-            self.ts_datasource.model_spatialite_filepath
-            and self.ts_datasource.model_spatialite_filepath not in combo_list
+            self.ts_datasources.model_spatialite_filepath
+            and self.ts_datasources.model_spatialite_filepath not in combo_list
         ):
-            combo_list.append(self.ts_datasource.model_spatialite_filepath)
+            combo_list.append(self.ts_datasources.model_spatialite_filepath)
 
-        if not self.ts_datasource.model_spatialite_filepath:
+        if not self.ts_datasources.model_spatialite_filepath:
             combo_list.append("")
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
-        if self.ts_datasource.model_spatialite_filepath:
+        if self.ts_datasources.model_spatialite_filepath:
             current_index = self.modelSpatialiteComboBox.findText(
-                self.ts_datasource.model_spatialite_filepath
+                self.ts_datasources.model_spatialite_filepath
             )
 
             self.modelSpatialiteComboBox.setCurrentIndex(current_index)
@@ -282,7 +282,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                     "file_path": filename,
                 }
             ]
-            self.ts_datasource.insertRows(items)
+            self.ts_datasources.insertRows(items)
             settings.setValue("last_used_datasource_path", os.path.dirname(filename))
             return True
         return False
@@ -296,7 +296,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.ts_datasource.removeRows(row, 1)
+            self.ts_datasources.removeRows(row, 1)
 
     def get_3di_spatialites_legendlist(self):
         """
@@ -323,12 +323,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :param nr: integer, nr of item selected in combobox
         """
 
-        self.ts_datasource.model_spatialite_filepath = (
+        self.ts_datasources.model_spatialite_filepath = (
             self.modelSpatialiteComboBox.currentText()
         )
         # Just emitting some dummy model indices cuz what else can we do, there
         # is no corresponding rows/columns that's been changed
-        self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
+        self.ts_datasources.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def select_model_spatialite_file(self):
         """
@@ -353,7 +353,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         if filename == "":
             return False
 
-        self.ts_datasource.spatialite_filepath = filename
+        self.ts_datasources.spatialite_filepath = filename
         index_nr = self.modelSpatialiteComboBox.findText(filename)
 
         if index_nr < 0:

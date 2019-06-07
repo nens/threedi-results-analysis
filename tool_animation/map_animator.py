@@ -167,7 +167,7 @@ class MapAnimator(QWidget):
         self.state = self.activateButton.isChecked()
 
         if state:
-            if self.root_tool.ts_datasource.rowCount() > 0:
+            if self.root_tool.ts_datasources.rowCount() > 0:
                 self.line_parameter_combo_box.setEnabled(True)
                 self.node_parameter_combo_box.setEnabled(True)
                 self.prepare_animation_layers()

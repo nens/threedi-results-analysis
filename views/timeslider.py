@@ -29,7 +29,7 @@ class TimesliderWidget(QSlider):
 
     datasource_changed = pyqtSignal()
 
-    def __init__(self, parent, iface, ts_datasource):
+    def __init__(self, parent, iface, ts_datasources):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -41,13 +41,13 @@ class TimesliderWidget(QSlider):
         super().__init__(Qt.Horizontal)
 
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.active_datasource = None
 
         self.setEnabled(False)
-        self.ts_datasource.dataChanged.connect(self.ds_data_changed)
-        self.ts_datasource.rowsInserted.connect(self.on_insert_ds)
-        self.ts_datasource.rowsRemoved.connect(self.on_remove_ds)
+        self.ts_datasources.dataChanged.connect(self.ds_data_changed)
+        self.ts_datasources.rowsInserted.connect(self.on_insert_ds)
+        self.ts_datasources.rowsRemoved.connect(self.on_remove_ds)
 
     def get_current_ts_datasource_item(self):
 
@@ -64,9 +64,9 @@ class TimesliderWidget(QSlider):
         :param start: first row nr
         :param end: last row nr
         """
-        if self.ts_datasource.rowCount() > 0:
+        if self.ts_datasources.rowCount() > 0:
             self.setEnabled(True)
-            ds = self.ts_datasource.rows[0]
+            ds = self.ts_datasources.rows[0]
             if ds != self.active_datasource:
 
                 self.timestamps = ds.datasource().get_timestamps()

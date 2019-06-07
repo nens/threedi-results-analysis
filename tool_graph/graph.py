@@ -28,7 +28,7 @@ import qgis
 class ThreeDiGraph(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource, root_tool):
+    def __init__(self, iface, ts_datasources, root_tool):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -38,7 +38,7 @@ class ThreeDiGraph(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.root_tool = root_tool
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_graph.png"
@@ -81,7 +81,7 @@ class ThreeDiGraph(object):
             self.iface,
             parent_class=self,
             nr=self.widget_nr,
-            ts_datasource=self.ts_datasource,
+            ts_datasources=self.ts_datasources,
             root_tool=self.root_tool,
         )
         self.dock_widgets.append(new_widget)

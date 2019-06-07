@@ -78,7 +78,7 @@ class DataSourceAdapter(object):
 class StatisticsTool(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasources):
         """Constructor.
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -87,7 +87,7 @@ class StatisticsTool(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_statistical_analysis.png"
         self.menu_text = u"Statistical Tool"
@@ -109,7 +109,7 @@ class StatisticsTool(object):
 
         if self.modeldb_engine is None:
             self.modeldb_engine = create_engine(
-                "sqlite:///{0}".format(self.ts_datasource.model_spatialite_filepath),
+                "sqlite:///{0}".format(self.ts_datasources.model_spatialite_filepath),
                 echo=False,
             )
             listen(self.modeldb_engine, "connect", load_spatialite)
@@ -128,9 +128,9 @@ class StatisticsTool(object):
         """Start processing on first selected model result (netcdf).
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
-        self.datasource = self.ts_datasource.rows[-1].datasource()
+        self.datasource = self.ts_datasources.rows[-1].datasource()
         self.ds = DataSourceAdapter(self.datasource)
-        self.result_db_qmodel = self.ts_datasource.rows[0]
+        self.result_db_qmodel = self.ts_datasources.rows[0]
 
         # setup statistics database sqlalchemy instance and create models (
         # if not exist) in the result cache spatialite

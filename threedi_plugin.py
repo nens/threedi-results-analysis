@@ -89,7 +89,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.actions = []
         self.menu = "&3Di toolbox"
 
-        self.ts_datasource = TimeseriesDatasourceModel()
+        self.ts_datasources = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiPlugin")
@@ -98,7 +98,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
         self.timeslider_widget = TimesliderWidget(
-            self.toolbar_animation, self.iface, self.ts_datasource
+            self.toolbar_animation, self.iface, self.ts_datasources
         )
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
@@ -107,13 +107,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Init the rest of the tools
         self.about_tool = About(iface)
-        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
-        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
-        self.toolbox_tool = CommandBox(iface, self.ts_datasource)
-        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
+        self.cache_clearer = CacheClearer(iface, self.ts_datasources)
+        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
+        self.toolbox_tool = CommandBox(iface, self.ts_datasources)
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasources, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
-        self.stats_tool = StatisticsTool(iface, self.ts_datasource)
-        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasource)
+        self.stats_tool = StatisticsTool(iface, self.ts_datasources)
+        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
         self.logfile_tool = ShowLogfile(iface)
 
         self.tools = [
@@ -135,7 +135,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.line_layer = None
         self.point_layer = None
 
-        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasource)
+        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
     def add_action(
         self,
@@ -225,9 +225,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation.addWidget(self.timeslider_widget)
         self.toolbar_animation.addWidget(self.lcd)
 
-        self.ts_datasource.rowsRemoved.connect(self.check_status_model_and_results)
-        self.ts_datasource.rowsInserted.connect(self.check_status_model_and_results)
-        self.ts_datasource.dataChanged.connect(self.check_status_model_and_results)
+        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
+        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
+        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
 
         self.init_state_sync()
 
@@ -240,14 +240,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
             this by pre-processing of things and activation/ deactivation of
-            tools. function is triggered by changes in the ts_datasource
+            tools. function is triggered by changes in the ts_datasources
             args:
                 *args: (list) the arguments provided by the different signals
         """
         # Enable/disable tools that depend on netCDF results.
         # For side views also the spatialite needs to be imported or else it
         # crashes with a segmentation fault
-        if self.ts_datasource.rowCount() > 0:
+        if self.ts_datasources.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
         else:
@@ -255,8 +255,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.cache_clearer.action_icon.setEnabled(False)
 
         if (
-            self.ts_datasource.rowCount() > 0
-            and self.ts_datasource.model_spatialite_filepath is not None
+            self.ts_datasources.rowCount() > 0
+            and self.ts_datasources.model_spatialite_filepath is not None
         ):
             self.sideview_tool.action_icon.setEnabled(True)
             self.stats_tool.action_icon.setEnabled(True)
