@@ -92,6 +92,8 @@ class CacheClearer(object):
         """Find cached spatialite and csv layer files for *ALL* items in the
         TimeseriesDatasourceModel (i.e., *ALL* rows) object and delete them.
         """
+        # TODO: can ts_datasource tell us its cached files? Or can we order it
+        # to clean up its cache? (Instead of us poking around in its internals).
         spatialite_filepaths = [
             item.spatialite_cache_filepath()
             for item in self.ts_datasource.rows
