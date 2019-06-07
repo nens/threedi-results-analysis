@@ -66,10 +66,10 @@ class TimesliderWidget(QSlider):
         """
         if self.ts_datasources.rowCount() > 0:
             self.setEnabled(True)
-            ds = self.ts_datasources.rows[0]
-            if ds != self.active_datasource:
+            datasource = self.ts_datasources.rows[0]
+            if datasource != self.active_datasource:
 
-                self.timestamps = ds.datasource().get_timestamps()
+                self.timestamps = datasource.datasource().get_timestamps()
                 self.min_value = self.timestamps[0]
                 self.max_value = self.timestamps[-1]
                 self.interval = self.timestamps[1] - self.timestamps[0]
@@ -80,7 +80,7 @@ class TimesliderWidget(QSlider):
                 self.setTickPosition(QSlider.TicksBelow)
                 self.setTickInterval(1)
                 self.setSingleStep(1)
-                self.active_datasource = ds
+                self.active_datasource = datasource
                 self.setValue(0)
                 self.datasource_changed.emit()
         else:
