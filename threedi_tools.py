@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 resources  # noqa
 
 
-class ThreeDiTools(QObject, ProjectStateMixin):
+class ThreeDiPlugin(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
 
     def __init__(self, iface):
@@ -75,7 +75,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         locale = QSettings().value("locale/userLocale")[0:2]
         plugin_dir = os.path.dirname(__file__)
         locale_path = os.path.join(
-            plugin_dir, "i18n", "ThreeDiTools_{}.qm".format(locale)
+            plugin_dir, "i18n", "ThreeDiPlugin_{}.qm".format(locale)
         )
 
         if os.path.exists(locale_path):
@@ -92,8 +92,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.ts_datasource = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar("ThreeDiTools")
-        self.toolbar.setObjectName("ThreeDiTools")
+        self.toolbar = self.iface.addToolBar("ThreeDiPlugin")
+        self.toolbar.setObjectName("ThreeDiPlugin")
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
@@ -150,7 +150,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("ThreeDiTools", message)
+        return QCoreApplication.translate("ThreeDiPlugin", message)
 
     def add_action(
         self,

@@ -19,6 +19,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     setup_logging()
     dependencies.check_importability()
 
-    from .threedi_tools import ThreeDiTools
+    from .threedi_tools import ThreeDiPlugin
 
-    return ThreeDiTools(iface)
+    return ThreeDiPlugin(iface)
