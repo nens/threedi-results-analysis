@@ -19,11 +19,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtCore import QObject
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtCore import QTranslator
-from qgis.PyQt.QtCore import qVersion
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QLCDNumber
@@ -44,8 +40,6 @@ from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
 import logging
-import os
-import os.path
 
 
 logger = logging.getLogger(__name__)
