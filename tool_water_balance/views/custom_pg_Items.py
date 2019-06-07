@@ -32,18 +32,18 @@ class RotateLabelAxisItem(AxisItem):
         p.setRenderHint(p.Antialiasing, False)
         p.setRenderHint(p.TextAntialiasing, True)
 
-        ## draw long line along axis
+        # draw long line along axis
         pen, p1, p2 = axisSpec
         p.setPen(pen)
         p.drawLine(p1, p2)
-        p.translate(0.5, 0)  ## resolves some damn pixel ambiguity
+        p.translate(0.5, 0)  # resolves some damn pixel ambiguity
 
-        ## draw ticks
+        # draw ticks
         for pen, p1, p2 in tickSpecs:
             p.setPen(pen)
             p.drawLine(p1, p2)
 
-        ## Draw all text
+        # Draw all text
         if self.tickFont is not None:
             p.setFont(self.tickFont)
         p.setPen(self.pen())
