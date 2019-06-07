@@ -141,14 +141,18 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # connect signals
         self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_datasource)
+        self.removeTsDatasourceButton.clicked.connect(
+            self.remove_selected_ts_datasource
+        )
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file
         )
         self.loginButton.clicked.connect(self.on_login_button_clicked)
 
         # set combobox list
-        combo_list = [datasource for datasource in self.get_3di_spatialites_legendlist()]
+        combo_list = [
+            datasource for datasource in self.get_3di_spatialites_legendlist()
+        ]
 
         if (
             self.ts_datasources.model_spatialite_filepath
@@ -183,7 +187,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
         self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_datasource)
+        self.removeTsDatasourceButton.clicked.disconnect(
+            self.remove_selected_ts_datasource
+        )
         self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file
         )
