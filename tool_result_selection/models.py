@@ -224,5 +224,5 @@ class TimeseriesDatasourceModel(BaseModel):
         self.removeRows(0, self.rowCount())
 
     def on_change(self, start=None, stop=None, etc=None):
-
+        # TODO: what are emitted aren't directories but datasource models?
         self.results_change.emit("result_directories", self.rows)
