@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
+from io import IOBase
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QObject
@@ -7,10 +7,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtWidgets import QFileDialog
-from ThreeDiToolbox.tool_result_selection.result_downloader import DownloadResultModel
-from ThreeDiToolbox.tool_result_selection.result_selection_view import (
-    ThreeDiResultSelectionWidget,
-)
+from ThreeDiToolbox.tool_result_selection import result_downloader
+from ThreeDiToolbox.tool_result_selection import result_selection_view
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 
@@ -62,13 +60,13 @@ class ThreeDiResultSelection(QObject):
             application at run time.
         :type iface: QgsInterface
         """
+        super().__init__()
         # Save reference to the QGIS interface
-        QObject.__init__(self)
         self.iface = iface
 
         self.ts_datasource = ts_datasource
         # TODO: unsure if this is the right place for initializing this model
-        self.download_result_model = DownloadResultModel()
+        self.download_result_model = result_downloader.DownloadResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None
@@ -77,9 +75,6 @@ class ThreeDiResultSelection(QObject):
 
         # download administration
         self.network_manager = QgsNetworkAccessManager(self)
-
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_add_datasource.png"
         self.menu_text = u"Select 3Di results"
@@ -113,12 +108,12 @@ class ThreeDiResultSelection(QObject):
 
             if self.dialog is None:
                 # Create the dialog (after translation) and keep reference
-                self.dialog = ThreeDiResultSelectionWidget(
+                self.dialog = result_selection_view.ThreeDiResultSelectionWidget(
                     parent=None,
                     iface=self.iface,
                     ts_datasource=self.ts_datasource,
                     download_result_model=self.download_result_model,
-                    parent_class=self,
+                    tool=self,
                 )
 
                 # download signals; signal connections should persist after
@@ -170,7 +165,6 @@ class ThreeDiResultSelection(QObject):
                 self.ts_datasource.insertRows([result])
 
     def get_state_description(self):
-        from io import IOBase
 
         return (
             self.tool_name,

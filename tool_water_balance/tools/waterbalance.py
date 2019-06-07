@@ -11,7 +11,6 @@ from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 import logging
 import numpy as np
 import numpy.ma as ma
-import os.path
 
 
 logger = logging.getLogger(__name__)
@@ -868,9 +867,6 @@ class WaterBalanceTool(object):
         # Save reference to the QGIS interface
         self.iface = iface
         self.ts_datasource = ts_datasource
-
-        # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/weight-scale.png"
         self.menu_text = u"Water Balance Tool"

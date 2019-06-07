@@ -22,8 +22,8 @@
 from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
+from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
-from ThreeDiToolbox.tool_commands.command_view import CommandBoxDockWidget
 
 import logging
 import os.path

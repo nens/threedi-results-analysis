@@ -1,4 +1,5 @@
 from lizard_connector.connector import Endpoint
+from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QModelIndex
@@ -11,7 +12,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
+from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from urllib.error import HTTPError
 
@@ -19,11 +20,9 @@ import logging
 import os
 
 
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(
-        os.path.dirname(__file__), os.pardir, "ui", "threedi_result_selection_dialog.ui"
-    )
-)
+ui_file = Path(__file__).parent / "result_selection_view.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +92,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         iface=None,
         ts_datasource=None,
         download_result_model=None,
-        parent_class=None,
+        tool=None,
     ):
         """Constructor
 
@@ -101,12 +100,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :iface: QGiS interface
         :ts_datasource: TimeseriesDatasourceModel instance
         :download_result_model: DownloadResultModel instance
-        :parent_class: the tool class which instantiated this widget. Is used
+        :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
         super().__init__(parent)
 
-        self.parent_class = parent_class
+        self.tool = tool
         self.iface = iface
         self.setupUi(self)
 
@@ -439,24 +438,24 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
     @property
     def username(self):
-        return self.parent_class.username
+        return self.tool.username
 
     @username.setter
     def username(self, username):
-        self.parent_class.username = username
+        self.tool.username = username
 
     @property
     def password(self):
-        return self.parent_class.password
+        return self.tool.password
 
     @password.setter
     def password(self, password):
-        self.parent_class.password = password
+        self.tool.password = password
 
     @property
     def logged_in(self):
         """Return the logged in status."""
-        return self.parent_class.logged_in
+        return self.tool.logged_in
 
     def set_logged_in_status(self, username, password):
         """Set logged in status to True."""
