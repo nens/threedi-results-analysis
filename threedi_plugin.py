@@ -72,8 +72,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.ts_datasources = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar("ThreeDiPlugin")
-        self.toolbar.setObjectName("ThreeDiPlugin")
+        self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
+        self.toolbar.setObjectName("ThreeDiToolbox")
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
