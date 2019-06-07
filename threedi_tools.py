@@ -111,7 +111,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.about_tool = About(iface)
         self.cache_clearer = CacheClearer(iface, self.ts_datasource)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
-        self.toolbox_tool = CommandBox(iface, self.ts_datasource)
+        self.toolbox_tool = CommandBox(iface, self.ts_datasource, self.plugin_dir)
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.stats_tool = StatisticsTool(iface, self.ts_datasource)

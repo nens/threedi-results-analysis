@@ -17,10 +17,9 @@ logger = logging.getLogger(__name__)
 
 class CustomCommand(CustomCommandBase):
 
-    def __init__(self, **kwargs):
-        self.iface = kwargs.get('iface')
-        self.modelchecker_widget = None
-        self.plugin_dir = kwargs.get('plugin_dir')
+    def __init__(self, iface, ts_datasource, plugin_dir):
+        self.iface = iface
+        self.plugin_dir = plugin_dir
 
     def show_gui(self):
         """Show SchemaChecker dialog"""

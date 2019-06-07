@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class CommandBox(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasource, plugin_dir):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -50,7 +50,7 @@ class CommandBox(object):
         self.ts_datasource = ts_datasource
 
         # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
+        self.plugin_dir = plugin_dir
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
         self.menu_text = u"Commands for working with 3Di models"
