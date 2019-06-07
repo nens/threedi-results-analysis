@@ -71,20 +71,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.iface = iface
 
-        # initialize locale
-        locale = QSettings().value("locale/userLocale")[0:2]
-        plugin_dir = os.path.dirname(__file__)
-        locale_path = os.path.join(
-            plugin_dir, "i18n", "ThreeDiPlugin_{}.qm".format(locale)
-        )
-
-        if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
-
-            if qVersion() > "4.3.3":
-                QCoreApplication.installTranslator(self.translator)
-
         # Declare instance attributes
         self.actions = []
         self.menu = "&3Di toolbox"
@@ -245,6 +231,18 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             args:
                 *args: (list) the arguments provided by the different signals
         """
+        # First some logging.
+        logger.info(
+            "Timeseries datasource change. %s ts_datasources:",
+            self.ts_datasources.rowCount(),
+        )
+        for ts_datasource in self.ts_datasources.rows:
+            logger.info("    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value)
+        logger.info(
+            "The selected 3di model spatialite: %s",
+            self.ts_datasources.model_spatialite_filepath,
+        )
+
         # Enable/disable tools that depend on netCDF results.
         # For side views also the spatialite needs to be imported or else it
         # crashes with a segmentation fault
