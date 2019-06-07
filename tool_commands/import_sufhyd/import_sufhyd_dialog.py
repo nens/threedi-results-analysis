@@ -1,3 +1,4 @@
+from pathlib import Path
 from qgis.core import QgsDataSourceUri
 from qgis.gui import QgsCredentialDialog
 from qgis.PyQt import uic
@@ -6,7 +7,7 @@ from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
-from pathlib import Path
+
 import logging
 import os
 
