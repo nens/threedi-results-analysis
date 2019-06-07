@@ -3,7 +3,7 @@ Test breach locations.
 """
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
 from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants

@@ -1,6 +1,6 @@
 from sqlite3 import dbapi2 as dbapi
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
+from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_statistics.tools.statistics import StatisticsTool
 
 import mock
