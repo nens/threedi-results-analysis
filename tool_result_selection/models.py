@@ -190,11 +190,12 @@ class TimeseriesDatasourceModel(BaseModel):
         self.rowsRemoved.connect(self.on_change)
         self.rowsInserted.connect(self.on_change)
 
-    # fields:
     tool_name = "result_selection"
+    # model_spatialite_filepath is the currently selected 3di model db.
     model_spatialite_filepath = ValueWithChangeSignal(
         "model_schematisation_change", "model_schematisation"
     )
+    # TODO: don't we want a similar one for the selected netcdf? Instead of doing [0]?
 
     class Fields(object):
         active = CheckboxField(
