@@ -328,10 +328,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         spatialite changed
         :param nr: integer, nr of item selected in combobox
         """
-
-        self.ts_datasources.model_spatialite_filepath = (
-            self.modelSpatialiteComboBox.currentText()
-        )
+        filepath = self.modelSpatialiteComboBox.currentText()
+        logger.info("Different spatialite 3di model selected: %s", filepath)
+        self.ts_datasources.model_spatialite_filepath = filepath
         # Just emitting some dummy model indices cuz what else can we do, there
         # is no corresponding rows/columns that's been changed
         self.ts_datasources.dataChanged.emit(QModelIndex(), QModelIndex())
