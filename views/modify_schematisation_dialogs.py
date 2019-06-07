@@ -31,7 +31,6 @@ class PredictCalcPointsDialogWidget(QDialog):
         Args:
             parent: Qt parent Widget
             iface: QGiS interface
-            ts_datasource: TimeseriesDatasourceModel instance
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
