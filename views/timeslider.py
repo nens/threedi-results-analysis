@@ -42,8 +42,9 @@ class TimesliderWidget(QSlider):
 
         self.iface = iface
         self.ts_datasources = ts_datasources
-        self.active_datasource = None
-        # ^^^ Note: the plugin itself also already manages this one.
+        self.active_ts_datasource = None
+        # ^^^ TODO: the plugin itself also already has this variable, though
+        # it doesn't seem to be used. Choose one spot.
 
         self.setEnabled(False)
         self.ts_datasources.dataChanged.connect(self.datasource_data_changed)
@@ -64,7 +65,7 @@ class TimesliderWidget(QSlider):
         if self.ts_datasources.rowCount() > 0:
             self.setEnabled(True)
             datasource = self.ts_datasources.rows[0]
-            if datasource != self.active_datasource:
+            if datasource != self.active_ts_datasource:
 
                 self.timestamps = datasource.datasource().get_timestamps()
                 self.min_value = self.timestamps[0]
@@ -77,14 +78,14 @@ class TimesliderWidget(QSlider):
                 self.setTickPosition(QSlider.TicksBelow)
                 self.setTickInterval(1)
                 self.setSingleStep(1)
-                self.active_datasource = datasource
+                self.active_ts_datasource = datasource
                 self.setValue(0)
                 self.datasource_changed.emit()
         else:
             self.setMaximum(1)
             self.setValue(0)
             self.setEnabled(False)
-            self.active_datasource = None
+            self.active_ts_datasource = None
 
     def on_remove_datasource(self, index, start, end):
         """

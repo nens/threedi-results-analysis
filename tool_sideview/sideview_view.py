@@ -804,7 +804,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.time_slider.active_datasource
+        ds_item = self.time_slider.active_ts_datasource
         if ds_item:
             ds = ds_item.datasource()
             for node in self.sideview_nodes:
@@ -1114,9 +1114,9 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        if self.tdi_root_tool.timeslider_widget.active_datasource is not None:
+        if self.tdi_root_tool.timeslider_widget.active_ts_datasource is not None:
             line, node, pump = (
-                self.tdi_root_tool.timeslider_widget.active_datasource.get_result_layers()
+                self.tdi_root_tool.timeslider_widget.active_ts_datasource.get_result_layers()
             )
         else:
             line = None

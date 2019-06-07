@@ -128,7 +128,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.logfile_tool,
         ]
 
-        self.active_datasource = None
+        self.active_ts_datasource = None
         # ^^^ TODO: this doesn't seem to be set in here!
         self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None

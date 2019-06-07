@@ -747,7 +747,7 @@ class GraphDockWidget(QDockWidget):
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
         self.root_tool.timeslider_widget.datasource_changed.connect(
-            self.on_active_datasource_change
+            self.on_active_ts_datasource_change
         )
 
     def on_close(self):
@@ -758,7 +758,7 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
         self.root_tool.timeslider_widget.datasource_changed.disconnect(
-            self.on_active_datasource_change
+            self.on_active_ts_datasource_change
         )
 
         # self.q_graph_widget.close()
@@ -775,11 +775,11 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        active_datasource = self.root_tool.timeslider_widget.active_datasource
+        active_ts_datasource = self.root_tool.timeslider_widget.active_ts_datasource
 
-        if active_datasource is not None:
+        if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_datasource.datasource()
+            ds = active_ts_datasource.datasource()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:
@@ -794,7 +794,7 @@ class GraphDockWidget(QDockWidget):
 
         return parameter_config
 
-    def on_active_datasource_change(self):
+    def on_active_ts_datasource_change(self):
 
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
