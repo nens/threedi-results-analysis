@@ -87,7 +87,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u"&3Di toolbox")
+        self.menu = "&3Di toolbox"
 
         self.ts_datasource = TimeseriesDatasourceModel()
 
@@ -136,21 +136,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.point_layer = None
 
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasource)
-
-    # noinspection PyMethodMayBeStatic
-    def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
-        """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("ThreeDiPlugin", message)
 
     def add_action(
         self,
@@ -231,7 +216,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.add_action(
                 tool,
                 tool.icon_path,
-                text=self.tr(tool.menu_text),
+                text=tool.menu_text,
                 callback=tool.run,
                 parent=self.iface.mainWindow(),
             )
@@ -287,7 +272,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.unload_state_sync()
 
         for action in self.actions:
-            self.iface.removePluginMenu(self.tr(u"&3Di toolbox"), action)
+            self.iface.removePluginMenu("&3Di toolbox", action)
             self.iface.removeToolBarIcon(action)
 
             for tool in self.tools:
