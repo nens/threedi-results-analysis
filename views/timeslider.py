@@ -43,15 +43,12 @@ class TimesliderWidget(QSlider):
         self.iface = iface
         self.ts_datasources = ts_datasources
         self.active_datasource = None
+        # ^^^ Note: the plugin itself also already manages this one.
 
         self.setEnabled(False)
         self.ts_datasources.dataChanged.connect(self.ds_data_changed)
         self.ts_datasources.rowsInserted.connect(self.on_insert_ds)
         self.ts_datasources.rowsRemoved.connect(self.on_remove_ds)
-
-    def get_current_ts_datasource_item(self):
-
-        return self.active_datasource
 
     def on_insert_ds(self, parent, start, end):
         """
