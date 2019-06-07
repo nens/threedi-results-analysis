@@ -2,7 +2,7 @@
 
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.import_sufhyd.import_sufhyd_main import Importer
-from ThreeDiToolbox.tool_commands.import_sufhyd.import_sufhyd_view import (
+from ThreeDiToolbox.tool_commands.import_sufhyd.import_sufhyd_dialog import (
     ImportSufhydDialogWidget,
 )
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase

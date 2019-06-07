@@ -1,4 +1,5 @@
 from lizard_connector.connector import Endpoint
+from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QModelIndex
@@ -11,7 +12,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.tool_result_selection.log_in_dialog import LoginDialog
+from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from urllib.error import HTTPError
 
@@ -19,12 +20,10 @@ import logging
 import os
 
 
+ui_file = Path(__file__).parent / "result_selection_view.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 MEBIBYTE = 1048576
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(
-        os.path.dirname(__file__), os.pardir, "ui", "threedi_result_selection_dialog.ui"
-    )
-)
 
 logger = logging.getLogger(__name__)
 

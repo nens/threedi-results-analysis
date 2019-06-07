@@ -6,17 +6,16 @@ from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
 from ThreeDiToolbox.utils.threedi_database import get_databases
-
+from pathlib import Path
 import logging
 import os
 
 
 logger = logging.getLogger(__name__)
 
-
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), "import_sufhyd_dialog.ui")
-)
+ui_file = Path(__file__).parent / "import_sufhyd_dialog.ui"
+assert ui_file.is_file()
+FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 
 class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
