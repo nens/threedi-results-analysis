@@ -15,8 +15,8 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
     }
 
     def test_init_with_values(self):
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**self.test_values)
+        ts_datasources = TimeseriesDatasourceModel()
+        item = ts_datasources._create_item(**self.test_values)
         for k, v in list(self.test_values.items()):
             itemvalue = getattr(item, k).value
             self.assertEqual(itemvalue, v)
@@ -30,8 +30,8 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
             "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**test_values)
+        ts_datasources = TimeseriesDatasourceModel()
+        item = ts_datasources._create_item(**test_values)
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, ThreediResult))
         self.assertTrue(ncds.datasource)

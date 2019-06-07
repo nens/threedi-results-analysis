@@ -141,14 +141,14 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # connect signals
         self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_datasource)
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file
         )
         self.loginButton.clicked.connect(self.on_login_button_clicked)
 
         # set combobox list
-        combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
+        combo_list = [datasource for datasource in self.get_3di_spatialites_legendlist()]
 
         if (
             self.ts_datasources.model_spatialite_filepath
@@ -183,7 +183,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
         self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_datasource)
         self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file
         )
@@ -237,11 +237,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we check if an .h5 file is available
             # If not we're not going to proceed
 
-            ds_type = detect_netcdf_version(filename)
+            datasource_type = detect_netcdf_version(filename)
             logger.info(
-                "Netcdf result file selected: %s, type is %s", filename, ds_type
+                "Netcdf result file selected: %s, type is %s", filename, datasource_type
             )
-            if ds_type == "netcdf-groundwater":
+            if datasource_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
                 except FileNotFoundError:
@@ -260,7 +260,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                         title="Error",
                     )
                     return False
-            elif ds_type == "netcdf":
+            elif datasource_type == "netcdf":
                 logger.warning(
                     "Result file (%s) version is too old. Warning the user.", filename
                 )
@@ -277,7 +277,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
             items = [
                 {
-                    "type": ds_type,
+                    "type": datasource_type,
                     "name": os.path.basename(filename).lower().rstrip(".nc"),
                     "file_path": filename,
                 }
@@ -287,7 +287,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             return True
         return False
 
-    def remove_selected_ts_ds(self):
+    def remove_selected_ts_datasource(self):
         """
         Remove selected result files from model, called by 'remove' button
         """

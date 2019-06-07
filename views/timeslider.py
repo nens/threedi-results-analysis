@@ -47,10 +47,10 @@ class TimesliderWidget(QSlider):
 
         self.setEnabled(False)
         self.ts_datasources.dataChanged.connect(self.ds_data_changed)
-        self.ts_datasources.rowsInserted.connect(self.on_insert_ds)
-        self.ts_datasources.rowsRemoved.connect(self.on_remove_ds)
+        self.ts_datasources.rowsInserted.connect(self.on_insert_datasource)
+        self.ts_datasources.rowsRemoved.connect(self.on_remove_datasource)
 
-    def on_insert_ds(self, parent, start, end):
+    def on_insert_datasource(self, parent, start, end):
         """
         Set slider settings based on loaded netCDF. based on Qt addRows
         model trigger.
@@ -86,7 +86,7 @@ class TimesliderWidget(QSlider):
             self.setEnabled(False)
             self.active_datasource = None
 
-    def on_remove_ds(self, index, start, end):
+    def on_remove_datasource(self, index, start, end):
         """
         Set slider settings based on loaded netCDF. based on Qt model
         removeRows trigger
@@ -95,7 +95,7 @@ class TimesliderWidget(QSlider):
         :param end: last row nr
         """
         # for now: try to init first netCDF
-        self.on_insert_ds(None, None, None)
+        self.on_insert_datasource(None, None, None)
 
     def ds_data_changed(self, index):
         """
@@ -104,4 +104,4 @@ class TimesliderWidget(QSlider):
         :param index: index of changed field
         """
         # for now: try to init first netCDF
-        self.on_insert_ds(None, None, None)
+        self.on_insert_datasource(None, None, None)

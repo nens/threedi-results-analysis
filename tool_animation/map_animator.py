@@ -144,11 +144,11 @@ class MapAnimator(QWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ds = self.root_tool.timeslider_widget.active_datasource
+        active_datasource = self.root_tool.timeslider_widget.active_datasource
 
-        if active_ds is not None:
+        if active_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ds.datasource()
+            ds = active_datasource.datasource()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:
