@@ -231,7 +231,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.ts_datasources.rowCount(),
         )
         for ts_datasource in self.ts_datasources.rows:
-            logger.info("    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value)
+            logger.info(
+                "    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value
+            )
         logger.info(
             "The selected 3di model spatialite: %s",
             self.ts_datasources.model_spatialite_filepath,
