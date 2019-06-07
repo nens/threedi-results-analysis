@@ -46,7 +46,7 @@ class TimesliderWidget(QSlider):
         # ^^^ Note: the plugin itself also already manages this one.
 
         self.setEnabled(False)
-        self.ts_datasources.dataChanged.connect(self.ds_data_changed)
+        self.ts_datasources.dataChanged.connect(self.datasource_data_changed)
         self.ts_datasources.rowsInserted.connect(self.on_insert_datasource)
         self.ts_datasources.rowsRemoved.connect(self.on_remove_datasource)
 
@@ -97,7 +97,7 @@ class TimesliderWidget(QSlider):
         # for now: try to init first netCDF
         self.on_insert_datasource(None, None, None)
 
-    def ds_data_changed(self, index):
+    def datasource_data_changed(self, index):
         """
         Set slider settings based on loaded netCDF. based on Qt
         data change trigger
