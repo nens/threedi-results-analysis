@@ -6,7 +6,7 @@ from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceMode
 import mock
 
 
-def test_log_in_dialog(qtbot):
+def test_login_dialog(qtbot):
     # Smoke test: just call it.
     login_dialog.LoginDialog()
 
