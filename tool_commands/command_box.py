@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class CommandBox(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource, plugin_dir):
+    def __init__(self, iface, ts_datasource, plugin_dir=None):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
