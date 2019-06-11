@@ -1,9 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 from qgis.core import Qgis
 from qgis.core import QgsProject
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_dialog import (
-    CreateBreachLocationsDialogWidget,
-)
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_dialog
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import progress_bar
@@ -30,7 +28,8 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = CreateBreachLocationsDialogWidget(command=self)
+        self.tool_dialog_widget = \
+            breach_location_dialog.CreateBreachLocationsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, breach_loc, auto_commit):
