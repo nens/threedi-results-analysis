@@ -233,14 +233,14 @@ class TestBresLocation(unittest.TestCase):
 
     def setUp(self):
         ensure_qgis_app_is_initialized()
-        test_db_org = TEST_DATA_DIR / "simple_breach_test.sqlite"
-        assert test_db_org.is_file(), "test data does not exist.."
-        test_db_org = str(test_db_org)  # otherwise we get an TypeError below at
+        test_db_orig = TEST_DATA_DIR / "simple_breach_test.sqlite"
+        assert test_db_orig.is_file(), "test data does not exist.."
+        test_db_orig = str(test_db_orig)  # otherwise we get an TypeError below at
         # "self.predictor.get_uri(**db_kwargs)" arg. 1 has unexpected type 'PosixPath'
 
         tmp_test_file_dir = tempfile.mkdtemp(prefix="breach_location_test")
         test_db_dest = os.path.join(tmp_test_file_dir, "simple_breach_test.sqlite")
-        shutil.copyfile(test_db_org, test_db_dest)
+        shutil.copyfile(test_db_orig, test_db_dest)
 
         db_kwargs = {
             "database": test_db_dest,

@@ -9,8 +9,8 @@ from qgis.PyQt.QtWidgets import QDialogButtonBox
 from qgis.PyQt.QtWidgets import QGroupBox
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QVBoxLayout
-from ThreeDiToolbox.utils.threedi_database import get_databases
 from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location
+from ThreeDiToolbox.utils.threedi_database import get_databases
 
 import logging
 import os
