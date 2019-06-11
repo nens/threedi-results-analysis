@@ -7,13 +7,13 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.utils import constants
-from ThreeDiToolbox.utils import utils
+from ThreeDiToolbox.utils import pairwise
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import get_distance
 from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
 from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
+from ThreeDiToolbox.utils.predictions import Predictor
 from ThreeDiToolbox.utils.utils import parse_db_source_info
 
 import collections
@@ -220,7 +220,7 @@ class BreachLocation(object):
         # we're looping pairwise to be able to draw a line between
         # the two points. The last point has been extrapolated, hence
         # it is not of interest here
-        for start_pnt, nxt_pnt in utils.pairwise(points):
+        for start_pnt, nxt_pnt in pairwise(points):
 
             connected_pnt_ids = list(start_pnt.keys())
             start_pnt_xy = list(start_pnt.values())[0]

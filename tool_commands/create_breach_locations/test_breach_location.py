@@ -3,12 +3,15 @@ Test breach locations.
 """
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.threedi_schema_edits.breach_location import BreachLocation
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
+from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
+from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
+    BreachLocation,
+)
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
 from ThreeDiToolbox.utils.geo_utils import set_layer_crs
+from ThreeDiToolbox.utils.predictions import Predictor
 
 import collections
 import os
@@ -25,13 +28,16 @@ class TestBreachLocationDryRun(unittest.TestCase):
 
     def setUp(self):
         ensure_qgis_app_is_initialized()
-        # os.path.abspath(__file__)
-        here = os.path.split(os.path.abspath(__file__))[0]
-        test_db = os.path.join(here, "data", "simple_breach_test.sqlite")
+
+        sqlite_path = TEST_DATA_DIR / "simple_breach_test.sqlite"
+        assert sqlite_path.is_file(), "test data does not exist.."
+        sqlite_path = str(sqlite_path)  # otherwise we get an TypeError below at
+        # "self.predictor.get_uri(**db_kwargs)" arg. 1 has unexpected type 'PosixPath'
+
         db_kwargs = {
-            "database": test_db,
-            "host": test_db,
-            "db_path": test_db,
+            "database": sqlite_path,
+            "host": sqlite_path,
+            "db_path": sqlite_path,
             "password": "",
             "port": "",
             "srid": "",
@@ -227,12 +233,14 @@ class TestBresLocation(unittest.TestCase):
 
     def setUp(self):
         ensure_qgis_app_is_initialized()
-        here = os.path.split(os.path.abspath(__file__))[0]
-        test_db_org = os.path.join(here, "data", "simple_breach_test.sqlite")
+        test_db_orig = TEST_DATA_DIR / "simple_breach_test.sqlite"
+        assert test_db_orig.is_file(), "test data does not exist.."
+        test_db_orig = str(test_db_orig)  # otherwise we get an TypeError below at
+        # "self.predictor.get_uri(**db_kwargs)" arg. 1 has unexpected type 'PosixPath'
 
         tmp_test_file_dir = tempfile.mkdtemp(prefix="breach_location_test")
         test_db_dest = os.path.join(tmp_test_file_dir, "simple_breach_test.sqlite")
-        shutil.copyfile(test_db_org, test_db_dest)
+        shutil.copyfile(test_db_orig, test_db_dest)
 
         db_kwargs = {
             "database": test_db_dest,
@@ -267,9 +275,6 @@ class TestBresLocation(unittest.TestCase):
         )
         self.test_db = test_db_dest
 
-    def tearDown(self):
-        os.remove(self.test_db)
-
     def test_it_can_move_points_behind_levee(self):
         connected_points_selection = self.breach_location.get_connected_points(
             [2, 3, 4, 5, 6, 7, 8], calc_type=2  # ids of the calculation points
@@ -283,3 +288,6 @@ class TestBresLocation(unittest.TestCase):
         levee_ids = [f["levee_id"] for f in f_iter]
         self.assertEqual(len(levee_ids), 7)
         self.assertTrue(all([x == 3 for x in levee_ids]))
+
+    def tearDown(self):
+        os.remove(self.test_db)
