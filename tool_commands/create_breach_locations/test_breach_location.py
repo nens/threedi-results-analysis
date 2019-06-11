@@ -1,6 +1,8 @@
 """
 Test breach locations.
 """
+from qgis._core import QgsPointXY
+from qgis._core import QgsVectorLayer
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
@@ -8,9 +10,19 @@ from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
     BreachLocation,
 )
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    calculate_perpendicular_line,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    get_distance,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    get_epsg_code_from_layer,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    set_layer_crs,
+)
 from ThreeDiToolbox.utils import constants
-from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.predictions import Predictor
 
 import collections
@@ -291,3 +303,40 @@ class TestBresLocation(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.test_db)
+
+
+class TestBreachLocationUtils(unittest.TestCase):
+    def setUp(self):
+        ensure_qgis_app_is_initialized()
+
+    def test_it_can_get_epsg_code_from_layer(self):
+        crs = "EPSG:28992"
+        pnt_layer = QgsVectorLayer("Point?crs=" + crs, "temp_connected_pnt", "memory")
+        epsg_code = get_epsg_code_from_layer(pnt_layer)
+        self.assertEqual(epsg_code, 28992)
+
+    def test_it_can_get_distance_between_points(self):
+        pnt, pnt1 = QgsPointXY(0, 0), QgsPointXY(0, 10)
+        dist = get_distance(pnt, pnt1, 4326)
+        self.assertEqual(dist, 1105854.8332357334)
+        dist = get_distance(pnt, pnt1, 28992)
+        self.assertEqual(dist, 10.0)
+
+    def test_it_can_calculate_perpendicular_line(self):
+        line_coords = [0, 5, 0, 10]
+        expected = (-20.0, 5.0, 20.0, 5.0)
+        perpendicular_line = calculate_perpendicular_line(line_coords, 20)
+        self.assertEqual(expected, perpendicular_line)
+        perpendicular_line_left = calculate_perpendicular_line(line_coords, 20, "left")
+        expected_left = (0, 5, -20.0, 5.0)
+        self.assertEqual(expected_left, perpendicular_line_left)
+        expected_right = (0, 5, 20.0, 5.0)
+        perpendicular_line_right = calculate_perpendicular_line(
+            line_coords, 20, "right"
+        )
+        self.assertEqual(expected_right, perpendicular_line_right)
+
+        # should return None when the distance between the points <= 0
+        line_coords = [0, 0, 0, 0]
+        L = calculate_perpendicular_line(line_coords, 20)
+        self.assertIsNone(L)

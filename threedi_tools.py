@@ -20,20 +20,6 @@
  ***************************************************************************/
 """
 from . import resources  # NoQa, initialize the Qt resources.
-from .misc_tools import About
-from .misc_tools import CacheClearer
-from .misc_tools import ShowLogfile
-from .models.datasources import TimeseriesDatasourceModel
-from .tool_animation.map_animator import MapAnimator
-from .tool_commands.command_box import CommandBox
-from .tool_graph.graph import ThreeDiGraph
-from .tool_result_selection.result_selection import ThreeDiResultSelection
-from .tool_sideview.sideview import ThreeDiSideView
-from .tool_statistics import StatisticsTool
-from .tool_water_balance import WaterBalanceTool
-from .utils.layer_tree_manager import LayerTreeManager
-from .utils.qprojects import ProjectStateMixin
-from .views.timeslider import TimesliderWidget
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtCore import QSettings
@@ -42,6 +28,20 @@ from qgis.PyQt.QtCore import qVersion
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QLCDNumber
+from ThreeDiToolbox.misc_tools import About
+from ThreeDiToolbox.misc_tools import CacheClearer
+from ThreeDiToolbox.misc_tools import ShowLogfile
+from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
+from ThreeDiToolbox.tool_commands.command_box import CommandBox
+from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
+from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
+from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
+from ThreeDiToolbox.tool_statistics import StatisticsTool
+from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
+from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
+from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
+from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
 import logging
 import os

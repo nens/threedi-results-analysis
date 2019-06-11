@@ -7,12 +7,20 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    calculate_perpendicular_line,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    get_distance,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    get_epsg_code_from_layer,
+)
+from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
+    get_extrapolated_point,
+)
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils import pairwise
-from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.utils.geo_utils import get_distance
-from ThreeDiToolbox.utils.geo_utils import get_epsg_code_from_layer
-from ThreeDiToolbox.utils.geo_utils import get_extrapolated_point
 from ThreeDiToolbox.utils.predictions import Predictor
 from ThreeDiToolbox.utils.utils import parse_db_source_info
 
