@@ -6,9 +6,8 @@ from threedi_modelchecker import errors
 from threedi_modelchecker.exporters import format_check_results
 from threedi_modelchecker.model_checks import ThreediModelChecker
 
-from ThreeDiToolbox.tool_commands.base.custom_command import CustomCommandBase
-from ThreeDiToolbox.tool_commands.schematisation_checker.controller import \
-    SchemaCheckerDialogWidget
+from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
+from ThreeDiToolbox.tool_commands.schematisation_checker import controller
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import progress_bar
 
@@ -23,7 +22,7 @@ class CustomCommand(CustomCommandBase):
 
     def show_gui(self):
         """Show SchemaChecker dialog"""
-        self.modelchecker_widget = SchemaCheckerDialogWidget(
+        self.modelchecker_widget = controller.SchemaCheckerDialogWidget(
             self.iface, command=self,
         )
         self.modelchecker_widget.exec_()
