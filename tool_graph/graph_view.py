@@ -390,7 +390,7 @@ class GraphWidget(QWidget):
 
         self.setup_ui()
 
-        self.model = LocationTimeseriesModel(datasource=self.ts_datasources)
+        self.model = LocationTimeseriesModel(datasources=self.ts_datasources)
         self.graph_plot.set_location_model(self.model)
         self.graph_plot.set_ds_model(self.ts_datasources)
         self.location_timeseries_table.setModel(self.model)

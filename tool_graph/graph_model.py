@@ -88,17 +88,17 @@ class LocationTimeseriesModel(BaseModel):
             """
             get pyqtgraph plot of selected object and timeseries
             :param parameters: string, parameter identification
-            :param result_ds_nr: nr of result datasource in model
+            :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            result_key = str(self.model.datasource.rows[result_ds_nr])
+            result_key = str(self.model.ts_datasources.rows[result_ds_nr])
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(
                     parameters=parameters, result_ds_nr=result_ds_nr, absolute=absolute
                 )
-                pattern = self.model.datasource.rows[result_ds_nr].pattern.value
+                pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
                 pen = pg.mkPen(color=self.color.qvalue, width=2, style=pattern)
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(
                     ts_table, pen=pen
@@ -109,12 +109,12 @@ class LocationTimeseriesModel(BaseModel):
         def timeseries_table(self, parameters=None, result_ds_nr=0, absolute=False):
             """
             get list of timestamp values for object and parameters
-            from result datasource
+            from result ts_datasources
             :param parameters:
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            ds = self.model.datasource.rows[result_ds_nr].datasource()
+            ds = self.model.ts_datasources.rows[result_ds_nr].datasource()
             timeseries = ds.get_timeseries(
                 parameters, self.object_id.value, fill_value=np.NaN
             )

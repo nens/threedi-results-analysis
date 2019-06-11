@@ -211,6 +211,8 @@ class TimeseriesDatasourceModel(BaseModel):
             return DataSourceLayerManager(self.type.value, self.file_path.value)
 
         def datasource(self):
+            # TODO: which kind of datasource is this? The netcdf of a
+            # ts_datasources object?
             return self.datasource_layer_manager.datasource
 
         def spatialite_cache_filepath(self):
