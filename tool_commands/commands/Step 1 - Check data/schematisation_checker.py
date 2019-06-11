@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
-    def __init__(self, iface, ts_datasource):
-        # ts_datasource is not used in this command. However due to the dynamic
+    def __init__(self, iface, ts_datasources):
+        # ts_datasources is not used in this command. However due to the dynamic
         # importing and running of CustomCommands (see
         # ThreeDiToolbox/tool_commands/command_box.py) it is still required in the
         # constructor of a CustomCommand.
