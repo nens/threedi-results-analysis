@@ -11,7 +11,7 @@ import unittest
 
 logger = logging.getLogger(__name__)
 
-TEST_DATA_DIR = Path(__file__).parent.joinpath("data")
+TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 class TestInit(unittest.TestCase):
