@@ -1,21 +1,21 @@
-import logging
-import os
-
 from qgis.core import QgsApplication
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import errors
 from threedi_modelchecker.exporters import format_check_results
 from threedi_modelchecker.model_checks import ThreediModelChecker
-
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker import controller
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import progress_bar
+
+import logging
+import os
+
+
 logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
-
     def __init__(self, iface, ts_datasource):
         # ts_datasource is not used in this command. However due to the dynamic
         # importing and running of CustomCommands (see
@@ -26,7 +26,7 @@ class CustomCommand(CustomCommandBase):
     def show_gui(self):
         """Show SchemaChecker dialog"""
         self.modelchecker_widget = controller.SchemaCheckerDialogWidget(
-            self.iface, command=self,
+            self.iface, command=self
         )
         self.modelchecker_widget.exec_()
 
@@ -51,8 +51,9 @@ class CustomCommand(CustomCommandBase):
             )
             return
         except errors.MigrationMissingError:
-            logger.exception("The selected 3Di model does not have the latest "
-                             "migration")
+            logger.exception(
+                "The selected 3Di model does not have the latest " "migration"
+            )
             pop_up_info(
                 "The selected 3Di model does not have the latest migration, please "
                 "migrate your model to the latest version."
@@ -81,16 +82,19 @@ class CustomCommand(CustomCommandBase):
         session = model_checker.db.get_session()
 
         total_checks = len(model_checker.config.checks)
-        with progress_bar(self.iface, max_value=total_checks) as pb, \
-                open(output_file_path, "w") as output_file:
+        with progress_bar(self.iface, max_value=total_checks) as pb, open(
+            output_file_path, "w"
+        ) as output_file:
             for i, check in enumerate(model_checker.checks()):
                 model_errors = check.get_invalid(session)
                 for error_row in model_errors:
                     formatted_error = format_check_results(check, error_row)
                     output_file.write(formatted_error)
-                    output_file.write('\n')
+                    output_file.write("\n")
                 pb.setValue(i)
 
         logger.info("Successfully finished running threedi-modelchecker")
-        pop_up_info("Finished, see result in <a href='file:/%s'>%s</a>" %
-                    (output_file_path, output_filename))
+        pop_up_info(
+            "Finished, see result in <a href='file:/%s'>%s</a>"
+            % (output_file_path, output_filename)
+        )

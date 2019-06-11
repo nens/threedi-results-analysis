@@ -7,7 +7,10 @@
 # WARNING! All changes made in this file will be lost!
 # flake8: noqa
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
+
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -26,7 +29,9 @@ class Ui_Dialog(object):
         self.verticalLayout.addWidget(self.databaseSelectionGroup)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -38,4 +43,6 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.databaseSelectionGroup.setTitle(_translate("Dialog", "Threedi model database"))
+        self.databaseSelectionGroup.setTitle(
+            _translate("Dialog", "Threedi model database")
+        )

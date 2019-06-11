@@ -1,14 +1,12 @@
-import os
-
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
 from threedi_modelchecker.threedi_database import ThreediDatabase
-
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
-FORM_CLASS, _ = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), 'view.ui')
-)
+import os
+
+
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "view.ui"))
 
 
 class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
@@ -26,8 +24,8 @@ class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
     def on_accept(self):
         selected_database_key = self.database_combobox.currentText()
         selected_db = self.available_databases.get(selected_database_key)
-        db_type = selected_db.get('db_type')
-        connection_settings = selected_db.get('db_settings')
+        db_type = selected_db.get("db_type")
+        connection_settings = selected_db.get("db_settings")
 
         threedi_db = ThreediDatabase(connection_settings, db_type=db_type)
         self.command.run_it(threedi_db)
