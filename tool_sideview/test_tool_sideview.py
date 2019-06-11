@@ -1,4 +1,4 @@
-from ThreeDiToolbox.threedi_toolbox import CommandBox
+from ThreeDiToolbox.threedi_plugin import CommandBox
 from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 
