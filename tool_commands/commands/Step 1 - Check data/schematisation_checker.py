@@ -1,6 +1,7 @@
 import logging
 import os
 
+from qgis.core import QgsApplication
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import errors
 from threedi_modelchecker.exporters import format_check_results
@@ -10,15 +11,13 @@ from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker import controller
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import progress_bar
-
 logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
 
-    def __init__(self, iface, ts_datasource, plugin_dir):
+    def __init__(self, iface, ts_datasource):
         self.iface = iface
-        self.plugin_dir = plugin_dir
 
     def show_gui(self):
         """Show SchemaChecker dialog"""
@@ -31,7 +30,7 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def run_it(self, threedi_db):
-        """Applies the threedi-modelchecker to `threedi_db`
+        """Apply the threedi-modelchecker to `threedi_db`
 
         The connection to the `threedi_db` and its south_migration_history are first
         validated. Next, any model errors are written to a text file.
@@ -70,8 +69,10 @@ class CustomCommand(CustomCommandBase):
                 "We are gonna continue for now and hope for the best."
             )
 
-        output_filename = 'Model_errors.txt'
-        output_file_path = os.path.join(self.plugin_dir, output_filename)
+        output_filename = "model-errors.txt"
+        output_file_path = os.path.join(
+            QgsApplication.qgisSettingsDirPath(), output_filename
+        )
 
         session = model_checker.db.get_session()
 
