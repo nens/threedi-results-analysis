@@ -2,4 +2,5 @@
 # python's import mechanism (which breaks pytest).
 import os
 
+
 os.environ["QGIS_NO_OVERRIDE_IMPORT"] = "KEEPYOURPAWSOFF"
