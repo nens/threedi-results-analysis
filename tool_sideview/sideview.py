@@ -36,7 +36,7 @@ class ThreeDiSideView(object):
             application at run time.
         :type iface: QgsInterface
         :param tdi_root_tool: 3Di root tool instance
-        :type tdi_root_tool: ThreeDiTools
+        :type tdi_root_tool: ThreeDiPlugin
         """
         # Save reference to the QGIS interface
         self.iface = iface

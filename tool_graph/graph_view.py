@@ -376,7 +376,7 @@ class GraphWidget(QWidget):
     def __init__(
         self,
         parent=None,
-        ts_datasource=None,
+        ts_datasources=None,
         parameter_config=[],
         name="",
         geometry_type=QgsWkbTypes.Point,
@@ -384,15 +384,15 @@ class GraphWidget(QWidget):
         super().__init__(parent)
 
         self.name = name
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.parent = parent
         self.geometry_type = geometry_type
 
         self.setup_ui()
 
-        self.model = LocationTimeseriesModel(datasource=self.ts_datasource)
+        self.model = LocationTimeseriesModel(datasources=self.ts_datasources)
         self.graph_plot.set_location_model(self.model)
-        self.graph_plot.set_ds_model(self.ts_datasource)
+        self.graph_plot.set_ds_model(self.ts_datasources)
         self.location_timeseries_table.setModel(self.model)
 
         # set listeners
@@ -707,7 +707,7 @@ class GraphDockWidget(QDockWidget):
         parent_widget=None,
         parent_class=None,
         nr=0,
-        ts_datasource=None,
+        ts_datasources=None,
         root_tool=None,
     ):
         """Constructor"""
@@ -716,7 +716,7 @@ class GraphDockWidget(QDockWidget):
         self.iface = iface
         self.parent_class = parent_class
         self.nr = nr
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.root_tool = root_tool
 
         self.setup_ui(self)
@@ -726,14 +726,14 @@ class GraphDockWidget(QDockWidget):
         # add graph widgets
         self.q_graph_widget = GraphWidget(
             self,
-            self.ts_datasource,
+            self.ts_datasources,
             parameter_config["q"],
             "Q graph",
             QgsWkbTypes.LineString,
         )
         self.h_graph_widget = GraphWidget(
             self,
-            self.ts_datasource,
+            self.ts_datasources,
             parameter_config["h"],
             "H graph",
             QgsWkbTypes.Point,
@@ -747,7 +747,7 @@ class GraphDockWidget(QDockWidget):
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
         self.root_tool.timeslider_widget.datasource_changed.connect(
-            self.on_active_datasource_change
+            self.on_active_ts_datasource_change
         )
 
     def on_close(self):
@@ -758,7 +758,7 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
         self.root_tool.timeslider_widget.datasource_changed.disconnect(
-            self.on_active_datasource_change
+            self.on_active_ts_datasource_change
         )
 
         # self.q_graph_widget.close()
@@ -775,11 +775,11 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ds = self.root_tool.timeslider_widget.active_datasource
+        active_ts_datasource = self.root_tool.timeslider_widget.active_ts_datasource
 
-        if active_ds is not None:
+        if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ds.datasource()
+            ds = active_ts_datasource.datasource()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:
@@ -794,7 +794,7 @@ class GraphDockWidget(QDockWidget):
 
         return parameter_config
 
-    def on_active_datasource_change(self):
+    def on_active_ts_datasource_change(self):
 
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])

@@ -40,7 +40,7 @@ class CustomCommand(CustomCommandBase):
             ]
         )
         self.iface = kwargs.get("iface")
-        self.ts_datasource = kwargs.get("ts_datasource")
+        self.ts_datasources = kwargs.get("ts_datasources")
         self.tool_dialog_widget = None
 
     def run(self):
@@ -49,7 +49,7 @@ class CustomCommand(CustomCommandBase):
     def show_gui(self):
 
         self.tool_dialog_widget = ImportSufhydDialogWidget(
-            iface=self.iface, ts_datasource=self.ts_datasource, command=self
+            iface=self.iface, ts_datasources=self.ts_datasources, command=self
         )
         self.tool_dialog_widget.exec_()  # block execution
 

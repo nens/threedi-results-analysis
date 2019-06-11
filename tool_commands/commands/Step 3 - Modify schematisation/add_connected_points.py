@@ -3,9 +3,9 @@
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsGeometry
 from qgis.core import QgsProject
-from ThreeDiToolbox.threedi_schema_edits.predictions import Predictor
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.utils import constants
+from ThreeDiToolbox.utils.predictions import Predictor
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.views.modify_schematisation_dialogs import (
     AddCoonnectedPointsDialogWidget,
@@ -27,7 +27,7 @@ class CustomCommand(CustomCommandBase):
         self.args = args
         self.kwargs = kwargs
         self.iface = kwargs.get("iface")
-        self.ts_datasource = kwargs.get("ts_datasource")
+        self.ts_datasources = kwargs.get("ts_datasources")
         self.tool_dialog_widget = None
         self.connected_pnt_lyr = None
         self.calc_pnt_lyr = None

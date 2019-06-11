@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class WaterBalanceCalculation(object):
-    def __init__(self, ts_datasource):
-        self.ts_datasource = ts_datasource
+    def __init__(self, ts_datasources):
+        self.ts_datasources = ts_datasources
 
         # gridadmin
-        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        nc_path = self.ts_datasources.rows[0].datasource().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
 
@@ -118,7 +118,7 @@ class WaterBalanceCalculation(object):
         }
         pump_selection = {"in": [], "out": []}
 
-        lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
 
         # all links in and out
         # use bounding box and spatial index to prefilter lines
@@ -387,7 +387,7 @@ class WaterBalanceCalculation(object):
 
         nodes = {"1d": [], "2d": [], "2d_groundwater": []}
 
-        lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
 
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(
@@ -530,7 +530,7 @@ class WaterBalanceCalculation(object):
             np_link["ntype"] != TYPE_2D_VERTICAL_INFILTRATION
         )
 
-        ds = self.ts_datasource.rows[0].datasource()
+        ds = self.ts_datasources.rows[0].datasource()
 
         # get all flows through incoming and outgoing flows
         ts = ds.get_timestamps(parameter="q_cum")
@@ -857,7 +857,7 @@ class WaterBalanceCalculation(object):
 class WaterBalanceTool(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasources):
         """Constructor.
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -866,7 +866,7 @@ class WaterBalanceTool(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/weight-scale.png"
         self.menu_text = u"Water Balance Tool"
@@ -954,11 +954,11 @@ class WaterBalanceTool(object):
             schematisation (e.g. pumps, laterals).
         """
 
-        selected_ds = self.ts_datasource.rows[0].datasource()
-        check_available_vars = selected_ds.available_vars
+        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        check_available_vars = active_ts_datasource.available_vars
 
-        ga = self.ts_datasource.rows[0].datasource().gridadmin
-        gr = self.ts_datasource.rows[0].datasource().result_admin
+        ga = self.ts_datasources.rows[0].datasource().gridadmin
+        gr = self.ts_datasources.rows[0].datasource().result_admin
 
         minimum_agg_vars = [
             ("q_cum_negative", "negative cumulative discharge"),
@@ -1037,8 +1037,8 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        selected_ds = self.ts_datasource.rows[0].datasource()
-        if not selected_ds.ds_aggregation:
+        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        if not active_ts_datasource.ds_aggregation:
             self.pop_up_no_agg_found()
         elif self.get_missing_agg_vars():
             self.pop_up_missing_agg_vars()
@@ -1055,8 +1055,8 @@ class WaterBalanceTool(object):
                 # Create the widget (after translation) and keep reference
                 self.widget = WaterBalanceWidget(
                     iface=self.iface,
-                    ts_datasource=self.ts_datasource,
-                    wb_calc=WaterBalanceCalculation(self.ts_datasource),
+                    ts_datasources=self.ts_datasources,
+                    wb_calc=WaterBalanceCalculation(self.ts_datasources),
                 )
 
             # connect to provide cleanup on closing of widget

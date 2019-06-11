@@ -20,13 +20,13 @@ FORM_CLASS, _ = uic.loadUiType(ui_file)
 
 
 class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
-    def __init__(self, parent=None, iface=None, ts_datasource=None, command=None):
+    def __init__(self, parent=None, iface=None, ts_datasources=None, command=None):
         """Constructor
 
         Args:
             parent: Qt parent Widget
             iface: QGiS interface
-            ts_datasource: TimeseriesDatasourceModel instance
+            ts_datasources: TimeseriesDatasourceModel instance
             command: Command instance with a run_it method which will be called
                      on acceptance of the dialog
         """
@@ -34,10 +34,10 @@ class ImportSufhydDialogWidget(QDialog, FORM_CLASS):
         self.setupUi(self)
 
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.command = command
 
-        self.db_path = ts_datasource.model_spatialite_filepath
+        self.db_path = self.ts_datasources.model_spatialite_filepath
         self.databases = get_databases()
         self.database_combo.addItems(list(self.databases.keys()))
 

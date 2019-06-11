@@ -52,7 +52,7 @@ class ThreeDiResultSelection(QObject):
 
     tool_name = "result_selection"
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasources):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -64,9 +64,9 @@ class ThreeDiResultSelection(QObject):
         # Save reference to the QGIS interface
         self.iface = iface
 
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         # TODO: unsure if this is the right place for initializing this model
-        self.download_result_model = result_downloader.DownloadResultModel()
+        self.downloadable_results = result_downloader.DownloadResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None
@@ -81,8 +81,8 @@ class ThreeDiResultSelection(QObject):
 
         self.is_active = False
         self.dialog = None
-        self.ts_datasource.model_schematisation_change.connect(self.on_state_changed)
-        self.ts_datasource.results_change.connect(self.on_state_changed)
+        self.ts_datasources.model_schematisation_change.connect(self.on_state_changed)
+        self.ts_datasources.results_change.connect(self.on_state_changed)
 
     def on_unload(self):
         """Cleanup necessary items here when dialog is closed"""
@@ -111,8 +111,8 @@ class ThreeDiResultSelection(QObject):
                 self.dialog = result_selection_view.ThreeDiResultSelectionWidget(
                     parent=None,
                     iface=self.iface,
-                    ts_datasource=self.ts_datasource,
-                    download_result_model=self.download_result_model,
+                    ts_datasources=self.ts_datasources,
+                    downloadable_results=self.downloadable_results,
                     tool=self,
                 )
 
@@ -152,9 +152,9 @@ class ThreeDiResultSelection(QObject):
         self.state_changed.emit(self.tool_name, setting_key, [output])
 
     def set_state(self, setting_dict):
-        self.ts_datasource.reset()
+        self.ts_datasources.reset()
 
-        self.ts_datasource.model_spatialite_filepath = setting_dict.get(
+        self.ts_datasources.model_spatialite_filepath = setting_dict.get(
             "model_schematisation", None
         )
 
@@ -162,7 +162,7 @@ class ThreeDiResultSelection(QObject):
         if result_list is not None:
             for result_json in result_list:
                 result = json.JSONDecoder().decode(result_json)
-                self.ts_datasource.insertRows([result])
+                self.ts_datasources.insertRows([result])
 
     def get_state_description(self):
 
@@ -196,7 +196,7 @@ class ThreeDiResultSelection(QObject):
         selection_index = self.dialog.download_proxy_model.mapToSource(
             proxy_selection_index
         )
-        item = self.download_result_model.rows[selection_index.row()]
+        item = self.downloadable_results.rows[selection_index.row()]
         to_download = [
             r
             for r in item.results.value

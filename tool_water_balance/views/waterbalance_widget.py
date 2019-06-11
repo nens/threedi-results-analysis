@@ -659,12 +659,12 @@ class WaterBalanceWidget(QDockWidget):
         },
     ]
 
-    def __init__(self, parent=None, iface=None, ts_datasource=None, wb_calc=None):
+    def __init__(self, parent=None, iface=None, ts_datasources=None, wb_calc=None):
         """Constructor."""
         super().__init__(parent)
 
         self.iface = iface
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
         self.calc = wb_calc
 
         # setup ui
@@ -764,7 +764,7 @@ class WaterBalanceWidget(QDockWidget):
         )
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        nc_path = self.ts_datasource.rows[0].datasource().file_path
+        nc_path = self.ts_datasources.rows[0].datasource().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
 
@@ -1186,7 +1186,7 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_lower)
 
     def get_wb_result_layers(self):
-        lines, points, pumps = self.ts_datasource.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
         return lines, points, pumps
 
     def get_wb_polygon(self):

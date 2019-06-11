@@ -41,7 +41,7 @@ class ProjectStateMixin(object):
                     if result_list is not None:
                         for result_json in result_list:
                             result = json.JSONDecoder().decode(result_json)
-                            self.ts_datasource.insertRows([result])
+                            self.ts_datasources.insertRows([result])
 
     - signal 'state_changed'[str, str, list]: this signal has to emit every
       time a setting which is stored in the state changed. This signal is
