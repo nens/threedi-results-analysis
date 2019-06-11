@@ -85,10 +85,10 @@ class MapAnimator(QWidget):
         )
 
         self.root_tool.timeslider_widget.datasource_changed.connect(
-            self.on_active_datasource_change
+            self.on_active_ts_datasource_change
         )
 
-        self.on_active_datasource_change()
+        self.on_active_ts_datasource_change()
 
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter
@@ -109,7 +109,7 @@ class MapAnimator(QWidget):
         if old_parameter != self.current_node_parameter:
             self.update_results()
 
-    def on_active_datasource_change(self):
+    def on_active_ts_datasource_change(self):
         # reset
         parameter_config = self._get_active_parameter_config()
 
@@ -144,11 +144,11 @@ class MapAnimator(QWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ds = self.root_tool.timeslider_widget.active_datasource
+        active_ts_datasource = self.root_tool.timeslider_widget.active_ts_datasource
 
-        if active_ds is not None:
+        if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ds.datasource()
+            ds = active_ts_datasource.datasource()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:
@@ -167,7 +167,7 @@ class MapAnimator(QWidget):
         self.state = self.activateButton.isChecked()
 
         if state:
-            if self.root_tool.ts_datasource.rowCount() > 0:
+            if self.root_tool.ts_datasources.rowCount() > 0:
                 self.line_parameter_combo_box.setEnabled(True)
                 self.node_parameter_combo_box.setEnabled(True)
                 self.prepare_animation_layers()
@@ -187,7 +187,7 @@ class MapAnimator(QWidget):
 
     def prepare_animation_layers(self):
 
-        result = self.root_tool.timeslider_widget.active_datasource
+        result = self.root_tool.timeslider_widget.active_ts_datasource
 
         if result is None:
             # todo: logger warning
@@ -326,7 +326,7 @@ class MapAnimator(QWidget):
         if not self.state:
             return
 
-        result = self.root_tool.timeslider_widget.active_datasource
+        result = self.root_tool.timeslider_widget.active_ts_datasource
 
         timestep_nr = self.root_tool.timeslider_widget.value()
 

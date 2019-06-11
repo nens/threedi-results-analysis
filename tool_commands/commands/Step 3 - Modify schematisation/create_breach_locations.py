@@ -23,7 +23,7 @@ class CustomCommand(CustomCommandBase):
         self.args = args
         self.kwargs = kwargs
         self.iface = kwargs.get("iface")
-        self.ts_datasource = kwargs.get("ts_datasource")
+        self.ts_datasources = kwargs.get("ts_datasources")
         self.tool_dialog_widget = None
 
     def run(self):

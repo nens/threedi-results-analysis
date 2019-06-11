@@ -54,16 +54,17 @@ class BaseModelItem(object):
             return self._fields
 
 
+# TODO: nobody knows what BaseModel actually does. And whether we (still) need
+# it. So.... one day, try to remove it.
 class BaseModel(QAbstractTableModel):
     """Customized QAbstractTableModel with more pythonic way of field
     declaration and storage of settings and values in ModelItems, ItemFields
     and Fields"""
 
     _base_model_item_class = BaseModelItem
-    datasource = None
     class_name = "BaseModel"
 
-    def __init__(self, datasource=None, initial_data=[], parent=None):
+    def __init__(self, ts_datasources=None, initial_data=[], parent=None):
         """
         initialisation.
         :param data: initial data. Array of item data.
@@ -78,7 +79,7 @@ class BaseModel(QAbstractTableModel):
 
         super().__init__(parent)
 
-        self.datasource = datasource
+        self.ts_datasources = ts_datasources
 
         # create item class
         self._fields = sorted(

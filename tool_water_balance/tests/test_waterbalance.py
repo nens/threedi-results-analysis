@@ -3,7 +3,7 @@ from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsGeometry
 from qgis.core import QgsPoint
 from qgis.core import QgsProject
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
 
 import os.path
@@ -20,8 +20,8 @@ class WaterbalanceClassTest(unittest.TestCase):
     def setUp(self):
         model_dir = os.path.join(test_dir, "bigdata", "vecht_rekenen_tekenen_demo")
 
-        self.ts_datasource = TimeseriesDatasourceModel()
-        self.ts_datasource.spatialite_filepath = os.path.join(
+        self.ts_datasources = TimeseriesDatasourceModel()
+        self.ts_datasources.spatialite_filepath = os.path.join(
             model_dir, "vecht_s2.sqlite"
         )
         items = [
@@ -33,7 +33,7 @@ class WaterbalanceClassTest(unittest.TestCase):
                 ),
             }
         ]
-        self.ts_datasource.insertRows(items)
+        self.ts_datasources.insertRows(items)
 
         polygon_points = [
             QgsPoint(216196, 502444),
@@ -56,14 +56,14 @@ class WaterbalanceClassTest(unittest.TestCase):
         self.polygon.transform(tr)
 
     def test_link_selection(self):
-        calc = WaterBalanceCalculation(self.ts_datasource)
+        calc = WaterBalanceCalculation(self.ts_datasources)
         links = calc.get_incoming_and_outcoming_link_ids(self.polygon, None)
 
         self.assertListEqual(links["2d_in"], [2253, 2254, 2255, 2256, 9610])
         self.assertListEqual(links["2d_out"], [2265, 2266, 2267, 2268, 12861])
 
     def test_flow_aggregation(self):
-        calc = WaterBalanceCalculation(self.ts_datasource)
+        calc = WaterBalanceCalculation(self.ts_datasources)
         flow_links = calc.get_incoming_and_outcoming_link_ids(self.polygon, None)
 
         calc.get_aggregated_flows(flow_links)

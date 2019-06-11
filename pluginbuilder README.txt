@@ -17,7 +17,7 @@ What's Next:
 
   * Test the plugin by enabling it in the QGIS plugin manager
 
-  * Customize it by editing the implementation file: ``threedi_toolbox.py``
+  * Customize it by editing the implementation file: ``threedi_plugin.py``
 
   * Create your own custom icon, replacing the default icon.png
 

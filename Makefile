@@ -36,7 +36,7 @@ LOCALES =
 
 
 # translation
-SOURCES = __init__.py threedi_toolbox.py threedi_toolbox_dockwidget.py
+SOURCES = __init__.py threedi_plugin.py
 
 PLUGINNAME = ThreeDiToolbox
 

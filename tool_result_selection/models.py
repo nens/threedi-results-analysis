@@ -1,22 +1,21 @@
-from ..datasource.spatialite import Spatialite
-from ..datasource.threedi_results import ThreediResult
-from ..utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
-from ..utils.layer_from_netCDF import get_or_create_flowline_layer
-from ..utils.layer_from_netCDF import get_or_create_node_layer
-from ..utils.layer_from_netCDF import get_or_create_pumpline_layer
-from ..utils.layer_from_netCDF import make_flowline_layer
-from ..utils.layer_from_netCDF import make_pumpline_layer
-from ..utils.layer_from_netCDF import NODES_LAYER_NAME
-from ..utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
-from ..utils.user_messages import pop_up_info
-from ..utils.user_messages import StatusProgressBar
-from .base import BaseModel
-from .base_fields import CheckboxField
-from .base_fields import ValueField
-from builtins import object
 from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
+from ThreeDiToolbox.datasource.spatialite import Spatialite
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.models.base import BaseModel
+from ThreeDiToolbox.models.base_fields import CheckboxField
+from ThreeDiToolbox.models.base_fields import ValueField
+from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import make_pumpline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
+from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 import os
@@ -56,7 +55,7 @@ def pop_up_unkown_datasource_type():
         "1. simulate this model again and load the result in QGIS3 \n"
         "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
     )
-    # we only continue if self.ds_type == 'netcdf-groundwater'
+    # we only continue if self.datasource_type == 'netcdf-groundwater'
     logger.error(msg)
     pop_up_info(msg, title="Error")
     raise AssertionError("unknown datasource type")
@@ -81,10 +80,10 @@ class DataSourceLayerManager(object):
     Abstracts away datasource-layer specifics.
     """
 
-    type_ds_mapping = {"netcdf-groundwater": ThreediResult}
+    type_datasource_mapping = {"netcdf-groundwater": ThreediResult}
 
-    def __init__(self, ds_type, file_path):
-        self.ds_type = ds_type
+    def __init__(self, datasource_type, file_path):
+        self.datasource_type = datasource_type
         self.file_path = file_path
 
         # The following three are filled by self._get_result_layers_*()
@@ -92,17 +91,17 @@ class DataSourceLayerManager(object):
         self._node_layer = None
         self._pumpline_layer = None
 
-        self.type_ds_layer_func_mapping = {
+        self.type_datasource_layer_func_mapping = {
             "netcdf-groundwater": self._get_result_layers_groundwater
         }
 
     @cached_property
     def datasource(self):
         """Returns an instance of a subclass of ``BaseDataSource``."""
-        if self.ds_type != "netcdf-groundwater":
+        if self.datasource_type != "netcdf-groundwater":
             pop_up_unkown_datasource_type()
-        ds_class = self.type_ds_mapping[self.ds_type]
-        return ds_class(self.file_path)
+        datasource_class = self.type_datasource_mapping[self.datasource_type]
+        return datasource_class(self.file_path)
 
     @property
     def datasource_dir(self):
@@ -110,16 +109,16 @@ class DataSourceLayerManager(object):
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
-        f = self.type_ds_layer_func_mapping[self.ds_type]
+        f = self.type_datasource_layer_func_mapping[self.datasource_type]
         return f()
 
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf-groundwater'"""
-        if self.ds_type == "netcdf-groundwater":
+        if self.datasource_type == "netcdf-groundwater":
             return os.path.join(self.datasource_dir, "gridadmin.sqlite")
         else:
-            raise ValueError("Invalid datasource type %s" % self.ds_type)
+            raise ValueError("Invalid datasource type %s" % self.datasource_type)
 
     def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not
@@ -191,11 +190,12 @@ class TimeseriesDatasourceModel(BaseModel):
         self.rowsRemoved.connect(self.on_change)
         self.rowsInserted.connect(self.on_change)
 
-    # fields:
     tool_name = "result_selection"
+    # model_spatialite_filepath is the currently selected 3di model db.
     model_spatialite_filepath = ValueWithChangeSignal(
         "model_schematisation_change", "model_schematisation"
     )
+    # TODO: don't we want a similar one for the selected netcdf? Instead of doing [0]?
 
     class Fields(object):
         active = CheckboxField(
@@ -206,26 +206,25 @@ class TimeseriesDatasourceModel(BaseModel):
         type = ValueField(show=False)
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
+        @cached_property
         def datasource_layer_manager(self):
-            if not hasattr(self, "_datasource_layer_manager"):
-                self._datasource_layer_manager = DataSourceLayerManager(
-                    self.type.value, self.file_path.value
-                )
-            return self._datasource_layer_manager
+            return DataSourceLayerManager(self.type.value, self.file_path.value)
 
         def datasource(self):
-            return self.datasource_layer_manager().datasource
+            # TODO: which kind of datasource is this? The netcdf of a
+            # ts_datasources object?
+            return self.datasource_layer_manager.datasource
 
         def spatialite_cache_filepath(self):
-            return self.datasource_layer_manager().spatialite_cache_filepath
+            return self.datasource_layer_manager.spatialite_cache_filepath
 
         def get_result_layers(self):
-            return self.datasource_layer_manager().get_result_layers()
+            return self.datasource_layer_manager.get_result_layers()
 
     def reset(self):
 
         self.removeRows(0, self.rowCount())
 
     def on_change(self, start=None, stop=None, etc=None):
-
+        # TODO: what are emitted aren't directories but datasource models?
         self.results_change.emit("result_directories", self.rows)
