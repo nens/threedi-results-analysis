@@ -954,8 +954,8 @@ class WaterBalanceTool(object):
             schematisation (e.g. pumps, laterals).
         """
 
-        selected_datasource = self.ts_datasources.rows[0].datasource()
-        check_available_vars = selected_datasource.available_vars
+        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        check_available_vars = active_ts_datasource.available_vars
 
         ga = self.ts_datasources.rows[0].datasource().gridadmin
         gr = self.ts_datasources.rows[0].datasource().result_admin
@@ -1037,8 +1037,8 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        selected_datasource = self.ts_datasources.rows[0].datasource()
-        if not selected_datasource.ds_aggregation:
+        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        if not active_ts_datasource.ds_aggregation:
             self.pop_up_no_agg_found()
         elif self.get_missing_agg_vars():
             self.pop_up_missing_agg_vars()
