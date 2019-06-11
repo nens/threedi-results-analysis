@@ -5,8 +5,6 @@ MAINTAINER Richard Boon <richard.boon@nelen-schuurmans.nl>
 # Debian docker config settings.
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
-# Don't let qgis grab python's import mechanism (which breaks pytest).
-ENV QGIS_NO_OVERRIDE_IMPORT 1
 
 # User handling to get proper non-root-owned files on linux.
 ARG uid=1000
