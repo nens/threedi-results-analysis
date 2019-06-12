@@ -45,7 +45,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Pycharm's refactor option "move" automatically deletes unused import statements,
-# If "from ThreeDiToolbox import resources" is deleted then tool-icons wont show up. Lets call it.
+# If "from ThreeDiToolbox import resources" is deleted then tool-icons wont show up.
+# Lets call it.
 resources  # noqa
 
 

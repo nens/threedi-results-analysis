@@ -3,14 +3,12 @@ Test breach locations.
 """
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
+from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
-    BreachLocation,
-)
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_utils
 from ThreeDiToolbox.utils import constants
-from ThreeDiToolbox.utils.geo_utils import calculate_perpendicular_line
-from ThreeDiToolbox.utils.geo_utils import set_layer_crs
 from ThreeDiToolbox.utils.predictions import Predictor
 
 import collections
@@ -53,12 +51,12 @@ class TestBreachLocationDryRun(unittest.TestCase):
         self.conn_pnt_lyr = self.predictor.get_layer_from_uri(
             self.uri, constants.TABLE_NAME_CONN_PNT, "the_geom"
         )
-        set_layer_crs(self.conn_pnt_lyr, "4326")
+        breach_location_utils.set_layer_crs(self.conn_pnt_lyr, "4326")
         search_distance = 20
         distance_to_levee = 5
         use_selection = False
         is_dry_run = True
-        self.breach_location = BreachLocation(
+        self.breach_location = breach_location.BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,
@@ -164,7 +162,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
 
     def test_it_can_find_levee_intersections(self):
 
-        perp_line = calculate_perpendicular_line(
+        perp_line = breach_location_utils.calculate_perpendicular_line(
             [3.31369, 47.9748, 3.31376, 47.9748],
             distance=self.breach_location.search_distance,
         )
@@ -184,7 +182,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         self.assertListEqual(list(levee_intersections.keys()), [2, 3])
 
     def test_it_can_calculate_new_positions(self):
-        perp_line = calculate_perpendicular_line(
+        perp_line = breach_location_utils.calculate_perpendicular_line(
             [3.31369, 47.9748, 3.31376, 47.9748],
             distance=self.breach_location.search_distance,
         )
@@ -200,7 +198,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         self.assertEqual(levee_id, 3)
 
     def test_it_can_elongate_perpendicular_line(self):
-        perp_line = calculate_perpendicular_line(
+        perp_line = breach_location_utils.calculate_perpendicular_line(
             [3.31369, 47.9748, 3.31376, 47.9748],
             distance=self.breach_location.search_distance,
         )
@@ -261,12 +259,12 @@ class TestBresLocation(unittest.TestCase):
         self.conn_pnt_lyr = self.predictor.get_layer_from_uri(
             self.uri, constants.TABLE_NAME_CONN_PNT, "the_geom"
         )
-        set_layer_crs(self.conn_pnt_lyr, "4326")
+        breach_location_utils.set_layer_crs(self.conn_pnt_lyr, "4326")
         search_distance = 20
         distance_to_levee = 5
         use_selection = False
         is_dry_run = False
-        self.breach_location = BreachLocation(
+        self.breach_location = breach_location.BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,
@@ -291,3 +289,44 @@ class TestBresLocation(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.test_db)
+
+
+class TestBreachLocationUtils(unittest.TestCase):
+    def setUp(self):
+        ensure_qgis_app_is_initialized()
+
+    def test_it_can_get_epsg_code_from_layer(self):
+        crs = "EPSG:28992"
+        pnt_layer = QgsVectorLayer("Point?crs=" + crs, "temp_connected_pnt", "memory")
+        epsg_code = breach_location_utils.get_epsg_code_from_layer(pnt_layer)
+        self.assertEqual(epsg_code, 28992)
+
+    def test_it_can_get_distance_between_points(self):
+        pnt, pnt1 = QgsPointXY(0, 0), QgsPointXY(0, 10)
+        dist = breach_location_utils.get_distance(pnt, pnt1, 4326)
+        self.assertEqual(dist, 1105854.8332357334)
+        dist = breach_location_utils.get_distance(pnt, pnt1, 28992)
+        self.assertEqual(dist, 10.0)
+
+    def test_it_can_calculate_perpendicular_line(self):
+        line_coords = [0, 5, 0, 10]
+        expected = (-20.0, 5.0, 20.0, 5.0)
+        perpendicular_line = breach_location_utils.calculate_perpendicular_line(
+            line_coords, 20
+        )
+        self.assertEqual(expected, perpendicular_line)
+        perpendicular_line_left = breach_location_utils.calculate_perpendicular_line(
+            line_coords, 20, "left"
+        )
+        expected_left = (0, 5, -20.0, 5.0)
+        self.assertEqual(expected_left, perpendicular_line_left)
+        expected_right = (0, 5, 20.0, 5.0)
+        perpendicular_line_right = breach_location_utils.calculate_perpendicular_line(
+            line_coords, 20, "right"
+        )
+        self.assertEqual(expected_right, perpendicular_line_right)
+
+        # should return None when the distance between the points <= 0
+        line_coords = [0, 0, 0, 0]
+        L = breach_location_utils.calculate_perpendicular_line(line_coords, 20)
+        self.assertIsNone(L)
