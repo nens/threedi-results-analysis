@@ -2,6 +2,7 @@ from pathlib import Path
 from ThreeDiToolbox import dependencies
 
 import mock
+import os
 
 
 available_dependency = dependencies.Dependency("numpy", "numpy", "")
@@ -61,3 +62,18 @@ def test_dependencies_target_dir_somewhere_else(tmpdir):
         patched.return_value = "/some/profile/dir"
         result = str(dependencies._dependencies_target_dir(tmpdir))
         assert "/some/profile/dir/python" == result
+
+
+def test_get_python_interpreter_linux():
+    python_interpreter = dependencies._get_python_interpreter()
+    directory, filename = os.path.split(python_interpreter)
+    assert "python3" in filename
+
+
+def test_get_python_interpreter_windows():
+    with mock.patch(
+        "sys.executable", "C:/Program Files/QGIS 3.4/bin/qgis-ltr-bin.exe"
+    ), mock.patch("os.path.exists", return_value=True):
+        python_interpreter = dependencies._get_python_interpreter()
+        directory, filename = os.path.split(python_interpreter)
+        assert filename == "python3.exe"
