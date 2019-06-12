@@ -7,18 +7,7 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
-    calculate_perpendicular_line,
-)
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
-    get_distance,
-)
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
-    get_epsg_code_from_layer,
-)
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location_utils import (
-    get_extrapolated_point,
-)
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_utils
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils import pairwise
 from ThreeDiToolbox.utils.predictions import Predictor
@@ -88,7 +77,9 @@ class BreachLocation(object):
             uri, constants.TABLE_NAME_LEVEE, "the_geom"
         )
 
-        self.epsg_code = get_epsg_code_from_layer(self.connected_pnt_lyr)
+        self.epsg_code = breach_location_utils.get_epsg_code_from_layer(
+            self.connected_pnt_lyr
+        )
 
         if self.is_dry_run:
             self.create_tmp_layers()
@@ -159,7 +150,7 @@ class BreachLocation(object):
             return []
         # add a dummy point to be able to draw a line for the
         # last point
-        extrapolated_point = get_extrapolated_point(
+        extrapolated_point = breach_location_utils.get_extrapolated_point(
             list(selected_points[INDEX_MAP[calc_type]].values())[0],
             list(selected_points[-1].values())[0],
         )
@@ -246,7 +237,7 @@ class BreachLocation(object):
             new_positions = []
             orientation = ORIENTATION_MAP[calc_type]
             for i, item in enumerate(orientation):
-                perpendicular_line = calculate_perpendicular_line(
+                perpendicular_line = breach_location_utils.calculate_perpendicular_line(
                     coords, distance=self.search_distance, orientation=item
                 )
                 if not perpendicular_line:
@@ -335,7 +326,9 @@ class BreachLocation(object):
                 intersection_pnt.convertToSingleType()
                 g = intersection_pnt.constGet()
                 pnt = QgsPointXY(g.x(), g.y())
-                dist = get_distance(centroid, pnt, epsg_code=self.epsg_code)
+                dist = breach_location_utils.get_distance(
+                    centroid, pnt, epsg_code=self.epsg_code
+                )
                 levee_intersections[levee_id].append((dist, pnt, levee_id))
         return levee_intersections
 
@@ -364,8 +357,12 @@ class BreachLocation(object):
         pnt_to_use = end_point
         if calc_type == constants.NODE_CALC_TYPE_CONNECTED:
             # find out which point is closer to the intersection
-            end_pnt_dist = get_distance(pnt, end_point, epsg_code=self.epsg_code)
-            start_pnt_dist = get_distance(pnt, start_point, epsg_code=self.epsg_code)
+            end_pnt_dist = breach_location_utils.get_distance(
+                pnt, end_point, epsg_code=self.epsg_code
+            )
+            start_pnt_dist = breach_location_utils.get_distance(
+                pnt, start_point, epsg_code=self.epsg_code
+            )
             pnt_dict = {end_pnt_dist: end_point, start_pnt_dist: start_point}
             pnt_to_use = pnt_dict[min(end_pnt_dist, start_pnt_dist)]
         line_from_intersect = QgsGeometry.fromPolylineXY([pnt, pnt_to_use])
@@ -374,7 +371,7 @@ class BreachLocation(object):
         # elongate the perpendicular line if it is too short to
         # calculate the new position
         if line_length_from_intersect < self.distance_to_levee:
-            extrapolated_point = get_extrapolated_point(
+            extrapolated_point = breach_location_utils.get_extrapolated_point(
                 pnt, end_point, EXTRAPLORATION_RATIO
             )
             exp_end_pnt = QgsPointXY(extrapolated_point[0], extrapolated_point[1])

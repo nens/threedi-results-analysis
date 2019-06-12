@@ -1,15 +1,15 @@
 """
 Test breach locations.
 """
-from qgis.core import QgsVectorLayer
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
+from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_utils
 from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
     BreachLocation,
 )
-from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_utils
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.predictions import Predictor
 
@@ -314,10 +314,12 @@ class TestBreachLocationUtils(unittest.TestCase):
         line_coords = [0, 5, 0, 10]
         expected = (-20.0, 5.0, 20.0, 5.0)
         perpendicular_line = breach_location_utils.calculate_perpendicular_line(
-            line_coords, 20)
+            line_coords, 20
+        )
         self.assertEqual(expected, perpendicular_line)
         perpendicular_line_left = breach_location_utils.calculate_perpendicular_line(
-            line_coords, 20, "left")
+            line_coords, 20, "left"
+        )
         expected_left = (0, 5, -20.0, 5.0)
         self.assertEqual(expected_left, perpendicular_line_left)
         expected_right = (0, 5, 20.0, 5.0)

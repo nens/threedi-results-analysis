@@ -28,8 +28,9 @@ class CustomCommand(CustomCommandBase):
         self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = \
-            breach_location_dialog.CreateBreachLocationsDialogWidget(command=self)
+        self.tool_dialog_widget = breach_location_dialog.CreateBreachLocationsDialogWidget(
+            command=self
+        )
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, breach_loc, auto_commit):
