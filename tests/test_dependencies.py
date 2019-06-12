@@ -66,8 +66,8 @@ def test_dependencies_target_dir_somewhere_else(tmpdir):
 
 def test_get_python_interpreter_linux():
     python_interpreter = dependencies._get_python_interpreter()
-    head, tail = os.path.split(python_interpreter)
-    assert tail == "python3"
+    directory, filename = os.path.split(python_interpreter)
+    assert "python3" in filename
 
 
 def test_get_python_interpreter_windows():
@@ -75,5 +75,5 @@ def test_get_python_interpreter_windows():
         "sys.executable", "C:/Program Files/QGIS 3.4/bin/qgis-ltr-bin.exe"
     ), mock.patch("os.path.exists", return_value=True):
         python_interpreter = dependencies._get_python_interpreter()
-        head, tail = os.path.split(python_interpreter)
-        assert tail == "python3.exe"
+        directory, filename = os.path.split(python_interpreter)
+        assert filename == "python3.exe"

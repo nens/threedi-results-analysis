@@ -135,13 +135,13 @@ def _get_python_interpreter():
     """
     interpreter = None
     executable = sys.executable
-    head, tail = os.path.split(executable)
-    if tail == "python3":
+    directory, filename = os.path.split(executable)
+    if "python3" in filename:
         interpreter = executable
-    elif tail == "qgis-ltr-bin.exe":
-        interpreter = os.path.join(head, "python3.exe")
+    elif "qgis" in filename:
+        interpreter = os.path.join(directory, "python3.exe")
     else:
-        EnvironmentError("Unexpected value in sys.executable: %s" % executable)
+        raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
     return interpreter
 
