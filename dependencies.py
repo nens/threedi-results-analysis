@@ -24,6 +24,7 @@ from pathlib import Path
 
 import importlib
 import logging
+import os
 import pkg_resources
 import subprocess
 import sys
@@ -122,6 +123,26 @@ def _install_dependencies(dependencies, target_dir):
         print(result.stdout)
         result.check_returncode()  # Raises CalledProcessError upon failure.
         print("Installed %s into %s" % (dependency.name, target_dir))
+
+
+def get_python_interpreter():
+    """Return the path to the python3 interpreter.
+
+    Under linux sys.executable is set to the python3 interpreter used by Qgis.
+    However, under Windows/Mac this is not the case and sys.executable refers to the
+    Qgis start-up script.
+    """
+    interpreter = None
+    executable = sys.executable
+    head, tail = os.path.split(executable)
+    if tail == "python3":
+        interpreter = executable
+    elif tail == "qgis-ltr-bin.exe":
+        interpreter = os.path.join(head, 'python3.exe')
+    else:
+        EnvironmentError("Unexpected value in sys.executable: %s" % executable)
+    assert os.path.exists(interpreter)  # safety check
+    return interpreter
 
 
 def _check_presence(dependencies):
