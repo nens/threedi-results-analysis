@@ -1,12 +1,12 @@
-from qgis.PyQt.QtCore import QMetaObject
-from qgis.PyQt.QtCore import QRect
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QDialog
-from qgis.PyQt.QtWidgets import QDialogButtonBox
-from qgis.PyQt.QtWidgets import QGroupBox
-from qgis.PyQt.QtWidgets import QSizePolicy
-from qgis.PyQt.QtWidgets import QVBoxLayout
+from PyQt5.QtCore import QMetaObject
+from PyQt5.QtCore import QRect
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QComboBox
+from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialogButtonBox
+from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QVBoxLayout
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
 import logging
@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class PredictCalcPointsDialogWidget(QDialog):
+class AddConnectedPointsDialogWidget(QDialog):
     def __init__(self, parent=None, command=None):
         """Constructor
 
@@ -44,10 +44,14 @@ class PredictCalcPointsDialogWidget(QDialog):
 
         db_key = self.database_combo.currentText()
         db_entry = self.databases[db_key]
+        db_type = db_entry["db_type"]
 
         _db_settings = db_entry["db_settings"]
 
-        if db_entry["db_type"] == "spatialite":
+        if db_type == "spatialite":
+            # usage of db_type 'spatialite' instead of 'sqlite'
+            # makes much more sense because it also used internally
+            # by qgis, for example when by the ``QgsVectorLayer()``-object
             host = _db_settings["db_path"]
             db_settings = {
                 "host": host,
@@ -62,7 +66,7 @@ class PredictCalcPointsDialogWidget(QDialog):
         else:
             db_settings = _db_settings
             db_settings["schema"] = "public"
-        self.command.run_it(db_settings, db_entry["db_type"])
+        self.command.run_it(db_settings, db_type)
 
         self.accept()
 
@@ -83,6 +87,7 @@ class PredictCalcPointsDialogWidget(QDialog):
         event.accept()
 
     def setupUi(self):
+
         self.resize(815, 250)
         self.verticalLayout = QVBoxLayout(self)
 
@@ -116,5 +121,5 @@ class PredictCalcPointsDialogWidget(QDialog):
         QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle("Predict calc points")
-        self.groupBox_2.setTitle("Model schematisation database")
+        self.setWindowTitle("Add connected points")
+        self.groupBox_2.setTitle("Load from model database")
