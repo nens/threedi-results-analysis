@@ -103,9 +103,10 @@ def check_importability():
 def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
         print("Installing '%s' into %s" % (dependency.name, target_dir))
+        python_interpreter = _get_python_interpreter()
         result = subprocess.run(
             [
-                sys.executable,
+                python_interpreter,
                 "-m",
                 "pip",
                 "install",
@@ -125,7 +126,7 @@ def _install_dependencies(dependencies, target_dir):
         print("Installed %s into %s" % (dependency.name, target_dir))
 
 
-def get_python_interpreter():
+def _get_python_interpreter():
     """Return the path to the python3 interpreter.
 
     Under linux sys.executable is set to the python3 interpreter used by Qgis.
