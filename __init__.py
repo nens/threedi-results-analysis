@@ -2,9 +2,11 @@
 from ThreeDiToolbox import dependencies
 
 import faulthandler
+import sys
 
 
-faulthandler.enable()
+if sys.stderr is not None:
+    faulthandler.enable()
 dependencies.ensure_everything_installed()
 
 
