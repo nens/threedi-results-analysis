@@ -20,13 +20,14 @@
  ***************************************************************************/
 """
 from importlib.machinery import SourceFileLoader
+from pathlib import Path
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
+from ThreeDiToolbox.tool_commands.constants import COMMANDS
 
 import logging
-import os.path
 import types
 
 
@@ -57,6 +58,7 @@ class CommandBox(object):
 
         self.commandboxmodel = None
         self.commandbox = None
+        self._command_package_mapping = {}
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -105,6 +107,18 @@ class CommandBox(object):
         else:
             return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
 
+    @property
+    def command_package_mapping(self):
+        if self._command_package_mapping:
+            return self._command_package_mapping
+        for command in COMMANDS:
+            self._command_package_mapping[command.command_name] = command.package_name
+        return self._command_package_mapping
+
+    def get_package(self, filename):
+        package = self.command_package_mapping.get(filename)
+        return package
+
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
 
@@ -115,24 +129,23 @@ class CommandBox(object):
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
             filename = qm_idx.data()
-            item = self.commandboxmodel.item(qm_idx.row(), qm_idx.column())
-            path = self.leaf_path(qm_idx)
+            package = self.get_package(filename)
+            if not package:
+                logging.warning("package of clicked command not found")
+                return
+            tool_commands_dir = Path(__file__).parent
+            module_path = tool_commands_dir / package / filename
 
             logger.debug(filename)
-            logger.debug(item)
-            logger.debug(path)
+            logger.debug(module_path)
 
-            curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, *path)
-            name, ext = os.path.splitext(path[-1])
+            name = module_path.stem
+            ext = module_path.suffix
             if ext != ".py":
                 logger.error("Not a Python script")
                 return
 
-            logger.debug(module_path)
-            logger.debug(name)
-
-            loader = SourceFileLoader(name, module_path)
+            loader = SourceFileLoader(name, str(module_path))
             mod = types.ModuleType(loader.name)
             loader.exec_module(mod)
             logger.debug(str(mod))

@@ -1,26 +1,15 @@
-from functools import reduce
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
-
-import os
-
-
-DEFAULT_COMMAND_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "commands"
-)
+from ThreeDiToolbox.tool_commands.constants import COMMAND_STEPS
+from ThreeDiToolbox.tool_commands.constants import COMMANDS
 
 
 class CommandModel(QStandardItemModel):
-    def __init__(self, toolbox_dir=None, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.directory = toolbox_dir
-        if self.directory is None:
-            self.directory = DEFAULT_COMMAND_DIR
-
-        self.file_structure = self.get_directory_structure(self.directory)
-        self.add_items(self, self.file_structure)
+        self.command_structure = self.get_command_structure()
+        self.add_items(self, self.command_structure)
 
     def add_items(self, parent, elements):
         icon_command = QIcon(":/plugins/ThreeDiToolbox/icons/icon_command_small.png")
@@ -30,33 +19,36 @@ class CommandModel(QStandardItemModel):
             item = QStandardItem(text)
             parent.appendRow(item)
             if children:
+                # command directory should have the command icon
                 item.setIcon(icon_command)
                 self.add_items(item, children)
             else:
-                # show the hammer icon for the actual command scripts
                 if text.endswith(".py"):
+                    # command script should have the hammer icon
                     item.setIcon(icon_hammer)
                 else:
-                    # empty command directory should have the command icon
+                    # empty command directory should also have the command icon
                     item.setIcon(icon_command)
 
-    def get_directory_structure(self, rootdir):
+    def get_command_structure(self):
+        """Creates a nested dictionary that represents the command structure. Nested
+        values are None, which will be assigned in self.add_items() with an icon path
+        :return: nested dict e.g: {
+            "Step 1 - Check data": {
+                "schematisation_checker.py": None,
+                "raster_checker.py": None,
+                },
+            "Step 2 - Convert and import data": {
+                "import_sufhyd.py": None},
+                },
+            }
         """
-        Creates a nested dictionary that represents the folder structure of
-        rootdir.
-        """
-        dir = {}
-        rootdir = rootdir.rstrip(os.sep)
-        start = rootdir.rfind(os.sep) + 1
-        for path, dirs, files in os.walk(rootdir):
-            folders = path[start:].split(os.sep)
-            subdir = dict.fromkeys(
-                [
-                    f
-                    for f in files
-                    if os.path.splitext(f)[1] == ".py" and f != "__init__.py"
-                ]
-            )
-            parent = reduce(dict.get, folders[:-1], dir)
-            parent[folders[-1]] = subdir
-        return dir
+        # create nested dict
+        display_commands = {}
+        for step in COMMAND_STEPS:
+            step_dict = {}
+            for command in COMMANDS:
+                if step.step_id == command.step_id:
+                    step_dict.update({command.command_name: None})
+            display_commands[step.display_name] = step_dict
+        return display_commands
