@@ -4,12 +4,12 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsGeometry
 from qgis.core import QgsProject
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
+from ThreeDiToolbox.tool_commands.predict_calc_points.predict_calc_points_dialog import (
+    AddConnectedPointsDialogWidget,
+)
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.predictions import Predictor
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.views.modify_schematisation_dialogs import (
-    AddCoonnectedPointsDialogWidget,
-)
 
 import logging
 
@@ -62,7 +62,7 @@ class CustomCommand(CustomCommandBase):
             self.show_gui()
 
     def show_gui(self):
-        self.tool_dialog_widget = AddCoonnectedPointsDialogWidget(command=self)
+        self.tool_dialog_widget = AddConnectedPointsDialogWidget(command=self)
         self.tool_dialog_widget.exec_()  # block execution
 
     def run_it(self, db_set, db_type):
