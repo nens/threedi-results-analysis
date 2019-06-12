@@ -19,22 +19,18 @@
  *                                                                         *
  ***************************************************************************/
 """
-from . import resources  # NoQa, initialize the Qt resources.
-from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtCore import QObject
-from qgis.PyQt.QtCore import QSettings
-from qgis.PyQt.QtCore import QTranslator
-from qgis.PyQt.QtCore import qVersion
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QLCDNumber
+from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
 from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 from ThreeDiToolbox.tool_statistics import StatisticsTool
@@ -44,18 +40,17 @@ from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
 import logging
-import os
-import os.path
 
 
 logger = logging.getLogger(__name__)
 
 # Pycharm's refactor option "move" automatically deletes unused import statements,
-# If "from . import resources" is deleted then tool-icons wont show up. Lets call it.
+# If "from ThreeDiToolbox import resources" is deleted then tool-icons wont show up.
+# Lets call it.
 resources  # noqa
 
 
-class ThreeDiTools(QObject, ProjectStateMixin):
+class ThreeDiPlugin(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools """
 
     def __init__(self, iface):
@@ -71,34 +66,20 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         self.iface = iface
 
-        # initialize locale
-        locale = QSettings().value("locale/userLocale")[0:2]
-        plugin_dir = os.path.dirname(__file__)
-        locale_path = os.path.join(
-            plugin_dir, "i18n", "ThreeDiTools_{}.qm".format(locale)
-        )
-
-        if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
-
-            if qVersion() > "4.3.3":
-                QCoreApplication.installTranslator(self.translator)
-
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u"&3Di toolbox")
+        self.menu = "&3Di toolbox"
 
-        self.ts_datasource = TimeseriesDatasourceModel()
+        self.ts_datasources = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar("ThreeDiTools")
-        self.toolbar.setObjectName("ThreeDiTools")
+        self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
+        self.toolbar.setObjectName("ThreeDiToolbox")
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
         self.timeslider_widget = TimesliderWidget(
-            self.toolbar_animation, self.iface, self.ts_datasource
+            self.toolbar_animation, self.iface, self.ts_datasources
         )
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
@@ -107,13 +88,13 @@ class ThreeDiTools(QObject, ProjectStateMixin):
 
         # Init the rest of the tools
         self.about_tool = About(iface)
-        self.cache_clearer = CacheClearer(iface, self.ts_datasource)
-        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasource)
-        self.toolbox_tool = CommandBox(iface, self.ts_datasource)
-        self.graph_tool = ThreeDiGraph(iface, self.ts_datasource, self)
+        self.cache_clearer = CacheClearer(iface, self.ts_datasources)
+        self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
+        self.toolbox_tool = CommandBox(iface, self.ts_datasources)
+        self.graph_tool = ThreeDiGraph(iface, self.ts_datasources, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
-        self.stats_tool = StatisticsTool(iface, self.ts_datasource)
-        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasource)
+        self.stats_tool = StatisticsTool(iface, self.ts_datasources)
+        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
         self.logfile_tool = ShowLogfile(iface)
 
         self.tools = [
@@ -128,29 +109,15 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.logfile_tool,
         ]
 
-        self.active_datasource = None
+        self.active_ts_datasource = None
+        # ^^^ TODO: this doesn't seem to be set in here!
         self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None
 
         self.line_layer = None
         self.point_layer = None
 
-        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasource)
-
-    # noinspection PyMethodMayBeStatic
-    def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
-        """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate("ThreeDiTools", message)
+        self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
     def add_action(
         self,
@@ -231,7 +198,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.add_action(
                 tool,
                 tool.icon_path,
-                text=self.tr(tool.menu_text),
+                text=tool.menu_text,
                 callback=tool.run,
                 parent=self.iface.mainWindow(),
             )
@@ -240,9 +207,9 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.toolbar_animation.addWidget(self.timeslider_widget)
         self.toolbar_animation.addWidget(self.lcd)
 
-        self.ts_datasource.rowsRemoved.connect(self.check_status_model_and_results)
-        self.ts_datasource.rowsInserted.connect(self.check_status_model_and_results)
-        self.ts_datasource.dataChanged.connect(self.check_status_model_and_results)
+        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
+        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
+        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
 
         self.init_state_sync()
 
@@ -255,14 +222,28 @@ class ThreeDiTools(QObject, ProjectStateMixin):
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
             this by pre-processing of things and activation/ deactivation of
-            tools. function is triggered by changes in the ts_datasource
+            tools. function is triggered by changes in the ts_datasources
             args:
                 *args: (list) the arguments provided by the different signals
         """
+        # First some logging.
+        logger.info(
+            "Timeseries datasource change. %s ts_datasources:",
+            self.ts_datasources.rowCount(),
+        )
+        for ts_datasource in self.ts_datasources.rows:
+            logger.info(
+                "    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value
+            )
+        logger.info(
+            "The selected 3di model spatialite: %s",
+            self.ts_datasources.model_spatialite_filepath,
+        )
+
         # Enable/disable tools that depend on netCDF results.
         # For side views also the spatialite needs to be imported or else it
         # crashes with a segmentation fault
-        if self.ts_datasource.rowCount() > 0:
+        if self.ts_datasources.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
         else:
@@ -270,8 +251,8 @@ class ThreeDiTools(QObject, ProjectStateMixin):
             self.cache_clearer.action_icon.setEnabled(False)
 
         if (
-            self.ts_datasource.rowCount() > 0
-            and self.ts_datasource.model_spatialite_filepath is not None
+            self.ts_datasources.rowCount() > 0
+            and self.ts_datasources.model_spatialite_filepath is not None
         ):
             self.sideview_tool.action_icon.setEnabled(True)
             self.stats_tool.action_icon.setEnabled(True)
@@ -287,7 +268,7 @@ class ThreeDiTools(QObject, ProjectStateMixin):
         self.unload_state_sync()
 
         for action in self.actions:
-            self.iface.removePluginMenu(self.tr(u"&3Di toolbox"), action)
+            self.iface.removePluginMenu("&3Di toolbox", action)
             self.iface.removeToolBarIcon(action)
 
             for tool in self.tools:

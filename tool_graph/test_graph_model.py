@@ -71,7 +71,7 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
 class TestLocationTimeseriesModel(unittest.TestCase):
     """ Test LocationTimeseriesModel functions"""
 
-    datasource = "bla"
+    ts_datasources = "bla"
 
     initial_data = [
         {"object_id": 1, "object_name": "object_1", "active": True},
@@ -93,7 +93,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
 
     def test_init(self):
         """test default values after initialisation"""
-        collection = LocationTimeseriesModel(datasource=self.datasource)
+        collection = LocationTimeseriesModel(ts_datasources=self.ts_datasources)
 
         self.assertEqual(collection.rowCount(), 0)
         self.assertEqual(collection.columnCount(), 7)
@@ -109,7 +109,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
     def test_init_with_initial_data(self):
         """test default values after initialisation"""
         collection = LocationTimeseriesModel(
-            datasource=self.datasource, initial_data=self.initial_data
+            ts_datasources=self.ts_datasources, initial_data=self.initial_data
         )
 
         self.assertEqual(collection.rowCount(), 4)
@@ -137,7 +137,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         """ test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
-            datasource=self.datasource, initial_data=self.initial_data
+            ts_datasources=self.ts_datasources, initial_data=self.initial_data
         )
 
         collection.insertRows(self.additional_data)
@@ -168,7 +168,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         """ test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
-            datasource=self.datasource, initial_data=self.initial_data
+            ts_datasources=self.ts_datasources, initial_data=self.initial_data
         )
 
         # first test checkField

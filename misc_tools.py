@@ -76,25 +76,27 @@ class ShowLogfile(object):
 class CacheClearer(object):
     """Tool to delete cache files."""
 
-    def __init__(self, iface, ts_datasource):
+    def __init__(self, iface, ts_datasources):
         """Constructor.
 
         Args:
             iface: QGIS interface
-            ts_datasource: TimeseriesDatasourceModel instance
+            ts_datasources: TimeseriesDatasourceModel instance
         """
         self.iface = iface
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_broom.png"
         self.menu_text = "Clear cache"
-        self.ts_datasource = ts_datasource
+        self.ts_datasources = ts_datasources
 
     def run(self):
         """Find cached spatialite and csv layer files for *ALL* items in the
         TimeseriesDatasourceModel (i.e., *ALL* rows) object and delete them.
         """
+        # TODO: can ts_datasources tell us its cached files? Or can we order it
+        # to clean up its cache? (Instead of us poking around in its internals).
         spatialite_filepaths = [
             item.spatialite_cache_filepath()
-            for item in self.ts_datasource.rows
+            for item in self.ts_datasources.rows
             if os.path.exists(item.spatialite_cache_filepath())
         ]
         # Note: convert to set because duplicates are possible if the same

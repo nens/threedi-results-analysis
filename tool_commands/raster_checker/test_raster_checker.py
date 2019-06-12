@@ -1,7 +1,7 @@
 from gdal import GA_ReadOnly
 from osgeo import gdal
 from sqlalchemy import MetaData
-from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
+from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
     RasterChecker,

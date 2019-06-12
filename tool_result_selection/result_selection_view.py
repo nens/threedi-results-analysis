@@ -23,24 +23,24 @@ import os
 ui_file = Path(__file__).parent / "result_selection_view.ui"
 assert ui_file.is_file()
 FORM_CLASS, _ = uic.loadUiType(ui_file)
+MEBIBYTE = 1048576
 
 logger = logging.getLogger(__name__)
 
 
 def _reshape_scenario_results(results):
-    MEBIBYTE = 1048576
     return [
         {
-            "name": r["name"],
-            "url": r["url"],
-            "size_mebibytes": round(r["total_size"] / MEBIBYTE, 1),
-            "results": r["result_set"],
+            "name": result["name"],
+            "url": result["url"],
+            "size_mebibytes": round(result["total_size"] / MEBIBYTE, 1),
+            "results": result["result_set"],
         }
-        for r in results
+        for result in results
     ]
 
 
-class ResultsWorker(QThread):
+class DownloadWorker(QThread):
     """Thread for getting scenario results API data from Lizard."""
 
     output = pyqtSignal(object)
@@ -54,7 +54,7 @@ class ResultsWorker(QThread):
         super().__init__(parent)
 
     def __del__(self):
-        logger.info("Deleting worker.")
+        logger.info("Deleting download-worker.")
         self.stop()
 
     def run(self):
@@ -64,7 +64,7 @@ class ResultsWorker(QThread):
                     logger.info("Exiting...")
                     break
                 items = _reshape_scenario_results(results)
-                logger.debug("ResultsWorker - got new data")
+                logger.debug("DownloadWorker - got new data")
                 self.output.emit(items)
         except HTTPError as e:
             message = (
@@ -76,13 +76,20 @@ class ResultsWorker(QThread):
 
     def stop(self):
         """Stop the thread gracefully."""
-        logger.info("Stopping worker...")
+        logger.info("Stopping download-worker...")
         self.exiting = True
         self.wait()
 
 
 class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
-    """Dialog for selecting model (spatialite and result files netCDFs)"""
+    """Dialog for selecting model (spatialite and result files netCDFs)
+
+    TODO: actually, it is two dialogs in one: a selector of results and a
+    separate downloader of results. They are not really connected. So
+    splitting them makes the code simpler. And, more importantly, it makes the
+    UI clearer.
+
+    """
 
     closingDialog = pyqtSignal()
 
@@ -90,16 +97,16 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self,
         parent=None,
         iface=None,
-        ts_datasource=None,
-        download_result_model=None,
+        ts_datasources=None,
+        downloadable_results=None,
         tool=None,
     ):
         """Constructor
 
         :parent: Qt parent Widget
         :iface: QGiS interface
-        :ts_datasource: TimeseriesDatasourceModel instance
-        :download_result_model: DownloadResultModel instance
+        :ts_datasources: TimeseriesDatasourceModel instance
+        :downloadable_results: DownloadResultModel instance
         :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
@@ -116,13 +123,13 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.log_in_button.clicked.connect(self.handle_log_in)
 
         # set models on table views and update view columns
-        self.ts_datasource = ts_datasource
-        self.resultTableView.setModel(self.ts_datasource)
-        self.ts_datasource.set_column_sizes_on_view(self.resultTableView)
+        self.ts_datasources = ts_datasources
+        self.resultTableView.setModel(self.ts_datasources)
+        self.ts_datasources.set_column_sizes_on_view(self.resultTableView)
 
-        self.download_result_model = download_result_model
+        self.downloadable_results = downloadable_results
         self.download_proxy_model = QSortFilterProxyModel()
-        self.download_proxy_model.setSourceModel(download_result_model)
+        self.download_proxy_model.setSourceModel(self.downloadable_results)
         self.download_proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.filterLineEdit.textChanged.connect(
             self.download_proxy_model.setFilterFixedString
@@ -134,29 +141,33 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # connect signals
         self.selectTsDatasourceButton.clicked.connect(self.select_ts_datasource)
         self.closeButton.clicked.connect(self.close)
-        self.removeTsDatasourceButton.clicked.connect(self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.connect(
+            self.remove_selected_ts_datasource
+        )
         self.selectModelSpatialiteButton.clicked.connect(
             self.select_model_spatialite_file
         )
         self.loginButton.clicked.connect(self.on_login_button_clicked)
 
         # set combobox list
-        combo_list = [ds for ds in self.get_3di_spatialites_legendlist()]
+        combo_list = [
+            datasource for datasource in self.get_3di_spatialites_legendlist()
+        ]
 
         if (
-            self.ts_datasource.model_spatialite_filepath
-            and self.ts_datasource.model_spatialite_filepath not in combo_list
+            self.ts_datasources.model_spatialite_filepath
+            and self.ts_datasources.model_spatialite_filepath not in combo_list
         ):
-            combo_list.append(self.ts_datasource.model_spatialite_filepath)
+            combo_list.append(self.ts_datasources.model_spatialite_filepath)
 
-        if not self.ts_datasource.model_spatialite_filepath:
+        if not self.ts_datasources.model_spatialite_filepath:
             combo_list.append("")
 
         self.modelSpatialiteComboBox.addItems(combo_list)
 
-        if self.ts_datasource.model_spatialite_filepath:
+        if self.ts_datasources.model_spatialite_filepath:
             current_index = self.modelSpatialiteComboBox.findText(
-                self.ts_datasource.model_spatialite_filepath
+                self.ts_datasources.model_spatialite_filepath
             )
 
             self.modelSpatialiteComboBox.setCurrentIndex(current_index)
@@ -176,7 +187,9 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """
         self.selectTsDatasourceButton.clicked.disconnect(self.select_ts_datasource)
         self.closeButton.clicked.disconnect(self.close)
-        self.removeTsDatasourceButton.clicked.disconnect(self.remove_selected_ts_ds)
+        self.removeTsDatasourceButton.clicked.disconnect(
+            self.remove_selected_ts_datasource
+        )
         self.selectModelSpatialiteButton.clicked.disconnect(
             self.select_model_spatialite_file
         )
@@ -230,11 +243,11 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             # If not we check if an .h5 file is available
             # If not we're not going to proceed
 
-            ds_type = detect_netcdf_version(filename)
+            datasource_type = detect_netcdf_version(filename)
             logger.info(
-                "Netcdf result file selected: %s, type is %s", filename, ds_type
+                "Netcdf result file selected: %s, type is %s", filename, datasource_type
             )
-            if ds_type == "netcdf-groundwater":
+            if datasource_type == "netcdf-groundwater":
                 try:
                     find_h5_file(filename)
                 except FileNotFoundError:
@@ -253,7 +266,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                         title="Error",
                     )
                     return False
-            elif ds_type == "netcdf":
+            elif datasource_type == "netcdf":
                 logger.warning(
                     "Result file (%s) version is too old. Warning the user.", filename
                 )
@@ -270,17 +283,17 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
             items = [
                 {
-                    "type": ds_type,
+                    "type": datasource_type,
                     "name": os.path.basename(filename).lower().rstrip(".nc"),
                     "file_path": filename,
                 }
             ]
-            self.ts_datasource.insertRows(items)
+            self.ts_datasources.insertRows(items)
             settings.setValue("last_used_datasource_path", os.path.dirname(filename))
             return True
         return False
 
-    def remove_selected_ts_ds(self):
+    def remove_selected_ts_datasource(self):
         """
         Remove selected result files from model, called by 'remove' button
         """
@@ -289,7 +302,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.ts_datasource.removeRows(row, 1)
+            self.ts_datasources.removeRows(row, 1)
 
     def get_3di_spatialites_legendlist(self):
         """
@@ -315,13 +328,12 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         spatialite changed
         :param nr: integer, nr of item selected in combobox
         """
-
-        self.ts_datasource.model_spatialite_filepath = (
-            self.modelSpatialiteComboBox.currentText()
-        )
+        filepath = self.modelSpatialiteComboBox.currentText()
+        logger.info("Different spatialite 3di model selected: %s", filepath)
+        self.ts_datasources.model_spatialite_filepath = filepath
         # Just emitting some dummy model indices cuz what else can we do, there
         # is no corresponding rows/columns that's been changed
-        self.ts_datasource.dataChanged.emit(QModelIndex(), QModelIndex())
+        self.ts_datasources.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def select_model_spatialite_file(self):
         """
@@ -346,7 +358,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         if filename == "":
             return False
 
-        self.ts_datasource.spatialite_filepath = filename
+        self.ts_datasources.spatialite_filepath = filename
         index_nr = self.modelSpatialiteComboBox.findText(filename)
 
         if index_nr < 0:
@@ -370,8 +382,8 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.set_logged_out_status()
         if self.thread:
             self.thread.stop()
-        num_rows = len(self.download_result_model.rows)
-        self.download_result_model.removeRows(0, num_rows)
+        num_rows = len(self.downloadable_results.rows)
+        self.downloadable_results.removeRows(0, num_rows)
         self.toggle_login_interface()
 
     def toggle_login_interface(self):
@@ -416,7 +428,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.user_password_input.clear()
 
         # start thread
-        self.thread = ResultsWorker(
+        self.thread = DownloadWorker(
             endpoint=endpoint, username=username, password=password
         )
         self.thread.connection_failure.connect(self.handle_connection_failure)
@@ -427,7 +439,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         self.login_dialog.close()
 
     def update_download_result_model(self, items):
-        self.download_result_model.insertRows(items)
+        self.downloadable_results.insertRows(items)
 
     def handle_connection_failure(self, status, reason):
         pop_up_info(

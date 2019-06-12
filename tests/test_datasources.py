@@ -8,8 +8,8 @@ from threedigrid.admin import gridresultadmin
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.test.utilities import TemporaryDirectory
+from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tests.utilities import TemporaryDirectory
 
 import mock
 import numpy as np

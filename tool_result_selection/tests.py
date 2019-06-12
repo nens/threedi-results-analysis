@@ -1,12 +1,12 @@
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection import login_dialog
 from ThreeDiToolbox.tool_result_selection import result_downloader
 from ThreeDiToolbox.tool_result_selection import result_selection
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import mock
 
 
-def test_log_in_dialog(qtbot):
+def test_login_dialog(qtbot):
     # Smoke test: just call it.
     login_dialog.LoginDialog()
 
@@ -24,8 +24,8 @@ def test_download_result_model():
 
 def test_result_selection_tool_init():
     iface = mock.Mock()
-    ts_datasource = TimeseriesDatasourceModel()
+    ts_datasources = TimeseriesDatasourceModel()
     result_selection_tool = result_selection.ThreeDiResultSelection(
-        iface, ts_datasource
+        iface, ts_datasources
     )
     assert "icon_add_datasource.png" in result_selection_tool.icon_path

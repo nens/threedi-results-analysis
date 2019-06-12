@@ -4,12 +4,10 @@ Test breach locations.
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
-from ThreeDiToolbox.test.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.test.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
+from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
+from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location
 from ThreeDiToolbox.tool_commands.create_breach_locations import breach_location_utils
-from ThreeDiToolbox.tool_commands.create_breach_locations.breach_location import (
-    BreachLocation,
-)
 from ThreeDiToolbox.utils import constants
 from ThreeDiToolbox.utils.predictions import Predictor
 
@@ -58,7 +56,7 @@ class TestBreachLocationDryRun(unittest.TestCase):
         distance_to_levee = 5
         use_selection = False
         is_dry_run = True
-        self.breach_location = BreachLocation(
+        self.breach_location = breach_location.BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,
@@ -266,7 +264,7 @@ class TestBresLocation(unittest.TestCase):
         distance_to_levee = 5
         use_selection = False
         is_dry_run = False
-        self.breach_location = BreachLocation(
+        self.breach_location = breach_location.BreachLocation(
             search_distance=search_distance,
             distance_to_levee=distance_to_levee,
             use_selection=use_selection,

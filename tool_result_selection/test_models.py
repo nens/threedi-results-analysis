@@ -1,6 +1,6 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.models.datasources import TimeseriesDatasourceModel
-from ThreeDiToolbox.test.test_datasources import THREEDI_RESULTS_PATH
+from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
+from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import unittest
 
@@ -15,18 +15,11 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
     }
 
     def test_init_with_values(self):
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**self.test_values)
+        ts_datasources = TimeseriesDatasourceModel()
+        item = ts_datasources._create_item(**self.test_values)
         for k, v in list(self.test_values.items()):
             itemvalue = getattr(item, k).value
             self.assertEqual(itemvalue, v)
-
-    def test_datasource_layer_manager_smoke(self):
-        """Smoke test the ``datasource_layer_manager()`` method."""
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**self.test_values)
-        setattr(item, "_datasource_layer_manager", "yo")
-        self.assertEqual(item.datasource_layer_manager(), "yo")
 
     def test_datasource_threedi_results(self):
         """Test the datasource() method with netcdf file."""
@@ -37,8 +30,8 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
             "type": "netcdf-groundwater",
             "pattern": "line pattern?",
         }
-        tds = TimeseriesDatasourceModel()
-        item = tds._create_item(**test_values)
+        ts_datasources = TimeseriesDatasourceModel()
+        item = ts_datasources._create_item(**test_values)
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, ThreediResult))
         self.assertTrue(ncds.datasource)

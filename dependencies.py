@@ -39,6 +39,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
     Dependency("cached-property", "cached_property", ""),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ""),
 ]
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]

@@ -3,6 +3,8 @@ from ThreeDiToolbox.models.base_fields import ValueField
 
 
 class DownloadResultModel(BaseModel):
+    """Model with 3di results that can be downloaded from lizard."""
+
     class Fields(object):
         name = ValueField(show=True, column_width=250, column_name="Name")
         size_mebibytes = ValueField(

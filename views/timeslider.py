@@ -29,7 +29,7 @@ class TimesliderWidget(QSlider):
 
     datasource_changed = pyqtSignal()
 
-    def __init__(self, parent, iface, ts_datasource):
+    def __init__(self, parent, iface, ts_datasources):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -41,19 +41,17 @@ class TimesliderWidget(QSlider):
         super().__init__(Qt.Horizontal)
 
         self.iface = iface
-        self.ts_datasource = ts_datasource
-        self.active_datasource = None
+        self.ts_datasources = ts_datasources
+        self.active_ts_datasource = None
+        # ^^^ TODO: the plugin itself also already has this variable, though
+        # it doesn't seem to be used. Choose one spot.
 
         self.setEnabled(False)
-        self.ts_datasource.dataChanged.connect(self.ds_data_changed)
-        self.ts_datasource.rowsInserted.connect(self.on_insert_ds)
-        self.ts_datasource.rowsRemoved.connect(self.on_remove_ds)
+        self.ts_datasources.dataChanged.connect(self.datasource_data_changed)
+        self.ts_datasources.rowsInserted.connect(self.on_insert_datasource)
+        self.ts_datasources.rowsRemoved.connect(self.on_remove_datasource)
 
-    def get_current_ts_datasource_item(self):
-
-        return self.active_datasource
-
-    def on_insert_ds(self, parent, start, end):
+    def on_insert_datasource(self, parent, start, end):
         """
         Set slider settings based on loaded netCDF. based on Qt addRows
         model trigger.
@@ -64,12 +62,12 @@ class TimesliderWidget(QSlider):
         :param start: first row nr
         :param end: last row nr
         """
-        if self.ts_datasource.rowCount() > 0:
+        if self.ts_datasources.rowCount() > 0:
             self.setEnabled(True)
-            ds = self.ts_datasource.rows[0]
-            if ds != self.active_datasource:
+            datasource = self.ts_datasources.rows[0]
+            if datasource != self.active_ts_datasource:
 
-                self.timestamps = ds.datasource().get_timestamps()
+                self.timestamps = datasource.datasource().get_timestamps()
                 self.min_value = self.timestamps[0]
                 self.max_value = self.timestamps[-1]
                 self.interval = self.timestamps[1] - self.timestamps[0]
@@ -80,16 +78,16 @@ class TimesliderWidget(QSlider):
                 self.setTickPosition(QSlider.TicksBelow)
                 self.setTickInterval(1)
                 self.setSingleStep(1)
-                self.active_datasource = ds
+                self.active_ts_datasource = datasource
                 self.setValue(0)
                 self.datasource_changed.emit()
         else:
             self.setMaximum(1)
             self.setValue(0)
             self.setEnabled(False)
-            self.active_datasource = None
+            self.active_ts_datasource = None
 
-    def on_remove_ds(self, index, start, end):
+    def on_remove_datasource(self, index, start, end):
         """
         Set slider settings based on loaded netCDF. based on Qt model
         removeRows trigger
@@ -98,13 +96,13 @@ class TimesliderWidget(QSlider):
         :param end: last row nr
         """
         # for now: try to init first netCDF
-        self.on_insert_ds(None, None, None)
+        self.on_insert_datasource(None, None, None)
 
-    def ds_data_changed(self, index):
+    def datasource_data_changed(self, index):
         """
         Set slider settings based on loaded netCDF. based on Qt
         data change trigger
         :param index: index of changed field
         """
         # for now: try to init first netCDF
-        self.on_insert_ds(None, None, None)
+        self.on_insert_datasource(None, None, None)
