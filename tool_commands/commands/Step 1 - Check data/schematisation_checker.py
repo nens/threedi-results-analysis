@@ -1,13 +1,13 @@
 from qgis.core import QgsApplication
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import errors
-from threedi_modelchecker.exporters import format_check_results
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker import controller
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import progress_bar
 
+import csv
 import logging
 import os
 
@@ -37,7 +37,7 @@ class CustomCommand(CustomCommandBase):
         """Apply the threedi-modelchecker to `threedi_db`
 
         The connection to the `threedi_db` and its south_migration_history are first
-        validated. Next, any model errors are written to a text file.
+        validated. Next, any model errors are written to a csv file.
         """
         logger.info("Starting threedi-modelchecker")
         try:
@@ -74,7 +74,7 @@ class CustomCommand(CustomCommandBase):
                 "We are gonna continue for now and hope for the best."
             )
 
-        output_filename = "model-errors.txt"
+        output_filename = "model-errors.csv"
         output_file_path = os.path.join(
             QgsApplication.qgisSettingsDirPath(), output_filename
         )
@@ -83,14 +83,25 @@ class CustomCommand(CustomCommandBase):
 
         total_checks = len(model_checker.config.checks)
         with progress_bar(self.iface, max_value=total_checks) as pb, open(
-            output_file_path, "w"
+            output_file_path, "w", newline=""
         ) as output_file:
+            writer = csv.writer(output_file)
+            writer.writerow(
+                ["check_type", "table", "column", "id", "value", "description"]
+            )
             for i, check in enumerate(model_checker.checks()):
                 model_errors = check.get_invalid(session)
                 for error_row in model_errors:
-                    formatted_error = format_check_results(check, error_row)
-                    output_file.write(formatted_error)
-                    output_file.write("\n")
+                    writer.writerow(
+                        [
+                            check,
+                            check.table.name,
+                            check.column.name,
+                            error_row.id,
+                            getattr(error_row, check.column.name),
+                            check.description(),
+                        ]
+                    )
                 pb.setValue(i)
 
         logger.info("Successfully finished running threedi-modelchecker")
