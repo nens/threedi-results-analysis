@@ -25,10 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_line_pattern(item_field):
-    """
-    get (default) line pattern for plots from this datasource
+    """Return (default) line pattern for plots from this datasource.
+
+    Look at the already-used styles and try to pick an unused one.
+
     :param item_field:
-    :return:
+    :return: QT line pattern
     """
     available_styles = [
         Qt.SolidLine,
@@ -38,12 +40,13 @@ def get_line_pattern(item_field):
         Qt.DashDotDotLine,
     ]
 
-    used_patterns = [item.pattern.value for item in item_field.item.model.rows]
+    already_used_patterns = [item.pattern.value for item in item_field.item.model.rows]
 
     for style in available_styles:
-        if style not in used_patterns:
+        if style not in already_used_patterns:
+            # Hurray, an unused style.
             return style
-
+    # No unused styles. Use the solid line style as a default.
     return Qt.SolidLine
 
 
