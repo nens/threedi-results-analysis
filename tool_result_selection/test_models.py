@@ -35,3 +35,8 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         ncds = item.datasource()
         self.assertTrue(isinstance(ncds, ThreediResult))
         self.assertTrue(ncds.datasource)
+
+
+def test_downloadable_result_model():
+    # Smoke test, just initialize it.
+    models.DownloadableResultModel()
