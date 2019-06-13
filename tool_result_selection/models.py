@@ -230,7 +230,7 @@ class TimeseriesDatasourceModel(BaseModel):
         self.results_change.emit("result_directories", self.rows)
 
 
-class DownloadResultModel(BaseModel):
+class DownloadableResultModel(BaseModel):
     """Model with 3di results that can be downloaded from lizard."""
 
     class Fields(object):

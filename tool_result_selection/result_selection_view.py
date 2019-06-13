@@ -106,7 +106,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         :parent: Qt parent Widget
         :iface: QGiS interface
         :ts_datasources: TimeseriesDatasourceModel instance
-        :downloadable_results: DownloadResultModel instance
+        :downloadable_results: DownloadableResultModel instance
         :tool: the tool class which instantiated this widget. Is used
              here for storing volatile information
         """
@@ -399,7 +399,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             self.downloadResultButton.setEnabled(False)
 
     def handle_log_in(self):
-        """Handle logging in and populating DownloadResultModel."""
+        """Handle logging in and populating DownloadableResultModel."""
         # Get the username and password
         username = self.login_dialog.user_name_input.text()
         password = self.login_dialog.user_password_input.text()

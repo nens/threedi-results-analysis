@@ -66,7 +66,7 @@ class ThreeDiResultSelection(QObject):
 
         self.ts_datasources = ts_datasources
         # TODO: unsure if this is the right place for initializing this model
-        self.downloadable_results = models.DownloadResultModel()
+        self.downloadable_results = models.DownloadableResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None
