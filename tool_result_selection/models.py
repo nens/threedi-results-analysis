@@ -228,3 +228,15 @@ class TimeseriesDatasourceModel(BaseModel):
     def on_change(self, start=None, stop=None, etc=None):
         # TODO: what are emitted aren't directories but datasource models?
         self.results_change.emit("result_directories", self.rows)
+
+
+class DownloadResultModel(BaseModel):
+    """Model with 3di results that can be downloaded from lizard."""
+
+    class Fields(object):
+        name = ValueField(show=True, column_width=250, column_name="Name")
+        size_mebibytes = ValueField(
+            show=True, column_width=120, column_name="Size (MiB)"
+        )
+        url = ValueField(show=True, column_width=300, column_name="URL")
+        results = ValueField(show=False)  # the scenario results
