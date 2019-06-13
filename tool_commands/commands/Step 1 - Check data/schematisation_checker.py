@@ -106,6 +106,6 @@ class CustomCommand(CustomCommandBase):
 
         logger.info("Successfully finished running threedi-modelchecker")
         pop_up_info(
-            "Finished, see result in <a href='file:/%s'>%s</a>"
+            "Finished, see result in <a href='file:///%s'>%s</a>"
             % (output_file_path, output_filename)
         )
