@@ -66,7 +66,9 @@ class CustomCommand(CustomCommandBase):
 
     def show_gui(self):
         """Show the gui."""
-        self.dockwidget_controlled_structures = ControlStructuresDockWidget()
+        self.dockwidget_controlled_structures = ControlStructuresDockWidget(
+            parent=self.iface.mainWindow()
+        )
         self.iface.addDockWidget(
             Qt.BottomDockWidgetArea, self.dockwidget_controlled_structures
         )
