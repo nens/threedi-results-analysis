@@ -1,8 +1,7 @@
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtGui import QStandardItem
 from qgis.PyQt.QtGui import QStandardItemModel
-from ThreeDiToolbox.tool_commands.constants import COMMAND_STEPS
-from ThreeDiToolbox.tool_commands.constants import COMMANDS
+from ThreeDiToolbox.tool_commands.constants import COMMAND_STRUCTURE
 
 
 class CommandModel(QStandardItemModel):
@@ -43,12 +42,9 @@ class CommandModel(QStandardItemModel):
                 },
             }
         """
-        # create nested dict
-        display_commands = {}
-        for step in COMMAND_STEPS:
-            step_dict = {}
-            for command in COMMANDS:
-                if step.step_id == command.step_id:
-                    step_dict.update({command.command_name: None})
-            display_commands[step.display_name] = step_dict
-        return display_commands
+        command_structure = COMMAND_STRUCTURE.copy()
+        for step, commands in command_structure.items():
+            for module_name, package_name in commands.items():
+                # set nested values to None (why? see docstring)
+                commands[module_name] = None
+        return command_structure

@@ -25,7 +25,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
-from ThreeDiToolbox.tool_commands.constants import COMMANDS
+from ThreeDiToolbox.tool_commands.constants import COMMAND_STRUCTURE
 
 import logging
 import types
@@ -107,17 +107,11 @@ class CommandBox(object):
         else:
             return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
 
-    @property
-    def command_package_mapping(self):
-        if self._command_package_mapping:
-            return self._command_package_mapping
-        for command in COMMANDS:
-            self._command_package_mapping[command.command_name] = command.package_name
-        return self._command_package_mapping
-
-    def get_package(self, filename):
-        package = self.command_package_mapping.get(filename)
-        return package
+    def get_package(self, module_name):
+        for step, commands in COMMAND_STRUCTURE.items():
+            package_name = commands.get(module_name)
+            if package_name:
+                return package_name
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
@@ -128,17 +122,15 @@ class CommandBox(object):
         # We're only interested in leaves of the tree:
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            filename = qm_idx.data()
-            package = self.get_package(filename)
-            if not package:
+            module_name = qm_idx.data()
+            package_name = self.get_package(module_name)
+            if not package_name:
                 logging.warning("package of clicked command not found")
                 return
             tool_commands_dir = Path(__file__).parent
-            module_path = tool_commands_dir / package / filename
-
-            logger.debug(filename)
+            module_path = tool_commands_dir / package_name / module_name
+            logger.debug(module_name)
             logger.debug(module_path)
-
             name = module_path.stem
             ext = module_path.suffix
             if ext != ".py":

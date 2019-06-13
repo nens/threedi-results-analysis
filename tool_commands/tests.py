@@ -1,6 +1,4 @@
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
-from ThreeDiToolbox.tool_commands.constants import COMMANDS
-from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 
 import pytest
