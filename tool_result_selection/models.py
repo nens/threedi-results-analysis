@@ -61,7 +61,6 @@ def pop_up_unkown_datasource_type():
     # we only continue if self.datasource_type == 'netcdf-groundwater'
     logger.error(msg)
     pop_up_info(msg, title="Error")
-    raise AssertionError("unknown datasource type")
 
 
 class ValueWithChangeSignal(object):
@@ -83,9 +82,17 @@ class DataSourceLayerManager(object):
     Abstracts away datasource-layer specifics.
     """
 
-    type_datasource_mapping = {"netcdf-groundwater": ThreediResult}
+    DATASOURCE_TYPE_MAPPING = {"netcdf-groundwater": ThreediResult}
+    DATASOURCE_TYPE_LAYER_FUNC_MAPPING = {
+            "netcdf-groundwater": "_get_result_layers_groundwater"
+        }
+    DATASOURCE_TYPE_CACHE_FILE_MAPPING = {"netcdf-groundwater": "gridadmin.sqlite"}
 
     def __init__(self, datasource_type, file_path):
+        if datasource_type not in self.DATASOURCE_TYPE_MAPPING:
+            pop_up_unkown_datasource_type()
+            raise AssertionError("unknown datasource type: %s" % datasource_type)
+
         self.datasource_type = datasource_type
         self.file_path = file_path
 
@@ -94,16 +101,10 @@ class DataSourceLayerManager(object):
         self._node_layer = None
         self._pumpline_layer = None
 
-        self.type_datasource_layer_func_mapping = {
-            "netcdf-groundwater": self._get_result_layers_groundwater
-        }
-
     @cached_property
     def datasource(self):
         """Returns an instance of a subclass of ``BaseDataSource``."""
-        if self.datasource_type != "netcdf-groundwater":
-            pop_up_unkown_datasource_type()
-        datasource_class = self.type_datasource_mapping[self.datasource_type]
+        datasource_class = self.DATASOURCE_TYPE_MAPPING[self.datasource_type]
         return datasource_class(self.file_path)
 
     @property
@@ -112,16 +113,15 @@ class DataSourceLayerManager(object):
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
-        f = self.type_datasource_layer_func_mapping[self.datasource_type]
-        return f()
+        method_name = self.DATASOURCE_TYPE_LAYER_FUNC_MAPPING[self.datasource_type]
+        method = getattr(self, method_name)
+        return method()
 
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf-groundwater'"""
-        if self.datasource_type == "netcdf-groundwater":
-            return os.path.join(self.datasource_dir, "gridadmin.sqlite")
-        else:
-            raise ValueError("Invalid datasource type %s" % self.datasource_type)
+        filename = self.DATASOURCE_TYPE_CACHE_FILE_MAPPING[self.datasource_type]
+        return os.path.join(self.datasource_dir, filename)
 
     def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not
