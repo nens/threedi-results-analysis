@@ -6,7 +6,7 @@ import sys
 
 
 # sys.stderr is not available under Windows in Qgis, which is what the faulthandler
-# uses to by default.
+# uses by default.
 if sys.stderr is not None:
     faulthandler.enable()
 dependencies.ensure_everything_installed()
