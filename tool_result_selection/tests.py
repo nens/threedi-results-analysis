@@ -16,7 +16,7 @@ def test_get_valid_filename():
     )
 
 
-def test_download_result_model():
+def test_downloadable_result_model():
     # Smoke test, just initialize it.
     models.DownloadableResultModel()
 
