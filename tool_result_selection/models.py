@@ -1,5 +1,6 @@
 from cached_property import cached_property
 from collections import namedtuple
+from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.datasource.spatialite import Spatialite
@@ -122,7 +123,7 @@ class DatasourceLayerManager(object):
             raise AssertionError("unknown datasource type: %s" % datasource_type)
 
         self.datasource_type = datasource_type
-        self.file_path = file_path
+        self.file_path = Path(file_path)
 
         # The following three are filled by self._get_result_layers_*()
         self._line_layer = None
@@ -137,7 +138,7 @@ class DatasourceLayerManager(object):
 
     @property
     def datasource_dir(self):
-        return os.path.dirname(self.file_path)
+        return self.file_path.parent
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
@@ -149,7 +150,7 @@ class DatasourceLayerManager(object):
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf-groundwater'"""
         filename = DATASOURCE_TYPES[self.datasource_type].cache_filename
-        return os.path.join(self.datasource_dir, filename)
+        return self.datasource_dir / filename
 
     def _get_result_layers_regular(self):
         """Note: lines and nodes are always in the netCDF, pumps are not
@@ -194,7 +195,7 @@ class DatasourceLayerManager(object):
         if progress_bar is None:
             progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
         progress_bar.increase_progress(0, "create flowline layer")
-        sqlite_path = os.path.join(self.datasource_dir, "gridadmin.sqlite")
+        sqlite_path = self.datasource_dir / "gridadmin.sqlite"
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.datasource, sqlite_path
