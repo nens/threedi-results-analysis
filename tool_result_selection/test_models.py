@@ -103,3 +103,10 @@ def test_datasource_layer_manager_init():
         with pytest.raises(AssertionError):
             models.DatasourceLayerManager("unknown_type", "")
             assert mock_pop_up.called
+
+
+def test_datasource_layer_manager_datasource_dir():
+    datasource_layer_manager = models.DatasourceLayerManager(
+        "netcdf-groundwater", "/home/pietje/iets.sqlite"
+    )
+    assert str(datasource_layer_manager.datasource_dir) == "/home/pietje"
