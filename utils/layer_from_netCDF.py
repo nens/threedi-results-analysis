@@ -1,15 +1,8 @@
 """Functions for creation of QgsVectorLayers from 3Di netCDF files"""
-from ..datasource.spatialite import disable_sqlite_synchronous
-from .user_messages import StatusProgressBar
 from osgeo import ogr
-from qgis.core import Qgis
-from qgis.core import QgsCoordinateReferenceSystem
-from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
-from qgis.core import QgsFeature
-from qgis.core import QgsGeometry
-from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
+from ThreeDiToolbox.datasource.spatialite import disable_sqlite_synchronous
 
 import logging
 import os
