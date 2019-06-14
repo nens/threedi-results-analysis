@@ -17,6 +17,15 @@ class ValueWithChangeSignal(object):
     """
 
     def __init__(self, signal_name, signal_setting_name, initial_value=None):
+        """Initialize ourselves as a kind-of-python-property.
+
+        ``signal_name`` is the name of a class attribute that should be a qtsignal.
+
+        ``signal_setting_name`` is the string that gets emitted as the first
+        argument of the signal. It functions as a key for the key/value state
+        storage mechanism from ``utils.qprojects.py``.
+
+        """
         self.signal_name = signal_name
         self.signal_setting_name = signal_setting_name
         self.value = initial_value
