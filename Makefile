@@ -85,7 +85,7 @@ zip: compile transcompile
 	@echo "---------------------------"
 	rm -rf /tmp/$(PLUGINNAME)
 	cd /tmp; cp -r $(CURDIR) $(PLUGINNAME)
-	rm -rf /tmp/$(PLUGINNAME)/test
+	rm -rf /tmp/$(PLUGINNAME)/tests
 	rm -rf /tmp/$(PLUGINNAME)/tool_statistics/tests
 	rm -rf /tmp/$(PLUGINNAME)/tool_water_balance/tests
 	rm -rf /tmp/$(PLUGINNAME)/.git
