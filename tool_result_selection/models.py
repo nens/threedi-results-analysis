@@ -14,7 +14,6 @@ from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import make_pumpline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
-from ThreeDiToolbox.utils.signal_helper import ValueWithChangeSignal
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
