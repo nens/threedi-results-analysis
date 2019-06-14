@@ -96,17 +96,6 @@ def test_value_with_change_signal():
     assert Person.age_changed_signal.emit.called
 
 
-def test_datasource_layer_manager_init():
-    with mock.patch(
-        "ThreeDiToolbox.tool_result_selection.models.pop_up_unkown_datasource_type"
-    ) as mock_pop_up:
-        with pytest.raises(AssertionError):
-            models.DatasourceLayerManager("unknown_type", "")
-            assert mock_pop_up.called
-
-
 def test_datasource_layer_manager_datasource_dir():
-    datasource_layer_manager = models.DatasourceLayerManager(
-        "netcdf-groundwater", "/home/pietje/iets.sqlite"
-    )
+    datasource_layer_manager = models.DatasourceLayerManager("/home/pietje/iets.sqlite")
     assert str(datasource_layer_manager.datasource_dir) == "/home/pietje"

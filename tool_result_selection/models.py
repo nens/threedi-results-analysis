@@ -91,7 +91,6 @@ class ValueWithChangeSignal(object):
 
 
 class DatasourceLayerManager(object):
-
     def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
