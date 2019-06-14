@@ -152,44 +152,6 @@ class DatasourceLayerManager(object):
         filename = DATASOURCE_TYPES[self.datasource_type].cache_filename
         return self.datasource_dir / filename
 
-    def _get_result_layers_regular(self):
-        """Note: lines and nodes are always in the netCDF, pumps are not
-        always in the netCDF.
-        """
-
-        spl = Spatialite(self.spatialite_cache_filepath)
-
-        if self._line_layer is None:
-            if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                # todo check nr of attributes
-                self._line_layer = spl.get_layer(FLOWLINES_LAYER_NAME, None, "the_geom")
-            else:
-                self._line_layer = make_flowline_layer(self.datasource, spl)
-
-        if self._node_layer is None:
-            if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                self._node_layer = spl.get_layer(NODES_LAYER_NAME, None, "the_geom")
-            else:
-                # self._node_layer = make_node_layer(self.datasource, spl)
-                # TODO: ^^^^ above make_node_layer() is defective.
-                pass
-
-        if self._pumpline_layer is None:
-
-            if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                self._pumpline_layer = spl.get_layer(
-                    PUMPLINES_LAYER_NAME, None, "the_geom"
-                )
-            else:
-                try:
-                    self._pumpline_layer = make_pumpline_layer(self.datasource, spl)
-                except KeyError:
-                    # TODO: we assume there are no pumps, but a keyerror can
-                    # occur in many places inside that huge function.
-                    logger.exception("No pumps in netCDF")
-
-        return [self._line_layer, self._node_layer, self._pumpline_layer]
-
     def _get_result_layers_groundwater(self, progress_bar=None):
 
         if progress_bar is None:
