@@ -3,6 +3,7 @@ from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
 
 import unittest
+import mock
 
 
 class TestTimeseriesDatasourceModel(unittest.TestCase):
@@ -84,3 +85,9 @@ def test_mapping_configuration():
     ]
     mapping_keys = [sorted(mapping.keys()) for mapping in mappings]
     assert mapping_keys[0] == mapping_keys[1] == mapping_keys[2]
+
+
+def test_pop_up_unkown_datasource_type():
+    with mock.patch("ThreeDiToolbox.tool_result_selection.models.pop_up_info") as mock_pop_up_info:
+        models.pop_up_unkown_datasource_type()
+        assert mock_pop_up_info.called
