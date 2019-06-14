@@ -29,7 +29,7 @@ class TimesliderWidget(QSlider):
 
     datasource_changed = pyqtSignal()
 
-    def __init__(self, parent, iface, ts_datasources):
+    def __init__(self, iface, ts_datasources):
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class

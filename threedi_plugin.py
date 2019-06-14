@@ -79,7 +79,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
         self.timeslider_widget = TimesliderWidget(
-            self.toolbar_animation, self.iface, self.ts_datasources
+            self.iface, self.ts_datasources
         )
         self.lcd = QLCDNumber()
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
