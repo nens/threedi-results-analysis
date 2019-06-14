@@ -103,3 +103,16 @@ def test_datasource_layer_helper_get_result_layers():
     # Just call it, check if we get three layers.
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
     assert len(results) == 3
+
+
+def test_ts_datasource_model_gridadmin_filepath():
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": THREEDI_RESULTS_PATH,
+        "type": "netcdf-groundwater",
+        "pattern": "line pattern?",
+    }
+    ts_datasources = models.TimeseriesDatasourceModel()
+    ts_datasources.insertRows([test_values])
+    assert ts_datasources.rows[0].gridadmin_filepath
