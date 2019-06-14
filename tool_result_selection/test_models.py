@@ -3,10 +3,25 @@ from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock
-import unittest
 
 
-class TestTimeseriesDatasourceModel(unittest.TestCase):
+def test_ts_datasource_model_threedi_results():
+    """Test the datasource() method with netcdf file."""
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": THREEDI_RESULTS_PATH,
+        "type": "netcdf-groundwater",
+        "pattern": "line pattern?",
+    }
+    ts_datasources = models.TimeseriesDatasourceModel()
+    item = ts_datasources._create_item(**test_values)
+    threedi_result = item.threedi_result()
+    assert isinstance(threedi_result, ThreediResult)
+    assert threedi_result.datasource
+
+
+def test_ts_datasource_model_init_with_values():
     test_values = {
         "active": False,
         "name": "jaa",
@@ -14,28 +29,11 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         "type": "a type",
         "pattern": "line pattern?",
     }
-
-    def test_init_with_values(self):
-        ts_datasources = models.TimeseriesDatasourceModel()
-        item = ts_datasources._create_item(**self.test_values)
-        for k, v in list(self.test_values.items()):
-            itemvalue = getattr(item, k).value
-            self.assertEqual(itemvalue, v)
-
-    def test_datasource_threedi_results(self):
-        """Test the datasource() method with netcdf file."""
-        test_values = {
-            "active": False,
-            "name": "jaa",
-            "file_path": THREEDI_RESULTS_PATH,
-            "type": "netcdf-groundwater",
-            "pattern": "line pattern?",
-        }
-        ts_datasources = models.TimeseriesDatasourceModel()
-        item = ts_datasources._create_item(**test_values)
-        threedi_result = item.threedi_result()
-        self.assertTrue(isinstance(threedi_result, ThreediResult))
-        self.assertTrue(threedi_result.datasource)
+    ts_datasources = models.TimeseriesDatasourceModel()
+    item = ts_datasources._create_item(**test_values)
+    for k, v in list(test_values.items()):
+        itemvalue = getattr(item, k).value
+        assert itemvalue == v
 
 
 def test_downloadable_result_model():
