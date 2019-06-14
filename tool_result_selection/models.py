@@ -23,19 +23,6 @@ import logging
 import os
 
 
-DatasourceSetting = namedtuple(
-    "DatasourceSetting",
-    ["datasource_class", "result_layer_method_name", "cache_filename"],
-)
-DATASOURCE_TYPES = {
-    "netcdf-groundwater": DatasourceSetting(
-        datasource_class=ThreediResult,
-        result_layer_method_name="_get_result_layers_groundwater",
-        cache_filename="gridadmin.sqlite",
-    )
-}
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -113,9 +100,7 @@ class ValueWithChangeSignal(object):
 
 
 class DatasourceLayerManager(object):
-    """
-    Abstracts away datasource-layer specifics.
-    """
+    # TODO: datasource => result
 
     def __init__(self, datasource_type, file_path):
         if datasource_type not in DATASOURCE_TYPES:
@@ -124,51 +109,39 @@ class DatasourceLayerManager(object):
 
         self.datasource_type = datasource_type
         self.file_path = Path(file_path)
+        self.datasource_dir = self.file_path.parent
+        self.spatialite_cache_filepath = self.datasource_dir / "gridadmin.sqlite"
 
-        # The following three are filled by self._get_result_layers_*()
+        # The following three are caches for self.get_result_layers()
         self._line_layer = None
         self._node_layer = None
         self._pumpline_layer = None
 
     @cached_property
     def datasource(self):
-        """Returns an instance of a subclass of ``BaseDataSource``."""
-        datasource_class = DATASOURCE_TYPES[self.datasource_type].datasource_class
-        return datasource_class(self.file_path)
+        """Return an instance of a subclass of ``BaseDataSource``."""
+        return ThreediResult(self.file_path)
 
-    @property
-    def datasource_dir(self):
-        return self.file_path.parent
+    def get_result_layers(self, progress_bar=None):
+        """Return QgsVectorLayers for line, node, and pumpline layers.
 
-    def get_result_layers(self):
-        """Get QgsVectorLayers for line, node, and pumpline layers."""
-        method_name = DATASOURCE_TYPES[self.datasource_type].result_layer_method_name
-        method = getattr(self, method_name)
-        return method()
+        Use cached versions (``self._line_layer`` and so) if present.
 
-    @property
-    def spatialite_cache_filepath(self):
-        """Only valid for type 'netcdf-groundwater'"""
-        filename = DATASOURCE_TYPES[self.datasource_type].cache_filename
-        return self.datasource_dir / filename
-
-    def _get_result_layers_groundwater(self, progress_bar=None):
-
+        """
         if progress_bar is None:
             progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
         progress_bar.increase_progress(0, "create flowline layer")
-        sqlite_path = self.datasource_dir / "gridadmin.sqlite"
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, sqlite_path
+            self.datasource, self.spatialite_cache_filepath
         )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, sqlite_path
+            self.datasource, self.spatialite_cache_filepath
         )
         progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.datasource, sqlite_path
+            self.datasource, self.spatialite_cache_filepath
         )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
@@ -202,7 +175,15 @@ class TimeseriesDatasourceModel(BaseModel):
 
         @cached_property
         def datasource_layer_manager(self):
-            return DatasourceLayerManager(self.type.value, self.file_path.value)
+            """Return DatasourceLayerManager."""
+            datasource_type = self.type.value
+            if datasource_type != "netcdf-groundwater":
+                pop_up_unkown_datasource_type()
+                raise AssertionError("unknown datasource type: %s" % datasource_type)
+            # Previously, the manager could handle more kinds of datasource
+            # types. If in the future, more kinds again are needed,
+            # instantiate a different kind of manager here.
+            return DatasourceLayerManager(datasource_type, self.file_path.value)
 
         def datasource(self):
             # TODO: which kind of datasource is this? The netcdf of a
