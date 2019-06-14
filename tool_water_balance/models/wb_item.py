@@ -35,20 +35,6 @@ COLOR_LIST = [
 EMPTY_TIMESERIES = np.array([], dtype=float)
 
 
-class ValueWithChangeSignal(object):
-    def __init__(self, signal_name, signal_setting_name, init_value=None):
-        self.signal_name = signal_name
-        self.signal_setting_name = signal_setting_name
-        self.value = init_value
-
-    def __get__(self, instance, type):
-        return self.value
-
-    def __set__(self, instance, value):
-        self.value = value
-        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
-
-
 def select_default_color(item_field):
     """
     return color for lines
@@ -74,9 +60,6 @@ class WaterbalanceItemModel(BaseModel):
     """Model implementation for waterbalance graph items"""
 
     ts = np.array([0])
-
-    aggregation = ValueWithChangeSignal("agg_change", "aggregation", "m3/s")
-    split_meth0d = ValueWithChangeSignal("split_change", "split_method", "defined")
 
     class Fields(object):
         """Fields and functions of ModelItem"""

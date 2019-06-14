@@ -1,15 +1,9 @@
 """
 Test utils.
 """
-from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
 from ThreeDiToolbox.utils.utils import parse_db_source_info
 
 import unittest
-
-
-class TestLayerFuncs(unittest.TestCase):
-    def test_smoke(self):
-        make_flowline_layer
 
 
 class TestDBSourceInfoParser(unittest.TestCase):
