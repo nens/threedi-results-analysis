@@ -63,7 +63,6 @@ class WaterbalanceItemModel(BaseModel):
     ts = np.array([0])
 
     aggregation = ValueWithChangeSignal("agg_change", "aggregation", "m3/s")
-    split_meth0d = ValueWithChangeSignal("split_change", "split_method", "defined")
 
     class Fields(object):
         """Fields and functions of ModelItem"""
