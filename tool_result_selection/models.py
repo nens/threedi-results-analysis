@@ -1,4 +1,5 @@
 from cached_property import cached_property
+from collections import namedtuple
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.datasource.spatialite import Spatialite
@@ -19,6 +20,19 @@ from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 import os
+
+
+DatasourceSetting = namedtuple(
+    "DatasourceSetting",
+    ["datasource_class", "result_layer_method_name", "cache_filename"],
+)
+DATASOURCE_TYPES = {
+    "netcdf-groundwater": DatasourceSetting(
+        datasource_class=ThreediResult,
+        result_layer_method_name="_get_result_layers_groundwater",
+        cache_filename="gridadmin.sqlite",
+    )
+}
 
 
 logger = logging.getLogger(__name__)
@@ -97,19 +111,13 @@ class ValueWithChangeSignal(object):
         getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
-class DataSourceLayerManager(object):
+class DatasourceLayerManager(object):
     """
     Abstracts away datasource-layer specifics.
     """
 
-    DATASOURCE_TYPE_MAPPING = {"netcdf-groundwater": ThreediResult}
-    DATASOURCE_TYPE_LAYER_FUNC_MAPPING = {
-        "netcdf-groundwater": "_get_result_layers_groundwater"
-    }
-    DATASOURCE_TYPE_CACHE_FILE_MAPPING = {"netcdf-groundwater": "gridadmin.sqlite"}
-
     def __init__(self, datasource_type, file_path):
-        if datasource_type not in self.DATASOURCE_TYPE_MAPPING:
+        if datasource_type not in DATASOURCE_TYPES:
             pop_up_unkown_datasource_type()
             raise AssertionError("unknown datasource type: %s" % datasource_type)
 
@@ -124,7 +132,7 @@ class DataSourceLayerManager(object):
     @cached_property
     def datasource(self):
         """Returns an instance of a subclass of ``BaseDataSource``."""
-        datasource_class = self.DATASOURCE_TYPE_MAPPING[self.datasource_type]
+        datasource_class = DATASOURCE_TYPES[self.datasource_type].datasource_class
         return datasource_class(self.file_path)
 
     @property
@@ -133,14 +141,14 @@ class DataSourceLayerManager(object):
 
     def get_result_layers(self):
         """Get QgsVectorLayers for line, node, and pumpline layers."""
-        method_name = self.DATASOURCE_TYPE_LAYER_FUNC_MAPPING[self.datasource_type]
+        method_name = DATASOURCE_TYPES[self.datasource_type].result_layer_method_name
         method = getattr(self, method_name)
         return method()
 
     @property
     def spatialite_cache_filepath(self):
         """Only valid for type 'netcdf-groundwater'"""
-        filename = self.DATASOURCE_TYPE_CACHE_FILE_MAPPING[self.datasource_type]
+        filename = DATASOURCE_TYPES[self.datasource_type].cache_filename
         return os.path.join(self.datasource_dir, filename)
 
     def _get_result_layers_regular(self):
@@ -231,7 +239,7 @@ class TimeseriesDatasourceModel(BaseModel):
 
         @cached_property
         def datasource_layer_manager(self):
-            return DataSourceLayerManager(self.type.value, self.file_path.value)
+            return DatasourceLayerManager(self.type.value, self.file_path.value)
 
         def datasource(self):
             # TODO: which kind of datasource is this? The netcdf of a
@@ -245,7 +253,6 @@ class TimeseriesDatasourceModel(BaseModel):
             return self.datasource_layer_manager.get_result_layers()
 
     def reset(self):
-
         self.removeRows(0, self.rowCount())
 
     def on_change(self, start=None, stop=None, etc=None):

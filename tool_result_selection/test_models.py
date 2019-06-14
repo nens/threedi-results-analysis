@@ -72,21 +72,6 @@ def test_get_line_pattern():
     assert first_pattern == last_pattern
 
 
-def test_mapping_configuration():
-    """The three mappings should have the same keys."""
-    mapping_names = [
-        "DATASOURCE_TYPE_MAPPING",
-        "DATASOURCE_TYPE_LAYER_FUNC_MAPPING",
-        "DATASOURCE_TYPE_CACHE_FILE_MAPPING",
-    ]
-    mappings = [
-        getattr(models.DataSourceLayerManager, mapping_name)
-        for mapping_name in mapping_names
-    ]
-    mapping_keys = [sorted(mapping.keys()) for mapping in mappings]
-    assert mapping_keys[0] == mapping_keys[1] == mapping_keys[2]
-
-
 def test_pop_up_unkown_datasource_type():
     with mock.patch(
         "ThreeDiToolbox.tool_result_selection.models.pop_up_info"
