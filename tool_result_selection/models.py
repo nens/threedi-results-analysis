@@ -159,7 +159,7 @@ class TimeseriesDatasourceModel(BaseModel):
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
         @cached_property
-        def datasource_layer_manager(self):
+        def datasource_layer_helper(self):
             """Return DatasourceLayerHelper."""
             datasource_type = self.type.value
             if datasource_type != "netcdf-groundwater":
@@ -172,14 +172,14 @@ class TimeseriesDatasourceModel(BaseModel):
 
         def threedi_result(self):
             """Return ThreediResult instance."""
-            return self.datasource_layer_manager.threedi_result
+            return self.datasource_layer_helper.threedi_result
 
         def sqlite_gridadmin_filepath(self):
             # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
-            return self.datasource_layer_manager.sqlite_gridadmin_filepath
+            return self.datasource_layer_helper.sqlite_gridadmin_filepath
 
         def get_result_layers(self):
-            return self.datasource_layer_manager.get_result_layers()
+            return self.datasource_layer_helper.get_result_layers()
 
     def reset(self):
         self.removeRows(0, self.rowCount())
