@@ -31,6 +31,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_COMMAND_NAME = 'command.py'
 
 class CommandBox(object):
     """QGIS Plugin Implementation."""
@@ -100,13 +101,13 @@ class CommandBox(object):
 
     def get_module_path(self, display_name):
         package_name = display_name.replace(" ", "_")
-        module_path = COMMANDS_DIR / package_name / self.default_command_name
+        module_path = COMMANDS_DIR / package_name / DEFAULT_COMMAND_NAME
         return module_path
 
     def get_import_string(self, display_name):
         """ return: string (e.g. 'ThreeDiToolbox.tool_commands.raster_checker.') """
         package_name = display_name.replace(" ", "_")
-        command_without_extension = self.default_command_name.split(".py")[0]
+        command_without_extension = DEFAULT_COMMAND_NAME.split(".py")[0]
         import_string = (
             __package__ + "." + package_name + "." + command_without_extension
         )
