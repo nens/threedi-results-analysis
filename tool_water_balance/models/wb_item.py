@@ -4,6 +4,7 @@ from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ColorField
 from ThreeDiToolbox.models.base_fields import ValueField
+from ThreeDiToolbox.utils.signal_helper import ValueWithChangeSignal
 
 import numpy as np
 
@@ -33,20 +34,6 @@ COLOR_LIST = [
 ]
 
 EMPTY_TIMESERIES = np.array([], dtype=float)
-
-
-class ValueWithChangeSignal(object):
-    def __init__(self, signal_name, signal_setting_name, init_value=None):
-        self.signal_name = signal_name
-        self.signal_setting_name = signal_setting_name
-        self.value = init_value
-
-    def __get__(self, instance, type):
-        return self.value
-
-    def __set__(self, instance, value):
-        self.value = value
-        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
 def select_default_color(item_field):

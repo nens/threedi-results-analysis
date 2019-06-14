@@ -14,6 +14,7 @@ from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import make_pumpline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
+from ThreeDiToolbox.utils.signal_helper import ValueWithChangeSignal
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
@@ -61,20 +62,6 @@ def pop_up_unkown_datasource_type():
     # we only continue if self.datasource_type == 'netcdf-groundwater'
     logger.error(msg)
     pop_up_info(msg, title="Error")
-
-
-class ValueWithChangeSignal(object):
-    def __init__(self, signal_name, signal_setting_name, init_value=None):
-        self.signal_name = signal_name
-        self.signal_setting_name = signal_setting_name
-        self.value = init_value
-
-    def __get__(self, instance, type):
-        return self.value
-
-    def __set__(self, instance, value):
-        self.value = value
-        getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
 class DataSourceLayerManager(object):
