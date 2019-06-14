@@ -95,6 +95,13 @@ def test_value_with_change_signal():
     assert Person.age_changed_signal.emit.called
 
 
-def test_datasource_layer_manager_datasource_dir():
-    datasource_layer_manager = models.DatasourceLayerManager("/home/pietje/iets.sqlite")
-    assert str(datasource_layer_manager.datasource_dir) == "/home/pietje"
+def test_datasource_layer_helper_datasource_dir():
+    datasource_layer_helper = models.DatasourceLayerHelper("/home/pietje/iets.sqlite")
+    assert str(datasource_layer_helper.datasource_dir) == "/home/pietje"
+
+
+def test_datasource_layer_helper_get_result_layers():
+    datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
+    # Just call it, check if we get three layers.
+    results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
+    assert len(results) == 3

@@ -90,11 +90,11 @@ class ValueWithChangeSignal(object):
         getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
-class DatasourceLayerManager(object):
+class DatasourceLayerHelper(object):
     def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
-        self.spatialite_cache_filepath = self.datasource_dir / "gridadmin.sqlite"
+        self.gridadmin_filepath = str(self.datasource_dir / "gridadmin.sqlite")
 
         # The following three are caches for self.get_result_layers()
         self._line_layer = None
@@ -117,15 +117,15 @@ class DatasourceLayerManager(object):
         progress_bar.increase_progress(0, "create flowline layer")
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.threedi_result, self.spatialite_cache_filepath
+            self.threedi_result, self.gridadmin_filepath
         )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.threedi_result, self.spatialite_cache_filepath
+            self.threedi_result, self.gridadmin_filepath
         )
         progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.threedi_result, self.spatialite_cache_filepath
+            self.threedi_result, self.gridadmin_filepath
         )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
@@ -159,7 +159,7 @@ class TimeseriesDatasourceModel(BaseModel):
 
         @cached_property
         def datasource_layer_manager(self):
-            """Return DatasourceLayerManager."""
+            """Return DatasourceLayerHelper."""
             datasource_type = self.type.value
             if datasource_type != "netcdf-groundwater":
                 pop_up_unkown_datasource_type()
@@ -167,14 +167,14 @@ class TimeseriesDatasourceModel(BaseModel):
             # Previously, the manager could handle more kinds of datasource
             # types. If in the future, more kinds again are needed,
             # instantiate a different kind of manager here.
-            return DatasourceLayerManager(self.file_path.value)
+            return DatasourceLayerHelper(self.file_path.value)
 
         def threedi_result(self):
             """Return ThreediResult instance."""
             return self.datasource_layer_manager.threedi_result
 
-        def spatialite_cache_filepath(self):
-            return self.datasource_layer_manager.spatialite_cache_filepath
+        def gridadmin_filepath(self):
+            return self.datasource_layer_manager.gridadmin_filepath
 
         def get_result_layers(self):
             return self.datasource_layer_manager.get_result_layers()
