@@ -7,7 +7,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtWidgets import QFileDialog
-from ThreeDiToolbox.tool_result_selection import result_downloader
+from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.tool_result_selection import result_selection_view
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import pop_up_info
@@ -66,7 +66,7 @@ class ThreeDiResultSelection(QObject):
 
         self.ts_datasources = ts_datasources
         # TODO: unsure if this is the right place for initializing this model
-        self.downloadable_results = result_downloader.DownloadResultModel()
+        self.downloadable_results = models.DownloadableResultModel()
 
         # TODO: fix this fugly shizzle
         self.download_directory = None

@@ -99,7 +99,7 @@ class CustomCommand(CustomCommandBase):
                             check.column.name,
                             getattr(error_row, check.column.name),
                             check.description(),
-                            check
+                            check,
                         ]
                     )
                 pb.setValue(i)

@@ -129,17 +129,16 @@ class StatisticsTool(object):
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
         # TODO: the last ts_datasource is taken instead of the first.
-        # And there are at lieast two kinds of datasources.
         # And result_db_qmodel is called active_ts_datasource in the rest of the code.
-        self.datasource = self.ts_datasources.rows[-1].datasource()
-        self.ds = DataSourceAdapter(self.datasource)
+        threedi_result = self.ts_datasources.rows[-1].threedi_result()
+        self.ds = DataSourceAdapter(threedi_result)
         self.result_db_qmodel = self.ts_datasources.rows[0]
 
         # setup statistics database sqlalchemy instance and create models (
         # if not exist) in the result cache spatialite
         db_type = "spatialite"
         db_set = {
-            "db_path": self.result_db_qmodel.spatialite_cache_filepath().replace(
+            "db_path": self.result_db_qmodel.sqlite_gridadmin_filepath().replace(
                 "\\", "/"
             )
         }
@@ -1561,7 +1560,7 @@ class StatisticsTool(object):
         # add source stat metadata
         uri = QgsDataSourceUri()
         uri.setDatabase(
-            self.result_db_qmodel.spatialite_cache_filepath().replace("\\", "/")
+            self.result_db_qmodel.sqlite_gridadmin_filepath().replace("\\", "/")
         )
         uri.setDataSource("", "stat_source", "")
 
@@ -1577,7 +1576,7 @@ class StatisticsTool(object):
             for layer in layers:
                 uri = QgsDataSourceUri()
                 uri.setDatabase(
-                    self.result_db_qmodel.spatialite_cache_filepath().replace("\\", "/")
+                    self.result_db_qmodel.sqlite_gridadmin_filepath().replace("\\", "/")
                 )
                 uri.setDataSource("", layer[1], "the_geom")
 

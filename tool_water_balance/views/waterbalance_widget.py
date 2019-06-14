@@ -764,7 +764,7 @@ class WaterBalanceWidget(QDockWidget):
         )
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        nc_path = self.ts_datasources.rows[0].datasource().file_path
+        nc_path = self.ts_datasources.rows[0].threedi_result().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
 
