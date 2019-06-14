@@ -3,7 +3,6 @@ from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock
-import pytest
 import unittest
 
 
