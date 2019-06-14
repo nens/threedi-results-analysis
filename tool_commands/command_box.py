@@ -19,15 +19,14 @@
  *                                                                         *
  ***************************************************************************/
 """
-import importlib
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
 from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
 
+import importlib
 import logging
-import types
 
 
 logger = logging.getLogger(__name__)
@@ -107,8 +106,10 @@ class CommandBox(object):
     def get_import_string(self, display_name):
         """ return: string (e.g. 'ThreeDiToolbox.tool_commands.raster_checker.') """
         package_name = display_name.replace(" ", "_")
-        command_without_extension = self.default_command_name.split('.py')[0]
-        import_string = __package__ + '.' + package_name + '.' + command_without_extension
+        command_without_extension = self.default_command_name.split(".py")[0]
+        import_string = (
+            __package__ + "." + package_name + "." + command_without_extension
+        )
         return import_string
 
     def import_command(self, import_string):
@@ -116,7 +117,7 @@ class CommandBox(object):
             imported_command = importlib.import_module(import_string)
             return imported_command
         except ImportError:
-            logging.error(f'could not import {import_string}')
+            logging.error(f"could not import {import_string}")
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.

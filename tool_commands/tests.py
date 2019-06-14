@@ -2,6 +2,7 @@ from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_commands.constants import STEP_MODULENAME_MAPPING
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 
+import mock
 import pytest
 
 
@@ -11,8 +12,6 @@ def test_signature(method_name):
     sample_object = CustomCommandBase()
     with pytest.raises(NotImplementedError):
         getattr(sample_object, method_name)()
-
-import mock
 
 
 def test_command_modules_exist():
