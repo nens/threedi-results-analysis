@@ -66,7 +66,7 @@ class ShowLogfile(object):
         """
         title = "Show logfile"
         location = qlogging.logfile_path()
-        message = "Logfile location: <a href='file://%s'>%s</a>" % (location, location)
+        message = "Logfile location: <a href='file:///%s'>%s</a>" % (location, location)
         pop_up_info(message, title, self.iface.mainWindow())
 
     def on_unload(self):

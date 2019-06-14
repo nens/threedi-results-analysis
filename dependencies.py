@@ -24,6 +24,7 @@ from pathlib import Path
 
 import importlib
 import logging
+import os
 import pkg_resources
 import subprocess
 import sys
@@ -39,7 +40,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ""),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.2"),
 ]
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
@@ -102,9 +103,10 @@ def check_importability():
 def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
         print("Installing '%s' into %s" % (dependency.name, target_dir))
+        python_interpreter = _get_python_interpreter()
         result = subprocess.run(
             [
-                sys.executable,
+                python_interpreter,
                 "-m",
                 "pip",
                 "install",
@@ -122,6 +124,26 @@ def _install_dependencies(dependencies, target_dir):
         print(result.stdout)
         result.check_returncode()  # Raises CalledProcessError upon failure.
         print("Installed %s into %s" % (dependency.name, target_dir))
+
+
+def _get_python_interpreter():
+    """Return the path to the python3 interpreter.
+
+    Under linux sys.executable is set to the python3 interpreter used by Qgis.
+    However, under Windows/Mac this is not the case and sys.executable refers to the
+    Qgis start-up script.
+    """
+    interpreter = None
+    executable = sys.executable
+    directory, filename = os.path.split(executable)
+    if "python3" in filename.lower():
+        interpreter = executable
+    elif "qgis" in filename.lower():
+        interpreter = os.path.join(directory, "python3.exe")
+    else:
+        raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
+    assert os.path.exists(interpreter)  # safety check
+    return interpreter
 
 
 def _check_presence(dependencies):
