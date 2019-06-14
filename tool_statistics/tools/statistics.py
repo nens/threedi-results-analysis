@@ -129,10 +129,9 @@ class StatisticsTool(object):
             Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
         # TODO: the last ts_datasource is taken instead of the first.
-        # And there are at lieast two kinds of datasources.
         # And result_db_qmodel is called active_ts_datasource in the rest of the code.
-        self.datasource = self.ts_datasources.rows[-1].threedi_result()
-        self.ds = DataSourceAdapter(self.datasource)
+        threedi_result = self.ts_datasources.rows[-1].threedi_result()
+        self.ds = DataSourceAdapter(threedi_result)
         self.result_db_qmodel = self.ts_datasources.rows[0]
 
         # setup statistics database sqlalchemy instance and create models (

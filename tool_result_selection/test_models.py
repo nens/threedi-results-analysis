@@ -33,9 +33,9 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         }
         ts_datasources = models.TimeseriesDatasourceModel()
         item = ts_datasources._create_item(**test_values)
-        ncds = item.threedi_result()
-        self.assertTrue(isinstance(ncds, ThreediResult))
-        self.assertTrue(ncds.datasource)
+        threedi_result = item.threedi_result()
+        self.assertTrue(isinstance(threedi_result, ThreediResult))
+        self.assertTrue(threedi_result.datasource)
 
 
 def test_downloadable_result_model():

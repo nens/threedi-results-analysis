@@ -148,9 +148,9 @@ class MapAnimator(QWidget):
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ts_datasource.threedi_result()
-            available_subgrid_vars = ds.available_subgrid_map_vars
-            available_agg_vars = ds.available_aggregation_vars
+            threedi_result = active_ts_datasource.threedi_result()
+            available_subgrid_vars = threedi_result.available_subgrid_map_vars
+            available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
                 messagebar_message(
                     "Warning", "No aggregation netCDF was found.", level=0, duration=5
@@ -330,7 +330,7 @@ class MapAnimator(QWidget):
 
         timestep_nr = self.root_tool.timeslider_widget.value()
 
-        ds = result.threedi_result()
+        threedi_result = result.threedi_result()
 
         for layer, parameter, stat in (
             (self.node_layer, self.current_node_parameter["parameters"], "diff"),
@@ -349,11 +349,11 @@ class MapAnimator(QWidget):
 
             provider = layer.dataProvider()
 
-            values = ds.get_values_by_timestep_nr(parameter, timestep_nr)
+            values = threedi_result.get_values_by_timestep_nr(parameter, timestep_nr)
             if isinstance(values, np.ma.MaskedArray):
                 values = values.filled(np.NaN)
             if stat == "diff":
-                values = values - ds.get_values_by_timestep_nr(parameter, 0)
+                values = values - threedi_result.get_values_by_timestep_nr(parameter, 0)
             # updated to act for actual, display actual value
             elif stat == "act":
                 values = values  # removed np.fabs(values) to get actual value
