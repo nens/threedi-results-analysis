@@ -93,3 +93,18 @@ def test_pop_up_unkown_datasource_type():
     ) as mock_pop_up_info:
         models.pop_up_unkown_datasource_type()
         assert mock_pop_up_info.called
+
+
+def test_value_with_change_signal():
+    class Person(object):
+        age_changed_signal = mock.Mock()
+        age = models.ValueWithChangeSignal("age_changed_signal", "age_changed")
+
+    person = Person()
+    # No default value, so None:
+    assert person.age is None
+    person.age = 42
+    # The setter/getter mechanism works:
+    assert person.age == 42
+    # And yes, we emitted the signal:
+    assert Person.age_changed_signal.emit.called
