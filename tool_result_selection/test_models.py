@@ -3,6 +3,7 @@ from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock
+import pytest
 
 
 def test_ts_datasource_model_threedi_results():
@@ -105,7 +106,8 @@ def test_datasource_layer_helper_get_result_layers():
     assert len(results) == 3
 
 
-def test_ts_datasource_model_sqlite_gridadmin_filepath():
+def test_ts_datasource_model_field_models():
+    """Smoke test of the three helper methods on the Fields object."""
     test_values = {
         "active": False,
         "name": "jaa",
@@ -115,4 +117,42 @@ def test_ts_datasource_model_sqlite_gridadmin_filepath():
     }
     ts_datasources = models.TimeseriesDatasourceModel()
     ts_datasources.insertRows([test_values])
-    assert ts_datasources.rows[0].sqlite_gridadmin_filepath
+    assert ts_datasources.rows[0].threedi_result()
+    assert ts_datasources.rows[0].sqlite_gridadmin_filepath()
+    with mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar"):
+        assert ts_datasources.rows[0].get_result_layers()
+
+
+def test_ts_datasource_model_barfs_on_unkown_type():
+    """Smoke test of the three helper methods on the Fields object."""
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": THREEDI_RESULTS_PATH,
+        "type": "reinout-shoppinglist",
+        "pattern": "line pattern?",
+    }
+    ts_datasources = models.TimeseriesDatasourceModel()
+    ts_datasources.insertRows([test_values])
+    with mock.patch(
+        "ThreeDiToolbox.tool_result_selection.models.pop_up_info"
+    ) as mock_pop_up_info:
+        with pytest.raises(AssertionError):
+            # Barfs on the unknown datasource_type
+            ts_datasources.rows[0].datasource_layer_helper
+            assert mock_pop_up_info.called
+
+
+def test_ts_datasource_model_reset():
+    test_values = {
+        "active": False,
+        "name": "jaa",
+        "file_path": THREEDI_RESULTS_PATH,
+        "type": "netcdf-groundwater",
+        "pattern": "line pattern?",
+    }
+    ts_datasources = models.TimeseriesDatasourceModel()
+    ts_datasources.insertRows([test_values])
+    assert ts_datasources.rowCount() == 1
+    ts_datasources.reset()
+    assert ts_datasources.rowCount() == 0
