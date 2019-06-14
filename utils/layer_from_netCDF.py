@@ -32,7 +32,7 @@ def contains_layer(sqlite_path, layer_name):
     return has_layer
 
 
-def _get_vec_lyr(sqlite_path, layer_name, geom_column="the_geom"):
+def _get_vector_layer(sqlite_path, layer_name, geom_column="the_geom"):
     """Helper function to construct a QgsVectorLayer."""
     uri = QgsDataSourceUri()
     uri.setDatabase(sqlite_path)
@@ -54,7 +54,7 @@ def get_or_create_flowline_layer(ds, output_path):
         exporter.save(
             output_path, FLOWLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
         )
-    return _get_vec_lyr(output_path, FLOWLINES_LAYER_NAME)
+    return _get_vector_layer(output_path, FLOWLINES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
@@ -71,7 +71,7 @@ def get_or_create_node_layer(ds, output_path):
         exporter.save(
             output_path, NODES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
         )
-    return _get_vec_lyr(output_path, NODES_LAYER_NAME)
+    return _get_vector_layer(output_path, NODES_LAYER_NAME)
 
 
 @disable_sqlite_synchronous
@@ -90,4 +90,4 @@ def get_or_create_pumpline_layer(ds, output_path):
                 output_path, PUMPLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
             )
     if ga.has_pumpstations:
-        return _get_vec_lyr(output_path, PUMPLINES_LAYER_NAME)
+        return _get_vector_layer(output_path, PUMPLINES_LAYER_NAME)
