@@ -52,7 +52,6 @@ def pop_up_unkown_datasource_type():
         "1. simulate this model again and load the result in QGIS3 \n"
         "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
     )
-    # we only continue if self.datasource_type == 'netcdf-groundwater'
     logger.error(msg)
     pop_up_info(msg, title="Error")
 
@@ -92,10 +91,8 @@ class ValueWithChangeSignal(object):
 
 
 class DatasourceLayerManager(object):
-    # TODO: datasource => result
 
-    def __init__(self, datasource_type, file_path):
-        self.datasource_type = datasource_type
+    def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
         self.spatialite_cache_filepath = self.datasource_dir / "gridadmin.sqlite"
@@ -106,7 +103,7 @@ class DatasourceLayerManager(object):
         self._pumpline_layer = None
 
     @cached_property
-    def datasource(self):
+    def threedi_result(self):
         """Return an instance of a subclass of ``BaseDataSource``."""
         return ThreediResult(self.file_path)
 
@@ -121,15 +118,15 @@ class DatasourceLayerManager(object):
         progress_bar.increase_progress(0, "create flowline layer")
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, self.spatialite_cache_filepath
+            self.threedi_result, self.spatialite_cache_filepath
         )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, self.spatialite_cache_filepath
+            self.threedi_result, self.spatialite_cache_filepath
         )
         progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.datasource, self.spatialite_cache_filepath
+            self.threedi_result, self.spatialite_cache_filepath
         )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
@@ -171,12 +168,11 @@ class TimeseriesDatasourceModel(BaseModel):
             # Previously, the manager could handle more kinds of datasource
             # types. If in the future, more kinds again are needed,
             # instantiate a different kind of manager here.
-            return DatasourceLayerManager(datasource_type, self.file_path.value)
+            return DatasourceLayerManager(self.file_path.value)
 
         def datasource(self):
-            # TODO: which kind of datasource is this? The netcdf of a
-            # ts_datasources object?
-            return self.datasource_layer_manager.datasource
+            # TODO: rename to threedi_result
+            return self.datasource_layer_manager.threedi_result
 
         def spatialite_cache_filepath(self):
             return self.datasource_layer_manager.spatialite_cache_filepath
