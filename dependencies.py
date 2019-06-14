@@ -159,6 +159,12 @@ def _check_presence(dependencies):
                 % (dependency.name, dependency.constraint)
             )
             missing.append(dependency)
+        except pkg_resources.VersionConflict:
+            print(
+                "Dependency '%s' (%s) has the wrong version"
+                % (dependency.name, dependency.constraint)
+            )
+            missing.append(dependency)
     return missing
 
 
