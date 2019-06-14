@@ -1,26 +1,18 @@
 from cached_property import cached_property
-from collections import namedtuple
 from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
-from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import make_pumpline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
-from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
-import os
 
 
 logger = logging.getLogger(__name__)
@@ -103,10 +95,6 @@ class DatasourceLayerManager(object):
     # TODO: datasource => result
 
     def __init__(self, datasource_type, file_path):
-        if datasource_type not in DATASOURCE_TYPES:
-            pop_up_unkown_datasource_type()
-            raise AssertionError("unknown datasource type: %s" % datasource_type)
-
         self.datasource_type = datasource_type
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
