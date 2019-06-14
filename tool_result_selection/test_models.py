@@ -105,7 +105,7 @@ def test_datasource_layer_helper_get_result_layers():
     assert len(results) == 3
 
 
-def test_ts_datasource_model_gridadmin_filepath():
+def test_ts_datasource_model_sqlite_gridadmin_filepath():
     test_values = {
         "active": False,
         "name": "jaa",
@@ -115,4 +115,4 @@ def test_ts_datasource_model_gridadmin_filepath():
     }
     ts_datasources = models.TimeseriesDatasourceModel()
     ts_datasources.insertRows([test_values])
-    assert ts_datasources.rows[0].gridadmin_filepath
+    assert ts_datasources.rows[0].sqlite_gridadmin_filepath

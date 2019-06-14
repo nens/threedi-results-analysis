@@ -23,7 +23,7 @@ class DummyTimeseriesDatasourceModel(object):
     def threedi_result(self):
         return self.ds
 
-    def gridadmin_filepath(self):
+    def sqlite_gridadmin_filepath(self):
         return self.resultnc_path.replace("results_3di.nc", "gridadmin.sqlite")
 
 
@@ -58,11 +58,11 @@ class TestStatistics(unittest.TestCase):
             os.path.join(test_data_dir, "v2_bergermeer.sqlite"),
             os.path.join(test_data_dir, "results_3di.nc"),
         )
-        dummy.gridadmin_filepath = monkey_patch_return_tmp_path
+        dummy.sqlite_gridadmin_filepath = monkey_patch_return_tmp_path
 
         cls.stat = StatisticsTool(None, dummy)
         # check that path of gridadmin.sqlite is correctly update to the tmp path
-        assert cls.stat.ts_datasources.gridadmin_filepath() == tmp_filename_path
+        assert cls.stat.ts_datasources.sqlite_gridadmin_filepath() == tmp_filename_path
         cls.stat.get_modeldb_session()
         # calculate statistics
         cls.stat.run()
@@ -74,7 +74,7 @@ class TestStatistics(unittest.TestCase):
         self.assertTrue(os.path.exists(gridadmin_sqlite_path))
 
     def test_flowline_stats_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         flowline_cursor = con_res.execute(
@@ -93,7 +93,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(flowline["max_head_difference"], 9997.40, places=1)
 
     def test_manhole_stats_rwa_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM manhole_stats_rwa_view WHERE id=10751")
@@ -106,7 +106,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(manhole["max_filling"], 103, places=1)
 
     def test_manhole_stats_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM manhole_stats_view WHERE id=10780")
@@ -119,7 +119,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(manhole["max_filling"], 108.5, places=1)
 
     def test_pipe_stats_dwa_mixed_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute(
@@ -141,7 +141,7 @@ class TestStatistics(unittest.TestCase):
         self.assertIsNone(pipe["max_waterlevel_end"])
 
     def test_pipe_stats_rwa_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM pipe_stats_rwa_view WHERE id=27481")
@@ -161,7 +161,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(pipe["max_waterlevel_end"], -0.338, places=3)
 
     def test_pipe_stats_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM pipe_stats_view WHERE id=27485")
@@ -181,7 +181,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(pipe["max_waterlevel_end"], -0.4799, places=3)
 
     def test_pump_stats_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM pump_stats_view WHERE id=16")
@@ -195,7 +195,7 @@ class TestStatistics(unittest.TestCase):
         self.assertAlmostEqual(pump["duration_pump_on_max"], 0.2349, places=3)
 
     def test_weir_stats_view(self):
-        resultdb_path = self.stat.ts_datasources.gridadmin_filepath()
+        resultdb_path = self.stat.ts_datasources.sqlite_gridadmin_filepath()
         con_res = dbapi.connect(resultdb_path)
         con_res.row_factory = dbapi.Row
         cursor = con_res.execute("SELECT * FROM weir_stats_view WHERE id=29857")

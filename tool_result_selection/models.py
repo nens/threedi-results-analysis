@@ -94,7 +94,8 @@ class DatasourceLayerHelper(object):
     def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
-        self.gridadmin_filepath = str(self.datasource_dir / "gridadmin.sqlite")
+        # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
+        self.sqlite_gridadmin_filepath = str(self.datasource_dir / "gridadmin.sqlite")
 
         # The following three are caches for self.get_result_layers()
         self._line_layer = None
@@ -117,15 +118,15 @@ class DatasourceLayerHelper(object):
         progress_bar.increase_progress(0, "create flowline layer")
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.threedi_result, self.gridadmin_filepath
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.threedi_result, self.gridadmin_filepath
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.threedi_result, self.gridadmin_filepath
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
@@ -173,8 +174,9 @@ class TimeseriesDatasourceModel(BaseModel):
             """Return ThreediResult instance."""
             return self.datasource_layer_manager.threedi_result
 
-        def gridadmin_filepath(self):
-            return self.datasource_layer_manager.gridadmin_filepath
+        def sqlite_gridadmin_filepath(self):
+            # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
+            return self.datasource_layer_manager.sqlite_gridadmin_filepath
 
         def get_result_layers(self):
             return self.datasource_layer_manager.get_result_layers()
