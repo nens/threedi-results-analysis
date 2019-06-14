@@ -20,7 +20,7 @@ class DummyTimeseriesDatasourceModel(object):
         self.ds = ThreediResult(resultnc_path)
         self.rows = [self]
 
-    def datasource(self):
+    def threedi_result(self):
         return self.ds
 
     def spatialite_cache_filepath(self):
