@@ -41,10 +41,12 @@ def test_downloadable_result_model():
     # Smoke test, just initialize a few.
     downloadable_results = models.DownloadableResultModel()
     for i in range(8):
-        test_values = {"name": "name-%s" % i,
-                    "size_mebibytes": i,
-                    "url": "http://reinout/%s" % i,
-                    "results": ""}
+        test_values = {
+            "name": "name-%s" % i,
+            "size_mebibytes": i,
+            "url": "http://reinout/%s" % i,
+            "results": "",
+        }
         downloadable_results.insertRows([test_values])
     assert downloadable_results.rowCount() == 8
 
@@ -71,10 +73,14 @@ def test_get_line_pattern():
 
 def test_mapping_configuration():
     """The three mappings should have the same keys."""
-    mapping_names = ["DATASOURCE_TYPE_MAPPING",
-                     "DATASOURCE_TYPE_LAYER_FUNC_MAPPING",
-                     "DATASOURCE_TYPE_CACHE_FILE_MAPPING",
-                     ]
-    mappings = [getattr(models.DataSourceLayerManager, mapping_name) for mapping_name in mapping_names]
+    mapping_names = [
+        "DATASOURCE_TYPE_MAPPING",
+        "DATASOURCE_TYPE_LAYER_FUNC_MAPPING",
+        "DATASOURCE_TYPE_CACHE_FILE_MAPPING",
+    ]
+    mappings = [
+        getattr(models.DataSourceLayerManager, mapping_name)
+        for mapping_name in mapping_names
+    ]
     mapping_keys = [sorted(mapping.keys()) for mapping in mappings]
     assert mapping_keys[0] == mapping_keys[1] == mapping_keys[2]

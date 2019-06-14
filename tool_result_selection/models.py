@@ -84,8 +84,8 @@ class DataSourceLayerManager(object):
 
     DATASOURCE_TYPE_MAPPING = {"netcdf-groundwater": ThreediResult}
     DATASOURCE_TYPE_LAYER_FUNC_MAPPING = {
-            "netcdf-groundwater": "_get_result_layers_groundwater"
-        }
+        "netcdf-groundwater": "_get_result_layers_groundwater"
+    }
     DATASOURCE_TYPE_CACHE_FILE_MAPPING = {"netcdf-groundwater": "gridadmin.sqlite"}
 
     def __init__(self, datasource_type, file_path):
