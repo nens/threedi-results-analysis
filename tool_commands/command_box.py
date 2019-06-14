@@ -25,7 +25,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
-from ThreeDiToolbox.tool_commands.constants import COMMAND_STRUCTURE
+from ThreeDiToolbox.tool_commands.constants import modulename_packagename_mapping
 
 import logging
 import types
@@ -58,7 +58,6 @@ class CommandBox(object):
 
         self.commandboxmodel = None
         self.commandbox = None
-        self._command_package_mapping = {}
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -100,19 +99,6 @@ class CommandBox(object):
         """Check if QModelIndex is a leaf, i.e., has no children."""
         return q_model_index.isValid() and not q_model_index.child(0, 0).isValid()
 
-    @staticmethod
-    def leaf_path(q_model_index):
-        if not q_model_index.parent().isValid():
-            return [q_model_index.data()]
-        else:
-            return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
-
-    def get_package(self, module_name):
-        for step, commands in COMMAND_STRUCTURE.items():
-            package_name = commands.get(module_name)
-            if package_name:
-                return package_name
-
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
 
@@ -123,7 +109,7 @@ class CommandBox(object):
         # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
             module_name = qm_idx.data()
-            package_name = self.get_package(module_name)
+            package_name = modulename_packagename_mapping.get(module_name)
             if not package_name:
                 logging.warning("package of clicked command not found")
                 return
