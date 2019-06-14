@@ -138,9 +138,7 @@ class StatisticsTool(object):
         # if not exist) in the result cache spatialite
         db_type = "spatialite"
         db_set = {
-            "db_path": self.result_db_qmodel.spatialite_cache_filepath().replace(
-                "\\", "/"
-            )
+            "db_path": self.result_db_qmodel.gridadmin_filepath().replace("\\", "/")
         }
 
         self.db = StaticsticsDatabase(db_set, db_type)
@@ -1559,9 +1557,7 @@ class StatisticsTool(object):
 
         # add source stat metadata
         uri = QgsDataSourceUri()
-        uri.setDatabase(
-            self.result_db_qmodel.spatialite_cache_filepath().replace("\\", "/")
-        )
+        uri.setDatabase(self.result_db_qmodel.gridadmin_filepath().replace("\\", "/"))
         uri.setDataSource("", "stat_source", "")
 
         vector_layer = QgsVectorLayer(uri.uri(), "metadata statistics", "spatialite")
@@ -1576,7 +1572,7 @@ class StatisticsTool(object):
             for layer in layers:
                 uri = QgsDataSourceUri()
                 uri.setDatabase(
-                    self.result_db_qmodel.spatialite_cache_filepath().replace("\\", "/")
+                    self.result_db_qmodel.gridadmin_filepath().replace("\\", "/")
                 )
                 uri.setDataSource("", layer[1], "the_geom")
 

@@ -95,9 +95,9 @@ class CacheClearer(object):
         # TODO: can ts_datasources tell us its cached files? Or can we order it
         # to clean up its cache? (Instead of us poking around in its internals).
         spatialite_filepaths = [
-            item.spatialite_cache_filepath()
+            item.gridadmin_filepath()
             for item in self.ts_datasources.rows
-            if os.path.exists(item.spatialite_cache_filepath())
+            if os.path.exists(item.gridadmin_filepath())
         ]
         # Note: convert to set because duplicates are possible if the same
         # datasource is loaded multiple times
