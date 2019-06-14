@@ -148,7 +148,7 @@ class MapAnimator(QWidget):
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ts_datasource.datasource()
+            ds = active_ts_datasource.threedi_result()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:
@@ -330,7 +330,7 @@ class MapAnimator(QWidget):
 
         timestep_nr = self.root_tool.timeslider_widget.value()
 
-        ds = result.datasource()
+        ds = result.threedi_result()
 
         for layer, parameter, stat in (
             (self.node_layer, self.current_node_parameter["parameters"], "diff"),

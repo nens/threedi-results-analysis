@@ -33,7 +33,7 @@ class TestTimeseriesDatasourceModel(unittest.TestCase):
         }
         ts_datasources = models.TimeseriesDatasourceModel()
         item = ts_datasources._create_item(**test_values)
-        ncds = item.datasource()
+        ncds = item.threedi_result()
         self.assertTrue(isinstance(ncds, ThreediResult))
         self.assertTrue(ncds.datasource)
 

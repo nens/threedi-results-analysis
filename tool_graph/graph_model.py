@@ -114,7 +114,7 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            ds = self.model.ts_datasources.rows[result_ds_nr].datasource()
+            ds = self.model.ts_datasources.rows[result_ds_nr].threedi_result()
             timeseries = ds.get_timeseries(
                 parameters, self.object_id.value, fill_value=np.NaN
             )

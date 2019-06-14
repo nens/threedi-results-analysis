@@ -779,7 +779,7 @@ class GraphDockWidget(QDockWidget):
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ts_datasource.datasource()
+            ds = active_ts_datasource.threedi_result()
             available_subgrid_vars = ds.available_subgrid_map_vars
             available_agg_vars = ds.available_aggregation_vars
             if not available_agg_vars:

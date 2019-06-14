@@ -169,8 +169,8 @@ class TimeseriesDatasourceModel(BaseModel):
             # instantiate a different kind of manager here.
             return DatasourceLayerManager(self.file_path.value)
 
-        def datasource(self):
-            # TODO: rename to threedi_result
+        def threedi_result(self):
+            """Return ThreediResult instance."""
             return self.datasource_layer_manager.threedi_result
 
         def spatialite_cache_filepath(self):

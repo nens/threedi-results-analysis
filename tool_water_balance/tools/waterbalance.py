@@ -21,7 +21,7 @@ class WaterBalanceCalculation(object):
         self.ts_datasources = ts_datasources
 
         # gridadmin
-        nc_path = self.ts_datasources.rows[0].datasource().file_path
+        nc_path = self.ts_datasources.rows[0].threedi_result().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
 
@@ -530,7 +530,7 @@ class WaterBalanceCalculation(object):
             np_link["ntype"] != TYPE_2D_VERTICAL_INFILTRATION
         )
 
-        ds = self.ts_datasources.rows[0].datasource()
+        ds = self.ts_datasources.rows[0].threedi_result()
 
         # get all flows through incoming and outgoing flows
         ts = ds.get_timestamps(parameter="q_cum")
@@ -954,11 +954,11 @@ class WaterBalanceTool(object):
             schematisation (e.g. pumps, laterals).
         """
 
-        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        active_ts_datasource = self.ts_datasources.rows[0].threedi_result()
         check_available_vars = active_ts_datasource.available_vars
 
-        ga = self.ts_datasources.rows[0].datasource().gridadmin
-        gr = self.ts_datasources.rows[0].datasource().result_admin
+        ga = self.ts_datasources.rows[0].threedi_result().gridadmin
+        gr = self.ts_datasources.rows[0].threedi_result().result_admin
 
         minimum_agg_vars = [
             ("q_cum_negative", "negative cumulative discharge"),
@@ -1037,7 +1037,7 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        active_ts_datasource = self.ts_datasources.rows[0].datasource()
+        active_ts_datasource = self.ts_datasources.rows[0].threedi_result()
         if not active_ts_datasource.ds_aggregation:
             self.pop_up_no_agg_found()
         elif self.get_missing_agg_vars():
