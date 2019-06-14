@@ -3,6 +3,7 @@ from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock
+import pytest
 import unittest
 
 
@@ -93,3 +94,12 @@ def test_value_with_change_signal():
     assert person.age == 42
     # And yes, we emitted the signal:
     assert Person.age_changed_signal.emit.called
+
+
+def test_datasource_layer_manager_init():
+    with mock.patch(
+        "ThreeDiToolbox.tool_result_selection.models.pop_up_unkown_datasource_type"
+    ) as mock_pop_up:
+        with pytest.raises(AssertionError):
+            models.DatasourceLayerManager("unknown_type", "")
+            assert mock_pop_up.called
