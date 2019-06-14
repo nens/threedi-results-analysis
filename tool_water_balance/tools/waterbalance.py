@@ -731,7 +731,9 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # (2) inflow and outflow through pumps
                 pump_flow = (
-                    threedi_result.get_values_by_timestep_nr("q_pump_cum", ts_idx, np_pump["id"])
+                    threedi_result.get_values_by_timestep_nr(
+                        "q_pump_cum", ts_idx, np_pump["id"]
+                    )
                     * np_pump["dir"]
                 )
 
