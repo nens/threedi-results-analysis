@@ -4,7 +4,6 @@ from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ColorField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.signal_helper import ValueWithChangeSignal
 
 import numpy as np
 
