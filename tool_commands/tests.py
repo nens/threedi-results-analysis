@@ -16,6 +16,7 @@ import mock
 
 
 def test_command_modules_exist():
+    """Test if all commands have command.py file"""
     iface_mock = mock.MagicMock()
     ts_datasources_mock = mock.MagicMock()
     commandbox = CommandBox(iface_mock, ts_datasources_mock)
