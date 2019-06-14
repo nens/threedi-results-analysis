@@ -1,5 +1,5 @@
-from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
-from ThreeDiToolbox.tool_commands.constants import modulename_packagename_mapping
+from ThreeDiToolbox.tool_commands.command_box import CommandBox
+from ThreeDiToolbox.tool_commands.constants import STEP_MODULENAME_MAPPING
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 
 import pytest
@@ -13,7 +13,8 @@ def test_signature(method_name):
         getattr(sample_object, method_name)()
 
 
-def test_commands_modules_exists():
-    for modulename, packagename in modulename_packagename_mapping.items():
-        module_full_path = COMMANDS_DIR / packagename / modulename
-        assert module_full_path.is_file()
+def test_command_modules_exist():
+    for step, display_names in STEP_MODULENAME_MAPPING.items():
+        for display_name in display_names:
+            module_full_path = CommandBox.get_module_path(display_name)
+            assert module_full_path.is_file(), "command cannot be found"

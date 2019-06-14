@@ -20,12 +20,11 @@
  ***************************************************************************/
 """
 from importlib.machinery import SourceFileLoader
-from pathlib import Path
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
-from ThreeDiToolbox.tool_commands.constants import modulename_packagename_mapping
+from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
 
 import logging
 import types
@@ -51,7 +50,7 @@ class CommandBox(object):
         self.ts_datasources = ts_datasources
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
-        self.menu_text = u"Commands for working with 3Di models"
+        self.menu_text = "Commands for working with 3Di models"
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -99,30 +98,29 @@ class CommandBox(object):
         """Check if QModelIndex is a leaf, i.e., has no children."""
         return q_model_index.isValid() and not q_model_index.child(0, 0).isValid()
 
+    @staticmethod
+    def get_module_path(display_name):
+        package_name = display_name.replace(" ", "_")
+        default_command_name = "command.py"
+        module_path = COMMANDS_DIR / package_name / default_command_name
+        return module_path
+
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
-
-        Args:
-            qm_idx: the clicked QModelIndex
+        Args: qm_idx: the clicked QModelIndex
         """
         # We're only interested in leaves of the tree:
-        # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            module_name = qm_idx.data()
-            package_name = modulename_packagename_mapping.get(module_name)
-            if not package_name:
-                logging.warning("package of clicked command not found")
-                return
-            tool_commands_dir = Path(__file__).parent
-            module_path = tool_commands_dir / package_name / module_name
-            logger.debug(module_name)
-            logger.debug(module_path)
-            name = module_path.stem
-            ext = module_path.suffix
-            if ext != ".py":
-                logger.error("Not a Python script")
-                return
+            display_name = qm_idx.data()
 
+            module_path = self.get_module_path(display_name)
+            if not module_path.is_file():
+                logger.eror(f"{module_path} is not a file")
+                return
+            logger.debug(f"command display name: {display_name}")
+            logger.debug(f"command module_path: {module_path}")
+
+            name = module_path.stem
             loader = SourceFileLoader(name, str(module_path))
             mod = types.ModuleType(loader.name)
             loader.exec_module(mod)
