@@ -57,7 +57,6 @@ class CommandBox(object):
 
         self.commandboxmodel = None
         self.commandbox = None
-        self.default_command_name = "command.py"
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
