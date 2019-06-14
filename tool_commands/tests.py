@@ -1,5 +1,8 @@
+from ThreeDiToolbox.tool_commands.command_box import CommandBox
+from ThreeDiToolbox.tool_commands.constants import STEP_MODULENAME_MAPPING
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 
+import mock
 import pytest
 
 
@@ -9,3 +12,14 @@ def test_signature(method_name):
     sample_object = CustomCommandBase()
     with pytest.raises(NotImplementedError):
         getattr(sample_object, method_name)()
+
+
+def test_command_modules_exist():
+    """Test if all commands have command.py file"""
+    iface_mock = mock.MagicMock()
+    ts_datasources_mock = mock.MagicMock()
+    commandbox = CommandBox(iface_mock, ts_datasources_mock)
+    for step, display_names in STEP_MODULENAME_MAPPING.items():
+        for display_name in display_names:
+            module_full_path = commandbox.get_module_path(display_name)
+            assert module_full_path.is_file(), "command cannot be found"
