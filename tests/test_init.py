@@ -1,64 +1,61 @@
-# coding=utf-8
 """Tests QGIS plugin init."""
 
 from pathlib import Path
 
 import configparser
 import logging
-import os
-import unittest
+import mock
+import ThreeDiToolbox
 
 
 logger = logging.getLogger(__name__)
 
+PLUGIN_DIR = Path(__file__).parent.parent
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
-class TestInit(unittest.TestCase):
-    """Test that the plugin init is usable for QGIS.
+def test_read_init():
+    """Test that the plugin __init__ will validate on plugins.qgis.org."""
 
-    Based heavily on the validator class by Alessandro
-    Passoti available here:
+    # You should update this list according to the latest in
+    # https://github.com/qgis/qgis-django/blob/master/qgis-app/plugins/validator.py
+    # Last updated 2019-06-17 by Reinout
+    required_metadata = [
+        "name",
+        "description",
+        "version",
+        "qgisMinimumVersion",
+        "email",
+        "author",
+        "about",
+        "tracker",
+        "repository",
+    ]
 
-    http://github.com/qgis/qgis-django/blob/master/qgis-app/
-             plugins/validator.py
+    metadata_file = PLUGIN_DIR / "metadata.txt"
+    logger.info(metadata_file)
+    metadata = []
+    parser = configparser.ConfigParser()
+    parser.optionxform = str
+    parser.read(metadata_file, encoding="utf-8")
+    message = 'Cannot find a section named "general" in %s' % metadata_file
+    assert parser.has_section("general"), message
+    metadata.extend(parser.items("general"))
 
-    """
-
-    def test_read_init(self):
-        """Test that the plugin __init__ will validate on plugins.qgis.org."""
-
-        # You should update this list according to the latest in
-        # https://github.com/qgis/qgis-django/blob/master/qgis-app/plugins/validator.py
-        # Last updated 2019-06-17 by Reinout
-        required_metadata = [
-            "name",
-            "description",
-            "version",
-            "qgisMinimumVersion",
-            "email",
-            "author",
-            "about",
-            "tracker",
-            "repository",
-        ]
-
-        file_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), os.pardir, "metadata.txt")
+    for key in required_metadata:
+        message = 'Cannot find mandatory metadata "%s" in metadata source (%s).' % (
+            key,
+            metadata_file,
         )
-        logger.info(file_path)
-        metadata = []
-        parser = configparser.ConfigParser()
-        parser.optionxform = str
-        parser.read(file_path, encoding="utf-8")
-        message = 'Cannot find a section named "general" in %s' % file_path
-        assert parser.has_section("general"), message
-        metadata.extend(parser.items("general"))
+        assert key in dict(metadata), message
 
-        for expectation in required_metadata:
-            message = 'Cannot find metadata "%s" in metadata source (%s).' % (
-                expectation,
-                file_path,
-            )
 
-            self.assertIn(expectation, dict(metadata), message)
+def test_classFactory(qtbot):
+    # Smoke test: just fire it up.
+    def mock_init(self, iface):
+        # Don't let it set up all the tools, we're testing that elsewhere.
+        return
+
+    with mock.patch("ThreeDiToolbox.threedi_plugin.ThreeDiPlugin.__init__", mock_init):
+        iface = mock.Mock()
+        assert ThreeDiToolbox.classFactory(iface)
