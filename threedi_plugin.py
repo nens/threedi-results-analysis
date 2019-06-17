@@ -80,7 +80,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.timeslider_widget = TimesliderWidget(self.iface, self.ts_datasources)
         self.lcd = QLCDNumber()
-        self.lcd.setToolTip("Time (days hours:minutes)")
+        self.lcd.setToolTip("Time format: \"days hours:minutes\"")
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
@@ -204,8 +204,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
         self.toolbar_animation.addWidget(self.timeslider_widget)
-        # let lcd display a maximum of 9 digits, it can display a maxiumum  simulation
-        # duration of 999 days, 23 hours and 59 minutes.
+        # Let lcd display a maximum of 9 digits, this way it can display a maximum
+        # simulation duration of 999 days, 23 hours and 59 minutes.
         self.lcd.setDigitCount(9)
         self.toolbar_animation.addWidget(self.lcd)
 
@@ -217,16 +217,16 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.check_status_model_and_results()
 
-    def on_slider_change(self, value):
+    def on_slider_change(self, time_index):
         """Callback for slider valueChanged signal.
 
         Displays the time after the start of the simulation in <DDD HH:MM> (days, hours,
         minutes).
 
-        :param value: (int) value the timeslider widget is set to. This is the time
+        :param time_index: (int) value the timeslider widget is set to. This is the time
             index of active netcdf result
         """
-        days, hours, minutes = self.timeslider_widget.index_to_duration(value)
+        days, hours, minutes = self.timeslider_widget.index_to_duration(time_index)
         formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
         self.lcd.display(formatted_display)
 
