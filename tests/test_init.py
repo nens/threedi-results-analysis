@@ -29,9 +29,8 @@ class TestInit(unittest.TestCase):
         """Test that the plugin __init__ will validate on plugins.qgis.org."""
 
         # You should update this list according to the latest in
-        # https://github.com/qgis/qgis-django/blob/master/qgis-app/
-        #        plugins/validator.py
-
+        # https://github.com/qgis/qgis-django/blob/master/qgis-app/plugins/validator.py
+        # Last updated 2019-06-17 by Reinout
         required_metadata = [
             "name",
             "description",
@@ -39,6 +38,9 @@ class TestInit(unittest.TestCase):
             "qgisMinimumVersion",
             "email",
             "author",
+            "about",
+            "tracker",
+            "repository",
         ]
 
         file_path = os.path.abspath(
