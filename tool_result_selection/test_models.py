@@ -1,9 +1,13 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.tests.test_datasources import THREEDI_RESULTS_PATH
 from ThreeDiToolbox.tool_result_selection import models
+from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
+from pathlib import Path
 
 import mock
 import pytest
+
+
+THREEDI_RESULTS_PATH = TEST_DATA_DIR / "testmodel" / "v2_bergermeer" / "results_3di.nc"
 
 
 def test_ts_datasource_model_threedi_results():

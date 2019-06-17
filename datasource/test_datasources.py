@@ -24,13 +24,6 @@ spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
 )
 
-THREEDI_RESULTS_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    "data",
-    "testmodel",
-    "v2_bergermeer",
-    "results_3di.nc",
-)
 
 
 class TestSpatialiteDataSource(unittest.TestCase):
