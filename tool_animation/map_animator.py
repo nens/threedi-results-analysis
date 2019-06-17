@@ -7,7 +7,6 @@ from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 
 import logging
@@ -150,13 +149,14 @@ class MapAnimator(QWidget):
             # TODO: just taking the first datasource, not sure if correct:
             threedi_result = active_ts_datasource.threedi_result()
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
-            available_agg_vars = threedi_result.available_aggregation_vars
-            if not available_agg_vars:
-                messagebar_message(
-                    "Warning", "No aggregation netCDF was found.", level=0, duration=5
-                )
+            # 'q_pump' is a special case, which is currently not supported in the
+            # animation tool.
+            if "q_pump" in available_subgrid_vars:
+                available_subgrid_vars.remove("q_pump")
+            # TimesliderWidget of the map_animator does not yet support variables of
+            # the aggregate netcdf, thus we do not display those variables.
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, available_agg_vars
+                available_subgrid_vars, agg_vars=[]
             )
         else:
             parameter_config = {"q": {}, "h": {}}
@@ -392,6 +392,7 @@ class MapAnimator(QWidget):
         self.setLayout(self.HLayout)
         self.activateButton = QPushButton(self)
         self.activateButton.setCheckable(True)
+        self.activateButton.setText("Animation on")
         self.HLayout.addWidget(self.activateButton)
 
         self.line_parameter_combo_box = QComboBox(self)
@@ -399,8 +400,3 @@ class MapAnimator(QWidget):
 
         self.HLayout.addWidget(self.line_parameter_combo_box)
         self.HLayout.addWidget(self.node_parameter_combo_box)
-
-        self.retranslate_ui(self)
-
-    def retranslate_ui(self, widget):
-        widget.activateButton.setText("Animation on")
