@@ -116,9 +116,7 @@ class TimesliderWidget(QSlider):
 
         :param index: (int) time index of the current selected datasource
         :return tuple days, hours, minutes"""
-        threedi_result = self.active_ts_datasource.datasource()
-        selected_timestamp = int(threedi_result.timestamps[index])
-
+        selected_timestamp = int(self.timestamps[index])
         days = selected_timestamp // 86400
         hours = (selected_timestamp // 3600) % 24
         minutes = (selected_timestamp // 60) % 60
