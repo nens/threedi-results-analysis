@@ -150,13 +150,14 @@ class MapAnimator(QWidget):
             # TODO: just taking the first datasource, not sure if correct:
             threedi_result = active_ts_datasource.threedi_result()
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
-            available_agg_vars = threedi_result.available_aggregation_vars
-            if not available_agg_vars:
-                messagebar_message(
-                    "Warning", "No aggregation netCDF was found.", level=0, duration=5
-                )
+            # 'q_pump' is a special case, which is currently not supported in the
+            # animation tool.
+            if "q_pump" in available_subgrid_vars:
+                available_subgrid_vars.remove("q_pump")
+            # TimesliderWidget of the map_animator does not yet support variables of
+            # the aggregate netcdf, thus we do not display those variables.
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, available_agg_vars
+                available_subgrid_vars, agg_vars=[]
             )
         else:
             parameter_config = {"q": {}, "h": {}}
