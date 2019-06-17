@@ -7,7 +7,6 @@ from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 
 import logging
