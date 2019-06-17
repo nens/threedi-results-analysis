@@ -78,10 +78,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
-        self.timeslider_widget = TimesliderWidget(
-            self.toolbar_animation, self.iface, self.ts_datasources
-        )
+        self.timeslider_widget = TimesliderWidget(self.iface, self.ts_datasources)
         self.lcd = QLCDNumber()
+        self.lcd.setToolTip("Time format: \"days hours:minutes\"")
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
@@ -205,6 +204,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
         self.toolbar_animation.addWidget(self.timeslider_widget)
+        # Let lcd display a maximum of 9 digits, this way it can display a maximum
+        # simulation duration of 999 days, 23 hours and 59 minutes.
+        self.lcd.setDigitCount(9)
         self.toolbar_animation.addWidget(self.lcd)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
@@ -215,9 +217,18 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.check_status_model_and_results()
 
-    def on_slider_change(self, value):
-        """Callback for slider valueChanged signal."""
-        self.lcd.display(value)
+    def on_slider_change(self, time_index):
+        """Callback for slider valueChanged signal.
+
+        Displays the time after the start of the simulation in <DDD HH:MM> (days, hours,
+        minutes).
+
+        :param time_index: (int) value the timeslider widget is set to. This is the time
+            index of active netcdf result
+        """
+        days, hours, minutes = self.timeslider_widget.index_to_duration(time_index)
+        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
+        self.lcd.display(formatted_display)
 
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
