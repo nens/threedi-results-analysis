@@ -125,7 +125,7 @@ commands and follow their steps::
 
 This creates a new release and tag on github. Additionally, a zip file
 ``ThreeDiToolbox.<version>.zip`` is created. Upload this file the to server from where
-you want to distribute the new release.
+you want to distribute the new release::
 
     $ scp ThreeDiToolbox.<version>.zip <user.name>@packages-server.example.local:/srv/packages.lizardsystem.nl/var/plugins
 
