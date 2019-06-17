@@ -78,9 +78,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
-        self.timeslider_widget = TimesliderWidget(
-            self.iface, self.ts_datasources
-        )
+        self.timeslider_widget = TimesliderWidget(self.iface, self.ts_datasources)
         self.lcd = QLCDNumber()
         self.lcd.setToolTip("Time (days hours:minutes)")
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
@@ -229,7 +227,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             index of active netcdf result
         """
         days, hours, minutes = self.timeslider_widget.index_to_duration(value)
-        formatted_display = '{:d} {:02d}:{:02d}'.format(days, hours, minutes)
+        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
         self.lcd.display(formatted_display)
 
     def check_status_model_and_results(self, *args):
