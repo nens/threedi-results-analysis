@@ -82,6 +82,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.iface, self.ts_datasources
         )
         self.lcd = QLCDNumber()
+        self.lcd.setToolTip("Time (days hours:minutes)")
         self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
