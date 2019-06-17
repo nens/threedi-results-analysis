@@ -1,7 +1,6 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from pathlib import Path
+from ThreeDiToolbox.tool_result_selection import models
 
 import mock
 import pytest

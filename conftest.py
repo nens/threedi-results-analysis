@@ -1,13 +1,14 @@
 # Pytest configuration file. The sole purpose is to prevent Qgis from grabbing
 # python's import mechanism (which breaks pytest).
-import os
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from pathlib import Path
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+
+import os
 import pytest
+
 
 # Make pytest work in combination with qgis.
 os.environ["QGIS_NO_OVERRIDE_IMPORT"] = "KEEPYOURPAWSOFF"
-
 
 
 plugin_dir = Path(__file__).parent

@@ -25,7 +25,6 @@ spatialite_datasource_path = os.path.join(
 )
 
 
-
 class TestSpatialiteDataSource(unittest.TestCase):
     def setUp(self):
         ensure_qgis_app_is_initialized()
