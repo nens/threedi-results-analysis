@@ -30,7 +30,8 @@ class TimesliderWidget(QSlider):
     datasource_changed = pyqtSignal()
 
     def __init__(self, iface, ts_datasources):
-        """Constructor.
+        """TimesliderWidget which allows the user to specify a timestamp of the current
+        active datasource.
 
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -106,3 +107,19 @@ class TimesliderWidget(QSlider):
         """
         # for now: try to init first netCDF
         self.on_insert_datasource(None, None, None)
+
+    def index_to_duration(self, index):
+        """Return the duration between start of simulation and the selected time index
+
+        Duration is returned as a tuple (days, hours, minutes) of the current active
+        datasource, rounded down.
+
+        :param index: (int) time index of the current selected datasource
+        :return tuple days, hours, minutes"""
+        threedi_result = self.active_ts_datasource.datasource()
+        selected_timestamp = int(threedi_result.timestamps[index])
+
+        days = selected_timestamp // 86400
+        hours = (selected_timestamp // 3600) % 24
+        minutes = (selected_timestamp // 60) % 60
+        return days, hours, minutes

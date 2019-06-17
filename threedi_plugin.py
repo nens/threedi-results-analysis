@@ -205,6 +205,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
         self.toolbar_animation.addWidget(self.timeslider_widget)
+        # let lcd display a maximum of 9 digits, it can display a maxiumum  simulation
+        # duration of 999 days, 23 hours and 59 minutes.
+        self.lcd.setDigitCount(9)
         self.toolbar_animation.addWidget(self.lcd)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
@@ -216,8 +219,17 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.check_status_model_and_results()
 
     def on_slider_change(self, value):
-        """Callback for slider valueChanged signal."""
-        self.lcd.display(value)
+        """Callback for slider valueChanged signal.
+
+        Displays the time after the start of the simulation in <DDD HH:MM> (days, hours,
+        minutes).
+
+        :param value: (int) value the timeslider widget is set to. This is the time
+            index of active netcdf result
+        """
+        days, hours, minutes = self.timeslider_widget.index_to_duration(value)
+        formatted_display = '{:d} {:02d}:{:02d}'.format(days, hours, minutes)
+        self.lcd.display(formatted_display)
 
     def check_status_model_and_results(self, *args):
         """ Check if a (new and valid) model or result is selected and react on
