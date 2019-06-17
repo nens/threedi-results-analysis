@@ -13,6 +13,16 @@ ThreeDiToolBox changelog
   used to investigate problems. There's also a new button to open the logfile
   so that you can email it.
 
+- Integrated threedi-modelchecker in the plugin as a tool_command.
+
+- Improved dependency management of the plugin.
+
+- Refactored structure of the plugin of the plugin: the tools are more clearly
+  separated.
+
+- Refactoring of many variables/classes/functions/methods to be more clear and
+  consistent in the whole plugin.
+
 
 1.10 (2019-03-28)
 -----------------
