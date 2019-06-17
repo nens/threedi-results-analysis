@@ -54,7 +54,7 @@ class MapAnimator(QWidget):
 
     def __init__(self, parent, iface, root_tool):
 
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.iface = iface
         self.root_tool = root_tool
         self.node_parameters = {}
