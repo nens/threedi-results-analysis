@@ -68,7 +68,7 @@ class TimesliderWidget(QSlider):
             datasource = self.ts_datasources.rows[0]
             if datasource != self.active_ts_datasource:
 
-                self.timestamps = datasource.datasource().get_timestamps()
+                self.timestamps = datasource.threedi_result().get_timestamps()
                 self.min_value = self.timestamps[0]
                 self.max_value = self.timestamps[-1]
                 self.interval = self.timestamps[1] - self.timestamps[0]

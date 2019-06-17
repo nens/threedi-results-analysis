@@ -779,9 +779,9 @@ class GraphDockWidget(QDockWidget):
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            ds = active_ts_datasource.datasource()
-            available_subgrid_vars = ds.available_subgrid_map_vars
-            available_agg_vars = ds.available_aggregation_vars
+            threedi_result = active_ts_datasource.threedi_result()
+            available_subgrid_vars = threedi_result.available_subgrid_map_vars
+            available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
                 messagebar_message(
                     "Warning", "No aggregation netCDF was found.", level=1, duration=5

@@ -806,7 +806,7 @@ class SideViewPlotWidget(pg.PlotWidget):
     def update_water_level_cache(self):
         ds_item = self.time_slider.active_ts_datasource
         if ds_item:
-            ds = ds_item.datasource()
+            ds = ds_item.threedi_result()
             for node in self.sideview_nodes:
                 try:
                     if python_value(node["idx"]) is not None:

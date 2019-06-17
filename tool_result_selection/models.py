@@ -1,34 +1,30 @@
 from cached_property import cached_property
+from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
-from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import make_flowline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import make_pumpline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
-from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
-import os
 
 
 logger = logging.getLogger(__name__)
 
 
 def get_line_pattern(item_field):
-    """
-    get (default) line pattern for plots from this datasource
+    """Return (default) line pattern for plots from this datasource.
+
+    Look at the already-used styles and try to pick an unused one.
+
     :param item_field:
-    :return:
+    :return: QT line pattern
     """
     available_styles = [
         Qt.SolidLine,
@@ -38,12 +34,13 @@ def get_line_pattern(item_field):
         Qt.DashDotDotLine,
     ]
 
-    used_patterns = [item.pattern.value for item in item_field.item.model.rows]
+    already_used_patterns = [item.pattern.value for item in item_field.item.model.rows]
 
     for style in available_styles:
-        if style not in used_patterns:
+        if style not in already_used_patterns:
+            # Hurray, an unused style.
             return style
-
+    # No unused styles. Use the solid line style as a default.
     return Qt.SolidLine
 
 
@@ -55,19 +52,37 @@ def pop_up_unkown_datasource_type():
         "1. simulate this model again and load the result in QGIS3 \n"
         "2. load this result into QGIS2.18 ThreeDiToolbox v1.6 "
     )
-    # we only continue if self.datasource_type == 'netcdf-groundwater'
     logger.error(msg)
     pop_up_info(msg, title="Error")
-    raise AssertionError("unknown datasource type")
 
 
 class ValueWithChangeSignal(object):
-    def __init__(self, signal_name, signal_setting_name, init_value=None):
+    """Value for use inside a BaseModel. A change emits a signal.
+
+    It works like a python property. The whole ``__get__``, ``instance``,
+    ``owner`` stuff is explained here:
+    https://stackoverflow.com/a/18038707/27401
+
+    The ``signal_setting_name`` has to do with the way project state is saved,
+    see ``utils/qprojects.py``.
+
+    """
+
+    def __init__(self, signal_name, signal_setting_name, initial_value=None):
+        """Initialize ourselves as a kind-of-python-property.
+
+        ``signal_name`` is the name of a class attribute that should be a qtsignal.
+
+        ``signal_setting_name`` is the string that gets emitted as the first
+        argument of the signal. It functions as a key for the key/value state
+        storage mechanism from ``utils.qprojects.py``.
+
+        """
         self.signal_name = signal_name
         self.signal_setting_name = signal_setting_name
-        self.value = init_value
+        self.value = initial_value
 
-    def __get__(self, instance, type):
+    def __get__(self, instance, owner):
         return self.value
 
     def __set__(self, instance, value):
@@ -75,106 +90,43 @@ class ValueWithChangeSignal(object):
         getattr(instance, self.signal_name).emit(self.signal_setting_name, value)
 
 
-class DataSourceLayerManager(object):
-    """
-    Abstracts away datasource-layer specifics.
-    """
+class DatasourceLayerHelper(object):
+    def __init__(self, file_path):
+        self.file_path = Path(file_path)
+        self.datasource_dir = self.file_path.parent
+        # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
+        self.sqlite_gridadmin_filepath = str(self.datasource_dir / "gridadmin.sqlite")
 
-    type_datasource_mapping = {"netcdf-groundwater": ThreediResult}
-
-    def __init__(self, datasource_type, file_path):
-        self.datasource_type = datasource_type
-        self.file_path = file_path
-
-        # The following three are filled by self._get_result_layers_*()
+        # The following three are caches for self.get_result_layers()
         self._line_layer = None
         self._node_layer = None
         self._pumpline_layer = None
 
-        self.type_datasource_layer_func_mapping = {
-            "netcdf-groundwater": self._get_result_layers_groundwater
-        }
-
     @cached_property
-    def datasource(self):
-        """Returns an instance of a subclass of ``BaseDataSource``."""
-        if self.datasource_type != "netcdf-groundwater":
-            pop_up_unkown_datasource_type()
-        datasource_class = self.type_datasource_mapping[self.datasource_type]
-        return datasource_class(self.file_path)
+    def threedi_result(self):
+        """Return an instance of a subclass of ``BaseDataSource``."""
+        return ThreediResult(self.file_path)
 
-    @property
-    def datasource_dir(self):
-        return os.path.dirname(self.file_path)
+    def get_result_layers(self, progress_bar=None):
+        """Return QgsVectorLayers for line, node, and pumpline layers.
 
-    def get_result_layers(self):
-        """Get QgsVectorLayers for line, node, and pumpline layers."""
-        f = self.type_datasource_layer_func_mapping[self.datasource_type]
-        return f()
+        Use cached versions (``self._line_layer`` and so) if present.
 
-    @property
-    def spatialite_cache_filepath(self):
-        """Only valid for type 'netcdf-groundwater'"""
-        if self.datasource_type == "netcdf-groundwater":
-            return os.path.join(self.datasource_dir, "gridadmin.sqlite")
-        else:
-            raise ValueError("Invalid datasource type %s" % self.datasource_type)
-
-    def _get_result_layers_regular(self):
-        """Note: lines and nodes are always in the netCDF, pumps are not
-        always in the netCDF.
         """
-
-        spl = Spatialite(self.spatialite_cache_filepath)
-
-        if self._line_layer is None:
-            if FLOWLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                # todo check nr of attributes
-                self._line_layer = spl.get_layer(FLOWLINES_LAYER_NAME, None, "the_geom")
-            else:
-                self._line_layer = make_flowline_layer(self.datasource, spl)
-
-        if self._node_layer is None:
-            if NODES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                self._node_layer = spl.get_layer(NODES_LAYER_NAME, None, "the_geom")
-            else:
-                # self._node_layer = make_node_layer(self.datasource, spl)
-                # TODO: ^^^^ above make_node_layer() is defective.
-                pass
-
-        if self._pumpline_layer is None:
-
-            if PUMPLINES_LAYER_NAME in [t[1] for t in spl.getTables()]:
-                self._pumpline_layer = spl.get_layer(
-                    PUMPLINES_LAYER_NAME, None, "the_geom"
-                )
-            else:
-                try:
-                    self._pumpline_layer = make_pumpline_layer(self.datasource, spl)
-                except KeyError:
-                    # TODO: we assume there are no pumps, but a keyerror can
-                    # occur in many places inside that huge function.
-                    logger.exception("No pumps in netCDF")
-
-        return [self._line_layer, self._node_layer, self._pumpline_layer]
-
-    def _get_result_layers_groundwater(self, progress_bar=None):
-
         if progress_bar is None:
             progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
         progress_bar.increase_progress(0, "create flowline layer")
-        sqlite_path = os.path.join(self.datasource_dir, "gridadmin.sqlite")
         progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
-            self.datasource, sqlite_path
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
-            self.datasource, sqlite_path
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
-            self.datasource, sqlite_path
+            self.threedi_result, self.sqlite_gridadmin_filepath
         )
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
@@ -207,24 +159,43 @@ class TimeseriesDatasourceModel(BaseModel):
         pattern = ValueField(show=False, default_value=get_line_pattern)
 
         @cached_property
-        def datasource_layer_manager(self):
-            return DataSourceLayerManager(self.type.value, self.file_path.value)
+        def datasource_layer_helper(self):
+            """Return DatasourceLayerHelper."""
+            datasource_type = self.type.value
+            if datasource_type != "netcdf-groundwater":
+                pop_up_unkown_datasource_type()
+                raise AssertionError("unknown datasource type: %s" % datasource_type)
+            # Previously, the manager could handle more kinds of datasource
+            # types. If in the future, more kinds again are needed,
+            # instantiate a different kind of manager here.
+            return DatasourceLayerHelper(self.file_path.value)
 
-        def datasource(self):
-            # TODO: which kind of datasource is this? The netcdf of a
-            # ts_datasources object?
-            return self.datasource_layer_manager.datasource
+        def threedi_result(self):
+            """Return ThreediResult instance."""
+            return self.datasource_layer_helper.threedi_result
 
-        def spatialite_cache_filepath(self):
-            return self.datasource_layer_manager.spatialite_cache_filepath
+        def sqlite_gridadmin_filepath(self):
+            # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
+            return self.datasource_layer_helper.sqlite_gridadmin_filepath
 
         def get_result_layers(self):
-            return self.datasource_layer_manager.get_result_layers()
+            return self.datasource_layer_helper.get_result_layers()
 
     def reset(self):
-
         self.removeRows(0, self.rowCount())
 
     def on_change(self, start=None, stop=None, etc=None):
         # TODO: what are emitted aren't directories but datasource models?
         self.results_change.emit("result_directories", self.rows)
+
+
+class DownloadableResultModel(BaseModel):
+    """Model with 3di results that can be downloaded from lizard."""
+
+    class Fields(object):
+        name = ValueField(show=True, column_width=250, column_name="Name")
+        size_mebibytes = ValueField(
+            show=True, column_width=120, column_name="Size (MiB)"
+        )
+        url = ValueField(show=True, column_width=300, column_name="URL")
+        results = ValueField(show=False)  # the scenario results
