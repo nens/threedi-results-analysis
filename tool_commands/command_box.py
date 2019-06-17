@@ -31,7 +31,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_COMMAND_NAME = 'command.py'
+DEFAULT_COMMAND_NAME = "command.py"
+
 
 class CommandBox(object):
     """QGIS Plugin Implementation."""
