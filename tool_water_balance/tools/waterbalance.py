@@ -21,7 +21,7 @@ class WaterBalanceCalculation(object):
         self.ts_datasources = ts_datasources
 
         # gridadmin
-        nc_path = self.ts_datasources.rows[0].datasource().file_path
+        nc_path = self.ts_datasources.rows[0].threedi_result().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
 
@@ -530,10 +530,11 @@ class WaterBalanceCalculation(object):
             np_link["ntype"] != TYPE_2D_VERTICAL_INFILTRATION
         )
 
-        ds = self.ts_datasources.rows[0].datasource()
+        active_ts_datasource = self.ts_datasources.rows[0]
+        threedi_result = active_ts_datasource.threedi_result()
 
         # get all flows through incoming and outgoing flows
-        ts = ds.get_timestamps(parameter="q_cum")
+        ts = threedi_result.get_timestamps(parameter="q_cum")
 
         len_input_series = len(WaterBalanceWidget.INPUT_SERIES)
         total_time = np.zeros(shape=(np.size(ts, 0), len_input_series))
@@ -546,17 +547,17 @@ class WaterBalanceCalculation(object):
         if np_link.size > 0:
             for ts_idx, t in enumerate(ts):
                 # (1) inflow and outflow through 1d and 2d
-                # vol = ds.get_values_by_timestep_nr('q', ts_idx,
+                # vol = threedi_result.get_values_by_timestep_nr('q', ts_idx,
                 # np_link['id']) * np_link['dir']  # * dt
 
                 flow_pos = (
-                    ds.get_values_by_timestep_nr(
+                    threedi_result.get_values_by_timestep_nr(
                         "q_cum_positive", ts_idx, np_link["id"]
                     )
                     * np_link["dir"]
                 )
                 flow_neg = (
-                    ds.get_values_by_timestep_nr(
+                    threedi_result.get_values_by_timestep_nr(
                         "q_cum_negative", ts_idx, np_link["id"]
                     )
                     * np_link["dir"]
@@ -730,7 +731,9 @@ class WaterBalanceCalculation(object):
             for ts_idx, t in enumerate(ts):
                 # (2) inflow and outflow through pumps
                 pump_flow = (
-                    ds.get_values_by_timestep_nr("q_pump_cum", ts_idx, np_pump["id"])
+                    threedi_result.get_values_by_timestep_nr(
+                        "q_pump_cum", ts_idx, np_pump["id"]
+                    )
                     * np_pump["dir"]
                 )
 
@@ -783,10 +786,10 @@ class WaterBalanceCalculation(object):
         ]:
 
             if node.size > 0:
-                if parameter + agg_method in ds.available_vars:
+                if parameter + agg_method in threedi_result.available_vars:
                     values_pref = 0
                     for ts_idx, t in enumerate(ts):
-                        values = ds.get_values_by_timestep_nr(
+                        values = threedi_result.get_values_by_timestep_nr(
                             parameter + agg_method, ts_idx, node
                         ).sum()
                         values_dt = values - values_pref
@@ -815,7 +818,7 @@ class WaterBalanceCalculation(object):
                     total_time[ts_idx, 19] = 0
                     total_time[ts_idx, 25] = 0
 
-                    vol_current = ds.get_values_by_timestep_nr(
+                    vol_current = threedi_result.get_values_by_timestep_nr(
                         "vol_current", ts_idx, np_node["id"]
                     )
                     td_vol_pref = ma.masked_array(vol_current, mask=mask_2d_nodes).sum()
@@ -827,10 +830,10 @@ class WaterBalanceCalculation(object):
                 else:
                     vol_ts_idx = ts_idx
 
-                    ts_normal = ds.get_timestamps(parameter="vol_current")
+                    ts_normal = threedi_result.get_timestamps(parameter="vol_current")
                     vol_ts_idx = np.nonzero(ts_normal == t)[0]
 
-                    vol_current = ds.get_values_by_timestep_nr(
+                    vol_current = threedi_result.get_values_by_timestep_nr(
                         "vol_current", vol_ts_idx, np_node["id"]
                     )
 
@@ -954,11 +957,12 @@ class WaterBalanceTool(object):
             schematisation (e.g. pumps, laterals).
         """
 
-        active_ts_datasource = self.ts_datasources.rows[0].datasource()
-        check_available_vars = active_ts_datasource.available_vars
+        active_ts_datasource = self.ts_datasources.rows[0]
+        threedi_result = active_ts_datasource.threedi_result()
+        check_available_vars = threedi_result.available_vars
 
-        ga = self.ts_datasources.rows[0].datasource().gridadmin
-        gr = self.ts_datasources.rows[0].datasource().result_admin
+        ga = threedi_result.gridadmin
+        gr = threedi_result.result_admin
 
         minimum_agg_vars = [
             ("q_cum_negative", "negative cumulative discharge"),
@@ -1037,8 +1041,9 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        active_ts_datasource = self.ts_datasources.rows[0].datasource()
-        if not active_ts_datasource.ds_aggregation:
+        active_ts_datasource = self.ts_datasources.rows[0]
+        threedi_result = active_ts_datasource.threedi_result()
+        if not threedi_result.ds_aggregation:
             self.pop_up_no_agg_found()
         elif self.get_missing_agg_vars():
             self.pop_up_missing_agg_vars()

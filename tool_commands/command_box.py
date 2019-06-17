@@ -19,19 +19,19 @@
  *                                                                         *
  ***************************************************************************/
 """
-from importlib.machinery import SourceFileLoader
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from ThreeDiToolbox.tool_commands.command_dialog_base import CommandBoxDockWidget
 from ThreeDiToolbox.tool_commands.command_model import CommandModel
+from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
 
+import importlib
 import logging
-import os.path
-import types
 
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_COMMAND_NAME = 'command.py'
 
 class CommandBox(object):
     """QGIS Plugin Implementation."""
@@ -50,13 +50,14 @@ class CommandBox(object):
         self.ts_datasources = ts_datasources
 
         self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
-        self.menu_text = u"Commands for working with 3Di models"
+        self.menu_text = "Commands for working with 3Di models"
 
         self.pluginIsActive = False
         self.dockwidget = None
 
         self.commandboxmodel = None
         self.commandbox = None
+        self.default_command_name = "command.py"
 
     def on_unload(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -98,49 +99,51 @@ class CommandBox(object):
         """Check if QModelIndex is a leaf, i.e., has no children."""
         return q_model_index.isValid() and not q_model_index.child(0, 0).isValid()
 
-    @staticmethod
-    def leaf_path(q_model_index):
-        if not q_model_index.parent().isValid():
-            return [q_model_index.data()]
-        else:
-            return CommandBox.leaf_path(q_model_index.parent()) + [q_model_index.data()]
+    def get_module_path(self, display_name):
+        package_name = display_name.replace(" ", "_")
+        module_path = COMMANDS_DIR / package_name / DEFAULT_COMMAND_NAME
+        return module_path
+
+    def get_import_string(self, display_name):
+        """ return: string (e.g. 'ThreeDiToolbox.tool_commands.raster_checker.') """
+        package_name = display_name.replace(" ", "_")
+        command_without_extension = DEFAULT_COMMAND_NAME.split(".py")[0]
+        import_string = (
+            __package__ + "." + package_name + "." + command_without_extension
+        )
+        return import_string
+
+    def import_command(self, import_string):
+        try:
+            imported_command = importlib.import_module(import_string)
+            return imported_command
+        except ImportError:
+            logging.error(f"could not import {import_string}")
 
     def run_script(self, qm_idx):
         """Dynamically import and run the selected script from the tree view.
-
-        Args:
-            qm_idx: the clicked QModelIndex
+        Args: qm_idx: the clicked QModelIndex
         """
         # We're only interested in leaves of the tree:
-        # TODO: need to make sure the leaf is not an empty directory
         if self.is_leaf(qm_idx):
-            filename = qm_idx.data()
-            item = self.commandboxmodel.item(qm_idx.row(), qm_idx.column())
-            path = self.leaf_path(qm_idx)
+            display_name = qm_idx.data()
 
-            logger.debug(filename)
-            logger.debug(item)
-            logger.debug(path)
+            module_path = self.get_module_path(display_name)
+            if not module_path.is_file():
+                logger.error(f"{module_path} is not a file")
+                return
+            logger.debug(f"command display name: {display_name}")
+            logger.debug(f"command module_path: {module_path}")
 
-            curr_dir = os.path.dirname(__file__)
-            module_path = os.path.join(curr_dir, *path)
-            name, ext = os.path.splitext(path[-1])
-            if ext != ".py":
-                logger.error("Not a Python script")
+            import_string = self.get_import_string(display_name)
+            imported_command = self.import_command(import_string)
+            if not imported_command:
                 return
 
-            logger.debug(module_path)
-            logger.debug(name)
-
-            loader = SourceFileLoader(name, module_path)
-            mod = types.ModuleType(loader.name)
-            loader.exec_module(mod)
-            logger.debug(str(mod))
-
-            command = mod.CustomCommand(
+            command_instance = imported_command.CustomCommand(
                 iface=self.iface, ts_datasources=self.ts_datasources
             )
-            command.run()
+            command_instance.run()
 
     def add_commands(self):
         self.commandboxmodel = CommandModel()

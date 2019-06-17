@@ -3,9 +3,11 @@ from ThreeDiToolbox import dependencies
 
 import mock
 import os
+import pytest
 
 
 available_dependency = dependencies.Dependency("numpy", "numpy", "")
+dependency_with_wrong_version = dependencies.Dependency("numpy", "numpy", "==1972")
 missing_dependency = dependencies.Dependency("reinout", "reinout", "")
 
 
@@ -25,6 +27,13 @@ def test_check_presence_2():
     assert missing == [
         missing_dependency
     ], "reinout is not installed, so it should be missing"
+
+
+def test_check_presence_3():
+    missing = dependencies._check_presence([dependency_with_wrong_version])
+    assert missing == [
+        dependency_with_wrong_version
+    ], "numpy is installed, but not with the requested version"
 
 
 def test_ensure_everything_installed_smoke():
@@ -77,3 +86,9 @@ def test_get_python_interpreter_windows():
         python_interpreter = dependencies._get_python_interpreter()
         directory, filename = os.path.split(python_interpreter)
         assert filename == "python3.exe"
+
+
+def test_get_python_interpreter_unknown():
+    with mock.patch("sys.executable", "/usr/bin/beer"):
+        with pytest.raises(EnvironmentError):
+            dependencies._get_python_interpreter()

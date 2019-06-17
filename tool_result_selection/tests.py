@@ -1,7 +1,6 @@
 from ThreeDiToolbox.tool_result_selection import login_dialog
-from ThreeDiToolbox.tool_result_selection import result_downloader
+from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.tool_result_selection import result_selection
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import mock
 
@@ -17,14 +16,9 @@ def test_get_valid_filename():
     )
 
 
-def test_download_result_model():
-    # Smoke test, just initialize it.
-    result_downloader.DownloadResultModel()
-
-
 def test_result_selection_tool_init():
     iface = mock.Mock()
-    ts_datasources = TimeseriesDatasourceModel()
+    ts_datasources = models.TimeseriesDatasourceModel()
     result_selection_tool = result_selection.ThreeDiResultSelection(
         iface, ts_datasources
     )

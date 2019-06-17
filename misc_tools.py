@@ -66,7 +66,7 @@ class ShowLogfile(object):
         """
         title = "Show logfile"
         location = qlogging.logfile_path()
-        message = "Logfile location: <a href='file://%s'>%s</a>" % (location, location)
+        message = "Logfile location: <a href='file:///%s'>%s</a>" % (location, location)
         pop_up_info(message, title, self.iface.mainWindow())
 
     def on_unload(self):
@@ -95,9 +95,9 @@ class CacheClearer(object):
         # TODO: can ts_datasources tell us its cached files? Or can we order it
         # to clean up its cache? (Instead of us poking around in its internals).
         spatialite_filepaths = [
-            item.spatialite_cache_filepath()
+            item.sqlite_gridadmin_filepath()
             for item in self.ts_datasources.rows
-            if os.path.exists(item.spatialite_cache_filepath())
+            if os.path.exists(item.sqlite_gridadmin_filepath())
         ]
         # Note: convert to set because duplicates are possible if the same
         # datasource is loaded multiple times
