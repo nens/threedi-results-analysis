@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.11 (unreleased)
+1.11 (2019-06-17)
 -----------------
 
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
