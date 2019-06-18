@@ -185,6 +185,16 @@ def test_get_timeseries_filter_node(threedi_result):
         np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
 
 
+def test_get_timeseries_filter_content_pk(threedi_result):
+    with mock.patch(
+        "threedigrid.orm.base.models.Model.get_filtered_field_value"
+    ) as data:
+        data.return_value = np.ones((len(threedi_result.timestamps), 1))
+        time_series = threedi_result.get_timeseries("s1", content_pk=5)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
+
+
 def test_get_model_instance_by_field_name(threedi_result):
     """A bug in threedigrid <= 1.0.12
 
@@ -381,5 +391,5 @@ def test_normalized_object_type1():
     assert normalized_object_type("sewerage_manhole") == "manhole"
 
 
-def test_normalized_object_type1():
+def test_normalized_object_type2():
     assert normalized_object_type("reinout") is None
