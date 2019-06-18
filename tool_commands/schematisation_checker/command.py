@@ -52,11 +52,12 @@ class CustomCommand(CustomCommandBase):
             return
         except errors.MigrationMissingError:
             logger.exception(
-                "The selected 3Di model does not have the latest " "migration"
+                "The selected 3Di model does not have the latest migration"
             )
             pop_up_info(
                 "The selected 3Di model does not have the latest migration, please "
-                "migrate your model to the latest version."
+                "migrate your model to the latest version. Download the latest "
+                "version of the model here: <a href='https://3di.lizard.net/models/'>https://3di.lizard.net/models/</a>"  # noqa
             )
             return
         except errors.MigrationTooHighError:
