@@ -10,7 +10,6 @@ from qgis.PyQt.QtCore import QThread
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
-from ThreeDiToolbox.datasource.threedi_results import detect_netcdf_version
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
 from ThreeDiToolbox.utils.user_messages import pop_up_info
@@ -481,3 +480,34 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """Set logged in status to False."""
         self.username = None
         self.password = None
+
+
+def detect_netcdf_version(netcdf_file_path):
+    """An ad-hoc way to detect whether we work with
+    1. or an regular netcdf: one that has been made with on "old" calculation
+    core (without groundater). This netcdf does not include an attribute
+    'threedicore_version'
+    2. or an groundwater netcdf: one that has been made with on "new"
+    calculation core (with optional groundater calculations). This netcdf
+    does include an attribute 'threedicore_version'
+
+    Args:
+        netcdf_file_path: path to the result netcdf
+
+    Returns:
+        the version (a string) of the netcdf
+            - 'netcdf'
+            - 'netcdf-groundwater'
+
+    """
+    try:
+        dataset = h5py.File(netcdf_file_path, mode="r")
+        if "threedicore_version" in dataset.attrs:
+            return "netcdf-groundwater"
+        else:
+            return "netcdf"
+    except IOError:
+        # old 3Di results cannot be opened with h5py. The can be opened with
+        # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
+        # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
+        return "netcdf"
