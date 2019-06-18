@@ -2,7 +2,19 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.11 (unreleased)
+1.12 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
+1.11.1 (2019-06-17)
+-------------------
+
+- Nothing changed yet.
+
+
+1.11 (2019-06-17)
 -----------------
 
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
@@ -12,6 +24,16 @@ ThreeDiToolBox changelog
   log. Also, a logfile is written (``threedi-qgis-log.txt``), which can be
   used to investigate problems. There's also a new button to open the logfile
   so that you can email it.
+
+- Integrated threedi-modelchecker in the plugin as a tool_command.
+
+- Improved dependency management of the plugin.
+
+- Refactored structure of the plugin of the plugin: the tools are more clearly
+  separated.
+
+- Refactoring of many variables/classes/functions/methods to be more clear and
+  consistent in the whole plugin.
 
 
 1.10 (2019-03-28)
