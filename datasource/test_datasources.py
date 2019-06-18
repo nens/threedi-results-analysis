@@ -8,6 +8,7 @@ from threedigrid.admin import gridresultadmin
 from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
+from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tests.utilities import TemporaryDirectory
@@ -374,3 +375,11 @@ def test_base_data_source_can_be_implemented():
 
     instance = ConcreteDataSource()
     assert instance
+
+
+def test_normalized_object_type1():
+    assert normalized_object_type("sewerage_manhole") == "manhole"
+
+
+def test_normalized_object_type1():
+    assert normalized_object_type("reinout") is None
