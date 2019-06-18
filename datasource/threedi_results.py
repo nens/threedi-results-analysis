@@ -357,9 +357,9 @@ class ThreediResult(BaseDataSource):
         except FileNotFoundError:
             logger.error("Could not find the aggregation netcdf.")
             return None
-        else:
-            logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-            return h5py.File(aggregation_netcdf_file, mode="r")
+
+        logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+        return h5py.File(aggregation_netcdf_file, mode="r")
 
 
 def find_h5_file(netcdf_file_path):
