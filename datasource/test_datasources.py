@@ -8,6 +8,7 @@ from threedigrid.admin import gridresultadmin
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tests.utilities import TemporaryDirectory
 
@@ -339,3 +340,36 @@ def test_available_vars(threedi_result):
     }
     expected = normal_vars | agg_vars
     assert set(actual) == expected
+
+
+def test_base_data_source_is_abstract():
+    # A concrete class needs to implement the abstract properties and methods
+    # defined in the abstract base class.
+    class ConcreteDataSource(base.BaseDataSource):
+        pass
+    with pytest.raises(TypeError):
+        # TypeError: Can't instantiate abstract class ConcreteDataSource with
+        # abstract methods __init__, available_aggregation_vars, etc
+        ConcreteDataSource()
+
+
+def test_base_data_source_can_be_implemented():
+    class ConcreteDataSource(base.BaseDataSource):
+        available_subgrid_map_vars = None
+        available_aggregation_vars = None
+
+        def __init__(self):
+            pass
+
+        def get_timeseries(self):
+            # Note: the abstract base class mechanism doesn't check the signature!
+            pass
+
+        def get_timestamps(self):
+            pass
+
+        def get_values_by_timestep_nr(self):
+            pass
+
+    instance = ConcreteDataSource()
+    assert instance
