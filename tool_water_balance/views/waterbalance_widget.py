@@ -867,11 +867,11 @@ class WaterBalanceWidget(QDockWidget):
         label_topsector = QLabel()
         label_topsector.setPixmap(logo_topsector)
 
-        path_deltaris_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
-        logo_deltaris = QPixmap(path_deltaris_logo)
-        logo_deltaris = logo_deltaris.scaledToHeight(40)
-        label_deltaris = QLabel()
-        label_deltaris.setPixmap(logo_deltaris)
+        path_deltares_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
+        logo_deltares = QPixmap(path_deltares_logo)
+        logo_deltares = logo_deltares.scaledToHeight(40)
+        label_deltares = QLabel()
+        label_deltares.setPixmap(logo_deltares)
 
         logo_label_text = QLabel("Powered by 3Di, Topsector Water and Deltares")
 
@@ -887,7 +887,7 @@ class WaterBalanceWidget(QDockWidget):
         logo_container_layout = QHBoxLayout()
         logo_container_layout.addWidget(label_3di)
         logo_container_layout.addWidget(label_topsector)
-        logo_container_layout.addWidget(label_deltaris)
+        logo_container_layout.addWidget(label_deltares)
         logo_container.setLayout(logo_container_layout)
 
         powered_by_layout.addWidget(logo_label_text)
