@@ -364,13 +364,13 @@ def test_base_data_source_can_be_implemented():
 
         def get_timeseries(self):
             # Note: the abstract base class mechanism doesn't check the signature!
-            pass
+            pass  # pragma: no cover
 
         def get_timestamps(self):
-            pass
+            pass  # pragma: no cover
 
         def get_values_by_timestep_nr(self):
-            pass
+            pass  # pragma: no cover
 
     instance = ConcreteDataSource()
     assert instance
