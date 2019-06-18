@@ -2,14 +2,14 @@
 """
 Miscellaneous tools.
 """
-
-from .utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
-from .utils.layer_from_netCDF import NODES_LAYER_NAME
-from .utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
-from .utils.user_messages import pop_up_info
-from .utils.user_messages import pop_up_question
 from qgis.core import QgsProject
+from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.utils import qlogging
+from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
+from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
+from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+from ThreeDiToolbox.utils.user_messages import pop_up_question
 
 import logging
 import os
@@ -33,9 +33,9 @@ class About(object):
 
     def run(self):
         """Shows dialog with version information."""
-        # todo: add version number and link to sites
-        with open(os.path.join(os.path.dirname(__file__), "version.rst"), "r") as f:
-            version = f.readline().rstrip()
+        # TODO: add link to sites
+        version_file = PLUGIN_DIR / "version.rst"
+        version = version_file.read_text().rstrip()
 
         pop_up_info(
             "3Di Toolbox version %s" % version, "About", self.iface.mainWindow()
