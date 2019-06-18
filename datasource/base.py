@@ -7,30 +7,30 @@ class BaseDataSource(metaclass=ABCMeta):
     # things more manageable....
     @abstractmethod
     def __init__(self, *args, **kwargs):
-        pass
+        pass  # pragma: no cover
 
     @property
     @abstractmethod
     def available_subgrid_map_vars(self):
-        pass
+        pass  # pragma: no cover
 
     @property
     @abstractmethod
     def available_aggregation_vars(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def get_timeseries(self, object_type, object_id, nc_variable, fill_value=None):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def get_timestamps(self, parameter=None):
-        pass
+        pass  # pragma: no cover
 
     # used in map_animator
     @abstractmethod
     def get_values_by_timestep_nr(self, variable, timestamp_idx, index=None):
-        pass
+        pass  # pragma: no cover
 
     # TODO: not sure if needed, used in creating layers
     # @abstractmethod
