@@ -4,18 +4,20 @@ from abc import abstractproperty
 from future.utils import with_metaclass
 
 
-class BaseDataSource(with_metaclass(ABCMeta, object)):
+class BaseDataSource(metaclass=ABCMeta):
     # NOTE: methods used in ncstats methods are ignored for now to keep
     # things more manageable....
     @abstractmethod
     def __init__(self, *args, **kwargs):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def available_subgrid_map_vars(self):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def available_aggregation_vars(self):
         pass
 
