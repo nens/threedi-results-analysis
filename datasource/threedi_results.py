@@ -339,6 +339,7 @@ class ThreediResult(BaseDataSource):
         try:
             return h5py.File(self.file_path, "r")
         except IOError:
+            # TODO: a non-existing file raises an OSError, not an IOError!
             logger.exception("Datasource %s could not be opened", self.file_path)
             raise
 
