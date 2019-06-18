@@ -1,6 +1,5 @@
 """Tests QGIS plugin init."""
-
-from pathlib import Path
+from ThreeDiToolbox import PLUGIN_DIR
 
 import configparser
 import logging
@@ -10,8 +9,7 @@ import ThreeDiToolbox
 
 logger = logging.getLogger(__name__)
 
-PLUGIN_DIR = Path(__file__).parent.parent
-TEST_DATA_DIR = Path(__file__).parent / "data"
+TEST_DATA_DIR = PLUGIN_DIR / "tests" / "data"
 
 
 def test_read_init():

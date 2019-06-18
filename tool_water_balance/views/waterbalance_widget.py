@@ -25,6 +25,7 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
+from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
@@ -33,7 +34,6 @@ import copy
 import functools
 import logging
 import numpy as np
-import os
 import pyqtgraph as pg
 
 
@@ -855,22 +855,19 @@ class WaterBalanceWidget(QDockWidget):
         # # Logo #
         # # ######
 
-        current_dir = os.path.dirname(__file__)
-        plugin_dir = os.path.join(current_dir, os.pardir, os.pardir)
-
-        path_3di_logo = os.path.join(plugin_dir, "icons", "icon.png")
+        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
         logo_3di = QPixmap(path_3di_logo)
         logo_3di = logo_3di.scaledToHeight(40)
         label_3di = QLabel()
         label_3di.setPixmap(logo_3di)
 
-        path_topsector_logo = os.path.join(plugin_dir, "icons", "topsector_small.png")
+        path_topsector_logo = str(PLUGIN_DIR / "icons" / "topsector_small.png")
         logo_topsector = QPixmap(path_topsector_logo)
         logo_topsector = logo_topsector.scaledToHeight(40)
         label_topsector = QLabel()
         label_topsector.setPixmap(logo_topsector)
 
-        path_deltaris_logo = os.path.join(plugin_dir, "icons", "deltares_small.png")
+        path_deltaris_logo = str(PLUGIN_DIR / "icons" / "deltares_small.png")
         logo_deltaris = QPixmap(path_deltaris_logo)
         logo_deltaris = logo_deltaris.scaledToHeight(40)
         label_deltaris = QLabel()

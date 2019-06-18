@@ -1,6 +1,6 @@
 # Pytest configuration file. The sole purpose is to prevent Qgis from grabbing
 # python's import mechanism (which breaks pytest).
-from pathlib import Path
+from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 import os
@@ -11,8 +11,7 @@ import pytest
 os.environ["QGIS_NO_OVERRIDE_IMPORT"] = "KEEPYOURPAWSOFF"
 
 
-plugin_dir = Path(__file__).parent
-data_dir = plugin_dir / "tests" / "data"
+data_dir = PLUGIN_DIR / "tests" / "data"
 bergermeer_dir = data_dir / "testmodel" / "v2_bergermeer"
 
 gridadmin_path = bergermeer_dir / "gridadmin.h5"
