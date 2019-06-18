@@ -9,6 +9,7 @@ from threedigrid.admin import gridresultadmin
 from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
@@ -21,6 +22,7 @@ import pytest
 import shutil
 import tempfile
 import unittest
+import h5py
 
 
 spatialite_datasource_path = os.path.join(
@@ -416,3 +418,22 @@ def test_normalized_object_type1():
 
 def test_normalized_object_type2():
     assert normalized_object_type("reinout") is None
+
+
+def test_aggregate_result_admin_file_missing(threedi_result):
+    threedi_result.file_path = "reinout.txt"
+    assert threedi_result.aggregate_result_admin is None
+
+
+def test_ds_aggregation(threedi_result):
+    assert isinstance(threedi_result.ds_aggregation, h5py.File)
+
+
+def test_ds_aggregation_file_missing(threedi_result):
+    threedi_result.file_path = "reinout.txt"
+    assert threedi_result.ds_aggregation is None
+
+
+def test_find_h5_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        find_h5_file("/does/not/exist/")
