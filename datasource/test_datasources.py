@@ -104,7 +104,6 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
-        threedi_result._datasource = mock.MagicMock()
         threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
