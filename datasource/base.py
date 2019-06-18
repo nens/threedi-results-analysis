@@ -3,6 +3,13 @@ from abc import abstractmethod
 
 
 class BaseDataSource(metaclass=ABCMeta):
+    """Abstract base class for datasources.
+
+    The ``ABCMeta`` metaclass and the ``@abstractmethod`` decorators ensure
+    that subclasses MUST implement those methods and properties.
+
+    """
+
     # NOTE: methods used in ncstats methods are ignored for now to keep
     # things more manageable....
     @abstractmethod
