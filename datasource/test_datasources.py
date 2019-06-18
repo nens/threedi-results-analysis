@@ -1,3 +1,4 @@
+from threedigrid.admin.constants import NO_DATA_VALUE
 from qgis.core import QgsFeature
 from qgis.core import QgsField
 from qgis.core import QgsGeometry
@@ -195,6 +196,16 @@ def test_get_timeseries_filter_content_pk(threedi_result):
         np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
 
 
+def test_get_timeseries_filter_fill_value(threedi_result):
+    with mock.patch(
+        "threedigrid.orm.base.models.Model.get_filtered_field_value"
+    ) as data:
+        data.return_value = np.full((len(threedi_result.timestamps), 1), NO_DATA_VALUE)
+        time_series = threedi_result.get_timeseries("s1", fill_value=42)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[0, 1], 42)
+
+
 def test_get_model_instance_by_field_name(threedi_result):
     """A bug in threedigrid <= 1.0.12
 
@@ -279,6 +290,14 @@ def test__nc_from_mem(threedi_result):
     assert "s1" in threedi_result._cache.keys()
 
 
+def test__nc_from_mem_uses_cache(threedi_result):
+    threedi_result._nc_from_mem("s1")
+    # Well, testing... We call it a second time so that the cache-using line
+    # gets covered.
+    threedi_result._nc_from_mem("s1")
+    assert "s1" in threedi_result._cache.keys()
+
+
 def test_available_subgrid_map_vars(threedi_result):
     actual_vars = threedi_result.available_subgrid_map_vars
     expected_vars = {
@@ -316,6 +335,11 @@ def test_available_aggregation_vars(threedi_result):
         "infiltration_rate_simple_cum",
     }
     assert set(actual_aggregation_vars) == expected_aggregation_vars
+
+
+def test_available_aggregation_vars_without_gridadmin(threedi_result):
+    threedi_result.aggregate_result_admin = None  # Simulate it isn't found
+    assert threedi_result.available_aggregation_vars == []
 
 
 def test_available_vars(threedi_result):
