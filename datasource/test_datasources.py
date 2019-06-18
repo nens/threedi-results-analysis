@@ -1,4 +1,3 @@
-from threedigrid.admin.constants import NO_DATA_VALUE
 from qgis.core import QgsFeature
 from qgis.core import QgsField
 from qgis.core import QgsGeometry
@@ -6,6 +5,7 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin import gridresultadmin
+from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
@@ -15,6 +15,7 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tests.utilities import TemporaryDirectory
 
+import h5py
 import mock
 import numpy as np
 import os
@@ -22,7 +23,6 @@ import pytest
 import shutil
 import tempfile
 import unittest
-import h5py
 
 
 spatialite_datasource_path = os.path.join(

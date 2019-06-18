@@ -15,6 +15,7 @@ from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from urllib.error import HTTPError
 
+import h5py
 import logging
 import os
 
