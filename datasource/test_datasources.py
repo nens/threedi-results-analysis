@@ -5,10 +5,10 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin import gridresultadmin
+from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tests.utilities import TemporaryDirectory
 
@@ -347,6 +347,7 @@ def test_base_data_source_is_abstract():
     # defined in the abstract base class.
     class ConcreteDataSource(base.BaseDataSource):
         pass
+
     with pytest.raises(TypeError):
         # TypeError: Can't instantiate abstract class ConcreteDataSource with
         # abstract methods __init__, available_aggregation_vars, etc

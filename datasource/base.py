@@ -1,7 +1,5 @@
 from abc import ABCMeta
 from abc import abstractmethod
-from abc import abstractproperty
-from future.utils import with_metaclass
 
 
 class BaseDataSource(metaclass=ABCMeta):
