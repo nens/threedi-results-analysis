@@ -233,7 +233,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         filename, __ = QFileDialog.getOpenFileName(
             self,
-            "Open resultaten file",
+            "Open result file",
             init_path,
             "NetCDF (subgrid_map.nc results_3di.nc)",
         )
