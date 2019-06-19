@@ -2,14 +2,12 @@ from ThreeDiToolbox.threedi_plugin import CommandBox
 from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 
 import mock
-import unittest
 
 
-class TestMapAnimator(unittest.TestCase):
-    def setUp(self):
-        """test whether ThreeDiAnimation can be instantiated """
-        ts_datasources = TimeseriesDatasourceModel()
-        self.iface = mock.Mock()
-        self.tdi_root_tool = CommandBox(self.iface, ts_datasources)
-        self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
-        self.toolbar_animation.setObjectName("ThreeDiAnimation")
+def test_smoke():
+    """Test whether ThreeDiAnimation can be instantiated """
+    ts_datasources = TimeseriesDatasourceModel()
+    iface = mock.Mock()
+    tdi_root_tool = CommandBox(iface, ts_datasources)
+    toolbar_animation = iface.addToolBar("ThreeDiAnimation")
+    toolbar_animation.setObjectName("ThreeDiAnimation")
