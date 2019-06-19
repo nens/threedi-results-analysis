@@ -42,10 +42,10 @@ class LayerTreeManager(object):
     schematisation_advanced_settings_group_name = "advanced numerics"
     result_layergroup_basename = "result: "
 
-    def __init__(self, iface, model_results_model):
+    def __init__(self, iface, ts_datasources):
 
         self.iface = iface
-        self.model = model_results_model
+        self.ts_datasources = ts_datasources
 
         self.schematisation_layergroup = None
         self._model_layergroup = None
@@ -64,10 +64,10 @@ class LayerTreeManager(object):
         )
 
         # add listeners
-        self.model.model_schematisation_change.connect(self._on_set_schematisation)
+        self.ts_datasources.model_schematisation_change.connect(self._on_set_schematisation)
         # self.model.dataChanged.connect(self.on_change)
         # self.model.rowsAboutToBeRemoved.connect(self.remove_results)
-        self.model.rowsInserted.connect(self.add_results)
+        self.ts_datasources.rowsInserted.connect(self.add_results)
         self.init_references_from_layer_tree()
 
     @property
@@ -94,9 +94,9 @@ class LayerTreeManager(object):
         self._model_layergroup = None
 
     def on_unload(self):
-        self.model.model_schematisation_change.disconnect(self._on_set_schematisation)
-        self.model.rowsAboutToBeRemoved.connect(self.remove_results)
-        self.model.rowsInserted.connect(self.add_results)
+        self.ts_datasources.model_schematisation_change.disconnect(self._on_set_schematisation)
+        self.ts_datasources.rowsAboutToBeRemoved.connect(self.remove_results)
+        self.ts_datasources.rowsInserted.connect(self.add_results)
 
     @staticmethod
     def _mark(tree_node, marker):
@@ -393,7 +393,7 @@ class LayerTreeManager(object):
         # unique identifier?
 
         for row_nr in range(start_row, stop_row + 1):
-            result = self.model.rows[row_nr]
+            result = self.ts_datasources.rows[row_nr]
             name = self.result_layergroup_basename + result.name.value
 
             if self.model_layergroup is not None:
@@ -454,7 +454,7 @@ class LayerTreeManager(object):
 
     def remove_results(self, index, start_row, stop_row):
         for row_nr in range(start_row, stop_row + 1):
-            result = self.model.rows[row_nr]
+            result = self.ts_datasources.rows[row_nr]
             group = self._find_marked_child(
                 self.model_layergroup, "result_" + result.file_path.value
             )
