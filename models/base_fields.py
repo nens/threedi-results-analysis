@@ -17,14 +17,15 @@ def get_field_nr():
 
 
 class BaseItemField(object):
-    """base class for each field in a row containing the value"""
+    """Base class for each field in a row containing a value."""
 
     def __init__(self, item, field, value=None):
-        """
-        initialization
+        """Initialization.
+
         :param item: ModelItem to which this ItemField belongs
         :param field: ModelField
         :param value: Initial value
+
         """
         self.item = item
         self.field = field
@@ -41,16 +42,13 @@ class BaseItemField(object):
 
     @property
     def value(self):
-        """
-        get current value
-        :return: current value
-        """
+        """Return current value."""
         return self._value
 
     @value.setter
     def value(self, value):
-        """
-        set new value
+        """Set new value, possibly after some adjustments, and return it.
+
         :param value: value to be set for field item
         :return: new value of field item
         """
@@ -67,12 +65,15 @@ class BaseItemField(object):
         return self._value
 
     def _set_value(self, value, signal=True):
-        """
-        private function for setting value, including sending a signal if
+        """Set value (if changed) and fire a signal.
+
+        Private function for setting value, including sending a signal if
         value changed
+
         :param value: new value
         :param signal: bool, send dataChanged event through model on value
                        change
+
         """
         if value == self._value:
             # No need to set it and fire a signal and so.
@@ -87,9 +88,10 @@ class BaseItemField(object):
 
     @property
     def qvalue(self):
-        """
-        get current value in a Qt object
-        :return: current value
+        """Return current value as a Qt object
+
+        :return: current value, adjusted for qt.
+
         """
         if self.field_type == CHECKBOX_FIELD:
             if self.value:
@@ -103,8 +105,8 @@ class BaseItemField(object):
             return self._value
 
     def __getattr__(self, prop_name):
-        """
-        get properties of related field, directly on item field
+        """Return property of related field, directly from this item field.
+
         :param prop_name: property name
         :return: value of related Field property
         """
