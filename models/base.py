@@ -1,10 +1,10 @@
-from .base_fields import CHECKBOX_FIELD
-from .base_fields import COLOR_FIELD
-from .base_fields import VALUE_FIELD
 from qgis.PyQt.QtCore import QAbstractTableModel
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
+from ThreeDiToolbox.models.base_fields import CHECKBOX_FIELD
+from ThreeDiToolbox.models.base_fields import COLOR_FIELD
+from ThreeDiToolbox.models.base_fields import VALUE_FIELD
 
 import inspect
 import logging
