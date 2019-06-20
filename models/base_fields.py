@@ -73,19 +73,17 @@ class BaseItemField(object):
         :param value: new value
         :param signal: bool, send dataChanged event through model on value
                        change
-        :return: value changed
         """
         if value == self._value:
-            return False
-        else:
-            self._value = value
-            if signal:
-                if self.item.model:
-                    index = self.item.model.index(
-                        self.item.get_row_nr(), self.field.column_nr
-                    )
-                    self.item.model.dataChanged.emit(index, index)
-            return True
+            # No need to set it and fire a signal and so.
+            return
+        self._value = value
+        if signal:
+            if self.item.model:
+                index = self.item.model.index(
+                    self.item.get_row_nr(), self.field.column_nr
+                )
+                self.item.model.dataChanged.emit(index, index)
 
     @property
     def qvalue(self):
