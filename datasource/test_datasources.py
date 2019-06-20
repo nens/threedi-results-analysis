@@ -5,12 +5,17 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin import gridresultadmin
+from threedigrid.admin.constants import NO_DATA_VALUE
+from ThreeDiToolbox.datasource import base
 from ThreeDiToolbox.datasource.spatialite import Spatialite
 from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
+from ThreeDiToolbox.datasource.threedi_results import find_h5_file
+from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tests.utilities import TemporaryDirectory
 
+import h5py
 import mock
 import numpy as np
 import os
@@ -22,14 +27,6 @@ import unittest
 
 spatialite_datasource_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "data", "test_spatialite.sqlite"
-)
-
-THREEDI_RESULTS_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    "data",
-    "testmodel",
-    "v2_bergermeer",
-    "results_3di.nc",
 )
 
 
@@ -109,7 +106,6 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
     @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
-        threedi_result._datasource = mock.MagicMock()
         threedi_result.get_timeseries("s1", 3)
 
     def test_find_agg_fail(self):
@@ -189,6 +185,26 @@ def test_get_timeseries_filter_node(threedi_result):
         time_series = threedi_result.get_timeseries("s1", node_id=5)
         np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
         np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
+
+
+def test_get_timeseries_filter_content_pk(threedi_result):
+    with mock.patch(
+        "threedigrid.orm.base.models.Model.get_filtered_field_value"
+    ) as data:
+        data.return_value = np.ones((len(threedi_result.timestamps), 1))
+        time_series = threedi_result.get_timeseries("s1", content_pk=5)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[:, 1], data.return_value[:, 0])
+
+
+def test_get_timeseries_filter_fill_value(threedi_result):
+    with mock.patch(
+        "threedigrid.orm.base.models.Model.get_filtered_field_value"
+    ) as data:
+        data.return_value = np.full((len(threedi_result.timestamps), 1), NO_DATA_VALUE)
+        time_series = threedi_result.get_timeseries("s1", fill_value=42)
+        np.testing.assert_equal(time_series[:, 0], threedi_result.get_timestamps())
+        np.testing.assert_equal(time_series[0, 1], 42)
 
 
 def test_get_model_instance_by_field_name(threedi_result):
@@ -275,6 +291,14 @@ def test__nc_from_mem(threedi_result):
     assert "s1" in threedi_result._cache.keys()
 
 
+def test__nc_from_mem_uses_cache(threedi_result):
+    threedi_result._nc_from_mem("s1")
+    # Well, testing... We call it a second time so that the cache-using line
+    # gets covered.
+    threedi_result._nc_from_mem("s1")
+    assert "s1" in threedi_result._cache.keys()
+
+
 def test_available_subgrid_map_vars(threedi_result):
     actual_vars = threedi_result.available_subgrid_map_vars
     expected_vars = {
@@ -314,6 +338,11 @@ def test_available_aggregation_vars(threedi_result):
     assert set(actual_aggregation_vars) == expected_aggregation_vars
 
 
+def test_available_aggregation_vars_without_gridadmin(threedi_result):
+    threedi_result.aggregate_result_admin = None  # Simulate it isn't found
+    assert threedi_result.available_aggregation_vars == []
+
+
 def test_available_vars(threedi_result):
     actual = threedi_result.available_vars
     normal_vars = {
@@ -347,3 +376,64 @@ def test_available_vars(threedi_result):
     }
     expected = normal_vars | agg_vars
     assert set(actual) == expected
+
+
+def test_base_data_source_is_abstract():
+    # A concrete class needs to implement the abstract properties and methods
+    # defined in the abstract base class.
+    class ConcreteDataSource(base.BaseDataSource):
+        pass
+
+    with pytest.raises(TypeError):
+        # TypeError: Can't instantiate abstract class ConcreteDataSource with
+        # abstract methods __init__, available_aggregation_vars, etc
+        ConcreteDataSource()
+
+
+def test_base_data_source_can_be_implemented():
+    class ConcreteDataSource(base.BaseDataSource):
+        available_subgrid_map_vars = None
+        available_aggregation_vars = None
+
+        def __init__(self):
+            pass
+
+        def get_timeseries(self):
+            # Note: the abstract base class mechanism doesn't check the signature!
+            pass  # pragma: no cover
+
+        def get_timestamps(self):
+            pass  # pragma: no cover
+
+        def get_values_by_timestep_nr(self):
+            pass  # pragma: no cover
+
+    instance = ConcreteDataSource()
+    assert instance
+
+
+def test_normalized_object_type1():
+    assert normalized_object_type("sewerage_manhole") == "manhole"
+
+
+def test_normalized_object_type2():
+    assert normalized_object_type("reinout") is None
+
+
+def test_aggregate_result_admin_file_missing(threedi_result):
+    threedi_result.file_path = "reinout.txt"
+    assert threedi_result.aggregate_result_admin is None
+
+
+def test_ds_aggregation(threedi_result):
+    assert isinstance(threedi_result.ds_aggregation, h5py.File)
+
+
+def test_ds_aggregation_file_missing(threedi_result):
+    threedi_result.file_path = "reinout.txt"
+    assert threedi_result.ds_aggregation is None
+
+
+def test_find_h5_file_not_found():
+    with pytest.raises(FileNotFoundError):
+        find_h5_file("/does/not/exist/")

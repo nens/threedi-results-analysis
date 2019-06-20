@@ -1,8 +1,8 @@
-from .base import BaseDataSource
-from .result_constants import LAYER_OBJECT_TYPE_MAPPING
-from .result_constants import SUBGRID_MAP_VARIABLES
 from cached_property import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
+from ThreeDiToolbox.datasource.base import BaseDataSource
+from ThreeDiToolbox.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
+from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
 from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
@@ -339,6 +339,7 @@ class ThreediResult(BaseDataSource):
         try:
             return h5py.File(self.file_path, "r")
         except IOError:
+            # TODO: a non-existing file raises an OSError, not an IOError!
             logger.exception("Datasource %s could not be opened", self.file_path)
             raise
 
@@ -356,9 +357,9 @@ class ThreediResult(BaseDataSource):
         except FileNotFoundError:
             logger.error("Could not find the aggregation netcdf.")
             return None
-        else:
-            logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
-            return h5py.File(aggregation_netcdf_file, mode="r")
+
+        logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
+        return h5py.File(aggregation_netcdf_file, mode="r")
 
 
 def find_h5_file(netcdf_file_path):
@@ -412,34 +413,3 @@ def find_aggregation_netcdf(netcdf_file_path):
     raise FileNotFoundError(
         "'aggregate_results_3di.nc' file not found relative to %s" % result_dir
     )
-
-
-def detect_netcdf_version(netcdf_file_path):
-    """An ad-hoc way to detect whether we work with
-    1. or an regular netcdf: one that has been made with on "old" calculation
-    core (without groundater). This netcdf does not include an attribute
-    'threedicore_version'
-    2. or an groundwater netcdf: one that has been made with on "new"
-    calculation core (with optional groundater calculations). This netcdf
-    does include an attribute 'threedicore_version'
-
-    Args:
-        netcdf_file_path: path to the result netcdf
-
-    Returns:
-        the version (a string) of the netcdf
-            - 'netcdf'
-            - 'netcdf-groundwater'
-
-    """
-    try:
-        dataset = h5py.File(netcdf_file_path, mode="r")
-        if "threedicore_version" in dataset.attrs:
-            return "netcdf-groundwater"
-        else:
-            return "netcdf"
-    except IOError:
-        # old 3Di results cannot be opened with h5py. The can be opened with
-        # NetCDF4 Dataset (dataset.file_format = NETCDF3_CLASSIC). If you open
-        # a new 3Di result with NetCDF4 you get dataset.file_format = NETCDF4
-        return "netcdf"
