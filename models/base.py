@@ -1,10 +1,10 @@
-from .base_fields import CHECKBOX_FIELD
-from .base_fields import COLOR_FIELD
-from .base_fields import VALUE_FIELD
 from qgis.PyQt.QtCore import QAbstractTableModel
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
+from ThreeDiToolbox.models.base_fields import CHECKBOX_FIELD
+from ThreeDiToolbox.models.base_fields import COLOR_FIELD
+from ThreeDiToolbox.models.base_fields import VALUE_FIELD
 
 import inspect
 import logging
@@ -13,7 +13,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseModelItem(object):
+class BaseModelRow(object):
+    """Row inside a BaseModel.
+
+    TODO: please, remove this horrible stuff. We have a feature freeze now, so
+    I can only do some minimal renaming to clear it up a bit.
+    [reinout, 2019-06-24]
+
+    - Nothing subclasses this BaseModelRow.
+
+    - BaseModelRow is dynamically generated with ``type()`` in BaseModel, but
+      that makes no sense if there's just one class.
+
+    - BaseModelRow calls BaseModel all the time. As a class, you should keep
+      your fingers out of another class.
+
+    """
+
     def __init__(self, model=None, **kwargs):
 
         self.model = model
@@ -27,7 +43,7 @@ class BaseModelItem(object):
                 value = kwargs[field_name]
 
             setattr(
-                self, field_name, field_class.create_row_field(item=self, value=value)
+                self, field_name, field_class.create_row_field(row=self, value=value)
             )
 
         # for function_name, function in self._functions:
@@ -49,7 +65,11 @@ class BaseModelItem(object):
     def get_fields(self, show_only=False):
 
         if show_only:
-            return [(name, cl) for name, cl in self._fields if cl.show]
+            return [
+                (name, column_field)
+                for name, column_field in self._fields
+                if column_field.show
+            ]
         else:
             return self._fields
 
@@ -61,7 +81,7 @@ class BaseModel(QAbstractTableModel):
     declaration and storage of settings and values in ModelItems, ItemFields
     and Fields"""
 
-    _base_model_item_class = BaseModelItem
+    _base_model_item_class = BaseModelRow
     class_name = "BaseModel"
 
     def __init__(self, ts_datasources=None, initial_data=[], parent=None):
@@ -84,19 +104,18 @@ class BaseModel(QAbstractTableModel):
         # create item class
         self._fields = sorted(
             [
-                (name, cl)
-                for name, cl in inspect.getmembers(
+                (name, column_field)
+                for name, column_field in inspect.getmembers(
                     self.Fields, lambda a: not (inspect.isroutine(a))
                 )
                 if not name.startswith("__") and not name.startswith("_")
             ],
-            key=lambda cl: cl[1]._nr,
+            key=lambda item: item[1]._nr,  # Sort on column_field number
         )
-
-        self.columns = [cl for name, cl in self._fields]
+        self.columns = [column_field for name, column_field in self._fields]
 
         self.item_class = type(
-            self.class_name + "Item",
+            self.class_name + "Row",
             (self._base_model_item_class, self.Fields),
             {"_fields": self._fields},
         )
@@ -158,15 +177,15 @@ class BaseModel(QAbstractTableModel):
         item = self.rows[index.row()]
 
         if role == Qt.DisplayRole:
-            if item[index.column()].field_type == VALUE_FIELD:
+            if item[index.column()].field.field_type == VALUE_FIELD:
                 return item[index.column()].value
         elif role == Qt.BackgroundRole:
-            if item[index.column()].field_type == COLOR_FIELD:
+            if item[index.column()].field.field_type == COLOR_FIELD:
                 return item[index.column()].qvalue
         elif role == Qt.TextAlignmentRole:
             return Qt.AlignVCenter
         elif role == Qt.CheckStateRole:
-            if item[index.column()].field_type == CHECKBOX_FIELD:
+            if item[index.column()].field.field_type == CHECKBOX_FIELD:
                 return item[index.column()].qvalue
             else:
                 return None
@@ -207,7 +226,7 @@ class BaseModel(QAbstractTableModel):
     def flags(self, index):
 
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if self.columns[index.column()].field_type == CHECKBOX_FIELD:
+        if self.columns[index.column()].field.field_type == CHECKBOX_FIELD:
             flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
 
         return flags
