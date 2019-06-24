@@ -17,24 +17,25 @@ def get_field_nr():
 
 
 class RowFieldValue(object):
-    """Class holding the value for a column/field for a certain item.
+    """Class holding the value for a column/field for a certain row.
 
     The field is the BaseField instance (so: really a column).
 
     The value is mapped to something QT-friendly.
 
-    The "item" is probably a table.
+    The "row" is a BaseModelRow instance.
 
     """
-    def __init__(self, item, field, value=None):
+
+    def __init__(self, row, field, value=None):
         """Initialization.
 
-        :param item: ModelItem to which this ItemField belongs
+        :param row: BaseModelRow to which this ItemField belongs
         :param field: ModelField
         :param value: Initial value
 
         """
-        self.item = item
+        self.row = row
         self.field = field
         self._value = None
 
@@ -56,8 +57,8 @@ class RowFieldValue(object):
     def value(self, value):
         """Set new value, possibly after some adjustments, and return it.
 
-        :param value: value to be set for field item
-        :return: new value of field item
+        :param value: value to be set for field row
+        :return: new value of field row
         """
         if self.field_type == CHECKBOX_FIELD:
             if type(value) == bool:
@@ -87,11 +88,11 @@ class RowFieldValue(object):
             return
         self._value = value
         if signal:
-            if self.item.model:
-                index = self.item.model.index(
-                    self.item.get_row_nr(), self.field.column_nr
+            if self.row.model:
+                index = self.row.model.index(
+                    self.row.get_row_nr(), self.field.column_nr
                 )
-                self.item.model.dataChanged.emit(index, index)
+                self.row.model.dataChanged.emit(index, index)
 
     @property
     def qvalue(self):
@@ -112,12 +113,12 @@ class RowFieldValue(object):
             return self._value
 
     def __getattr__(self, prop_name):
-        """Return property of related field, directly from this item field.
+        """Return property of related field, directly from this row field.
 
         :param prop_name: property name
         :return: value of related Field property
 
-        # TODO: check if it is used. I see item_field.item.model.rows() and
+        # TODO: check if it is used. I see item_field.row.model.rows() and
         so.... Everyone seems to dive into its internals anyway...
 
         """
@@ -134,6 +135,7 @@ class BaseField(object):
     RowFieldValue, which is basically a row's value for this column.
 
     """
+
     field_type = None
 
     def __init__(
@@ -165,21 +167,24 @@ class BaseField(object):
         self.model = model
         self.column_nr = column_nr
 
-    def create_row_field(self, item, value=None):
-        return RowFieldValue(item, field=self, value=value)
+    def create_row_field(self, row, value=None):
+        return RowFieldValue(row, field=self, value=value)
 
 
 class ValueField(BaseField):
     """Field implementation for Values, which (for now) can be everything
     which can be showed in plain text (string, int, float)"""
+
     field_type = VALUE_FIELD
 
 
 class ColorField(BaseField):
     """Field implementation for Colors."""
+
     field_type = COLOR_FIELD
 
 
 class CheckboxField(BaseField):
     """Field implementation for booleans with checkboxes"""
+
     field_type = CHECKBOX_FIELD
