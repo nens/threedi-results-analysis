@@ -60,7 +60,7 @@ class RowFieldValue(object):
         :param value: value to be set for field row
         :return: new value of field row
         """
-        if self.field_type == CHECKBOX_FIELD:
+        if self.field.field_type == CHECKBOX_FIELD:
             if type(value) == bool:
                 self._set_value(value)
             elif value == Qt.Checked:
@@ -101,12 +101,12 @@ class RowFieldValue(object):
         :return: current value, adjusted for qt.
 
         """
-        if self.field_type == CHECKBOX_FIELD:
+        if self.field.field_type == CHECKBOX_FIELD:
             if self.value:
                 return Qt.Checked
             else:
                 return Qt.Unchecked
-        elif self.field_type == COLOR_FIELD:
+        elif self.field.field_type == COLOR_FIELD:
             if self.value is not None:
                 return QColor(*self.value)
         else:
@@ -121,8 +121,14 @@ class RowFieldValue(object):
         # TODO: check if it is used. I see item_field.row.model.rows() and
         so.... Everyone seems to dive into its internals anyway...
 
+        One old use case that I removed is ``self.field_type``, which is now
+        explicitly ``self.field.field_type``...
+
         """
         if hasattr(self.field, prop_name):
+            logger.warn(
+                "To fix: indirect property access from RowFieldValue to Basefield."
+            )
             return getattr(self.field, prop_name)
         else:
             raise AttributeError
