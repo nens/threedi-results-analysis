@@ -109,6 +109,10 @@ class BaseItemField(object):
 
         :param prop_name: property name
         :return: value of related Field property
+
+        # TODO: check if it is used. I see item_field.item.model.rows() and
+        so.... Everyone seems to dive into its internals anyway...
+
         """
         if hasattr(self.field, prop_name):
             return getattr(self.field, prop_name)
@@ -117,6 +121,8 @@ class BaseItemField(object):
 
 
 class BaseField(object):
+    field_type = None
+
     def __init__(
         self,
         name=None,
@@ -140,7 +146,6 @@ class BaseField(object):
         self.model = None
 
     def contribute_to_class(self, name, model, column_nr):
-
         self.name = name
         if self.column_name is None:
             self.column_name = name
@@ -148,32 +153,20 @@ class BaseField(object):
         self.column_nr = column_nr
 
     def create_row_field(self, item, value=None):
-
         return BaseItemField(item, field=self, value=value)
 
 
 class ValueField(BaseField):
     """Field implementation for Values, which (for now) can be everything
     which can be showed in plain text (string, int, float)"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.field_type = VALUE_FIELD
+    field_type = VALUE_FIELD
 
 
 class ColorField(BaseField):
     """Field implementation for Colors."""
-
-    def __init__(self, *args, **kwargs):
-        """same as BaseField. Color values are a list of three color values
-        in the range of 0-256. For example (68, 55, 204)"""
-        super().__init__(*args, **kwargs)
-        self.field_type = COLOR_FIELD
+    field_type = COLOR_FIELD
 
 
 class CheckboxField(BaseField):
     """Field implementation for booleans with checkboxes"""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.field_type = CHECKBOX_FIELD
+    field_type = CHECKBOX_FIELD
