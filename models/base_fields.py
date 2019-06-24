@@ -16,9 +16,16 @@ def get_field_nr():
     return field_nr
 
 
-class BaseItemField(object):
-    """Base class for each field in a row containing a value."""
+class RowFieldValue(object):
+    """Class holding the value for a column/field for a certain item.
 
+    The field is the BaseField instance (so: really a column).
+
+    The value is mapped to something QT-friendly.
+
+    The "item" is probably a table.
+
+    """
     def __init__(self, item, field, value=None):
         """Initialization.
 
@@ -121,6 +128,12 @@ class BaseItemField(object):
 
 
 class BaseField(object):
+    """Configuration for a column: what kind of field are we?
+
+    Important is the ``.create_row_field()`` method that creates a
+    RowFieldValue, which is basically a row's value for this column.
+
+    """
     field_type = None
 
     def __init__(
@@ -153,7 +166,7 @@ class BaseField(object):
         self.column_nr = column_nr
 
     def create_row_field(self, item, value=None):
-        return BaseItemField(item, field=self, value=value)
+        return RowFieldValue(item, field=self, value=value)
 
 
 class ValueField(BaseField):

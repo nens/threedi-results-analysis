@@ -49,7 +49,7 @@ class BaseModelItem(object):
     def get_fields(self, show_only=False):
 
         if show_only:
-            return [(name, cl) for name, cl in self._fields if cl.show]
+            return [(name, column_field) for name, column_field in self._fields if column_field.show]
         else:
             return self._fields
 
@@ -84,17 +84,15 @@ class BaseModel(QAbstractTableModel):
         # create item class
         self._fields = sorted(
             [
-                (name, cl)
-                for name, cl in inspect.getmembers(
+                (name, column_field)
+                for name, column_field in inspect.getmembers(
                     self.Fields, lambda a: not (inspect.isroutine(a))
                 )
                 if not name.startswith("__") and not name.startswith("_")
             ],
-            key=lambda cl: cl[1]._nr,
+            key=lambda item: item[1]._nr,  # Sort on column_field number
         )
-
-        self.columns = [cl for name, cl in self._fields]
-
+        self.columns = [column_field for name, column_field in self._fields]
         self.item_class = type(
             self.class_name + "Item",
             (self._base_model_item_class, self.Fields),
