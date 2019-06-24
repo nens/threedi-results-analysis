@@ -118,17 +118,13 @@ class RowFieldValue(object):
         :param prop_name: property name
         :return: value of related Field property
 
-        # TODO: check if it is used. I see item_field.row.model.rows() and
-        so.... Everyone seems to dive into its internals anyway...
-
-        One old use case that I removed is ``self.field_type``, which is now
-        explicitly ``self.field.field_type``...
+        It is used to grab things like default_value, column_width,
+        column_name from the BaseField. See
+        ``tool_graph/test_graph_model.py``, the
+        ``item.active.default_value``call.
 
         """
         if hasattr(self.field, prop_name):
-            logger.warn(
-                "To fix: indirect property access from RowFieldValue to Basefield."
-            )
             return getattr(self.field, prop_name)
         else:
             raise AttributeError
