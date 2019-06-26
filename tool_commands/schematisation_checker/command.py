@@ -1,4 +1,3 @@
-from qgis.core import QgsApplication
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import errors
 from threedi_modelchecker.model_checks import ThreediModelChecker
@@ -33,11 +32,11 @@ class CustomCommand(CustomCommandBase):
     def run(self):
         self.show_gui()
 
-    def run_it(self, threedi_db):
+    def run_it(self, threedi_db, output_file_path):
         """Apply the threedi-modelchecker to `threedi_db`
 
         The connection to the `threedi_db` and its south_migration_history are first
-        validated. Next, any model errors are written to a csv file.
+        validated. Next, any model errors are written to `output_file_path` as csv file.
         """
         logger.info("Starting threedi-modelchecker")
         try:
@@ -75,13 +74,8 @@ class CustomCommand(CustomCommandBase):
                 "We are gonna continue for now and hope for the best."
             )
 
-        output_filename = "model-errors.csv"
-        output_file_path = os.path.join(
-            QgsApplication.qgisSettingsDirPath(), output_filename
-        )
-
+        _, output_filename = os.path.split(output_file_path)
         session = model_checker.db.get_session()
-
         total_checks = len(model_checker.config.checks)
         with progress_bar(self.iface, max_value=total_checks) as pb, open(
             output_file_path, "w", newline=""
