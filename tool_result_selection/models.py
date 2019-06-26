@@ -34,7 +34,7 @@ def get_line_pattern(item_field):
         Qt.DashDotDotLine,
     ]
 
-    already_used_patterns = [item.pattern.value for item in item_field.item.model.rows]
+    already_used_patterns = [item.pattern.value for item in item_field.row.model.rows]
 
     for style in available_styles:
         if style not in already_used_patterns:

@@ -16,17 +16,26 @@ def get_field_nr():
     return field_nr
 
 
-class BaseItemField(object):
-    """base class for each field in a row containing the value"""
+class RowFieldValue(object):
+    """Class holding the value for a column/field for a certain row.
 
-    def __init__(self, item, field, value=None):
-        """
-        initialization
-        :param item: ModelItem to which this ItemField belongs
+    The field is the BaseField instance (so: really a column).
+
+    The value is mapped to something QT-friendly.
+
+    The "row" is a BaseModelRow instance.
+
+    """
+
+    def __init__(self, row, field, value=None):
+        """Initialization.
+
+        :param row: BaseModelRow to which this ItemField belongs
         :param field: ModelField
         :param value: Initial value
+
         """
-        self.item = item
+        self.row = row
         self.field = field
         self._value = None
 
@@ -41,20 +50,17 @@ class BaseItemField(object):
 
     @property
     def value(self):
-        """
-        get current value
-        :return: current value
-        """
+        """Return current value."""
         return self._value
 
     @value.setter
     def value(self, value):
+        """Set new value, possibly after some adjustments, and return it.
+
+        :param value: value to be set for field row
+        :return: new value of field row
         """
-        set new value
-        :param value: value to be set for field item
-        :return: new value of field item
-        """
-        if self.field_type == CHECKBOX_FIELD:
+        if self.field.field_type == CHECKBOX_FIELD:
             if type(value) == bool:
                 self._set_value(value)
             elif value == Qt.Checked:
@@ -67,48 +73,56 @@ class BaseItemField(object):
         return self._value
 
     def _set_value(self, value, signal=True):
-        """
-        private function for setting value, including sending a signal if
+        """Set value (if changed) and fire a signal.
+
+        Private function for setting value, including sending a signal if
         value changed
+
         :param value: new value
         :param signal: bool, send dataChanged event through model on value
                        change
-        :return: value changed
+
         """
         if value == self._value:
-            return False
-        else:
-            self._value = value
-            if signal:
-                if self.item.model:
-                    index = self.item.model.index(
-                        self.item.get_row_nr(), self.field.column_nr
-                    )
-                    self.item.model.dataChanged.emit(index, index)
-            return True
+            # No need to set it and fire a signal and so.
+            return
+        self._value = value
+        if signal:
+            if self.row.model:
+                index = self.row.model.index(
+                    self.row.get_row_nr(), self.field.column_nr
+                )
+                self.row.model.dataChanged.emit(index, index)
 
     @property
     def qvalue(self):
+        """Return current value as a Qt object
+
+        :return: current value, adjusted for qt.
+
         """
-        get current value in a Qt object
-        :return: current value
-        """
-        if self.field_type == CHECKBOX_FIELD:
+        if self.field.field_type == CHECKBOX_FIELD:
             if self.value:
                 return Qt.Checked
             else:
                 return Qt.Unchecked
-        elif self.field_type == COLOR_FIELD:
+        elif self.field.field_type == COLOR_FIELD:
             if self.value is not None:
                 return QColor(*self.value)
         else:
             return self._value
 
     def __getattr__(self, prop_name):
-        """
-        get properties of related field, directly on item field
+        """Return property of related field, directly from this row field.
+
         :param prop_name: property name
         :return: value of related Field property
+
+        It is used to grab things like default_value, column_width,
+        column_name from the BaseField. See
+        ``tool_graph/test_graph_model.py``, the
+        ``item.active.default_value``call.
+
         """
         if hasattr(self.field, prop_name):
             return getattr(self.field, prop_name)
@@ -117,6 +131,15 @@ class BaseItemField(object):
 
 
 class BaseField(object):
+    """Configuration for a column: what kind of field are we?
+
+    Important is the ``.create_row_field()`` method that creates a
+    RowFieldValue, which is basically a row's value for this column.
+
+    """
+
+    field_type = None
+
     def __init__(
         self,
         name=None,
@@ -140,40 +163,30 @@ class BaseField(object):
         self.model = None
 
     def contribute_to_class(self, name, model, column_nr):
-
         self.name = name
         if self.column_name is None:
             self.column_name = name
         self.model = model
         self.column_nr = column_nr
 
-    def create_row_field(self, item, value=None):
-
-        return BaseItemField(item, field=self, value=value)
+    def create_row_field(self, row, value=None):
+        return RowFieldValue(row, field=self, value=value)
 
 
 class ValueField(BaseField):
     """Field implementation for Values, which (for now) can be everything
     which can be showed in plain text (string, int, float)"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.field_type = VALUE_FIELD
+    field_type = VALUE_FIELD
 
 
 class ColorField(BaseField):
     """Field implementation for Colors."""
 
-    def __init__(self, *args, **kwargs):
-        """same as BaseField. Color values are a list of three color values
-        in the range of 0-256. For example (68, 55, 204)"""
-        super().__init__(*args, **kwargs)
-        self.field_type = COLOR_FIELD
+    field_type = COLOR_FIELD
 
 
 class CheckboxField(BaseField):
     """Field implementation for booleans with checkboxes"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.field_type = CHECKBOX_FIELD
+    field_type = CHECKBOX_FIELD

@@ -1,8 +1,12 @@
 """This script initializes the plugin, making it known to QGIS."""
+from pathlib import Path
 from ThreeDiToolbox import dependencies
 
 import faulthandler
 import sys
+
+
+PLUGIN_DIR = Path(__file__).parent
 
 
 # sys.stderr is not available under Windows in Qgis, which is what the faulthandler

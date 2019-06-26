@@ -47,7 +47,7 @@ def select_default_color(item_field):
     :return: tuple with the 3 color bands (values between 0-256)
     """
 
-    model = item_field.item.model
+    model = item_field.row.model
     colors = OrderedDict([(str(color), color) for color in COLOR_LIST])
 
     for item in model.rows:
