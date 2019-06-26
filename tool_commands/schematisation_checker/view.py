@@ -6,7 +6,10 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
+
 
 class Ui_SchemaCheckerDialog(object):
     def setupUi(self, SchemaCheckerDialog):
@@ -40,7 +43,9 @@ class Ui_SchemaCheckerDialog(object):
         self.verticalLayout.addWidget(self.outputFileBox)
         self.buttonBox = QtWidgets.QDialogButtonBox(SchemaCheckerDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok
+        )
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -52,17 +57,19 @@ class Ui_SchemaCheckerDialog(object):
     def retranslateUi(self, SchemaCheckerDialog):
         _translate = QtCore.QCoreApplication.translate
         SchemaCheckerDialog.setWindowTitle(_translate("SchemaCheckerDialog", "Dialog"))
-        self.databaseSelectionGroup.setTitle(_translate("SchemaCheckerDialog", "Threedi model database"))
+        self.databaseSelectionGroup.setTitle(
+            _translate("SchemaCheckerDialog", "Threedi model database")
+        )
         self.outputFileBox.setTitle(_translate("SchemaCheckerDialog", "Output file"))
         self.open_file_button.setText(_translate("SchemaCheckerDialog", "Open"))
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     SchemaCheckerDialog = QtWidgets.QDialog()
     ui = Ui_SchemaCheckerDialog()
     ui.setupUi(SchemaCheckerDialog)
     SchemaCheckerDialog.show()
     sys.exit(app.exec_())
-

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
+from qgis._core import QgsApplication
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
-from qgis._core import QgsApplication
 from threedi_modelchecker.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
@@ -13,7 +13,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "view.ui"
 
 class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
     STANDARD_OUTPUT_FILE_PATH = os.path.join(
-        QgsApplication.qgisSettingsDirPath(), 'model-errors.csv'
+        QgsApplication.qgisSettingsDirPath(), "model-errors.csv"
     )
 
     def __init__(self, iface, command):
@@ -45,7 +45,6 @@ class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
         output_filename_path, _ = QFileDialog.getSaveFileName(
             self, "Save Result File", self.STANDARD_OUTPUT_FILE_PATH, "CSV (*.csv)"
         )
-        if output_filename_path == '':
+        if output_filename_path == "":
             output_filename_path = self.STANDARD_OUTPUT_FILE_PATH
         self.outputfile_path_display.setText(output_filename_path)
-
