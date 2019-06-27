@@ -1,16 +1,17 @@
-import csv
-import logging
-import os
-
 from qgis.core import Qgis
 from sqlalchemy.exc import OperationalError
 from threedi_modelchecker import errors
 from threedi_modelchecker.model_checks import ThreediModelChecker
-
 from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
 from ThreeDiToolbox.tool_commands.schematisation_checker import controller
-from ThreeDiToolbox.utils.user_messages import pop_up_info, messagebar_message
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import progress_bar
+
+import csv
+import logging
+import os
+
 
 logger = logging.getLogger(__name__)
 
@@ -104,11 +105,13 @@ class CustomCommand(CustomCommandBase):
             # PermissionError happens for example when a user has the file already open
             # with Excel on Windows, which locks the file.
             logger.error("Unable to write to file %s", output_file_path)
-            pop_up_info("Not enough permissions to write the file '%s'.\n\n"
-                        "The file might be used by another program. Please close all "
-                        "other programs using the file or select another output "
-                        "file." % output_file_path,
-                        title="Warning")
+            pop_up_info(
+                "Not enough permissions to write the file '%s'.\n\n"
+                "The file might be used by another program. Please close all "
+                "other programs using the file or select another output "
+                "file." % output_file_path,
+                title="Warning",
+            )
             return
 
         logger.info("Successfully finished running threedi-modelchecker")
