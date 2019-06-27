@@ -1,15 +1,16 @@
-from sqlalchemy.exc import OperationalError
-from threedi_modelchecker import errors
-from threedi_modelchecker.model_checks import ThreediModelChecker
-from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
-from ThreeDiToolbox.tool_commands.schematisation_checker import controller
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.utils.user_messages import progress_bar
-
 import csv
 import logging
 import os
 
+from qgis.core import Qgis
+from sqlalchemy.exc import OperationalError
+from threedi_modelchecker import errors
+from threedi_modelchecker.model_checks import ThreediModelChecker
+
+from ThreeDiToolbox.tool_commands.custom_command_base import CustomCommandBase
+from ThreeDiToolbox.tool_commands.schematisation_checker import controller
+from ThreeDiToolbox.utils.user_messages import pop_up_info, messagebar_message
+from ThreeDiToolbox.utils.user_messages import progress_bar
 
 logger = logging.getLogger(__name__)
 
@@ -77,30 +78,44 @@ class CustomCommand(CustomCommandBase):
         _, output_filename = os.path.split(output_file_path)
         session = model_checker.db.get_session()
         total_checks = len(model_checker.config.checks)
-        with progress_bar(self.iface, max_value=total_checks) as pb, open(
-            output_file_path, "w", newline=""
-        ) as output_file:
-            writer = csv.writer(output_file)
-            writer.writerow(
-                ["id", "table", "column", "value", "description", "type of check"]
-            )
-            for i, check in enumerate(model_checker.checks()):
-                model_errors = check.get_invalid(session)
-                for error_row in model_errors:
-                    writer.writerow(
-                        [
-                            error_row.id,
-                            check.table.name,
-                            check.column.name,
-                            getattr(error_row, check.column.name),
-                            check.description(),
-                            check,
-                        ]
-                    )
-                pb.setValue(i)
+        try:
+            with progress_bar(self.iface, max_value=total_checks) as pb, open(
+                output_file_path, "w", newline=""
+            ) as output_file:
+                writer = csv.writer(output_file)
+                writer.writerow(
+                    ["id", "table", "column", "value", "description", "type of check"]
+                )
+                for i, check in enumerate(model_checker.checks()):
+                    model_errors = check.get_invalid(session)
+                    for error_row in model_errors:
+                        writer.writerow(
+                            [
+                                error_row.id,
+                                check.table.name,
+                                check.column.name,
+                                getattr(error_row, check.column.name),
+                                check.description(),
+                                check,
+                            ]
+                        )
+                    pb.setValue(i)
+        except PermissionError:
+            # PermissionError happens for example when a user has the file already open
+            # with Excel on Windows, which locks the file.
+            logger.error("Unable to write to file %s", output_file_path)
+            pop_up_info("Not enough permissions to write the file '%s'.\n\n"
+                        "The file might be used by another program. Please close all "
+                        "other programs using the file or select another output "
+                        "file." % output_file_path,
+                        title="Warning")
+            return
 
         logger.info("Successfully finished running threedi-modelchecker")
-        pop_up_info(
-            "Finished, see result in <a href='file:///%s'>%s</a>"
-            % (output_file_path, output_filename)
+        messagebar_message(
+            "Info",
+            "Finished running schematisation-checker",
+            level=Qgis.Success,
+            duration=5,
         )
+        return True
