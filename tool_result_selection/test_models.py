@@ -108,6 +108,31 @@ def test_datasource_layer_helper_get_result_layers():
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
     assert len(results) == 3
 
+def test_get_result_layer_validation():
+    """
+    The gridadmin.sqlite is filled with 3 QgisVectorLayers: flowlines, nodes, pumplines.
+    Each layer is saved to gridadmin.sqlite with:
+
+    def _get_vector_layer(sqlite_path, layer_name, geom_column="the_geom"):
+        uri = QgsDataSourceUri()
+        uri.setDatabase(sqlite_path)
+        uri.setDataSource("", layer_name, geom_column)
+        layer = QgsVectorLayer(uri.uri(), layer_name, "spatialite")
+        assert layer.isValid()
+        return layer
+
+    the assert succeeds when I use the QGIS GUI (1:start QGIS, 2:load model.sqlite and results_3di.nc),
+    the assert fails when we run this test..
+
+    Seems to be some QGIS magic with os.environ['QGIS_PREFIX_PATH']
+    https://gis.stackexchange.com/questions/308398/pyqgis-qgsvectorlayer-loading-invalid-layer-in-standalone-python-script
+    """
+    from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
+    from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+    threedi_result = ThreediResult(file_path=THREEDI_RESULTS_PATH)
+    sqlite_gridadmin_filepath = str(THREEDI_RESULTS_PATH.parent / 'gridadmin.sqlite')
+    line_layer = get_or_create_flowline_layer(threedi_result, sqlite_gridadmin_filepath)
+    assert line_layer.isValid()  # returns False, while True when using GUI
 
 def test_ts_datasource_model_field_models():
     """Smoke test of the three helper methods on the Fields object."""
