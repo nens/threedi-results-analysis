@@ -50,7 +50,7 @@
         <item>
          <widget class="QPushButton" name="save_file_location_button">
           <property name="text">
-           <string>Save</string>
+           <string>...</string>
           </property>
          </widget>
         </item>

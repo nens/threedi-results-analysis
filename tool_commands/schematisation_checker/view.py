@@ -102,7 +102,7 @@ class Ui_SchemaCheckerDialog(object):
         )
         self.outputFileBox.setTitle(_translate("SchemaCheckerDialog", "Output file"))
         self.save_file_location_button.setText(
-            _translate("SchemaCheckerDialog", "Save")
+            _translate("SchemaCheckerDialog", "...")
         )
         self.open_result_button.setText(_translate("SchemaCheckerDialog", "Open"))
         self.cancel_button.setText(_translate("SchemaCheckerDialog", "Cancel"))
