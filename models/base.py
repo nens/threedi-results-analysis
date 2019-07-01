@@ -174,23 +174,21 @@ class BaseModel(QAbstractTableModel):
         if not index.isValid():
             return None
 
-        item = self.rows[index.row()]
+        row = self.rows[index.row()]
 
         if role == Qt.DisplayRole:
-            if item[index.column()].field.field_type == VALUE_FIELD:
-                return item[index.column()].value
+            if row[index.column()].field_type == VALUE_FIELD:
+                return row[index.column()].value
         elif role == Qt.BackgroundRole:
-            if item[index.column()].field.field_type == COLOR_FIELD:
-                return item[index.column()].qvalue
+            if row[index.column()].field_type == COLOR_FIELD:
+                return row[index.column()].qvalue
         elif role == Qt.TextAlignmentRole:
             return Qt.AlignVCenter
         elif role == Qt.CheckStateRole:
-            if item[index.column()].field.field_type == CHECKBOX_FIELD:
-                return item[index.column()].qvalue
+            if row[index.column()].field_type == CHECKBOX_FIELD:
+                return row[index.column()].qvalue
             else:
                 return None
-        # elif role == Qt.ToolTipRole:
-        #     return 'tooltip'
 
     def headerData(self, col_nr, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         """
@@ -226,7 +224,7 @@ class BaseModel(QAbstractTableModel):
     def flags(self, index):
 
         flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if self.columns[index.column()].field.field_type == CHECKBOX_FIELD:
+        if self.columns[index.column()].field_type == CHECKBOX_FIELD:
             flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
 
         return flags
