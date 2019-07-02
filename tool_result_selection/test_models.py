@@ -109,6 +109,7 @@ def test_datasource_layer_helper_get_result_layers():
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
     assert len(results) == 3
 
+
 def test_datasource_layer_helper_get_result_layers_validation():
     ensure_qgis_app_is_initialized()
     datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
@@ -119,6 +120,7 @@ def test_datasource_layer_helper_get_result_layers_validation():
     assert lines.featureCount() == 31915
     assert nodes.isValid()
     assert pumps.name() == 'pumplines'
+
 
 def test_ts_datasource_model_field_models():
     """Smoke test of the three helper methods on the Fields object."""
