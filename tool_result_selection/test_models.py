@@ -1,5 +1,6 @@
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
+from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tool_result_selection import models
 
 import mock
@@ -107,6 +108,18 @@ def test_datasource_layer_helper_get_result_layers():
     # Just call it, check if we get three layers.
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
     assert len(results) == 3
+
+
+def test_datasource_layer_helper_get_result_layers_validation():
+    ensure_qgis_app_is_initialized()
+    datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
+    results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
+    lines = results[0]
+    nodes = results[1]
+    pumps = results[2]
+    assert lines.featureCount() == 31915
+    assert nodes.isValid()
+    assert pumps.name() == 'pumplines'
 
 
 def test_ts_datasource_model_field_models():
