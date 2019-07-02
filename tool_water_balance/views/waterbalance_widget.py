@@ -702,6 +702,49 @@ class WaterBalanceWidget(QDockWidget):
         self.select_polygon_button.toggle()
         self.__current_calc = None  # cache the results of calculation
 
+    def _get_io_series_net(self):
+        io_series_net = [
+            x
+            for x in self.IN_OUT_SERIES
+            if (
+                       x["type"] in ["2d", "2d_vert", "2d_groundwater", "1d"]
+                       and "storage" not in x["label_name"]
+                       and "exchange" not in x["label_name"]
+                       and x["label_name"] != "1D: 2D flow to 1D"
+                       and x["label_name"] != "2D: 2D flow to 1D"
+                       and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
+                       and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
+               )
+               or x["type"] == "NETVOL"
+        ]
+        return io_series_net
+
+    def _get_io_series_2d(self):
+        io_series_2d = [
+            x
+            for x in self.IN_OUT_SERIES
+            if x["type"] in ["2d", "2d_vert"]
+               and x["label_name"] != "1D: 2D flow to 1D"
+               and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
+        ]
+        return io_series_2d
+
+    def _get_io_series_2d_groundwater(self):
+        io_series_2d_groundwater = [
+            x for x in self.IN_OUT_SERIES if x["type"] in ["2d_groundwater", "2d_vert"]
+        ]
+        return io_series_2d_groundwater
+
+    def _get_io_series_1d(self):
+        io_series_1d = [
+            x
+            for x in self.IN_OUT_SERIES
+            if x["type"] == "1d"
+            and x["label_name"] != "2D: 2D flow to 1D"
+            and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
+        ]
+        return io_series_1d
+
     def show_barchart(self):
 
         # only possible to calculate bars when a polygon has been drawn
@@ -712,40 +755,10 @@ class WaterBalanceWidget(QDockWidget):
         wb_barchart_modelpart = "1d and 2d"
         ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
 
-        io_series_net = [
-            x
-            for x in self.IN_OUT_SERIES
-            if (
-                x["type"] in ["2d", "2d_vert", "2d_groundwater", "1d"]
-                and "storage" not in x["label_name"]
-                and "exchange" not in x["label_name"]
-                and x["label_name"] != "1D: 2D flow to 1D"
-                and x["label_name"] != "2D: 2D flow to 1D"
-                and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
-                and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
-            )
-            or x["type"] == "NETVOL"
-        ]
-
-        io_series_2d = [
-            x
-            for x in self.IN_OUT_SERIES
-            if x["type"] in ["2d", "2d_vert"]
-            and x["label_name"] != "1D: 2D flow to 1D"
-            and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
-        ]
-
-        io_series_2d_groundwater = [
-            x for x in self.IN_OUT_SERIES if x["type"] in ["2d_groundwater", "2d_vert"]
-        ]
-
-        io_series_1d = [
-            x
-            for x in self.IN_OUT_SERIES
-            if x["type"] == "1d"
-            and x["label_name"] != "2D: 2D flow to 1D"
-            and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
-        ]
+        io_series_net = self._get_io_series_net()
+        io_series_2d = self._get_io_series_2d()
+        io_series_2d_groundwater = self._get_io_series_2d_groundwater()
+        io_series_1d = self._get_io_series_1d()
 
         # get timeseries x range in plot widget
         viewbox_state = self.plot_widget.getPlotItem().getViewBox().getState()
@@ -763,6 +776,53 @@ class WaterBalanceWidget(QDockWidget):
             ts, ts_series, t1, t2, invert=["in/exfiltration (domain exchange)"]
         )
         bm_1d.calc_balance(ts, ts_series, t1, t2)
+
+        # debug waterbalance (to find cause when waterbalance has no 100%
+        # closure
+        print("\nstart_debug_sum")
+        dict = {
+            "bm_net": bm_net,
+            "bm_2d": bm_2d,
+            "bm_1d": bm_1d,
+            "bm_2d_groundwater": bm_2d_groundwater,
+        }
+        lable_list = []
+        flow_list_in = []
+        flow_list_out = []
+        domain_list = []
+        for item in dict.items():
+            print_name = str(item[0])
+            domain = item[1]
+            if print_name == "bm_1d":
+                pass
+            if print_name == "bm_2d":
+                pass
+            cum_sum = 0
+            for idx, label in enumerate(domain.xlabels):
+                in_flow = domain.end_balance_in[idx]
+                out_flow = domain.end_balance_out[idx]
+                # print str(label) + str(out_flow)
+                if label not in ["net change in storage", "change in storage"]:
+                    sum_idx = in_flow + out_flow
+                    cum_sum += sum_idx
+                else:
+                    sum_all = in_flow + out_flow
+                lable_list.append(str(label))
+                flow_list_in.append(str(in_flow))
+                flow_list_out.append(str(out_flow))
+                domain_list.append(print_name)
+            print_sum_all = str(round(sum_all, 2))
+            print_cum_sum = str(round(cum_sum, 2))
+            if print_sum_all == print_cum_sum:
+                print("okay " + print_name + " " + print_sum_all + " " + print_cum_sum)
+            else:
+                print(
+                    "not okay " + print_name + " " + print_sum_all + " " + print_cum_sum
+                )
+        print("\n")
+        flow_zip = list(zip(domain_list, lable_list, flow_list_in, flow_list_out))
+        for i in flow_zip:
+            print(i)
 
         nc_path = self.ts_datasources.rows[0].threedi_result().file_path
         h5 = find_h5_file(nc_path)
