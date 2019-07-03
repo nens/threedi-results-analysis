@@ -8,7 +8,11 @@ from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
-from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import INPUT_SERIES
+from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
+    INPUT_SERIES,
+    WaterBalanceWidget,
+    BarManager,
+)
 
 import mock
 import numpy as np
@@ -127,8 +131,7 @@ def wb_polygon():
 
 
 @pytest.fixture()
-def wb_calculation():
-    ensure_qgis_app_is_initialized()
+def ts_datasources():
     ts_datasources = TimeseriesDatasourceModel()
     ts_datasources.spatialite_filepath = MODEL_SQLITE_PATH
     items = [
@@ -139,6 +142,12 @@ def wb_calculation():
         }
     ]
     ts_datasources.insertRows(items)
+    return ts_datasources
+
+
+@pytest.fixture()
+def wb_calculation(ts_datasources):
+    ensure_qgis_app_is_initialized()
     wb_calculation = WaterBalanceCalculation(ts_datasources)
     return wb_calculation
 
@@ -226,16 +235,196 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
     cumm_flow = helper_calculate_agg_flow(aggregated_flows, ID)
     assert helper_round_numpy(cumm_flow) == helper_round_numpy(EXPECTED_CUMM_1D_OUT)
 
-# @mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
-# def test_get_aggregated_flows_all(progress_bar_mock, wb_calculation):
-#     """This is the integration test: We compare two things
-#     A) volume change inside the pologyon that is calculated by WaterBalanceCalculation
-#     --> flows in and out through the lines
-#     with
-#     B) volume change inside the pologyon according the volume change in the nodes"""
-#     link_ids = LINKS_EXPECTED[0]
-#     pump_ids = LINKS_EXPECTED[1]
-#     node_ids = NODES_EXPECTED
-#     aggregated_flows = wb_calculation.get_aggregated_flows(
-#         link_ids, pump_ids, node_ids, None
-#     )
+
+@pytest.fixture()
+@mock.patch(
+    "ThreeDiToolbox.tool_water_balance.views.waterbalance_widget.PolygonDrawTool"
+)
+def wb_widget(mock_it, ts_datasources, wb_calculation):
+    ensure_qgis_app_is_initialized()
+    iface = mock.Mock()
+    waterbalance_widget = WaterBalanceWidget(
+        iface=iface, ts_datasources=ts_datasources, wb_calc=wb_calculation
+    )
+    return waterbalance_widget
+
+
+def test_waterbalance_widget_instance(wb_widget):
+    assert isinstance(wb_widget, WaterBalanceWidget)
+    print("kak")
+
+
+def test_wb_widget_get_io_series_net(wb_widget):
+    io_series_net = wb_widget._get_io_series_net()
+    expected = [
+        {
+            "label_name": "2D flow to 1D (all domains)",
+            "in": ["1d__1d_2d_flow_in", "2d__1d_2d_flow_in"],
+            "out": ["1d__1d_2d_flow_out", "2d__1d_2d_flow_out"],
+            "type": "NETVOL",
+        },
+        {
+            "label_name": "leakage",
+            "in": ["leak"],
+            "out": ["leak"],
+            "type": "2d_groundwater",
+        },
+        {
+            "label_name": "constant infiltration",
+            "in": ["infiltration_rate_simple"],
+            "out": ["infiltration_rate_simple"],
+            "type": "2d",
+        },
+        {"label_name": "2D flow", "in": ["2d_in"], "out": ["2d_out"], "type": "2d"},
+        {"label_name": "1D flow", "in": ["1d_in"], "out": ["1d_out"], "type": "1d"},
+        {
+            "label_name": "groundwater flow",
+            "in": ["2d_groundwater_in"],
+            "out": ["2d_groundwater_out"],
+            "type": "2d_groundwater",
+        },
+        {
+            "label_name": "lateral flow to 2D",
+            "in": ["lat_2d"],
+            "out": ["lat_2d"],
+            "type": "2d",
+        },
+        {
+            "label_name": "lateral flow to 1D",
+            "in": ["lat_1d"],
+            "out": ["lat_1d"],
+            "type": "1d",
+        },
+        {
+            "label_name": "2D boundary flow",
+            "in": ["2d_bound_in"],
+            "out": ["2d_bound_out"],
+            "type": "2d",
+        },
+        {
+            "label_name": "1D boundary flow",
+            "in": ["1d_bound_in"],
+            "out": ["1d_bound_out"],
+            "type": "1d",
+        },
+        {
+            "label_name": "0D rainfall runoff on 1D",
+            "in": ["inflow"],
+            "out": ["inflow"],
+            "type": "1d",
+        },
+        {
+            "label_name": "change in storage",
+            "in": ["d_2d_vol", "d_2d_groundwater_vol", "d_1d_vol"],
+            "out": ["d_2d_vol", "d_2d_groundwater_vol", "d_1d_vol"],
+            "type": "NETVOL",
+        },
+        {"label_name": "pump", "in": ["pump_in"], "out": ["pump_out"], "type": "1d"},
+        {"label_name": "rain on 2D", "in": ["rain"], "out": ["rain"], "type": "2d"},
+        {
+            "label_name": "interception",
+            "in": ["intercepted_volume"],
+            "out": ["intercepted_volume"],
+            "type": "2d",
+        },
+        {
+            "label_name": "surface sources and sinks",
+            "in": ["q_sss"],
+            "out": ["q_sss"],
+            "type": "2d",
+        },
+    ]
+    assert io_series_net == expected
+
+
+def test_barmanger_2d_groundwater(wb_widget):
+    io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
+    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
+    assert isinstance(bm_2d_groundwater, BarManager)
+    expected_labels = [
+        "groundwater flow",
+        "in/exfiltration (domain exchange)",
+        "leakage",
+        "net change in storage",
+    ]
+    assert bm_2d_groundwater.xlabels == expected_labels
+
+
+@pytest.fixture()
+@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+def waterbalance_widget_timeseries(progress_bar_mock, wb_widget, wb_polygon):
+    # always use domain '1d and 2d' to get all flows in the barchart
+    wb_widget.wb_polygon = wb_polygon
+    wb_barchart_modelpart = "1d and 2d"
+    timesteps, ts_series = wb_widget.calc_wb_barchart(wb_barchart_modelpart)
+    return timesteps, ts_series
+
+
+def test_waterbalance_widget_timesteps(waterbalance_widget_timeseries):
+    """It looks like that we tested this before (in
+    test_time_steps_get_aggregated_flows), but those timesteps were
+    retrieved from the WaterBalanceCalculation. These are retrieved from
+    WaterBalanceWidget (they must be the same)"""
+    timesteps, ts_series = waterbalance_widget_timeseries
+    assert (
+        helper_round_numpy(timesteps) == helper_round_numpy(TIMESTEPS_EXPECTED)
+    ).all()
+
+
+@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+def test_waterbalance_closure(
+    progress_bar_mock, wb_widget, wb_polygon, waterbalance_widget_timeseries
+):
+    """the netto inflows and outflows of the three sub-domains (1d, 2d,
+    2d_groundwater) must equal the netto inflow and outflow"""
+    timesteps, time_series = waterbalance_widget_timeseries
+    t1 = min(timesteps)
+    t2 = max(timesteps)
+
+    wb_widget.wb_polygon = wb_polygon
+    # always use domain '1d and 2d' to get all flows in the barchart
+    wb_barchart_modelpart = "1d and 2d"
+    timesteps, ts_series = wb_widget.calc_wb_barchart(wb_barchart_modelpart)
+
+    io_series_net = wb_widget._get_io_series_net()
+    io_series_2d = wb_widget._get_io_series_2d()
+    io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
+    io_series_1d = wb_widget._get_io_series_1d()
+
+    bm_net = BarManager(io_series_net)
+    bm_2d = BarManager(io_series_2d)
+    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
+    bm_1d = BarManager(io_series_1d)
+
+    bm_net.calc_balance(timesteps, time_series, t1, t2, net=True)
+    in_net = helper_round_numpy(sum(bm_net.end_balance_in))
+    assert in_net == helper_round_numpy(16356.89228030003)
+    out_net = helper_round_numpy(sum(bm_net.end_balance_out))
+    assert out_net == helper_round_numpy(-12089.824365766)
+
+    bm_2d.calc_balance(timesteps, time_series, t1, t2)
+    in_2d = helper_round_numpy(sum(bm_2d.end_balance_in))
+    assert in_2d == helper_round_numpy(15079.857642000001)
+    out_2d = helper_round_numpy(sum(bm_2d.end_balance_out))
+    assert out_2d == helper_round_numpy(-13053.167812)
+
+    bm_2d_groundwater.calc_balance(
+        timesteps, time_series, t1, t2, invert=["in/exfiltration (domain exchange)"]
+    )
+    in_2d_gr = helper_round_numpy(sum(bm_2d_groundwater.end_balance_in))
+    assert in_2d_gr == helper_round_numpy(1657.9873319999999)
+    out_2d_gr = helper_round_numpy(sum(bm_2d_groundwater.end_balance_out))
+    assert out_2d_gr == helper_round_numpy(-1.8e-05)
+
+    bm_1d.calc_balance(timesteps, time_series, t1, t2)
+    in_1d = helper_round_numpy(sum(bm_1d.end_balance_in))
+    assert in_1d == helper_round_numpy(2869.9160830000001)
+    out_1d = helper_round_numpy(sum(bm_1d.end_balance_out))
+    assert out_1d == helper_round_numpy(-2287.5253120000002)
+
+    assert helper_round_numpy(sum([in_1d, in_2d, in_2d_gr])) == helper_round_numpy(
+        in_net
+    )
+    assert helper_round_numpy(sum([out_1d, out_2d, out_2d_gr])) == helper_round_numpy(
+        out_net
+    )

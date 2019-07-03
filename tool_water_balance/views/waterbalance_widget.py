@@ -707,15 +707,15 @@ class WaterBalanceWidget(QDockWidget):
             x
             for x in self.IN_OUT_SERIES
             if (
-                       x["type"] in ["2d", "2d_vert", "2d_groundwater", "1d"]
-                       and "storage" not in x["label_name"]
-                       and "exchange" not in x["label_name"]
-                       and x["label_name"] != "1D: 2D flow to 1D"
-                       and x["label_name"] != "2D: 2D flow to 1D"
-                       and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
-                       and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
-               )
-               or x["type"] == "NETVOL"
+                x["type"] in ["2d", "2d_vert", "2d_groundwater", "1d"]
+                and "storage" not in x["label_name"]
+                and "exchange" not in x["label_name"]
+                and x["label_name"] != "1D: 2D flow to 1D"
+                and x["label_name"] != "2D: 2D flow to 1D"
+                and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
+                and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
+            )
+            or x["type"] == "NETVOL"
         ]
         return io_series_net
 
@@ -724,8 +724,8 @@ class WaterBalanceWidget(QDockWidget):
             x
             for x in self.IN_OUT_SERIES
             if x["type"] in ["2d", "2d_vert"]
-               and x["label_name"] != "1D: 2D flow to 1D"
-               and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
+            and x["label_name"] != "1D: 2D flow to 1D"
+            and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
         ]
         return io_series_2d
 
