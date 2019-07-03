@@ -135,12 +135,12 @@ clean:
 	@echo "------------------------------------"
 	rm $(COMPILED_UI_FILES) $(COMPILED_RESOURCE_FILES)
 
-doc:
+html:
 	@echo
 	@echo "------------------------------------"
 	@echo "Building documentation using sphinx."
 	@echo "------------------------------------"
-	cd help; make html
+	cd doc; make html
 
 
 # Run pep8 + pyflakes checks

@@ -55,7 +55,7 @@ author = 'Nelen & Schuurmans'
 # built documents.
 #
 # The short X.Y version.
-version = open('../version.rst').readlines()[0].strip()
+version = open('../../version.rst').readlines()[0].strip()
 # The full version, including alpha/beta/rc tags.
 release = version
 
