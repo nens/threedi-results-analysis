@@ -1,5 +1,6 @@
 from pathlib import Path
 from qgis.PyQt import uic
+from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QDockWidget
 
@@ -26,3 +27,12 @@ class ControlStructuresDockWidget(QDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingWidget.emit()
         event.accept()
+
+
+if __name__ == "__main__":
+    import sys
+
+    app = QtWidgets.QApplication(sys.argv)
+    controlStructureDockWidget = ControlStructuresDockWidget()
+    controlStructureDockWidget.show()
+    sys.exit(app.exec_())
