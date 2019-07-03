@@ -9,12 +9,12 @@ SOURCEDIR     = source
 BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make html".
-html:
+html: build
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
 
-.PHONY: help Makefile
+# If the index.rst changes, we want all docs go get a new TOC.
+build: source/index.rst
+	rm -rf build
+	mkdir build
 
-# Catch-all target: route all unknown targets to Sphinx using the new "make
-# mode" option. (Note: at the moment we only use html, not 'pdflatex' or so).
-%: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
+.PHONY: help Makefile

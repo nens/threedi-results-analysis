@@ -3,9 +3,8 @@ ThreeDiToolbox developer information
 
 .. toctree::
    :maxdepth: 2
-   :caption: Readme
 
-   linked_main_readme
+   Main README <linked_main_readme>
 
 .. toctree::
    :maxdepth: 2
