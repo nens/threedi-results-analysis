@@ -371,6 +371,22 @@ def test_waterbalance_widget_timesteps(waterbalance_widget_timeseries):
     ).all()
 
 
+def helper_get_flows_and_dvol(domain=None):
+    STORAGE_CHANGE_LABELS = ["net change in storage", "change in storage"]
+    sum_inflow = 0
+    sum_outflow = 0
+    d_vol = 0
+    for idx, label in enumerate(domain.xlabels):
+        inflow = domain.end_balance_in[idx]
+        outflow = domain.end_balance_out[idx]
+        if label in STORAGE_CHANGE_LABELS:
+            d_vol += inflow + outflow
+        else:
+            sum_inflow += inflow
+            sum_outflow += outflow
+    return sum_inflow, sum_outflow, d_vol
+
+
 @mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
 def test_waterbalance_closure(
     progress_bar_mock, wb_widget, wb_polygon, waterbalance_widget_timeseries
@@ -396,35 +412,40 @@ def test_waterbalance_closure(
     bm_2d_groundwater = BarManager(io_series_2d_groundwater)
     bm_1d = BarManager(io_series_1d)
 
+    # netto domain
     bm_net.calc_balance(timesteps, time_series, t1, t2, net=True)
-    in_net = helper_round_numpy(sum(bm_net.end_balance_in))
-    assert in_net == helper_round_numpy(16356.89228030003)
-    out_net = helper_round_numpy(sum(bm_net.end_balance_out))
-    assert out_net == helper_round_numpy(-12089.824365766)
+    sum_inflow, sum_outflow, d_vol_net = helper_get_flows_and_dvol(domain=bm_net)
+    assert helper_round_numpy(d_vol_net) == helper_round_numpy(
+        sum([sum_inflow, sum_outflow])
+    )
 
+    # 1d domain
+    bm_1d.calc_balance(timesteps, time_series, t1, t2)
+    sum_inflow, sum_outflow, d_vol_1d = helper_get_flows_and_dvol(domain=bm_1d)
+    assert helper_round_numpy(d_vol_1d) == helper_round_numpy(
+        sum([sum_inflow, sum_outflow])
+    )
+
+    # 2d domain
     bm_2d.calc_balance(timesteps, time_series, t1, t2)
-    in_2d = helper_round_numpy(sum(bm_2d.end_balance_in))
-    assert in_2d == helper_round_numpy(15079.857642000001)
-    out_2d = helper_round_numpy(sum(bm_2d.end_balance_out))
-    assert out_2d == helper_round_numpy(-13053.167812)
+    sum_inflow, sum_outflow, d_vol_2d = helper_get_flows_and_dvol(domain=bm_2d)
+    assert helper_round_numpy(d_vol_2d) == helper_round_numpy(
+        sum([sum_inflow, sum_outflow])
+    )
 
+    # 2d_groundwater domain
     bm_2d_groundwater.calc_balance(
         timesteps, time_series, t1, t2, invert=["in/exfiltration (domain exchange)"]
     )
-    in_2d_gr = helper_round_numpy(sum(bm_2d_groundwater.end_balance_in))
-    assert in_2d_gr == helper_round_numpy(1657.9873319999999)
-    out_2d_gr = helper_round_numpy(sum(bm_2d_groundwater.end_balance_out))
-    assert out_2d_gr == helper_round_numpy(-1.8e-05)
-
-    bm_1d.calc_balance(timesteps, time_series, t1, t2)
-    in_1d = helper_round_numpy(sum(bm_1d.end_balance_in))
-    assert in_1d == helper_round_numpy(2869.9160830000001)
-    out_1d = helper_round_numpy(sum(bm_1d.end_balance_out))
-    assert out_1d == helper_round_numpy(-2287.5253120000002)
-
-    assert helper_round_numpy(sum([in_1d, in_2d, in_2d_gr])) == helper_round_numpy(
-        in_net
+    sum_inflow, sum_outflow, d_vol_2d_gr = helper_get_flows_and_dvol(
+        domain=bm_2d_groundwater
     )
-    assert helper_round_numpy(sum([out_1d, out_2d, out_2d_gr])) == helper_round_numpy(
-        out_net
+    assert helper_round_numpy(d_vol_2d_gr) == helper_round_numpy(
+        sum([sum_inflow, sum_outflow])
     )
+
+    # the sum of volume changes in the 3 sub-domains must equal volume change
+    # of the netto domain
+    assert helper_round_numpy(
+        sum([d_vol_1d, d_vol_2d, d_vol_2d_gr])
+    ) == helper_round_numpy(d_vol_net)

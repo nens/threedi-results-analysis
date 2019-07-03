@@ -777,53 +777,6 @@ class WaterBalanceWidget(QDockWidget):
         )
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        # debug waterbalance (to find cause when waterbalance has no 100%
-        # closure
-        print("\nstart_debug_sum")
-        dict = {
-            "bm_net": bm_net,
-            "bm_2d": bm_2d,
-            "bm_1d": bm_1d,
-            "bm_2d_groundwater": bm_2d_groundwater,
-        }
-        lable_list = []
-        flow_list_in = []
-        flow_list_out = []
-        domain_list = []
-        for item in dict.items():
-            print_name = str(item[0])
-            domain = item[1]
-            if print_name == "bm_1d":
-                pass
-            if print_name == "bm_2d":
-                pass
-            cum_sum = 0
-            for idx, label in enumerate(domain.xlabels):
-                in_flow = domain.end_balance_in[idx]
-                out_flow = domain.end_balance_out[idx]
-                # print str(label) + str(out_flow)
-                if label not in ["net change in storage", "change in storage"]:
-                    sum_idx = in_flow + out_flow
-                    cum_sum += sum_idx
-                else:
-                    sum_all = in_flow + out_flow
-                lable_list.append(str(label))
-                flow_list_in.append(str(in_flow))
-                flow_list_out.append(str(out_flow))
-                domain_list.append(print_name)
-            print_sum_all = str(round(sum_all, 2))
-            print_cum_sum = str(round(cum_sum, 2))
-            if print_sum_all == print_cum_sum:
-                print("okay " + print_name + " " + print_sum_all + " " + print_cum_sum)
-            else:
-                print(
-                    "not okay " + print_name + " " + print_sum_all + " " + print_cum_sum
-                )
-        print("\n")
-        flow_zip = list(zip(domain_list, lable_list, flow_list_in, flow_list_out))
-        for i in flow_zip:
-            print(i)
-
         nc_path = self.ts_datasources.rows[0].threedi_result().file_path
         h5 = find_h5_file(nc_path)
         ga = GridH5Admin(h5)
