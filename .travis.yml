@@ -32,6 +32,7 @@ script:
   - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
   - docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
   - docker-compose run qgis-desktop make docstrings
+  - docker-compose run qgis-desktop make html
   - docker-compose run qgis-desktop coveralls
 
 before_cache:
