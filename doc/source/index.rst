@@ -11,6 +11,7 @@ ThreeDiToolbox developer information
    :caption: Project setup
 
    linked_external_dependencies_readme
+   documentation
 
 
 .. toctree::
