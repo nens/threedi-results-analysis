@@ -8,10 +8,10 @@ from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
+from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import BarManager
+from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import INPUT_SERIES
 from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
-    INPUT_SERIES,
     WaterBalanceWidget,
-    BarManager,
 )
 
 import mock
