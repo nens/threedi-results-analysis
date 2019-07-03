@@ -4,22 +4,13 @@ __pycache__
 *.pyo
 *.zip
 .coverage
-.noseids
-help/build/
+doc/build/
 .idea
 remote_debugger_settings.py
 docker-compose.override.yml
 .coveralls.yml
 
 # external python dependencies
-external/*.egg-info
-external/*.dist-info
-external/sqlalchemy
-external/geoalchemy2
-external/pyqtgraph
-external/lizard_connector
-external/threedigrid
-
 external-dependencies/*.whl
 external-dependencies/*.egg
 external-dependencies/.generated.marker
