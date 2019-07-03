@@ -119,7 +119,7 @@ def test_datasource_layer_helper_get_result_layers_validation():
     pumps = results[2]
     assert lines.featureCount() == 31915
     assert nodes.isValid()
-    assert pumps.name() == 'pumplines'
+    assert pumps.name() == "pumplines"
 
 
 def test_ts_datasource_model_field_models():
