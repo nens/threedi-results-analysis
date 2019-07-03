@@ -141,6 +141,7 @@ html:
 	@echo "Building documentation using sphinx."
 	@echo "------------------------------------"
 	cd doc; make html
+	@echo "Open doc/build/html/index.html to see the documentation"
 
 
 # Run pep8 + pyflakes checks
