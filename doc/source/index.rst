@@ -14,6 +14,13 @@ ThreeDiToolbox developer information
 
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   reference_generic
+
+
+.. toctree::
    :maxdepth: 1
    :caption: Bookkeeping
 
