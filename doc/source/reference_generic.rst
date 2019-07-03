@@ -13,6 +13,12 @@ ThreeDiToolbox.dependencies
 .. automodule:: ThreeDiToolbox.dependencies
 
 
+ThreeDiToolbox.conftest
+---------------------------
+
+.. automodule:: ThreeDiToolbox.conftest
+
+
 ThreeDiToolbox.utils.qlogging
 -----------------------------
 
