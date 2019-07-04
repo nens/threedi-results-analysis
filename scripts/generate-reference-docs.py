@@ -4,7 +4,6 @@ from ThreeDiToolbox import PLUGIN_DIR
 DOC_SOURCE_DIR = PLUGIN_DIR / "doc" / "source"
 
 
-
 def generate_subdir_readme_symlinks():
     """Create a symlink for every README in a direct subdirectory.
 
@@ -12,7 +11,7 @@ def generate_subdir_readme_symlinks():
     hand.
 
     """
-    for readme in PLUGIN_DIR.glob('*/README.rst'):
+    for readme in PLUGIN_DIR.glob("*/README.rst"):
         subdir_name = readme.parent.name
         target_name = f"linked_{subdir_name}_readme.rst"
         target = DOC_SOURCE_DIR / target_name
@@ -36,24 +35,30 @@ def generate_reference_docs():
     """
     directories = []
     # "dunder" is python-speak for double-underscore.
-    for dunder_init in PLUGIN_DIR.glob('*/__init__.py'):
+    for dunder_init in PLUGIN_DIR.glob("*/__init__.py"):
         subdir = dunder_init.parent
         directories.append(subdir)
-        for dunder_init in subdir.glob('*/__init__.py'):
+        for dunder_init in subdir.glob("*/__init__.py"):
             subsubdir = dunder_init.parent
             directories.append(subsubdir)
 
     directories.sort()
     for directory in directories:
-        python_files = sorted([str(f.relative_to(PLUGIN_DIR))
-                               for f in directory.glob("*.py")])
-        python_files = [python_file for python_file in python_files
-                        if not ("test" in python_file or "__init__" in python_file)]
+        python_files = sorted(
+            [str(f.relative_to(PLUGIN_DIR)) for f in directory.glob("*.py")]
+        )
+        python_files = [
+            python_file
+            for python_file in python_files
+            if not ("test" in python_file or "__init__" in python_file)
+        ]
         if not python_files:
             continue
 
         relative_directory_name = str(directory.relative_to(PLUGIN_DIR))
-        reference_filename = "reference_%s.rst" % relative_directory_name.replace('/', '_')
+        reference_filename = "reference_%s.rst" % relative_directory_name.replace(
+            "/", "_"
+        )
         content = []
         content.append("%s/" % relative_directory_name)
         content.append("=" * 100)
