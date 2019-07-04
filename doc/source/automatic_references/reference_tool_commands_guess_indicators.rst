@@ -1,4 +1,4 @@
-Reference: tool_commands/guess_indicators/
+tool_commands/guess_indicators/
 ====================================================================================================
 
 tool_commands.guess_indicators.command

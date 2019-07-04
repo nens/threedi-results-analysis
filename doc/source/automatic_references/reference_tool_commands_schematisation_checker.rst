@@ -1,4 +1,4 @@
-Reference: tool_commands/schematisation_checker/
+tool_commands/schematisation_checker/
 ====================================================================================================
 
 tool_commands.schematisation_checker.command

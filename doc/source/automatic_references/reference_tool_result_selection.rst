@@ -1,4 +1,4 @@
-Reference: tool_result_selection/
+tool_result_selection/
 ====================================================================================================
 
 tool_result_selection.login_dialog

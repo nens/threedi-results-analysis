@@ -1,4 +1,4 @@
-Reference: tool_commands/raster_checker/
+tool_commands/raster_checker/
 ====================================================================================================
 
 tool_commands.raster_checker.command

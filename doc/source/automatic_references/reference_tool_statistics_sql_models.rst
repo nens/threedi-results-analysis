@@ -1,4 +1,4 @@
-Reference: tool_statistics/sql_models/
+tool_statistics/sql_models/
 ====================================================================================================
 
 tool_statistics.sql_models.statistics

@@ -1,4 +1,4 @@
-Reference: tool_commands/create_breach_locations/
+tool_commands/create_breach_locations/
 ====================================================================================================
 
 tool_commands.create_breach_locations.breach_location

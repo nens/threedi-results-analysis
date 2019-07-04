@@ -1,4 +1,4 @@
-Reference: tool_commands/predict_calc_points/
+tool_commands/predict_calc_points/
 ====================================================================================================
 
 tool_commands.predict_calc_points.command

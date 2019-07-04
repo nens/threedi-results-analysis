@@ -55,7 +55,7 @@ def generate_reference_docs():
         relative_directory_name = str(directory.relative_to(PLUGIN_DIR))
         reference_filename = "reference_%s.rst" % relative_directory_name.replace('/', '_')
         content = []
-        content.append("Reference: %s/" % relative_directory_name)
+        content.append("%s/" % relative_directory_name)
         content.append("=" * 100)
         content.append("")
         # TODO: link to readme, if available?

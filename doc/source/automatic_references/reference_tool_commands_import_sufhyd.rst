@@ -1,4 +1,4 @@
-Reference: tool_commands/import_sufhyd/
+tool_commands/import_sufhyd/
 ====================================================================================================
 
 tool_commands.import_sufhyd.command

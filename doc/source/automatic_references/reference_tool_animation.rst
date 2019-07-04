@@ -1,4 +1,4 @@
-Reference: tool_animation/
+tool_animation/
 ====================================================================================================
 
 tool_animation.map_animator

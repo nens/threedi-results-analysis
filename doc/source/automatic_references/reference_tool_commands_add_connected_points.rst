@@ -1,4 +1,4 @@
-Reference: tool_commands/add_connected_points/
+tool_commands/add_connected_points/
 ====================================================================================================
 
 tool_commands.add_connected_points.add_connected_points_dialog
