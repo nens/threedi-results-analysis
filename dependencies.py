@@ -1,18 +1,19 @@
 """Handle dependencies: installation and checking/logging.
 
-See ``external-dependencies/README.rst`` for a full explanation of the
+See :doc:`linked_external-dependencies_readme`
+(``external-dependencies/README.rst``) for a full explanation of the
 dependency handling.
 
 ``python3 dependencies.py`` runs ``generate_constraints_txt()``: it generates
 ``constraints.txt``.
 
-``ensure_everything_installed()`` checks if ``DEPENDENCIES`` are installed and
-installs them if needed.
+:py:func:`ensure_everything_installed()` checks if :py:data:`DEPENDENCIES` are
+installed and installs them if needed.
 
-``check_importability()`` double-checks if everything is importable. It also
+:py:func:`check_importability()` double-checks if everything is importable. It also
 logs the locations.
 
-Note that we use logging in ``check_importability()`` as we want to have the
+Note that we use *logging* in ``check_importability()`` as we want to have the
 result in the logfile. The rest of the module uses ``print()`` statements
 because it gets executed before any logging has been configured.
 
