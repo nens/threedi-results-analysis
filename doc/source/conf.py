@@ -22,6 +22,9 @@
 import sphinx_rtd_theme
 
 
+import ThreeDiToolbox.conftest  # Ensure the py import fix has been applied.
+
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

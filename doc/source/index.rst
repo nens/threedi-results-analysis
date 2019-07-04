@@ -16,10 +16,11 @@ ThreeDiToolbox developer information
 
 .. toctree::
    :maxdepth: 2
+   :glob:
    :caption: Reference
 
    reference_generic
-
+   automatic_references/*
 
 .. toctree::
    :maxdepth: 1

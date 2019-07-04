@@ -17,9 +17,3 @@ ThreeDiToolbox.conftest
 ---------------------------
 
 .. automodule:: ThreeDiToolbox.conftest
-
-
-ThreeDiToolbox.utils.qlogging
------------------------------
-
-.. automodule:: ThreeDiToolbox.utils.qlogging
