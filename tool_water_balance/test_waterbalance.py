@@ -6,20 +6,15 @@ from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
-from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import BarManager
-from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import INPUT_SERIES
-from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
-    WaterBalanceWidget,
-)
+from ThreeDiToolbox.tool_water_balance.views import waterbalance_widget
 
 import mock
 import numpy as np
 import pytest
 
 
-TESTMODEL_DIR = TEST_DATA_DIR.joinpath("testmodel", "v2_bergermeer")
+TESTMODEL_DIR = TEST_DATA_DIR / "testmodel" / "v2_bergermeer"
 MODEL_SQLITE_PATH = TESTMODEL_DIR / "v2_bergermeer.sqlite"
 assert Path.is_dir(TESTMODEL_DIR), "testmodel dir not found"
 assert Path.is_file(MODEL_SQLITE_PATH), "modelspatialite not found"
@@ -76,20 +71,21 @@ TIMESTEPS_EXPECTED = np.array(
 )
 
 
-def helper_round_numpy(one_array):
-    """round numpy values to certain decimal precision so that we can test it
-    more easily """
+def _helper_round_numpy(one_array):
+    """round numpy values to certain decimal precision so that we can test it more easily """
     DECIMAL_PRECISION = 6
     return np.around(one_array, decimals=DECIMAL_PRECISION)
 
 
-def helper_get_input_series_id(input_serie_name):
-    id_found = [id[1] for id in INPUT_SERIES if id[0] == input_serie_name]
+def _helper_get_input_series_id(input_serie_name):
+    id_found = [
+        id[1] for id in waterbalance_widget.INPUT_SERIES if id[0] == input_serie_name
+    ]
     assert len(id_found) == 1
     return id_found[0]
 
 
-def helper_calculate_agg_flow(aggregated_flows, input_serie_id):
+def _helper_calculate_agg_flow(aggregated_flows, input_serie_id):
     timesteps = aggregated_flows[0]
     all_time_series = aggregated_flows[1]
     cum_flow = 0
@@ -131,29 +127,10 @@ def wb_polygon():
 
 
 @pytest.fixture()
-def ts_datasources():
-    ts_datasources = TimeseriesDatasourceModel()
-    ts_datasources.spatialite_filepath = MODEL_SQLITE_PATH
-    items = [
-        {
-            "type": "netcdf-groundwater",
-            "name": "results_3di",
-            "file_path": str(TESTMODEL_DIR / "results_3di.nc"),
-        }
-    ]
-    ts_datasources.insertRows(items)
-    return ts_datasources
-
-
-@pytest.fixture()
 def wb_calculation(ts_datasources):
     ensure_qgis_app_is_initialized()
     wb_calculation = WaterBalanceCalculation(ts_datasources)
     return wb_calculation
-
-
-def test_waterbalance_calc_instance(wb_calculation):
-    assert isinstance(wb_calculation, WaterBalanceCalculation)
 
 
 @mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
@@ -188,7 +165,7 @@ def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
     total_time = aggregated_flows[1]
 
     assert (
-        helper_round_numpy(time_steps) == helper_round_numpy(TIMESTEPS_EXPECTED)
+        _helper_round_numpy(time_steps) == _helper_round_numpy(TIMESTEPS_EXPECTED)
     ).all(), (
         "aggregation timesteps array is not what we expected (even when "
         "we round numbers)"
@@ -197,7 +174,7 @@ def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
         len(time_steps) == total_time.shape[0]
     ), "Number of time_steps is not equal to number of values in time_series"
 
-    assert len(INPUT_SERIES) == total_time.shape[1], (
+    assert len(waterbalance_widget.INPUT_SERIES) == total_time.shape[1], (
         "For all INPUT_SERIES elements " "a time series should be calculated"
     )
 
@@ -216,24 +193,24 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
     )
 
     EXPECTED_CUMM_2D_IN = 719.93930714
-    ID = helper_get_input_series_id("2d_in")
-    cumm_flow = helper_calculate_agg_flow(aggregated_flows, ID)
-    assert helper_round_numpy(cumm_flow) == helper_round_numpy(EXPECTED_CUMM_2D_IN)
+    ID = _helper_get_input_series_id("2d_in")
+    cumm_flow = _helper_calculate_agg_flow(aggregated_flows, ID)
+    assert _helper_round_numpy(cumm_flow) == _helper_round_numpy(EXPECTED_CUMM_2D_IN)
 
     EXPECTED_CUMM_2D_OUT = -12690.85412108924
-    ID = helper_get_input_series_id("2d_out")
-    cumm_flow = helper_calculate_agg_flow(aggregated_flows, ID)
-    assert helper_round_numpy(cumm_flow) == helper_round_numpy(EXPECTED_CUMM_2D_OUT)
+    ID = _helper_get_input_series_id("2d_out")
+    cumm_flow = _helper_calculate_agg_flow(aggregated_flows, ID)
+    assert _helper_round_numpy(cumm_flow) == _helper_round_numpy(EXPECTED_CUMM_2D_OUT)
 
     EXPECTED_CUMM_1D_IN = 7.1771299119876979e-09
-    ID = helper_get_input_series_id("1d_in")
-    cumm_flow = helper_calculate_agg_flow(aggregated_flows, ID)
-    assert helper_round_numpy(cumm_flow) == helper_round_numpy(EXPECTED_CUMM_1D_IN)
+    ID = _helper_get_input_series_id("1d_in")
+    cumm_flow = _helper_calculate_agg_flow(aggregated_flows, ID)
+    assert _helper_round_numpy(cumm_flow) == _helper_round_numpy(EXPECTED_CUMM_1D_IN)
 
     EXPECTED_CUMM_1D_OUT = -2832.9581887459126
-    ID = helper_get_input_series_id("1d_out")
-    cumm_flow = helper_calculate_agg_flow(aggregated_flows, ID)
-    assert helper_round_numpy(cumm_flow) == helper_round_numpy(EXPECTED_CUMM_1D_OUT)
+    ID = _helper_get_input_series_id("1d_out")
+    cumm_flow = _helper_calculate_agg_flow(aggregated_flows, ID)
+    assert _helper_round_numpy(cumm_flow) == _helper_round_numpy(EXPECTED_CUMM_1D_OUT)
 
 
 @pytest.fixture()
@@ -243,15 +220,10 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
 def wb_widget(mock_it, ts_datasources, wb_calculation):
     ensure_qgis_app_is_initialized()
     iface = mock.Mock()
-    waterbalance_widget = WaterBalanceWidget(
+    wb_widget = waterbalance_widget.WaterBalanceWidget(
         iface=iface, ts_datasources=ts_datasources, wb_calc=wb_calculation
     )
-    return waterbalance_widget
-
-
-def test_waterbalance_widget_instance(wb_widget):
-    assert isinstance(wb_widget, WaterBalanceWidget)
-    print("kak")
+    return wb_widget
 
 
 def test_wb_widget_get_io_series_net(wb_widget):
@@ -339,8 +311,7 @@ def test_wb_widget_get_io_series_net(wb_widget):
 
 def test_barmanger_2d_groundwater(wb_widget):
     io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
-    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
-    assert isinstance(bm_2d_groundwater, BarManager)
+    bm_2d_groundwater = waterbalance_widget.BarManager(io_series_2d_groundwater)
     expected_labels = [
         "groundwater flow",
         "in/exfiltration (domain exchange)",
@@ -361,13 +332,12 @@ def waterbalance_widget_timeseries(progress_bar_mock, wb_widget, wb_polygon):
 
 
 def test_waterbalance_widget_timesteps(waterbalance_widget_timeseries):
-    """It looks like that we tested this before (in
-    test_time_steps_get_aggregated_flows), but those timesteps were
-    retrieved from the WaterBalanceCalculation. These are retrieved from
-    WaterBalanceWidget (they must be the same)"""
+    # It looks like that we tested this before (in test_time_steps_get_aggregated_flows),
+    # but those timesteps were retrieved from the WaterBalanceCalculation.
+    # These are retrieved from WaterBalanceWidget (they must be the same)
     timesteps, ts_series = waterbalance_widget_timeseries
     assert (
-        helper_round_numpy(timesteps) == helper_round_numpy(TIMESTEPS_EXPECTED)
+        _helper_round_numpy(timesteps) == _helper_round_numpy(TIMESTEPS_EXPECTED)
     ).all()
 
 
@@ -391,8 +361,8 @@ def helper_get_flows_and_dvol(domain=None):
 def test_waterbalance_closure(
     progress_bar_mock, wb_widget, wb_polygon, waterbalance_widget_timeseries
 ):
-    """the netto inflows and outflows of the three sub-domains (1d, 2d,
-    2d_groundwater) must equal the netto inflow and outflow"""
+    # The netto inflows and outflows of the three sub-domains (1d, 2d,
+    # 2d_groundwater) must equal the netto inflow and outflow"""
     timesteps, time_series = waterbalance_widget_timeseries
     t1 = min(timesteps)
     t2 = max(timesteps)
@@ -407,29 +377,29 @@ def test_waterbalance_closure(
     io_series_2d_groundwater = wb_widget._get_io_series_2d_groundwater()
     io_series_1d = wb_widget._get_io_series_1d()
 
-    bm_net = BarManager(io_series_net)
-    bm_2d = BarManager(io_series_2d)
-    bm_2d_groundwater = BarManager(io_series_2d_groundwater)
-    bm_1d = BarManager(io_series_1d)
+    bm_net = waterbalance_widget.BarManager(io_series_net)
+    bm_2d = waterbalance_widget.BarManager(io_series_2d)
+    bm_2d_groundwater = waterbalance_widget.BarManager(io_series_2d_groundwater)
+    bm_1d = waterbalance_widget.BarManager(io_series_1d)
 
     # netto domain
     bm_net.calc_balance(timesteps, time_series, t1, t2, net=True)
     sum_inflow, sum_outflow, d_vol_net = helper_get_flows_and_dvol(domain=bm_net)
-    assert helper_round_numpy(d_vol_net) == helper_round_numpy(
+    assert _helper_round_numpy(d_vol_net) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
     # 1d domain
     bm_1d.calc_balance(timesteps, time_series, t1, t2)
     sum_inflow, sum_outflow, d_vol_1d = helper_get_flows_and_dvol(domain=bm_1d)
-    assert helper_round_numpy(d_vol_1d) == helper_round_numpy(
+    assert _helper_round_numpy(d_vol_1d) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
     # 2d domain
     bm_2d.calc_balance(timesteps, time_series, t1, t2)
     sum_inflow, sum_outflow, d_vol_2d = helper_get_flows_and_dvol(domain=bm_2d)
-    assert helper_round_numpy(d_vol_2d) == helper_round_numpy(
+    assert _helper_round_numpy(d_vol_2d) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
@@ -440,12 +410,12 @@ def test_waterbalance_closure(
     sum_inflow, sum_outflow, d_vol_2d_gr = helper_get_flows_and_dvol(
         domain=bm_2d_groundwater
     )
-    assert helper_round_numpy(d_vol_2d_gr) == helper_round_numpy(
+    assert _helper_round_numpy(d_vol_2d_gr) == _helper_round_numpy(
         sum([sum_inflow, sum_outflow])
     )
 
     # the sum of volume changes in the 3 sub-domains must equal volume change
     # of the netto domain
-    assert helper_round_numpy(
+    assert _helper_round_numpy(
         sum([d_vol_1d, d_vol_2d, d_vol_2d_gr])
-    ) == helper_round_numpy(d_vol_net)
+    ) == _helper_round_numpy(d_vol_net)
