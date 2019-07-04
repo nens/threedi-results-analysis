@@ -1,7 +1,7 @@
 # Minimal makefile for Sphinx documentation
 #
 
-SPHINXOPTS    = -a -E
+SPHINXOPTS    = -a -E -v
 SPHINXBUILD   = python3 -msphinx
 SPHINXPROJ    = ThreeDiToolbox
 SOURCEDIR     = source
