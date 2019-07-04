@@ -3,21 +3,24 @@ ThreeDiToolbox developer information
 
 .. toctree::
    :maxdepth: 2
+   :caption: Project setup
 
    Main README <linked_main_readme>
+   linked_external-dependencies_readme
+   documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Project setup
+   :caption: Main components
 
-   linked_external-dependencies_readme
-   documentation
+   linked_datasource_readme
+   linked_models_readme
 
 
 .. toctree::
    :maxdepth: 2
    :glob:
-   :caption: Reference
+   :caption: Code reference
 
    reference_generic
    automatic_references/*
