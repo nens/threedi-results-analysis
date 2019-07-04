@@ -3,7 +3,10 @@ version: '3.0'
 services:
 
   qgis-desktop:
-    build: .
+    image: qgis-desktop:3.4.5
+    build:
+      context: .
+      dockerfile: Docker/qgis3.4.5/Dockerfile
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
