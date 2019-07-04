@@ -942,17 +942,7 @@ class CustomDistancePropeter(QgsNetworkStrategy):
         value = feature["real_length"]
         if python_value(value) is None:
             # provided distance is not correct, so do a correct calculation
-            # value = distance
-            d = QgsDistanceArea()
-            length = d.measureLength(feature.geometry())
-            unit = d.lengthUnits()
-            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                unit, QgsUnitTypes.DistanceMeters
-            )
-            value = length * conversion_factor
-            # value, unit = d.convertMeasurement(
-            #     feature.geometry().length(),
-            #     Qgis.Degrees, Qgis.Meters, False)
+            value = distance
         return value
 
     def requiredAttributes(self):
