@@ -60,13 +60,17 @@ class RasterCheckerEntries(object):
         """
         get all raster references from the sqlite datamodel
         :param :
-        :return: all_raster_ref: list with tuples:
-        [(tablename>, <row_id>, <columnname>, , <rastername>)] e.g.: [
+        :return: all_raster_ref: list with tuples
+
+        It looks like this::
+
+            [(tablename>, <row_id>, <columnname>, , <rastername>)] e.g.: [
             ('v2_global_settings', 1, 'dem_file', 'rasters/test1.tif'),
             ('v2_global_settings', 2, 'dem_file', 'rasters/test3.tif'),
             ('v2_global_settings', 2, 'frict_coef_file', 'rasters/test2.tif'),
             ('v2_interflow', 1, 'porosity_file', 'rasters/test2.tif'),
             ('v2_groundwater', 4, 'leakage_file', 'rasters/test2.tif')]
+
         """
         file_tbl = []
         file_id = []
@@ -96,10 +100,14 @@ class RasterCheckerEntries(object):
         get all foreign keys from v2_global_settings to other tables that may
         contain raster references
         :param :
-        :return: all_raster_ref: list with tuples:
-        [(tablename>, <row_id>, <columnname>, , <foreign_key_id>)] e.g.: [
+        :return: all_raster_ref: list with tuples
+
+        It looks like this::
+
+           [(tablename>, <row_id>, <columnname>, , <foreign_key_id>)] e.g.: [
             ('v2_global_settings', 1, 'groundwater_settings_id', 4),
             ('v2_global_settings', 2, 'interflow_settings_id', 1)]
+
         """
         file_tbl = []
         file_id = []
@@ -161,13 +169,17 @@ class RasterCheckerEntries(object):
     def entries_metadata(self):
         """
         get all raster references (and other metadata) per model entry id
-        :return: _entries_metadata: a tuple with with tuples with metadata:
+        :return: _entries_metadata: a tuple with with tuples with metadata
+
+        It looks like this::
+
             ((model entry id, table name, column name, raster name)) e.g.:
             ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'),
              (1, 'v2_groundwater', 'leakage_file', 'rasters/test2.tif'),
              (2, 'v2_global_settings', 'dem_file', 'rasters/test3.tif'),
              (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
              (2, 'v2_interflow', 'porosity_file', 'rasters/test2.tif'))
+
         """
         entries_dict_log_file = []
 
@@ -249,16 +261,22 @@ class RasterCheckerEntries(object):
         abstracts only necessary info (setting_id and rasternames) from
         self.entries_metadata and puts it in a dictionary. Each element in that
         dict is a model entry
-        So from this (self.entries_metadata)
+
+        So from this (self.entries_metadata)::
+
             ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'),
              (1, 'v2_groundwater', 'leakage_file', 'rasters/test2.tif'),
              (2, 'v2_global_settings', 'dem_file', 'rasters/test3.tif'),
              (2, 'v2_global_settings', 'frict_coef_file', 'rasters/test2.tif'),
              (2, 'v2_interflow', 'porosity_file', 'rasters/test2.tif'))
-        to this: (self._entries)
-         {1: ('rasters/test1.tif', 'rasters/test2.tif'),
-          2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test2.tif')}
+
+        to this: (self._entries)::
+
+           {1: ('rasters/test1.tif', 'rasters/test2.tif'),
+            2: ('rasters/test3.tif', 'rasters/test2.tif', 'rasters/test2.tif')}
+
         :return: self._entries (dict)
+
         """
         entries = {}
         for unique_id in self.unique_setting_ids:

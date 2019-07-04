@@ -11,26 +11,32 @@ logger = logging.getLogger()
 
 
 class ProjectStateMixin(object):
-    """ class mixin for writing and loading states of tools to the Qgis Project
-    files (*.qgs). Expects a class with:
+    """class mixin for writing and loading states of tools to the Qgis Project
+    files (``*.qgs``). Expects a class with:
+
     - an array of tools (self.tools)
     - in QgsInterface available under self.iface
 
     the tool classes needs the functions and signals:
+
     - function 'get_state_description(self)': returns tuple with:
+
         - tool name
         - dictionary with stored setting keys and value types as value
-         (supported are int, float, str, bool and list).
-         Example:
+          (supported are int, float, str, bool and list).
+          Example::
+
                 def get_state_description(self):
                     return ('result_selection',
                             {
                                 'model_schematisation': str,
                                 'result_directories': list
                             })
+
     - function 'set_state(self, settings_dict)': function must update state
-        according to state values in dictionary.
-        Example (which uses json to serialize more complex objects):
+      according to state values in dictionary.
+      Example (which uses json to serialize more complex objects)::
+
                 def set_state(self, setting_dict):
                     self.datasource.reset()
 
@@ -46,18 +52,20 @@ class ProjectStateMixin(object):
     - signal 'state_changed'[str, str, list]: this signal has to emit every
       time a setting which is stored in the state changed. This signal is
       emitted with the parameters:
+
         - tool name
         - setting key
         - new value. The value is rapped in an extra list (is easier to
           support the different value types through the same signal (
           overloading is supported from qt 4.11.x, so not in Qgis)
-        The signal could be declared by adding the next line to the class (
-        needs to be an QObject or simular):
+
+          The signal could be declared by adding the next line to the class (
+          needs to be an QObject or simular)::
 
                 state_changed = pyqtSignal([str, str, list])
 
-        The signal could be emitted from a function, an example (also wrapping
-        a more complex object in json) of this function is:
+          The signal could be emitted from a function, an example (also wrapping
+          a more complex object in json) of this function is::
 
             def on_state_changed(self, setting_key, value):
 
@@ -77,6 +85,7 @@ class ProjectStateMixin(object):
                                         [output])
 
     The class with the mixin needs to call the functions:
+
     - self.init_state_sync() to start the sync
     - self.unload_state_sync() on unload
 

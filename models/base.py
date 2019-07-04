@@ -194,8 +194,7 @@ class BaseModel(QAbstractTableModel):
         """
         required Qt function for getting column information
         :param col_nr: column number
-        :param orientation: Qt orientation of header Qt.Horizontal or
-                            Qt.Vertical
+        :param orientation: Qt orientation of header Qt.Horizontal or Qt.Vertical
         :param role: Qt Role (DisplayRole, SizeHintRole, etc)
         :return: value of column, given the role
         """
@@ -232,9 +231,9 @@ class BaseModel(QAbstractTableModel):
     def insertRows(self, data_items, signal=True):
         """
         required Qt function for adding rows, including sending signals
+
         :param data_items: list with values as dictionaries
-        :param signal: send signal, False will prevent function from sending
-                       signal
+        :param signal: send signal, False will prevent function from sending signal
         """
         if signal:
             self.beginInsertRows(

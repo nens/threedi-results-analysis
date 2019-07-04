@@ -26,20 +26,24 @@ def parse_db_source_info(source_info):
     parses the source info string as returned by
     <layer name>.dataProvider().dataSourceUri()
 
-    :param source_info: source info string as returned by
-        <layer name>.dataProvider().dataSourceUri()
-    :returns a dict like so
-        {
-            'db_name': '',
-            'host': '',
-            'password': '',
-            'port': '',
-            'srid': '',
-            'table_name': '',
-            'schema_name': '',
-            'type': '',
-            'user': ''
-        }
+    Args:
+        source_info: source info string as returned by
+          <layer name>.dataProvider().dataSourceUri()
+
+    Returns:
+        A dict like so::
+
+            {
+                'db_name': '',
+                'host': '',
+                'password': '',
+                'port': '',
+                'srid': '',
+                'table_name': '',
+                'schema_name': '',
+                'type': '',
+                'user': ''
+            }
 
     """
     import re
