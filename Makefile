@@ -140,6 +140,7 @@ html:
 	@echo "------------------------------------"
 	@echo "Building documentation using sphinx."
 	@echo "------------------------------------"
+	python3 scripts/generate-reference-docs.py
 	cd doc; make html
 	@echo "Open doc/build/html/index.html to see the documentation"
 

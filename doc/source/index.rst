@@ -10,7 +10,7 @@ ThreeDiToolbox developer information
    :maxdepth: 2
    :caption: Project setup
 
-   linked_external_dependencies_readme
+   linked_external-dependencies_readme
    documentation
 
 

@@ -4,7 +4,7 @@ Qgis automatically calls an installed plugin's :py:func:`classFactory` to
 actually load the plugin.
 
 Note: beforehand we call our dependency mechanism (see
-:doc:`linked_external_dependencies_readme`) to ensure all dependencies are
+:doc:`linked_external-dependencies_readme`) to ensure all dependencies are
 there.
 
 """
