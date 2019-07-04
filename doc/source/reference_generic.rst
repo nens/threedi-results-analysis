@@ -1,10 +1,22 @@
-Reference: generic functionality
+Generic functionality
 ================================
 
-ThreeDiToolbox/__init__.py
+Main __init__.py
 --------------------------
 
 .. automodule:: ThreeDiToolbox
+
+
+threedi_plugin
+-------------------------
+
+.. automodule:: ThreeDiToolbox.threedi_plugin
+
+
+misc_tools
+--------------------------
+
+.. automodule:: ThreeDiToolbox.misc_tools
 
 
 ThreeDiToolbox.dependencies
