@@ -702,16 +702,7 @@ class WaterBalanceWidget(QDockWidget):
         self.select_polygon_button.toggle()
         self.__current_calc = None  # cache the results of calculation
 
-    def show_barchart(self):
-
-        # only possible to calculate bars when a polygon has been drawn
-        if self.select_polygon_button.text() == "Finalize polygon":
-            return
-
-        # always use domain '1d and 2d' to get all flows in the barchart
-        wb_barchart_modelpart = "1d and 2d"
-        ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
-
+    def _get_io_series_net(self):
         io_series_net = [
             x
             for x in self.IN_OUT_SERIES
@@ -726,7 +717,9 @@ class WaterBalanceWidget(QDockWidget):
             )
             or x["type"] == "NETVOL"
         ]
+        return io_series_net
 
+    def _get_io_series_2d(self):
         io_series_2d = [
             x
             for x in self.IN_OUT_SERIES
@@ -734,11 +727,15 @@ class WaterBalanceWidget(QDockWidget):
             and x["label_name"] != "1D: 2D flow to 1D"
             and x["label_name"] != "1D: 2D flow to 1D (domain exchange)"
         ]
+        return io_series_2d
 
+    def _get_io_series_2d_groundwater(self):
         io_series_2d_groundwater = [
             x for x in self.IN_OUT_SERIES if x["type"] in ["2d_groundwater", "2d_vert"]
         ]
+        return io_series_2d_groundwater
 
+    def _get_io_series_1d(self):
         io_series_1d = [
             x
             for x in self.IN_OUT_SERIES
@@ -746,6 +743,22 @@ class WaterBalanceWidget(QDockWidget):
             and x["label_name"] != "2D: 2D flow to 1D"
             and x["label_name"] != "2D: 2D flow to 1D (domain exchange)"
         ]
+        return io_series_1d
+
+    def show_barchart(self):
+
+        # only possible to calculate bars when a polygon has been drawn
+        if self.select_polygon_button.text() == "Finalize polygon":
+            return
+
+        # always use domain '1d and 2d' to get all flows in the barchart
+        wb_barchart_modelpart = "1d and 2d"
+        ts, ts_series = self.calc_wb_barchart(wb_barchart_modelpart)
+
+        io_series_net = self._get_io_series_net()
+        io_series_2d = self._get_io_series_2d()
+        io_series_2d_groundwater = self._get_io_series_2d_groundwater()
+        io_series_1d = self._get_io_series_1d()
 
         # get timeseries x range in plot widget
         viewbox_state = self.plot_widget.getPlotItem().getViewBox().getState()
