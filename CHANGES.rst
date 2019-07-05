@@ -7,15 +7,13 @@ ThreeDiToolBox changelog
 
 - Fixed dependency installation on windows 7.
 
+- Added developer documentation.
+
+- Modelchecker user interface improvements.
+
 
 1.11.1 (2019-06-17)
 -------------------
-
-- Release fix.
-
-
-1.11 (2019-06-17)
------------------
 
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
   minutes).
