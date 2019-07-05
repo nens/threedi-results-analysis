@@ -80,3 +80,7 @@ Some hints:
 Don't overdo it, because it can get quite tedious to point at everything. And
 it takes a lot of time. But in some cases a direct link is the best
 documentation.
+
+A note on heading levels: inside a file, use ``======`` for the main title and
+``------`` for subheadings. Those two levels are enough: we're not writing a
+200 page PhD thesis :-)
