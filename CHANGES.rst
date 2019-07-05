@@ -5,13 +5,13 @@ ThreeDiToolBox changelog
 1.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed dependency installation on windows 7.
 
 
 1.11.1 (2019-06-17)
 -------------------
 
-- Nothing changed yet.
+- Release fix.
 
 
 1.11 (2019-06-17)

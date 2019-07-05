@@ -107,7 +107,7 @@ def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         python_interpreter = _get_python_interpreter()
-        result = subprocess.run(
+        process = subprocess.Popen(
             [
                 python_interpreter,
                 "-m",
@@ -121,11 +121,22 @@ def _install_dependencies(dependencies, target_dir):
                 (dependency.name + dependency.constraint),
             ],
             universal_newlines=True,
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
         )
-        print(result.stdout)
-        result.check_returncode()  # Raises CalledProcessError upon failure.
+        # The input/output/error stream handling is a bit involved, but it is
+        # necessary because of a python bug on windows 7, see
+        # https://bugs.python.org/issue3905 .
+        i, o, e = (process.stdin, process.stdout, process.stderr)
+        i.close()
+        result = o.read() + e.read()
+        o.close()
+        e.close()
+        print(result)
+        exit_code = process.wait()
+        if exit_code:
+            raise RuntimeError("Installing %s failed" % dependency.name)
         print("Installed %s into %s" % (dependency.name, target_dir))
 
 
