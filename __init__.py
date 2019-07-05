@@ -1,4 +1,13 @@
-"""This script initializes the plugin, making it known to QGIS."""
+"""Plugin initialization module
+
+Qgis automatically calls an installed plugin's :py:func:`classFactory` to
+actually load the plugin.
+
+Note: beforehand we call our dependency mechanism (see
+:doc:`linked_external-dependencies_readme`) to ensure all dependencies are
+there.
+
+"""
 from pathlib import Path
 from ThreeDiToolbox import dependencies
 
@@ -6,6 +15,7 @@ import faulthandler
 import sys
 
 
+#: Handy constant for building relative paths.
 PLUGIN_DIR = Path(__file__).parent
 
 
@@ -16,13 +26,17 @@ if sys.stderr is not None:
 dependencies.ensure_everything_installed()
 
 
-# noinspection PyPep8Naming
-def classFactory(iface):  # pylint: disable=invalid-name
-    """Load ThreeDiToolbox class from file ThreeDiToolbox.
+def classFactory(iface):
+    """Return ThreeDiToolbox class from file ThreeDiToolbox.
 
-    :param iface: QgsInterface. A QGIS interface instance.
+    In addition, we set up python logging (see
+    :py:mod:`ThreeDiToolbox.utils.qlogging`).
+
+    args:
+        iface (QgsInterface): A QGIS interface instance.
+
     """
-    from .utils.qlogging import setup_logging
+    from ThreeDiToolbox.utils.qlogging import setup_logging
 
     setup_logging()
     dependencies.check_importability()

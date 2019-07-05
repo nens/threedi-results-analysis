@@ -5,9 +5,9 @@ Qgis comes bundled with several python libraries, but we need a few more. The
 extra dependencies (as wheels and eggs) are placed in this
 ``external-dependencies/`` directory and bundled with the plugin.
 
-The ``__init__.py`` calls ``dependencies.py`` and installs the dependencies
-into the user profile's ``python/`` directory, so right next to
-``python/plugins/``.
+The main ``ThreeDiToolbox/__init__.py`` (see :py:mod:`ThreeDiToolbox`) calls
+``dependencies.py`` and installs the dependencies into the user profile's
+``python/`` directory, so right next to ``python/plugins/``.
 
 Qgis always places the python directory (and the plugins directory) on the
 python path, see ``userpythonhome`` in
@@ -124,9 +124,10 @@ two exceptions:
 Our dependency handling
 -----------------------
 
-``dependencies.py`` can be called directly, which generates a
-``constraints.txt`` file for use with pip. The ``Makefile`` updates the
-constraints file when the python file changes.
+``dependencies.py`` (see :py:mod:`ThreeDiToolbox.dependencies`) can be called
+directly, which generates a ``constraints.txt`` file for use with pip. The
+``Makefile`` handles this for us: it updates the constraints file when the
+python file changes.
 
 The ``external-dependencies/`` directory (containing this README) has a
 ``populate.sh`` script. The ``Makefile`` runs it when needed. It populates the
@@ -141,8 +142,8 @@ directory with our dependencies so that we can bundle it with the plugin:
 - Lastly, it downloads osgeo4w's ``python3-h5py`` package and extracts the
   ``*.egg`` directory from it (for both 32 and 64 bit).
 
-``dependencies.py`` has an ``ensure_everything_installed()`` function. Our
-main ``__init__.py`` calls it:
+The :py:func:`ThreeDiToolbox.dependencies.ensure_everything_installed`
+function is called by our main ``ThreeDiToolbox/__init__.py``:
 
 - It first checks if the correct versions of our dependencies are
   installed. It doesn't matter where they're installed: system packages,
@@ -152,7 +153,8 @@ main ``__init__.py`` calls it:
   from the ``external-dependencies/`` directory into the user profile's
   ``python/`` directory.
 
-As a last step, ``__init__.py`` calls ``dependencies.check_importability()``
-to make doubly sure all dependencies are present. Not only the ones from
+As a last step, ``ThreeDiToolbox/__init__.py`` calls
+:py:func:`ThreeDiToolbox.dependencies.check_importability` to make doubly sure
+all dependencies are present. Not only the ones from
 ``external-dependencies/``, but also ``gdal`` and ``numpy`` to make sure
 they're properly included with qgis.

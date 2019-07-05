@@ -44,11 +44,14 @@ class BreachLocation(object):
     ):
         """
         :param search_distance: the distance to search for a levee intersection
-        :param distance_to_levee: the distance from the levee to place the
-            point at
+
+        :param distance_to_levee: the distance from the levee to place the point at
+
         :param use_selection: use the selected features
+
         :param is_dry_run: do not save the outcome of the tool to the DB yet.
-            Will produce two memory layers to visualize the results
+        Will produce two memory layers to visualize the results
+
         :param connected_pnt_lyr: the connected point layer
 
         """
@@ -104,9 +107,12 @@ class BreachLocation(object):
         Populates the dict ``self.selected_pnt_ids`` of the selected connected
         and calculation point features.
 
+        It looks like this::
+
             {connected point id:
                 [calculation point id, ...],
             }
+
         """
         user_selection = self.connected_pnt_lyr.selectedFeatures()
 
@@ -162,12 +168,14 @@ class BreachLocation(object):
         group the calculation points by the content object they
         originate from
 
-        :returns a dict like
+        returns a dict like::
+
             {('<source id><source table>', calculation type):
                 [<calculation point id>,
                 <calculation point id>, ...
                 ], ...
             }
+
         """
         calc_points_dict = collections.defaultdict(list)
         # get the field names for easier lookup
@@ -283,20 +291,20 @@ class BreachLocation(object):
 
     def find_levee_intersections(self, start_point, end_point, centroid):
         """
-        :param start_point: start point of the line that will be used for
-            the intersection calculation
-        :param end_point: end point of the line that will be used for
-            the intersection calculation
-        :param centroid: centroid  of the line that will be used for
-            the intersection calculation
+        :param start_point: start point of the line that will be used for the intersection calculation
+        :param end_point: end point of the line that will be used for the intersection calculation
+        :param centroid: centroid  of the line that will be used for the intersection calculation
 
         :returns a defaultdict(list)
-            key: levee id that intersects
-            value:
-                tuple of:
-                    - distance of levee intersection to centroid,
-                    - QgsPoint object of the intersection,
-                    - levee id
+
+        key: levee id that intersects
+
+        value: tuple of:
+
+        - distance of levee intersection to centroid,
+        - QgsPoint object of the intersection,
+        - levee id
+
         """
 
         levee_field_names = [field.name() for field in self.levee_lyr.fields()]
@@ -337,17 +345,20 @@ class BreachLocation(object):
     ):
         """
         :param levee_intersections: a dict containing intersections
-            key: levee id that intersects
-            value:
-                tuple of:
-                    - distance of levee intersection to centroid,
-                    - QgsPoint object of the intersection,
-                    - levee id
+
+        key: levee id that intersects
+        value: tuple of:
+
+        - distance of levee intersection to centroid,
+        - QgsPoint object of the intersection,
+        - levee id
+
         :param start_point: start point of the search path
         :param end_point: end point of the search path
-        :param calc_type: the calculation type of the underlying
-            calculation point
-        :returns the point geom of the closest intersection
+        :param calc_type: the calculation type of the underlying calculation point
+
+        :returns: the point geom of the closest intersection
+
         """
 
         # sort by distance
@@ -413,11 +424,13 @@ class BreachLocation(object):
         update the database table 'v2_connected_pnt'. Adds the levee_id and
         changes the geometry
 
-        :param to_update: dict like so
+        to_update is a dict like this::
+
             {<connection point id>:
                 (new geometry, levee id),
              ...
             }
+
         """
         if self.is_dry_run:
             return

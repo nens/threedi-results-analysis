@@ -8,14 +8,15 @@ def get_query_strings(flavor, epsg_code):
     """
     get sql query strings for all 1D objects that are needed
     to predict the 1D threedicore calculation points. Those are:
-        - boundary points
-        - manholes
-        - channels
-        - culverts
-        - pipes
+
+    - boundary points
+    - manholes
+    - channels
+    - culverts
+    - pipes
 
     :param flavor: database flavor, either 'spatialite' or 'postgres'
-    :return:
+
     """
     flavor = flavor.lower()
     logger.info("[*] Getting sql queries for {}".format(flavor))
