@@ -52,6 +52,12 @@ def test_install_dependencies(tmpdir):
     assert installed_directory.exists()
 
 
+def test_install_dependencies_with_error(tmpdir):
+    wrong_dependencies = [missing_dependency]
+    with pytest.raises(RuntimeError):
+        dependencies._install_dependencies(wrong_dependencies, target_dir=tmpdir)
+
+
 def test_generate_constraints_txt(tmpdir):
     target_dir = Path(tmpdir)
     dependencies.generate_constraints_txt(target_dir=target_dir)
