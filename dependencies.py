@@ -113,6 +113,7 @@ def _install_dependencies(dependencies, target_dir):
                 "-m",
                 "pip",
                 "install",
+                "--upgrade",
                 "--no-deps",
                 "--find-links",
                 str(OUR_DIR / "external-dependencies"),
