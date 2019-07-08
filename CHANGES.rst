@@ -18,6 +18,8 @@ ThreeDiToolBox changelog
 
 - Bumped threedi-modelchecker to 0.3.
 
+- Fix tool_commands/control_structures missing 's' for 'set_discharge_coefficient'.
+
 
 1.11.1 (2019-06-17)
 -------------------
