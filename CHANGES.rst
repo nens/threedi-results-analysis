@@ -11,6 +11,8 @@ ThreeDiToolBox changelog
 
 - Modelchecker user interface improvements.
 
+- Running pip with ``--upgrade`` so that old packages actually get updated.
+
 
 1.11.1 (2019-06-17)
 -------------------
