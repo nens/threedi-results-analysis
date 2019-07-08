@@ -29,7 +29,7 @@ class CustomCommand(CustomCommandBase):
         self.modelchecker_widget = controller.SchemaCheckerDialogWidget(
             self.iface, command=self
         )
-        self.modelchecker_widget.exec_()
+        self.modelchecker_widget.show()  # non-blocking
 
     def run(self):
         self.show_gui()

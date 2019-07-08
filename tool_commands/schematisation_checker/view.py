@@ -101,9 +101,7 @@ class Ui_SchemaCheckerDialog(object):
             _translate("SchemaCheckerDialog", "Threedi model database")
         )
         self.outputFileBox.setTitle(_translate("SchemaCheckerDialog", "Output file"))
-        self.save_file_location_button.setText(
-            _translate("SchemaCheckerDialog", "...")
-        )
+        self.save_file_location_button.setText(_translate("SchemaCheckerDialog", "..."))
         self.open_result_button.setText(_translate("SchemaCheckerDialog", "Open"))
         self.cancel_button.setText(_translate("SchemaCheckerDialog", "Cancel"))
         self.run_button.setText(_translate("SchemaCheckerDialog", "Run"))

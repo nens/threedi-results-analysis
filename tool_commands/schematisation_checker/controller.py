@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QFileDialog
 from qgis.core import QgsApplication
+from qgis.PyQt import QtWidgets
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QFileDialog
 from threedi_modelchecker.threedi_database import ThreediDatabase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
@@ -69,3 +70,12 @@ class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
         file_path = self.save_file_location_display.text()
         file_url = QUrl("file:///%s" % file_path)
         QDesktopServices.openUrl(file_url)
+
+
+if __name__ == "__main__":
+    import sys
+
+    app = QtWidgets.QApplication(sys.argv)
+    SchemaCheckerDialog = SchemaCheckerDialogWidget(iface=None, command=None)
+    SchemaCheckerDialog.show()
+    sys.exit(app.exec_())
