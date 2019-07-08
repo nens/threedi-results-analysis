@@ -15,7 +15,7 @@ ThreeDiToolbox developer information
 
    linked_datasource_readme
    linked_models_readme
-
+   linked_tool_result_selection_readme
 
 .. toctree::
    :maxdepth: 2
