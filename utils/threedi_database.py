@@ -44,6 +44,7 @@ def load_spatialite(con, connection_record):
             )
             continue
         else:
+            logger.info("Successfully loaded extension %s from %s.", entry_point, lib)
             found = True
             break
     if not found:
