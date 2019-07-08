@@ -13,6 +13,11 @@ ThreeDiToolBox changelog
 
 - Running pip with ``--upgrade`` so that old packages actually get updated.
 
+- Fixed bug where widget of control_structures wouldn't show up due to
+  garbage collection.
+
+- Bumped threedi-modelchecker to 0.3.
+
 
 1.11.1 (2019-06-17)
 -------------------
