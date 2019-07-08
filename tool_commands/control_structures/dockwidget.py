@@ -20,7 +20,7 @@ class ControlStructuresDockWidget(QDockWidget, FORM_CLASS):
 
     def __init__(self, iface=None, command=None):
         """Constructor."""
-        super().__init__()  # iface.mainWindow()
+        super().__init__()
         # Set up the user interface from Designer.
         self.setupUi(self)
         # See https://wiki.qt.io/PySide_Pitfalls.
