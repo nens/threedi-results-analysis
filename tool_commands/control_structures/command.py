@@ -1,5 +1,4 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QLabel
@@ -67,7 +66,7 @@ class CustomCommand(CustomCommandBase):
     def show_gui(self):
         """Show the gui."""
         self.dockwidget_controlled_structures = ControlStructuresDockWidget(
-            parent=self.iface.mainWindow()
+            iface=self.iface, command=self
         )
         self.iface.addDockWidget(
             Qt.BottomDockWidgetArea, self.dockwidget_controlled_structures

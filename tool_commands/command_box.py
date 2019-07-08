@@ -119,7 +119,8 @@ class CommandBox(object):
             imported_command = self.import_command(import_string)
             if not imported_command:
                 return
-
+            # TODO: keep reference to `command_instance` so it doesn't get cleaned up
+            # during garbage collection. See https://wiki.qt.io/PySide_Pitfalls.
             command_instance = imported_command.CustomCommand(
                 iface=self.iface, ts_datasources=self.ts_datasources
             )
