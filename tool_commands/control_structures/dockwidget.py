@@ -1,6 +1,6 @@
 from pathlib import Path
-from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
+from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QDockWidget
 
@@ -18,11 +18,13 @@ class ControlStructuresDockWidget(QDockWidget, FORM_CLASS):
 
     closingWidget = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, iface=None, command=None):
         """Constructor."""
-        super().__init__(parent)
+        super().__init__()  # iface.mainWindow()
         # Set up the user interface from Designer.
         self.setupUi(self)
+        # See https://wiki.qt.io/PySide_Pitfalls.
+        self.keep_reference_so_it_doesnt_garbage_collect = command
 
     def closeEvent(self, event):
         self.closingWidget.emit()

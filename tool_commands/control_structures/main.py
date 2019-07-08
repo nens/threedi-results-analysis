@@ -106,9 +106,10 @@ class ControlledStructures(object):
         """
         list_of_attributes = []
         try:
+            # TODO: don't close the connection after each query.
             with self.engine.connect() as con:
                 rs = con.execute(
-                    """SELECT {attribute} FROM {table};""".format(
+                    """SELECT {attribute} FROM {table}""".format(
                         attribute=attribute_name, table=table_name
                     )
                 )
