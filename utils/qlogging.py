@@ -21,6 +21,7 @@ import logging
 import os
 
 
+#: Name of the logfile.
 LOGFILE_NAME = "threedi-qgis-log.txt"
 PYTHON_FORMAT = "%(name)s %(levelname)s %(message)s"
 QGIS_FORMAT = "%(name)s\n%(message)s"  # Note: split over two lines.
@@ -60,16 +61,26 @@ class QgisLogHandler(logging.Handler):
 
 
 def logfile_path():
+    """Return logfile location
+
+    We place the logfile (called :py:data:`LOGFILE_NAME`) inside our qgis
+    profile's directory.
+
+    returns:
+        full path (str) to our logfile
+
+    """
     return os.path.join(QgsApplication.qgisSettingsDirPath(), LOGFILE_NAME)
 
 
 def setup_logging():
     """Set up python and qgis logging.
 
-    All python logging should go to a log file. Every time we start, we start
-    the file anew.
+    We are called (once) from :py:func:`ThreeDiToolbox.classFactory`, which
+    qgis calls when loading our plugin.
 
-    It should also go to the console.
+    All python logging should go to the console and to a log file. Every time
+    we start, we start the file anew.
 
     The qgis logging inside the interface should only be what we ourselves
     want to log, to prevent us from adding messages from other plugins

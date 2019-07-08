@@ -328,8 +328,8 @@ class CreateMeasuringGroupDialogWidget(QDialog, FORM_CLASS):
 
         Args:
             (dict) measure_map_attributes: A dict containing the attributes
-                                           from the measuring point
-                                            (from v2_control_measure_map).
+            from the measuring point (from v2_control_measure_map).
+
         """
         row_position = (
             self.dockwidget_controlled_structures.table_measuring_group.rowCount()

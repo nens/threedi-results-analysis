@@ -36,23 +36,22 @@ def split_line_at_points(
     start_node_id=None,
     end_node_id=None,
 ):
-    """
-        Split line at points
-    Args
+    """Split line at points
+
+    Args:
         polyline (QgsPolyline):
-        point_features (iteratable object of QgsFeature or
-                        list of dictonaries with id and geometry ('geom'):
-        point_feature_id_field (str): fieldname if the id field of the
-                                      point_features
+        point_features (iteratable object of QgsFeature or list of dictonaries with id and geometry ('geom'):
+        point_feature_id_field (str): fieldname if the id field of the point_features
         start_node_id (str or int): node id of point at begin of polyline
         end_node_id (str or int): node id of point at end of polyline
+
     Returns:
          (list of dict): Splitted polyline into parts as dictonary with:
-                        geom: Polyline geometry
-                        start_node_id: id of node at starting point of line
-                        end_node_id: id of node at end point of line
-                        distance at line: is distance of original line at
-                                the begin of this line part
+                geom: Polyline geometry
+                start_node_id: id of node at starting point of line
+                end_node_id: id of node at end point of line
+                distance at line: is distance of original line at the begin of this line part
+
     """
 
     snap_points = []

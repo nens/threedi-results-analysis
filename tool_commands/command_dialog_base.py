@@ -1,25 +1,3 @@
-"""
-/***************************************************************************
- ThreeDiToolboxDockWidget
-                                 A QGIS plugin for working with 3Di
-                                 hydraulic models
-                             -------------------
-        begin                : 2016-03-04
-        git sha              : $Format:%H$
-        copyright            : (C) 2016 by Nelen&Schuurmans
-        email                : servicedesk@nelen-schuurmans.nl
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-"""
-
 from pathlib import Path
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal

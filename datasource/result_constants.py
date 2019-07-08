@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 
-# NetCDF variable information
+#: namedtuple for NetCDF variable information
 NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit"])
 
 WATERLEVEL = NcVar("s1", "waterlevel", "m MSL")
@@ -103,7 +103,8 @@ CUMULATIVE_AGGREGATION_UNITS = {
     "intercepted_volume": "m3",
     "q_sss": "m3",
 }
-# layer name, (normalized) object_type, q/h type
+
+#: namedtuple for layer information (note: object_type should be normalized)
 LayerInformation = namedtuple(
     "LayerInformation", ["layer_name", "object_type", "qh_type"]
 )

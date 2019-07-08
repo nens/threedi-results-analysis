@@ -35,15 +35,19 @@ class ThreediResult(BaseDataSource):
     'results_3di.nc' and 'aggregate_results_3di.nc' respectively.
 
     This class allows access to the results via threedigrid:
-        -  GridH5ResultAdmin
-        - GridH5AggregateResultAdmin
-    For more information about threedigrid see https://threedigrid.readthedocs.io/en/latest/
+
+    -  GridH5ResultAdmin
+    - GridH5AggregateResultAdmin
+
+    For more information about threedigrid see
+    https://threedigrid.readthedocs.io/en/latest/
 
     Some helper methods are available query the result data using a variable
     name (example of variable names: 's1', 'q_cum', 'vol', etc)
 
     This class also provides for direct access to the data files via h5py.
     However, it is recommended to use threedigrid instead.
+
     """
 
     def __init__(self, file_path=None):

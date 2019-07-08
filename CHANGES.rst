@@ -5,17 +5,17 @@ ThreeDiToolBox changelog
 1.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed dependency installation on windows 7.
+
+- Added developer documentation.
+
+- Modelchecker user interface improvements.
+
+- Running pip with ``--upgrade`` so that old packages actually get updated.
 
 
 1.11.1 (2019-06-17)
 -------------------
-
-- Nothing changed yet.
-
-
-1.11 (2019-06-17)
------------------
 
 - Made automated tests on travis-ci.org run much faster (from 8 down to 3
   minutes).
