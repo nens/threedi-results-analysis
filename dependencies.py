@@ -46,7 +46,7 @@ DEPENDENCIES = [
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.3"),
 ]
 # If you add a dependency, also adjust external-dependencies/populate.sh
-INTERESTING_IMPORTS = ["numpy", "gdal", "setuptools"]
+INTERESTING_IMPORTS = ["numpy", "gdal", "pip", "setuptools"]
 
 OUR_DIR = Path(__file__).parent
 
@@ -58,12 +58,34 @@ def ensure_everything_installed():
     print("sys.path:")
     for directory in sys.path:
         print("  - %s" % directory)
+    _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
     target_dir = _dependencies_target_dir()
     _install_dependencies(missing, target_dir=target_dir)
 
 
+def _ensure_prerequisite_is_installed(prerequisite="pip"):
+    """Check the basics: pip.
+
+    People using OSGEO custom installs sometimes exclude those
+    dependencies. Our install scripts fail, then, because of the missing
+    'pip'.
+
+    """
+    try:
+        importlib.import_module(prerequisite)
+    except Exception as e:
+        msg = (
+            "%s. 'pip', which we need, is missing. It is normally included with "
+            "python. You are *probably* using a custom minimal OSGEO release. "
+            "Please re-install with 'pip' included."
+        ) % e
+        print(msg)
+        raise RuntimeError(msg)
+
+
 def _dependencies_target_dir(our_dir=OUR_DIR):
+
     """Return python dir inside our profile
 
     Return two dirs up if we're inside the plugins dir. If not, we have to
