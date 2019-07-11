@@ -91,6 +91,13 @@ class ValueWithChangeSignal(object):
 
 
 class DatasourceLayerHelper(object):
+    """Helper class for TimeseriesDatasourceModel
+
+    Our methods are transparently called from
+    :py:class:`TimeseriesDatasourceModel`, so effectively we could also be
+    methods on *that* class.
+
+    """
     def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
@@ -132,6 +139,17 @@ class DatasourceLayerHelper(object):
 
 
 class TimeseriesDatasourceModel(BaseModel):
+    """Model for selecting threedi netcdf results.
+
+    Used as ``self.ts_datasources`` throughout the entire plugin.
+
+    Often, ``self.ts_datasources.rows[0]`` is used, as the first one is
+    effectively treated as the selected datasource
+
+    We're also used for storing the selected model schematisation as
+    :py:attr:`model_spatialite_filepath`.
+
+    """
 
     model_schematisation_change = pyqtSignal(str, str)
     results_change = pyqtSignal(str, list)
@@ -143,7 +161,7 @@ class TimeseriesDatasourceModel(BaseModel):
         self.rowsInserted.connect(self.on_change)
 
     tool_name = "result_selection"
-    # model_spatialite_filepath is the currently selected 3di model db.
+    #: model_spatialite_filepath is the currently selected 3di model db.
     model_spatialite_filepath = ValueWithChangeSignal(
         "model_schematisation_change", "model_schematisation"
     )
