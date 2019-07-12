@@ -2,8 +2,8 @@ ThreeDiToolBox changelog
 ========================
 
 
-1.12.1 (unreleased)
------------------
+1.12.1 (2019-07-12)
+-------------------
 
 - Bumped threedi-modelchecker to 0.5 (no longer raise MigrationTooHighError).
 
