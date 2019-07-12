@@ -6,4 +6,4 @@ lizard-connector==0.6
 pyqtgraph>=0.10.0
 threedigrid==1.0.13
 cached-property
-threedi-modelchecker>=0.3
+threedi-modelchecker>=0.4
