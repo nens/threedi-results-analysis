@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis readOnly="0" version="3.4.5-Madeira" maxScale="0" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
+<qgis readOnly="0" maxScale="0" version="3.4.5-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
@@ -13,7 +13,7 @@
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -293,111 +293,111 @@
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="zoom_category" index="0"/>
-    <alias name="" field="pipe_quality" index="1"/>
-    <alias name="" field="code" index="2"/>
-    <alias name="" field="display_name" index="3"/>
-    <alias name="" field="connection_node_end_id" index="4"/>
-    <alias name="" field="dist_calc_points" index="5"/>
-    <alias name="" field="profile_num" index="6"/>
-    <alias name="" field="connection_node_start_id" index="7"/>
-    <alias name="" field="material" index="8"/>
-    <alias name="" field="sewerage_type" index="9"/>
-    <alias name="" field="original_length" index="10"/>
-    <alias name="" field="invert_level_end_point" index="11"/>
-    <alias name="" field="invert_level_start_point" index="12"/>
-    <alias name="" field="calculation_type" index="13"/>
-    <alias name="" field="friction_type" index="14"/>
-    <alias name="" field="friction_value" index="15"/>
-    <alias name="" field="cross_section_definition_id" index="16"/>
-    <alias name="" field="id" index="17"/>
+    <alias field="zoom_category" index="0" name=""/>
+    <alias field="pipe_quality" index="1" name=""/>
+    <alias field="code" index="2" name=""/>
+    <alias field="display_name" index="3" name=""/>
+    <alias field="connection_node_end_id" index="4" name=""/>
+    <alias field="dist_calc_points" index="5" name=""/>
+    <alias field="profile_num" index="6" name=""/>
+    <alias field="connection_node_start_id" index="7" name=""/>
+    <alias field="material" index="8" name=""/>
+    <alias field="sewerage_type" index="9" name=""/>
+    <alias field="original_length" index="10" name=""/>
+    <alias field="invert_level_end_point" index="11" name=""/>
+    <alias field="invert_level_start_point" index="12" name=""/>
+    <alias field="calculation_type" index="13" name=""/>
+    <alias field="friction_type" index="14" name=""/>
+    <alias field="friction_value" index="15" name=""/>
+    <alias field="cross_section_definition_id" index="16" name=""/>
+    <alias field="id" index="17" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="3" applyOnUpdate="0" field="zoom_category"/>
-    <default expression="" applyOnUpdate="0" field="pipe_quality"/>
-    <default expression="'new'" applyOnUpdate="0" field="code"/>
-    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
-    <default expression="" applyOnUpdate="0" field="connection_node_end_id"/>
-    <default expression="10000" applyOnUpdate="0" field="dist_calc_points"/>
-    <default expression="" applyOnUpdate="0" field="profile_num"/>
-    <default expression="" applyOnUpdate="0" field="connection_node_start_id"/>
-    <default expression="" applyOnUpdate="0" field="material"/>
-    <default expression="0" applyOnUpdate="0" field="sewerage_type"/>
-    <default expression="" applyOnUpdate="0" field="original_length"/>
-    <default expression="" applyOnUpdate="0" field="invert_level_end_point"/>
-    <default expression="" applyOnUpdate="0" field="invert_level_start_point"/>
-    <default expression="1" applyOnUpdate="0" field="calculation_type"/>
-    <default expression="2" applyOnUpdate="0" field="friction_type"/>
-    <default expression="" applyOnUpdate="0" field="friction_value"/>
-    <default expression="" applyOnUpdate="0" field="cross_section_definition_id"/>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
+    <default field="zoom_category" applyOnUpdate="0" expression="3"/>
+    <default field="pipe_quality" applyOnUpdate="0" expression=""/>
+    <default field="code" applyOnUpdate="0" expression="'new'"/>
+    <default field="display_name" applyOnUpdate="0" expression="'new'"/>
+    <default field="connection_node_end_id" applyOnUpdate="0" expression=""/>
+    <default field="dist_calc_points" applyOnUpdate="0" expression="10000"/>
+    <default field="profile_num" applyOnUpdate="0" expression=""/>
+    <default field="connection_node_start_id" applyOnUpdate="0" expression=""/>
+    <default field="material" applyOnUpdate="0" expression=""/>
+    <default field="sewerage_type" applyOnUpdate="0" expression=""/>
+    <default field="original_length" applyOnUpdate="0" expression=""/>
+    <default field="invert_level_end_point" applyOnUpdate="0" expression=""/>
+    <default field="invert_level_start_point" applyOnUpdate="0" expression=""/>
+    <default field="calculation_type" applyOnUpdate="0" expression="1"/>
+    <default field="friction_type" applyOnUpdate="0" expression="2"/>
+    <default field="friction_value" applyOnUpdate="0" expression=""/>
+    <default field="cross_section_definition_id" applyOnUpdate="0" expression=""/>
+    <default field="id" applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
   </defaults>
   <constraints>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="zoom_category"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_quality"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="code"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_end_id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="dist_calc_points"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="profile_num"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_start_id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="material"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="sewerage_type"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="original_length"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_end_point"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_start_point"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="calculation_type"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_type"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_value"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cross_section_definition_id"/>
-    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
+    <constraint notnull_strength="2" constraints="1" field="zoom_category" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" field="pipe_quality" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="code" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="display_name" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="connection_node_end_id" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" field="dist_calc_points" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" field="profile_num" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="connection_node_start_id" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" field="material" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="sewerage_type" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" field="original_length" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="invert_level_end_point" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="invert_level_start_point" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="calculation_type" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="friction_type" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="friction_value" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" field="cross_section_definition_id" unique_strength="0" exp_strength="0"/>
+    <constraint notnull_strength="1" constraints="3" field="id" unique_strength="1" exp_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" desc="" field="zoom_category"/>
-    <constraint exp="" desc="" field="pipe_quality"/>
-    <constraint exp="" desc="" field="code"/>
-    <constraint exp="" desc="" field="display_name"/>
-    <constraint exp="" desc="" field="connection_node_end_id"/>
-    <constraint exp="" desc="" field="dist_calc_points"/>
-    <constraint exp="" desc="" field="profile_num"/>
-    <constraint exp="" desc="" field="connection_node_start_id"/>
-    <constraint exp="" desc="" field="material"/>
-    <constraint exp="" desc="" field="sewerage_type"/>
-    <constraint exp="" desc="" field="original_length"/>
-    <constraint exp="" desc="" field="invert_level_end_point"/>
-    <constraint exp="" desc="" field="invert_level_start_point"/>
-    <constraint exp="" desc="" field="calculation_type"/>
-    <constraint exp="" desc="" field="friction_type"/>
-    <constraint exp="" desc="" field="friction_value"/>
-    <constraint exp="" desc="" field="cross_section_definition_id"/>
-    <constraint exp="" desc="" field="id"/>
+    <constraint field="zoom_category" desc="" exp=""/>
+    <constraint field="pipe_quality" desc="" exp=""/>
+    <constraint field="code" desc="" exp=""/>
+    <constraint field="display_name" desc="" exp=""/>
+    <constraint field="connection_node_end_id" desc="" exp=""/>
+    <constraint field="dist_calc_points" desc="" exp=""/>
+    <constraint field="profile_num" desc="" exp=""/>
+    <constraint field="connection_node_start_id" desc="" exp=""/>
+    <constraint field="material" desc="" exp=""/>
+    <constraint field="sewerage_type" desc="" exp=""/>
+    <constraint field="original_length" desc="" exp=""/>
+    <constraint field="invert_level_end_point" desc="" exp=""/>
+    <constraint field="invert_level_start_point" desc="" exp=""/>
+    <constraint field="calculation_type" desc="" exp=""/>
+    <constraint field="friction_type" desc="" exp=""/>
+    <constraint field="friction_value" desc="" exp=""/>
+    <constraint field="cross_section_definition_id" desc="" exp=""/>
+    <constraint field="id" desc="" exp=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
+  <attributetableconfig sortExpression="" actionWidgetStyle="dropDown" sortOrder="0">
     <columns>
-      <column width="-1" type="field" hidden="0" name="zoom_category"/>
-      <column width="-1" type="field" hidden="0" name="pipe_quality"/>
-      <column width="-1" type="field" hidden="0" name="code"/>
-      <column width="-1" type="field" hidden="0" name="display_name"/>
-      <column width="-1" type="field" hidden="0" name="connection_node_end_id"/>
-      <column width="-1" type="field" hidden="0" name="dist_calc_points"/>
-      <column width="-1" type="field" hidden="0" name="profile_num"/>
-      <column width="-1" type="field" hidden="0" name="connection_node_start_id"/>
-      <column width="-1" type="field" hidden="0" name="material"/>
-      <column width="-1" type="field" hidden="0" name="sewerage_type"/>
-      <column width="-1" type="field" hidden="0" name="original_length"/>
-      <column width="-1" type="field" hidden="0" name="invert_level_end_point"/>
-      <column width="-1" type="field" hidden="0" name="invert_level_start_point"/>
-      <column width="-1" type="field" hidden="0" name="calculation_type"/>
-      <column width="-1" type="field" hidden="0" name="friction_type"/>
-      <column width="-1" type="field" hidden="0" name="friction_value"/>
-      <column width="-1" type="field" hidden="0" name="cross_section_definition_id"/>
-      <column width="-1" type="field" hidden="0" name="id"/>
+      <column width="-1" type="field" name="zoom_category" hidden="0"/>
+      <column width="-1" type="field" name="pipe_quality" hidden="0"/>
+      <column width="-1" type="field" name="code" hidden="0"/>
+      <column width="-1" type="field" name="display_name" hidden="0"/>
+      <column width="-1" type="field" name="connection_node_end_id" hidden="0"/>
+      <column width="-1" type="field" name="dist_calc_points" hidden="0"/>
+      <column width="-1" type="field" name="profile_num" hidden="0"/>
+      <column width="-1" type="field" name="connection_node_start_id" hidden="0"/>
+      <column width="-1" type="field" name="material" hidden="0"/>
+      <column width="-1" type="field" name="sewerage_type" hidden="0"/>
+      <column width="-1" type="field" name="original_length" hidden="0"/>
+      <column width="-1" type="field" name="invert_level_end_point" hidden="0"/>
+      <column width="-1" type="field" name="invert_level_start_point" hidden="0"/>
+      <column width="-1" type="field" name="calculation_type" hidden="0"/>
+      <column width="-1" type="field" name="friction_type" hidden="0"/>
+      <column width="-1" type="field" name="friction_value" hidden="0"/>
+      <column width="-1" type="field" name="cross_section_definition_id" hidden="0"/>
+      <column width="-1" type="field" name="id" hidden="0"/>
       <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
@@ -429,51 +429,51 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Pipe" columnCount="1">
-      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
-        <attributeEditorField showLabel="1" name="id" index="17"/>
-        <attributeEditorField showLabel="1" name="display_name" index="3"/>
-        <attributeEditorField showLabel="1" name="code" index="2"/>
-        <attributeEditorField showLabel="1" name="calculation_type" index="13"/>
-        <attributeEditorField showLabel="1" name="dist_calc_points" index="5"/>
+    <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" groupBox="0" visibilityExpression="" columnCount="1" name="Pipe">
+      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" groupBox="1" visibilityExpression="" columnCount="1" name="General">
+        <attributeEditorField showLabel="1" index="17" name="id"/>
+        <attributeEditorField showLabel="1" index="3" name="display_name"/>
+        <attributeEditorField showLabel="1" index="2" name="code"/>
+        <attributeEditorField showLabel="1" index="13" name="calculation_type"/>
+        <attributeEditorField showLabel="1" index="5" name="dist_calc_points"/>
       </attributeEditorContainer>
-      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
-        <attributeEditorField showLabel="1" name="invert_level_start_point" index="12"/>
-        <attributeEditorField showLabel="1" name="invert_level_end_point" index="11"/>
-        <attributeEditorField showLabel="1" name="friction_value" index="15"/>
-        <attributeEditorField showLabel="1" name="friction_type" index="14"/>
-        <attributeEditorField showLabel="1" name="cross_section_definition_id" index="16"/>
-        <attributeEditorField showLabel="1" name="material" index="8"/>
+      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" groupBox="1" visibilityExpression="" columnCount="1" name="Characteristics">
+        <attributeEditorField showLabel="1" index="12" name="invert_level_start_point"/>
+        <attributeEditorField showLabel="1" index="11" name="invert_level_end_point"/>
+        <attributeEditorField showLabel="1" index="15" name="friction_value"/>
+        <attributeEditorField showLabel="1" index="14" name="friction_type"/>
+        <attributeEditorField showLabel="1" index="16" name="cross_section_definition_id"/>
+        <attributeEditorField showLabel="1" index="8" name="material"/>
       </attributeEditorContainer>
-      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="visualization" columnCount="1">
-        <attributeEditorField showLabel="1" name="sewerage_type" index="9"/>
-        <attributeEditorField showLabel="1" name="zoom_category" index="0"/>
+      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" groupBox="1" visibilityExpression="" columnCount="1" name="visualization">
+        <attributeEditorField showLabel="1" index="9" name="sewerage_type"/>
+        <attributeEditorField showLabel="1" index="0" name="zoom_category"/>
       </attributeEditorContainer>
-      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
-        <attributeEditorField showLabel="1" name="connection_node_start_id" index="7"/>
-        <attributeEditorField showLabel="1" name="connection_node_end_id" index="4"/>
+      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" groupBox="1" visibilityExpression="" columnCount="1" name="Connection nodes">
+        <attributeEditorField showLabel="1" index="7" name="connection_node_start_id"/>
+        <attributeEditorField showLabel="1" index="4" name="connection_node_end_id"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="calculation_type" editable="1"/>
-    <field name="code" editable="1"/>
-    <field name="connection_node_end_id" editable="1"/>
-    <field name="connection_node_start_id" editable="1"/>
-    <field name="cross_section_definition_id" editable="1"/>
-    <field name="display_name" editable="1"/>
-    <field name="dist_calc_points" editable="1"/>
-    <field name="friction_type" editable="1"/>
-    <field name="friction_value" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="invert_level_end_point" editable="1"/>
-    <field name="invert_level_start_point" editable="1"/>
-    <field name="material" editable="1"/>
-    <field name="original_length" editable="1"/>
-    <field name="pipe_quality" editable="1"/>
-    <field name="profile_num" editable="1"/>
-    <field name="sewerage_type" editable="1"/>
-    <field name="zoom_category" editable="1"/>
+    <field editable="1" name="calculation_type"/>
+    <field editable="1" name="code"/>
+    <field editable="1" name="connection_node_end_id"/>
+    <field editable="1" name="connection_node_start_id"/>
+    <field editable="1" name="cross_section_definition_id"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="dist_calc_points"/>
+    <field editable="1" name="friction_type"/>
+    <field editable="1" name="friction_value"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="invert_level_end_point"/>
+    <field editable="1" name="invert_level_start_point"/>
+    <field editable="1" name="material"/>
+    <field editable="1" name="original_length"/>
+    <field editable="1" name="pipe_quality"/>
+    <field editable="1" name="profile_num"/>
+    <field editable="1" name="sewerage_type"/>
+    <field editable="1" name="zoom_category"/>
   </editable>
   <labelOnTop>
     <field labelOnTop="0" name="calculation_type"/>
