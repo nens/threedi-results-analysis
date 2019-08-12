@@ -6,6 +6,7 @@ from qgis.core import QgsLayerTreeNode
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsVectorLayer
+from PyQt5.QtCore import QSettings
 
 import os.path
 
@@ -278,6 +279,7 @@ class LayerTreeManager(object):
         oned_layers = [
             "v2_connection_nodes",
             "v2_manhole_view",
+            "v2_cross_section_location_view",
             "v2_cross_section_location",
             "v2_pumpstation_view",
             "v2_pumpstation_point_view",

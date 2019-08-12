@@ -244,6 +244,34 @@ class ThreediDatabase(object):
         VALUES('v2_1d_boundary_conditions_view', 'the_geom',
         'connection_node_id', 'v2_connection_nodes', 'the_geom');"""
         )
+        conn.execute(
+            """
+        CREATE VIEW IF NOT EXISTS v2_cross_section_location_view 
+        AS SELECT loc.id as loc_id, loc.code as loc_code, 
+        loc.reference_level as loc_reference_level, 
+        loc.bank_level as loc_bank_level, loc.friction_type as 
+        loc_friction_type, loc.friction_value as loc_friction_value, 
+        loc.definition_id as loc_definition_id, loc.channel_id as 
+        loc_channel_id, loc.the_geom as the_geom, def.id as def_id, 
+        def.shape as def_shape, def.width as def_width, def.code as 
+        def_code, def.height as def_height 
+        FROM v2_cross_section_location loc, v2_cross_section_definition def 
+        WHERE loc.definition_id = def.id;"""
+        )
+
+        conn.execute(
+            """
+        DELETE FROM views_geometry_columns
+        WHERE view_name = 'v2_cross_section_location_view';"""
+        )
+
+        conn.execute(
+            """
+        INSERT INTO views_geometry_columns (view_name, view_geometry,
+        view_rowid, f_table_name, f_geometry_column)
+        VALUES('v2_cross_section_location_view', 'the_geom',
+        'ROWID', 'v2_cross_section_location', 'the_geom');"""
+        )
 
         conn.commit()
         conn.close()
