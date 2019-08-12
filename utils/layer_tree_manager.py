@@ -366,6 +366,7 @@ class LayerTreeManager(object):
             (settings_group, "v2_interflow"),
             (settings_group, "v2_aggregation_settings"),
             (settings_group, "v2_global_settings"),
+            (settings_group, "v2_simple_infiltration"),
             (lateral_group, "v2_1d_lateral"),
             (boundary_group, "v2_1d_boundary_conditions"),
             (additional_oned_group, "v2_cross_section_definition"),
