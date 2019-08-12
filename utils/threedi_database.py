@@ -165,7 +165,7 @@ class ThreediDatabase(object):
             """
         INSERT INTO views_geometry_columns (view_name, view_geometry,
         view_rowid, f_table_name, f_geometry_column)
-        VALUES('v2_manhole_view', 'the_geom', 'connection_node_id',
+        VALUES('v2_manhole_view', 'the_geom', 'ROWID',
         'v2_connection_nodes', 'the_geom');"""
         )
 
@@ -247,7 +247,7 @@ class ThreediDatabase(object):
         conn.execute(
             """
         CREATE VIEW IF NOT EXISTS v2_cross_section_location_view 
-        AS SELECT loc.id as loc_id, loc.code as loc_code, 
+        AS SELECT loc.ROWID as ROWID, loc.id as loc_id, loc.code as loc_code, 
         loc.reference_level as loc_reference_level, 
         loc.bank_level as loc_bank_level, loc.friction_type as 
         loc_friction_type, loc.friction_value as loc_friction_value, 
