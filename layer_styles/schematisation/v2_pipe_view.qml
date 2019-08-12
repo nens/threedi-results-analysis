@@ -1,22 +1,22 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="1" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0" simplifyDrawingHints="1">
+<qgis readOnly="0" simplifyDrawingTol="1" version="3.4.5-Madeira" simplifyAlgorithm="0" simplifyMaxScale="1" maxScale="0" labelsEnabled="1" simplifyDrawingHints="1" simplifyLocal="1" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" type="RuleRenderer" enableorderby="0" symbollevels="0">
+  <renderer-v2 enableorderby="0" type="RuleRenderer" forceraster="0" symbollevels="0">
     <rules key="{1c4a4e03-d442-4bb0-8ffc-82b9a703e08f}">
-      <rule label="Gemengd" filter="pipe_sewerage_type = 0" symbol="0" key="{844e5e28-ad8f-43dc-ae9b-2eedeecde873}"/>
-      <rule label="RWA" filter="pipe_sewerage_type = 1" symbol="1" key="{3b41f70d-2dfe-4438-8b1a-3722a52ff82b}"/>
-      <rule label="DWA" filter="pipe_sewerage_type = 2" symbol="2" key="{c8833167-878e-49b2-bd37-5019aeea2451}"/>
-      <rule label="Transport" filter="pipe_sewerage_type = 3" symbol="3" key="{d62bccfa-4138-43ba-ab6d-51eae9f5b079}"/>
-      <rule label="Bergbezinkvoorziening" filter="pipe_sewerage_type = 7" symbol="4" key="{8eb66a66-0335-4672-a78d-1aac6c4702ff}"/>
-      <rule label="Overig" filter="pipe_sewerage_type = 4 OR pipe_sewerage_type = 5 OR pipe_sewerage_type = 6 OR pipe_sewerage_type > 10" symbol="5" key="{aa320dac-96a8-41e4-af30-3e9153ceaeae}"/>
+      <rule key="{844e5e28-ad8f-43dc-ae9b-2eedeecde873}" symbol="0" label="Gemengd" filter="pipe_sewerage_type = 0"/>
+      <rule key="{3b41f70d-2dfe-4438-8b1a-3722a52ff82b}" symbol="1" label="RWA" filter="pipe_sewerage_type = 1"/>
+      <rule key="{c8833167-878e-49b2-bd37-5019aeea2451}" symbol="2" label="DWA" filter="pipe_sewerage_type = 2"/>
+      <rule key="{d62bccfa-4138-43ba-ab6d-51eae9f5b079}" symbol="3" label="Transport" filter="pipe_sewerage_type = 3"/>
+      <rule key="{8eb66a66-0335-4672-a78d-1aac6c4702ff}" symbol="4" label="Bergbezinkvoorziening" filter="pipe_sewerage_type = 7"/>
+      <rule key="{aa320dac-96a8-41e4-af30-3e9153ceaeae}" symbol="5" label="Overig" filter="pipe_sewerage_type = 4 OR pipe_sewerage_type = 5 OR pipe_sewerage_type = 6 OR pipe_sewerage_type > 10"/>
     </rules>
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="0">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -35,15 +35,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="1" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="1">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -62,15 +62,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="2" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="2">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -89,15 +89,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="3" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="3">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -116,15 +116,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="4" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="4">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -143,15 +143,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="5" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="5">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -170,9 +170,9 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -181,20 +181,20 @@
   </renderer-v2>
   <labeling type="simple">
     <settings>
-      <text-style fontItalic="0" fontWordSpacing="0" useSubstitutions="0" fontFamily="MS Shell Dlg 2" multilineHeight="1" blendMode="0" fontSizeUnit="Point" fontSize="8.25" fontLetterSpacing="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontCapitals="0" previewBkgrdColor="#ffffff" fontWeight="50" textOpacity="1" textColor="0,0,0,255" isExpression="1" namedStyle="Regular" fontStrikeout="0" fieldName="" fontUnderline="0">
-        <text-buffer bufferColor="255,255,255,255" bufferOpacity="1" bufferBlendMode="0" bufferSizeUnits="MM" bufferDraw="0" bufferNoFill="0" bufferJoinStyle="64" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferSize="1"/>
-        <background shapeRotationType="0" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeJoinStyle="64" shapeOffsetUnit="MM" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeSizeType="0" shapeOffsetY="0" shapeOffsetX="0" shapeBorderWidth="0" shapeType="0" shapeBlendMode="0" shapeSizeUnit="MM" shapeSVGFile="" shapeSizeY="0" shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeSizeX="0" shapeOpacity="1" shapeRadiiY="0" shapeRotation="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeDraw="0" shapeBorderWidthUnit="MM" shapeBorderColor="128,128,128,255" shapeFillColor="255,255,255,255" shapeRadiiUnit="MM" shapeRadiiX="0"/>
-        <shadow shadowOffsetUnit="MM" shadowBlendMode="6" shadowUnder="0" shadowScale="100" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowRadiusAlphaOnly="0" shadowColor="0,0,0,255" shadowOffsetAngle="135" shadowRadius="1.5" shadowDraw="0" shadowOffsetGlobal="1" shadowOpacity="0.7" shadowOffsetDist="1" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowRadiusUnit="MM"/>
+      <text-style previewBkgrdColor="#ffffff" fieldName="" textColor="0,0,0,255" useSubstitutions="0" blendMode="0" fontUnderline="0" fontItalic="0" textOpacity="1" namedStyle="Regular" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fontSizeUnit="Point" fontWeight="50" multilineHeight="1" fontWordSpacing="0" fontSize="8.25" isExpression="1" fontCapitals="0" fontStrikeout="0" fontLetterSpacing="0" fontFamily="MS Shell Dlg 2">
+        <text-buffer bufferColor="255,255,255,255" bufferDraw="0" bufferSize="1" bufferNoFill="0" bufferOpacity="1" bufferBlendMode="0" bufferSizeUnits="MM" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferJoinStyle="64"/>
+        <background shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeType="0" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeRotationType="0" shapeOffsetX="0" shapeRotation="0" shapeRadiiUnit="MM" shapeRadiiY="0" shapeJoinStyle="64" shapeSizeX="0" shapeSizeY="0" shapeFillColor="255,255,255,255" shapeBorderWidthUnit="MM" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeOffsetUnit="MM" shapeSVGFile="" shapeRadiiX="0" shapeSizeType="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeBlendMode="0" shapeDraw="0" shapeSizeUnit="MM" shapeBorderColor="128,128,128,255" shapeBorderWidth="0" shapeOpacity="1" shapeOffsetY="0"/>
+        <shadow shadowOffsetUnit="MM" shadowBlendMode="6" shadowUnder="0" shadowDraw="0" shadowColor="0,0,0,255" shadowScale="100" shadowOffsetAngle="135" shadowOffsetGlobal="1" shadowRadiusAlphaOnly="0" shadowOffsetDist="1" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowRadius="1.5" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowRadiusUnit="MM" shadowOpacity="0.7"/>
         <substitutions/>
       </text-style>
-      <text-format formatNumbers="0" autoWrapLength="0" leftDirectionSymbol="&lt;" multilineAlign="0" placeDirectionSymbol="0" decimals="3" plussign="0" reverseDirectionSymbol="0" wrapChar="" useMaxLineLengthForAutoWrap="1" addDirectionSymbol="0" rightDirectionSymbol=">"/>
-      <placement xOffset="0" dist="0" centroidInside="0" centroidWhole="0" maxCurvedCharAngleIn="20" yOffset="0" distMapUnitScale="3x:0,0,0,0,0,0" priority="5" placement="2" offsetType="0" fitInPolygonOnly="0" distUnits="MM" preserveRotation="1" placementFlags="10" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" quadOffset="4" maxCurvedCharAngleOut="-20" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" repeatDistance="0" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" offsetUnits="MapUnit" rotationAngle="0" repeatDistanceUnits="MM"/>
-      <rendering mergeLines="0" upsidedownLabels="0" fontLimitPixelSize="0" displayAll="0" scaleMin="1" scaleMax="10000000" fontMaxPixelSize="10000" scaleVisibility="0" obstacleFactor="1" obstacle="1" minFeatureSize="0" labelPerPart="0" fontMinPixelSize="3" obstacleType="0" limitNumLabels="0" maxNumLabels="2000" drawLabels="1" zIndex="0"/>
+      <text-format addDirectionSymbol="0" decimals="3" rightDirectionSymbol=">" useMaxLineLengthForAutoWrap="1" reverseDirectionSymbol="0" plussign="0" wrapChar="" autoWrapLength="0" multilineAlign="0" placeDirectionSymbol="0" leftDirectionSymbol="&lt;" formatNumbers="0"/>
+      <placement labelOffsetMapUnitScale="3x:0,0,0,0,0,0" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" maxCurvedCharAngleOut="-20" placementFlags="10" distUnits="MM" distMapUnitScale="3x:0,0,0,0,0,0" dist="0" centroidInside="0" priority="5" rotationAngle="0" repeatDistanceUnits="MM" yOffset="0" offsetUnits="MapUnit" fitInPolygonOnly="0" maxCurvedCharAngleIn="20" xOffset="0" offsetType="0" repeatDistance="0" placement="2" centroidWhole="0" quadOffset="4" preserveRotation="1" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR"/>
+      <rendering zIndex="0" mergeLines="0" fontMaxPixelSize="10000" obstacle="1" displayAll="0" scaleMax="10000000" maxNumLabels="2000" scaleVisibility="0" limitNumLabels="0" obstacleType="0" fontMinPixelSize="3" minFeatureSize="0" fontLimitPixelSize="0" scaleMin="1" upsidedownLabels="0" drawLabels="1" labelPerPart="0" obstacleFactor="1"/>
       <dd_properties>
         <Option type="Map">
-          <Option name="name" value="" type="QString"/>
+          <Option value="" type="QString" name="name"/>
           <Option name="properties"/>
-          <Option name="type" value="collection" type="QString"/>
+          <Option value="collection" type="QString" name="type"/>
         </Option>
       </dd_properties>
     </settings>
@@ -207,18 +207,18 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" lineSizeType="MM" backgroundColor="#ffffff" penColor="#000000" barWidth="5" sizeType="MM" penAlpha="255" minScaleDenominator="0" scaleBasedVisibility="0" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" minimumSize="0" height="15" maxScaleDenominator="1e+08" penWidth="0" backgroundAlpha="255" width="15" enabled="0" scaleDependency="Area" rotationOffset="270">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="2" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings dist="0" priority="0" linePlacementFlags="2" obstacle="0" showAll="1" placement="2" zIndex="0">
     <properties>
       <Option type="Map">
-        <Option name="name" value="" type="QString"/>
+        <Option value="" type="QString" name="name"/>
         <Option name="properties"/>
-        <Option name="type" value="collection" type="QString"/>
+        <Option value="collection" type="QString" name="type"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -238,8 +238,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -248,8 +248,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -258,8 +258,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -268,8 +268,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -278,30 +278,30 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: mixed" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: mixed"/>
               </Option>
               <Option type="Map">
-                <Option name="1: rain water" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: rain water"/>
               </Option>
               <Option type="Map">
-                <Option name="2: dry weather flow" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: dry weather flow"/>
               </Option>
               <Option type="Map">
-                <Option name="3: transport" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: transport"/>
               </Option>
               <Option type="Map">
-                <Option name="4: spillway" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: spillway"/>
               </Option>
               <Option type="Map">
-                <Option name="5: sinker" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: sinker"/>
               </Option>
               <Option type="Map">
-                <Option name="6: storage" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: storage"/>
               </Option>
               <Option type="Map">
-                <Option name="7: storage tank" value="7" type="QString"/>
+                <Option value="7" type="QString" name="7: storage tank"/>
               </Option>
             </Option>
           </Option>
@@ -312,21 +312,21 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: embedded" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: embedded"/>
               </Option>
               <Option type="Map">
-                <Option name="1: isolated" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: isolated"/>
               </Option>
               <Option type="Map">
-                <Option name="2: connected" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: connected"/>
               </Option>
               <Option type="Map">
-                <Option name="3: broad crest" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: broad crest"/>
               </Option>
               <Option type="Map">
-                <Option name="4: short crest" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: short crest"/>
               </Option>
             </Option>
           </Option>
@@ -337,8 +337,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -347,8 +347,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -357,8 +357,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -367,8 +367,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -377,12 +377,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: Chezy" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: Chèzy"/>
               </Option>
               <Option type="Map">
-                <Option name="2: Manning" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: Manning"/>
               </Option>
             </Option>
           </Option>
@@ -393,8 +393,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -403,33 +403,33 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: Concrete" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: concrete"/>
               </Option>
               <Option type="Map">
-                <Option name="1: pvc" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: pvc"/>
               </Option>
               <Option type="Map">
-                <Option name="2: gres" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: gres"/>
               </Option>
               <Option type="Map">
-                <Option name="3: cast iron" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: cast iron"/>
               </Option>
               <Option type="Map">
-                <Option name="4: brickwork" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: brickwork"/>
               </Option>
               <Option type="Map">
-                <Option name="5: HPE" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: HPE"/>
               </Option>
               <Option type="Map">
-                <Option name="6: HDPE" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: HDPE"/>
               </Option>
               <Option type="Map">
-                <Option name="7: plate iron" value="7" type="QString"/>
+                <Option value="7" type="QString" name="7: plate iron"/>
               </Option>
               <Option type="Map">
-                <Option name="8: steel" value="8" type="QString"/>
+                <Option value="8" type="QString" name="8: steel"/>
               </Option>
             </Option>
           </Option>
@@ -440,8 +440,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -450,8 +450,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -460,27 +460,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" type="QString" name="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5"/>
               </Option>
             </Option>
           </Option>
@@ -491,8 +491,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -501,8 +501,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -511,8 +511,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -521,21 +521,21 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: rectangle" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: rectangle"/>
               </Option>
               <Option type="Map">
-                <Option name="2: round" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: round"/>
               </Option>
               <Option type="Map">
-                <Option name="3: egg" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: egg"/>
               </Option>
               <Option type="Map">
-                <Option name="5: tabulated rectangle" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: tabulated rectangle"/>
               </Option>
               <Option type="Map">
-                <Option name="6: tabulated trapezium" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: tabulated trapezium"/>
               </Option>
             </Option>
           </Option>
@@ -546,8 +546,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -556,8 +556,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -566,150 +566,150 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="ROWID"/>
-    <alias name="id" index="1" field="pipe_id"/>
-    <alias name="display_name" index="2" field="pipe_display_name"/>
-    <alias name="code" index="3" field="pipe_code"/>
-    <alias name="profile_num" index="4" field="pipe_profile_num"/>
-    <alias name="sewerage_type" index="5" field="pipe_sewerage_type"/>
-    <alias name="calculation_type" index="6" field="pipe_calculation_type"/>
-    <alias name="invert_level_start_point" index="7" field="pipe_invert_level_start_point"/>
-    <alias name="invert_level_end_point" index="8" field="pipe_invert_level_end_point"/>
-    <alias name="cross_section_definition_id" index="9" field="pipe_cross_section_definition_id"/>
-    <alias name="friction_value" index="10" field="pipe_friction_value"/>
-    <alias name="friction_type" index="11" field="pipe_friction_type"/>
-    <alias name="dist_calc_points" index="12" field="pipe_dist_calc_points"/>
-    <alias name="material" index="13" field="pipe_material"/>
-    <alias name="pipe_quality" index="14" field="pipe_pipe_quality"/>
-    <alias name="original_length" index="15" field="pipe_original_length"/>
-    <alias name="zoom_category" index="16" field="pipe_zoom_category"/>
-    <alias name="connection_node_start_id" index="17" field="pipe_connection_node_start_id"/>
-    <alias name="connection_node_end_id" index="18" field="pipe_connection_node_end_id"/>
-    <alias name="id" index="19" field="def_id"/>
-    <alias name="shape" index="20" field="def_shape"/>
-    <alias name="width" index="21" field="def_width"/>
-    <alias name="height" index="22" field="def_height"/>
-    <alias name="code" index="23" field="def_code"/>
+    <alias name="" field="ROWID" index="0"/>
+    <alias name="id" field="pipe_id" index="1"/>
+    <alias name="display_name" field="pipe_display_name" index="2"/>
+    <alias name="code" field="pipe_code" index="3"/>
+    <alias name="profile_num" field="pipe_profile_num" index="4"/>
+    <alias name="sewerage_type" field="pipe_sewerage_type" index="5"/>
+    <alias name="calculation_type" field="pipe_calculation_type" index="6"/>
+    <alias name="invert_level_start_point" field="pipe_invert_level_start_point" index="7"/>
+    <alias name="invert_level_end_point" field="pipe_invert_level_end_point" index="8"/>
+    <alias name="cross_section_definition_id" field="pipe_cross_section_definition_id" index="9"/>
+    <alias name="friction_value" field="pipe_friction_value" index="10"/>
+    <alias name="friction_type" field="pipe_friction_type" index="11"/>
+    <alias name="dist_calc_points" field="pipe_dist_calc_points" index="12"/>
+    <alias name="material" field="pipe_material" index="13"/>
+    <alias name="pipe_quality" field="pipe_pipe_quality" index="14"/>
+    <alias name="original_length" field="pipe_original_length" index="15"/>
+    <alias name="zoom_category" field="pipe_zoom_category" index="16"/>
+    <alias name="connection_node_start_id" field="pipe_connection_node_start_id" index="17"/>
+    <alias name="connection_node_end_id" field="pipe_connection_node_end_id" index="18"/>
+    <alias name="id" field="def_id" index="19"/>
+    <alias name="shape" field="def_shape" index="20"/>
+    <alias name="width" field="def_width" index="21"/>
+    <alias name="height" field="def_height" index="22"/>
+    <alias name="code" field="def_code" index="23"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="ROWID" expression=""/>
-    <default applyOnUpdate="0" field="pipe_id" expression="if(maximum(pipe_id) is null,1, maximum(pipe_id)+1)"/>
-    <default applyOnUpdate="0" field="pipe_display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="pipe_code" expression="'new'"/>
-    <default applyOnUpdate="0" field="pipe_profile_num" expression=""/>
-    <default applyOnUpdate="0" field="pipe_sewerage_type" expression="0"/>
-    <default applyOnUpdate="0" field="pipe_calculation_type" expression="1"/>
-    <default applyOnUpdate="0" field="pipe_invert_level_start_point" expression=""/>
-    <default applyOnUpdate="0" field="pipe_invert_level_end_point" expression=""/>
-    <default applyOnUpdate="0" field="pipe_cross_section_definition_id" expression=""/>
-    <default applyOnUpdate="0" field="pipe_friction_value" expression=""/>
-    <default applyOnUpdate="0" field="pipe_friction_type" expression="2"/>
-    <default applyOnUpdate="0" field="pipe_dist_calc_points" expression="10000"/>
-    <default applyOnUpdate="0" field="pipe_material" expression=""/>
-    <default applyOnUpdate="0" field="pipe_pipe_quality" expression=""/>
-    <default applyOnUpdate="0" field="pipe_original_length" expression=""/>
-    <default applyOnUpdate="0" field="pipe_zoom_category" expression="2"/>
-    <default applyOnUpdate="0" field="pipe_connection_node_start_id" expression="'filled automatically'"/>
-    <default applyOnUpdate="0" field="pipe_connection_node_end_id" expression="'filled automatically'"/>
-    <default applyOnUpdate="0" field="def_id" expression=""/>
-    <default applyOnUpdate="0" field="def_shape" expression=""/>
-    <default applyOnUpdate="0" field="def_width" expression=""/>
-    <default applyOnUpdate="0" field="def_height" expression=""/>
-    <default applyOnUpdate="0" field="def_code" expression=""/>
+    <default expression="" applyOnUpdate="0" field="ROWID"/>
+    <default expression="if(maximum(pipe_id) is null,1, maximum(pipe_id)+1)" applyOnUpdate="0" field="pipe_id"/>
+    <default expression="'new'" applyOnUpdate="0" field="pipe_display_name"/>
+    <default expression="'new'" applyOnUpdate="0" field="pipe_code"/>
+    <default expression="" applyOnUpdate="0" field="pipe_profile_num"/>
+    <default expression="0" applyOnUpdate="0" field="pipe_sewerage_type"/>
+    <default expression="1" applyOnUpdate="0" field="pipe_calculation_type"/>
+    <default expression="" applyOnUpdate="0" field="pipe_invert_level_start_point"/>
+    <default expression="" applyOnUpdate="0" field="pipe_invert_level_end_point"/>
+    <default expression="" applyOnUpdate="0" field="pipe_cross_section_definition_id"/>
+    <default expression="" applyOnUpdate="0" field="pipe_friction_value"/>
+    <default expression="2" applyOnUpdate="0" field="pipe_friction_type"/>
+    <default expression="10000" applyOnUpdate="0" field="pipe_dist_calc_points"/>
+    <default expression="" applyOnUpdate="0" field="pipe_material"/>
+    <default expression="" applyOnUpdate="0" field="pipe_pipe_quality"/>
+    <default expression="" applyOnUpdate="0" field="pipe_original_length"/>
+    <default expression="2" applyOnUpdate="0" field="pipe_zoom_category"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="pipe_connection_node_start_id"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="pipe_connection_node_end_id"/>
+    <default expression="" applyOnUpdate="0" field="def_id"/>
+    <default expression="" applyOnUpdate="0" field="def_shape"/>
+    <default expression="" applyOnUpdate="0" field="def_width"/>
+    <default expression="" applyOnUpdate="0" field="def_height"/>
+    <default expression="" applyOnUpdate="0" field="def_code"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="ROWID" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_code" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_profile_num" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_sewerage_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_invert_level_start_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="5" exp_strength="2" field="pipe_invert_level_end_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_cross_section_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_friction_value" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_friction_type" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_dist_calc_points" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_material" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_pipe_quality" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_original_length" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="pipe_zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_connection_node_end_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="def_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_shape" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_width" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_height" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_code" unique_strength="0"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="ROWID"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_profile_num"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_sewerage_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_calculation_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_invert_level_start_point"/>
+    <constraint exp_strength="2" unique_strength="0" notnull_strength="2" constraints="5" field="pipe_invert_level_end_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_cross_section_definition_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_friction_value"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_friction_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_dist_calc_points"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_material"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_pipe_quality"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_original_length"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pipe_zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_connection_node_end_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="def_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_shape"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_width"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_height"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_code"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="ROWID" desc=""/>
-    <constraint exp="" field="pipe_id" desc=""/>
-    <constraint exp="" field="pipe_display_name" desc=""/>
-    <constraint exp="" field="pipe_code" desc=""/>
-    <constraint exp="" field="pipe_profile_num" desc=""/>
-    <constraint exp="" field="pipe_sewerage_type" desc=""/>
-    <constraint exp="" field="pipe_calculation_type" desc=""/>
-    <constraint exp="" field="pipe_invert_level_start_point" desc=""/>
-    <constraint exp="&quot;invert_level_end_point&quot; is not null" field="pipe_invert_level_end_point" desc=""/>
-    <constraint exp="" field="pipe_cross_section_definition_id" desc=""/>
-    <constraint exp="" field="pipe_friction_value" desc=""/>
-    <constraint exp="" field="pipe_friction_type" desc=""/>
-    <constraint exp="" field="pipe_dist_calc_points" desc=""/>
-    <constraint exp="" field="pipe_material" desc=""/>
-    <constraint exp="" field="pipe_pipe_quality" desc=""/>
-    <constraint exp="" field="pipe_original_length" desc=""/>
-    <constraint exp="" field="pipe_zoom_category" desc=""/>
-    <constraint exp="" field="pipe_connection_node_start_id" desc=""/>
-    <constraint exp="" field="pipe_connection_node_end_id" desc=""/>
-    <constraint exp="" field="def_id" desc=""/>
-    <constraint exp="" field="def_shape" desc=""/>
-    <constraint exp="" field="def_width" desc=""/>
-    <constraint exp="" field="def_height" desc=""/>
-    <constraint exp="" field="def_code" desc=""/>
+    <constraint exp="" desc="" field="ROWID"/>
+    <constraint exp="" desc="" field="pipe_id"/>
+    <constraint exp="" desc="" field="pipe_display_name"/>
+    <constraint exp="" desc="" field="pipe_code"/>
+    <constraint exp="" desc="" field="pipe_profile_num"/>
+    <constraint exp="" desc="" field="pipe_sewerage_type"/>
+    <constraint exp="" desc="" field="pipe_calculation_type"/>
+    <constraint exp="" desc="" field="pipe_invert_level_start_point"/>
+    <constraint exp="&quot;invert_level_end_point&quot; is not null" desc="" field="pipe_invert_level_end_point"/>
+    <constraint exp="" desc="" field="pipe_cross_section_definition_id"/>
+    <constraint exp="" desc="" field="pipe_friction_value"/>
+    <constraint exp="" desc="" field="pipe_friction_type"/>
+    <constraint exp="" desc="" field="pipe_dist_calc_points"/>
+    <constraint exp="" desc="" field="pipe_material"/>
+    <constraint exp="" desc="" field="pipe_pipe_quality"/>
+    <constraint exp="" desc="" field="pipe_original_length"/>
+    <constraint exp="" desc="" field="pipe_zoom_category"/>
+    <constraint exp="" desc="" field="pipe_connection_node_start_id"/>
+    <constraint exp="" desc="" field="pipe_connection_node_end_id"/>
+    <constraint exp="" desc="" field="def_id"/>
+    <constraint exp="" desc="" field="def_shape"/>
+    <constraint exp="" desc="" field="def_width"/>
+    <constraint exp="" desc="" field="def_height"/>
+    <constraint exp="" desc="" field="def_code"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column name="ROWID" hidden="0" width="-1" type="field"/>
-      <column name="pipe_id" hidden="0" width="-1" type="field"/>
-      <column name="pipe_display_name" hidden="0" width="-1" type="field"/>
-      <column name="pipe_code" hidden="0" width="-1" type="field"/>
-      <column name="pipe_profile_num" hidden="0" width="-1" type="field"/>
-      <column name="pipe_sewerage_type" hidden="0" width="-1" type="field"/>
-      <column name="pipe_calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="pipe_invert_level_start_point" hidden="0" width="-1" type="field"/>
-      <column name="pipe_invert_level_end_point" hidden="0" width="-1" type="field"/>
-      <column name="pipe_cross_section_definition_id" hidden="0" width="-1" type="field"/>
-      <column name="pipe_friction_value" hidden="0" width="-1" type="field"/>
-      <column name="pipe_friction_type" hidden="0" width="-1" type="field"/>
-      <column name="pipe_dist_calc_points" hidden="0" width="-1" type="field"/>
-      <column name="pipe_material" hidden="0" width="-1" type="field"/>
-      <column name="pipe_pipe_quality" hidden="0" width="-1" type="field"/>
-      <column name="pipe_original_length" hidden="0" width="-1" type="field"/>
-      <column name="pipe_zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="pipe_connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="pipe_connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column name="def_id" hidden="0" width="-1" type="field"/>
-      <column name="def_shape" hidden="0" width="-1" type="field"/>
-      <column name="def_width" hidden="0" width="-1" type="field"/>
-      <column name="def_height" hidden="0" width="-1" type="field"/>
-      <column name="def_code" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" type="field" hidden="0" name="ROWID"/>
+      <column width="-1" type="field" hidden="0" name="pipe_id"/>
+      <column width="-1" type="field" hidden="0" name="pipe_display_name"/>
+      <column width="-1" type="field" hidden="0" name="pipe_code"/>
+      <column width="-1" type="field" hidden="0" name="pipe_profile_num"/>
+      <column width="-1" type="field" hidden="0" name="pipe_sewerage_type"/>
+      <column width="-1" type="field" hidden="0" name="pipe_calculation_type"/>
+      <column width="-1" type="field" hidden="0" name="pipe_invert_level_start_point"/>
+      <column width="-1" type="field" hidden="0" name="pipe_invert_level_end_point"/>
+      <column width="-1" type="field" hidden="0" name="pipe_cross_section_definition_id"/>
+      <column width="-1" type="field" hidden="0" name="pipe_friction_value"/>
+      <column width="-1" type="field" hidden="0" name="pipe_friction_type"/>
+      <column width="-1" type="field" hidden="0" name="pipe_dist_calc_points"/>
+      <column width="-1" type="field" hidden="0" name="pipe_material"/>
+      <column width="-1" type="field" hidden="0" name="pipe_pipe_quality"/>
+      <column width="-1" type="field" hidden="0" name="pipe_original_length"/>
+      <column width="-1" type="field" hidden="0" name="pipe_zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="pipe_connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="pipe_connection_node_end_id"/>
+      <column width="-1" type="field" hidden="0" name="def_id"/>
+      <column width="-1" type="field" hidden="0" name="def_shape"/>
+      <column width="-1" type="field" hidden="0" name="def_width"/>
+      <column width="-1" type="field" hidden="0" name="def_height"/>
+      <column width="-1" type="field" hidden="0" name="def_code"/>
+      <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -738,35 +738,35 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Pipe view" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="pipe_id" index="1" showLabel="1"/>
-        <attributeEditorField name="pipe_display_name" index="2" showLabel="1"/>
-        <attributeEditorField name="pipe_code" index="3" showLabel="1"/>
-        <attributeEditorField name="pipe_calculation_type" index="6" showLabel="1"/>
-        <attributeEditorField name="pipe_dist_calc_points" index="12" showLabel="1"/>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Pipe view" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="pipe_id" index="1"/>
+        <attributeEditorField showLabel="1" name="pipe_display_name" index="2"/>
+        <attributeEditorField showLabel="1" name="pipe_code" index="3"/>
+        <attributeEditorField showLabel="1" name="pipe_calculation_type" index="6"/>
+        <attributeEditorField showLabel="1" name="pipe_dist_calc_points" index="12"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="pipe_invert_level_start_point" index="7" showLabel="1"/>
-        <attributeEditorField name="pipe_invert_level_end_point" index="8" showLabel="1"/>
-        <attributeEditorField name="pipe_friction_value" index="10" showLabel="1"/>
-        <attributeEditorField name="pipe_friction_type" index="11" showLabel="1"/>
-        <attributeEditorField name="pipe_material" index="13" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="pipe_invert_level_start_point" index="7"/>
+        <attributeEditorField showLabel="1" name="pipe_invert_level_end_point" index="8"/>
+        <attributeEditorField showLabel="1" name="pipe_friction_value" index="10"/>
+        <attributeEditorField showLabel="1" name="pipe_friction_type" index="11"/>
+        <attributeEditorField showLabel="1" name="pipe_material" index="13"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Cross section definition" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="pipe_cross_section_definition_id" index="9" showLabel="1"/>
-        <attributeEditorField name="def_shape" index="20" showLabel="1"/>
-        <attributeEditorField name="def_width" index="21" showLabel="1"/>
-        <attributeEditorField name="def_height" index="22" showLabel="1"/>
-        <attributeEditorField name="def_code" index="23" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Cross section definition" columnCount="1">
+        <attributeEditorField showLabel="1" name="pipe_cross_section_definition_id" index="9"/>
+        <attributeEditorField showLabel="1" name="def_shape" index="20"/>
+        <attributeEditorField showLabel="1" name="def_width" index="21"/>
+        <attributeEditorField showLabel="1" name="def_height" index="22"/>
+        <attributeEditorField showLabel="1" name="def_code" index="23"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="pipe_sewerage_type" index="5" showLabel="1"/>
-        <attributeEditorField name="pipe_zoom_category" index="16" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Visualization" columnCount="1">
+        <attributeEditorField showLabel="1" name="pipe_sewerage_type" index="5"/>
+        <attributeEditorField showLabel="1" name="pipe_zoom_category" index="16"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="pipe_connection_node_start_id" index="17" showLabel="1"/>
-        <attributeEditorField name="pipe_connection_node_end_id" index="18" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="pipe_connection_node_start_id" index="17"/>
+        <attributeEditorField showLabel="1" name="pipe_connection_node_end_id" index="18"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
@@ -797,30 +797,30 @@ def my_form_open(dialog, layer, feature):
     <field name="pipe_zoom_category" editable="1"/>
   </editable>
   <labelOnTop>
-    <field name="ROWID" labelOnTop="0"/>
-    <field name="def_code" labelOnTop="0"/>
-    <field name="def_height" labelOnTop="0"/>
-    <field name="def_id" labelOnTop="0"/>
-    <field name="def_shape" labelOnTop="0"/>
-    <field name="def_width" labelOnTop="0"/>
-    <field name="pipe_calculation_type" labelOnTop="0"/>
-    <field name="pipe_code" labelOnTop="0"/>
-    <field name="pipe_connection_node_end_id" labelOnTop="0"/>
-    <field name="pipe_connection_node_start_id" labelOnTop="0"/>
-    <field name="pipe_cross_section_definition_id" labelOnTop="0"/>
-    <field name="pipe_display_name" labelOnTop="0"/>
-    <field name="pipe_dist_calc_points" labelOnTop="0"/>
-    <field name="pipe_friction_type" labelOnTop="0"/>
-    <field name="pipe_friction_value" labelOnTop="0"/>
-    <field name="pipe_id" labelOnTop="0"/>
-    <field name="pipe_invert_level_end_point" labelOnTop="0"/>
-    <field name="pipe_invert_level_start_point" labelOnTop="0"/>
-    <field name="pipe_material" labelOnTop="0"/>
-    <field name="pipe_original_length" labelOnTop="0"/>
-    <field name="pipe_pipe_quality" labelOnTop="0"/>
-    <field name="pipe_profile_num" labelOnTop="0"/>
-    <field name="pipe_sewerage_type" labelOnTop="0"/>
-    <field name="pipe_zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="ROWID"/>
+    <field labelOnTop="0" name="def_code"/>
+    <field labelOnTop="0" name="def_height"/>
+    <field labelOnTop="0" name="def_id"/>
+    <field labelOnTop="0" name="def_shape"/>
+    <field labelOnTop="0" name="def_width"/>
+    <field labelOnTop="0" name="pipe_calculation_type"/>
+    <field labelOnTop="0" name="pipe_code"/>
+    <field labelOnTop="0" name="pipe_connection_node_end_id"/>
+    <field labelOnTop="0" name="pipe_connection_node_start_id"/>
+    <field labelOnTop="0" name="pipe_cross_section_definition_id"/>
+    <field labelOnTop="0" name="pipe_display_name"/>
+    <field labelOnTop="0" name="pipe_dist_calc_points"/>
+    <field labelOnTop="0" name="pipe_friction_type"/>
+    <field labelOnTop="0" name="pipe_friction_value"/>
+    <field labelOnTop="0" name="pipe_id"/>
+    <field labelOnTop="0" name="pipe_invert_level_end_point"/>
+    <field labelOnTop="0" name="pipe_invert_level_start_point"/>
+    <field labelOnTop="0" name="pipe_material"/>
+    <field labelOnTop="0" name="pipe_original_length"/>
+    <field labelOnTop="0" name="pipe_pipe_quality"/>
+    <field labelOnTop="0" name="pipe_profile_num"/>
+    <field labelOnTop="0" name="pipe_sewerage_type"/>
+    <field labelOnTop="0" name="pipe_zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>ROWID</previewExpression>

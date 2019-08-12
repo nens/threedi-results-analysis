@@ -1,14 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="0" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="-4.65661e-10" simplifyDrawingHints="1">
+<qgis readOnly="0" simplifyDrawingTol="1" version="3.4.5-Madeira" simplifyAlgorithm="0" simplifyMaxScale="1" maxScale="-4.65661e-10" labelsEnabled="0" simplifyDrawingHints="1" simplifyLocal="1" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" type="singleSymbol" enableorderby="0" symbollevels="0">
+  <renderer-v2 enableorderby="0" type="singleSymbol" forceraster="0" symbollevels="0">
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="0">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -27,13 +27,13 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="MarkerLine" pass="0" locked="0" enabled="1">
+        <layer enabled="1" class="MarkerLine" locked="0" pass="0">
           <prop k="interval" v="3"/>
           <prop k="interval_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="interval_unit" v="MM"/>
@@ -48,13 +48,13 @@
           <prop k="rotate" v="0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
-          <symbol name="@0@1" force_rhr="0" alpha="1" type="marker" clip_to_extent="1">
-            <layer class="SimpleMarker" pass="0" locked="0" enabled="1">
+          <symbol clip_to_extent="1" force_rhr="0" type="marker" alpha="1" name="@0@1">
+            <layer enabled="1" class="SimpleMarker" locked="0" pass="0">
               <prop k="angle" v="0"/>
               <prop k="color" v="101,101,101,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
@@ -75,9 +75,9 @@
               <prop k="vertical_anchor_point" v="1"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option name="name" value="" type="QString"/>
+                  <Option value="" type="QString" name="name"/>
                   <Option name="properties"/>
-                  <Option name="type" value="collection" type="QString"/>
+                  <Option value="collection" type="QString" name="type"/>
                 </Option>
               </data_defined_properties>
             </layer>
@@ -96,18 +96,18 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="-4.65661e-10" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" lineSizeType="MM" backgroundColor="#ffffff" penColor="#000000" barWidth="5" sizeType="MM" penAlpha="255" minScaleDenominator="-4.65661e-10" scaleBasedVisibility="0" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" minimumSize="0" height="15" maxScaleDenominator="1e+08" penWidth="0" backgroundAlpha="255" width="15" enabled="0" scaleDependency="Area" rotationOffset="270">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="2" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings dist="0" priority="0" linePlacementFlags="2" obstacle="0" showAll="1" placement="2" zIndex="0">
     <properties>
       <Option type="Map">
-        <Option name="name" value="" type="QString"/>
+        <Option value="" type="QString" name="name"/>
         <Option name="properties"/>
-        <Option name="type" value="collection" type="QString"/>
+        <Option value="collection" type="QString" name="type"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -120,27 +120,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" type="QString" name="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5"/>
               </Option>
             </Option>
           </Option>
@@ -151,8 +151,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -161,8 +161,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -171,8 +171,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -181,8 +181,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -191,8 +191,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -201,8 +201,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -211,8 +211,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -221,8 +221,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -231,8 +231,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -241,18 +241,18 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="100: embedded" value="100" type="QString"/>
+                <Option value="100" type="QString" name="100: embedded"/>
               </Option>
               <Option type="Map">
-                <Option name="101: isolated" value="101" type="QString"/>
+                <Option value="101" type="QString" name="101: isolated"/>
               </Option>
               <Option type="Map">
-                <Option name="102: connected" value="102" type="QString"/>
+                <Option value="102" type="QString" name="102: connected"/>
               </Option>
               <Option type="Map">
-                <Option name="105: double connected" value="105" type="QString"/>
+                <Option value="105" type="QString" name="105: double connected"/>
               </Option>
             </Option>
           </Option>
@@ -263,12 +263,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: Chezy" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: Chèzy"/>
               </Option>
               <Option type="Map">
-                <Option name="2: Manning" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: Manning"/>
               </Option>
             </Option>
           </Option>
@@ -279,8 +279,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -289,8 +289,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -299,105 +299,105 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="zoom_category"/>
-    <alias name="" index="1" field="code"/>
-    <alias name="" index="2" field="display_name"/>
-    <alias name="" index="3" field="discharge_coefficient_negative"/>
-    <alias name="" index="4" field="dist_calc_points"/>
-    <alias name="" index="5" field="connection_node_start_id"/>
-    <alias name="" index="6" field="discharge_coefficient_positive"/>
-    <alias name="" index="7" field="cross_section_definition_id"/>
-    <alias name="" index="8" field="invert_level_end_point"/>
-    <alias name="" index="9" field="invert_level_start_point"/>
-    <alias name="" index="10" field="calculation_type"/>
-    <alias name="" index="11" field="friction_type"/>
-    <alias name="" index="12" field="friction_value"/>
-    <alias name="" index="13" field="id"/>
-    <alias name="" index="14" field="connection_node_end_id"/>
+    <alias name="" field="zoom_category" index="0"/>
+    <alias name="" field="code" index="1"/>
+    <alias name="" field="display_name" index="2"/>
+    <alias name="" field="discharge_coefficient_negative" index="3"/>
+    <alias name="" field="dist_calc_points" index="4"/>
+    <alias name="" field="connection_node_start_id" index="5"/>
+    <alias name="" field="discharge_coefficient_positive" index="6"/>
+    <alias name="" field="cross_section_definition_id" index="7"/>
+    <alias name="" field="invert_level_end_point" index="8"/>
+    <alias name="" field="invert_level_start_point" index="9"/>
+    <alias name="" field="calculation_type" index="10"/>
+    <alias name="" field="friction_type" index="11"/>
+    <alias name="" field="friction_value" index="12"/>
+    <alias name="" field="id" index="13"/>
+    <alias name="" field="connection_node_end_id" index="14"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="zoom_category" expression="4"/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="discharge_coefficient_negative" expression="0.8"/>
-    <default applyOnUpdate="0" field="dist_calc_points" expression="10000"/>
-    <default applyOnUpdate="0" field="connection_node_start_id" expression=""/>
-    <default applyOnUpdate="0" field="discharge_coefficient_positive" expression="0.8"/>
-    <default applyOnUpdate="0" field="cross_section_definition_id" expression=""/>
-    <default applyOnUpdate="0" field="invert_level_end_point" expression=""/>
-    <default applyOnUpdate="0" field="invert_level_start_point" expression=""/>
-    <default applyOnUpdate="0" field="calculation_type" expression="101"/>
-    <default applyOnUpdate="0" field="friction_type" expression="2"/>
-    <default applyOnUpdate="0" field="friction_value" expression="0.0145"/>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
-    <default applyOnUpdate="0" field="connection_node_end_id" expression=""/>
+    <default expression="4" applyOnUpdate="0" field="zoom_category"/>
+    <default expression="'new'" applyOnUpdate="0" field="code"/>
+    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
+    <default expression="0.8" applyOnUpdate="0" field="discharge_coefficient_negative"/>
+    <default expression="10000" applyOnUpdate="0" field="dist_calc_points"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_start_id"/>
+    <default expression="0.8" applyOnUpdate="0" field="discharge_coefficient_positive"/>
+    <default expression="" applyOnUpdate="0" field="cross_section_definition_id"/>
+    <default expression="" applyOnUpdate="0" field="invert_level_end_point"/>
+    <default expression="" applyOnUpdate="0" field="invert_level_start_point"/>
+    <default expression="101" applyOnUpdate="0" field="calculation_type"/>
+    <default expression="2" applyOnUpdate="0" field="friction_type"/>
+    <default expression="0.0145" applyOnUpdate="0" field="friction_value"/>
+    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_end_id"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="discharge_coefficient_negative" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="dist_calc_points" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="discharge_coefficient_positive" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cross_section_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="invert_level_end_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="invert_level_start_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_value" unique_strength="0"/>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_end_id" unique_strength="0"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="discharge_coefficient_negative"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="dist_calc_points"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="discharge_coefficient_positive"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cross_section_definition_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_end_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_start_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="calculation_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_value"/>
+    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_end_id"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="discharge_coefficient_negative" desc=""/>
-    <constraint exp="" field="dist_calc_points" desc=""/>
-    <constraint exp="" field="connection_node_start_id" desc=""/>
-    <constraint exp="" field="discharge_coefficient_positive" desc=""/>
-    <constraint exp="" field="cross_section_definition_id" desc=""/>
-    <constraint exp="" field="invert_level_end_point" desc=""/>
-    <constraint exp="" field="invert_level_start_point" desc=""/>
-    <constraint exp="" field="calculation_type" desc=""/>
-    <constraint exp="" field="friction_type" desc=""/>
-    <constraint exp="" field="friction_value" desc=""/>
-    <constraint exp="" field="id" desc=""/>
-    <constraint exp="" field="connection_node_end_id" desc=""/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="discharge_coefficient_negative"/>
+    <constraint exp="" desc="" field="dist_calc_points"/>
+    <constraint exp="" desc="" field="connection_node_start_id"/>
+    <constraint exp="" desc="" field="discharge_coefficient_positive"/>
+    <constraint exp="" desc="" field="cross_section_definition_id"/>
+    <constraint exp="" desc="" field="invert_level_end_point"/>
+    <constraint exp="" desc="" field="invert_level_start_point"/>
+    <constraint exp="" desc="" field="calculation_type"/>
+    <constraint exp="" desc="" field="friction_type"/>
+    <constraint exp="" desc="" field="friction_value"/>
+    <constraint exp="" desc="" field="id"/>
+    <constraint exp="" desc="" field="connection_node_end_id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="discharge_coefficient_negative" hidden="0" width="-1" type="field"/>
-      <column name="dist_calc_points" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="discharge_coefficient_positive" hidden="0" width="-1" type="field"/>
-      <column name="cross_section_definition_id" hidden="0" width="-1" type="field"/>
-      <column name="invert_level_end_point" hidden="0" width="-1" type="field"/>
-      <column name="invert_level_start_point" hidden="0" width="-1" type="field"/>
-      <column name="calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_value" hidden="0" width="-1" type="field"/>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" type="field" hidden="0" name="zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="code"/>
+      <column width="-1" type="field" hidden="0" name="display_name"/>
+      <column width="-1" type="field" hidden="0" name="discharge_coefficient_negative"/>
+      <column width="-1" type="field" hidden="0" name="dist_calc_points"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="discharge_coefficient_positive"/>
+      <column width="-1" type="field" hidden="0" name="cross_section_definition_id"/>
+      <column width="-1" type="field" hidden="0" name="invert_level_end_point"/>
+      <column width="-1" type="field" hidden="0" name="invert_level_start_point"/>
+      <column width="-1" type="field" hidden="0" name="calculation_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_value"/>
+      <column width="-1" type="field" hidden="0" name="id"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_end_id"/>
+      <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -428,29 +428,29 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Culvert" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="13" showLabel="1"/>
-        <attributeEditorField name="display_name" index="2" showLabel="1"/>
-        <attributeEditorField name="code" index="1" showLabel="1"/>
-        <attributeEditorField name="calculation_type" index="10" showLabel="1"/>
-        <attributeEditorField name="dist_calc_points" index="4" showLabel="1"/>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Culvert" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="id" index="13"/>
+        <attributeEditorField showLabel="1" name="display_name" index="2"/>
+        <attributeEditorField showLabel="1" name="code" index="1"/>
+        <attributeEditorField showLabel="1" name="calculation_type" index="10"/>
+        <attributeEditorField showLabel="1" name="dist_calc_points" index="4"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="invert_level_start_point" index="9" showLabel="1"/>
-        <attributeEditorField name="invert_level_end_point" index="8" showLabel="1"/>
-        <attributeEditorField name="friction_value" index="12" showLabel="1"/>
-        <attributeEditorField name="friction_type" index="11" showLabel="1"/>
-        <attributeEditorField name="cross_section_definition_id" index="7" showLabel="1"/>
-        <attributeEditorField name="discharge_coefficient_positive" index="6" showLabel="1"/>
-        <attributeEditorField name="discharge_coefficient_negative" index="3" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="invert_level_start_point" index="9"/>
+        <attributeEditorField showLabel="1" name="invert_level_end_point" index="8"/>
+        <attributeEditorField showLabel="1" name="friction_value" index="12"/>
+        <attributeEditorField showLabel="1" name="friction_type" index="11"/>
+        <attributeEditorField showLabel="1" name="cross_section_definition_id" index="7"/>
+        <attributeEditorField showLabel="1" name="discharge_coefficient_positive" index="6"/>
+        <attributeEditorField showLabel="1" name="discharge_coefficient_negative" index="3"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="0" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Visualization" columnCount="1">
+        <attributeEditorField showLabel="1" name="zoom_category" index="0"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="connection_node_start_id" index="5" showLabel="1"/>
-        <attributeEditorField name="connection_node_end_id" index="14" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="connection_node_start_id" index="5"/>
+        <attributeEditorField showLabel="1" name="connection_node_end_id" index="14"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
@@ -472,21 +472,21 @@ def my_form_open(dialog, layer, feature):
     <field name="zoom_category" editable="1"/>
   </editable>
   <labelOnTop>
-    <field name="calculation_type" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_end_id" labelOnTop="0"/>
-    <field name="connection_node_start_id" labelOnTop="0"/>
-    <field name="cross_section_definition_id" labelOnTop="0"/>
-    <field name="discharge_coefficient_negative" labelOnTop="0"/>
-    <field name="discharge_coefficient_positive" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="dist_calc_points" labelOnTop="0"/>
-    <field name="friction_type" labelOnTop="0"/>
-    <field name="friction_value" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="invert_level_end_point" labelOnTop="0"/>
-    <field name="invert_level_start_point" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="calculation_type"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="cross_section_definition_id"/>
+    <field labelOnTop="0" name="discharge_coefficient_negative"/>
+    <field labelOnTop="0" name="discharge_coefficient_positive"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="dist_calc_points"/>
+    <field labelOnTop="0" name="friction_type"/>
+    <field labelOnTop="0" name="friction_value"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="invert_level_end_point"/>
+    <field labelOnTop="0" name="invert_level_start_point"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>

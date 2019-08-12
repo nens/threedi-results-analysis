@@ -1,12 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0">
+<qgis readOnly="0" version="3.4.5-Madeira" maxScale="0" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
   <customproperties>
-    <property value="display_name" key="dualview/previewExpressions"/>
+    <property key="dualview/previewExpressions">
+      <value>display_name</value>
+    </property>
     <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
@@ -20,27 +22,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" type="QString" name="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5"/>
               </Option>
             </Option>
           </Option>
@@ -51,8 +53,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -61,8 +63,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -71,8 +73,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -81,8 +83,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -91,8 +93,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -101,8 +103,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -111,8 +113,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -121,33 +123,33 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: concrete" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: concrete"/>
               </Option>
               <Option type="Map">
-                <Option name="1: pvc" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: pvc"/>
               </Option>
               <Option type="Map">
-                <Option name="2: gres" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: gres"/>
               </Option>
               <Option type="Map">
-                <Option name="3: cast iron" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: cast iron"/>
               </Option>
               <Option type="Map">
-                <Option name="4: brickwork" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: brickwork"/>
               </Option>
               <Option type="Map">
-                <Option name="5: HPE" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: HPE"/>
               </Option>
               <Option type="Map">
-                <Option name="6: HDPE" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: HDPE"/>
               </Option>
               <Option type="Map">
-                <Option name="7: plate iron" value="7" type="QString"/>
+                <Option value="7" type="QString" name="7: plate iron"/>
               </Option>
               <Option type="Map">
-                <Option name="8: steel" value="8" type="QString"/>
+                <Option value="8" type="QString" name="8: steel"/>
               </Option>
             </Option>
           </Option>
@@ -158,30 +160,30 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: mixed" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: mixed"/>
               </Option>
               <Option type="Map">
-                <Option name="1: rain water" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: rain water"/>
               </Option>
               <Option type="Map">
-                <Option name="2: dry weather flow" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: dry weather flow"/>
               </Option>
               <Option type="Map">
-                <Option name="3: transport" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: transport"/>
               </Option>
               <Option type="Map">
-                <Option name="4: spillway" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: spillway"/>
               </Option>
               <Option type="Map">
-                <Option name="5: sinker" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: sinker"/>
               </Option>
               <Option type="Map">
-                <Option name="6: storage" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: storage"/>
               </Option>
               <Option type="Map">
-                <Option name="7: storage tank" value="7" type="QString"/>
+                <Option value="7" type="QString" name="7: storage tank"/>
               </Option>
             </Option>
           </Option>
@@ -192,8 +194,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -202,8 +204,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -212,8 +214,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -222,21 +224,21 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="0: embedded" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0: embedded"/>
               </Option>
               <Option type="Map">
-                <Option name="1: isolated" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: isolated"/>
               </Option>
               <Option type="Map">
-                <Option name="2: connected" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: connected"/>
               </Option>
               <Option type="Map">
-                <Option name="3: broad crest" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: broad crest"/>
               </Option>
               <Option type="Map">
-                <Option name="4: short crest" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: short crest"/>
               </Option>
             </Option>
           </Option>
@@ -247,12 +249,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: Chezy" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: Chèzy"/>
               </Option>
               <Option type="Map">
-                <Option name="2: Manning" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: Manning"/>
               </Option>
             </Option>
           </Option>
@@ -263,8 +265,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -273,8 +275,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -283,120 +285,120 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="zoom_category"/>
-    <alias name="" index="1" field="pipe_quality"/>
-    <alias name="" index="2" field="code"/>
-    <alias name="" index="3" field="display_name"/>
-    <alias name="" index="4" field="connection_node_end_id"/>
-    <alias name="" index="5" field="dist_calc_points"/>
-    <alias name="" index="6" field="profile_num"/>
-    <alias name="" index="7" field="connection_node_start_id"/>
-    <alias name="" index="8" field="material"/>
-    <alias name="" index="9" field="sewerage_type"/>
-    <alias name="" index="10" field="original_length"/>
-    <alias name="" index="11" field="invert_level_end_point"/>
-    <alias name="" index="12" field="invert_level_start_point"/>
-    <alias name="" index="13" field="calculation_type"/>
-    <alias name="" index="14" field="friction_type"/>
-    <alias name="" index="15" field="friction_value"/>
-    <alias name="" index="16" field="cross_section_definition_id"/>
-    <alias name="" index="17" field="id"/>
+    <alias name="" field="zoom_category" index="0"/>
+    <alias name="" field="pipe_quality" index="1"/>
+    <alias name="" field="code" index="2"/>
+    <alias name="" field="display_name" index="3"/>
+    <alias name="" field="connection_node_end_id" index="4"/>
+    <alias name="" field="dist_calc_points" index="5"/>
+    <alias name="" field="profile_num" index="6"/>
+    <alias name="" field="connection_node_start_id" index="7"/>
+    <alias name="" field="material" index="8"/>
+    <alias name="" field="sewerage_type" index="9"/>
+    <alias name="" field="original_length" index="10"/>
+    <alias name="" field="invert_level_end_point" index="11"/>
+    <alias name="" field="invert_level_start_point" index="12"/>
+    <alias name="" field="calculation_type" index="13"/>
+    <alias name="" field="friction_type" index="14"/>
+    <alias name="" field="friction_value" index="15"/>
+    <alias name="" field="cross_section_definition_id" index="16"/>
+    <alias name="" field="id" index="17"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="zoom_category" expression="3"/>
-    <default applyOnUpdate="0" field="pipe_quality" expression=""/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="connection_node_end_id" expression=""/>
-    <default applyOnUpdate="0" field="dist_calc_points" expression="10000"/>
-    <default applyOnUpdate="0" field="profile_num" expression=""/>
-    <default applyOnUpdate="0" field="connection_node_start_id" expression=""/>
-    <default applyOnUpdate="0" field="material" expression=""/>
-    <default applyOnUpdate="0" field="sewerage_type" expression="0"/>
-    <default applyOnUpdate="0" field="original_length" expression=""/>
-    <default applyOnUpdate="0" field="invert_level_end_point" expression=""/>
-    <default applyOnUpdate="0" field="invert_level_start_point" expression=""/>
-    <default applyOnUpdate="0" field="calculation_type" expression="1"/>
-    <default applyOnUpdate="0" field="friction_type" expression="2"/>
-    <default applyOnUpdate="0" field="friction_value" expression=""/>
-    <default applyOnUpdate="0" field="cross_section_definition_id" expression=""/>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default expression="3" applyOnUpdate="0" field="zoom_category"/>
+    <default expression="" applyOnUpdate="0" field="pipe_quality"/>
+    <default expression="'new'" applyOnUpdate="0" field="code"/>
+    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_end_id"/>
+    <default expression="10000" applyOnUpdate="0" field="dist_calc_points"/>
+    <default expression="" applyOnUpdate="0" field="profile_num"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_start_id"/>
+    <default expression="" applyOnUpdate="0" field="material"/>
+    <default expression="0" applyOnUpdate="0" field="sewerage_type"/>
+    <default expression="" applyOnUpdate="0" field="original_length"/>
+    <default expression="" applyOnUpdate="0" field="invert_level_end_point"/>
+    <default expression="" applyOnUpdate="0" field="invert_level_start_point"/>
+    <default expression="1" applyOnUpdate="0" field="calculation_type"/>
+    <default expression="2" applyOnUpdate="0" field="friction_type"/>
+    <default expression="" applyOnUpdate="0" field="friction_value"/>
+    <default expression="" applyOnUpdate="0" field="cross_section_definition_id"/>
+    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="pipe_quality" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_end_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="dist_calc_points" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="profile_num" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="material" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="sewerage_type" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="original_length" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="invert_level_end_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="invert_level_start_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_value" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cross_section_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="pipe_quality"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_end_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="dist_calc_points"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="profile_num"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="material"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="sewerage_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="original_length"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_end_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="invert_level_start_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="calculation_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_value"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cross_section_definition_id"/>
+    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="pipe_quality" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="connection_node_end_id" desc=""/>
-    <constraint exp="" field="dist_calc_points" desc=""/>
-    <constraint exp="" field="profile_num" desc=""/>
-    <constraint exp="" field="connection_node_start_id" desc=""/>
-    <constraint exp="" field="material" desc=""/>
-    <constraint exp="" field="sewerage_type" desc=""/>
-    <constraint exp="" field="original_length" desc=""/>
-    <constraint exp="" field="invert_level_end_point" desc=""/>
-    <constraint exp="" field="invert_level_start_point" desc=""/>
-    <constraint exp="" field="calculation_type" desc=""/>
-    <constraint exp="" field="friction_type" desc=""/>
-    <constraint exp="" field="friction_value" desc=""/>
-    <constraint exp="" field="cross_section_definition_id" desc=""/>
-    <constraint exp="" field="id" desc=""/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="pipe_quality"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="connection_node_end_id"/>
+    <constraint exp="" desc="" field="dist_calc_points"/>
+    <constraint exp="" desc="" field="profile_num"/>
+    <constraint exp="" desc="" field="connection_node_start_id"/>
+    <constraint exp="" desc="" field="material"/>
+    <constraint exp="" desc="" field="sewerage_type"/>
+    <constraint exp="" desc="" field="original_length"/>
+    <constraint exp="" desc="" field="invert_level_end_point"/>
+    <constraint exp="" desc="" field="invert_level_start_point"/>
+    <constraint exp="" desc="" field="calculation_type"/>
+    <constraint exp="" desc="" field="friction_type"/>
+    <constraint exp="" desc="" field="friction_value"/>
+    <constraint exp="" desc="" field="cross_section_definition_id"/>
+    <constraint exp="" desc="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="pipe_quality" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column name="dist_calc_points" hidden="0" width="-1" type="field"/>
-      <column name="profile_num" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="material" hidden="0" width="-1" type="field"/>
-      <column name="sewerage_type" hidden="0" width="-1" type="field"/>
-      <column name="original_length" hidden="0" width="-1" type="field"/>
-      <column name="invert_level_end_point" hidden="0" width="-1" type="field"/>
-      <column name="invert_level_start_point" hidden="0" width="-1" type="field"/>
-      <column name="calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_value" hidden="0" width="-1" type="field"/>
-      <column name="cross_section_definition_id" hidden="0" width="-1" type="field"/>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" type="field" hidden="0" name="zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="pipe_quality"/>
+      <column width="-1" type="field" hidden="0" name="code"/>
+      <column width="-1" type="field" hidden="0" name="display_name"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_end_id"/>
+      <column width="-1" type="field" hidden="0" name="dist_calc_points"/>
+      <column width="-1" type="field" hidden="0" name="profile_num"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="material"/>
+      <column width="-1" type="field" hidden="0" name="sewerage_type"/>
+      <column width="-1" type="field" hidden="0" name="original_length"/>
+      <column width="-1" type="field" hidden="0" name="invert_level_end_point"/>
+      <column width="-1" type="field" hidden="0" name="invert_level_start_point"/>
+      <column width="-1" type="field" hidden="0" name="calculation_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_value"/>
+      <column width="-1" type="field" hidden="0" name="cross_section_definition_id"/>
+      <column width="-1" type="field" hidden="0" name="id"/>
+      <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -427,29 +429,29 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Pipe" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="17" showLabel="1"/>
-        <attributeEditorField name="display_name" index="3" showLabel="1"/>
-        <attributeEditorField name="code" index="2" showLabel="1"/>
-        <attributeEditorField name="calculation_type" index="13" showLabel="1"/>
-        <attributeEditorField name="dist_calc_points" index="5" showLabel="1"/>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Pipe" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="id" index="17"/>
+        <attributeEditorField showLabel="1" name="display_name" index="3"/>
+        <attributeEditorField showLabel="1" name="code" index="2"/>
+        <attributeEditorField showLabel="1" name="calculation_type" index="13"/>
+        <attributeEditorField showLabel="1" name="dist_calc_points" index="5"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="invert_level_start_point" index="12" showLabel="1"/>
-        <attributeEditorField name="invert_level_end_point" index="11" showLabel="1"/>
-        <attributeEditorField name="friction_value" index="15" showLabel="1"/>
-        <attributeEditorField name="friction_type" index="14" showLabel="1"/>
-        <attributeEditorField name="cross_section_definition_id" index="16" showLabel="1"/>
-        <attributeEditorField name="material" index="8" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="invert_level_start_point" index="12"/>
+        <attributeEditorField showLabel="1" name="invert_level_end_point" index="11"/>
+        <attributeEditorField showLabel="1" name="friction_value" index="15"/>
+        <attributeEditorField showLabel="1" name="friction_type" index="14"/>
+        <attributeEditorField showLabel="1" name="cross_section_definition_id" index="16"/>
+        <attributeEditorField showLabel="1" name="material" index="8"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="sewerage_type" index="9" showLabel="1"/>
-        <attributeEditorField name="zoom_category" index="0" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="visualization" columnCount="1">
+        <attributeEditorField showLabel="1" name="sewerage_type" index="9"/>
+        <attributeEditorField showLabel="1" name="zoom_category" index="0"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="connection_node_start_id" index="7" showLabel="1"/>
-        <attributeEditorField name="connection_node_end_id" index="4" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="connection_node_start_id" index="7"/>
+        <attributeEditorField showLabel="1" name="connection_node_end_id" index="4"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
@@ -474,24 +476,24 @@ def my_form_open(dialog, layer, feature):
     <field name="zoom_category" editable="1"/>
   </editable>
   <labelOnTop>
-    <field name="calculation_type" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_end_id" labelOnTop="0"/>
-    <field name="connection_node_start_id" labelOnTop="0"/>
-    <field name="cross_section_definition_id" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="dist_calc_points" labelOnTop="0"/>
-    <field name="friction_type" labelOnTop="0"/>
-    <field name="friction_value" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="invert_level_end_point" labelOnTop="0"/>
-    <field name="invert_level_start_point" labelOnTop="0"/>
-    <field name="material" labelOnTop="0"/>
-    <field name="original_length" labelOnTop="0"/>
-    <field name="pipe_quality" labelOnTop="0"/>
-    <field name="profile_num" labelOnTop="0"/>
-    <field name="sewerage_type" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="calculation_type"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="cross_section_definition_id"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="dist_calc_points"/>
+    <field labelOnTop="0" name="friction_type"/>
+    <field labelOnTop="0" name="friction_value"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="invert_level_end_point"/>
+    <field labelOnTop="0" name="invert_level_start_point"/>
+    <field labelOnTop="0" name="material"/>
+    <field labelOnTop="0" name="original_length"/>
+    <field labelOnTop="0" name="pipe_quality"/>
+    <field labelOnTop="0" name="profile_num"/>
+    <field labelOnTop="0" name="sewerage_type"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>

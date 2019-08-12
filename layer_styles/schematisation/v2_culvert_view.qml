@@ -1,14 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="0" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="-4.65661e-10" simplifyDrawingHints="1">
+<qgis readOnly="0" simplifyDrawingTol="1" version="3.4.5-Madeira" simplifyAlgorithm="0" simplifyMaxScale="1" maxScale="-4.65661e-10" labelsEnabled="0" simplifyDrawingHints="1" simplifyLocal="1" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" type="singleSymbol" enableorderby="0" symbollevels="0">
+  <renderer-v2 enableorderby="0" type="singleSymbol" forceraster="0" symbollevels="0">
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" force_rhr="0" type="line" alpha="1" name="0">
+        <layer enabled="1" class="SimpleLine" locked="0" pass="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -27,13 +27,13 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="MarkerLine" pass="0" locked="0" enabled="1">
+        <layer enabled="1" class="MarkerLine" locked="0" pass="0">
           <prop k="interval" v="3"/>
           <prop k="interval_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="interval_unit" v="MM"/>
@@ -48,13 +48,13 @@
           <prop k="rotate" v="0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" type="QString" name="name"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" type="QString" name="type"/>
             </Option>
           </data_defined_properties>
-          <symbol name="@0@1" force_rhr="0" alpha="1" type="marker" clip_to_extent="1">
-            <layer class="SimpleMarker" pass="0" locked="0" enabled="1">
+          <symbol clip_to_extent="1" force_rhr="0" type="marker" alpha="1" name="@0@1">
+            <layer enabled="1" class="SimpleMarker" locked="0" pass="0">
               <prop k="angle" v="0"/>
               <prop k="color" v="101,101,101,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
@@ -75,9 +75,9 @@
               <prop k="vertical_anchor_point" v="1"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option name="name" value="" type="QString"/>
+                  <Option value="" type="QString" name="name"/>
                   <Option name="properties"/>
-                  <Option name="type" value="collection" type="QString"/>
+                  <Option value="collection" type="QString" name="type"/>
                 </Option>
               </data_defined_properties>
             </layer>
@@ -97,18 +97,18 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="-4.65661e-10" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" lineSizeType="MM" backgroundColor="#ffffff" penColor="#000000" barWidth="5" sizeType="MM" penAlpha="255" minScaleDenominator="-4.65661e-10" scaleBasedVisibility="0" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" minimumSize="0" height="15" maxScaleDenominator="1e+08" penWidth="0" backgroundAlpha="255" width="15" enabled="0" scaleDependency="Area" rotationOffset="270">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="2" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings dist="0" priority="0" linePlacementFlags="2" obstacle="0" showAll="1" placement="2" zIndex="0">
     <properties>
       <Option type="Map">
-        <Option name="name" value="" type="QString"/>
+        <Option value="" type="QString" name="name"/>
         <Option name="properties"/>
-        <Option name="type" value="collection" type="QString"/>
+        <Option value="collection" type="QString" name="type"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -128,8 +128,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -138,8 +138,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -148,8 +148,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -158,18 +158,18 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="100: embedded" value="100" type="QString"/>
+                <Option value="100" type="QString" name="100: embedded"/>
               </Option>
               <Option type="Map">
-                <Option name="101: isolated" value="101" type="QString"/>
+                <Option value="101" type="QString" name="101: isolated"/>
               </Option>
               <Option type="Map">
-                <Option name="102: connected" value="102" type="QString"/>
+                <Option value="102" type="QString" name="102: connected"/>
               </Option>
               <Option type="Map">
-                <Option name="105: double connected" value="105" type="QString"/>
+                <Option value="105" type="QString" name="105: double connected"/>
               </Option>
             </Option>
           </Option>
@@ -180,8 +180,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -190,12 +190,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: Chezy" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: Chèzy"/>
               </Option>
               <Option type="Map">
-                <Option name="2: Manning" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: Manning"/>
               </Option>
             </Option>
           </Option>
@@ -206,8 +206,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -216,27 +216,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" type="QString" name="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5"/>
               </Option>
             </Option>
           </Option>
@@ -247,8 +247,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -257,8 +257,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -267,8 +267,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -277,8 +277,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -287,8 +287,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -297,8 +297,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -307,8 +307,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -317,8 +317,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -327,21 +327,21 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: rectangle" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: rectangle"/>
               </Option>
               <Option type="Map">
-                <Option name="2: round" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: round"/>
               </Option>
               <Option type="Map">
-                <Option name="3: egg" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: egg"/>
               </Option>
               <Option type="Map">
-                <Option name="5: tabulated rectangle" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5: tabulated rectangle"/>
               </Option>
               <Option type="Map">
-                <Option name="6: tabulated trapezium" value="6" type="QString"/>
+                <Option value="6" type="QString" name="6: tabulated trapezium"/>
               </Option>
             </Option>
           </Option>
@@ -352,8 +352,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -362,8 +362,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -372,135 +372,135 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="ROWID"/>
-    <alias name="id" index="1" field="cul_id"/>
-    <alias name="display_name" index="2" field="cul_display_name"/>
-    <alias name="code" index="3" field="cul_code"/>
-    <alias name="calculation_type" index="4" field="cul_calculation_type"/>
-    <alias name="friction_value" index="5" field="cul_friction_value"/>
-    <alias name="friction_type" index="6" field="cul_friction_type"/>
-    <alias name="dist_calc_points" index="7" field="cul_dist_calc_points"/>
-    <alias name="zoom_category" index="8" field="cul_zoom_category"/>
-    <alias name="cross_section_definition_id" index="9" field="cul_cross_section_definition_id"/>
-    <alias name="discharge_coefficient_positive" index="10" field="cul_discharge_coefficient_positive"/>
-    <alias name="discharge_coefficient_negative" index="11" field="cul_discharge_coefficient_negative"/>
-    <alias name="invert_level_start_point" index="12" field="cul_invert_level_start_point"/>
-    <alias name="invert_level_end_point" index="13" field="cul_invert_level_end_point"/>
-    <alias name="connection_node_start_id" index="14" field="cul_connection_node_start_id"/>
-    <alias name="connection_node_end_id" index="15" field="cul_connection_node_end_id"/>
-    <alias name="id" index="16" field="def_id"/>
-    <alias name="shape" index="17" field="def_shape"/>
-    <alias name="width" index="18" field="def_width"/>
-    <alias name="height" index="19" field="def_height"/>
-    <alias name="code" index="20" field="def_code"/>
+    <alias name="" field="ROWID" index="0"/>
+    <alias name="id" field="cul_id" index="1"/>
+    <alias name="display_name" field="cul_display_name" index="2"/>
+    <alias name="code" field="cul_code" index="3"/>
+    <alias name="calculation_type" field="cul_calculation_type" index="4"/>
+    <alias name="friction_value" field="cul_friction_value" index="5"/>
+    <alias name="friction_type" field="cul_friction_type" index="6"/>
+    <alias name="dist_calc_points" field="cul_dist_calc_points" index="7"/>
+    <alias name="zoom_category" field="cul_zoom_category" index="8"/>
+    <alias name="cross_section_definition_id" field="cul_cross_section_definition_id" index="9"/>
+    <alias name="discharge_coefficient_positive" field="cul_discharge_coefficient_positive" index="10"/>
+    <alias name="discharge_coefficient_negative" field="cul_discharge_coefficient_negative" index="11"/>
+    <alias name="invert_level_start_point" field="cul_invert_level_start_point" index="12"/>
+    <alias name="invert_level_end_point" field="cul_invert_level_end_point" index="13"/>
+    <alias name="connection_node_start_id" field="cul_connection_node_start_id" index="14"/>
+    <alias name="connection_node_end_id" field="cul_connection_node_end_id" index="15"/>
+    <alias name="id" field="def_id" index="16"/>
+    <alias name="shape" field="def_shape" index="17"/>
+    <alias name="width" field="def_width" index="18"/>
+    <alias name="height" field="def_height" index="19"/>
+    <alias name="code" field="def_code" index="20"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="ROWID" expression=""/>
-    <default applyOnUpdate="0" field="cul_id" expression="if(maximum(cul_id) is null,1, maximum(cul_id)+1)"/>
-    <default applyOnUpdate="0" field="cul_display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="cul_code" expression="'new'"/>
-    <default applyOnUpdate="0" field="cul_calculation_type" expression="101"/>
-    <default applyOnUpdate="0" field="cul_friction_value" expression="0.0145"/>
-    <default applyOnUpdate="0" field="cul_friction_type" expression="2"/>
-    <default applyOnUpdate="0" field="cul_dist_calc_points" expression="10000"/>
-    <default applyOnUpdate="0" field="cul_zoom_category" expression="3"/>
-    <default applyOnUpdate="0" field="cul_cross_section_definition_id" expression=""/>
-    <default applyOnUpdate="0" field="cul_discharge_coefficient_positive" expression="0.8"/>
-    <default applyOnUpdate="0" field="cul_discharge_coefficient_negative" expression="0.8"/>
-    <default applyOnUpdate="0" field="cul_invert_level_start_point" expression=""/>
-    <default applyOnUpdate="0" field="cul_invert_level_end_point" expression=""/>
-    <default applyOnUpdate="0" field="cul_connection_node_start_id" expression="'filled automatically'"/>
-    <default applyOnUpdate="0" field="cul_connection_node_end_id" expression="'filled automatically'"/>
-    <default applyOnUpdate="0" field="def_id" expression=""/>
-    <default applyOnUpdate="0" field="def_shape" expression=""/>
-    <default applyOnUpdate="0" field="def_width" expression=""/>
-    <default applyOnUpdate="0" field="def_height" expression=""/>
-    <default applyOnUpdate="0" field="def_code" expression=""/>
+    <default expression="" applyOnUpdate="0" field="ROWID"/>
+    <default expression="if(maximum(cul_id) is null,1, maximum(cul_id)+1)" applyOnUpdate="0" field="cul_id"/>
+    <default expression="'new'" applyOnUpdate="0" field="cul_display_name"/>
+    <default expression="'new'" applyOnUpdate="0" field="cul_code"/>
+    <default expression="101" applyOnUpdate="0" field="cul_calculation_type"/>
+    <default expression="0.0145" applyOnUpdate="0" field="cul_friction_value"/>
+    <default expression="2" applyOnUpdate="0" field="cul_friction_type"/>
+    <default expression="10000" applyOnUpdate="0" field="cul_dist_calc_points"/>
+    <default expression="3" applyOnUpdate="0" field="cul_zoom_category"/>
+    <default expression="" applyOnUpdate="0" field="cul_cross_section_definition_id"/>
+    <default expression="0.8" applyOnUpdate="0" field="cul_discharge_coefficient_positive"/>
+    <default expression="0.8" applyOnUpdate="0" field="cul_discharge_coefficient_negative"/>
+    <default expression="" applyOnUpdate="0" field="cul_invert_level_start_point"/>
+    <default expression="" applyOnUpdate="0" field="cul_invert_level_end_point"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="cul_connection_node_start_id"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="cul_connection_node_end_id"/>
+    <default expression="" applyOnUpdate="0" field="def_id"/>
+    <default expression="" applyOnUpdate="0" field="def_shape"/>
+    <default expression="" applyOnUpdate="0" field="def_width"/>
+    <default expression="" applyOnUpdate="0" field="def_height"/>
+    <default expression="" applyOnUpdate="0" field="def_code"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="ROWID" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_friction_value" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_friction_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_dist_calc_points" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_cross_section_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_discharge_coefficient_positive" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_discharge_coefficient_negative" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_invert_level_start_point" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cul_invert_level_end_point" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="cul_connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="cul_connection_node_end_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="def_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_shape" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_width" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_height" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="def_code" unique_strength="0"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="ROWID"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_calculation_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_friction_value"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_friction_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_dist_calc_points"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_cross_section_definition_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_discharge_coefficient_positive"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_discharge_coefficient_negative"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_invert_level_start_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cul_invert_level_end_point"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="cul_connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="cul_connection_node_end_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="def_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_shape"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_width"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_height"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="def_code"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="ROWID" desc=""/>
-    <constraint exp="" field="cul_id" desc=""/>
-    <constraint exp="" field="cul_display_name" desc=""/>
-    <constraint exp="" field="cul_code" desc=""/>
-    <constraint exp="" field="cul_calculation_type" desc=""/>
-    <constraint exp="" field="cul_friction_value" desc=""/>
-    <constraint exp="" field="cul_friction_type" desc=""/>
-    <constraint exp="" field="cul_dist_calc_points" desc=""/>
-    <constraint exp="" field="cul_zoom_category" desc=""/>
-    <constraint exp="" field="cul_cross_section_definition_id" desc=""/>
-    <constraint exp="" field="cul_discharge_coefficient_positive" desc=""/>
-    <constraint exp="" field="cul_discharge_coefficient_negative" desc=""/>
-    <constraint exp="" field="cul_invert_level_start_point" desc=""/>
-    <constraint exp="" field="cul_invert_level_end_point" desc=""/>
-    <constraint exp="" field="cul_connection_node_start_id" desc=""/>
-    <constraint exp="" field="cul_connection_node_end_id" desc=""/>
-    <constraint exp="" field="def_id" desc=""/>
-    <constraint exp="" field="def_shape" desc=""/>
-    <constraint exp="" field="def_width" desc=""/>
-    <constraint exp="" field="def_height" desc=""/>
-    <constraint exp="" field="def_code" desc=""/>
+    <constraint exp="" desc="" field="ROWID"/>
+    <constraint exp="" desc="" field="cul_id"/>
+    <constraint exp="" desc="" field="cul_display_name"/>
+    <constraint exp="" desc="" field="cul_code"/>
+    <constraint exp="" desc="" field="cul_calculation_type"/>
+    <constraint exp="" desc="" field="cul_friction_value"/>
+    <constraint exp="" desc="" field="cul_friction_type"/>
+    <constraint exp="" desc="" field="cul_dist_calc_points"/>
+    <constraint exp="" desc="" field="cul_zoom_category"/>
+    <constraint exp="" desc="" field="cul_cross_section_definition_id"/>
+    <constraint exp="" desc="" field="cul_discharge_coefficient_positive"/>
+    <constraint exp="" desc="" field="cul_discharge_coefficient_negative"/>
+    <constraint exp="" desc="" field="cul_invert_level_start_point"/>
+    <constraint exp="" desc="" field="cul_invert_level_end_point"/>
+    <constraint exp="" desc="" field="cul_connection_node_start_id"/>
+    <constraint exp="" desc="" field="cul_connection_node_end_id"/>
+    <constraint exp="" desc="" field="def_id"/>
+    <constraint exp="" desc="" field="def_shape"/>
+    <constraint exp="" desc="" field="def_width"/>
+    <constraint exp="" desc="" field="def_height"/>
+    <constraint exp="" desc="" field="def_code"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column name="ROWID" hidden="0" width="-1" type="field"/>
-      <column name="cul_id" hidden="0" width="-1" type="field"/>
-      <column name="cul_display_name" hidden="0" width="-1" type="field"/>
-      <column name="cul_code" hidden="0" width="-1" type="field"/>
-      <column name="cul_calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="cul_friction_value" hidden="0" width="-1" type="field"/>
-      <column name="cul_friction_type" hidden="0" width="-1" type="field"/>
-      <column name="cul_dist_calc_points" hidden="0" width="-1" type="field"/>
-      <column name="cul_zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="cul_cross_section_definition_id" hidden="0" width="-1" type="field"/>
-      <column name="cul_discharge_coefficient_positive" hidden="0" width="-1" type="field"/>
-      <column name="cul_discharge_coefficient_negative" hidden="0" width="-1" type="field"/>
-      <column name="cul_invert_level_start_point" hidden="0" width="-1" type="field"/>
-      <column name="cul_invert_level_end_point" hidden="0" width="-1" type="field"/>
-      <column name="cul_connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="cul_connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column name="def_id" hidden="0" width="-1" type="field"/>
-      <column name="def_shape" hidden="0" width="-1" type="field"/>
-      <column name="def_width" hidden="0" width="-1" type="field"/>
-      <column name="def_height" hidden="0" width="-1" type="field"/>
-      <column name="def_code" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" type="field" hidden="0" name="ROWID"/>
+      <column width="-1" type="field" hidden="0" name="cul_id"/>
+      <column width="-1" type="field" hidden="0" name="cul_display_name"/>
+      <column width="-1" type="field" hidden="0" name="cul_code"/>
+      <column width="-1" type="field" hidden="0" name="cul_calculation_type"/>
+      <column width="-1" type="field" hidden="0" name="cul_friction_value"/>
+      <column width="-1" type="field" hidden="0" name="cul_friction_type"/>
+      <column width="-1" type="field" hidden="0" name="cul_dist_calc_points"/>
+      <column width="-1" type="field" hidden="0" name="cul_zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="cul_cross_section_definition_id"/>
+      <column width="-1" type="field" hidden="0" name="cul_discharge_coefficient_positive"/>
+      <column width="-1" type="field" hidden="0" name="cul_discharge_coefficient_negative"/>
+      <column width="-1" type="field" hidden="0" name="cul_invert_level_start_point"/>
+      <column width="-1" type="field" hidden="0" name="cul_invert_level_end_point"/>
+      <column width="-1" type="field" hidden="0" name="cul_connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="cul_connection_node_end_id"/>
+      <column width="-1" type="field" hidden="0" name="def_id"/>
+      <column width="-1" type="field" hidden="0" name="def_shape"/>
+      <column width="-1" type="field" hidden="0" name="def_width"/>
+      <column width="-1" type="field" hidden="0" name="def_height"/>
+      <column width="-1" type="field" hidden="0" name="def_code"/>
+      <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -531,35 +531,35 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Culvert view" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="cul_id" index="1" showLabel="1"/>
-        <attributeEditorField name="cul_display_name" index="2" showLabel="1"/>
-        <attributeEditorField name="cul_code" index="3" showLabel="1"/>
-        <attributeEditorField name="cul_calculation_type" index="4" showLabel="1"/>
-        <attributeEditorField name="cul_dist_calc_points" index="7" showLabel="1"/>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Culvert view" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="cul_id" index="1"/>
+        <attributeEditorField showLabel="1" name="cul_display_name" index="2"/>
+        <attributeEditorField showLabel="1" name="cul_code" index="3"/>
+        <attributeEditorField showLabel="1" name="cul_calculation_type" index="4"/>
+        <attributeEditorField showLabel="1" name="cul_dist_calc_points" index="7"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="cul_invert_level_start_point" index="12" showLabel="1"/>
-        <attributeEditorField name="cul_invert_level_end_point" index="13" showLabel="1"/>
-        <attributeEditorField name="cul_friction_type" index="6" showLabel="1"/>
-        <attributeEditorField name="cul_friction_value" index="5" showLabel="1"/>
-        <attributeEditorField name="cul_discharge_coefficient_positive" index="10" showLabel="1"/>
-        <attributeEditorField name="cul_discharge_coefficient_negative" index="11" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="cul_invert_level_start_point" index="12"/>
+        <attributeEditorField showLabel="1" name="cul_invert_level_end_point" index="13"/>
+        <attributeEditorField showLabel="1" name="cul_friction_type" index="6"/>
+        <attributeEditorField showLabel="1" name="cul_friction_value" index="5"/>
+        <attributeEditorField showLabel="1" name="cul_discharge_coefficient_positive" index="10"/>
+        <attributeEditorField showLabel="1" name="cul_discharge_coefficient_negative" index="11"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Cross section definition" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="cul_cross_section_definition_id" index="9" showLabel="1"/>
-        <attributeEditorField name="def_code" index="20" showLabel="1"/>
-        <attributeEditorField name="def_shape" index="17" showLabel="1"/>
-        <attributeEditorField name="def_width" index="18" showLabel="1"/>
-        <attributeEditorField name="def_height" index="19" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Cross section definition" columnCount="1">
+        <attributeEditorField showLabel="1" name="cul_cross_section_definition_id" index="9"/>
+        <attributeEditorField showLabel="1" name="def_code" index="20"/>
+        <attributeEditorField showLabel="1" name="def_shape" index="17"/>
+        <attributeEditorField showLabel="1" name="def_width" index="18"/>
+        <attributeEditorField showLabel="1" name="def_height" index="19"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="cul_zoom_category" index="8" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Visualization" columnCount="1">
+        <attributeEditorField showLabel="1" name="cul_zoom_category" index="8"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="cul_connection_node_start_id" index="14" showLabel="1"/>
-        <attributeEditorField name="cul_connection_node_end_id" index="15" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="cul_connection_node_start_id" index="14"/>
+        <attributeEditorField showLabel="1" name="cul_connection_node_end_id" index="15"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
@@ -587,27 +587,27 @@ def my_form_open(dialog, layer, feature):
     <field name="def_width" editable="0"/>
   </editable>
   <labelOnTop>
-    <field name="ROWID" labelOnTop="0"/>
-    <field name="cul_calculation_type" labelOnTop="0"/>
-    <field name="cul_code" labelOnTop="0"/>
-    <field name="cul_connection_node_end_id" labelOnTop="0"/>
-    <field name="cul_connection_node_start_id" labelOnTop="0"/>
-    <field name="cul_cross_section_definition_id" labelOnTop="0"/>
-    <field name="cul_discharge_coefficient_negative" labelOnTop="0"/>
-    <field name="cul_discharge_coefficient_positive" labelOnTop="0"/>
-    <field name="cul_display_name" labelOnTop="0"/>
-    <field name="cul_dist_calc_points" labelOnTop="0"/>
-    <field name="cul_friction_type" labelOnTop="0"/>
-    <field name="cul_friction_value" labelOnTop="0"/>
-    <field name="cul_id" labelOnTop="0"/>
-    <field name="cul_invert_level_end_point" labelOnTop="0"/>
-    <field name="cul_invert_level_start_point" labelOnTop="0"/>
-    <field name="cul_zoom_category" labelOnTop="0"/>
-    <field name="def_code" labelOnTop="0"/>
-    <field name="def_height" labelOnTop="0"/>
-    <field name="def_id" labelOnTop="0"/>
-    <field name="def_shape" labelOnTop="0"/>
-    <field name="def_width" labelOnTop="0"/>
+    <field labelOnTop="0" name="ROWID"/>
+    <field labelOnTop="0" name="cul_calculation_type"/>
+    <field labelOnTop="0" name="cul_code"/>
+    <field labelOnTop="0" name="cul_connection_node_end_id"/>
+    <field labelOnTop="0" name="cul_connection_node_start_id"/>
+    <field labelOnTop="0" name="cul_cross_section_definition_id"/>
+    <field labelOnTop="0" name="cul_discharge_coefficient_negative"/>
+    <field labelOnTop="0" name="cul_discharge_coefficient_positive"/>
+    <field labelOnTop="0" name="cul_display_name"/>
+    <field labelOnTop="0" name="cul_dist_calc_points"/>
+    <field labelOnTop="0" name="cul_friction_type"/>
+    <field labelOnTop="0" name="cul_friction_value"/>
+    <field labelOnTop="0" name="cul_id"/>
+    <field labelOnTop="0" name="cul_invert_level_end_point"/>
+    <field labelOnTop="0" name="cul_invert_level_start_point"/>
+    <field labelOnTop="0" name="cul_zoom_category"/>
+    <field labelOnTop="0" name="def_code"/>
+    <field labelOnTop="0" name="def_height"/>
+    <field labelOnTop="0" name="def_id"/>
+    <field labelOnTop="0" name="def_shape"/>
+    <field labelOnTop="0" name="def_width"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>ROWID</previewExpression>

@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0">
+<qgis readOnly="0" version="3.4.5-Madeira" maxScale="0" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
@@ -23,27 +23,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" type="QString" name="-1"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" type="QString" name="0"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" type="QString" name="5"/>
               </Option>
             </Option>
           </Option>
@@ -54,8 +54,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -64,8 +64,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -74,8 +74,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -84,8 +84,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -94,8 +94,8 @@
       <editWidget type="CheckBox">
         <config>
           <Option type="Map">
-            <Option name="CheckedState" value="1" type="QString"/>
-            <Option name="UncheckedState" value="0" type="QString"/>
+            <Option value="1" type="QString" name="CheckedState"/>
+            <Option value="0" type="QString" name="UncheckedState"/>
           </Option>
         </config>
       </editWidget>
@@ -104,8 +104,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -114,8 +114,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -124,8 +124,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -134,8 +134,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -144,12 +144,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="3: broad crested" value="3" type="QString"/>
+                <Option value="3" type="QString" name="3: broad crested"/>
               </Option>
               <Option type="Map">
-                <Option name="4: short crested" value="4" type="QString"/>
+                <Option value="4" type="QString" name="4: short crested"/>
               </Option>
             </Option>
           </Option>
@@ -160,12 +160,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option name="map" type="List">
+            <Option type="List" name="map">
               <Option type="Map">
-                <Option name="1: Chezy" value="1" type="QString"/>
+                <Option value="1" type="QString" name="1: Chèzy"/>
               </Option>
               <Option type="Map">
-                <Option name="2: manning" value="2" type="QString"/>
+                <Option value="2" type="QString" name="2: Manning"/>
               </Option>
             </Option>
           </Option>
@@ -176,8 +176,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -186,8 +186,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
@@ -196,105 +196,105 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="zoom_category"/>
-    <alias name="" index="1" field="code"/>
-    <alias name="" index="2" field="display_name"/>
-    <alias name="" index="3" field="connection_node_end_id"/>
-    <alias name="" index="4" field="discharge_coefficient_negative"/>
-    <alias name="" index="5" field="sewerage"/>
-    <alias name="" index="6" field="connection_node_start_id"/>
-    <alias name="" index="7" field="discharge_coefficient_positive"/>
-    <alias name="" index="8" field="crest_level"/>
-    <alias name="" index="9" field="max_capacity"/>
-    <alias name="" index="10" field="crest_type"/>
-    <alias name="" index="11" field="friction_type"/>
-    <alias name="" index="12" field="friction_value"/>
-    <alias name="" index="13" field="cross_section_definition_id"/>
-    <alias name="" index="14" field="id"/>
+    <alias name="" field="zoom_category" index="0"/>
+    <alias name="" field="code" index="1"/>
+    <alias name="" field="display_name" index="2"/>
+    <alias name="" field="connection_node_end_id" index="3"/>
+    <alias name="" field="discharge_coefficient_negative" index="4"/>
+    <alias name="" field="sewerage" index="5"/>
+    <alias name="" field="connection_node_start_id" index="6"/>
+    <alias name="" field="discharge_coefficient_positive" index="7"/>
+    <alias name="" field="crest_level" index="8"/>
+    <alias name="" field="max_capacity" index="9"/>
+    <alias name="" field="crest_type" index="10"/>
+    <alias name="" field="friction_type" index="11"/>
+    <alias name="" field="friction_value" index="12"/>
+    <alias name="" field="cross_section_definition_id" index="13"/>
+    <alias name="" field="id" index="14"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="zoom_category" expression="3"/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="connection_node_end_id" expression=""/>
-    <default applyOnUpdate="0" field="discharge_coefficient_negative" expression="0.8"/>
-    <default applyOnUpdate="0" field="sewerage" expression=""/>
-    <default applyOnUpdate="0" field="connection_node_start_id" expression=""/>
-    <default applyOnUpdate="0" field="discharge_coefficient_positive" expression="0.8"/>
-    <default applyOnUpdate="0" field="crest_level" expression=""/>
-    <default applyOnUpdate="0" field="max_capacity" expression=""/>
-    <default applyOnUpdate="0" field="crest_type" expression="4"/>
-    <default applyOnUpdate="0" field="friction_type" expression="2"/>
-    <default applyOnUpdate="0" field="friction_value" expression="0.02"/>
-    <default applyOnUpdate="0" field="cross_section_definition_id" expression=""/>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default expression="3" applyOnUpdate="0" field="zoom_category"/>
+    <default expression="'new'" applyOnUpdate="0" field="code"/>
+    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_end_id"/>
+    <default expression="0.8" applyOnUpdate="0" field="discharge_coefficient_negative"/>
+    <default expression="" applyOnUpdate="0" field="sewerage"/>
+    <default expression="" applyOnUpdate="0" field="connection_node_start_id"/>
+    <default expression="0.8" applyOnUpdate="0" field="discharge_coefficient_positive"/>
+    <default expression="" applyOnUpdate="0" field="crest_level"/>
+    <default expression="" applyOnUpdate="0" field="max_capacity"/>
+    <default expression="4" applyOnUpdate="0" field="crest_type"/>
+    <default expression="2" applyOnUpdate="0" field="friction_type"/>
+    <default expression="0.02" applyOnUpdate="0" field="friction_value"/>
+    <default expression="" applyOnUpdate="0" field="cross_section_definition_id"/>
+    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_end_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="discharge_coefficient_negative" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="sewerage" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="discharge_coefficient_positive" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="crest_level" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="max_capacity" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="crest_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="friction_value" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="cross_section_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_end_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="discharge_coefficient_negative"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="sewerage"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="discharge_coefficient_positive"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="crest_level"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="max_capacity"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="crest_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="friction_value"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="cross_section_definition_id"/>
+    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="connection_node_end_id" desc=""/>
-    <constraint exp="" field="discharge_coefficient_negative" desc=""/>
-    <constraint exp="" field="sewerage" desc=""/>
-    <constraint exp="" field="connection_node_start_id" desc=""/>
-    <constraint exp="" field="discharge_coefficient_positive" desc=""/>
-    <constraint exp="" field="crest_level" desc=""/>
-    <constraint exp="" field="max_capacity" desc=""/>
-    <constraint exp="" field="crest_type" desc=""/>
-    <constraint exp="" field="friction_type" desc=""/>
-    <constraint exp="" field="friction_value" desc=""/>
-    <constraint exp="" field="cross_section_definition_id" desc=""/>
-    <constraint exp="" field="id" desc=""/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="connection_node_end_id"/>
+    <constraint exp="" desc="" field="discharge_coefficient_negative"/>
+    <constraint exp="" desc="" field="sewerage"/>
+    <constraint exp="" desc="" field="connection_node_start_id"/>
+    <constraint exp="" desc="" field="discharge_coefficient_positive"/>
+    <constraint exp="" desc="" field="crest_level"/>
+    <constraint exp="" desc="" field="max_capacity"/>
+    <constraint exp="" desc="" field="crest_type"/>
+    <constraint exp="" desc="" field="friction_type"/>
+    <constraint exp="" desc="" field="friction_value"/>
+    <constraint exp="" desc="" field="cross_section_definition_id"/>
+    <constraint exp="" desc="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column name="discharge_coefficient_negative" hidden="0" width="-1" type="field"/>
-      <column name="sewerage" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="discharge_coefficient_positive" hidden="0" width="-1" type="field"/>
-      <column name="crest_level" hidden="0" width="-1" type="field"/>
-      <column name="max_capacity" hidden="0" width="-1" type="field"/>
-      <column name="crest_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_type" hidden="0" width="-1" type="field"/>
-      <column name="friction_value" hidden="0" width="-1" type="field"/>
-      <column name="cross_section_definition_id" hidden="0" width="-1" type="field"/>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" type="field" hidden="0" name="zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="code"/>
+      <column width="-1" type="field" hidden="0" name="display_name"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_end_id"/>
+      <column width="-1" type="field" hidden="0" name="discharge_coefficient_negative"/>
+      <column width="-1" type="field" hidden="0" name="sewerage"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="discharge_coefficient_positive"/>
+      <column width="-1" type="field" hidden="0" name="crest_level"/>
+      <column width="-1" type="field" hidden="0" name="max_capacity"/>
+      <column width="-1" type="field" hidden="0" name="crest_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_type"/>
+      <column width="-1" type="field" hidden="0" name="friction_value"/>
+      <column width="-1" type="field" hidden="0" name="cross_section_definition_id"/>
+      <column width="-1" type="field" hidden="0" name="id"/>
+      <column width="-1" type="actions" hidden="1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -325,29 +325,29 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Orifice" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="14" showLabel="1"/>
-        <attributeEditorField name="display_name" index="2" showLabel="1"/>
-        <attributeEditorField name="code" index="1" showLabel="1"/>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Orifice" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="id" index="14"/>
+        <attributeEditorField showLabel="1" name="display_name" index="2"/>
+        <attributeEditorField showLabel="1" name="code" index="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="crest_level" index="8" showLabel="1"/>
-        <attributeEditorField name="crest_type" index="10" showLabel="1"/>
-        <attributeEditorField name="discharge_coefficient_positive" index="7" showLabel="1"/>
-        <attributeEditorField name="discharge_coefficient_negative" index="4" showLabel="1"/>
-        <attributeEditorField name="friction_value" index="12" showLabel="1"/>
-        <attributeEditorField name="friction_type" index="11" showLabel="1"/>
-        <attributeEditorField name="cross_section_definition_id" index="13" showLabel="1"/>
-        <attributeEditorField name="max_capacity" index="9" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="crest_level" index="8"/>
+        <attributeEditorField showLabel="1" name="crest_type" index="10"/>
+        <attributeEditorField showLabel="1" name="discharge_coefficient_positive" index="7"/>
+        <attributeEditorField showLabel="1" name="discharge_coefficient_negative" index="4"/>
+        <attributeEditorField showLabel="1" name="friction_value" index="12"/>
+        <attributeEditorField showLabel="1" name="friction_type" index="11"/>
+        <attributeEditorField showLabel="1" name="cross_section_definition_id" index="13"/>
+        <attributeEditorField showLabel="1" name="max_capacity" index="9"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualizations" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="0" showLabel="1"/>
-        <attributeEditorField name="sewerage" index="5" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Visualizations" columnCount="1">
+        <attributeEditorField showLabel="1" name="zoom_category" index="0"/>
+        <attributeEditorField showLabel="1" name="sewerage" index="5"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="connection_node_start_id" index="6" showLabel="1"/>
-        <attributeEditorField name="connection_node_end_id" index="3" showLabel="1"/>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="connection_node_start_id" index="6"/>
+        <attributeEditorField showLabel="1" name="connection_node_end_id" index="3"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
@@ -369,21 +369,21 @@ def my_form_open(dialog, layer, feature):
     <field name="zoom_category" editable="1"/>
   </editable>
   <labelOnTop>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_end_id" labelOnTop="0"/>
-    <field name="connection_node_start_id" labelOnTop="0"/>
-    <field name="crest_level" labelOnTop="0"/>
-    <field name="crest_type" labelOnTop="0"/>
-    <field name="cross_section_definition_id" labelOnTop="0"/>
-    <field name="discharge_coefficient_negative" labelOnTop="0"/>
-    <field name="discharge_coefficient_positive" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="friction_type" labelOnTop="0"/>
-    <field name="friction_value" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="max_capacity" labelOnTop="0"/>
-    <field name="sewerage" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="crest_level"/>
+    <field labelOnTop="0" name="crest_type"/>
+    <field labelOnTop="0" name="cross_section_definition_id"/>
+    <field labelOnTop="0" name="discharge_coefficient_negative"/>
+    <field labelOnTop="0" name="discharge_coefficient_positive"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="friction_type"/>
+    <field labelOnTop="0" name="friction_value"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="max_capacity"/>
+    <field labelOnTop="0" name="sewerage"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>
