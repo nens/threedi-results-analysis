@@ -1,37 +1,37 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis readOnly="0" simplifyDrawingTol="1" version="3.4.5-Madeira" simplifyAlgorithm="0" simplifyMaxScale="1" maxScale="-4.65661e-10" labelsEnabled="0" simplifyDrawingHints="0" simplifyLocal="1" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
+<qgis version="3.4.5-Madeira" styleCategories="AllStyleCategories" simplifyDrawingTol="1" minScale="1e+08" labelsEnabled="0" simplifyLocal="1" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="0" readOnly="0" simplifyMaxScale="1" simplifyAlgorithm="0" maxScale="-4.65661e-10">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 enableorderby="0" type="singleSymbol" forceraster="0" symbollevels="0">
+  <renderer-v2 enableorderby="0" forceraster="0" type="singleSymbol" symbollevels="0">
     <symbols>
-      <symbol clip_to_extent="1" force_rhr="0" type="marker" alpha="1" name="0">
-        <layer enabled="1" class="SimpleMarker" locked="0" pass="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="170,0,255,255"/>
-          <prop k="horizontal_anchor_point" v="1"/>
-          <prop k="joinstyle" v="bevel"/>
-          <prop k="name" v="square"/>
-          <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="0,0,0,255"/>
-          <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="scale_method" v="area"/>
-          <prop k="size" v="2"/>
-          <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="size_unit" v="MM"/>
-          <prop k="vertical_anchor_point" v="1"/>
+      <symbol alpha="1" name="0" force_rhr="0" type="marker" clip_to_extent="1">
+        <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+          <prop v="0" k="angle"/>
+          <prop v="170,0,255,255" k="color"/>
+          <prop v="1" k="horizontal_anchor_point"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="square" k="name"/>
+          <prop v="0,0" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="0,0,0,255" k="outline_color"/>
+          <prop v="solid" k="outline_style"/>
+          <prop v="0" k="outline_width"/>
+          <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+          <prop v="MM" k="outline_width_unit"/>
+          <prop v="area" k="scale_method"/>
+          <prop v="2" k="size"/>
+          <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+          <prop v="MM" k="size_unit"/>
+          <prop v="1" k="vertical_anchor_point"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option value="" type="QString" name="name"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option value="collection" type="QString" name="type"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -41,25 +41,25 @@
     <sizescale/>
   </renderer-v2>
   <customproperties>
-    <property value="0" key="embeddedWidgets/count"/>
+    <property key="embeddedWidgets/count" value="0"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
-    <DiagramCategory opacity="1" lineSizeType="MM" backgroundColor="#ffffff" penColor="#000000" barWidth="5" sizeType="MM" penAlpha="255" minScaleDenominator="-4.65661e-10" scaleBasedVisibility="0" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" minimumSize="0" height="15" maxScaleDenominator="1e+08" penWidth="0" backgroundAlpha="255" width="15" enabled="0" scaleDependency="Area" rotationOffset="270">
+  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
+    <DiagramCategory sizeScale="3x:0,0,0,0,0,0" penAlpha="255" width="15" penColor="#000000" lineSizeScale="3x:0,0,0,0,0,0" penWidth="0" rotationOffset="270" barWidth="5" sizeType="MM" backgroundColor="#ffffff" diagramOrientation="Up" maxScaleDenominator="1e+08" enabled="0" lineSizeType="MM" backgroundAlpha="255" labelPlacementMethod="XHeight" scaleDependency="Area" scaleBasedVisibility="0" minScaleDenominator="-4.65661e-10" opacity="1" height="15" minimumSize="0">
       <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
-      <attribute color="#000000" label="" field=""/>
+      <attribute color="#000000" field="" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings dist="0" priority="0" linePlacementFlags="2" obstacle="0" showAll="1" placement="0" zIndex="0">
+  <DiagramLayerSettings placement="0" linePlacementFlags="2" obstacle="0" dist="0" showAll="1" priority="0" zIndex="0">
     <properties>
       <Option type="Map">
-        <Option value="" type="QString" name="name"/>
+        <Option value="" name="name" type="QString"/>
         <Option name="properties"/>
-        <Option value="collection" type="QString" name="type"/>
+        <Option value="collection" name="type" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -79,8 +79,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -89,8 +89,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -99,18 +99,18 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option value="1" type="QString" name="1: waterlevel"/>
+                <Option value="1" name="1: waterlevel" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="2" type="QString" name="2: velocity"/>
+                <Option value="2" name="2: velocity" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="3" type="QString" name="3: discharge"/>
+                <Option value="3" name="3: discharge" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="5" type="QString" name="5: sommerfeld"/>
+                <Option value="5" name="5: sommerfeld" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -121,55 +121,55 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="true" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="true" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="ROWID" index="0"/>
-    <alias name="" field="id" index="1"/>
-    <alias name="" field="connection_node_id" index="2"/>
-    <alias name="" field="boundary_type" index="3"/>
-    <alias name="" field="timeseries" index="4"/>
+    <alias field="ROWID" name="" index="0"/>
+    <alias field="id" name="" index="1"/>
+    <alias field="connection_node_id" name="" index="2"/>
+    <alias field="boundary_type" name="" index="3"/>
+    <alias field="timeseries" name="" index="4"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="" applyOnUpdate="0" field="ROWID"/>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
-    <default expression="" applyOnUpdate="0" field="connection_node_id"/>
-    <default expression="" applyOnUpdate="0" field="boundary_type"/>
-    <default expression="'0,1&#xd;&#xa;9999,1'" applyOnUpdate="0" field="timeseries"/>
+    <default field="ROWID" expression="" applyOnUpdate="0"/>
+    <default field="id" expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0"/>
+    <default field="connection_node_id" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))))" applyOnUpdate="0"/>
+    <default field="boundary_type" expression="" applyOnUpdate="0"/>
+    <default field="timeseries" expression="'0,1&#xd;&#xa;9999,1'" applyOnUpdate="0"/>
   </defaults>
   <constraints>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="ROWID"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="boundary_type"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="timeseries"/>
+    <constraint unique_strength="0" exp_strength="0" field="ROWID" notnull_strength="0" constraints="0"/>
+    <constraint unique_strength="0" exp_strength="0" field="id" notnull_strength="2" constraints="1"/>
+    <constraint unique_strength="0" exp_strength="0" field="connection_node_id" notnull_strength="0" constraints="0"/>
+    <constraint unique_strength="0" exp_strength="0" field="boundary_type" notnull_strength="2" constraints="1"/>
+    <constraint unique_strength="0" exp_strength="0" field="timeseries" notnull_strength="2" constraints="1"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" desc="" field="ROWID"/>
-    <constraint exp="" desc="" field="id"/>
-    <constraint exp="" desc="" field="connection_node_id"/>
-    <constraint exp="" desc="" field="boundary_type"/>
-    <constraint exp="" desc="" field="timeseries"/>
+    <constraint field="ROWID" desc="" exp=""/>
+    <constraint field="id" desc="" exp=""/>
+    <constraint field="connection_node_id" desc="" exp=""/>
+    <constraint field="boundary_type" desc="" exp=""/>
+    <constraint field="timeseries" desc="" exp=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
+    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
   </attributeactions>
   <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
     <columns>
-      <column width="-1" type="field" hidden="0" name="ROWID"/>
-      <column width="-1" type="field" hidden="0" name="id"/>
-      <column width="-1" type="field" hidden="0" name="connection_node_id"/>
-      <column width="-1" type="field" hidden="0" name="boundary_type"/>
-      <column width="-1" type="field" hidden="0" name="timeseries"/>
-      <column width="-1" type="actions" hidden="1"/>
+      <column hidden="0" name="ROWID" type="field" width="-1"/>
+      <column hidden="0" name="id" type="field" width="-1"/>
+      <column hidden="0" name="connection_node_id" type="field" width="-1"/>
+      <column hidden="0" name="boundary_type" type="field" width="-1"/>
+      <column hidden="0" name="timeseries" type="field" width="-1"/>
+      <column hidden="1" type="actions" width="-1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -200,7 +200,7 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+    <attributeEditorContainer showLabel="1" name="General" visibilityExpression="" groupBox="0" visibilityExpressionEnabled="0" columnCount="1">
       <attributeEditorField showLabel="1" name="id" index="1"/>
       <attributeEditorField showLabel="1" name="connection_node_id" index="2"/>
       <attributeEditorField showLabel="1" name="boundary_type" index="3"/>
@@ -210,16 +210,16 @@ def my_form_open(dialog, layer, feature):
   <editable>
     <field name="ROWID" editable="1"/>
     <field name="boundary_type" editable="1"/>
-    <field name="connection_node_id" editable="1"/>
+    <field name="connection_node_id" editable="0"/>
     <field name="id" editable="1"/>
     <field name="timeseries" editable="1"/>
   </editable>
   <labelOnTop>
-    <field labelOnTop="0" name="ROWID"/>
-    <field labelOnTop="0" name="boundary_type"/>
-    <field labelOnTop="0" name="connection_node_id"/>
-    <field labelOnTop="0" name="id"/>
-    <field labelOnTop="0" name="timeseries"/>
+    <field name="ROWID" labelOnTop="0"/>
+    <field name="boundary_type" labelOnTop="0"/>
+    <field name="connection_node_id" labelOnTop="0"/>
+    <field name="id" labelOnTop="0"/>
+    <field name="timeseries" labelOnTop="0"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>ROWID</previewExpression>

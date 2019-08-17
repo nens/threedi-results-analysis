@@ -1,30 +1,30 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="0" simplifyDrawingHints="1" simplifyAlgorithm="0" maxScale="0" simplifyMaxScale="1" simplifyLocal="1" hasScaleBasedVisibilityFlag="0" simplifyDrawingTol="1" minScale="1e+08" version="3.4.5-Madeira" styleCategories="AllStyleCategories" readOnly="0">
+<qgis labelsEnabled="0" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0" simplifyDrawingHints="1">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 enableorderby="0" type="singleSymbol" symbollevels="0" forceraster="0">
+  <renderer-v2 forceraster="0" type="singleSymbol" enableorderby="0" symbollevels="0">
     <symbols>
-      <symbol force_rhr="0" name="0" clip_to_extent="1" alpha="1" type="fill">
-        <layer class="SimpleFill" enabled="1" pass="0" locked="0">
-          <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
-          <prop v="244,198,119,255" k="color"/>
-          <prop v="bevel" k="joinstyle"/>
-          <prop v="0,0" k="offset"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-          <prop v="MM" k="offset_unit"/>
-          <prop v="133,112,8,255" k="outline_color"/>
-          <prop v="solid" k="outline_style"/>
-          <prop v="0.26" k="outline_width"/>
-          <prop v="MM" k="outline_width_unit"/>
-          <prop v="solid" k="style"/>
+      <symbol name="0" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
+        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+          <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
+          <prop k="color" v="244,198,119,255"/>
+          <prop k="joinstyle" v="bevel"/>
+          <prop k="offset" v="0,0"/>
+          <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
+          <prop k="offset_unit" v="MM"/>
+          <prop k="outline_color" v="133,112,8,255"/>
+          <prop k="outline_style" v="solid"/>
+          <prop k="outline_width" v="0.26"/>
+          <prop k="outline_width_unit" v="MM"/>
+          <prop k="style" v="solid"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" type="QString" value=""/>
+              <Option name="name" value="" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" type="QString" value="collection"/>
+              <Option name="type" value="collection" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -34,29 +34,29 @@
     <sizescale/>
   </renderer-v2>
   <customproperties>
-    <property key="embeddedWidgets/count" value="0"/>
+    <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>0.9</layerOpacity>
-  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
-    <DiagramCategory scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" barWidth="5" backgroundAlpha="255" diagramOrientation="Up" penAlpha="255" maxScaleDenominator="1e+08" sizeScale="3x:0,0,0,0,0,0" penColor="#000000" opacity="1" enabled="0" labelPlacementMethod="XHeight" penWidth="0" rotationOffset="270" lineSizeType="MM" backgroundColor="#ffffff" height="15" sizeType="MM" minScaleDenominator="0" minimumSize="0" scaleBasedVisibility="0" width="15">
+  <SingleCategoryDiagramRenderer diagramType="Histogram" attributeLegend="1">
+    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
       <attribute label="" field="" color="#000000"/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="0" dist="0" showAll="1" priority="0" obstacle="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings placement="0" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
     <properties>
       <Option type="Map">
-        <Option name="name" type="QString" value=""/>
+        <Option name="name" value="" type="QString"/>
         <Option name="properties"/>
-        <Option name="type" type="QString" value="collection"/>
+        <Option name="type" value="collection" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
-  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
+  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -65,8 +65,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -75,8 +75,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -85,8 +85,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -97,25 +97,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" type="QString" value="-1"/>
+                <Option name="-1" value="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="0" type="QString" value="0"/>
+                <Option name="0" value="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1" type="QString" value="1"/>
+                <Option name="1" value="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2" type="QString" value="2"/>
+                <Option name="2" value="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3" type="QString" value="3"/>
+                <Option name="3" value="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="4" type="QString" value="4"/>
+                <Option name="4" value="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5" type="QString" value="5"/>
+                <Option name="5" value="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -126,8 +126,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -136,8 +136,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -146,8 +146,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -156,8 +156,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -166,75 +166,75 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option name="IsMultiline" value="false" type="bool"/>
+            <Option name="UseHtml" value="false" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias index="0" name="" field="id"/>
-    <alias index="1" name="" field="display_name"/>
-    <alias index="2" name="" field="code"/>
-    <alias index="3" name="" field="zoom_category"/>
-    <alias index="4" name="" field="nr_of_inhabitants"/>
-    <alias index="5" name="" field="dry_weather_flow"/>
-    <alias index="6" name="" field="function"/>
-    <alias index="7" name="" field="area"/>
-    <alias index="8" name="" field="surface_parameters_id"/>
+    <alias name="" index="0" field="id"/>
+    <alias name="" index="1" field="display_name"/>
+    <alias name="" index="2" field="code"/>
+    <alias name="" index="3" field="zoom_category"/>
+    <alias name="" index="4" field="nr_of_inhabitants"/>
+    <alias name="" index="5" field="dry_weather_flow"/>
+    <alias name="" index="6" field="function"/>
+    <alias name="" index="7" field="area"/>
+    <alias name="" index="8" field="surface_parameters_id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
-    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
-    <default expression="'new'" applyOnUpdate="0" field="code"/>
-    <default expression="-1" applyOnUpdate="0" field="zoom_category"/>
-    <default expression="" applyOnUpdate="0" field="nr_of_inhabitants"/>
-    <default expression="" applyOnUpdate="0" field="dry_weather_flow"/>
-    <default expression="" applyOnUpdate="0" field="function"/>
-    <default expression="round($area,1)" applyOnUpdate="0" field="area"/>
-    <default expression="" applyOnUpdate="0" field="surface_parameters_id"/>
+    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
+    <default applyOnUpdate="0" field="code" expression="'new'"/>
+    <default applyOnUpdate="0" field="zoom_category" expression="-1"/>
+    <default applyOnUpdate="0" field="nr_of_inhabitants" expression=""/>
+    <default applyOnUpdate="0" field="dry_weather_flow" expression=""/>
+    <default applyOnUpdate="0" field="function" expression=""/>
+    <default applyOnUpdate="0" field="area" expression="$area"/>
+    <default applyOnUpdate="0" field="surface_parameters_id" expression=""/>
   </defaults>
   <constraints>
-    <constraint unique_strength="1" field="id" exp_strength="0" notnull_strength="1" constraints="3"/>
-    <constraint unique_strength="0" field="display_name" exp_strength="0" notnull_strength="2" constraints="1"/>
-    <constraint unique_strength="0" field="code" exp_strength="0" notnull_strength="2" constraints="1"/>
-    <constraint unique_strength="0" field="zoom_category" exp_strength="0" notnull_strength="2" constraints="1"/>
-    <constraint unique_strength="0" field="nr_of_inhabitants" exp_strength="0" notnull_strength="0" constraints="0"/>
-    <constraint unique_strength="0" field="dry_weather_flow" exp_strength="0" notnull_strength="0" constraints="0"/>
-    <constraint unique_strength="0" field="function" exp_strength="0" notnull_strength="0" constraints="0"/>
-    <constraint unique_strength="0" field="area" exp_strength="0" notnull_strength="2" constraints="1"/>
-    <constraint unique_strength="0" field="surface_parameters_id" exp_strength="0" notnull_strength="2" constraints="1"/>
+    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
+    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="nr_of_inhabitants" unique_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="dry_weather_flow" unique_strength="0"/>
+    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="function" unique_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="area" unique_strength="0"/>
+    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="surface_parameters_id" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint field="id" exp="" desc=""/>
-    <constraint field="display_name" exp="" desc=""/>
-    <constraint field="code" exp="" desc=""/>
-    <constraint field="zoom_category" exp="" desc=""/>
-    <constraint field="nr_of_inhabitants" exp="" desc=""/>
-    <constraint field="dry_weather_flow" exp="" desc=""/>
-    <constraint field="function" exp="" desc=""/>
-    <constraint field="area" exp="" desc=""/>
-    <constraint field="surface_parameters_id" exp="" desc=""/>
+    <constraint exp="" field="id" desc=""/>
+    <constraint exp="" field="display_name" desc=""/>
+    <constraint exp="" field="code" desc=""/>
+    <constraint exp="" field="zoom_category" desc=""/>
+    <constraint exp="" field="nr_of_inhabitants" desc=""/>
+    <constraint exp="" field="dry_weather_flow" desc=""/>
+    <constraint exp="" field="function" desc=""/>
+    <constraint exp="" field="area" desc=""/>
+    <constraint exp="" field="surface_parameters_id" desc=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortOrder="0" actionWidgetStyle="dropDown" sortExpression="">
+  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
     <columns>
-      <column hidden="0" name="id" type="field" width="-1"/>
-      <column hidden="0" name="display_name" type="field" width="-1"/>
-      <column hidden="0" name="code" type="field" width="-1"/>
-      <column hidden="0" name="zoom_category" type="field" width="-1"/>
-      <column hidden="0" name="nr_of_inhabitants" type="field" width="-1"/>
-      <column hidden="0" name="dry_weather_flow" type="field" width="-1"/>
-      <column hidden="0" name="function" type="field" width="-1"/>
-      <column hidden="0" name="area" type="field" width="-1"/>
-      <column hidden="0" name="surface_parameters_id" type="field" width="-1"/>
-      <column hidden="1" type="actions" width="-1"/>
+      <column name="id" hidden="0" width="-1" type="field"/>
+      <column name="display_name" hidden="0" width="-1" type="field"/>
+      <column name="code" hidden="0" width="-1" type="field"/>
+      <column name="zoom_category" hidden="0" width="-1" type="field"/>
+      <column name="nr_of_inhabitants" hidden="0" width="-1" type="field"/>
+      <column name="dry_weather_flow" hidden="0" width="-1" type="field"/>
+      <column name="function" hidden="0" width="-1" type="field"/>
+      <column name="area" hidden="0" width="-1" type="field"/>
+      <column name="surface_parameters_id" hidden="0" width="-1" type="field"/>
+      <column hidden="1" width="-1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -265,25 +265,25 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer showLabel="1" name="Surface" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="0" columnCount="1">
-      <attributeEditorContainer showLabel="1" name="General" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" columnCount="1">
-        <attributeEditorField showLabel="1" index="0" name="id"/>
-        <attributeEditorField showLabel="1" index="1" name="display_name"/>
-        <attributeEditorField showLabel="1" index="2" name="code"/>
+    <attributeEditorContainer name="Surface" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+        <attributeEditorField name="id" index="0" showLabel="1"/>
+        <attributeEditorField name="display_name" index="1" showLabel="1"/>
+        <attributeEditorField name="code" index="2" showLabel="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer showLabel="1" name="Characteristics" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" columnCount="1">
-        <attributeEditorContainer showLabel="1" name="Rain water" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" columnCount="1">
-          <attributeEditorField showLabel="1" index="8" name="surface_parameters_id"/>
-          <attributeEditorField showLabel="1" index="7" name="area"/>
+      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+        <attributeEditorContainer name="Rain water" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+          <attributeEditorField name="surface_parameters_id" index="8" showLabel="1"/>
+          <attributeEditorField name="area" index="7" showLabel="1"/>
         </attributeEditorContainer>
-        <attributeEditorContainer showLabel="1" name="Municipal water" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" columnCount="1">
-          <attributeEditorField showLabel="1" index="4" name="nr_of_inhabitants"/>
-          <attributeEditorField showLabel="1" index="5" name="dry_weather_flow"/>
+        <attributeEditorContainer name="Municipal water" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+          <attributeEditorField name="nr_of_inhabitants" index="4" showLabel="1"/>
+          <attributeEditorField name="dry_weather_flow" index="5" showLabel="1"/>
         </attributeEditorContainer>
       </attributeEditorContainer>
-      <attributeEditorContainer showLabel="1" name="Visualization" visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" columnCount="1">
-        <attributeEditorField showLabel="1" index="3" name="zoom_category"/>
-        <attributeEditorField showLabel="1" index="6" name="function"/>
+      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
+        <attributeEditorField name="zoom_category" index="3" showLabel="1"/>
+        <attributeEditorField name="function" index="6" showLabel="1"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>

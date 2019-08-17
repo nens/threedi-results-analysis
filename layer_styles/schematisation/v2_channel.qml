@@ -1,14 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="0" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0" simplifyDrawingHints="1">
+<qgis labelsEnabled="0" readOnly="0" simplifyLocal="1" simplifyDrawingTol="1" minScale="1e+08" simplifyDrawingHints="1" simplifyAlgorithm="0" styleCategories="AllStyleCategories" simplifyMaxScale="1" version="3.4.5-Madeira" maxScale="0" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" type="singleSymbol" enableorderby="0" symbollevels="0">
+  <renderer-v2 forceraster="0" type="singleSymbol" symbollevels="0" enableorderby="0">
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="line" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol name="0" type="line" alpha="1" clip_to_extent="1" force_rhr="0">
+        <layer locked="0" class="SimpleLine" pass="0" enabled="1">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -27,13 +27,13 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="MarkerLine" pass="0" locked="0" enabled="1">
+        <layer locked="0" class="MarkerLine" pass="0" enabled="1">
           <prop k="interval" v="12"/>
           <prop k="interval_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="interval_unit" v="MM"/>
@@ -48,13 +48,13 @@
           <prop k="rotate" v="1"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
-          <symbol name="@0@1" force_rhr="0" alpha="1" type="marker" clip_to_extent="1">
-            <layer class="SimpleMarker" pass="0" locked="0" enabled="1">
+          <symbol name="@0@1" type="marker" alpha="1" clip_to_extent="1" force_rhr="0">
+            <layer locked="0" class="SimpleMarker" pass="0" enabled="1">
               <prop k="angle" v="0"/>
               <prop k="color" v="0,101,210,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
@@ -75,9 +75,9 @@
               <prop k="vertical_anchor_point" v="1"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option name="name" value="" type="QString"/>
+                  <Option value="" name="name" type="QString"/>
                   <Option name="properties"/>
-                  <Option name="type" value="collection" type="QString"/>
+                  <Option value="collection" name="type" type="QString"/>
                 </Option>
               </data_defined_properties>
             </layer>
@@ -98,27 +98,27 @@
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
   <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+    <DiagramCategory minimumSize="0" opacity="1" penWidth="0" scaleDependency="Area" height="15" minScaleDenominator="0" scaleBasedVisibility="0" lineSizeType="MM" penColor="#000000" rotationOffset="270" width="15" maxScaleDenominator="1e+08" enabled="0" sizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" penAlpha="255" barWidth="5" backgroundAlpha="255" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" sizeType="MM">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="2" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings placement="2" priority="0" obstacle="0" zIndex="0" dist="0" showAll="1" linePlacementFlags="2">
     <properties>
       <Option type="Map">
-        <Option name="name" value="" type="QString"/>
+        <Option value="" name="name" type="QString"/>
         <Option name="properties" type="Map">
           <Option name="show" type="Map">
-            <Option name="active" value="true" type="bool"/>
-            <Option name="field" value="id" type="QString"/>
-            <Option name="type" value="2" type="int"/>
+            <Option value="true" name="active" type="bool"/>
+            <Option value="id" name="field" type="QString"/>
+            <Option value="2" name="type" type="int"/>
           </Option>
         </Option>
-        <Option name="type" value="collection" type="QString"/>
+        <Option value="collection" name="type" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -127,8 +127,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -137,8 +137,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -147,8 +147,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -159,16 +159,16 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="100: embedded" value="100" type="QString"/>
+                <Option value="100" name="100: embedded" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="101: isolated" value="101" type="QString"/>
+                <Option value="101" name="101: isolated" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="102: connected" value="102" type="QString"/>
+                <Option value="102" name="102: connected" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="105: double connected" value="105" type="QString"/>
+                <Option value="105" name="105: double connected" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -179,8 +179,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -191,25 +191,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" name="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" name="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" name="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" name="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" name="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" name="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -220,8 +220,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -230,69 +230,69 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="id"/>
-    <alias name="" index="1" field="display_name"/>
-    <alias name="" index="2" field="code"/>
-    <alias name="" index="3" field="calculation_type"/>
-    <alias name="" index="4" field="dist_calc_points"/>
-    <alias name="" index="5" field="zoom_category"/>
-    <alias name="" index="6" field="connection_node_start_id"/>
-    <alias name="" index="7" field="connection_node_end_id"/>
+    <alias field="id" index="0" name=""/>
+    <alias field="display_name" index="1" name=""/>
+    <alias field="code" index="2" name=""/>
+    <alias field="calculation_type" index="3" name=""/>
+    <alias field="dist_calc_points" index="4" name=""/>
+    <alias field="zoom_category" index="5" name=""/>
+    <alias field="connection_node_start_id" index="6" name=""/>
+    <alias field="connection_node_end_id" index="7" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="calculation_type" expression=""/>
-    <default applyOnUpdate="0" field="dist_calc_points" expression=""/>
-    <default applyOnUpdate="0" field="zoom_category" expression="5"/>
-    <default applyOnUpdate="0" field="connection_node_start_id" expression=""/>
-    <default applyOnUpdate="0" field="connection_node_end_id" expression=""/>
+    <default field="id" expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0"/>
+    <default field="display_name" expression="'new'" applyOnUpdate="0"/>
+    <default field="code" expression="'new'" applyOnUpdate="0"/>
+    <default field="calculation_type" expression="" applyOnUpdate="0"/>
+    <default field="dist_calc_points" expression="" applyOnUpdate="0"/>
+    <default field="zoom_category" expression="5" applyOnUpdate="0"/>
+    <default field="connection_node_start_id" expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent))))" applyOnUpdate="0"/>
+    <default field="connection_node_end_id" expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent))))" applyOnUpdate="0"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="dist_calc_points" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_end_id" unique_strength="0"/>
+    <constraint field="id" notnull_strength="1" exp_strength="0" constraints="3" unique_strength="1"/>
+    <constraint field="display_name" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="code" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="calculation_type" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="dist_calc_points" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="zoom_category" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="connection_node_start_id" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="connection_node_end_id" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="id" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="calculation_type" desc=""/>
-    <constraint exp="" field="dist_calc_points" desc=""/>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="connection_node_start_id" desc=""/>
-    <constraint exp="" field="connection_node_end_id" desc=""/>
+    <constraint field="id" desc="" exp=""/>
+    <constraint field="display_name" desc="" exp=""/>
+    <constraint field="code" desc="" exp=""/>
+    <constraint field="calculation_type" desc="" exp=""/>
+    <constraint field="dist_calc_points" desc="" exp=""/>
+    <constraint field="zoom_category" desc="" exp=""/>
+    <constraint field="connection_node_start_id" desc="" exp=""/>
+    <constraint field="connection_node_end_id" desc="" exp=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig sortOrder="0" actionWidgetStyle="dropDown" sortExpression="">
     <columns>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="dist_calc_points" hidden="0" width="-1" type="field"/>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_end_id" hidden="0" width="-1" type="field"/>
+      <column hidden="0" width="-1" name="id" type="field"/>
+      <column hidden="0" width="-1" name="display_name" type="field"/>
+      <column hidden="0" width="-1" name="code" type="field"/>
+      <column hidden="0" width="-1" name="calculation_type" type="field"/>
+      <column hidden="0" width="-1" name="dist_calc_points" type="field"/>
+      <column hidden="0" width="-1" name="zoom_category" type="field"/>
+      <column hidden="0" width="-1" name="connection_node_start_id" type="field"/>
+      <column hidden="0" width="-1" name="connection_node_end_id" type="field"/>
       <column hidden="1" width="-1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -324,42 +324,42 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Channel" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="0" showLabel="1"/>
-        <attributeEditorField name="display_name" index="1" showLabel="1"/>
-        <attributeEditorField name="code" index="2" showLabel="1"/>
-        <attributeEditorField name="calculation_type" index="3" showLabel="1"/>
-        <attributeEditorField name="dist_calc_points" index="4" showLabel="1"/>
+    <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="0" name="Channel" columnCount="1" visibilityExpressionEnabled="0">
+      <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="1" name="General" columnCount="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="0" name="id"/>
+        <attributeEditorField showLabel="1" index="1" name="display_name"/>
+        <attributeEditorField showLabel="1" index="2" name="code"/>
+        <attributeEditorField showLabel="1" index="3" name="calculation_type"/>
+        <attributeEditorField showLabel="1" index="4" name="dist_calc_points"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="5" showLabel="1"/>
+      <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="1" name="Visualization" columnCount="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="5" name="zoom_category"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="connection_node_start_id" index="6" showLabel="1"/>
-        <attributeEditorField name="connection_node_end_id" index="7" showLabel="1"/>
+      <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="1" name="Connection nodes" columnCount="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="6" name="connection_node_start_id"/>
+        <attributeEditorField showLabel="1" index="7" name="connection_node_end_id"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="calculation_type" editable="1"/>
-    <field name="code" editable="1"/>
-    <field name="connection_node_end_id" editable="1"/>
-    <field name="connection_node_start_id" editable="1"/>
-    <field name="display_name" editable="1"/>
-    <field name="dist_calc_points" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="zoom_category" editable="1"/>
+    <field editable="1" name="calculation_type"/>
+    <field editable="1" name="code"/>
+    <field editable="1" name="connection_node_end_id"/>
+    <field editable="1" name="connection_node_start_id"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="dist_calc_points"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="zoom_category"/>
   </editable>
   <labelOnTop>
-    <field name="calculation_type" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_end_id" labelOnTop="0"/>
-    <field name="connection_node_start_id" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="dist_calc_points" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="calculation_type"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="dist_calc_points"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>

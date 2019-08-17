@@ -1,14 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis simplifyDrawingHints="0" simplifyMaxScale="1" styleCategories="AllStyleCategories" simplifyLocal="1" minScale="1e+08" simplifyAlgorithm="0" readOnly="0" maxScale="0" labelsEnabled="0" version="3.4.5-Madeira" hasScaleBasedVisibilityFlag="0" simplifyDrawingTol="1">
+<qgis labelsEnabled="0" readOnly="0" simplifyLocal="1" simplifyDrawingTol="1" minScale="1e+08" simplifyDrawingHints="0" simplifyAlgorithm="0" styleCategories="AllStyleCategories" simplifyMaxScale="1" version="3.4.5-Madeira" maxScale="0" hasScaleBasedVisibilityFlag="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+  <renderer-v2 forceraster="0" type="singleSymbol" symbollevels="0" enableorderby="0">
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="marker" clip_to_extent="1">
-        <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+      <symbol name="0" type="marker" alpha="1" clip_to_extent="1" force_rhr="0">
+        <layer locked="0" class="SimpleMarker" pass="0" enabled="1">
           <prop k="angle" v="0"/>
           <prop k="color" v="19,61,142,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -29,9 +29,9 @@
           <prop k="vertical_anchor_point" v="1"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" type="QString" value=""/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" type="QString" value="collection"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -41,26 +41,26 @@
     <sizescale/>
   </renderer-v2>
   <customproperties>
-    <property key="dualview/previewExpressions" value="id"/>
-    <property key="embeddedWidgets/count" value="0"/>
+    <property value="id" key="dualview/previewExpressions"/>
+    <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
-    <DiagramCategory diagramOrientation="Up" barWidth="5" penAlpha="255" rotationOffset="270" penWidth="0" labelPlacementMethod="XHeight" lineSizeType="MM" height="15" opacity="1" minimumSize="0" backgroundColor="#ffffff" enabled="0" width="15" lineSizeScale="3x:0,0,0,0,0,0" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" scaleBasedVisibility="0" backgroundAlpha="255" penColor="#000000" scaleDependency="Area" maxScaleDenominator="1e+08">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" color="#000000" field=""/>
+  <SingleCategoryDiagramRenderer diagramType="Histogram" attributeLegend="1">
+    <DiagramCategory minimumSize="0" opacity="1" penWidth="0" scaleDependency="Area" height="15" minScaleDenominator="0" scaleBasedVisibility="0" lineSizeType="MM" penColor="#000000" rotationOffset="270" width="15" maxScaleDenominator="1e+08" enabled="0" sizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" penAlpha="255" barWidth="5" backgroundAlpha="255" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" sizeType="MM">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute field="" color="#000000" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings obstacle="0" showAll="1" placement="0" dist="0" linePlacementFlags="18" priority="0" zIndex="0">
+  <DiagramLayerSettings placement="0" priority="0" obstacle="0" zIndex="0" dist="0" showAll="1" linePlacementFlags="18">
     <properties>
       <Option type="Map">
-        <Option name="name" type="QString" value=""/>
+        <Option value="" name="name" type="QString"/>
         <Option name="properties"/>
-        <Option name="type" type="QString" value="collection"/>
+        <Option value="collection" name="type" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -80,8 +80,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -90,8 +90,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -100,8 +100,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -110,8 +110,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -122,10 +122,10 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="1: Chèzy" type="QString" value="1"/>
+                <Option value="1" name="1: Chèzy" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2: Manning" type="QString" value="2"/>
+                <Option value="2" name="2: Manning" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -136,8 +136,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -146,8 +146,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -156,8 +156,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -166,8 +166,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -178,19 +178,19 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="1: rectangle" type="QString" value="1"/>
+                <Option value="1" name="1: rectangle" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2: round" type="QString" value="2"/>
+                <Option value="2" name="2: round" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3: egg" type="QString" value="3"/>
+                <Option value="3" name="3: egg" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5: tabulated rectangle" type="QString" value="5"/>
+                <Option value="5" name="5: tabulated rectangle" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="6: tabulated trapezium" type="QString" value="6"/>
+                <Option value="6" name="6: tabulated trapezium" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -201,8 +201,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -211,8 +211,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -221,100 +221,100 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" type="bool" value="false"/>
-            <Option name="UseHtml" type="bool" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="ROWID" index="0"/>
-    <alias name="id" field="loc_id" index="1"/>
-    <alias name="code" field="loc_code" index="2"/>
-    <alias name="" field="loc_reference_level" index="3"/>
-    <alias name="" field="loc_bank_level" index="4"/>
-    <alias name="" field="loc_friction_type" index="5"/>
-    <alias name="" field="loc_friction_value" index="6"/>
-    <alias name="" field="loc_definition_id" index="7"/>
-    <alias name="" field="loc_channel_id" index="8"/>
-    <alias name="" field="def_id" index="9"/>
-    <alias name="" field="def_shape" index="10"/>
-    <alias name="" field="def_width" index="11"/>
-    <alias name="" field="def_code" index="12"/>
-    <alias name="" field="def_height" index="13"/>
+    <alias field="ROWID" index="0" name=""/>
+    <alias field="loc_id" index="1" name="id"/>
+    <alias field="loc_code" index="2" name="code"/>
+    <alias field="loc_reference_level" index="3" name="reference_level"/>
+    <alias field="loc_bank_level" index="4" name="bank_level"/>
+    <alias field="loc_friction_type" index="5" name="friction_type"/>
+    <alias field="loc_friction_value" index="6" name="friction_value"/>
+    <alias field="loc_definition_id" index="7" name="definition_id"/>
+    <alias field="loc_channel_id" index="8" name="channel_id"/>
+    <alias field="def_id" index="9" name=""/>
+    <alias field="def_shape" index="10" name=""/>
+    <alias field="def_width" index="11" name=""/>
+    <alias field="def_code" index="12" name=""/>
+    <alias field="def_height" index="13" name=""/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="" field="ROWID" applyOnUpdate="0"/>
-    <default expression="if(maximum(loc_id) is null,1,maximum(loc_id)+1)" field="loc_id" applyOnUpdate="0"/>
-    <default expression="'new'" field="loc_code" applyOnUpdate="0"/>
-    <default expression="" field="loc_reference_level" applyOnUpdate="0"/>
-    <default expression="" field="loc_bank_level" applyOnUpdate="0"/>
-    <default expression="2" field="loc_friction_type" applyOnUpdate="0"/>
-    <default expression="" field="loc_friction_value" applyOnUpdate="0"/>
-    <default expression="" field="loc_definition_id" applyOnUpdate="0"/>
-    <default expression="'filled automatically'" field="loc_channel_id" applyOnUpdate="0"/>
-    <default expression="" field="def_id" applyOnUpdate="0"/>
-    <default expression="" field="def_shape" applyOnUpdate="0"/>
-    <default expression="" field="def_width" applyOnUpdate="0"/>
-    <default expression="" field="def_code" applyOnUpdate="0"/>
-    <default expression="" field="def_height" applyOnUpdate="0"/>
+    <default field="ROWID" expression="" applyOnUpdate="0"/>
+    <default field="loc_id" expression="if(maximum(loc_id) is null,1,maximum(loc_id)+1)" applyOnUpdate="0"/>
+    <default field="loc_code" expression="'new'" applyOnUpdate="0"/>
+    <default field="loc_reference_level" expression="" applyOnUpdate="0"/>
+    <default field="loc_bank_level" expression="" applyOnUpdate="0"/>
+    <default field="loc_friction_type" expression="2" applyOnUpdate="0"/>
+    <default field="loc_friction_value" expression="" applyOnUpdate="0"/>
+    <default field="loc_definition_id" expression="" applyOnUpdate="0"/>
+    <default field="loc_channel_id" expression="aggregate('v2_channel','min',&quot;id&quot;, intersects($geometry,geometry(@parent)))" applyOnUpdate="0"/>
+    <default field="def_id" expression="" applyOnUpdate="0"/>
+    <default field="def_shape" expression="" applyOnUpdate="0"/>
+    <default field="def_width" expression="" applyOnUpdate="0"/>
+    <default field="def_code" expression="" applyOnUpdate="0"/>
+    <default field="def_height" expression="" applyOnUpdate="0"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="ROWID" unique_strength="0"/>
-    <constraint notnull_strength="2" exp_strength="0" constraints="1" field="loc_id" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="loc_code" unique_strength="0"/>
-    <constraint notnull_strength="2" exp_strength="0" constraints="1" field="loc_reference_level" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="loc_bank_level" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="loc_friction_type" unique_strength="0"/>
-    <constraint notnull_strength="2" exp_strength="0" constraints="1" field="loc_friction_value" unique_strength="0"/>
-    <constraint notnull_strength="2" exp_strength="0" constraints="1" field="loc_definition_id" unique_strength="0"/>
-    <constraint notnull_strength="2" exp_strength="0" constraints="1" field="loc_channel_id" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="def_id" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="def_shape" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="def_width" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="def_code" unique_strength="0"/>
-    <constraint notnull_strength="0" exp_strength="0" constraints="0" field="def_height" unique_strength="0"/>
+    <constraint field="ROWID" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="loc_id" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="loc_code" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="loc_reference_level" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="loc_bank_level" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="loc_friction_type" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="loc_friction_value" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="loc_definition_id" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="loc_channel_id" notnull_strength="2" exp_strength="0" constraints="1" unique_strength="0"/>
+    <constraint field="def_id" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="def_shape" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="def_width" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="def_code" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
+    <constraint field="def_height" notnull_strength="0" exp_strength="0" constraints="0" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" desc="" field="ROWID"/>
-    <constraint exp="" desc="" field="loc_id"/>
-    <constraint exp="" desc="" field="loc_code"/>
-    <constraint exp="" desc="" field="loc_reference_level"/>
-    <constraint exp="" desc="" field="loc_bank_level"/>
-    <constraint exp="" desc="" field="loc_friction_type"/>
-    <constraint exp="" desc="" field="loc_friction_value"/>
-    <constraint exp="" desc="" field="loc_definition_id"/>
-    <constraint exp="" desc="" field="loc_channel_id"/>
-    <constraint exp="" desc="" field="def_id"/>
-    <constraint exp="" desc="" field="def_shape"/>
-    <constraint exp="" desc="" field="def_width"/>
-    <constraint exp="" desc="" field="def_code"/>
-    <constraint exp="" desc="" field="def_height"/>
+    <constraint field="ROWID" desc="" exp=""/>
+    <constraint field="loc_id" desc="" exp=""/>
+    <constraint field="loc_code" desc="" exp=""/>
+    <constraint field="loc_reference_level" desc="" exp=""/>
+    <constraint field="loc_bank_level" desc="" exp=""/>
+    <constraint field="loc_friction_type" desc="" exp=""/>
+    <constraint field="loc_friction_value" desc="" exp=""/>
+    <constraint field="loc_definition_id" desc="" exp=""/>
+    <constraint field="loc_channel_id" desc="" exp=""/>
+    <constraint field="def_id" desc="" exp=""/>
+    <constraint field="def_shape" desc="" exp=""/>
+    <constraint field="def_width" desc="" exp=""/>
+    <constraint field="def_code" desc="" exp=""/>
+    <constraint field="def_height" desc="" exp=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
+  <attributetableconfig sortOrder="0" actionWidgetStyle="dropDown" sortExpression="">
     <columns>
-      <column type="actions" hidden="1" width="-1"/>
-      <column name="def_id" type="field" hidden="0" width="-1"/>
-      <column name="def_shape" type="field" hidden="0" width="-1"/>
-      <column name="def_width" type="field" hidden="0" width="-1"/>
-      <column name="def_code" type="field" hidden="0" width="-1"/>
-      <column name="def_height" type="field" hidden="0" width="-1"/>
-      <column name="ROWID" type="field" hidden="0" width="-1"/>
-      <column name="loc_id" type="field" hidden="0" width="-1"/>
-      <column name="loc_code" type="field" hidden="0" width="-1"/>
-      <column name="loc_reference_level" type="field" hidden="0" width="-1"/>
-      <column name="loc_bank_level" type="field" hidden="0" width="-1"/>
-      <column name="loc_friction_type" type="field" hidden="0" width="-1"/>
-      <column name="loc_friction_value" type="field" hidden="0" width="-1"/>
-      <column name="loc_definition_id" type="field" hidden="0" width="-1"/>
-      <column name="loc_channel_id" type="field" hidden="0" width="-1"/>
+      <column hidden="1" width="-1" type="actions"/>
+      <column hidden="0" width="-1" name="def_id" type="field"/>
+      <column hidden="0" width="-1" name="def_shape" type="field"/>
+      <column hidden="0" width="-1" name="def_width" type="field"/>
+      <column hidden="0" width="-1" name="def_code" type="field"/>
+      <column hidden="0" width="-1" name="def_height" type="field"/>
+      <column hidden="0" width="-1" name="ROWID" type="field"/>
+      <column hidden="0" width="-1" name="loc_id" type="field"/>
+      <column hidden="0" width="-1" name="loc_code" type="field"/>
+      <column hidden="0" width="-1" name="loc_reference_level" type="field"/>
+      <column hidden="0" width="-1" name="loc_bank_level" type="field"/>
+      <column hidden="0" width="-1" name="loc_friction_type" type="field"/>
+      <column hidden="0" width="-1" name="loc_friction_value" type="field"/>
+      <column hidden="0" width="-1" name="loc_definition_id" type="field"/>
+      <column hidden="0" width="-1" name="loc_channel_id" type="field"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -345,22 +345,22 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer groupBox="0" name="Cross section location view" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1">
-      <attributeEditorContainer groupBox="1" name="General" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1">
-        <attributeEditorField name="loc_id" showLabel="1" index="1"/>
-        <attributeEditorField name="loc_code" showLabel="1" index="2"/>
-        <attributeEditorField name="loc_reference_level" showLabel="1" index="3"/>
-        <attributeEditorField name="loc_bank_level" showLabel="1" index="4"/>
-        <attributeEditorField name="loc_friction_type" showLabel="1" index="5"/>
-        <attributeEditorField name="loc_friction_value" showLabel="1" index="6"/>
-        <attributeEditorField name="loc_channel_id" showLabel="1" index="8"/>
+    <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="0" name="Cross section location view" columnCount="1" visibilityExpressionEnabled="0">
+      <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="1" name="General" columnCount="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="1" name="loc_id"/>
+        <attributeEditorField showLabel="1" index="2" name="loc_code"/>
+        <attributeEditorField showLabel="1" index="3" name="loc_reference_level"/>
+        <attributeEditorField showLabel="1" index="4" name="loc_bank_level"/>
+        <attributeEditorField showLabel="1" index="5" name="loc_friction_type"/>
+        <attributeEditorField showLabel="1" index="6" name="loc_friction_value"/>
+        <attributeEditorField showLabel="1" index="8" name="loc_channel_id"/>
       </attributeEditorContainer>
-      <attributeEditorContainer groupBox="1" name="Cross section" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1">
-        <attributeEditorField name="definition_id" showLabel="1" index="-1"/>
-        <attributeEditorField name="def_code" showLabel="1" index="12"/>
-        <attributeEditorField name="def_shape" showLabel="1" index="10"/>
-        <attributeEditorField name="def_width" showLabel="1" index="11"/>
-        <attributeEditorField name="def_height" showLabel="1" index="13"/>
+      <attributeEditorContainer visibilityExpression="" showLabel="1" groupBox="1" name="Cross section" columnCount="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="7" name="loc_definition_id"/>
+        <attributeEditorField showLabel="1" index="12" name="def_code"/>
+        <attributeEditorField showLabel="1" index="10" name="def_shape"/>
+        <attributeEditorField showLabel="1" index="11" name="def_width"/>
+        <attributeEditorField showLabel="1" index="13" name="def_height"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
