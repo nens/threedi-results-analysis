@@ -19,7 +19,7 @@ RUN apt-get update \
         software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 RUN echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 51F523511C7028C3
 
 # Now install the ubuntu packages we need.
 RUN apt-get update \
