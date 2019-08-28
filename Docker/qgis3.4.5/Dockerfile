@@ -36,6 +36,8 @@ RUN apt-get update \
         python3-h5py \
         python3-pip \
         python3-qgis \
+        python3-pyqt5.qtopengl \
+        python3-pyqt5.qtquick \
         qgis \
         qgis-provider-grass \
         unzip \
@@ -56,6 +58,11 @@ RUN pip3 install -r requirements-dev.txt
 # code. (Qgis finds it just fine without this PYTHONPATH, of course, it is set
 # in Qgis's "python/user.py").
 ENV PYTHONPATH /home/nens/.local/share/QGIS/QGIS3/profiles/default/python:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins:/usr/share/qgis/python/plugins
+
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends \
+        qml-module-qtquick2 \
+        && rm -rf /var/lib/apt/lists/*
 
 # Default command if nothing is specified.
 CMD ["/usr/bin/qgis"]

@@ -18,6 +18,9 @@ from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
+# register the custom qgis-expression functions:
+from ThreeDiToolbox.utils.qgis_expression_functions import load_qml_shape, load_qml2
+
 import logging
 
 
