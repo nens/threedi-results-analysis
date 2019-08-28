@@ -1,13 +1,13 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="3.4.5-Madeira" labelsEnabled="0" styleCategories="AllStyleCategories" simplifyLocal="1" simplifyMaxScale="1" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" maxScale="0" readOnly="0" minScale="1e+08">
+<qgis maxScale="0" labelsEnabled="0" readOnly="0" version="3.4.11-Madeira" simplifyMaxScale="1" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyAlgorithm="0" minScale="1e+8" simplifyDrawingTol="1" simplifyLocal="1">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 type="singleSymbol" forceraster="0" symbollevels="0" enableorderby="0">
+  <renderer-v2 enableorderby="0" symbollevels="0" forceraster="0" type="singleSymbol">
     <symbols>
-      <symbol type="line" name="0" force_rhr="0" alpha="1" clip_to_extent="1">
+      <symbol clip_to_extent="1" alpha="1" name="0" type="line" force_rhr="0">
         <layer enabled="1" locked="0" pass="0" class="SimpleLine">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
@@ -27,9 +27,9 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" name="name" value=""/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option type="QString" name="type" value="collection"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -48,12 +48,12 @@
           <prop k="rotate" v="1"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" name="name" value=""/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option type="QString" name="type" value="collection"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" name="@0@1" force_rhr="0" alpha="1" clip_to_extent="1">
+          <symbol clip_to_extent="1" alpha="1" name="@0@1" type="marker" force_rhr="0">
             <layer enabled="1" locked="0" pass="0" class="SimpleMarker">
               <prop k="angle" v="90"/>
               <prop k="color" v="0,0,0,255"/>
@@ -75,9 +75,9 @@
               <prop k="vertical_anchor_point" v="1"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" name="name" value=""/>
+                  <Option value="" name="name" type="QString"/>
                   <Option name="properties"/>
-                  <Option type="QString" name="type" value="collection"/>
+                  <Option value="collection" name="type" type="QString"/>
                 </Option>
               </data_defined_properties>
             </layer>
@@ -97,22 +97,22 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory scaleBasedVisibility="0" sizeType="MM" lineSizeType="MM" diagramOrientation="Up" barWidth="5" maxScaleDenominator="1e+08" labelPlacementMethod="XHeight" width="15" penAlpha="255" backgroundAlpha="255" penColor="#000000" penWidth="0" sizeScale="3x:0,0,0,0,0,0" scaleDependency="Area" minimumSize="0" rotationOffset="270" minScaleDenominator="0" opacity="1" backgroundColor="#ffffff" lineSizeScale="3x:0,0,0,0,0,0" enabled="0" height="15">
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" barWidth="5" backgroundColor="#ffffff" height="15" enabled="0" lineSizeType="MM" width="15" labelPlacementMethod="XHeight" backgroundAlpha="255" scaleDependency="Area" rotationOffset="270" sizeScale="3x:0,0,0,0,0,0" diagramOrientation="Up" penWidth="0" penAlpha="255" penColor="#000000" minScaleDenominator="0" lineSizeScale="3x:0,0,0,0,0,0" sizeType="MM" scaleBasedVisibility="0" minimumSize="0" maxScaleDenominator="1e+8">
       <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
-      <attribute label="" color="#000000" field=""/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings zIndex="0" obstacle="0" showAll="1" priority="0" placement="2" dist="0" linePlacementFlags="2">
+  <DiagramLayerSettings showAll="1" zIndex="0" placement="2" priority="0" obstacle="0" dist="0" linePlacementFlags="2">
     <properties>
       <Option type="Map">
-        <Option type="QString" name="name" value=""/>
+        <Option value="" name="name" type="QString"/>
         <Option name="properties"/>
-        <Option type="QString" name="type" value="collection"/>
+        <Option value="collection" name="type" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -128,8 +128,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -138,8 +138,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -148,8 +148,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -158,8 +158,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -168,12 +168,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" name="1: pump reacts only on suction side" value="1"/>
+                <Option value="1" name="1: Pump behaviour is based on water levels on the suction-side of the pump" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="2: pump reacts only on delivery side" value="2"/>
+                <Option value="2" name="2: Pump behaviour is based on water levels on the delivery-side of the pump" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -184,8 +184,8 @@
       <editWidget type="CheckBox">
         <config>
           <Option type="Map">
-            <Option type="QString" name="CheckedState" value="1"/>
-            <Option type="QString" name="UncheckedState" value="0"/>
+            <Option value="1" name="CheckedState" type="QString"/>
+            <Option value="0" name="UncheckedState" type="QString"/>
           </Option>
         </config>
       </editWidget>
@@ -194,8 +194,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -204,8 +204,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -214,8 +214,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -224,8 +224,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -234,27 +234,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" name="-1" value="-1"/>
+                <Option value="-1" name="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="0" value="0"/>
+                <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="1" value="1"/>
+                <Option value="1" name="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="2" value="2"/>
+                <Option value="2" name="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="3" value="3"/>
+                <Option value="3" name="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="4" value="4"/>
+                <Option value="4" name="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" name="5" value="5"/>
+                <Option value="5" name="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -265,8 +265,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -275,78 +275,78 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" name="IsMultiline" value="false"/>
-            <Option type="bool" name="UseHtml" value="false"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="ROWID" index="0"/>
-    <alias name="id" field="pump_id" index="1"/>
-    <alias name="display_name" field="pump_display_name" index="2"/>
-    <alias name="code" field="pump_code" index="3"/>
-    <alias name="classification" field="pump_classification" index="4"/>
-    <alias name="type" field="pump_type" index="5"/>
-    <alias name="sewerage" field="pump_sewerage" index="6"/>
-    <alias name="start_level" field="pump_start_level" index="7"/>
-    <alias name="lower_stop_level" field="pump_lower_stop_level" index="8"/>
-    <alias name="upper_stop_level" field="pump_upper_stop_level" index="9"/>
-    <alias name="capacity" field="pump_capacity" index="10"/>
-    <alias name="zoom_category" field="pump_zoom_category" index="11"/>
-    <alias name="connection_node_start_id" field="pump_connection_node_start_id" index="12"/>
-    <alias name="connection_node_end_id" field="pump_connection_node_end_id" index="13"/>
+    <alias index="0" name="" field="ROWID"/>
+    <alias index="1" name="id" field="pump_id"/>
+    <alias index="2" name="display_name" field="pump_display_name"/>
+    <alias index="3" name="code" field="pump_code"/>
+    <alias index="4" name="classification" field="pump_classification"/>
+    <alias index="5" name="type" field="pump_type"/>
+    <alias index="6" name="sewerage" field="pump_sewerage"/>
+    <alias index="7" name="start_level" field="pump_start_level"/>
+    <alias index="8" name="lower_stop_level" field="pump_lower_stop_level"/>
+    <alias index="9" name="upper_stop_level" field="pump_upper_stop_level"/>
+    <alias index="10" name="capacity" field="pump_capacity"/>
+    <alias index="11" name="zoom_category" field="pump_zoom_category"/>
+    <alias index="12" name="connection_node_start_id" field="pump_connection_node_start_id"/>
+    <alias index="13" name="connection_node_end_id" field="pump_connection_node_end_id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default field="ROWID" applyOnUpdate="0" expression=""/>
-    <default field="pump_id" applyOnUpdate="0" expression="if(maximum(pump_id) is null,1, maximum(pump_id)+1)"/>
-    <default field="pump_display_name" applyOnUpdate="0" expression="'new'"/>
-    <default field="pump_code" applyOnUpdate="0" expression="'new'"/>
-    <default field="pump_classification" applyOnUpdate="0" expression=""/>
-    <default field="pump_type" applyOnUpdate="0" expression="1"/>
-    <default field="pump_sewerage" applyOnUpdate="0" expression=""/>
-    <default field="pump_start_level" applyOnUpdate="0" expression=""/>
-    <default field="pump_lower_stop_level" applyOnUpdate="0" expression=""/>
-    <default field="pump_upper_stop_level" applyOnUpdate="0" expression=""/>
-    <default field="pump_capacity" applyOnUpdate="0" expression=""/>
-    <default field="pump_zoom_category" applyOnUpdate="0" expression="2"/>
-    <default field="pump_connection_node_start_id" applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))))"/>
-    <default field="pump_connection_node_end_id" applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))))"/>
+    <default applyOnUpdate="0" expression="" field="ROWID"/>
+    <default applyOnUpdate="0" expression="if(maximum(pump_id) is null,1, maximum(pump_id)+1)" field="pump_id"/>
+    <default applyOnUpdate="0" expression="'new'" field="pump_display_name"/>
+    <default applyOnUpdate="0" expression="'new'" field="pump_code"/>
+    <default applyOnUpdate="0" expression="" field="pump_classification"/>
+    <default applyOnUpdate="0" expression="1" field="pump_type"/>
+    <default applyOnUpdate="0" expression="" field="pump_sewerage"/>
+    <default applyOnUpdate="0" expression="" field="pump_start_level"/>
+    <default applyOnUpdate="0" expression="" field="pump_lower_stop_level"/>
+    <default applyOnUpdate="0" expression="" field="pump_upper_stop_level"/>
+    <default applyOnUpdate="0" expression="" field="pump_capacity"/>
+    <default applyOnUpdate="0" expression="2" field="pump_zoom_category"/>
+    <default applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))))" field="pump_connection_node_start_id"/>
+    <default applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))))" field="pump_connection_node_end_id"/>
   </defaults>
   <constraints>
-    <constraint constraints="0" unique_strength="0" notnull_strength="0" field="ROWID" exp_strength="0"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_id" exp_strength="0"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_display_name" exp_strength="0"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_code" exp_strength="0"/>
-    <constraint constraints="0" unique_strength="0" notnull_strength="0" field="pump_classification" exp_strength="0"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_type" exp_strength="0"/>
-    <constraint constraints="0" unique_strength="0" notnull_strength="0" field="pump_sewerage" exp_strength="0"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_start_level" exp_strength="0"/>
-    <constraint constraints="5" unique_strength="0" notnull_strength="2" field="pump_lower_stop_level" exp_strength="2"/>
-    <constraint constraints="4" unique_strength="0" notnull_strength="0" field="pump_upper_stop_level" exp_strength="2"/>
-    <constraint constraints="5" unique_strength="0" notnull_strength="2" field="pump_capacity" exp_strength="2"/>
-    <constraint constraints="1" unique_strength="0" notnull_strength="2" field="pump_zoom_category" exp_strength="0"/>
-    <constraint constraints="0" unique_strength="0" notnull_strength="0" field="pump_connection_node_start_id" exp_strength="0"/>
-    <constraint constraints="0" unique_strength="0" notnull_strength="0" field="pump_connection_node_end_id" exp_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="ROWID" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_id" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_display_name" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_code" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="pump_classification" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_type" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="pump_sewerage" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_start_level" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="2" notnull_strength="2" field="pump_lower_stop_level" constraints="5" unique_strength="0"/>
+    <constraint exp_strength="2" notnull_strength="0" field="pump_upper_stop_level" constraints="4" unique_strength="0"/>
+    <constraint exp_strength="2" notnull_strength="2" field="pump_capacity" constraints="5" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="pump_zoom_category" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="pump_connection_node_start_id" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="pump_connection_node_end_id" constraints="0" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="ROWID" desc=""/>
-    <constraint exp="" field="pump_id" desc=""/>
-    <constraint exp="" field="pump_display_name" desc=""/>
-    <constraint exp="" field="pump_code" desc=""/>
-    <constraint exp="" field="pump_classification" desc=""/>
-    <constraint exp="" field="pump_type" desc=""/>
-    <constraint exp="" field="pump_sewerage" desc=""/>
-    <constraint exp="" field="pump_start_level" desc=""/>
-    <constraint exp="&quot;pump_lower_stop_level&quot; &lt; &quot;pump_start_level&quot;" field="pump_lower_stop_level" desc=""/>
-    <constraint exp="&quot;pump_upper_stop_level&quot;>&quot;start_level&quot; or &quot;pump_upper_stop_level&quot; is null" field="pump_upper_stop_level" desc=""/>
-    <constraint exp="&quot;pump_capacity&quot;>=0" field="pump_capacity" desc=""/>
-    <constraint exp="" field="pump_zoom_category" desc=""/>
-    <constraint exp="" field="pump_connection_node_start_id" desc=""/>
-    <constraint exp="" field="pump_connection_node_end_id" desc=""/>
+    <constraint exp="" desc="" field="ROWID"/>
+    <constraint exp="" desc="" field="pump_id"/>
+    <constraint exp="" desc="" field="pump_display_name"/>
+    <constraint exp="" desc="" field="pump_code"/>
+    <constraint exp="" desc="" field="pump_classification"/>
+    <constraint exp="" desc="" field="pump_type"/>
+    <constraint exp="" desc="" field="pump_sewerage"/>
+    <constraint exp="" desc="" field="pump_start_level"/>
+    <constraint exp="&quot;pump_lower_stop_level&quot; &lt; &quot;pump_start_level&quot;" desc="" field="pump_lower_stop_level"/>
+    <constraint exp="&quot;pump_upper_stop_level&quot;>&quot;start_level&quot; or &quot;pump_upper_stop_level&quot; is null" desc="" field="pump_upper_stop_level"/>
+    <constraint exp="&quot;pump_capacity&quot;>=0" desc="" field="pump_capacity"/>
+    <constraint exp="" desc="" field="pump_zoom_category"/>
+    <constraint exp="" desc="" field="pump_connection_node_start_id"/>
+    <constraint exp="" desc="" field="pump_connection_node_end_id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
@@ -354,21 +354,21 @@
   </attributeactions>
   <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column type="field" name="ROWID" width="-1" hidden="0"/>
-      <column type="field" name="pump_id" width="-1" hidden="0"/>
-      <column type="field" name="pump_display_name" width="-1" hidden="0"/>
-      <column type="field" name="pump_code" width="-1" hidden="0"/>
-      <column type="field" name="pump_classification" width="-1" hidden="0"/>
-      <column type="field" name="pump_type" width="-1" hidden="0"/>
-      <column type="field" name="pump_sewerage" width="-1" hidden="0"/>
-      <column type="field" name="pump_start_level" width="-1" hidden="0"/>
-      <column type="field" name="pump_lower_stop_level" width="-1" hidden="0"/>
-      <column type="field" name="pump_upper_stop_level" width="-1" hidden="0"/>
-      <column type="field" name="pump_capacity" width="-1" hidden="0"/>
-      <column type="field" name="pump_zoom_category" width="-1" hidden="0"/>
-      <column type="field" name="pump_connection_node_start_id" width="-1" hidden="0"/>
-      <column type="field" name="pump_connection_node_end_id" width="-1" hidden="0"/>
-      <column type="actions" width="-1" hidden="1"/>
+      <column width="-1" hidden="0" name="ROWID" type="field"/>
+      <column width="-1" hidden="0" name="pump_id" type="field"/>
+      <column width="-1" hidden="0" name="pump_display_name" type="field"/>
+      <column width="-1" hidden="0" name="pump_code" type="field"/>
+      <column width="-1" hidden="0" name="pump_classification" type="field"/>
+      <column width="-1" hidden="0" name="pump_type" type="field"/>
+      <column width="-1" hidden="0" name="pump_sewerage" type="field"/>
+      <column width="-1" hidden="0" name="pump_start_level" type="field"/>
+      <column width="-1" hidden="0" name="pump_lower_stop_level" type="field"/>
+      <column width="-1" hidden="0" name="pump_upper_stop_level" type="field"/>
+      <column width="-1" hidden="0" name="pump_capacity" type="field"/>
+      <column width="-1" hidden="0" name="pump_zoom_category" type="field"/>
+      <column width="-1" hidden="0" name="pump_connection_node_start_id" type="field"/>
+      <column width="-1" hidden="0" name="pump_connection_node_end_id" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -397,44 +397,44 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer columnCount="1" visibilityExpression="" name="Pumpstation view" groupBox="0" visibilityExpressionEnabled="0" showLabel="1">
-      <attributeEditorContainer columnCount="1" visibilityExpression="" name="General" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
-        <attributeEditorField name="pump_id" index="1" showLabel="1"/>
-        <attributeEditorField name="pump_display_name" index="2" showLabel="1"/>
-        <attributeEditorField name="pump_code" index="3" showLabel="1"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Pumpstation view" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="1" name="pump_id"/>
+        <attributeEditorField showLabel="1" index="2" name="pump_display_name"/>
+        <attributeEditorField showLabel="1" index="3" name="pump_code"/>
       </attributeEditorContainer>
-      <attributeEditorContainer columnCount="1" visibilityExpression="" name="Characteristics" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
-        <attributeEditorField name="pump_start_level" index="7" showLabel="1"/>
-        <attributeEditorField name="pump_lower_stop_level" index="8" showLabel="1"/>
-        <attributeEditorField name="pump_upper_stop_level" index="9" showLabel="1"/>
-        <attributeEditorField name="pump_capacity" index="10" showLabel="1"/>
-        <attributeEditorField name="pump_type" index="5" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Characteristics" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="7" name="pump_start_level"/>
+        <attributeEditorField showLabel="1" index="8" name="pump_lower_stop_level"/>
+        <attributeEditorField showLabel="1" index="9" name="pump_upper_stop_level"/>
+        <attributeEditorField showLabel="1" index="10" name="pump_capacity"/>
+        <attributeEditorField showLabel="1" index="5" name="pump_type"/>
       </attributeEditorContainer>
-      <attributeEditorContainer columnCount="1" visibilityExpression="" name="Visualization" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
-        <attributeEditorField name="pump_sewerage" index="6" showLabel="1"/>
-        <attributeEditorField name="pump_zoom_category" index="11" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Visualization" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="6" name="pump_sewerage"/>
+        <attributeEditorField showLabel="1" index="11" name="pump_zoom_category"/>
       </attributeEditorContainer>
-      <attributeEditorContainer columnCount="1" visibilityExpression="" name="Connection nodes" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
-        <attributeEditorField name="pump_connection_node_start_id" index="12" showLabel="1"/>
-        <attributeEditorField name="pump_connection_node_end_id" index="13" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Connection nodes" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="12" name="pump_connection_node_start_id"/>
+        <attributeEditorField showLabel="1" index="13" name="pump_connection_node_end_id"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="ROWID" editable="1"/>
-    <field name="pump_capacity" editable="1"/>
-    <field name="pump_classification" editable="1"/>
-    <field name="pump_code" editable="1"/>
-    <field name="pump_connection_node_end_id" editable="0"/>
-    <field name="pump_connection_node_start_id" editable="0"/>
-    <field name="pump_display_name" editable="1"/>
-    <field name="pump_id" editable="1"/>
-    <field name="pump_lower_stop_level" editable="1"/>
-    <field name="pump_sewerage" editable="1"/>
-    <field name="pump_start_level" editable="1"/>
-    <field name="pump_type" editable="1"/>
-    <field name="pump_upper_stop_level" editable="1"/>
-    <field name="pump_zoom_category" editable="1"/>
+    <field editable="1" name="ROWID"/>
+    <field editable="1" name="pump_capacity"/>
+    <field editable="1" name="pump_classification"/>
+    <field editable="1" name="pump_code"/>
+    <field editable="0" name="pump_connection_node_end_id"/>
+    <field editable="0" name="pump_connection_node_start_id"/>
+    <field editable="1" name="pump_display_name"/>
+    <field editable="1" name="pump_id"/>
+    <field editable="1" name="pump_lower_stop_level"/>
+    <field editable="1" name="pump_sewerage"/>
+    <field editable="1" name="pump_start_level"/>
+    <field editable="1" name="pump_type"/>
+    <field editable="1" name="pump_upper_stop_level"/>
+    <field editable="1" name="pump_zoom_category"/>
   </editable>
   <labelOnTop>
     <field labelOnTop="0" name="ROWID"/>

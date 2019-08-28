@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
@@ -11,7 +11,7 @@
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -20,8 +20,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -32,25 +32,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" name="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" name="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" name="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" name="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" name="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" name="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -61,8 +61,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -71,8 +71,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -81,8 +81,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -91,8 +91,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -101,8 +101,8 @@
       <editWidget type="CheckBox">
         <config>
           <Option type="Map">
-            <Option name="CheckedState" value="1" type="QString"/>
-            <Option name="UncheckedState" value="0" type="QString"/>
+            <Option value="1" name="CheckedState" type="QString"/>
+            <Option value="0" name="UncheckedState" type="QString"/>
           </Option>
         </config>
       </editWidget>
@@ -111,8 +111,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -121,8 +121,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -131,8 +131,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -141,8 +141,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -153,10 +153,10 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="1: pump reacts only on suction side" value="1" type="QString"/>
+                <Option value="1" name="1: Pump behaviour is based on water levels on the suction-side of the pump" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2: pump reacts only on delivery side" value="2" type="QString"/>
+                <Option value="2" name="2: Pump behaviour is based on water levels on the delivery-side of the pump" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -167,95 +167,95 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="upper_stop_level"/>
-    <alias name="" index="1" field="zoom_category"/>
-    <alias name="" index="2" field="code"/>
-    <alias name="" index="3" field="display_name"/>
-    <alias name="" index="4" field="connection_node_end_id"/>
-    <alias name="" index="5" field="classification"/>
-    <alias name="" index="6" field="sewerage"/>
-    <alias name="" index="7" field="lower_stop_level"/>
-    <alias name="" index="8" field="connection_node_start_id"/>
-    <alias name="" index="9" field="start_level"/>
-    <alias name="" index="10" field="capacity"/>
-    <alias name="" index="11" field="type"/>
-    <alias name="" index="12" field="id"/>
+    <alias index="0" name="" field="upper_stop_level"/>
+    <alias index="1" name="" field="zoom_category"/>
+    <alias index="2" name="" field="code"/>
+    <alias index="3" name="" field="display_name"/>
+    <alias index="4" name="" field="connection_node_end_id"/>
+    <alias index="5" name="" field="classification"/>
+    <alias index="6" name="" field="sewerage"/>
+    <alias index="7" name="" field="lower_stop_level"/>
+    <alias index="8" name="" field="connection_node_start_id"/>
+    <alias index="9" name="" field="start_level"/>
+    <alias index="10" name="" field="capacity"/>
+    <alias index="11" name="" field="type"/>
+    <alias index="12" name="" field="id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="upper_stop_level" expression=""/>
-    <default applyOnUpdate="0" field="zoom_category" expression="3"/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="connection_node_end_id" expression=""/>
-    <default applyOnUpdate="0" field="classification" expression=""/>
-    <default applyOnUpdate="0" field="sewerage" expression=""/>
-    <default applyOnUpdate="0" field="lower_stop_level" expression=""/>
-    <default applyOnUpdate="0" field="connection_node_start_id" expression=""/>
-    <default applyOnUpdate="0" field="start_level" expression=""/>
-    <default applyOnUpdate="0" field="capacity" expression=""/>
-    <default applyOnUpdate="0" field="type" expression="1"/>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default applyOnUpdate="0" expression="" field="upper_stop_level"/>
+    <default applyOnUpdate="0" expression="3" field="zoom_category"/>
+    <default applyOnUpdate="0" expression="'new'" field="code"/>
+    <default applyOnUpdate="0" expression="'new'" field="display_name"/>
+    <default applyOnUpdate="0" expression="" field="connection_node_end_id"/>
+    <default applyOnUpdate="0" expression="" field="classification"/>
+    <default applyOnUpdate="0" expression="" field="sewerage"/>
+    <default applyOnUpdate="0" expression="" field="lower_stop_level"/>
+    <default applyOnUpdate="0" expression="" field="connection_node_start_id"/>
+    <default applyOnUpdate="0" expression="" field="start_level"/>
+    <default applyOnUpdate="0" expression="" field="capacity"/>
+    <default applyOnUpdate="0" expression="1" field="type"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="0" constraints="4" exp_strength="2" field="upper_stop_level" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_end_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="classification" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="sewerage" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="5" exp_strength="2" field="lower_stop_level" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_start_id" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="start_level" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="5" exp_strength="2" field="capacity" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="type" unique_strength="0"/>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
+    <constraint exp_strength="2" notnull_strength="0" field="upper_stop_level" constraints="4" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="zoom_category" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="code" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="display_name" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="connection_node_end_id" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="classification" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="sewerage" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="2" notnull_strength="2" field="lower_stop_level" constraints="5" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="connection_node_start_id" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="start_level" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="2" notnull_strength="2" field="capacity" constraints="5" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="type" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="&quot;upper_stop_level&quot;>&quot;start_level&quot; or &quot;upper_stop_level&quot; is null" field="upper_stop_level" desc=""/>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="connection_node_end_id" desc=""/>
-    <constraint exp="" field="classification" desc=""/>
-    <constraint exp="" field="sewerage" desc=""/>
-    <constraint exp="&quot;lower_stop_level&quot;&lt;&quot;start_level&quot;" field="lower_stop_level" desc=""/>
-    <constraint exp="" field="connection_node_start_id" desc=""/>
-    <constraint exp="" field="start_level" desc=""/>
-    <constraint exp="&quot;capacity&quot;>=0" field="capacity" desc=""/>
-    <constraint exp="" field="type" desc=""/>
-    <constraint exp="" field="id" desc=""/>
+    <constraint exp="&quot;upper_stop_level&quot;>&quot;start_level&quot; or &quot;upper_stop_level&quot; is null" desc="" field="upper_stop_level"/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="connection_node_end_id"/>
+    <constraint exp="" desc="" field="classification"/>
+    <constraint exp="" desc="" field="sewerage"/>
+    <constraint exp="&quot;lower_stop_level&quot;&lt;&quot;start_level&quot;" desc="" field="lower_stop_level"/>
+    <constraint exp="" desc="" field="connection_node_start_id"/>
+    <constraint exp="" desc="" field="start_level"/>
+    <constraint exp="&quot;capacity&quot;>=0" desc="" field="capacity"/>
+    <constraint exp="" desc="" field="type"/>
+    <constraint exp="" desc="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column name="upper_stop_level" hidden="0" width="-1" type="field"/>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_end_id" hidden="0" width="-1" type="field"/>
-      <column name="classification" hidden="0" width="-1" type="field"/>
-      <column name="sewerage" hidden="0" width="-1" type="field"/>
-      <column name="lower_stop_level" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_start_id" hidden="0" width="-1" type="field"/>
-      <column name="start_level" hidden="0" width="-1" type="field"/>
-      <column name="capacity" hidden="0" width="-1" type="field"/>
-      <column name="type" hidden="0" width="-1" type="field"/>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" hidden="0" name="upper_stop_level" type="field"/>
+      <column width="-1" hidden="0" name="zoom_category" type="field"/>
+      <column width="-1" hidden="0" name="code" type="field"/>
+      <column width="-1" hidden="0" name="display_name" type="field"/>
+      <column width="-1" hidden="0" name="connection_node_end_id" type="field"/>
+      <column width="-1" hidden="0" name="classification" type="field"/>
+      <column width="-1" hidden="0" name="sewerage" type="field"/>
+      <column width="-1" hidden="0" name="lower_stop_level" type="field"/>
+      <column width="-1" hidden="0" name="connection_node_start_id" type="field"/>
+      <column width="-1" hidden="0" name="start_level" type="field"/>
+      <column width="-1" hidden="0" name="capacity" type="field"/>
+      <column width="-1" hidden="0" name="type" type="field"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -286,58 +286,58 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Pumpstation" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="12" showLabel="1"/>
-        <attributeEditorField name="display_name" index="3" showLabel="1"/>
-        <attributeEditorField name="code" index="2" showLabel="1"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Pumpstation" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="12" name="id"/>
+        <attributeEditorField showLabel="1" index="3" name="display_name"/>
+        <attributeEditorField showLabel="1" index="2" name="code"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="capacity" index="10" showLabel="1"/>
-        <attributeEditorField name="start_level" index="9" showLabel="1"/>
-        <attributeEditorField name="lower_stop_level" index="7" showLabel="1"/>
-        <attributeEditorField name="upper_stop_level" index="0" showLabel="1"/>
-        <attributeEditorField name="type" index="11" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Characteristics" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="10" name="capacity"/>
+        <attributeEditorField showLabel="1" index="9" name="start_level"/>
+        <attributeEditorField showLabel="1" index="7" name="lower_stop_level"/>
+        <attributeEditorField showLabel="1" index="0" name="upper_stop_level"/>
+        <attributeEditorField showLabel="1" index="11" name="type"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="1" showLabel="1"/>
-        <attributeEditorField name="sewerage" index="6" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Visualization" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="1" name="zoom_category"/>
+        <attributeEditorField showLabel="1" index="6" name="sewerage"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Connection nodes" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="connection_node_start_id" index="8" showLabel="1"/>
-        <attributeEditorField name="connection_node_end_id" index="4" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Connection nodes" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="8" name="connection_node_start_id"/>
+        <attributeEditorField showLabel="1" index="4" name="connection_node_end_id"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="capacity" editable="1"/>
-    <field name="classification" editable="1"/>
-    <field name="code" editable="1"/>
-    <field name="connection_node_end_id" editable="1"/>
-    <field name="connection_node_start_id" editable="1"/>
-    <field name="display_name" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="lower_stop_level" editable="1"/>
-    <field name="sewerage" editable="1"/>
-    <field name="start_level" editable="1"/>
-    <field name="type" editable="1"/>
-    <field name="upper_stop_level" editable="1"/>
-    <field name="zoom_category" editable="1"/>
+    <field editable="1" name="capacity"/>
+    <field editable="1" name="classification"/>
+    <field editable="1" name="code"/>
+    <field editable="1" name="connection_node_end_id"/>
+    <field editable="1" name="connection_node_start_id"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="lower_stop_level"/>
+    <field editable="1" name="sewerage"/>
+    <field editable="1" name="start_level"/>
+    <field editable="1" name="type"/>
+    <field editable="1" name="upper_stop_level"/>
+    <field editable="1" name="zoom_category"/>
   </editable>
   <labelOnTop>
-    <field name="capacity" labelOnTop="0"/>
-    <field name="classification" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_end_id" labelOnTop="0"/>
-    <field name="connection_node_start_id" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="lower_stop_level" labelOnTop="0"/>
-    <field name="sewerage" labelOnTop="0"/>
-    <field name="start_level" labelOnTop="0"/>
-    <field name="type" labelOnTop="0"/>
-    <field name="upper_stop_level" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="capacity"/>
+    <field labelOnTop="0" name="classification"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="lower_stop_level"/>
+    <field labelOnTop="0" name="sewerage"/>
+    <field labelOnTop="0" name="start_level"/>
+    <field labelOnTop="0" name="type"/>
+    <field labelOnTop="0" name="upper_stop_level"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>

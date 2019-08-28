@@ -254,10 +254,10 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option value="0" name="0: for 2D or open profiles (like channels)" type="QString"/>
+                <Option value="0" name="0: When the schematisation does not include 1D-elements with closed-profiles" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="1" name="1: for 1D systems with closed profiles (like sewerage)" type="QString"/>
+                <Option value="1" name="1: When the schematisation  includes 1D-elements with closed-profiles" type="QString"/>
               </Option>
             </Option>
           </Option>

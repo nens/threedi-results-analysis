@@ -278,19 +278,19 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option value="gesloten verharding" name="gesloten verharding" type="QString"/>
+                <Option value="gesloten verharding" name="impervious paving (gesloten verharding)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="open verharding" name="open verharding" type="QString"/>
+                <Option value="open verharding" name="pervious paving (open verharding)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="half verhard" name="half verhard" type="QString"/>
+                <Option value="half verhard" name="semi-pervious paving (half verhard)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="onverhard" name="onverhard" type="QString"/>
+                <Option value="onverhard" name="unpaved (onverhard)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="pand" name="pand" type="QString"/>
+                <Option value="pand" name="building (pand)" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -394,13 +394,13 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option value="vlak" name="vlak" type="QString"/>
+                <Option value="vlak" name="level (vlak)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="hellend" name="hellend" type="QString"/>
+                <Option value="hellend" name="inclined (hellend)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="uitgestrekt" name="uitgestrekt" type="QString"/>
+                <Option value="uitgestrekt" name="elongated&#xa; (uitgestrekt)" type="QString"/>
               </Option>
             </Option>
           </Option>
