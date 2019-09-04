@@ -1,3 +1,5 @@
+from ThreeDiToolbox.layer_styles.custom_widgets.mywidget import MyCustomWidgetFactory
+
 from . import styler
 from .threedi_database import ThreediDatabase
 from qgis.core import QgsCoordinateTransform
@@ -392,6 +394,42 @@ class LayerTreeManager(object):
                 styler.apply_style(table_layer, table_name, "schematisation")
                 QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
+
+            if table_name == 'v2_global_settings':
+                print("We have him!")
+                layer = table_layer
+
+                # editFormConfig = layer.editFormConfig()
+                # editFormConfig.setWidgetConfig('id', {'nm-rel': 'other_relation'})
+                # layer.setEditFormConfig(editFormConfig)
+
+
+                # layer.editFormConfig().widgetConfig('')
+                #
+                # [el.name() for el in layer.editFormConfig().tabs()[0].children()]
+                # layer.editFormConfig().tabs()[0].children()[0]
+                # layer.editFormConfig().setWidgetConfig('id2', {'rule': '[A-Z].*'})
+                #
+                # layer.editFormConfig().setWidgetConfig(
+                #
+                # )
+
+
+                # register a new custom widget:
+                from qgis.gui import QgsGui
+                widget_editor_registry = QgsGui.editorWidgetRegistry()
+                widget_editor_registry.registerWidget(
+                    widgetId='mywidget',
+                    widgetFactory=MyCustomWidgetFactory('mywidget123')
+                )
+
+                # self.my_factory = FormAwareValueRelationWidgetFactory(
+                #     'Form Value Relation')
+                # widget_editor_registry.registerWidget(
+                #     'mywidget', self.my_factory)
+
+
+
         QSettings().setValue("/Map/identifyAutoFeatureForm", "true")
 
     def add_results(self, index, start_row, stop_row):
