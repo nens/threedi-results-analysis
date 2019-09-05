@@ -391,7 +391,8 @@ class LayerTreeManager(object):
             table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
-                styler.apply_style(table_layer, table_name, "schematisation")
+                styler.apply_style(
+                        table_layer, table_name, 'schematisation')
                 QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
         QSettings().setValue('/Map/identifyAutoFeatureForm','true')
