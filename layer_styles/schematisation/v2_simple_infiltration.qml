@@ -1,19 +1,17 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis readOnly="0" version="3.4.5-Madeira" maxScale="0" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
   <customproperties>
-    <property key="dualview/previewExpressions">
-      <value>id</value>
-    </property>
+    <property value="id" key="dualview/previewExpressions"/>
     <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -22,8 +20,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -32,8 +30,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -42,8 +40,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -52,8 +50,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -62,8 +60,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -72,38 +70,38 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="id" index="0"/>
-    <alias name="" field="infiltration_rate" index="1"/>
-    <alias name="" field="infiltration_rate_file" index="2"/>
-    <alias name="" field="infiltration_surface_option" index="3"/>
-    <alias name="" field="max_infiltration_capacity_file" index="4"/>
-    <alias name="" field="display_name" index="5"/>
+    <alias index="0" name="" field="id"/>
+    <alias index="1" name="" field="infiltration_rate"/>
+    <alias index="2" name="" field="infiltration_rate_file"/>
+    <alias index="3" name="" field="infiltration_surface_option"/>
+    <alias index="4" name="" field="max_infiltration_capacity_file"/>
+    <alias index="5" name="" field="display_name"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="if(maximum(id) is null,1,maximum(id)+1)" applyOnUpdate="0" field="id"/>
-    <default expression="0" applyOnUpdate="0" field="infiltration_rate"/>
-    <default expression="" applyOnUpdate="0" field="infiltration_rate_file"/>
-    <default expression="" applyOnUpdate="0" field="infiltration_surface_option"/>
-    <default expression="" applyOnUpdate="0" field="max_infiltration_capacity_file"/>
-    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1,maximum(id)+1)" field="id"/>
+    <default applyOnUpdate="0" expression="" field="infiltration_rate"/>
+    <default applyOnUpdate="0" expression="" field="infiltration_rate_file"/>
+    <default applyOnUpdate="0" expression="0" field="infiltration_surface_option"/>
+    <default applyOnUpdate="0" expression="" field="max_infiltration_capacity_file"/>
+    <default applyOnUpdate="0" expression="'new'" field="display_name"/>
   </defaults>
   <constraints>
-    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="infiltration_rate"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="infiltration_rate_file"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="infiltration_surface_option"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="max_infiltration_capacity_file"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
+    <constraint exp_strength="0" notnull_strength="2" field="infiltration_rate" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="infiltration_rate_file" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="infiltration_surface_option" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="max_infiltration_capacity_file" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="display_name" constraints="1" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
     <constraint exp="" desc="" field="id"/>
@@ -117,15 +115,15 @@
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column width="-1" type="field" hidden="0" name="id"/>
-      <column width="-1" type="field" hidden="0" name="infiltration_rate"/>
-      <column width="-1" type="field" hidden="0" name="infiltration_rate_file"/>
-      <column width="-1" type="field" hidden="0" name="infiltration_surface_option"/>
-      <column width="-1" type="field" hidden="0" name="max_infiltration_capacity_file"/>
-      <column width="-1" type="field" hidden="0" name="display_name"/>
-      <column width="-1" type="actions" hidden="1"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="0" name="infiltration_rate" type="field"/>
+      <column width="-1" hidden="0" name="infiltration_rate_file" type="field"/>
+      <column width="-1" hidden="0" name="infiltration_surface_option" type="field"/>
+      <column width="-1" hidden="0" name="max_infiltration_capacity_file" type="field"/>
+      <column width="-1" hidden="0" name="display_name" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -156,22 +154,22 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
-      <attributeEditorField showLabel="1" name="id" index="0"/>
-      <attributeEditorField showLabel="1" name="display_name" index="5"/>
-      <attributeEditorField showLabel="1" name="infiltration_rate" index="1"/>
-      <attributeEditorField showLabel="1" name="infiltration_rate_file" index="2"/>
-      <attributeEditorField showLabel="1" name="max_infiltration_capacity_file" index="4"/>
-      <attributeEditorField showLabel="1" name="infiltration_surface_option" index="3"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorField showLabel="1" index="0" name="id"/>
+      <attributeEditorField showLabel="1" index="5" name="display_name"/>
+      <attributeEditorField showLabel="1" index="1" name="infiltration_rate"/>
+      <attributeEditorField showLabel="1" index="2" name="infiltration_rate_file"/>
+      <attributeEditorField showLabel="1" index="4" name="max_infiltration_capacity_file"/>
+      <attributeEditorField showLabel="1" index="3" name="infiltration_surface_option"/>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="display_name" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="infiltration_rate" editable="1"/>
-    <field name="infiltration_rate_file" editable="1"/>
-    <field name="infiltration_surface_option" editable="1"/>
-    <field name="max_infiltration_capacity_file" editable="1"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="infiltration_rate"/>
+    <field editable="1" name="infiltration_rate_file"/>
+    <field editable="1" name="infiltration_surface_option"/>
+    <field editable="1" name="max_infiltration_capacity_file"/>
   </editable>
   <labelOnTop>
     <field labelOnTop="0" name="display_name"/>

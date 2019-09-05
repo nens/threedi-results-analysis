@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
@@ -11,7 +11,7 @@
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -20,8 +20,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -30,8 +30,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -40,8 +40,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -50,8 +50,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -62,13 +62,13 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="00: square" value="00" type="QString"/>
+                <Option value="00" name="00: square" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="01: round" value="01" type="QString"/>
+                <Option value="01" name="01: round" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="02: rectangle" value="02" type="QString"/>
+                <Option value="02" name="02: rectangle" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -79,8 +79,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -89,8 +89,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -101,13 +101,13 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="0: inspection" value="0" type="QString"/>
+                <Option value="0" name="0: inspection" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1: outlet" value="1" type="QString"/>
+                <Option value="1" name="1: outlet" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2: pumpstation" value="2" type="QString"/>
+                <Option value="2" name="2: pumpstation" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -120,13 +120,13 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="0: embedded" value="0" type="QString"/>
+                <Option value="0" name="0: embedded" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1: isolated" value="1" type="QString"/>
+                <Option value="1" name="1: isolated" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2: connected" value="2" type="QString"/>
+                <Option value="2" name="2: connected" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -137,8 +137,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -147,8 +147,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -157,8 +157,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -167,8 +167,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -179,25 +179,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" name="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" name="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" name="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" name="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" name="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" name="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -206,92 +206,92 @@
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="id"/>
-    <alias name="" index="1" field="display_name"/>
-    <alias name="" index="2" field="code"/>
-    <alias name="" index="3" field="connection_node_id"/>
-    <alias name="" index="4" field="shape"/>
-    <alias name="" index="5" field="width"/>
-    <alias name="" index="6" field="length"/>
-    <alias name="" index="7" field="manhole_indicator"/>
-    <alias name="" index="8" field="calculation_type"/>
-    <alias name="" index="9" field="bottom_level"/>
-    <alias name="" index="10" field="surface_level"/>
-    <alias name="" index="11" field="drain_level"/>
-    <alias name="" index="12" field="sediment_level"/>
-    <alias name="" index="13" field="zoom_category"/>
+    <alias index="0" name="" field="id"/>
+    <alias index="1" name="" field="display_name"/>
+    <alias index="2" name="" field="code"/>
+    <alias index="3" name="" field="connection_node_id"/>
+    <alias index="4" name="" field="shape"/>
+    <alias index="5" name="" field="width"/>
+    <alias index="6" name="" field="length"/>
+    <alias index="7" name="" field="manhole_indicator"/>
+    <alias index="8" name="" field="calculation_type"/>
+    <alias index="9" name="" field="bottom_level"/>
+    <alias index="10" name="" field="surface_level"/>
+    <alias index="11" name="" field="drain_level"/>
+    <alias index="12" name="" field="sediment_level"/>
+    <alias index="13" name="" field="zoom_category"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="connection_node_id" expression=""/>
-    <default applyOnUpdate="0" field="shape" expression="'00'"/>
-    <default applyOnUpdate="0" field="width" expression="0.8"/>
-    <default applyOnUpdate="0" field="length" expression="0.8"/>
-    <default applyOnUpdate="0" field="manhole_indicator" expression="0"/>
-    <default applyOnUpdate="0" field="calculation_type" expression=""/>
-    <default applyOnUpdate="0" field="bottom_level" expression=""/>
-    <default applyOnUpdate="0" field="surface_level" expression=""/>
-    <default applyOnUpdate="0" field="drain_level" expression=""/>
-    <default applyOnUpdate="0" field="sediment_level" expression=""/>
-    <default applyOnUpdate="0" field="zoom_category" expression="1"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
+    <default applyOnUpdate="0" expression="'new'" field="display_name"/>
+    <default applyOnUpdate="0" expression="'new'" field="code"/>
+    <default applyOnUpdate="0" expression="" field="connection_node_id"/>
+    <default applyOnUpdate="0" expression="" field="shape"/>
+    <default applyOnUpdate="0" expression="" field="width"/>
+    <default applyOnUpdate="0" expression="" field="length"/>
+    <default applyOnUpdate="0" expression="0" field="manhole_indicator"/>
+    <default applyOnUpdate="0" expression="" field="calculation_type"/>
+    <default applyOnUpdate="0" expression="" field="bottom_level"/>
+    <default applyOnUpdate="0" expression="" field="surface_level"/>
+    <default applyOnUpdate="0" expression="" field="drain_level"/>
+    <default applyOnUpdate="0" expression="" field="sediment_level"/>
+    <default applyOnUpdate="0" expression="1" field="zoom_category"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="connection_node_id" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="shape" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="width" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="length" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="manhole_indicator" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="calculation_type" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="bottom_level" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="surface_level" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="drain_level" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="sediment_level" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="zoom_category" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
+    <constraint exp_strength="0" notnull_strength="0" field="display_name" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="code" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="connection_node_id" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="shape" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="width" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="length" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="manhole_indicator" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="calculation_type" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="bottom_level" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="surface_level" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="drain_level" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="sediment_level" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="zoom_category" constraints="0" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="id" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="connection_node_id" desc=""/>
-    <constraint exp="" field="shape" desc=""/>
-    <constraint exp="" field="width" desc=""/>
-    <constraint exp="" field="length" desc=""/>
-    <constraint exp="" field="manhole_indicator" desc=""/>
-    <constraint exp="" field="calculation_type" desc=""/>
-    <constraint exp="" field="bottom_level" desc=""/>
-    <constraint exp="" field="surface_level" desc=""/>
-    <constraint exp="" field="drain_level" desc=""/>
-    <constraint exp="" field="sediment_level" desc=""/>
-    <constraint exp="" field="zoom_category" desc=""/>
+    <constraint exp="" desc="" field="id"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="connection_node_id"/>
+    <constraint exp="" desc="" field="shape"/>
+    <constraint exp="" desc="" field="width"/>
+    <constraint exp="" desc="" field="length"/>
+    <constraint exp="" desc="" field="manhole_indicator"/>
+    <constraint exp="" desc="" field="calculation_type"/>
+    <constraint exp="" desc="" field="bottom_level"/>
+    <constraint exp="" desc="" field="surface_level"/>
+    <constraint exp="" desc="" field="drain_level"/>
+    <constraint exp="" desc="" field="sediment_level"/>
+    <constraint exp="" desc="" field="zoom_category"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="connection_node_id" hidden="0" width="-1" type="field"/>
-      <column name="shape" hidden="0" width="-1" type="field"/>
-      <column name="width" hidden="0" width="-1" type="field"/>
-      <column name="length" hidden="0" width="-1" type="field"/>
-      <column name="manhole_indicator" hidden="0" width="-1" type="field"/>
-      <column name="calculation_type" hidden="0" width="-1" type="field"/>
-      <column name="bottom_level" hidden="0" width="-1" type="field"/>
-      <column name="surface_level" hidden="0" width="-1" type="field"/>
-      <column name="drain_level" hidden="0" width="-1" type="field"/>
-      <column name="sediment_level" hidden="0" width="-1" type="field"/>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="0" name="display_name" type="field"/>
+      <column width="-1" hidden="0" name="code" type="field"/>
+      <column width="-1" hidden="0" name="connection_node_id" type="field"/>
+      <column width="-1" hidden="0" name="shape" type="field"/>
+      <column width="-1" hidden="0" name="width" type="field"/>
+      <column width="-1" hidden="0" name="length" type="field"/>
+      <column width="-1" hidden="0" name="manhole_indicator" type="field"/>
+      <column width="-1" hidden="0" name="calculation_type" type="field"/>
+      <column width="-1" hidden="0" name="bottom_level" type="field"/>
+      <column width="-1" hidden="0" name="surface_level" type="field"/>
+      <column width="-1" hidden="0" name="drain_level" type="field"/>
+      <column width="-1" hidden="0" name="sediment_level" type="field"/>
+      <column width="-1" hidden="0" name="zoom_category" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -322,59 +322,59 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Manhole" groupBox="0" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="0" showLabel="1"/>
-        <attributeEditorField name="display_name" index="1" showLabel="1"/>
-        <attributeEditorField name="code" index="2" showLabel="1"/>
-        <attributeEditorField name="connection_node_id" index="3" showLabel="1"/>
-        <attributeEditorField name="calculation_type" index="8" showLabel="1"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Manhole" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="0" name="id"/>
+        <attributeEditorField showLabel="1" index="1" name="display_name"/>
+        <attributeEditorField showLabel="1" index="2" name="code"/>
+        <attributeEditorField showLabel="1" index="3" name="connection_node_id"/>
+        <attributeEditorField showLabel="1" index="8" name="calculation_type"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="shape" index="4" showLabel="1"/>
-        <attributeEditorField name="width" index="5" showLabel="1"/>
-        <attributeEditorField name="length" index="6" showLabel="1"/>
-        <attributeEditorField name="surface_level" index="10" showLabel="1"/>
-        <attributeEditorField name="drain_level" index="11" showLabel="1"/>
-        <attributeEditorField name="bottom_level" index="9" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Characteristics" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="4" name="shape"/>
+        <attributeEditorField showLabel="1" index="5" name="width"/>
+        <attributeEditorField showLabel="1" index="6" name="length"/>
+        <attributeEditorField showLabel="1" index="10" name="surface_level"/>
+        <attributeEditorField showLabel="1" index="11" name="drain_level"/>
+        <attributeEditorField showLabel="1" index="9" name="bottom_level"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="13" showLabel="1"/>
-        <attributeEditorField name="manhole_indicator" index="7" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Visualization" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="13" name="zoom_category"/>
+        <attributeEditorField showLabel="1" index="7" name="manhole_indicator"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="bottom_level" editable="1"/>
-    <field name="calculation_type" editable="1"/>
-    <field name="code" editable="1"/>
-    <field name="connection_node_id" editable="1"/>
-    <field name="display_name" editable="1"/>
-    <field name="drain_level" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="length" editable="1"/>
-    <field name="manhole_indicator" editable="1"/>
-    <field name="sediment_level" editable="1"/>
-    <field name="shape" editable="1"/>
-    <field name="surface_level" editable="1"/>
-    <field name="width" editable="1"/>
-    <field name="zoom_category" editable="1"/>
+    <field editable="1" name="bottom_level"/>
+    <field editable="1" name="calculation_type"/>
+    <field editable="1" name="code"/>
+    <field editable="1" name="connection_node_id"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="drain_level"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="length"/>
+    <field editable="1" name="manhole_indicator"/>
+    <field editable="1" name="sediment_level"/>
+    <field editable="1" name="shape"/>
+    <field editable="1" name="surface_level"/>
+    <field editable="1" name="width"/>
+    <field editable="1" name="zoom_category"/>
   </editable>
   <labelOnTop>
-    <field name="bottom_level" labelOnTop="0"/>
-    <field name="calculation_type" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="connection_node_id" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="drain_level" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="length" labelOnTop="0"/>
-    <field name="manhole_indicator" labelOnTop="0"/>
-    <field name="sediment_level" labelOnTop="0"/>
-    <field name="shape" labelOnTop="0"/>
-    <field name="surface_level" labelOnTop="0"/>
-    <field name="width" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="bottom_level"/>
+    <field labelOnTop="0" name="calculation_type"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_id"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="drain_level"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="length"/>
+    <field labelOnTop="0" name="manhole_indicator"/>
+    <field labelOnTop="0" name="sediment_level"/>
+    <field labelOnTop="0" name="shape"/>
+    <field labelOnTop="0" name="surface_level"/>
+    <field labelOnTop="0" name="width"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>id</previewExpression>

@@ -1,23 +1,23 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="0" styleCategories="AllStyleCategories" simplifyDrawingTol="1" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" minScale="1e+08" readOnly="0" version="3.4.5-Madeira" maxScale="0" simplifyDrawingHints="1">
+<qgis maxScale="0" labelsEnabled="0" readOnly="0" version="3.4.11-Madeira" simplifyMaxScale="1" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" simplifyDrawingHints="1" simplifyAlgorithm="0" minScale="1e+8" simplifyDrawingTol="1" simplifyLocal="1">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 forceraster="0" type="RuleRenderer" enableorderby="0" symbollevels="0">
+  <renderer-v2 enableorderby="0" symbollevels="0" forceraster="0" type="RuleRenderer">
     <rules key="{ef7b6218-5639-4216-a577-db0c96e2a759}">
-      <rule label="hellend" filter="surface_inclination = 'hellend'" symbol="0" key="{68cb011a-8a27-4aa2-a23d-858ba251f42b}"/>
-      <rule label="vlak" filter="surface_inclination = 'vlak'" symbol="1" key="{91463b0e-a824-4df0-a0bd-8dcb0b5f2094}"/>
-      <rule label="uitgestrekt" filter="surface_inclination = 'uitgestrekt'" symbol="2" key="{1dde8d91-4769-421d-bad7-5aa700191647}"/>
-      <rule label="gesloten verharding" filter="surface_class = 'gesloten verharding'" symbol="3" key="{9c187ace-e49a-4660-8aed-a23359e3828d}"/>
-      <rule label="open verharding" filter="surface_class = 'open verharding'" symbol="4" key="{bfb69c3c-b9b3-4865-94cb-7ea349f429dc}"/>
-      <rule label="onverhard" filter="surface_class = 'half verhard' OR surface_class = 'onverhard'" symbol="5" key="{1ee7fc0c-ce99-4a36-83c1-10163a3ae8b3}"/>
-      <rule label="pand" filter="surface_class = 'pand'" symbol="6" key="{32d556c3-f4d6-49ff-808b-ebc499c1f5f1}"/>
+      <rule filter="surface_inclination = 'hellend'" label="hellend" symbol="0" key="{68cb011a-8a27-4aa2-a23d-858ba251f42b}"/>
+      <rule filter="surface_inclination = 'vlak'" label="vlak" symbol="1" key="{91463b0e-a824-4df0-a0bd-8dcb0b5f2094}"/>
+      <rule filter="surface_inclination = 'uitgestrekt'" label="uitgestrekt" symbol="2" key="{1dde8d91-4769-421d-bad7-5aa700191647}"/>
+      <rule filter="surface_class = 'gesloten verharding'" label="gesloten verharding" symbol="3" key="{9c187ace-e49a-4660-8aed-a23359e3828d}"/>
+      <rule filter="surface_class = 'open verharding'" label="open verharding" symbol="4" key="{bfb69c3c-b9b3-4865-94cb-7ea349f429dc}"/>
+      <rule filter="surface_class = 'half verhard' OR surface_class = 'onverhard'" label="onverhard" symbol="5" key="{1ee7fc0c-ce99-4a36-83c1-10163a3ae8b3}"/>
+      <rule filter="surface_class = 'pand'" label="pand" symbol="6" key="{32d556c3-f4d6-49ff-808b-ebc499c1f5f1}"/>
     </rules>
     <symbols>
-      <symbol name="0" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="0" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleLine">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -36,13 +36,13 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="128,128,128,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -56,15 +56,15 @@
           <prop k="style" v="no"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="1" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="1" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleLine">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -83,15 +83,15 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="2" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleLine" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="2" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleLine">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="0"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -110,13 +110,13 @@
           <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="128,128,128,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -130,15 +130,15 @@
           <prop k="style" v="no"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="3" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="3" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="117,117,117,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -152,15 +152,15 @@
           <prop k="style" v="solid"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="4" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="4" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="182,182,182,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -174,15 +174,15 @@
           <prop k="style" v="solid"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="5" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="5" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="186,221,105,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -196,15 +196,15 @@
           <prop k="style" v="solid"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="6" force_rhr="0" alpha="1" type="fill" clip_to_extent="1">
-        <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+      <symbol clip_to_extent="1" alpha="1" name="6" type="fill" force_rhr="0">
+        <layer enabled="1" locked="0" pass="0" class="SimpleFill">
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="color" v="170,85,255,255"/>
           <prop k="joinstyle" v="bevel"/>
@@ -218,9 +218,9 @@
           <prop k="style" v="solid"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option name="name" value="" type="QString"/>
+              <Option value="" name="name" type="QString"/>
               <Option name="properties"/>
-              <Option name="type" value="collection" type="QString"/>
+              <Option value="collection" name="type" type="QString"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -236,28 +236,28 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory lineSizeType="MM" diagramOrientation="Up" labelPlacementMethod="XHeight" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" width="15" maxScaleDenominator="1e+08" height="15" sizeType="MM" rotationOffset="270" penWidth="0" enabled="0" minimumSize="0" backgroundAlpha="255" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" penColor="#000000" opacity="1" penAlpha="255" barWidth="5">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" barWidth="5" backgroundColor="#ffffff" height="15" enabled="0" lineSizeType="MM" width="15" labelPlacementMethod="XHeight" backgroundAlpha="255" scaleDependency="Area" rotationOffset="270" sizeScale="3x:0,0,0,0,0,0" diagramOrientation="Up" penWidth="0" penAlpha="255" penColor="#000000" minScaleDenominator="0" lineSizeScale="3x:0,0,0,0,0,0" sizeType="MM" scaleBasedVisibility="0" minimumSize="0" maxScaleDenominator="1e+8">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings placement="0" dist="0" obstacle="0" showAll="1" priority="0" zIndex="0" linePlacementFlags="2">
+  <DiagramLayerSettings showAll="1" zIndex="0" placement="0" priority="0" obstacle="0" dist="0" linePlacementFlags="2">
     <properties>
       <Option type="Map">
-        <Option name="name" value="" type="QString"/>
+        <Option value="" name="name" type="QString"/>
         <Option name="properties" type="Map">
           <Option name="show" type="Map">
-            <Option name="active" value="true" type="bool"/>
-            <Option name="field" value="function" type="QString"/>
-            <Option name="type" value="2" type="int"/>
+            <Option value="true" name="active" type="bool"/>
+            <Option value="function" name="field" type="QString"/>
+            <Option value="2" name="type" type="int"/>
           </Option>
         </Option>
-        <Option name="type" value="collection" type="QString"/>
+        <Option value="collection" name="type" type="QString"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -266,8 +266,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -278,19 +278,19 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="gesloten verharding" value="gesloten verharding" type="QString"/>
+                <Option value="gesloten verharding" name="impervious paving (gesloten verharding)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="open verharding" value="open verharding" type="QString"/>
+                <Option value="open verharding" name="pervious paving (open verharding)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="half verhard" value="half verhard" type="QString"/>
+                <Option value="half verhard" name="semi-pervious paving (half verhard)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="onverhard" value="onverhard" type="QString"/>
+                <Option value="onverhard" name="unpaved (onverhard)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="pand" value="pand" type="QString"/>
+                <Option value="pand" name="building (pand)" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -301,8 +301,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -311,8 +311,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -321,8 +321,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -333,25 +333,25 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
+                <Option value="-1" name="-1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="0" value="0" type="QString"/>
+                <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="1" value="1" type="QString"/>
+                <Option value="1" name="1" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="2" value="2" type="QString"/>
+                <Option value="2" name="2" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="3" value="3" type="QString"/>
+                <Option value="3" name="3" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="4" value="4" type="QString"/>
+                <Option value="4" name="4" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="5" value="5" type="QString"/>
+                <Option value="5" name="5" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -362,8 +362,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -372,8 +372,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -382,8 +382,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -394,13 +394,13 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="vlak" value="vlak" type="QString"/>
+                <Option value="vlak" name="level (vlak)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="hellend" value="hellend" type="QString"/>
+                <Option value="hellend" name="inclined (hellend)" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option name="uitgestrekt" value="uitgestrekt" type="QString"/>
+                <Option value="uitgestrekt" name="elongated&#xa; (uitgestrekt)" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -411,85 +411,85 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option name="IsMultiline" value="false" type="bool"/>
-            <Option name="UseHtml" value="false" type="bool"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" index="0" field="function"/>
-    <alias name="" index="1" field="surface_class"/>
-    <alias name="" index="2" field="code"/>
-    <alias name="" index="3" field="display_name"/>
-    <alias name="" index="4" field="surface_sub_class"/>
-    <alias name="" index="5" field="zoom_category"/>
-    <alias name="" index="6" field="nr_of_inhabitants"/>
-    <alias name="" index="7" field="area"/>
-    <alias name="" index="8" field="dry_weather_flow"/>
-    <alias name="" index="9" field="surface_inclination"/>
-    <alias name="" index="10" field="id"/>
+    <alias index="0" name="" field="function"/>
+    <alias index="1" name="" field="surface_class"/>
+    <alias index="2" name="" field="code"/>
+    <alias index="3" name="" field="display_name"/>
+    <alias index="4" name="" field="surface_sub_class"/>
+    <alias index="5" name="" field="zoom_category"/>
+    <alias index="6" name="" field="nr_of_inhabitants"/>
+    <alias index="7" name="" field="area"/>
+    <alias index="8" name="" field="dry_weather_flow"/>
+    <alias index="9" name="" field="surface_inclination"/>
+    <alias index="10" name="" field="id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" field="function" expression=""/>
-    <default applyOnUpdate="0" field="surface_class" expression=""/>
-    <default applyOnUpdate="0" field="code" expression="'new'"/>
-    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
-    <default applyOnUpdate="0" field="surface_sub_class" expression=""/>
-    <default applyOnUpdate="0" field="zoom_category" expression="-1"/>
-    <default applyOnUpdate="0" field="nr_of_inhabitants" expression="0"/>
-    <default applyOnUpdate="0" field="area" expression="$area"/>
-    <default applyOnUpdate="0" field="dry_weather_flow" expression=""/>
-    <default applyOnUpdate="0" field="surface_inclination" expression=""/>
-    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default applyOnUpdate="0" expression="" field="function"/>
+    <default applyOnUpdate="0" expression="" field="surface_class"/>
+    <default applyOnUpdate="0" expression="'new'" field="code"/>
+    <default applyOnUpdate="0" expression="'new'" field="display_name"/>
+    <default applyOnUpdate="0" expression="" field="surface_sub_class"/>
+    <default applyOnUpdate="0" expression="-1" field="zoom_category"/>
+    <default applyOnUpdate="0" expression="" field="nr_of_inhabitants"/>
+    <default applyOnUpdate="0" expression="$area" field="area"/>
+    <default applyOnUpdate="0" expression="" field="dry_weather_flow"/>
+    <default applyOnUpdate="0" expression="" field="surface_inclination"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
   </defaults>
   <constraints>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="function" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="surface_class" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="code" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="display_name" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="surface_sub_class" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="zoom_category" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="nr_of_inhabitants" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="area" unique_strength="0"/>
-    <constraint notnull_strength="0" constraints="0" exp_strength="0" field="dry_weather_flow" unique_strength="0"/>
-    <constraint notnull_strength="2" constraints="1" exp_strength="0" field="surface_inclination" unique_strength="0"/>
-    <constraint notnull_strength="1" constraints="3" exp_strength="0" field="id" unique_strength="1"/>
+    <constraint exp_strength="0" notnull_strength="0" field="function" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="surface_class" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="code" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="display_name" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="surface_sub_class" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="zoom_category" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="nr_of_inhabitants" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="area" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="dry_weather_flow" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="surface_inclination" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" field="function" desc=""/>
-    <constraint exp="" field="surface_class" desc=""/>
-    <constraint exp="" field="code" desc=""/>
-    <constraint exp="" field="display_name" desc=""/>
-    <constraint exp="" field="surface_sub_class" desc=""/>
-    <constraint exp="" field="zoom_category" desc=""/>
-    <constraint exp="" field="nr_of_inhabitants" desc=""/>
-    <constraint exp="" field="area" desc=""/>
-    <constraint exp="" field="dry_weather_flow" desc=""/>
-    <constraint exp="" field="surface_inclination" desc=""/>
-    <constraint exp="" field="id" desc=""/>
+    <constraint exp="" desc="" field="function"/>
+    <constraint exp="" desc="" field="surface_class"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="surface_sub_class"/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="nr_of_inhabitants"/>
+    <constraint exp="" desc="" field="area"/>
+    <constraint exp="" desc="" field="dry_weather_flow"/>
+    <constraint exp="" desc="" field="surface_inclination"/>
+    <constraint exp="" desc="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column name="function" hidden="0" width="-1" type="field"/>
-      <column name="surface_class" hidden="0" width="-1" type="field"/>
-      <column name="code" hidden="0" width="-1" type="field"/>
-      <column name="display_name" hidden="0" width="-1" type="field"/>
-      <column name="surface_sub_class" hidden="0" width="-1" type="field"/>
-      <column name="zoom_category" hidden="0" width="-1" type="field"/>
-      <column name="nr_of_inhabitants" hidden="0" width="-1" type="field"/>
-      <column name="area" hidden="0" width="-1" type="field"/>
-      <column name="dry_weather_flow" hidden="0" width="-1" type="field"/>
-      <column name="surface_inclination" hidden="0" width="-1" type="field"/>
-      <column name="id" hidden="0" width="-1" type="field"/>
-      <column hidden="1" width="-1" type="actions"/>
+      <column width="-1" hidden="0" name="function" type="field"/>
+      <column width="-1" hidden="0" name="surface_class" type="field"/>
+      <column width="-1" hidden="0" name="code" type="field"/>
+      <column width="-1" hidden="0" name="display_name" type="field"/>
+      <column width="-1" hidden="0" name="surface_sub_class" type="field"/>
+      <column width="-1" hidden="0" name="zoom_category" type="field"/>
+      <column width="-1" hidden="0" name="nr_of_inhabitants" type="field"/>
+      <column width="-1" hidden="0" name="area" type="field"/>
+      <column width="-1" hidden="0" name="dry_weather_flow" type="field"/>
+      <column width="-1" hidden="0" name="surface_inclination" type="field"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -518,55 +518,55 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Impervious surface" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-      <attributeEditorContainer name="General" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="id" index="10" showLabel="1"/>
-        <attributeEditorField name="display_name" index="3" showLabel="1"/>
-        <attributeEditorField name="code" index="2" showLabel="1"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Impervious surface" groupBox="1" visibilityExpressionEnabled="0">
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="10" name="id"/>
+        <attributeEditorField showLabel="1" index="3" name="display_name"/>
+        <attributeEditorField showLabel="1" index="2" name="code"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorContainer name="Storm water" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-          <attributeEditorField name="surface_class" index="1" showLabel="1"/>
-          <attributeEditorField name="surface_sub_class" index="4" showLabel="1"/>
-          <attributeEditorField name="surface_inclination" index="9" showLabel="1"/>
-          <attributeEditorField name="area" index="7" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Characteristics" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Storm water" groupBox="1" visibilityExpressionEnabled="0">
+          <attributeEditorField showLabel="1" index="1" name="surface_class"/>
+          <attributeEditorField showLabel="1" index="4" name="surface_sub_class"/>
+          <attributeEditorField showLabel="1" index="9" name="surface_inclination"/>
+          <attributeEditorField showLabel="1" index="7" name="area"/>
         </attributeEditorContainer>
-        <attributeEditorContainer name="Municipal water" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-          <attributeEditorField name="dry_weather_flow" index="8" showLabel="1"/>
-          <attributeEditorField name="nr_of_inhabitants" index="6" showLabel="1"/>
+        <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Municipal water" groupBox="1" visibilityExpressionEnabled="0">
+          <attributeEditorField showLabel="1" index="8" name="dry_weather_flow"/>
+          <attributeEditorField showLabel="1" index="6" name="nr_of_inhabitants"/>
         </attributeEditorContainer>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" groupBox="1" columnCount="1" visibilityExpressionEnabled="0" visibilityExpression="" showLabel="1">
-        <attributeEditorField name="zoom_category" index="5" showLabel="1"/>
-        <attributeEditorField name="function" index="0" showLabel="1"/>
+      <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Visualization" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField showLabel="1" index="5" name="zoom_category"/>
+        <attributeEditorField showLabel="1" index="0" name="function"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="area" editable="1"/>
-    <field name="code" editable="1"/>
-    <field name="display_name" editable="1"/>
-    <field name="dry_weather_flow" editable="1"/>
-    <field name="function" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="nr_of_inhabitants" editable="1"/>
-    <field name="surface_class" editable="1"/>
-    <field name="surface_inclination" editable="1"/>
-    <field name="surface_sub_class" editable="1"/>
-    <field name="zoom_category" editable="1"/>
+    <field editable="1" name="area"/>
+    <field editable="1" name="code"/>
+    <field editable="1" name="display_name"/>
+    <field editable="1" name="dry_weather_flow"/>
+    <field editable="1" name="function"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="nr_of_inhabitants"/>
+    <field editable="1" name="surface_class"/>
+    <field editable="1" name="surface_inclination"/>
+    <field editable="1" name="surface_sub_class"/>
+    <field editable="1" name="zoom_category"/>
   </editable>
   <labelOnTop>
-    <field name="area" labelOnTop="0"/>
-    <field name="code" labelOnTop="0"/>
-    <field name="display_name" labelOnTop="0"/>
-    <field name="dry_weather_flow" labelOnTop="0"/>
-    <field name="function" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="nr_of_inhabitants" labelOnTop="0"/>
-    <field name="surface_class" labelOnTop="0"/>
-    <field name="surface_inclination" labelOnTop="0"/>
-    <field name="surface_sub_class" labelOnTop="0"/>
-    <field name="zoom_category" labelOnTop="0"/>
+    <field labelOnTop="0" name="area"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="dry_weather_flow"/>
+    <field labelOnTop="0" name="function"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="nr_of_inhabitants"/>
+    <field labelOnTop="0" name="surface_class"/>
+    <field labelOnTop="0" name="surface_inclination"/>
+    <field labelOnTop="0" name="surface_sub_class"/>
+    <field labelOnTop="0" name="zoom_category"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>display_name</previewExpression>

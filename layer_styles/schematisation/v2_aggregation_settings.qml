@@ -1,37 +1,29 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="AllStyleCategories" version="3.4.5-Madeira" minScale="1e+08" maxScale="0" readOnly="0" hasScaleBasedVisibilityFlag="0">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
   <customproperties>
-    <property key="dualview/previewExpressions" value="var_name"/>
-    <property key="embeddedWidgets/count" value="0"/>
+    <property key="dualview/previewExpressions">
+      <value>var_name</value>
+    </property>
+    <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
   <fieldConfiguration>
-    <field name="global_settings_id">
-      <editWidget type="TextEdit">
-        <config>
-          <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
-          </Option>
-        </config>
-      </editWidget>
-    </field>
     <field name="timestep">
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -40,19 +32,26 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="global_settings_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
     <field name="aggregation_in_space">
-      <editWidget type="CheckBox">
+      <editWidget type="Hidden">
         <config>
-          <Option type="Map">
-            <Option type="QString" value="1" name="CheckedState"/>
-            <Option type="QString" value="0" name="UncheckedState"/>
-          </Option>
+          <Option/>
         </config>
       </editWidget>
     </field>
@@ -60,30 +59,30 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="avg" name="average"/>
+                <Option value="avg" name="average" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="min" name="minimum"/>
+                <Option value="min" name="minimum" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="max" name="maximum"/>
+                <Option value="max" name="maximum" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="cum" name="cumulative"/>
+                <Option value="cum" name="cumulative" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="med" name="median"/>
+                <Option value="med" name="median" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="cum_negative" name="cumulative negative"/>
+                <Option value="cum_negative" name="cumulative negative" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="cum_positive" name="cumulative positive"/>
+                <Option value="cum_positive" name="cumulative positive" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="current" name="current"/>
+                <Option value="current" name="current" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -94,42 +93,42 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="discharge" name="discharge"/>
+                <Option value="discharge" name="discharge" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="flow_velocity" name="flow velocity"/>
+                <Option value="flow_velocity" name="flow velocity" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="pump_discharge" name="pump discharge"/>
+                <Option value="pump_discharge" name="pump discharge" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="rain" name="rain"/>
+                <Option value="rain" name="rain" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="waterlevel" name="waterlevel"/>
+                <Option value="waterlevel" name="waterlevel" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="wet_cross-section" name="wet cross section"/>
+                <Option value="wet_cross-section" name="wet cross section" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="wet_surface" name="wet surface"/>
+                <Option value="wet_surface" name="wet surface" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="lateral_discharge" name="lateral discharge"/>
+                <Option value="lateral_discharge" name="lateral discharge" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="volume" name="volume"/>
+                <Option value="volume" name="volume" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="simple_infiltration" name="infiltration"/>
+                <Option value="simple_infiltration" name="infiltration" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="leakage" name="leakage"/>
+                <Option value="leakage" name="leakage" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="interception" name="interception"/>
+                <Option value="interception" name="interception" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -140,64 +139,64 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias field="global_settings_id" index="0" name=""/>
-    <alias field="timestep" index="1" name=""/>
-    <alias field="var_name" index="2" name=""/>
-    <alias field="aggregation_in_space" index="3" name=""/>
-    <alias field="aggregation_method" index="4" name=""/>
-    <alias field="flow_variable" index="5" name=""/>
-    <alias field="id" index="6" name=""/>
+    <alias index="0" name="" field="timestep"/>
+    <alias index="1" name="" field="var_name"/>
+    <alias index="2" name="" field="global_settings_id"/>
+    <alias index="3" name="" field="aggregation_in_space"/>
+    <alias index="4" name="" field="aggregation_method"/>
+    <alias index="5" name="" field="flow_variable"/>
+    <alias index="6" name="" field="id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="" applyOnUpdate="0" field="global_settings_id"/>
-    <default expression="" applyOnUpdate="0" field="timestep"/>
-    <default expression="" applyOnUpdate="0" field="var_name"/>
-    <default expression="0" applyOnUpdate="0" field="aggregation_in_space"/>
-    <default expression="" applyOnUpdate="0" field="aggregation_method"/>
-    <default expression="" applyOnUpdate="0" field="flow_variable"/>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
+    <default applyOnUpdate="0" expression="" field="timestep"/>
+    <default applyOnUpdate="0" expression="" field="var_name"/>
+    <default applyOnUpdate="0" expression="" field="global_settings_id"/>
+    <default applyOnUpdate="0" expression="0" field="aggregation_in_space"/>
+    <default applyOnUpdate="0" expression="" field="aggregation_method"/>
+    <default applyOnUpdate="0" expression="" field="flow_variable"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
   </defaults>
   <constraints>
-    <constraint unique_strength="0" constraints="0" notnull_strength="0" field="global_settings_id" exp_strength="0"/>
-    <constraint unique_strength="0" constraints="1" notnull_strength="2" field="timestep" exp_strength="0"/>
-    <constraint unique_strength="0" constraints="1" notnull_strength="2" field="var_name" exp_strength="0"/>
-    <constraint unique_strength="0" constraints="1" notnull_strength="2" field="aggregation_in_space" exp_strength="0"/>
-    <constraint unique_strength="0" constraints="1" notnull_strength="2" field="aggregation_method" exp_strength="0"/>
-    <constraint unique_strength="0" constraints="1" notnull_strength="2" field="flow_variable" exp_strength="0"/>
-    <constraint unique_strength="1" constraints="3" notnull_strength="1" field="id" exp_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="timestep" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="var_name" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="global_settings_id" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="aggregation_in_space" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="aggregation_method" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="flow_variable" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
   </constraints>
   <constraintExpressions>
-    <constraint desc="" field="global_settings_id" exp=""/>
-    <constraint desc="" field="timestep" exp=""/>
-    <constraint desc="" field="var_name" exp=""/>
-    <constraint desc="" field="aggregation_in_space" exp=""/>
-    <constraint desc="" field="aggregation_method" exp=""/>
-    <constraint desc="" field="flow_variable" exp=""/>
-    <constraint desc="" field="id" exp=""/>
+    <constraint exp="" desc="" field="timestep"/>
+    <constraint exp="" desc="" field="var_name"/>
+    <constraint exp="" desc="" field="global_settings_id"/>
+    <constraint exp="" desc="" field="aggregation_in_space"/>
+    <constraint exp="" desc="" field="aggregation_method"/>
+    <constraint exp="" desc="" field="flow_variable"/>
+    <constraint exp="" desc="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortOrder="0" actionWidgetStyle="dropDown" sortExpression="">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column width="-1" hidden="0" type="field" name="timestep"/>
-      <column width="-1" hidden="0" type="field" name="var_name"/>
-      <column width="-1" hidden="0" type="field" name="global_settings_id"/>
-      <column width="-1" hidden="0" type="field" name="aggregation_in_space"/>
-      <column width="-1" hidden="0" type="field" name="aggregation_method"/>
-      <column width="-1" hidden="0" type="field" name="flow_variable"/>
-      <column width="-1" hidden="0" type="field" name="id"/>
+      <column width="214" hidden="0" name="timestep" type="field"/>
+      <column width="207" hidden="0" name="var_name" type="field"/>
+      <column width="123" hidden="0" name="global_settings_id" type="field"/>
+      <column width="168" hidden="0" name="aggregation_in_space" type="field"/>
+      <column width="-1" hidden="0" name="aggregation_method" type="field"/>
+      <column width="-1" hidden="0" name="flow_variable" type="field"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
       <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
@@ -229,14 +228,13 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="General" showLabel="1" groupBox="0">
-      <attributeEditorField index="6" name="id" showLabel="1"/>
-      <attributeEditorField index="5" name="flow_variable" showLabel="1"/>
-      <attributeEditorField index="4" name="aggregation_method" showLabel="1"/>
-      <attributeEditorField index="1" name="timestep" showLabel="1"/>
-      <attributeEditorField index="2" name="var_name" showLabel="1"/>
-      <attributeEditorField index="0" name="global_settings_id" showLabel="1"/>
-      <attributeEditorField index="3" name="aggregation_in_space" showLabel="1"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorField showLabel="1" index="6" name="id"/>
+      <attributeEditorField showLabel="1" index="5" name="flow_variable"/>
+      <attributeEditorField showLabel="1" index="4" name="aggregation_method"/>
+      <attributeEditorField showLabel="1" index="0" name="timestep"/>
+      <attributeEditorField showLabel="1" index="1" name="var_name"/>
+      <attributeEditorField showLabel="1" index="2" name="global_settings_id"/>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>

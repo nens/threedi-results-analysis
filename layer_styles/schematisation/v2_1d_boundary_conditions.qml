@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis readOnly="0" version="3.4.5-Madeira" maxScale="0" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
@@ -11,7 +11,7 @@
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
-  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -20,8 +20,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -30,8 +30,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="false" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -40,18 +40,18 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option value="1" type="QString" name="1: waterlevel"/>
+                <Option value="1" name="1: waterlevel" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="2" type="QString" name="2: velocity"/>
+                <Option value="2" name="2: velocity" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="3" type="QString" name="3: discharge"/>
+                <Option value="3" name="3: discharge" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option value="5" type="QString" name="5: sommerfeld"/>
+                <Option value="5" name="5: sommerfeld" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -62,32 +62,32 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option value="true" type="bool" name="IsMultiline"/>
-            <Option value="false" type="bool" name="UseHtml"/>
+            <Option value="true" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias name="" field="id" index="0"/>
-    <alias name="" field="connection_node_id" index="1"/>
-    <alias name="" field="boundary_type" index="2"/>
-    <alias name="" field="timeseries" index="3"/>
+    <alias index="0" name="" field="id"/>
+    <alias index="1" name="" field="connection_node_id"/>
+    <alias index="2" name="" field="boundary_type"/>
+    <alias index="3" name="" field="timeseries"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
-    <default expression="" applyOnUpdate="0" field="connection_node_id"/>
-    <default expression="" applyOnUpdate="0" field="boundary_type"/>
-    <default expression="'0,1&#xd;&#xa;9999,1'" applyOnUpdate="0" field="timeseries"/>
+    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
+    <default applyOnUpdate="0" expression="" field="connection_node_id"/>
+    <default applyOnUpdate="0" expression="" field="boundary_type"/>
+    <default applyOnUpdate="0" expression="" field="timeseries"/>
   </defaults>
   <constraints>
-    <constraint exp_strength="0" unique_strength="1" notnull_strength="1" constraints="3" field="id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_id"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="boundary_type"/>
-    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="timeseries"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
+    <constraint exp_strength="0" notnull_strength="2" field="connection_node_id" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="boundary_type" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="timeseries" constraints="1" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
     <constraint exp="" desc="" field="id"/>
@@ -99,13 +99,13 @@
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column width="-1" type="field" hidden="0" name="id"/>
-      <column width="-1" type="field" hidden="0" name="connection_node_id"/>
-      <column width="-1" type="field" hidden="0" name="boundary_type"/>
-      <column width="-1" type="field" hidden="0" name="timeseries"/>
-      <column width="-1" type="actions" hidden="1"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="0" name="connection_node_id" type="field"/>
+      <column width="-1" hidden="0" name="boundary_type" type="field"/>
+      <column width="-1" hidden="0" name="timeseries" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -136,18 +136,18 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
-      <attributeEditorField showLabel="1" name="id" index="0"/>
-      <attributeEditorField showLabel="1" name="connection_node_id" index="1"/>
-      <attributeEditorField showLabel="1" name="boundary_type" index="2"/>
-      <attributeEditorField showLabel="1" name="timeseries" index="3"/>
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorField showLabel="1" index="0" name="id"/>
+      <attributeEditorField showLabel="1" index="1" name="connection_node_id"/>
+      <attributeEditorField showLabel="1" index="2" name="boundary_type"/>
+      <attributeEditorField showLabel="1" index="3" name="timeseries"/>
     </attributeEditorContainer>
   </attributeEditorForm>
   <editable>
-    <field name="boundary_type" editable="1"/>
-    <field name="connection_node_id" editable="1"/>
-    <field name="id" editable="1"/>
-    <field name="timeseries" editable="1"/>
+    <field editable="1" name="boundary_type"/>
+    <field editable="1" name="connection_node_id"/>
+    <field editable="1" name="id"/>
+    <field editable="1" name="timeseries"/>
   </editable>
   <labelOnTop>
     <field labelOnTop="0" name="boundary_type"/>

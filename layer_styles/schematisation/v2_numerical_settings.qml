@@ -1,14 +1,12 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis maxScale="0" version="3.4.5-Madeira" readOnly="0" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+08">
+<qgis maxScale="0" readOnly="0" version="3.4.11-Madeira" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" minScale="1e+8">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
   <customproperties>
-    <property key="dualview/previewExpressions">
-      <value>id</value>
-    </property>
+    <property value="id" key="dualview/previewExpressions"/>
     <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
@@ -22,8 +20,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -32,8 +30,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -42,8 +40,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -52,8 +50,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -62,8 +60,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -72,8 +70,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -81,14 +79,20 @@
     <field name="frict_shallow_water_correction">
       <editWidget type="TextEdit">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="general_numerical_threshold">
       <editWidget type="TextEdit">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
@@ -96,8 +100,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -105,21 +109,30 @@
     <field name="limiter_grad_1d">
       <editWidget type="TextEdit">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="limiter_grad_2d">
       <editWidget type="TextEdit">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
     <field name="limiter_slope_crossectional_area_2d">
       <editWidget type="TextEdit">
         <config>
-          <Option/>
+          <Option type="Map">
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
+          </Option>
         </config>
       </editWidget>
     </field>
@@ -127,8 +140,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -137,8 +150,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -147,18 +160,18 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="700" name="700: for 1D flow"/>
+                <Option value="5" name="5: for surface 2D flow only" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="5" name="5: for surface 2D flow only"/>
+                <Option value="7" name="7: for 1D and 2D flow" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="7" name="7: for 1D and 2D flow"/>
+                <Option value="70" name="70: for surface 1D, 2D surface and groundwater flow or higher" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="70" name="70: for surface 1D, 2D surface and groundwater flow or higher"/>
+                <Option value="700" name="700: for 1D flow" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -169,8 +182,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -179,8 +192,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -189,8 +202,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -199,8 +212,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -209,8 +222,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -219,8 +232,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -229,8 +242,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option value="false" name="IsMultiline" type="bool"/>
+            <Option value="false" name="UseHtml" type="bool"/>
           </Option>
         </config>
       </editWidget>
@@ -239,12 +252,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="0" name="0: for 2D or open profiles (like channels)"/>
+                <Option value="0" name="0: When the schematisation does not include 1D-elements with closed-profiles" type="QString"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="1" name="1: for 1D systems with closed profiles (like sewerage)"/>
+                <Option value="1" name="1: When the schematisation  includes 1D-elements with closed-profiles" type="QString"/>
               </Option>
             </Option>
           </Option>
@@ -253,137 +266,137 @@
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias field="id" index="0" name=""/>
-    <alias field="cfl_strictness_factor_1d" index="1" name=""/>
-    <alias field="cfl_strictness_factor_2d" index="2" name=""/>
-    <alias field="convergence_cg" index="3" name=""/>
-    <alias field="convergence_eps" index="4" name=""/>
-    <alias field="flow_direction_threshold" index="5" name=""/>
-    <alias field="frict_shallow_water_correction" index="6" name=""/>
-    <alias field="general_numerical_threshold" index="7" name=""/>
-    <alias field="integration_method" index="8" name=""/>
-    <alias field="limiter_grad_1d" index="9" name=""/>
-    <alias field="limiter_grad_2d" index="10" name=""/>
-    <alias field="limiter_slope_crossectional_area_2d" index="11" name=""/>
-    <alias field="limiter_slope_friction_2d" index="12" name=""/>
-    <alias field="max_nonlin_iterations" index="13" name=""/>
-    <alias field="max_degree" index="14" name=""/>
-    <alias field="minimum_friction_velocity" index="15" name=""/>
-    <alias field="minimum_surface_area" index="16" name=""/>
-    <alias field="precon_cg" index="17" name=""/>
-    <alias field="preissmann_slot" index="18" name=""/>
-    <alias field="pump_implicit_ratio" index="19" name=""/>
-    <alias field="thin_water_layer_definition" index="20" name=""/>
-    <alias field="use_of_cg" index="21" name=""/>
-    <alias field="use_of_nested_newton" index="22" name=""/>
+    <alias index="0" name="" field="id"/>
+    <alias index="1" name="" field="cfl_strictness_factor_1d"/>
+    <alias index="2" name="" field="cfl_strictness_factor_2d"/>
+    <alias index="3" name="" field="convergence_cg"/>
+    <alias index="4" name="" field="convergence_eps"/>
+    <alias index="5" name="" field="flow_direction_threshold"/>
+    <alias index="6" name="" field="frict_shallow_water_correction"/>
+    <alias index="7" name="" field="general_numerical_threshold"/>
+    <alias index="8" name="" field="integration_method"/>
+    <alias index="9" name="" field="limiter_grad_1d"/>
+    <alias index="10" name="" field="limiter_grad_2d"/>
+    <alias index="11" name="" field="limiter_slope_crossectional_area_2d"/>
+    <alias index="12" name="" field="limiter_slope_friction_2d"/>
+    <alias index="13" name="" field="max_nonlin_iterations"/>
+    <alias index="14" name="" field="max_degree"/>
+    <alias index="15" name="" field="minimum_friction_velocity"/>
+    <alias index="16" name="" field="minimum_surface_area"/>
+    <alias index="17" name="" field="precon_cg"/>
+    <alias index="18" name="" field="preissmann_slot"/>
+    <alias index="19" name="" field="pump_implicit_ratio"/>
+    <alias index="20" name="" field="thin_water_layer_definition"/>
+    <alias index="21" name="" field="use_of_cg"/>
+    <alias index="22" name="" field="use_of_nested_newton"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default field="id" expression=" if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0"/>
-    <default field="cfl_strictness_factor_1d" expression="" applyOnUpdate="0"/>
-    <default field="cfl_strictness_factor_2d" expression="" applyOnUpdate="0"/>
-    <default field="convergence_cg" expression="" applyOnUpdate="0"/>
-    <default field="convergence_eps" expression="0.00001" applyOnUpdate="0"/>
-    <default field="flow_direction_threshold" expression="" applyOnUpdate="0"/>
-    <default field="frict_shallow_water_correction" expression="" applyOnUpdate="0"/>
-    <default field="general_numerical_threshold" expression="" applyOnUpdate="0"/>
-    <default field="integration_method" expression="0" applyOnUpdate="0"/>
-    <default field="limiter_grad_1d" expression="" applyOnUpdate="0"/>
-    <default field="limiter_grad_2d" expression="" applyOnUpdate="0"/>
-    <default field="limiter_slope_crossectional_area_2d" expression="" applyOnUpdate="0"/>
-    <default field="limiter_slope_friction_2d" expression="" applyOnUpdate="0"/>
-    <default field="max_nonlin_iterations" expression="20" applyOnUpdate="0"/>
-    <default field="max_degree" expression="" applyOnUpdate="0"/>
-    <default field="minimum_friction_velocity" expression="" applyOnUpdate="0"/>
-    <default field="minimum_surface_area" expression="" applyOnUpdate="0"/>
-    <default field="precon_cg" expression="" applyOnUpdate="0"/>
-    <default field="preissmann_slot" expression="" applyOnUpdate="0"/>
-    <default field="pump_implicit_ratio" expression="" applyOnUpdate="0"/>
-    <default field="thin_water_layer_definition" expression="" applyOnUpdate="0"/>
-    <default field="use_of_cg" expression="20" applyOnUpdate="0"/>
-    <default field="use_of_nested_newton" expression="" applyOnUpdate="0"/>
+    <default applyOnUpdate="0" expression=" if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
+    <default applyOnUpdate="0" expression="1" field="cfl_strictness_factor_1d"/>
+    <default applyOnUpdate="0" expression="1" field="cfl_strictness_factor_2d"/>
+    <default applyOnUpdate="0" expression="0.000000001" field="convergence_cg"/>
+    <default applyOnUpdate="0" expression="0.00001" field="convergence_eps"/>
+    <default applyOnUpdate="0" expression="0.000001" field="flow_direction_threshold"/>
+    <default applyOnUpdate="0" expression="0" field="frict_shallow_water_correction"/>
+    <default applyOnUpdate="0" expression="0.00000001" field="general_numerical_threshold"/>
+    <default applyOnUpdate="0" expression="0" field="integration_method"/>
+    <default applyOnUpdate="0" expression="1" field="limiter_grad_1d"/>
+    <default applyOnUpdate="0" expression="0" field="limiter_grad_2d"/>
+    <default applyOnUpdate="0" expression="0" field="limiter_slope_crossectional_area_2d"/>
+    <default applyOnUpdate="0" expression="0" field="limiter_slope_friction_2d"/>
+    <default applyOnUpdate="0" expression="20" field="max_nonlin_iterations"/>
+    <default applyOnUpdate="0" expression="" field="max_degree"/>
+    <default applyOnUpdate="0" expression="0.05" field="minimum_friction_velocity"/>
+    <default applyOnUpdate="0" expression="0.00000001" field="minimum_surface_area"/>
+    <default applyOnUpdate="0" expression="1" field="precon_cg"/>
+    <default applyOnUpdate="0" expression="0" field="preissmann_slot"/>
+    <default applyOnUpdate="0" expression="1" field="pump_implicit_ratio"/>
+    <default applyOnUpdate="0" expression="0.05" field="thin_water_layer_definition"/>
+    <default applyOnUpdate="0" expression="20" field="use_of_cg"/>
+    <default applyOnUpdate="0" expression="" field="use_of_nested_newton"/>
   </defaults>
   <constraints>
-    <constraint field="id" constraints="3" unique_strength="1" exp_strength="0" notnull_strength="1"/>
-    <constraint field="cfl_strictness_factor_1d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="cfl_strictness_factor_2d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="convergence_cg" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="convergence_eps" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
-    <constraint field="flow_direction_threshold" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="frict_shallow_water_correction" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="general_numerical_threshold" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="integration_method" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
-    <constraint field="limiter_grad_1d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="limiter_grad_2d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="limiter_slope_crossectional_area_2d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="limiter_slope_friction_2d" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="max_nonlin_iterations" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
-    <constraint field="max_degree" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
-    <constraint field="minimum_friction_velocity" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="minimum_surface_area" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="precon_cg" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="preissmann_slot" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="pump_implicit_ratio" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="thin_water_layer_definition" constraints="0" unique_strength="0" exp_strength="0" notnull_strength="0"/>
-    <constraint field="use_of_cg" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
-    <constraint field="use_of_nested_newton" constraints="1" unique_strength="0" exp_strength="0" notnull_strength="2"/>
+    <constraint exp_strength="0" notnull_strength="1" field="id" constraints="3" unique_strength="1"/>
+    <constraint exp_strength="0" notnull_strength="0" field="cfl_strictness_factor_1d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="cfl_strictness_factor_2d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="convergence_cg" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="convergence_eps" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="flow_direction_threshold" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="frict_shallow_water_correction" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="general_numerical_threshold" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="integration_method" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="limiter_grad_1d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="limiter_grad_2d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="limiter_slope_crossectional_area_2d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="limiter_slope_friction_2d" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="max_nonlin_iterations" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="max_degree" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="minimum_friction_velocity" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="minimum_surface_area" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="precon_cg" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="preissmann_slot" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="pump_implicit_ratio" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="0" field="thin_water_layer_definition" constraints="0" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="use_of_cg" constraints="1" unique_strength="0"/>
+    <constraint exp_strength="0" notnull_strength="2" field="use_of_nested_newton" constraints="1" unique_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint field="id" desc="" exp=""/>
-    <constraint field="cfl_strictness_factor_1d" desc="" exp=""/>
-    <constraint field="cfl_strictness_factor_2d" desc="" exp=""/>
-    <constraint field="convergence_cg" desc="" exp=""/>
-    <constraint field="convergence_eps" desc="" exp=""/>
-    <constraint field="flow_direction_threshold" desc="" exp=""/>
-    <constraint field="frict_shallow_water_correction" desc="" exp=""/>
-    <constraint field="general_numerical_threshold" desc="" exp=""/>
-    <constraint field="integration_method" desc="" exp=""/>
-    <constraint field="limiter_grad_1d" desc="" exp=""/>
-    <constraint field="limiter_grad_2d" desc="" exp=""/>
-    <constraint field="limiter_slope_crossectional_area_2d" desc="" exp=""/>
-    <constraint field="limiter_slope_friction_2d" desc="" exp=""/>
-    <constraint field="max_nonlin_iterations" desc="" exp=""/>
-    <constraint field="max_degree" desc="" exp=""/>
-    <constraint field="minimum_friction_velocity" desc="" exp=""/>
-    <constraint field="minimum_surface_area" desc="" exp=""/>
-    <constraint field="precon_cg" desc="" exp=""/>
-    <constraint field="preissmann_slot" desc="" exp=""/>
-    <constraint field="pump_implicit_ratio" desc="" exp=""/>
-    <constraint field="thin_water_layer_definition" desc="" exp=""/>
-    <constraint field="use_of_cg" desc="" exp=""/>
-    <constraint field="use_of_nested_newton" desc="" exp=""/>
+    <constraint exp="" desc="" field="id"/>
+    <constraint exp="" desc="" field="cfl_strictness_factor_1d"/>
+    <constraint exp="" desc="" field="cfl_strictness_factor_2d"/>
+    <constraint exp="" desc="" field="convergence_cg"/>
+    <constraint exp="" desc="" field="convergence_eps"/>
+    <constraint exp="" desc="" field="flow_direction_threshold"/>
+    <constraint exp="" desc="" field="frict_shallow_water_correction"/>
+    <constraint exp="" desc="" field="general_numerical_threshold"/>
+    <constraint exp="" desc="" field="integration_method"/>
+    <constraint exp="" desc="" field="limiter_grad_1d"/>
+    <constraint exp="" desc="" field="limiter_grad_2d"/>
+    <constraint exp="" desc="" field="limiter_slope_crossectional_area_2d"/>
+    <constraint exp="" desc="" field="limiter_slope_friction_2d"/>
+    <constraint exp="" desc="" field="max_nonlin_iterations"/>
+    <constraint exp="" desc="" field="max_degree"/>
+    <constraint exp="" desc="" field="minimum_friction_velocity"/>
+    <constraint exp="" desc="" field="minimum_surface_area"/>
+    <constraint exp="" desc="" field="precon_cg"/>
+    <constraint exp="" desc="" field="preissmann_slot"/>
+    <constraint exp="" desc="" field="pump_implicit_ratio"/>
+    <constraint exp="" desc="" field="thin_water_layer_definition"/>
+    <constraint exp="" desc="" field="use_of_cg"/>
+    <constraint exp="" desc="" field="use_of_nested_newton"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" actionWidgetStyle="dropDown" sortOrder="0">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
-      <column type="field" hidden="0" name="id" width="-1"/>
-      <column type="field" hidden="0" name="cfl_strictness_factor_1d" width="-1"/>
-      <column type="field" hidden="0" name="cfl_strictness_factor_2d" width="-1"/>
-      <column type="field" hidden="0" name="convergence_cg" width="-1"/>
-      <column type="field" hidden="0" name="convergence_eps" width="-1"/>
-      <column type="field" hidden="0" name="flow_direction_threshold" width="-1"/>
-      <column type="field" hidden="0" name="frict_shallow_water_correction" width="-1"/>
-      <column type="field" hidden="0" name="general_numerical_threshold" width="-1"/>
-      <column type="field" hidden="0" name="integration_method" width="-1"/>
-      <column type="field" hidden="0" name="limiter_grad_1d" width="-1"/>
-      <column type="field" hidden="0" name="limiter_grad_2d" width="-1"/>
-      <column type="field" hidden="0" name="limiter_slope_crossectional_area_2d" width="-1"/>
-      <column type="field" hidden="0" name="limiter_slope_friction_2d" width="-1"/>
-      <column type="field" hidden="0" name="max_nonlin_iterations" width="-1"/>
-      <column type="field" hidden="0" name="max_degree" width="-1"/>
-      <column type="field" hidden="0" name="minimum_friction_velocity" width="-1"/>
-      <column type="field" hidden="0" name="minimum_surface_area" width="-1"/>
-      <column type="field" hidden="0" name="precon_cg" width="-1"/>
-      <column type="field" hidden="0" name="preissmann_slot" width="-1"/>
-      <column type="field" hidden="0" name="pump_implicit_ratio" width="-1"/>
-      <column type="field" hidden="0" name="thin_water_layer_definition" width="-1"/>
-      <column type="field" hidden="0" name="use_of_cg" width="-1"/>
-      <column type="field" hidden="0" name="use_of_nested_newton" width="-1"/>
-      <column type="actions" hidden="1" width="-1"/>
+      <column width="-1" hidden="0" name="id" type="field"/>
+      <column width="-1" hidden="0" name="cfl_strictness_factor_1d" type="field"/>
+      <column width="-1" hidden="0" name="cfl_strictness_factor_2d" type="field"/>
+      <column width="-1" hidden="0" name="convergence_cg" type="field"/>
+      <column width="-1" hidden="0" name="convergence_eps" type="field"/>
+      <column width="-1" hidden="0" name="flow_direction_threshold" type="field"/>
+      <column width="-1" hidden="0" name="frict_shallow_water_correction" type="field"/>
+      <column width="-1" hidden="0" name="general_numerical_threshold" type="field"/>
+      <column width="-1" hidden="0" name="integration_method" type="field"/>
+      <column width="-1" hidden="0" name="limiter_grad_1d" type="field"/>
+      <column width="-1" hidden="0" name="limiter_grad_2d" type="field"/>
+      <column width="-1" hidden="0" name="limiter_slope_crossectional_area_2d" type="field"/>
+      <column width="-1" hidden="0" name="limiter_slope_friction_2d" type="field"/>
+      <column width="-1" hidden="0" name="max_nonlin_iterations" type="field"/>
+      <column width="-1" hidden="0" name="max_degree" type="field"/>
+      <column width="-1" hidden="0" name="minimum_friction_velocity" type="field"/>
+      <column width="-1" hidden="0" name="minimum_surface_area" type="field"/>
+      <column width="-1" hidden="0" name="precon_cg" type="field"/>
+      <column width="-1" hidden="0" name="preissmann_slot" type="field"/>
+      <column width="-1" hidden="0" name="pump_implicit_ratio" type="field"/>
+      <column width="-1" hidden="0" name="thin_water_layer_definition" type="field"/>
+      <column width="-1" hidden="0" name="use_of_cg" type="field"/>
+      <column width="-1" hidden="0" name="use_of_nested_newton" type="field"/>
+      <column width="-1" hidden="1" type="actions"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -414,16 +427,16 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer showLabel="1" groupBox="0" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="General">
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="General" groupBox="0" visibilityExpressionEnabled="0">
       <attributeEditorField showLabel="1" index="0" name="id"/>
     </attributeEditorContainer>
-    <attributeEditorContainer showLabel="1" groupBox="0" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="Limiters">
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Limiters" groupBox="0" visibilityExpressionEnabled="0">
       <attributeEditorField showLabel="1" index="9" name="limiter_grad_1d"/>
       <attributeEditorField showLabel="1" index="10" name="limiter_grad_2d"/>
       <attributeEditorField showLabel="1" index="11" name="limiter_slope_crossectional_area_2d"/>
       <attributeEditorField showLabel="1" index="12" name="limiter_slope_friction_2d"/>
     </attributeEditorContainer>
-    <attributeEditorContainer showLabel="1" groupBox="0" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="Matrix">
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Matrix" groupBox="0" visibilityExpressionEnabled="0">
       <attributeEditorField showLabel="1" index="3" name="convergence_cg"/>
       <attributeEditorField showLabel="1" index="4" name="convergence_eps"/>
       <attributeEditorField showLabel="1" index="21" name="use_of_cg"/>
@@ -433,17 +446,17 @@ def my_form_open(dialog, layer, feature):
       <attributeEditorField showLabel="1" index="17" name="precon_cg"/>
       <attributeEditorField showLabel="1" index="8" name="integration_method"/>
     </attributeEditorContainer>
-    <attributeEditorContainer showLabel="1" groupBox="0" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="Thresholds">
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Thresholds" groupBox="0" visibilityExpressionEnabled="0">
       <attributeEditorField showLabel="1" index="5" name="flow_direction_threshold"/>
-      <attributeEditorField showLabel="1" index="6" name="frict_shallow_water_correction"/>
       <attributeEditorField showLabel="1" index="7" name="general_numerical_threshold"/>
       <attributeEditorField showLabel="1" index="20" name="thin_water_layer_definition"/>
       <attributeEditorField showLabel="1" index="15" name="minimum_friction_velocity"/>
       <attributeEditorField showLabel="1" index="16" name="minimum_surface_area"/>
     </attributeEditorContainer>
-    <attributeEditorContainer showLabel="1" groupBox="0" visibilityExpression="" visibilityExpressionEnabled="0" columnCount="1" name="Miscelaneous">
+    <attributeEditorContainer showLabel="1" columnCount="1" visibilityExpression="" name="Miscellaneous" groupBox="0" visibilityExpressionEnabled="0">
       <attributeEditorField showLabel="1" index="1" name="cfl_strictness_factor_1d"/>
       <attributeEditorField showLabel="1" index="2" name="cfl_strictness_factor_2d"/>
+      <attributeEditorField showLabel="1" index="6" name="frict_shallow_water_correction"/>
       <attributeEditorField showLabel="1" index="19" name="pump_implicit_ratio"/>
       <attributeEditorField showLabel="1" index="18" name="preissmann_slot"/>
     </attributeEditorContainer>
@@ -474,29 +487,29 @@ def my_form_open(dialog, layer, feature):
     <field editable="1" name="use_of_nested_newton"/>
   </editable>
   <labelOnTop>
-    <field name="cfl_strictness_factor_1d" labelOnTop="0"/>
-    <field name="cfl_strictness_factor_2d" labelOnTop="0"/>
-    <field name="convergence_cg" labelOnTop="0"/>
-    <field name="convergence_eps" labelOnTop="0"/>
-    <field name="flow_direction_threshold" labelOnTop="0"/>
-    <field name="frict_shallow_water_correction" labelOnTop="0"/>
-    <field name="general_numerical_threshold" labelOnTop="0"/>
-    <field name="id" labelOnTop="0"/>
-    <field name="integration_method" labelOnTop="0"/>
-    <field name="limiter_grad_1d" labelOnTop="0"/>
-    <field name="limiter_grad_2d" labelOnTop="0"/>
-    <field name="limiter_slope_crossectional_area_2d" labelOnTop="0"/>
-    <field name="limiter_slope_friction_2d" labelOnTop="0"/>
-    <field name="max_degree" labelOnTop="0"/>
-    <field name="max_nonlin_iterations" labelOnTop="0"/>
-    <field name="minimum_friction_velocity" labelOnTop="0"/>
-    <field name="minimum_surface_area" labelOnTop="0"/>
-    <field name="precon_cg" labelOnTop="0"/>
-    <field name="preissmann_slot" labelOnTop="0"/>
-    <field name="pump_implicit_ratio" labelOnTop="0"/>
-    <field name="thin_water_layer_definition" labelOnTop="0"/>
-    <field name="use_of_cg" labelOnTop="0"/>
-    <field name="use_of_nested_newton" labelOnTop="0"/>
+    <field labelOnTop="0" name="cfl_strictness_factor_1d"/>
+    <field labelOnTop="0" name="cfl_strictness_factor_2d"/>
+    <field labelOnTop="0" name="convergence_cg"/>
+    <field labelOnTop="0" name="convergence_eps"/>
+    <field labelOnTop="0" name="flow_direction_threshold"/>
+    <field labelOnTop="0" name="frict_shallow_water_correction"/>
+    <field labelOnTop="0" name="general_numerical_threshold"/>
+    <field labelOnTop="0" name="id"/>
+    <field labelOnTop="0" name="integration_method"/>
+    <field labelOnTop="0" name="limiter_grad_1d"/>
+    <field labelOnTop="0" name="limiter_grad_2d"/>
+    <field labelOnTop="0" name="limiter_slope_crossectional_area_2d"/>
+    <field labelOnTop="0" name="limiter_slope_friction_2d"/>
+    <field labelOnTop="0" name="max_degree"/>
+    <field labelOnTop="0" name="max_nonlin_iterations"/>
+    <field labelOnTop="0" name="minimum_friction_velocity"/>
+    <field labelOnTop="0" name="minimum_surface_area"/>
+    <field labelOnTop="0" name="precon_cg"/>
+    <field labelOnTop="0" name="preissmann_slot"/>
+    <field labelOnTop="0" name="pump_implicit_ratio"/>
+    <field labelOnTop="0" name="thin_water_layer_definition"/>
+    <field labelOnTop="0" name="use_of_cg"/>
+    <field labelOnTop="0" name="use_of_nested_newton"/>
   </labelOnTop>
   <widgets/>
   <previewExpression>id</previewExpression>

@@ -1,3 +1,5 @@
+from ThreeDiToolbox.layer_styles.custom_widgets.mywidget import MyCustomWidgetFactory
+
 from . import styler
 from .threedi_database import ThreediDatabase
 from qgis.core import QgsCoordinateTransform
@@ -6,8 +8,6 @@ from qgis.core import QgsLayerTreeNode
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsSnappingConfig
-from qgis.core import QgsTolerance
 from PyQt5.QtCore import QSettings
 
 import os.path
@@ -391,20 +391,46 @@ class LayerTreeManager(object):
             table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
-                styler.apply_style(
-                        table_layer, table_name, 'schematisation')
+                styler.apply_style(table_layer, table_name, "schematisation")
                 QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
-        QSettings().setValue('/Map/identifyAutoFeatureForm','true')
-        # my_snap_config = QgsSnappingConfig()
-        # my_snap_config.setEnabled(True)
-        # my_snap_config.setMode(QgsSnappingConfig.AllLayers)
-        # my_snap_config.setType(QgsSnappingConfig.Vertex)
-        # my_snap_config.setUnits(QgsTolerance.Pixels)
-        # my_snap_config.setTolerance(10)
-        # my_snap_config.setIntersectionSnapping(True)
 
-        # QgsProject.instance().setSnappingConfig(my_snap_config)
+            if table_name == 'v2_global_settings':
+                print("We have him!")
+                layer = table_layer
+
+                # editFormConfig = layer.editFormConfig()
+                # editFormConfig.setWidgetConfig('id', {'nm-rel': 'other_relation'})
+                # layer.setEditFormConfig(editFormConfig)
+
+
+                # layer.editFormConfig().widgetConfig('')
+                #
+                # [el.name() for el in layer.editFormConfig().tabs()[0].children()]
+                # layer.editFormConfig().tabs()[0].children()[0]
+                # layer.editFormConfig().setWidgetConfig('id2', {'rule': '[A-Z].*'})
+                #
+                # layer.editFormConfig().setWidgetConfig(
+                #
+                # )
+
+
+                # register a new custom widget:
+                from qgis.gui import QgsGui
+                widget_editor_registry = QgsGui.editorWidgetRegistry()
+                widget_editor_registry.registerWidget(
+                    widgetId='mywidget',
+                    widgetFactory=MyCustomWidgetFactory('mywidget123')
+                )
+
+                # self.my_factory = FormAwareValueRelationWidgetFactory(
+                #     'Form Value Relation')
+                # widget_editor_registry.registerWidget(
+                #     'mywidget', self.my_factory)
+
+
+
+        QSettings().setValue("/Map/identifyAutoFeatureForm", "true")
 
     def add_results(self, index, start_row, stop_row):
         # unique identifier?

@@ -147,19 +147,19 @@ class ThreediDatabase(object):
 
         conn.execute(
             """
-        CREATE VIEW IF NOT EXISTS v2_manhole_view 
+        CREATE VIEW IF NOT EXISTS v2_manhole_view
         AS SELECT manh.rowid AS ROWID, node.id AS node_id, manh.bottom_level
         AS manh_bottom_level, manh.surface_level AS manh_surface_level,
         manh.display_name AS manh_display_name, manh.shape AS manh_shape,
-        manh.width AS manh_width, manh.length AS manh_length, 
+        manh.width AS manh_width, manh.length AS manh_length,
         manh.manhole_indicator AS manh_manhole_indicator, manh.calculation_type
         AS manh_calculation_type, manh.drain_level AS manh_drain_level,
         manh.zoom_category AS manh_zoom_category, node.initial_waterlevel AS
-        node_initial_waterlevel, manh.id AS manh_id, manh.connection_node_id  AS 
+        node_initial_waterlevel, manh.id AS manh_id, manh.connection_node_id  AS
         manh_connection_node_id, node.storage_area AS node_storage_area,
         manh.code AS manh_code, node.code AS node_code, node.the_geom,
-        node.the_geom_linestring AS node_the_geom_linestring, 
-        manh.sediment_level AS manh_sediment_level 
+        node.the_geom_linestring AS node_the_geom_linestring,
+        manh.sediment_level AS manh_sediment_level
         FROM v2_manhole manh, v2_connection_nodes node
         WHERE manh.connection_node_id = node.id;
         """
@@ -256,16 +256,16 @@ class ThreediDatabase(object):
         )
         conn.execute(
             """
-        CREATE VIEW IF NOT EXISTS v2_cross_section_location_view 
-        AS SELECT loc.ROWID as ROWID, loc.id as loc_id, loc.code as loc_code, 
-        loc.reference_level as loc_reference_level, 
-        loc.bank_level as loc_bank_level, loc.friction_type as 
-        loc_friction_type, loc.friction_value as loc_friction_value, 
-        loc.definition_id as loc_definition_id, loc.channel_id as 
-        loc_channel_id, loc.the_geom as the_geom, def.id as def_id, 
-        def.shape as def_shape, def.width as def_width, def.code as 
-        def_code, def.height as def_height 
-        FROM v2_cross_section_location loc, v2_cross_section_definition def 
+        CREATE VIEW IF NOT EXISTS v2_cross_section_location_view
+        AS SELECT loc.ROWID as ROWID, loc.id as loc_id, loc.code as loc_code,
+        loc.reference_level as loc_reference_level,
+        loc.bank_level as loc_bank_level, loc.friction_type as
+        loc_friction_type, loc.friction_value as loc_friction_value,
+        loc.definition_id as loc_definition_id, loc.channel_id as
+        loc_channel_id, loc.the_geom as the_geom, def.id as def_id,
+        def.shape as def_shape, def.width as def_width, def.code as
+        def_code, def.height as def_height
+        FROM v2_cross_section_location loc, v2_cross_section_definition def
         WHERE loc.definition_id = def.id;"""
         )
 
