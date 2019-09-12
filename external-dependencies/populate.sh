@@ -19,16 +19,10 @@ rm SQLAlchemy*gz
 sed -i 's/distclass/\#distclass/g' SQLAlchemy*/setup.py
 DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
 
-# Download windows 64 bit osgeo4w h5py egg.
-wget http://download.osgeo.org/osgeo4w/x86_64/release/python3/python3-h5py/python3-h5py-2.7.0-1.tar.bz2
-tar -xjf python3-h5py*.tar.bz2
-mv apps/Python36/Lib/site-packages/h5py*egg ..
-rm -rf apps
-rm *.bz2
-# Same with 32 bit egg
-wget http://download.osgeo.org/osgeo4w/x86/release/python3/python3-h5py/python3-h5py-2.7.0-1.tar.bz2
-tar -xjf python3-h5py*.tar.bz2
-mv apps/Python36/Lib/site-packages/h5py*egg ..
+# Download h5py 2.9.0 for windows 64 bit from Pypi.
+wget https://files.pythonhosted.org/packages/4f/1e/89aa610afce8df6fd1f12647600a05e902238587ae6375442a3164b59d51/h5py-2.9.0-cp37-cp37m-win_amd64.whl
+mv h5py-2.9.0-cp37-cp37m-win_amd64.whl ..
+
 
 # Back up a level and clean up the build/ directory.
 cd ..
