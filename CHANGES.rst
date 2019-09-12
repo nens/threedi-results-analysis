@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.12.2 (unreleased)
+1.12.2 (2019-09-12)
 -------------------
 
 - Pinned h5py version to 2.9.
