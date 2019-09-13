@@ -1,74 +1,17 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.4-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
-  <edittypes>
-    <edittype widgetv2type="TextEdit" name="ROWID">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_display_name">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_code">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_crest_level">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_crest_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_cross_section_definition_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_sewerage">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_discharge_coefficient_positive">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_discharge_coefficient_negative">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_external">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_zoom_category">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_friction_value">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_friction_type">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_connection_node_start_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="weir_connection_node_end_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="def_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="def_shape">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="def_width">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="def_height">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-  </edittypes>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+<qgis hasScaleBasedVisibilityFlag="0" labelsEnabled="0" simplifyLocal="1" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" simplifyAlgorithm="0" readOnly="0" minScale="1e+08" version="3.4.5-Madeira" maxScale="-4.65661e-10">
+  <flags>
+    <Identifiable>1</Identifiable>
+    <Removable>1</Removable>
+    <Searchable>1</Searchable>
+  </flags>
+  <renderer-v2 forceraster="0" enableorderby="0" symbollevels="0" type="singleSymbol">
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="line" name="0">
-        <layer pass="0" class="SimpleLine" locked="0">
+      <symbol name="0" alpha="1" type="line" clip_to_extent="1" force_rhr="0">
+        <layer locked="0" class="SimpleLine" pass="0" enabled="1">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
-          <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="customdash_unit" v="MM"/>
           <prop k="draw_inside_polygon" v="0"/>
           <prop k="joinstyle" v="bevel"/>
@@ -77,250 +20,488 @@
           <prop k="line_width" v="0.66"/>
           <prop k="line_width_unit" v="MM"/>
           <prop k="offset" v="0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
+          <prop k="ring_filter" v="0"/>
           <prop k="use_custom_dash" v="0"/>
-          <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" locked="0">
+        <layer locked="0" class="MarkerLine" pass="0" enabled="1">
           <prop k="interval" v="3"/>
-          <prop k="interval_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="interval_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="interval_unit" v="MM"/>
           <prop k="offset" v="0"/>
           <prop k="offset_along_line" v="0"/>
-          <prop k="offset_along_line_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_along_line_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_along_line_unit" v="MM"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
           <prop k="placement" v="centralpoint"/>
+          <prop k="ring_filter" v="0"/>
           <prop k="rotate" v="0"/>
-          <symbol alpha="1" clip_to_extent="1" type="marker" name="@0@1">
-            <layer pass="0" class="SimpleMarker" locked="0">
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+          <symbol name="@0@1" alpha="1" type="marker" clip_to_extent="1" force_rhr="0">
+            <layer locked="0" class="SimpleMarker" pass="0" enabled="1">
               <prop k="angle" v="0"/>
               <prop k="color" v="51,160,44,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="bevel"/>
               <prop k="name" v="triangle"/>
               <prop k="offset" v="0,0"/>
-              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
               <prop k="offset_unit" v="MM"/>
               <prop k="outline_color" v="0,0,0,255"/>
               <prop k="outline_style" v="solid"/>
               <prop k="outline_width" v="0"/>
-              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
               <prop k="outline_width_unit" v="MM"/>
               <prop k="scale_method" v="area"/>
               <prop k="size" v="3"/>
-              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
               <prop k="size_unit" v="MM"/>
               <prop k="vertical_anchor_point" v="1"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option name="name" type="QString" value=""/>
+                  <Option name="properties"/>
+                  <Option name="type" type="QString" value="collection"/>
+                </Option>
+              </data_defined_properties>
             </layer>
           </symbol>
         </layer>
       </symbol>
     </symbols>
     <rotation/>
-    <sizescale scalemethod="diameter"/>
+    <sizescale/>
   </renderer-v2>
-  <labeling type="simple"/>
   <customproperties>
-    <property key="labeling" value="pal"/>
-    <property key="labeling/addDirectionSymbol" value="false"/>
-    <property key="labeling/angleOffset" value="0"/>
-    <property key="labeling/blendMode" value="0"/>
-    <property key="labeling/bufferBlendMode" value="0"/>
-    <property key="labeling/bufferColorA" value="255"/>
-    <property key="labeling/bufferColorB" value="255"/>
-    <property key="labeling/bufferColorG" value="255"/>
-    <property key="labeling/bufferColorR" value="255"/>
-    <property key="labeling/bufferDraw" value="false"/>
-    <property key="labeling/bufferJoinStyle" value="64"/>
-    <property key="labeling/bufferNoFill" value="false"/>
-    <property key="labeling/bufferSize" value="1"/>
-    <property key="labeling/bufferSizeInMapUnits" value="false"/>
-    <property key="labeling/bufferSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/bufferSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/bufferSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/bufferTransp" value="0"/>
-    <property key="labeling/centroidInside" value="false"/>
-    <property key="labeling/centroidWhole" value="false"/>
-    <property key="labeling/decimals" value="3"/>
-    <property key="labeling/displayAll" value="false"/>
-    <property key="labeling/dist" value="0"/>
-    <property key="labeling/distInMapUnits" value="false"/>
-    <property key="labeling/distMapUnitMaxScale" value="0"/>
-    <property key="labeling/distMapUnitMinScale" value="0"/>
-    <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/drawLabels" value="false"/>
-    <property key="labeling/enabled" value="false"/>
-    <property key="labeling/fieldName" value=""/>
-    <property key="labeling/fitInPolygonOnly" value="false"/>
-    <property key="labeling/fontBold" value="false"/>
-    <property key="labeling/fontCapitals" value="0"/>
-    <property key="labeling/fontFamily" value="MS Shell Dlg 2"/>
-    <property key="labeling/fontItalic" value="false"/>
-    <property key="labeling/fontLetterSpacing" value="0"/>
-    <property key="labeling/fontLimitPixelSize" value="false"/>
-    <property key="labeling/fontMaxPixelSize" value="10000"/>
-    <property key="labeling/fontMinPixelSize" value="3"/>
-    <property key="labeling/fontSize" value="8.25"/>
-    <property key="labeling/fontSizeInMapUnits" value="false"/>
-    <property key="labeling/fontSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/fontSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/fontSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/fontStrikeout" value="false"/>
-    <property key="labeling/fontUnderline" value="false"/>
-    <property key="labeling/fontWeight" value="50"/>
-    <property key="labeling/fontWordSpacing" value="0"/>
-    <property key="labeling/formatNumbers" value="false"/>
-    <property key="labeling/isExpression" value="true"/>
-    <property key="labeling/labelOffsetInMapUnits" value="true"/>
-    <property key="labeling/labelOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/labelOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/labelOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/labelPerPart" value="false"/>
-    <property key="labeling/leftDirectionSymbol" value="&lt;"/>
-    <property key="labeling/limitNumLabels" value="false"/>
-    <property key="labeling/maxCurvedCharAngleIn" value="20"/>
-    <property key="labeling/maxCurvedCharAngleOut" value="-20"/>
-    <property key="labeling/maxNumLabels" value="2000"/>
-    <property key="labeling/mergeLines" value="false"/>
-    <property key="labeling/minFeatureSize" value="0"/>
-    <property key="labeling/multilineAlign" value="0"/>
-    <property key="labeling/multilineHeight" value="1"/>
-    <property key="labeling/namedStyle" value="Normal"/>
-    <property key="labeling/obstacle" value="true"/>
-    <property key="labeling/obstacleFactor" value="1"/>
-    <property key="labeling/obstacleType" value="0"/>
-    <property key="labeling/offsetType" value="0"/>
-    <property key="labeling/placeDirectionSymbol" value="0"/>
-    <property key="labeling/placement" value="2"/>
-    <property key="labeling/placementFlags" value="10"/>
-    <property key="labeling/plussign" value="false"/>
-    <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
-    <property key="labeling/preserveRotation" value="true"/>
-    <property key="labeling/previewBkgrdColor" value="#ffffff"/>
-    <property key="labeling/priority" value="5"/>
-    <property key="labeling/quadOffset" value="4"/>
-    <property key="labeling/repeatDistance" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitMaxScale" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitMinScale" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/repeatDistanceUnit" value="1"/>
-    <property key="labeling/reverseDirectionSymbol" value="false"/>
-    <property key="labeling/rightDirectionSymbol" value=">"/>
-    <property key="labeling/scaleMax" value="10000000"/>
-    <property key="labeling/scaleMin" value="1"/>
-    <property key="labeling/scaleVisibility" value="false"/>
-    <property key="labeling/shadowBlendMode" value="6"/>
-    <property key="labeling/shadowColorB" value="0"/>
-    <property key="labeling/shadowColorG" value="0"/>
-    <property key="labeling/shadowColorR" value="0"/>
-    <property key="labeling/shadowDraw" value="false"/>
-    <property key="labeling/shadowOffsetAngle" value="135"/>
-    <property key="labeling/shadowOffsetDist" value="1"/>
-    <property key="labeling/shadowOffsetGlobal" value="true"/>
-    <property key="labeling/shadowOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/shadowOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/shadowOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shadowOffsetUnits" value="1"/>
-    <property key="labeling/shadowRadius" value="1.5"/>
-    <property key="labeling/shadowRadiusAlphaOnly" value="false"/>
-    <property key="labeling/shadowRadiusMapUnitMaxScale" value="0"/>
-    <property key="labeling/shadowRadiusMapUnitMinScale" value="0"/>
-    <property key="labeling/shadowRadiusMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shadowRadiusUnits" value="1"/>
-    <property key="labeling/shadowScale" value="100"/>
-    <property key="labeling/shadowTransparency" value="30"/>
-    <property key="labeling/shadowUnder" value="0"/>
-    <property key="labeling/shapeBlendMode" value="0"/>
-    <property key="labeling/shapeBorderColorA" value="255"/>
-    <property key="labeling/shapeBorderColorB" value="128"/>
-    <property key="labeling/shapeBorderColorG" value="128"/>
-    <property key="labeling/shapeBorderColorR" value="128"/>
-    <property key="labeling/shapeBorderWidth" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeBorderWidthUnits" value="1"/>
-    <property key="labeling/shapeDraw" value="false"/>
-    <property key="labeling/shapeFillColorA" value="255"/>
-    <property key="labeling/shapeFillColorB" value="255"/>
-    <property key="labeling/shapeFillColorG" value="255"/>
-    <property key="labeling/shapeFillColorR" value="255"/>
-    <property key="labeling/shapeJoinStyle" value="64"/>
-    <property key="labeling/shapeOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeOffsetUnits" value="1"/>
-    <property key="labeling/shapeOffsetX" value="0"/>
-    <property key="labeling/shapeOffsetY" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeRadiiUnits" value="1"/>
-    <property key="labeling/shapeRadiiX" value="0"/>
-    <property key="labeling/shapeRadiiY" value="0"/>
-    <property key="labeling/shapeRotation" value="0"/>
-    <property key="labeling/shapeRotationType" value="0"/>
-    <property key="labeling/shapeSVGFile" value=""/>
-    <property key="labeling/shapeSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeSizeType" value="0"/>
-    <property key="labeling/shapeSizeUnits" value="1"/>
-    <property key="labeling/shapeSizeX" value="0"/>
-    <property key="labeling/shapeSizeY" value="0"/>
-    <property key="labeling/shapeTransparency" value="0"/>
-    <property key="labeling/shapeType" value="0"/>
-    <property key="labeling/textColorA" value="255"/>
-    <property key="labeling/textColorB" value="0"/>
-    <property key="labeling/textColorG" value="0"/>
-    <property key="labeling/textColorR" value="0"/>
-    <property key="labeling/textTransp" value="0"/>
-    <property key="labeling/upsidedownLabels" value="0"/>
-    <property key="labeling/wrapChar" value=""/>
-    <property key="labeling/xOffset" value="0"/>
-    <property key="labeling/yOffset" value="0"/>
-    <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property key="dualview/previewExpressions" value="ROWID"/>
+    <property key="embeddedWidgets/count" value="0"/>
+    <property key="variableNames"/>
+    <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <layerTransparency>0</layerTransparency>
-  <displayfield>weir_display_name</displayfield>
-  <label>0</label>
-  <labelattributes>
-    <label fieldname="" text="Label"/>
-    <family fieldname="" name="MS Shell Dlg 2"/>
-    <size fieldname="" units="pt" value="12"/>
-    <bold fieldname="" on="0"/>
-    <italic fieldname="" on="0"/>
-    <underline fieldname="" on="0"/>
-    <strikeout fieldname="" on="0"/>
-    <color fieldname="" red="0" blue="0" green="0"/>
-    <x fieldname=""/>
-    <y fieldname=""/>
-    <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
-    <angle fieldname="" value="0" auto="0"/>
-    <alignment fieldname="" value="center"/>
-    <buffercolor fieldname="" red="255" blue="255" green="255"/>
-    <buffersize fieldname="" units="pt" value="1"/>
-    <bufferenabled fieldname="" on=""/>
-    <multilineenabled fieldname="" on=""/>
-    <selectedonly on=""/>
-  </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="0">
+  <layerOpacity>1</layerOpacity>
+  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
+    <DiagramCategory backgroundAlpha="255" height="15" minScaleDenominator="-4.65661e-10" opacity="1" penColor="#000000" lineSizeType="MM" penAlpha="255" labelPlacementMethod="XHeight" diagramOrientation="Up" rotationOffset="270" maxScaleDenominator="1e+08" scaleDependency="Area" width="15" barWidth="5" sizeType="MM" lineSizeScale="3x:0,0,0,0,0,0" scaleBasedVisibility="0" sizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" penWidth="0" minimumSize="0" enabled="0">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      <attribute label="" field="" color="#000000"/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="2" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
-  <annotationform>.</annotationform>
+  <DiagramLayerSettings linePlacementFlags="2" showAll="1" zIndex="0" placement="2" obstacle="0" dist="0" priority="0">
+    <properties>
+      <Option type="Map">
+        <Option name="name" type="QString" value=""/>
+        <Option name="properties"/>
+        <Option name="type" type="QString" value="collection"/>
+      </Option>
+    </properties>
+  </DiagramLayerSettings>
+  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+    <activeChecks/>
+    <checkConfiguration/>
+  </geometryOptions>
+  <fieldConfiguration>
+    <field name="ROWID">
+      <editWidget type="TextEdit">
+        <config>
+          <Option/>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_display_name">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_code">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_max_capacity">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_crest_level">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_sewerage">
+      <editWidget type="CheckBox">
+        <config>
+          <Option type="Map">
+            <Option name="CheckedState" type="QString" value="1"/>
+            <Option name="UncheckedState" type="QString" value="0"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_cross_section_definition_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_friction_value">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_friction_type">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option name="map" type="List">
+              <Option type="Map">
+                <Option name="1: Chèzy" type="QString" value="1"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2: Manning" type="QString" value="2"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_discharge_coefficient_positive">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_discharge_coefficient_negative">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_zoom_category">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option name="map" type="List">
+              <Option type="Map">
+                <Option name="-1" type="QString" value="-1"/>
+              </Option>
+              <Option type="Map">
+                <Option name="0" type="QString" value="0"/>
+              </Option>
+              <Option type="Map">
+                <Option name="1" type="QString" value="1"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2" type="QString" value="2"/>
+              </Option>
+              <Option type="Map">
+                <Option name="3" type="QString" value="3"/>
+              </Option>
+              <Option type="Map">
+                <Option name="4" type="QString" value="4"/>
+              </Option>
+              <Option type="Map">
+                <Option name="5" type="QString" value="5"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_crest_type">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option name="map" type="List">
+              <Option type="Map">
+                <Option name="3: broad crested" type="QString" value="3"/>
+              </Option>
+              <Option type="Map">
+                <Option name="4: short crested" type="QString" value="4"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_connection_node_start_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="orf_connection_node_end_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="def_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="def_shape">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option name="map" type="List">
+              <Option type="Map">
+                <Option name="1: rectangle" type="QString" value="1"/>
+              </Option>
+              <Option type="Map">
+                <Option name="2: round" type="QString" value="2"/>
+              </Option>
+              <Option type="Map">
+                <Option name="3: egg" type="QString" value="3"/>
+              </Option>
+              <Option type="Map">
+                <Option name="5: tabulated rectangle" type="QString" value="5"/>
+              </Option>
+              <Option type="Map">
+                <Option name="6: tabulated trapezium" type="QString" value="6"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="def_width">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="def_height">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="def_code">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+  </fieldConfiguration>
+  <aliases>
+    <alias field="ROWID" name="" index="0"/>
+    <alias field="orf_id" name="id" index="1"/>
+    <alias field="orf_display_name" name="display_name" index="2"/>
+    <alias field="orf_code" name="code" index="3"/>
+    <alias field="orf_max_capacity" name="max_capacity" index="4"/>
+    <alias field="orf_crest_level" name="crest_level" index="5"/>
+    <alias field="orf_sewerage" name="sewerage" index="6"/>
+    <alias field="orf_cross_section_definition_id" name="cross_section_definition_id" index="7"/>
+    <alias field="orf_friction_value" name="friction_value" index="8"/>
+    <alias field="orf_friction_type" name="friction_type" index="9"/>
+    <alias field="orf_discharge_coefficient_positive" name="discharge_coefficient_positive" index="10"/>
+    <alias field="orf_discharge_coefficient_negative" name="discharge_coefficient_negative" index="11"/>
+    <alias field="orf_zoom_category" name="zoom_category" index="12"/>
+    <alias field="orf_crest_type" name="crest_type" index="13"/>
+    <alias field="orf_connection_node_start_id" name="connection_node_start_id" index="14"/>
+    <alias field="orf_connection_node_end_id" name="connection_node_end_id" index="15"/>
+    <alias field="def_id" name="id" index="16"/>
+    <alias field="def_shape" name="shape" index="17"/>
+    <alias field="def_width" name="width" index="18"/>
+    <alias field="def_height" name="height" index="19"/>
+    <alias field="def_code" name="code" index="20"/>
+  </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
-  <attributeactions/>
-  <editform>.</editform>
+  <defaults>
+    <default expression="" field="ROWID" applyOnUpdate="0"/>
+    <default expression="if(maximum(orf_id) is null,1, maximum(orf_id)+1)" field="orf_id" applyOnUpdate="0"/>
+    <default expression="'new'" field="orf_display_name" applyOnUpdate="0"/>
+    <default expression="'new'" field="orf_code" applyOnUpdate="0"/>
+    <default expression="" field="orf_max_capacity" applyOnUpdate="0"/>
+    <default expression="" field="orf_crest_level" applyOnUpdate="0"/>
+    <default expression="" field="orf_sewerage" applyOnUpdate="0"/>
+    <default expression="" field="orf_cross_section_definition_id" applyOnUpdate="0"/>
+    <default expression="0.02" field="orf_friction_value" applyOnUpdate="0"/>
+    <default expression="2" field="orf_friction_type" applyOnUpdate="0"/>
+    <default expression="0.8" field="orf_discharge_coefficient_positive" applyOnUpdate="0"/>
+    <default expression="0.8" field="orf_discharge_coefficient_negative" applyOnUpdate="0"/>
+    <default expression="3" field="orf_zoom_category" applyOnUpdate="0"/>
+    <default expression="4" field="orf_crest_type" applyOnUpdate="0"/>
+    <default expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))) is null, 'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))))" field="orf_connection_node_start_id" applyOnUpdate="0"/>
+    <default expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))) is null, 'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))))" field="orf_connection_node_end_id" applyOnUpdate="0"/>
+    <default expression="" field="def_id" applyOnUpdate="0"/>
+    <default expression="" field="def_shape" applyOnUpdate="0"/>
+    <default expression="" field="def_width" applyOnUpdate="0"/>
+    <default expression="" field="def_height" applyOnUpdate="0"/>
+    <default expression="" field="def_code" applyOnUpdate="0"/>
+  </defaults>
+  <constraints>
+    <constraint field="ROWID" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="orf_id" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_display_name" exp_strength="2" constraints="5" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_code" exp_strength="2" constraints="5" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_max_capacity" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="orf_crest_level" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_sewerage" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="orf_cross_section_definition_id" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_friction_value" exp_strength="2" constraints="5" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_friction_type" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_discharge_coefficient_positive" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_discharge_coefficient_negative" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_zoom_category" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_crest_type" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_connection_node_start_id" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="orf_connection_node_end_id" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="def_id" exp_strength="0" constraints="1" unique_strength="0" notnull_strength="2"/>
+    <constraint field="def_shape" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="def_width" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="def_height" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+    <constraint field="def_code" exp_strength="0" constraints="0" unique_strength="0" notnull_strength="0"/>
+  </constraints>
+  <constraintExpressions>
+    <constraint exp="" field="ROWID" desc=""/>
+    <constraint exp="" field="orf_id" desc=""/>
+    <constraint exp="&quot;orf_display_name&quot; is not null" field="orf_display_name" desc=""/>
+    <constraint exp="&quot;orf_code&quot; is not null&#xd;&#xa;" field="orf_code" desc=""/>
+    <constraint exp="" field="orf_max_capacity" desc=""/>
+    <constraint exp="" field="orf_crest_level" desc=""/>
+    <constraint exp="" field="orf_sewerage" desc=""/>
+    <constraint exp="" field="orf_cross_section_definition_id" desc=""/>
+    <constraint exp="&quot;orf_friction_value&quot; is not null" field="orf_friction_value" desc=""/>
+    <constraint exp="" field="orf_friction_type" desc=""/>
+    <constraint exp="" field="orf_discharge_coefficient_positive" desc=""/>
+    <constraint exp="" field="orf_discharge_coefficient_negative" desc=""/>
+    <constraint exp="" field="orf_zoom_category" desc=""/>
+    <constraint exp="" field="orf_crest_type" desc=""/>
+    <constraint exp="" field="orf_connection_node_start_id" desc=""/>
+    <constraint exp="" field="orf_connection_node_end_id" desc=""/>
+    <constraint exp="" field="def_id" desc=""/>
+    <constraint exp="" field="def_shape" desc=""/>
+    <constraint exp="" field="def_width" desc=""/>
+    <constraint exp="" field="def_height" desc=""/>
+    <constraint exp="" field="def_code" desc=""/>
+  </constraintExpressions>
+  <expressionfields/>
+  <attributeactions>
+    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+  </attributeactions>
+  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
+    <columns>
+      <column name="ROWID" hidden="0" type="field" width="-1"/>
+      <column name="orf_id" hidden="0" type="field" width="-1"/>
+      <column name="orf_display_name" hidden="0" type="field" width="-1"/>
+      <column name="orf_code" hidden="0" type="field" width="-1"/>
+      <column name="orf_max_capacity" hidden="0" type="field" width="-1"/>
+      <column name="orf_crest_level" hidden="0" type="field" width="-1"/>
+      <column name="orf_sewerage" hidden="0" type="field" width="-1"/>
+      <column name="orf_cross_section_definition_id" hidden="0" type="field" width="-1"/>
+      <column name="orf_friction_value" hidden="0" type="field" width="-1"/>
+      <column name="orf_friction_type" hidden="0" type="field" width="-1"/>
+      <column name="orf_discharge_coefficient_positive" hidden="0" type="field" width="-1"/>
+      <column name="orf_discharge_coefficient_negative" hidden="0" type="field" width="-1"/>
+      <column name="orf_zoom_category" hidden="0" type="field" width="-1"/>
+      <column name="orf_crest_type" hidden="0" type="field" width="-1"/>
+      <column name="orf_connection_node_start_id" hidden="0" type="field" width="-1"/>
+      <column name="orf_connection_node_end_id" hidden="0" type="field" width="-1"/>
+      <column name="def_id" hidden="0" type="field" width="-1"/>
+      <column name="def_shape" hidden="0" type="field" width="-1"/>
+      <column name="def_width" hidden="0" type="field" width="-1"/>
+      <column name="def_height" hidden="0" type="field" width="-1"/>
+      <column name="def_code" hidden="0" type="field" width="-1"/>
+      <column hidden="1" type="actions" width="-1"/>
+    </columns>
+  </attributetableconfig>
+  <conditionalstyles>
+    <rowstyles/>
+    <fieldstyles/>
+  </conditionalstyles>
+  <editform tolerant="1">.</editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
   <editforminitfilepath>.</editforminitfilepath>
@@ -342,11 +523,88 @@ def my_form_open(dialog, layer, feature):
 	control = dialog.findChild(QWidget, "MyLineEdit")
 ]]></editforminitcode>
   <featformsuppress>0</featformsuppress>
-  <editorlayout>generatedlayout</editorlayout>
+  <editorlayout>tablayout</editorlayout>
+  <attributeEditorForm>
+    <attributeEditorContainer name="Orifice view" showLabel="1" columnCount="1" visibilityExpression="" groupBox="0" visibilityExpressionEnabled="0">
+      <attributeEditorContainer name="General" showLabel="1" columnCount="1" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField name="orf_id" showLabel="1" index="1"/>
+        <attributeEditorField name="orf_display_name" showLabel="1" index="2"/>
+        <attributeEditorField name="orf_code" showLabel="1" index="3"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer name="Characteristics" showLabel="1" columnCount="1" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField name="orf_crest_level" showLabel="1" index="5"/>
+        <attributeEditorField name="orf_crest_type" showLabel="1" index="13"/>
+        <attributeEditorField name="orf_friction_value" showLabel="1" index="8"/>
+        <attributeEditorField name="orf_friction_type" showLabel="1" index="9"/>
+        <attributeEditorField name="orf_discharge_coefficient_positive" showLabel="1" index="10"/>
+        <attributeEditorField name="orf_discharge_coefficient_negative" showLabel="1" index="11"/>
+        <attributeEditorField name="orf_max_capacity" showLabel="1" index="4"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer name="Visualization" showLabel="1" columnCount="1" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField name="orf_sewerage" showLabel="1" index="6"/>
+        <attributeEditorField name="orf_zoom_category" showLabel="1" index="12"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer name="Cross section" showLabel="1" columnCount="1" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField name="orf_cross_section_definition_id" showLabel="1" index="7"/>
+        <attributeEditorField name="def_shape" showLabel="1" index="17"/>
+        <attributeEditorField name="def_width" showLabel="1" index="18"/>
+        <attributeEditorField name="def_height" showLabel="1" index="19"/>
+        <attributeEditorField name="def_code" showLabel="1" index="20"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer name="Connection nodes" showLabel="1" columnCount="1" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0">
+        <attributeEditorField name="orf_connection_node_start_id" showLabel="1" index="14"/>
+        <attributeEditorField name="orf_connection_node_end_id" showLabel="1" index="15"/>
+      </attributeEditorContainer>
+    </attributeEditorContainer>
+  </attributeEditorForm>
+  <editable>
+    <field name="ROWID" editable="1"/>
+    <field name="def_code" editable="0"/>
+    <field name="def_height" editable="0"/>
+    <field name="def_id" editable="1"/>
+    <field name="def_shape" editable="0"/>
+    <field name="def_width" editable="0"/>
+    <field name="orf_code" editable="1"/>
+    <field name="orf_connection_node_end_id" editable="0"/>
+    <field name="orf_connection_node_start_id" editable="0"/>
+    <field name="orf_crest_level" editable="1"/>
+    <field name="orf_crest_type" editable="1"/>
+    <field name="orf_cross_section_definition_id" editable="1"/>
+    <field name="orf_discharge_coefficient_negative" editable="1"/>
+    <field name="orf_discharge_coefficient_positive" editable="1"/>
+    <field name="orf_display_name" editable="1"/>
+    <field name="orf_friction_type" editable="1"/>
+    <field name="orf_friction_value" editable="1"/>
+    <field name="orf_id" editable="1"/>
+    <field name="orf_max_capacity" editable="1"/>
+    <field name="orf_sewerage" editable="1"/>
+    <field name="orf_zoom_category" editable="1"/>
+  </editable>
+  <labelOnTop>
+    <field name="ROWID" labelOnTop="0"/>
+    <field name="def_code" labelOnTop="0"/>
+    <field name="def_height" labelOnTop="0"/>
+    <field name="def_id" labelOnTop="0"/>
+    <field name="def_shape" labelOnTop="0"/>
+    <field name="def_width" labelOnTop="0"/>
+    <field name="orf_code" labelOnTop="0"/>
+    <field name="orf_connection_node_end_id" labelOnTop="0"/>
+    <field name="orf_connection_node_start_id" labelOnTop="0"/>
+    <field name="orf_crest_level" labelOnTop="0"/>
+    <field name="orf_crest_type" labelOnTop="0"/>
+    <field name="orf_cross_section_definition_id" labelOnTop="0"/>
+    <field name="orf_discharge_coefficient_negative" labelOnTop="0"/>
+    <field name="orf_discharge_coefficient_positive" labelOnTop="0"/>
+    <field name="orf_display_name" labelOnTop="0"/>
+    <field name="orf_friction_type" labelOnTop="0"/>
+    <field name="orf_friction_value" labelOnTop="0"/>
+    <field name="orf_id" labelOnTop="0"/>
+    <field name="orf_max_capacity" labelOnTop="0"/>
+    <field name="orf_sewerage" labelOnTop="0"/>
+    <field name="orf_zoom_category" labelOnTop="0"/>
+  </labelOnTop>
   <widgets/>
-  <conditionalstyles>
-    <rowstyles/>
-    <fieldstyles/>
-  </conditionalstyles>
+  <previewExpression>ROWID</previewExpression>
+  <mapTip>weir_display_name</mapTip>
   <layerGeometryType>1</layerGeometryType>
 </qgis>

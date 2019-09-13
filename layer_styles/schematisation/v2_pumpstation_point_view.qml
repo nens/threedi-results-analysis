@@ -1,278 +1,366 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="2.14.4-Essen" minimumScale="-4.65661e-10" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
-  <edittypes>
-    <edittype widgetv2type="TextEdit" name="pump_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="display_name">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="code">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="classification">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="sewerage">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="start_level_suction_side">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_level_suction_side">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="start_level_delivery_side">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="stop_level_delivery_side">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="capacity">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="zoom_category">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="connection_node_start_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="connection_node_end_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="connection_node_id">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-    <edittype widgetv2type="TextEdit" name="storage_area">
-      <widgetv2config IsMultiline="0" fieldEditable="1" UseHtml="0" labelOnTop="0"/>
-    </edittype>
-  </edittypes>
-  <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+<qgis readOnly="0" simplifyDrawingTol="1" version="3.4.5-Madeira" simplifyAlgorithm="0" simplifyMaxScale="1" maxScale="-4.65661e-10" labelsEnabled="0" simplifyDrawingHints="0" simplifyLocal="1" styleCategories="AllStyleCategories" minScale="1e+08" hasScaleBasedVisibilityFlag="0">
+  <flags>
+    <Identifiable>1</Identifiable>
+    <Removable>1</Removable>
+    <Searchable>1</Searchable>
+  </flags>
+  <renderer-v2 enableorderby="0" type="singleSymbol" forceraster="0" symbollevels="0">
     <symbols>
-      <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
-        <layer pass="0" class="SimpleMarker" locked="0">
+      <symbol clip_to_extent="1" force_rhr="0" type="marker" alpha="1" name="0">
+        <layer enabled="1" class="SimpleMarker" locked="0" pass="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="255,170,0,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
+          <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="pentagon"/>
           <prop k="offset" v="0,0"/>
-          <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
           <prop k="outline_color" v="0,0,0,255"/>
           <prop k="outline_style" v="solid"/>
           <prop k="outline_width" v="0"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="outline_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="scale_method" v="diameter"/>
           <prop k="size" v="3"/>
-          <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+          <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option value="" type="QString" name="name"/>
+              <Option name="properties"/>
+              <Option value="collection" type="QString" name="type"/>
+            </Option>
+          </data_defined_properties>
         </layer>
       </symbol>
     </symbols>
     <rotation/>
-    <sizescale scalemethod="diameter"/>
+    <sizescale/>
   </renderer-v2>
-  <labeling type="simple"/>
   <customproperties>
-    <property key="labeling" value="pal"/>
-    <property key="labeling/addDirectionSymbol" value="false"/>
-    <property key="labeling/angleOffset" value="0"/>
-    <property key="labeling/blendMode" value="0"/>
-    <property key="labeling/bufferBlendMode" value="0"/>
-    <property key="labeling/bufferColorA" value="255"/>
-    <property key="labeling/bufferColorB" value="255"/>
-    <property key="labeling/bufferColorG" value="255"/>
-    <property key="labeling/bufferColorR" value="255"/>
-    <property key="labeling/bufferDraw" value="false"/>
-    <property key="labeling/bufferJoinStyle" value="64"/>
-    <property key="labeling/bufferNoFill" value="false"/>
-    <property key="labeling/bufferSize" value="1"/>
-    <property key="labeling/bufferSizeInMapUnits" value="false"/>
-    <property key="labeling/bufferSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/bufferSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/bufferSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/bufferTransp" value="0"/>
-    <property key="labeling/centroidInside" value="false"/>
-    <property key="labeling/centroidWhole" value="false"/>
-    <property key="labeling/decimals" value="3"/>
-    <property key="labeling/displayAll" value="false"/>
-    <property key="labeling/dist" value="0"/>
-    <property key="labeling/distInMapUnits" value="false"/>
-    <property key="labeling/distMapUnitMaxScale" value="0"/>
-    <property key="labeling/distMapUnitMinScale" value="0"/>
-    <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/drawLabels" value="false"/>
-    <property key="labeling/enabled" value="false"/>
-    <property key="labeling/fieldName" value=""/>
-    <property key="labeling/fitInPolygonOnly" value="false"/>
-    <property key="labeling/fontCapitals" value="0"/>
-    <property key="labeling/fontFamily" value="MS Shell Dlg 2"/>
-    <property key="labeling/fontItalic" value="false"/>
-    <property key="labeling/fontLetterSpacing" value="0"/>
-    <property key="labeling/fontLimitPixelSize" value="false"/>
-    <property key="labeling/fontMaxPixelSize" value="10000"/>
-    <property key="labeling/fontMinPixelSize" value="3"/>
-    <property key="labeling/fontSize" value="8.25"/>
-    <property key="labeling/fontSizeInMapUnits" value="false"/>
-    <property key="labeling/fontSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/fontSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/fontSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/fontStrikeout" value="false"/>
-    <property key="labeling/fontUnderline" value="false"/>
-    <property key="labeling/fontWeight" value="50"/>
-    <property key="labeling/fontWordSpacing" value="0"/>
-    <property key="labeling/formatNumbers" value="false"/>
-    <property key="labeling/isExpression" value="true"/>
-    <property key="labeling/labelOffsetInMapUnits" value="true"/>
-    <property key="labeling/labelOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/labelOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/labelOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/labelPerPart" value="false"/>
-    <property key="labeling/leftDirectionSymbol" value="&lt;"/>
-    <property key="labeling/limitNumLabels" value="false"/>
-    <property key="labeling/maxCurvedCharAngleIn" value="20"/>
-    <property key="labeling/maxCurvedCharAngleOut" value="-20"/>
-    <property key="labeling/maxNumLabels" value="2000"/>
-    <property key="labeling/mergeLines" value="false"/>
-    <property key="labeling/minFeatureSize" value="0"/>
-    <property key="labeling/multilineAlign" value="0"/>
-    <property key="labeling/multilineHeight" value="1"/>
-    <property key="labeling/namedStyle" value="Normal"/>
-    <property key="labeling/obstacle" value="true"/>
-    <property key="labeling/obstacleFactor" value="1"/>
-    <property key="labeling/obstacleType" value="0"/>
-    <property key="labeling/offsetType" value="0"/>
-    <property key="labeling/placeDirectionSymbol" value="0"/>
-    <property key="labeling/placement" value="0"/>
-    <property key="labeling/placementFlags" value="10"/>
-    <property key="labeling/plussign" value="false"/>
-    <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
-    <property key="labeling/preserveRotation" value="true"/>
-    <property key="labeling/previewBkgrdColor" value="#ffffff"/>
-    <property key="labeling/priority" value="5"/>
-    <property key="labeling/quadOffset" value="4"/>
-    <property key="labeling/repeatDistance" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitMaxScale" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitMinScale" value="0"/>
-    <property key="labeling/repeatDistanceMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/repeatDistanceUnit" value="1"/>
-    <property key="labeling/reverseDirectionSymbol" value="false"/>
-    <property key="labeling/rightDirectionSymbol" value=">"/>
-    <property key="labeling/scaleMax" value="10000000"/>
-    <property key="labeling/scaleMin" value="1"/>
-    <property key="labeling/scaleVisibility" value="false"/>
-    <property key="labeling/shadowBlendMode" value="6"/>
-    <property key="labeling/shadowColorB" value="0"/>
-    <property key="labeling/shadowColorG" value="0"/>
-    <property key="labeling/shadowColorR" value="0"/>
-    <property key="labeling/shadowDraw" value="false"/>
-    <property key="labeling/shadowOffsetAngle" value="135"/>
-    <property key="labeling/shadowOffsetDist" value="1"/>
-    <property key="labeling/shadowOffsetGlobal" value="true"/>
-    <property key="labeling/shadowOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/shadowOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/shadowOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shadowOffsetUnits" value="1"/>
-    <property key="labeling/shadowRadius" value="1.5"/>
-    <property key="labeling/shadowRadiusAlphaOnly" value="false"/>
-    <property key="labeling/shadowRadiusMapUnitMaxScale" value="0"/>
-    <property key="labeling/shadowRadiusMapUnitMinScale" value="0"/>
-    <property key="labeling/shadowRadiusMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shadowRadiusUnits" value="1"/>
-    <property key="labeling/shadowScale" value="100"/>
-    <property key="labeling/shadowTransparency" value="30"/>
-    <property key="labeling/shadowUnder" value="0"/>
-    <property key="labeling/shapeBlendMode" value="0"/>
-    <property key="labeling/shapeBorderColorA" value="255"/>
-    <property key="labeling/shapeBorderColorB" value="128"/>
-    <property key="labeling/shapeBorderColorG" value="128"/>
-    <property key="labeling/shapeBorderColorR" value="128"/>
-    <property key="labeling/shapeBorderWidth" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeBorderWidthMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeBorderWidthUnits" value="1"/>
-    <property key="labeling/shapeDraw" value="false"/>
-    <property key="labeling/shapeFillColorA" value="255"/>
-    <property key="labeling/shapeFillColorB" value="255"/>
-    <property key="labeling/shapeFillColorG" value="255"/>
-    <property key="labeling/shapeFillColorR" value="255"/>
-    <property key="labeling/shapeJoinStyle" value="64"/>
-    <property key="labeling/shapeOffsetMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeOffsetMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeOffsetMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeOffsetUnits" value="1"/>
-    <property key="labeling/shapeOffsetX" value="0"/>
-    <property key="labeling/shapeOffsetY" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeRadiiMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeRadiiUnits" value="1"/>
-    <property key="labeling/shapeRadiiX" value="0"/>
-    <property key="labeling/shapeRadiiY" value="0"/>
-    <property key="labeling/shapeRotation" value="0"/>
-    <property key="labeling/shapeRotationType" value="0"/>
-    <property key="labeling/shapeSVGFile" value=""/>
-    <property key="labeling/shapeSizeMapUnitMaxScale" value="0"/>
-    <property key="labeling/shapeSizeMapUnitMinScale" value="0"/>
-    <property key="labeling/shapeSizeMapUnitScale" value="0,0,0,0,0,0"/>
-    <property key="labeling/shapeSizeType" value="0"/>
-    <property key="labeling/shapeSizeUnits" value="1"/>
-    <property key="labeling/shapeSizeX" value="0"/>
-    <property key="labeling/shapeSizeY" value="0"/>
-    <property key="labeling/shapeTransparency" value="0"/>
-    <property key="labeling/shapeType" value="0"/>
-    <property key="labeling/textColorA" value="255"/>
-    <property key="labeling/textColorB" value="0"/>
-    <property key="labeling/textColorG" value="0"/>
-    <property key="labeling/textColorR" value="0"/>
-    <property key="labeling/textTransp" value="0"/>
-    <property key="labeling/upsidedownLabels" value="0"/>
-    <property key="labeling/wrapChar" value=""/>
-    <property key="labeling/xOffset" value="0"/>
-    <property key="labeling/yOffset" value="0"/>
-    <property key="labeling/zIndex" value="0"/>
-    <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property value="display_name" key="dualview/previewExpressions"/>
+    <property value="0" key="embeddedWidgets/count"/>
+    <property key="variableNames"/>
+    <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
-  <layerTransparency>0</layerTransparency>
-  <displayfield>display_name</displayfield>
-  <label>0</label>
-  <labelattributes>
-    <label fieldname="" text="Label"/>
-    <family fieldname="" name="MS Shell Dlg 2"/>
-    <size fieldname="" units="pt" value="12"/>
-    <bold fieldname="" on="0"/>
-    <italic fieldname="" on="0"/>
-    <underline fieldname="" on="0"/>
-    <strikeout fieldname="" on="0"/>
-    <color fieldname="" red="0" blue="0" green="0"/>
-    <x fieldname=""/>
-    <y fieldname=""/>
-    <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
-    <angle fieldname="" value="0" auto="0"/>
-    <alignment fieldname="" value="center"/>
-    <buffercolor fieldname="" red="255" blue="255" green="255"/>
-    <buffersize fieldname="" units="pt" value="1"/>
-    <bufferenabled fieldname="" on=""/>
-    <multilineenabled fieldname="" on=""/>
-    <selectedonly on=""/>
-  </labelattributes>
-  <SingleCategoryDiagramRenderer diagramType="Pie">
-    <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" sizeType="MM" minScaleDenominator="-4.65661e-10">
-      <fontProperties description="MS Shell Dlg 2,7.5,-1,5,50,0,0,0,0,0" style=""/>
+  <layerOpacity>1</layerOpacity>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory opacity="1" lineSizeType="MM" backgroundColor="#ffffff" penColor="#000000" barWidth="5" sizeType="MM" penAlpha="255" minScaleDenominator="-4.65661e-10" scaleBasedVisibility="0" diagramOrientation="Up" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" minimumSize="0" height="15" maxScaleDenominator="1e+08" penWidth="0" backgroundAlpha="255" width="15" enabled="0" scaleDependency="Area" rotationOffset="270">
+      <fontProperties style="" description="MS Shell Dlg 2,7.5,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" label="" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
-  <annotationform>.</annotationform>
+  <DiagramLayerSettings dist="0" priority="0" linePlacementFlags="2" obstacle="0" showAll="1" placement="0" zIndex="0">
+    <properties>
+      <Option type="Map">
+        <Option value="" type="QString" name="name"/>
+        <Option name="properties"/>
+        <Option value="collection" type="QString" name="type"/>
+      </Option>
+    </properties>
+  </DiagramLayerSettings>
+  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+    <activeChecks/>
+    <checkConfiguration/>
+  </geometryOptions>
+  <fieldConfiguration>
+    <field name="ROWID">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="pump_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="display_name">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="code">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="classification">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="sewerage">
+      <editWidget type="CheckBox">
+        <config>
+          <Option type="Map">
+            <Option value="1" type="QString" name="CheckedState"/>
+            <Option value="0" type="QString" name="UncheckedState"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="start_level">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="lower_stop_level">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="upper_stop_level">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="capacity">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="zoom_category">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option type="List" name="map">
+              <Option type="Map">
+                <Option value="-1" type="QString" name="-1"/>
+              </Option>
+              <Option type="Map">
+                <Option value="0" type="QString" name="0"/>
+              </Option>
+              <Option type="Map">
+                <Option value="1" type="QString" name="1"/>
+              </Option>
+              <Option type="Map">
+                <Option value="2" type="QString" name="2"/>
+              </Option>
+              <Option type="Map">
+                <Option value="3" type="QString" name="3"/>
+              </Option>
+              <Option type="Map">
+                <Option value="4" type="QString" name="4"/>
+              </Option>
+              <Option type="Map">
+                <Option value="5" type="QString" name="5"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="connection_node_start_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="connection_node_end_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="type">
+      <editWidget type="ValueMap">
+        <config>
+          <Option type="Map">
+            <Option type="List" name="map">
+              <Option type="Map">
+                <Option value="1" type="QString" name="1: pump reacts only on suction side"/>
+              </Option>
+              <Option type="Map">
+                <Option value="2" type="QString" name="2: pump reacts only on delivery side"/>
+              </Option>
+            </Option>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="connection_node_id">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+    <field name="storage_area">
+      <editWidget type="TextEdit">
+        <config>
+          <Option type="Map">
+            <Option value="false" type="bool" name="IsMultiline"/>
+            <Option value="false" type="bool" name="UseHtml"/>
+          </Option>
+        </config>
+      </editWidget>
+    </field>
+  </fieldConfiguration>
+  <aliases>
+    <alias name="" field="ROWID" index="0"/>
+    <alias name="id" field="pump_id" index="1"/>
+    <alias name="" field="display_name" index="2"/>
+    <alias name="" field="code" index="3"/>
+    <alias name="" field="classification" index="4"/>
+    <alias name="" field="sewerage" index="5"/>
+    <alias name="" field="start_level" index="6"/>
+    <alias name="" field="lower_stop_level" index="7"/>
+    <alias name="" field="upper_stop_level" index="8"/>
+    <alias name="" field="capacity" index="9"/>
+    <alias name="" field="zoom_category" index="10"/>
+    <alias name="" field="connection_node_start_id" index="11"/>
+    <alias name="" field="connection_node_end_id" index="12"/>
+    <alias name="" field="type" index="13"/>
+    <alias name="id" field="connection_node_id" index="14"/>
+    <alias name="" field="storage_area" index="15"/>
+  </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
-  <attributeactions/>
-  <editform>.</editform>
+  <defaults>
+    <default expression="" applyOnUpdate="0" field="ROWID"/>
+    <default expression="if(maximum(pump_id) is null,1, maximum(pump_id)+1)" applyOnUpdate="0" field="pump_id"/>
+    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
+    <default expression="'new'" applyOnUpdate="0" field="code"/>
+    <default expression="" applyOnUpdate="0" field="classification"/>
+    <default expression="" applyOnUpdate="0" field="sewerage"/>
+    <default expression="" applyOnUpdate="0" field="start_level"/>
+    <default expression="" applyOnUpdate="0" field="lower_stop_level"/>
+    <default expression="" applyOnUpdate="0" field="upper_stop_level"/>
+    <default expression="" applyOnUpdate="0" field="capacity"/>
+    <default expression="2" applyOnUpdate="0" field="zoom_category"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="connection_node_start_id"/>
+    <default expression="'if you want to use an endpoint use v2_pumpstation_view'" applyOnUpdate="0" field="connection_node_end_id"/>
+    <default expression="1" applyOnUpdate="0" field="type"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="connection_node_id"/>
+    <default expression="" applyOnUpdate="0" field="storage_area"/>
+  </defaults>
+  <constraints>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="ROWID"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="pump_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="display_name"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="code"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="classification"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="sewerage"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="start_level"/>
+    <constraint exp_strength="2" unique_strength="0" notnull_strength="2" constraints="5" field="lower_stop_level"/>
+    <constraint exp_strength="2" unique_strength="0" notnull_strength="0" constraints="4" field="upper_stop_level"/>
+    <constraint exp_strength="2" unique_strength="0" notnull_strength="2" constraints="5" field="capacity"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="zoom_category"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="connection_node_start_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="connection_node_end_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="type"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="2" constraints="1" field="connection_node_id"/>
+    <constraint exp_strength="0" unique_strength="0" notnull_strength="0" constraints="0" field="storage_area"/>
+  </constraints>
+  <constraintExpressions>
+    <constraint exp="" desc="" field="ROWID"/>
+    <constraint exp="" desc="" field="pump_id"/>
+    <constraint exp="" desc="" field="display_name"/>
+    <constraint exp="" desc="" field="code"/>
+    <constraint exp="" desc="" field="classification"/>
+    <constraint exp="" desc="" field="sewerage"/>
+    <constraint exp="" desc="" field="start_level"/>
+    <constraint exp="&quot;lower_stop_level&quot;&lt;&quot;start_level&quot;" desc="" field="lower_stop_level"/>
+    <constraint exp="&quot;upper_stop_level&quot;>&quot;start_level&quot; or &quot;upper_stop_level&quot; is null&#xd;&#xa;" desc="" field="upper_stop_level"/>
+    <constraint exp="&quot;capacity&quot;>=0" desc="" field="capacity"/>
+    <constraint exp="" desc="" field="zoom_category"/>
+    <constraint exp="" desc="" field="connection_node_start_id"/>
+    <constraint exp="" desc="" field="connection_node_end_id"/>
+    <constraint exp="" desc="" field="type"/>
+    <constraint exp="" desc="" field="connection_node_id"/>
+    <constraint exp="" desc="" field="storage_area"/>
+  </constraintExpressions>
+  <expressionfields/>
+  <attributeactions>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
+  </attributeactions>
+  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="">
+    <columns>
+      <column width="-1" type="field" hidden="0" name="ROWID"/>
+      <column width="-1" type="field" hidden="0" name="pump_id"/>
+      <column width="-1" type="field" hidden="0" name="display_name"/>
+      <column width="-1" type="field" hidden="0" name="code"/>
+      <column width="-1" type="field" hidden="0" name="classification"/>
+      <column width="-1" type="field" hidden="0" name="sewerage"/>
+      <column width="-1" type="field" hidden="0" name="start_level"/>
+      <column width="-1" type="field" hidden="0" name="lower_stop_level"/>
+      <column width="-1" type="field" hidden="0" name="upper_stop_level"/>
+      <column width="-1" type="field" hidden="0" name="capacity"/>
+      <column width="-1" type="field" hidden="0" name="zoom_category"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_start_id"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_end_id"/>
+      <column width="-1" type="field" hidden="0" name="type"/>
+      <column width="-1" type="field" hidden="0" name="connection_node_id"/>
+      <column width="-1" type="field" hidden="0" name="storage_area"/>
+      <column width="-1" type="actions" hidden="1"/>
+    </columns>
+  </attributetableconfig>
+  <conditionalstyles>
+    <rowstyles/>
+    <fieldstyles/>
+  </conditionalstyles>
+  <editform tolerant="1">.</editform>
   <editforminit/>
   <editforminitcodesource>0</editforminitcodesource>
   <editforminitfilepath>.</editforminitfilepath>
@@ -294,11 +382,71 @@ def my_form_open(dialog, layer, feature):
 	control = dialog.findChild(QWidget, "MyLineEdit")
 ]]></editforminitcode>
   <featformsuppress>0</featformsuppress>
-  <editorlayout>generatedlayout</editorlayout>
+  <editorlayout>tablayout</editorlayout>
+  <attributeEditorForm>
+    <attributeEditorContainer groupBox="0" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Pumpstation point view" columnCount="1">
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="General" columnCount="1">
+        <attributeEditorField showLabel="1" name="pump_id" index="1"/>
+        <attributeEditorField showLabel="1" name="display_name" index="2"/>
+        <attributeEditorField showLabel="1" name="code" index="3"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Characteristics" columnCount="1">
+        <attributeEditorField showLabel="1" name="start_level" index="6"/>
+        <attributeEditorField showLabel="1" name="lower_stop_level" index="7"/>
+        <attributeEditorField showLabel="1" name="upper_stop_level" index="8"/>
+        <attributeEditorField showLabel="1" name="capacity" index="9"/>
+        <attributeEditorField showLabel="1" name="type" index="13"/>
+        <attributeEditorField showLabel="1" name="storage_area" index="15"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Visualization" columnCount="1">
+        <attributeEditorField showLabel="1" name="sewerage" index="5"/>
+        <attributeEditorField showLabel="1" name="zoom_category" index="10"/>
+      </attributeEditorContainer>
+      <attributeEditorContainer groupBox="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" name="Connection nodes" columnCount="1">
+        <attributeEditorField showLabel="1" name="connection_node_id" index="14"/>
+        <attributeEditorField showLabel="1" name="connection_node_start_id" index="11"/>
+        <attributeEditorField showLabel="1" name="connection_node_end_id" index="12"/>
+      </attributeEditorContainer>
+    </attributeEditorContainer>
+  </attributeEditorForm>
+  <editable>
+    <field name="ROWID" editable="1"/>
+    <field name="capacity" editable="1"/>
+    <field name="classification" editable="1"/>
+    <field name="code" editable="1"/>
+    <field name="connection_node_end_id" editable="0"/>
+    <field name="connection_node_id" editable="0"/>
+    <field name="connection_node_start_id" editable="0"/>
+    <field name="display_name" editable="1"/>
+    <field name="lower_stop_level" editable="1"/>
+    <field name="pump_id" editable="1"/>
+    <field name="sewerage" editable="1"/>
+    <field name="start_level" editable="1"/>
+    <field name="storage_area" editable="1"/>
+    <field name="type" editable="1"/>
+    <field name="upper_stop_level" editable="1"/>
+    <field name="zoom_category" editable="1"/>
+  </editable>
+  <labelOnTop>
+    <field labelOnTop="0" name="ROWID"/>
+    <field labelOnTop="0" name="capacity"/>
+    <field labelOnTop="0" name="classification"/>
+    <field labelOnTop="0" name="code"/>
+    <field labelOnTop="0" name="connection_node_end_id"/>
+    <field labelOnTop="0" name="connection_node_id"/>
+    <field labelOnTop="0" name="connection_node_start_id"/>
+    <field labelOnTop="0" name="display_name"/>
+    <field labelOnTop="0" name="lower_stop_level"/>
+    <field labelOnTop="0" name="pump_id"/>
+    <field labelOnTop="0" name="sewerage"/>
+    <field labelOnTop="0" name="start_level"/>
+    <field labelOnTop="0" name="storage_area"/>
+    <field labelOnTop="0" name="type"/>
+    <field labelOnTop="0" name="upper_stop_level"/>
+    <field labelOnTop="0" name="zoom_category"/>
+  </labelOnTop>
   <widgets/>
-  <conditionalstyles>
-    <rowstyles/>
-    <fieldstyles/>
-  </conditionalstyles>
+  <previewExpression>display_name</previewExpression>
+  <mapTip></mapTip>
   <layerGeometryType>0</layerGeometryType>
 </qgis>
