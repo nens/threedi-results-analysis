@@ -6,6 +6,7 @@ from qgis.core import QgsLayerTreeNode
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsVectorLayer
+from PyQt5.QtCore import QSettings
 
 import os.path
 
@@ -278,6 +279,7 @@ class LayerTreeManager(object):
         oned_layers = [
             "v2_connection_nodes",
             "v2_manhole_view",
+            "v2_cross_section_location_view",
             "v2_cross_section_location",
             "v2_pumpstation_view",
             "v2_pumpstation_point_view",
@@ -366,6 +368,7 @@ class LayerTreeManager(object):
             (settings_group, "v2_interflow"),
             (settings_group, "v2_aggregation_settings"),
             (settings_group, "v2_global_settings"),
+            (settings_group, "v2_simple_infiltration"),
             (lateral_group, "v2_1d_lateral"),
             (boundary_group, "v2_1d_boundary_conditions"),
             (additional_oned_group, "v2_cross_section_definition"),
@@ -386,8 +389,10 @@ class LayerTreeManager(object):
             table_layer = self.create_layer(threedi_spatialite, table_name)
 
             if table_layer.isValid():
+                styler.apply_style(table_layer, table_name, "schematisation")
                 QgsProject.instance().addMapLayer(table_layer, False)
                 group.insertLayer(0, table_layer)
+        QSettings().setValue("/Map/identifyAutoFeatureForm", "true")
 
     def add_results(self, index, start_row, stop_row):
         # unique identifier?

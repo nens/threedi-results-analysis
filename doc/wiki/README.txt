@@ -1,0 +1,1 @@
+In this folder images are stored which are used on the github wiki: https://github.com/nens/ThreeDiToolbox/wiki
