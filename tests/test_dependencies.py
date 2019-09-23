@@ -98,3 +98,14 @@ def test_get_python_interpreter_unknown():
     with mock.patch("sys.executable", "/usr/bin/beer"):
         with pytest.raises(EnvironmentError):
             dependencies._get_python_interpreter()
+
+
+def test_ensure_prerequisite_is_installed1():
+    # Normally, pip is installed.
+    dependencies._ensure_prerequisite_is_installed()
+
+
+def test_ensure_prerequisite_is_installed2():
+    with pytest.raises(RuntimeError):
+        # "prerequisite=" is there only for easy testing, the default is "pip")
+        dependencies._ensure_prerequisite_is_installed(prerequisite="reinout")
