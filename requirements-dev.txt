@@ -5,6 +5,7 @@ coveralls
 docstr-coverage >= 1.0.4
 flake8
 isort
+ipython
 mock
 pytest
 pytest-cov
