@@ -38,8 +38,6 @@ def classFactory(iface):
     """
     from ThreeDiToolbox.utils.qlogging import setup_logging
 
-    # import sys; sys.path[0:0] = ['/pycharm/pydevd-pycharm.egg', ]; import pydevd; pydevd.settrace('10.90.16.42', port=4445, stdoutToServer=True, stderrToServer=True, suspend=False)
-
     setup_logging()
     dependencies.check_importability()
 
