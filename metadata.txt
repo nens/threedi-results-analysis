@@ -8,10 +8,12 @@ email=servicedesk@nelen-schuurmans.nl
 
 about=Toolbox for working with hydraulic 3Di models.
     This includes tools for data validation, model creation and working with
-    results. Use the QGIS 64-bit version on Windows. Version conflicts between
-    3Di calculation results and this plugin might occur as this plugin is a
-    béta product. We expressly disclaim any guarantee or warranty of
-    compatibility between the two.
+    results. Use the QGIS 64-bit version on Windows. Although we aim to be as 
+	backwards compatible as possible, it is possible that at some point old results 
+	will not work with the newest version of the plugin. We expressly disclaim any 
+	guarantee or warranty of compatibility between the two.
+	For questions on 3Di or the use of this plugin please contact us via
+	servicedesk@nelen-schuurmans.nl 
 
 tracker=https://github.com/nens/ThreeDiToolbox
 repository=https://github.com/nens/ThreeDiToolbox
