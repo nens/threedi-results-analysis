@@ -43,5 +43,14 @@ before_cache:
      docker save qgis-desktop > $HOME/docker-cache/our-image.tar
   - scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: bash upload-artifact.sh
+  # on:
+  #   tags: true
+  on:
+    all_branches: true
+
 notifications:
   email: false
