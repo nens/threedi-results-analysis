@@ -39,6 +39,7 @@ LOCALES =
 SOURCES = __init__.py threedi_plugin.py
 
 PLUGINNAME = ThreeDiToolbox
+VERSION = $(shell cat metadata.txt | grep "^version" | cut -d= -f2 )
 
 PY_FILES = __init__.py
 # ^^^ The rest of the python files is picked up because they're in git.
@@ -95,7 +96,7 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/docker-compose.override.yml
 	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
-	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).$(VERSION).zip $(PLUGINNAME)
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
