@@ -43,14 +43,14 @@ before_cache:
      docker save qgis-desktop > $HOME/docker-cache/our-image.tar
   - scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
+# Deploy uploads the "make zip" result to https://artifacts.lizard.net, but
+# only when building a tag. It then turns up on https://plugins.lizard.net
 deploy:
   provider: script
   skip_cleanup: true
   script: bash upload-artifact.sh
-  # on:
-  #   tags: true
   on:
-    all_branches: true
+    tags: true
 
 notifications:
   email: false
