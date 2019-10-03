@@ -13,6 +13,9 @@ ThreeDiToolBox changelog
 - Added 'v2_cross_section_location_view' and 'v2_simple_infiltration' layers
   to the schematisation group.
 
+- Administrative change: releases to https://plugins.lizard.net are now made
+  by the automatic test server.
+
 
 1.12.2 (2019-09-12)
 -------------------
