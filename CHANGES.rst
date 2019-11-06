@@ -4,6 +4,9 @@ ThreeDiToolBox changelog
 1.13 (unreleased)
 -----------------
 
+- Automatically add a spatialite connection to the qgis-browser when a user
+  loads a 3Di model via the result-selection-tool.
+
 - Updated layer_styles of the schematisation. Attributes forms for all
   schematisation layers are configured. These layers are now grouped and
   ordered, and many widget types are configured.
@@ -12,6 +15,9 @@ ThreeDiToolBox changelog
 
 - Added 'v2_cross_section_location_view' and 'v2_simple_infiltration' layers
   to the schematisation group.
+
+- Administrative change: releases to https://plugins.lizard.net are now made
+  by the automatic test server.
 
 
 1.12.2 (2019-09-12)

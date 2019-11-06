@@ -1,5 +1,6 @@
 from lizard_connector.connector import Endpoint
 from pathlib import Path
+from qgis.core import QgsSettings
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QModelIndex
@@ -351,23 +352,23 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             )
             init_path = os.path.expanduser("~")
 
-        filename, __ = QFileDialog.getOpenFileName(
+        filepath, __ = QFileDialog.getOpenFileName(
             self, "Open 3Di model spatialite file", init_path, "Spatialite (*.sqlite)"
         )
 
-        if filename == "":
+        if filepath == "":
             return False
 
-        self.ts_datasources.spatialite_filepath = filename
-        index_nr = self.modelSpatialiteComboBox.findText(filename)
-
+        self.ts_datasources.spatialite_filepath = filepath
+        index_nr = self.modelSpatialiteComboBox.findText(filepath)
         if index_nr < 0:
-            self.modelSpatialiteComboBox.addItem(filename)
-            index_nr = self.modelSpatialiteComboBox.findText(filename)
+            self.modelSpatialiteComboBox.addItem(filepath)
+            index_nr = self.modelSpatialiteComboBox.findText(filepath)
 
         self.modelSpatialiteComboBox.setCurrentIndex(index_nr)
 
-        settings.setValue("last_used_spatialite_path", os.path.dirname(filename))
+        add_spatialite_connection(filepath, self.iface)
+        settings.setValue("last_used_spatialite_path", os.path.dirname(filepath))
         return True
 
     def on_login_button_clicked(self):
@@ -481,6 +482,16 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         """Set logged in status to False."""
         self.username = None
         self.password = None
+
+
+def add_spatialite_connection(spatialite_path, iface):
+    """Add spatialite_path as a spatialite connection in the qgis-browser"""
+    filename = os.path.basename(spatialite_path)
+    QgsSettings().setValue(
+        f"SpatiaLite/connections/{filename}/sqlitepath",
+        spatialite_path
+    )
+    iface.reloadConnections()
 
 
 def detect_netcdf_version(netcdf_file_path):
