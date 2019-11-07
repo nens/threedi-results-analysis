@@ -85,7 +85,6 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
 
 
 def _dependencies_target_dir(our_dir=OUR_DIR):
-
     """Return python dir inside our profile
 
     Return two dirs up if we're inside the plugins dir. If not, we have to
@@ -125,8 +124,40 @@ def check_importability():
         )
 
 
+def _uninstall_dependency(dependency):
+    print("Trying to uninstalling dependency %s" % dependency.name)
+    python_interpreter = _get_python_interpreter()
+    process = subprocess.Popen(
+        [
+            python_interpreter,
+            "-m",
+            "pip",
+            "uninstall",
+            "--yes",
+            (dependency.name),
+        ],
+        universal_newlines=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    # The input/output/error stream handling is a bit involved, but it is
+    # necessary because of a python bug on windows 7, see
+    # https://bugs.python.org/issue3905 .
+    i, o, e = (process.stdin, process.stdout, process.stderr)
+    i.close()
+    result = o.read() + e.read()
+    o.close()
+    e.close()
+    print(result)
+    exit_code = process.wait()
+    if exit_code:
+        raise RuntimeError("Uninstalling %s failed" % dependency.name)
+
+
 def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
+        _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         python_interpreter = _get_python_interpreter()
         process = subprocess.Popen(
