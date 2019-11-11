@@ -421,16 +421,14 @@ class RasterChecker(object):
         detail = ""
         try:
             srcband = src_ds.GetRasterBand(1)
-            stats = srcband.GetStatistics(True, True)
-            min = stats[0]
-            max = stats[1]
+            min_value, max_value, mean, std_dev = srcband.ComputeStatistics(1)
             min_allow = -10000
             max_allow = 10000
-            if min_allow < min < max_allow and min_allow < max < max_allow:
+            if min_allow < min_value < max_allow and min_allow < max_value < max_allow:
                 result = True
             else:
                 result = False
-                detail = "found extreme values: min=%d, max=%d" % (min, max)
+                detail = "found extreme values: min=%d, max=%d" % (min_value, max_value)
         except Exception:
             logger.exception("Error checking extreme values")
             result = False
@@ -1045,42 +1043,44 @@ class RasterChecker(object):
         8.  False                           True                    True    --> raise AssertionError
         """
 
-        a = self.results.nr_error_logrows
-        b = self.need_to_create_shp
-        c = self.too_many_wrong_pixels
+        nr_errors = self.results.nr_error_logrows
+        create_shp = self.need_to_create_shp
+        too_many_wrong_pixels = self.too_many_wrong_pixels
+        nr_warnings = self.results.nr_warning_logrows
 
         header = "Raster checker is finished"
         question = "Do you want to add .shp to current view?"
 
         # case 1
-        if a > 0 and not b and not c:
+        if nr_errors > 0 and not create_shp and not too_many_wrong_pixels:
             # pop_up_info
             msg = (
-                "Found %d errors (see .logger) and no wrong pixels. \n\n"
+                "Found %d errors and %d warnings (see .logger) and no wrong pixels. \n\n"
                 "The check results have been written to: \n "
-                "%s" % (self.results.nr_error_logrows, self.results.log_path)
+                "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
             pop_up_info(msg, header)
         # case 2
-        elif a > 0 and not b and c:
+        elif nr_errors > 0 and not create_shp and too_many_wrong_pixels:
             # pop_up_info + warning
             msg = (
-                "Found %d errors (see .logger). \n"
+                "Found %d errors and %d warnings (see .logger). \n"
                 "Found too many wrong pixels to write to .shp file "
                 "(see .logger). \n\n "
                 "The check results have been written to: \n "
-                "%s" % (self.results.nr_error_logrows, self.results.log_path)
+                "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
             pop_up_info(msg, header)
         # case 3
-        elif a > 0 and b and not c:
+        elif nr_errors > 0 and create_shp and not too_many_wrong_pixels:
             # pop_up_question
             msg = (
-                "Found %d errors and some wrong pixels. \n\n "
+                "Found %d errors, %d warnings and some wrong pixels. \n\n "
                 "The check results have been written to: \n %s \n\n "
                 "The coordinates of wrong pixels are written to: \n %s"
                 % (
-                    self.results.nr_error_logrows,
+                    nr_errors,
+                    nr_warnings,
                     self.results.log_path,
                     self.shape_path,
                 )
@@ -1089,16 +1089,17 @@ class RasterChecker(object):
             if pop_up_question(question, "Add shapefile?"):
                 self.add_shp_to_iface()
         # case 4
-        elif a > 0 and b and c:
+        elif nr_errors > 0 and create_shp and too_many_wrong_pixels:
             # pop_up_question + warning
             msg = (
-                "Found %d errors and some wrong pixels. \n "
+                "Found %d errors, %d warnings and some wrong pixels. \n "
                 "Also found for 1 or more rasters too many wrong pixels "
                 "to write to .shp file. \n\n"
                 "The check results have been written to: \n %s \n\n "
                 "The coordinates of wrong pixels are written to: \n %s"
                 % (
-                    self.results.nr_error_logrows,
+                    nr_errors,
+                    nr_warnings,
                     self.results.log_path,
                     self.shape_path,
                 )
@@ -1107,16 +1108,16 @@ class RasterChecker(object):
             if pop_up_question(question, "Add shapefile?"):
                 self.add_shp_to_iface()
         # case 5
-        elif a == 0 and not b and not c:
+        elif nr_errors == 0 and not create_shp and not too_many_wrong_pixels:
             # pop_up_info()
             msg = (
-                "Found no errors (see .logger) and no wrong pixels. \n\n "
+                "Found %d errors, %d warnings (see .logger) and no wrong pixels. \n\n "
                 "The check results have been written to: \n "
-                "%s" % self.results.log_path
+                "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
             pop_up_info(msg, header)
         # scenario 6, 7, or 8
-        elif a == 0 and b ^ c:
+        elif nr_errors == 0 and create_shp ^ too_many_wrong_pixels:
             raise AssertionError("this result combination is impossible")
 
     def run(self, tasks):

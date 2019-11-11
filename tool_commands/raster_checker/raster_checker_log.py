@@ -20,6 +20,7 @@ class RasterCheckerResults(object):
         self.store_cnt_data_nodata = []
         self.log_path = None
         self.nr_error_logrows = 0
+        self.nr_warning_logrows = 0
 
     def __repr__(self):
         return repr(self.__dict__)
@@ -212,6 +213,9 @@ class RasterCheckerResults(object):
 
         if feedback_level == "error":
             self.nr_error_logrows += 1
+
+        if feedback_level == "warning":
+            self.nr_warning_logrows += 1
 
         template_feedback = self.get_template_feedback(feedback_dict, feedback_level)
         rendered_feedback = self.get_rendered_feedback(
