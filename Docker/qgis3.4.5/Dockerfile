@@ -33,7 +33,7 @@ RUN apt-get update \
         pyqt5-dev-tools \
         python-dev \
         python3-dev \
-        python3-h5py \
+        libhdf5-dev \
         python3-pip \
         python3-qgis \
         qgis \
@@ -62,4 +62,5 @@ CMD ["/usr/bin/qgis"]
 
 USER nens
 RUN mkdir -p /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+RUN HDF5_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial/ pip3 install --target /home/nens/.local/share/QGIS/QGIS3/profiles/default/python --no-binary=h5py h5py==2.10.0
 WORKDIR /home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox

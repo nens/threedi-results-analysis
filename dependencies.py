@@ -28,6 +28,7 @@ import importlib
 import logging
 import os
 import pkg_resources
+import platform
 import subprocess
 import sys
 
@@ -38,13 +39,18 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
-    Dependency("h5py", "h5py", ">= 2.9.0, <2.10"),
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.13"),
     Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.5"),
 ]
+
+# Dependencies that contain compiled extensions for windows platform
+WINDOWS_PLATFORM_DEPENDENCIES = [
+    Dependency("h5py", "h5py", ">=2.9.0, <2.10"),  # "==2.7.1"
+]
+
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "pip", "setuptools"]
 
@@ -60,6 +66,8 @@ def ensure_everything_installed():
         print("  - %s" % directory)
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
+    if platform.system() == 'Windows':
+        missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
     target_dir = _dependencies_target_dir()
     _install_dependencies(missing, target_dir=target_dir)
 
