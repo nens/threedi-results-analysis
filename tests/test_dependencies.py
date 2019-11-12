@@ -1,5 +1,6 @@
 from pathlib import Path
 from ThreeDiToolbox import dependencies
+from ThreeDiToolbox.dependencies import Dependency
 
 import mock
 import os
@@ -50,6 +51,20 @@ def test_install_dependencies(tmpdir):
     dependencies._install_dependencies(small_dependencies, target_dir=tmpdir)
     installed_directory = Path(tmpdir) / "lizard_connector"
     assert installed_directory.exists()
+
+
+def test_uninstall_dependency(tmpdir, monkeypatch):
+    python_path = os.getenv("PYTHONPATH", "")
+    new_python_path = f"{python_path}:{tmpdir}"
+    monkeypatch.setenv("PYTHONPATH", new_python_path)
+
+    small_dependencies = [
+        Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.5")
+    ]
+    dependencies._install_dependencies(small_dependencies, target_dir=tmpdir)
+    dependencies._uninstall_dependency(small_dependencies[0])
+    for directory in os.listdir(tmpdir):
+        assert 'threedi_modelchecker' not in directory
 
 
 def test_install_dependencies_with_error(tmpdir):
