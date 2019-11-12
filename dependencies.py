@@ -28,6 +28,7 @@ import importlib
 import logging
 import os
 import pkg_resources
+import platform
 import subprocess
 import sys
 
@@ -38,13 +39,18 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
-    Dependency("h5py", "h5py", ">= 2.9.0, <2.10"),
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
-    Dependency("threedigrid", "threedigrid", "==1.0.13"),
+    Dependency("threedigrid", "threedigrid", "==1.0.16"),
     Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.5"),
 ]
+
+# Dependencies that contain compiled extensions for windows platform
+WINDOWS_PLATFORM_DEPENDENCIES = [
+    Dependency("h5py", "h5py", ">=2.9.0, <2.10"),
+]
+
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "pip", "setuptools"]
 
@@ -60,6 +66,8 @@ def ensure_everything_installed():
         print("  - %s" % directory)
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
+    if platform.system() == 'Windows':
+        missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
     target_dir = _dependencies_target_dir()
     _install_dependencies(missing, target_dir=target_dir)
 
@@ -85,7 +93,6 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
 
 
 def _dependencies_target_dir(our_dir=OUR_DIR):
-
     """Return python dir inside our profile
 
     Return two dirs up if we're inside the plugins dir. If not, we have to
@@ -125,8 +132,40 @@ def check_importability():
         )
 
 
+def _uninstall_dependency(dependency):
+    print("Trying to uninstalling dependency %s" % dependency.name)
+    python_interpreter = _get_python_interpreter()
+    process = subprocess.Popen(
+        [
+            python_interpreter,
+            "-m",
+            "pip",
+            "uninstall",
+            "--yes",
+            (dependency.name),
+        ],
+        universal_newlines=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    # The input/output/error stream handling is a bit involved, but it is
+    # necessary because of a python bug on windows 7, see
+    # https://bugs.python.org/issue3905 .
+    i, o, e = (process.stdin, process.stdout, process.stderr)
+    i.close()
+    result = o.read() + e.read()
+    o.close()
+    e.close()
+    print(result)
+    exit_code = process.wait()
+    if exit_code:
+        raise RuntimeError("Uninstalling %s failed" % dependency.name)
+
+
 def _install_dependencies(dependencies, target_dir):
     for dependency in dependencies:
+        _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         python_interpreter = _get_python_interpreter()
         process = subprocess.Popen(
