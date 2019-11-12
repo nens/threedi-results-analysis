@@ -85,7 +85,7 @@ class RasterCheckerResults(object):
     def sort_results(self):
         """
         sort 2 lists with result dicts (result_per_check and result_per_phase)
-        so that when we convert dict to logger file, this logger file becomes
+        so that when we convert dict to log file, this log file becomes
         easier to read
         :param: -
         :return: -
@@ -231,7 +231,7 @@ class RasterCheckerResults(object):
         return msg
 
     def add_found_rasters(self, entries_metadata):
-        """ write some logger file lines about which rasters have been checked
+        """ write some log file lines about which rasters have been checked
         :param entries_metadata: tuple with tuples e.g:
         ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'))
         :return: none
@@ -360,7 +360,7 @@ class RasterCheckerResults(object):
         timestr = time.strftime("_%Y%m%d_%H%M")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
-        self.log_path = log_dir + "/" + sqltname_without_ext + timestr + ".logger"
+        self.log_path = log_dir + "/" + sqltname_without_ext + timestr + ".log"
 
         try:
             self.log_file = open(self.log_path, "a+")

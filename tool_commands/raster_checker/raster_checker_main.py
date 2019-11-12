@@ -16,7 +16,10 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_prework
-from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.tool_commands.raster_checker.constants import (
+    RASTER_CHECKER_MAPPER,
+    RASTERTYPE_PIXELRANGE_MAPPING,
+)
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -135,6 +138,16 @@ class RasterChecker(object):
         raster_area = raster_width * raster_height
         nr_blocks = raster_area / block_area
         return block_width, block_height, nr_blocks
+
+    def get_rast_type(self, setting_id, rast_item):
+        """ Get raster type (e.g 'dem_file', or 'frict_coef_file') from entries_metadata """
+        for entry in self.entries_metadata:
+            entry_setting_id = entry[0]
+            entry_rast_item = entry[3]
+            if setting_id == entry_setting_id and rast_item == entry_rast_item:
+                rast_type = entry[2]
+                return rast_type
+        raise AssertionError(f"Could not find raster type for {rast_item}")
 
     def count_data_nodata(self, src_ds):
         band = src_ds.GetRasterBand(1)
@@ -419,12 +432,19 @@ class RasterChecker(object):
     def check_extreme_value(self, setting_id, rast_item, check_id, src_ds):
         # are there no extreme values?
         detail = ""
+        rast_type = self.get_rast_type(setting_id, rast_item)
+        if rast_type and rast_type in RASTERTYPE_PIXELRANGE_MAPPING.keys():
+            min_allow, max_allow = RASTERTYPE_PIXELRANGE_MAPPING.get(rast_type)
+        else:
+            min_allow, max_allow = -10000, 10000
+
         try:
             srcband = src_ds.GetRasterBand(1)
             min_value, max_value, mean, std_dev = srcband.ComputeStatistics(1)
-            min_allow = -10000
-            max_allow = 10000
-            if min_allow < min_value < max_allow and min_allow < max_value < max_allow:
+            if (
+                min_allow <= min_value <= max_allow
+                and min_allow <= max_value <= max_allow
+            ):
                 result = True
             else:
                 result = False
@@ -804,6 +824,8 @@ class RasterChecker(object):
                 rasters_ready[dem_index],
                 rasters_ready[0],
             )
+        return rasters_ready
+        # renier
         # we do not have to return 'rasters_ready' since inplace edit
 
     def run_phase_checks(self, setting_id, rasters, check_phase):
@@ -938,8 +960,8 @@ class RasterChecker(object):
             # - the dem_file (which is the first value (rasters[0])
             if len(rasters_ready) >= 2 and rasters[0] in rasters_ready:
                 # make sure again that dem is on first index
-                self.dem_to_first_index(rasters, rasters_ready)
-                self.run_phase_checks(setting_id, rasters_ready, phase)
+                rasters_sorted = self.dem_to_first_index(rasters, rasters_ready)
+                self.run_phase_checks(setting_id, rasters_sorted, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
         self.progress_bar.increase_progress(progress_per_phase, "done phase 4")
 
@@ -968,7 +990,7 @@ class RasterChecker(object):
         fields.append(QgsField("x centre", QVariant.String))
         fields.append(QgsField("y centre", QVariant.String))
 
-        self.shape_path = self.results.log_path.split(".logger")[0] + ".shp"
+        self.shape_path = self.results.log_path.split(".log")[0] + ".shp"
         writer = QgsVectorFileWriter(
             self.shape_path,
             "CP1250",
@@ -1055,7 +1077,7 @@ class RasterChecker(object):
         if nr_errors > 0 and not create_shp and not too_many_wrong_pixels:
             # pop_up_info
             msg = (
-                "Found %d errors and %d warnings (see .logger) and no wrong pixels. \n\n"
+                "Found %d errors, %d warnings (see .log) and no wrong pixels. \n\n"
                 "The check results have been written to: \n "
                 "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
@@ -1064,9 +1086,9 @@ class RasterChecker(object):
         elif nr_errors > 0 and not create_shp and too_many_wrong_pixels:
             # pop_up_info + warning
             msg = (
-                "Found %d errors and %d warnings (see .logger). \n"
+                "Found %d errors, %d warnings (see .log). \n"
                 "Found too many wrong pixels to write to .shp file "
-                "(see .logger). \n\n "
+                "(see .log). \n\n "
                 "The check results have been written to: \n "
                 "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
@@ -1078,12 +1100,7 @@ class RasterChecker(object):
                 "Found %d errors, %d warnings and some wrong pixels. \n\n "
                 "The check results have been written to: \n %s \n\n "
                 "The coordinates of wrong pixels are written to: \n %s"
-                % (
-                    nr_errors,
-                    nr_warnings,
-                    self.results.log_path,
-                    self.shape_path,
-                )
+                % (nr_errors, nr_warnings, self.results.log_path, self.shape_path)
             )
             pop_up_info(msg, header)
             if pop_up_question(question, "Add shapefile?"):
@@ -1097,12 +1114,7 @@ class RasterChecker(object):
                 "to write to .shp file. \n\n"
                 "The check results have been written to: \n %s \n\n "
                 "The coordinates of wrong pixels are written to: \n %s"
-                % (
-                    nr_errors,
-                    nr_warnings,
-                    self.results.log_path,
-                    self.shape_path,
-                )
+                % (nr_errors, nr_warnings, self.results.log_path, self.shape_path)
             )
             pop_up_info(msg, header)
             if pop_up_question(question, "Add shapefile?"):
@@ -1111,7 +1123,7 @@ class RasterChecker(object):
         elif nr_errors == 0 and not create_shp and not too_many_wrong_pixels:
             # pop_up_info()
             msg = (
-                "Found %d errors, %d warnings (see .logger) and no wrong pixels. \n\n "
+                "Found %d errors, %d warnings (see .log) and no wrong pixels. \n\n "
                 "The check results have been written to: \n "
                 "%s" % (nr_errors, nr_warnings, self.results.log_path)
             )
@@ -1133,7 +1145,7 @@ class RasterChecker(object):
 
         self.close_session()
         self.results.sort_results()
-        # write and save logger file (here the self.results.log_path is created)
+        # write and save log file (here the self.results.log_path is created)
         self.results.write_log(self.entries_metadata)
 
         # only create shp if wrong pixels found
