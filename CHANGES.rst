@@ -7,6 +7,9 @@ ThreeDiToolBox changelog
 - Improve raster_checker's 'extreme raster values' check: not rely on meta data,
   but check actual data. Also include number of warnings in pop-up when finished.
 
+- Added a pip uninstall command before trying to install an external
+  dependency to make sure our external packages get cleaned up.
+
 - Automatically add a spatialite connection to the qgis-browser when a user
   loads a 3Di model via the result-selection-tool.
 

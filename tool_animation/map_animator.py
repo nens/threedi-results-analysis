@@ -1,3 +1,5 @@
+import copy
+
 from qgis.core import QgsField
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
@@ -149,6 +151,9 @@ class MapAnimator(QWidget):
             # TODO: just taking the first datasource, not sure if correct:
             threedi_result = active_ts_datasource.threedi_result()
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
+            # Make a deepcopy because we don't want to change the cached variables
+            # in threedi_result.available_subgrid_map_vars
+            available_subgrid_vars = copy.deepcopy(available_subgrid_vars)
             # 'q_pump' is a special case, which is currently not supported in the
             # animation tool.
             if "q_pump" in available_subgrid_vars:
