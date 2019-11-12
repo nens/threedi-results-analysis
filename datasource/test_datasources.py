@@ -318,6 +318,20 @@ def test_available_subgrid_map_vars(threedi_result):
     assert set(actual_vars) == expected_vars
 
 
+def test_available_subgrid_map_vars_shallow_copy(threedi_result):
+    """Test that shows that @cached_property returns a shallow copy
+
+    When the cached_property returns a mutable item, updating this item will
+    also update the cache.
+    """
+    vars_first_call = threedi_result.available_subgrid_map_vars
+    vars_first_call.remove('q_pump')
+    vars_second_call = threedi_result.available_subgrid_map_vars
+    # Note that this is not really desired behaviour!
+    assert vars_first_call is vars_second_call
+    assert "q_pump" not in vars_second_call
+
+
 def test_available_aggregation_vars(threedi_result):
     actual_aggregation_vars = threedi_result.available_aggregation_vars
     expected_aggregation_vars = {
