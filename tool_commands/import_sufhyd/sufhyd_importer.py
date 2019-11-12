@@ -331,7 +331,7 @@ class SufhydReader(object):
         code = get_code(
             leiding.ide_geb,
             leiding.ide_kn1,
-            leiding.ide_geb,
+            leiding.ide_geb2,
             leiding.ide_kn2,
             leiding.num_mvb,
         )
@@ -340,7 +340,7 @@ class SufhydReader(object):
             "code": code,
             "display_name": code,
             "start_node.code": get_code(leiding.ide_geb, leiding.ide_kn1),
-            "end_node.code": get_code(leiding.ide_geb, leiding.ide_kn2),
+            "end_node.code": get_code(leiding.ide_geb2, leiding.ide_kn2),
             "original_length": leiding.lei_len,
             "cross_section_details": {
                 "shape": self.get_shape(leiding.pro_vrm, code),
