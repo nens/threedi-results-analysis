@@ -188,7 +188,8 @@ class RasterCheckerResults(object):
             raise AssertionError("too little/many rows")
         return feedback_dict[0]
 
-    def get_rendered_feedback(self, raster, setting_id, template_feedback):
+    @staticmethod
+    def get_rendered_feedback(raster, setting_id, template_feedback):
         rendered_feedback = template_feedback.render(
             raster=raster, result=template_feedback, setting_id=setting_id
         )
@@ -207,14 +208,13 @@ class RasterCheckerResults(object):
         result = result_row.get("result")
         detail = result_row.get("detail")
 
-        self.dict = self.get_feedback_dict(check_id)
-        feedback_dict = self.dict
+        feedback_dict = self.get_feedback_dict(check_id)
         feedback_level = self.get_feedback_level(feedback_dict, result)
 
+        # used in pop_up_finished_or_question()
         if feedback_level == "error":
             self.nr_error_logrows += 1
-
-        if feedback_level == "warning":
+        elif feedback_level == "warning":
             self.nr_warning_logrows += 1
 
         template_feedback = self.get_template_feedback(feedback_dict, feedback_level)

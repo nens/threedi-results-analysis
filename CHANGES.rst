@@ -4,6 +4,9 @@ ThreeDiToolBox changelog
 1.13 (unreleased)
 -----------------
 
+- Improve raster_checker's 'extreme raster values' check: not rely on meta data,
+  but check actual data. Also include number of warnings in pop-up when finished.
+
 - Automatically add a spatialite connection to the qgis-browser when a user
   loads a 3Di model via the result-selection-tool.
 
