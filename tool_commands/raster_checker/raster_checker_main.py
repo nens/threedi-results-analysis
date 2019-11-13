@@ -825,8 +825,6 @@ class RasterChecker(object):
                 rasters_ready[0],
             )
         return rasters_ready
-        # renier
-        # we do not have to return 'rasters_ready' since inplace edit
 
     def run_phase_checks(self, setting_id, rasters, check_phase):
         check_ids_names = self.get_check_ids_names(check_phase)
