@@ -360,7 +360,7 @@ class RasterCheckerResults(object):
         timestr = time.strftime("_%Y%m%d_%H%M")
         log_dir, sqltname_with_ext = os.path.split(self.sqlite_path)
         sqltname_without_ext = os.path.splitext(sqltname_with_ext)[0]
-        self.log_path = log_dir + "/" + sqltname_without_ext + timestr + ".log"
+        self.log_path = os.path.join(log_dir, sqltname_without_ext + timestr + ".log")
 
         try:
             self.log_file = open(self.log_path, "a+")

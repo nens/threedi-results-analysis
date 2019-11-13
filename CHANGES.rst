@@ -10,6 +10,8 @@ ThreeDiToolBox changelog
 - Added a pip uninstall command before trying to install an external
   dependency to make sure our external packages get cleaned up.
 
+- Bumped threedigrid to 1.0.16
+
 - Automatically add a spatialite connection to the qgis-browser when a user
   loads a 3Di model via the result-selection-tool.
 
