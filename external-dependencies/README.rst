@@ -122,8 +122,8 @@ two exceptions:
   steps:
     - Add environment variable to your QGIS installation of choice: 
         ``HDF5_DIR=C:\Program Files\QGIS 3.4``
-    - Then build wheel with local binaries to folder of interes:
-      ``pip3 wheel -w . --no-binary=h5py --no-deps h5py==2.10.0``
+    - Then build wheel with local binaries to folder of interest:
+        ``pip3 wheel -w . --no-binary=h5py --no-deps h5py==2.10.0``
   On linux, it means ``apt install python3-h5py``.
 
 
