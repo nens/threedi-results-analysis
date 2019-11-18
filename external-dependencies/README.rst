@@ -118,7 +118,13 @@ two exceptions:
 
 - h5py. This is a package that really needs to match various other libraries
   in the system. For windows, it means a custom built package (which we
-  include in the plugin). On linux, it means ``apt install python3-h5py``.
+  include in the plugin). The windows package is built using the following 
+  steps:
+    - Add environment variable to your QGIS installation of choice: 
+        ``HDF5_DIR=C:\Program Files\QGIS 3.4``
+    - Then build wheel with local binaries to folder of interes:
+      ``pip3 wheel -w . --no-binary=h5py --no-deps h5py==2.10.0``
+  On linux, it means ``apt install python3-h5py``.
 
 
 Our dependency handling
