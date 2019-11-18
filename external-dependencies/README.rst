@@ -117,7 +117,7 @@ two exceptions:
   treat sqlalchemy as a pure python package, simplifying the install.
 
 - h5py. This is a package that really needs to match various other libraries
-  in the system. For windows, it means an osgeo4w-build package (which we
+  in the system. For windows, it means a custom built package (which we
   include in the plugin). On linux, it means ``apt install python3-h5py``.
 
 
@@ -139,8 +139,7 @@ directory with our dependencies so that we can bundle it with the plugin:
 - It also downloads and extracts sqlalchemy. It makes a small change to its
   ``setup.py`` and builds a universal wheel by disabling C extension building.
 
-- Lastly, it downloads osgeo4w's ``python3-h5py`` package and extracts the
-  ``*.egg`` directory from it (for both 32 and 64 bit).
+- Lastly, it copies the custom built h5py package from the folder 'h5py'.
 
 The :py:func:`ThreeDiToolbox.dependencies.ensure_everything_installed`
 function is called by our main ``ThreeDiToolbox/__init__.py``:
