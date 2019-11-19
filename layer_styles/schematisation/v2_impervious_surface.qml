@@ -333,9 +333,6 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option value="-1" name="-1" type="QString"/>
-              </Option>
-              <Option type="Map">
                 <Option value="0" name="0" type="QString"/>
               </Option>
               <Option type="Map">
