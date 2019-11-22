@@ -40,6 +40,9 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     return dest_layer
 
 
+ANIMATION_GROUP_NAME = "animation_layers"
+
+
 class MapAnimator(QWidget):
     """
     todo:
@@ -66,7 +69,7 @@ class MapAnimator(QWidget):
         self.line_layer = None
         self.line_layer_groundwater = None
         self.node_layer_groundwater = None
-        self.state = False
+        self.animation_tool_active = False
         self.setup_ui()
 
         # set initial state
@@ -74,7 +77,7 @@ class MapAnimator(QWidget):
         self.node_parameter_combo_box.setEnabled(False)
 
         # connect to signals
-        self.activateButton.clicked.connect(self.set_activation_state)
+        self.activateButton.clicked.connect(self.toggle_activation_button)
 
         self.state_connectiong_set = False
 
@@ -168,27 +171,11 @@ class MapAnimator(QWidget):
 
         return parameter_config
 
-    def set_activation_state(self, state):
-        self.state = self.activateButton.isChecked()
-
+    def toggle_activation_button(self, state):
         if state:
-            if self.root_tool.ts_datasources.rowCount() > 0:
-                self.line_parameter_combo_box.setEnabled(True)
-                self.node_parameter_combo_box.setEnabled(True)
-                self.prepare_animation_layers()
-                self.root_tool.timeslider_widget.sliderReleased.connect(
-                    self.update_results
-                )
-
-            # add listeners
-            self.state_connection_set = True
+            self.activate_animator()
         else:
-            self.line_parameter_combo_box.setEnabled(False)
-            self.node_parameter_combo_box.setEnabled(False)
-
-            if self.state_connection_set:
-                # remove listeners
-                self.state_connection_set = False
+            self.deactivate_animator()
 
     def prepare_animation_layers(self):
 
@@ -196,10 +183,6 @@ class MapAnimator(QWidget):
 
         if result is None:
             # todo: logger warning
-            return
-
-        if self.node_layer is not None:
-            # todo: react on datasource change
             return
 
         line, node, pump = result.get_result_layers()
@@ -311,11 +294,11 @@ class MapAnimator(QWidget):
 
         root = QgsProject.instance().layerTreeRoot()
 
-        animation_group_name = "animation_layers"
-        animation_group = root.findGroup(animation_group_name)
+        animation_group = root.findGroup(ANIMATION_GROUP_NAME)
         if animation_group is None:
-            animation_group = root.insertGroup(0, animation_group_name)
-        animation_group.removeAllChildren()
+            animation_group = root.insertGroup(0, ANIMATION_GROUP_NAME)
+
+        animation_group.removedChildren.connect(self.deactivate_animator)
 
         QgsProject.instance().addMapLayer(self.line_layer, False)
         QgsProject.instance().addMapLayer(self.line_layer_groundwater, False)
@@ -328,7 +311,7 @@ class MapAnimator(QWidget):
         animation_group.insertLayer(3, self.node_layer_groundwater)
 
     def update_results(self):
-        if not self.state:
+        if not self.animation_tool_active:
             return
 
         result = self.root_tool.timeslider_widget.active_ts_datasource
@@ -387,10 +370,26 @@ class MapAnimator(QWidget):
             layer.triggerRepaint()
 
     def activate_animator(self):
-        pass
+        self.activateButton.setChecked(True)
+        self.animation_tool_active = True
+        if self.root_tool.ts_datasources.rowCount() > 0:
+            self.line_parameter_combo_box.setEnabled(True)
+            self.node_parameter_combo_box.setEnabled(True)
+            self.prepare_animation_layers()
+            self.root_tool.timeslider_widget.sliderReleased.connect(
+                self.update_results
+            )
 
     def deactivate_animator(self):
-        pass
+        self.activateButton.setChecked(False)
+        self.animation_tool_active = False
+        self.line_parameter_combo_box.setEnabled(False)
+        self.node_parameter_combo_box.setEnabled(False)
+
+        root = QgsProject.instance().layerTreeRoot()
+        animation_group = root.findGroup(ANIMATION_GROUP_NAME)
+        if animation_group is not None:
+            root.removeChildNode(animation_group)
 
     def setup_ui(self):
         self.HLayout = QHBoxLayout(self)
