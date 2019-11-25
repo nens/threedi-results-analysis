@@ -53,6 +53,10 @@ HELP = help/build/html
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
+INSTALLER_BUILDDIR = installer-build
+
+QGIS_VERSION = final-3_4_13
+
 default: compile
 
 compile: $(COMPILED_RESOURCE_FILES) external-dependencies/.generated.marker
@@ -98,6 +102,26 @@ zip: compile transcompile
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
+installer:
+	mkdir ./$(INSTALLER_BUILDDIR)
+	git clone --branch master --depth 1 \
+		git@github.com:nens/3Di-modeller-interface-installer.git ./$(INSTALLER_BUILDDIR)
+	unzip $(PLUGINNAME).zip \
+		-d ./$(INSTALLER_BUILDDIR)/3Di-additions/ms-windows/profiles/default/python/plugins/
+	cd ./$(INSTALLER_BUILDDIR); docker build -t 3dimi-installer:latest .
+	git clone --branch master --depth 1 \
+		git@github.com/nens/ThreeDiCustomizations.git \
+		./$(INSTALLER_BUILDDIR)/3Di-additions/ms-windows/profiles/default/python/plugins/ThreeDiCustomizations
+	git clone --branch $(QGIS_VERSION) --depth 1 \
+		git@github.com/qgis/qgis.git ./$(INSTALLER_BUILDDIR)/QGIS
+	docker run -v $(shell pwd)/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
+		-v $(shell pwd)/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
+		-it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
+	#docker run -v //d/dev/git/ThreeDiToolbox/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
+		-v //d/dev/git/ThreeDiToolbox/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
+		-it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
+	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
+
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
 	# This requires use of git (your plugin development directory must be a
@@ -135,6 +159,8 @@ clean:
 	@echo "Removing uic and rcc generated files"
 	@echo "------------------------------------"
 	rm $(COMPILED_UI_FILES) $(COMPILED_RESOURCE_FILES)
+	rm *.exe
+	rm -r $(INSTALLER_BUILDDIR)
 
 html:
 	@echo
