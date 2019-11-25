@@ -97,9 +97,6 @@
           <Option type="Map">
             <Option name="map" type="List">
               <Option type="Map">
-                <Option name="-1" value="-1" type="QString"/>
-              </Option>
-              <Option type="Map">
                 <Option name="0" value="0" type="QString"/>
               </Option>
               <Option type="Map">

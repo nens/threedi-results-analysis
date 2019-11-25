@@ -48,7 +48,7 @@ DEPENDENCIES = [
 
 # Dependencies that contain compiled extensions for windows platform
 WINDOWS_PLATFORM_DEPENDENCIES = [
-    Dependency("h5py", "h5py", ">=2.9.0, <2.10"),
+    Dependency("h5py", "h5py", "==2.10.0"),
 ]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh

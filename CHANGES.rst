@@ -7,6 +7,10 @@ ThreeDiToolBox changelog
 - Improve raster_checker's 'extreme raster values' check: not rely on meta data,
   but check actual data. Also include number of warnings in pop-up when finished.
 
+- Added custom h5py binaries for windows in external dependencies. Build for
+  windows with python3.7. This h5py is able to read in results from the new
+  threedi-api and the old (v2) results.
+
 - Added a pip uninstall command before trying to install an external
   dependency to make sure our external packages get cleaned up.
 
