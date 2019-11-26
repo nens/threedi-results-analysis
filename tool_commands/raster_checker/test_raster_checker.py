@@ -358,7 +358,11 @@ class TestRasterChecker(unittest.TestCase):
         src_ds = None
         self.assertTrue(self.get_result())
 
-    def test_check_extreme_value(self):
+    @mock.patch(
+        "ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main.RasterChecker.get_rast_type"
+    )  # noqa
+    def test_check_extreme_value(self, get_rast_type):
+        get_rast_type.return_value = "dem_file"
         raster_path = os.path.join(TEST_DATA_DIR, "rasters/test1.tif")
         self.checker.results.result_per_check = []
         setting_id = 2
