@@ -43,7 +43,8 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.16"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.5"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.8"),
+    Dependency("click", "click", ">=7.0")
 ]
 
 # Dependencies that contain compiled extensions for windows platform
