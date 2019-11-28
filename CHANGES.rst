@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.13 (unreleased)
 -----------------
 
+- Added installer build script for ``3Di Modeller interface`` to makefile.
+
 - Added Click as external dependency, which is currently required for the
   threedi-modelchecker.
 

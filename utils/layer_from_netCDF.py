@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 FLOWLINES_LAYER_NAME = "flowlines"
 NODES_LAYER_NAME = "nodes"
 PUMPLINES_LAYER_NAME = "pumplines"
+WGS84_EPSG = 4326
 
 IGNORE_FIRST = slice(1, None, None)
 
@@ -50,9 +51,9 @@ def get_or_create_flowline_layer(ds, output_path):
 
         exporter = QgisLinesOgrExporter("dont matter")
         exporter.driver = ogr.GetDriverByName("SQLite")
-        sliced = ga.lines.slice(IGNORE_FIRST)
+        sliced = ga.lines.slice(IGNORE_FIRST).reproject_to(str(WGS84_EPSG))
         exporter.save(
-            output_path, FLOWLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+            output_path, FLOWLINES_LAYER_NAME, sliced.data, 4326
         )
     return _get_vector_layer(output_path, FLOWLINES_LAYER_NAME)
 
@@ -67,9 +68,9 @@ def get_or_create_node_layer(ds, output_path):
 
         exporter = QgisNodesOgrExporter("dont matter")
         exporter.driver = ogr.GetDriverByName("SQLite")
-        sliced = ga.nodes.slice(IGNORE_FIRST)
+        sliced = ga.nodes.slice(IGNORE_FIRST).reproject_to(str(WGS84_EPSG))
         exporter.save(
-            output_path, NODES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+            output_path, NODES_LAYER_NAME, sliced.data, WGS84_EPSG
         )
     return _get_vector_layer(output_path, NODES_LAYER_NAME)
 
@@ -85,9 +86,9 @@ def get_or_create_pumpline_layer(ds, output_path):
 
             exporter = QgisPumpsOgrExporter(node_data=ga.nodes.data)
             exporter.driver = ogr.GetDriverByName("SQLite")
-            sliced = ga.pumps.slice(IGNORE_FIRST)
+            sliced = ga.pumps.slice(IGNORE_FIRST).reproject_to(str(WGS84_EPSG))
             exporter.save(
-                output_path, PUMPLINES_LAYER_NAME, sliced.data, sliced.epsg_code, 4326
+                output_path, PUMPLINES_LAYER_NAME, sliced.data, WGS84_EPSG
             )
     if ga.has_pumpstations:
         return _get_vector_layer(output_path, PUMPLINES_LAYER_NAME)
