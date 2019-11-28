@@ -86,7 +86,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         file_name,
         layer_name,
         node_data,
-        source_epsg_code,
         target_epsg_code,
         **kwargs
     ):
@@ -97,9 +96,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         :param node_data: dict of node data
         """
         assert self.driver is not None
-        src_sr = get_spatial_reference(source_epsg_code)
-        target_sr = get_spatial_reference(target_epsg_code)
-        transform = osr.CoordinateTransformation(src_sr, target_sr)
 
         # this will also create a new sqlite if it doesn't exist
         spl = Spatialite(file_name)
@@ -127,7 +123,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             point.AddPoint_2D(
                 node_data["coordinates"][0][i], node_data["coordinates"][1][i]
             )
-            point.Transform(transform)
             feature = ogr.Feature(_definition)
             feature.SetGeometry(point)
             for field_name, field_type in self.QGIS_NODE_FIELDS.items():
@@ -272,7 +267,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         file_name,
         layer_name,
         line_data,
-        source_epsg_code,
         target_epsg_code,
         **kwargs
     ):
@@ -285,9 +279,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         assert self.driver is not None
 
         kcu_dict = QgisKCUDescriptor()
-        src_sr = get_spatial_reference(source_epsg_code)
-        target_sr = get_spatial_reference(target_epsg_code)
-        transform = osr.CoordinateTransformation(src_sr, target_sr)
 
         # this will also create a new sqlite if it doesn't exist
         spl = Spatialite(file_name)
@@ -328,7 +319,6 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 line.AddPoint_2D(
                     line_data["line_coords"][2][i], line_data["line_coords"][3][i]
                 )
-            line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
@@ -413,7 +403,6 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         file_name,
         layer_name,
         pump_data,
-        source_epsg_code,
         target_epsg_code,
         **kwargs
     ):
@@ -424,10 +413,6 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         :param line_data: dict of line data
         """
         assert self.driver is not None
-
-        src_sr = get_spatial_reference(source_epsg_code)
-        target_sr = get_spatial_reference(target_epsg_code)
-        transform = osr.CoordinateTransformation(src_sr, target_sr)
 
         # this will also create a new sqlite if it doesn't exist
         spl = Spatialite(file_name)
@@ -475,7 +460,6 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                         )
                     except IndexError:
                         logger.exception("Invalid node id: %s", node_id)
-            line.Transform(transform)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)
