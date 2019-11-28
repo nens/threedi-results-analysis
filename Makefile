@@ -104,7 +104,6 @@ zip: compile transcompile
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
 installer: zip
-	#Prerequisite is to have a plugin zip ready in the ThreeDiToolbox repo folder.
 	@echo
 	@echo "---------------------------"
 	@echo "Creating Windows Installer."
