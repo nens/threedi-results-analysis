@@ -50,6 +50,36 @@ NON_SETTINGS_TBL_WITH_RASTERS = {
     "v2_groundwater": "groundwater_settings_id",
     "v2_interflow": "interflow_settings_id",
 }
+
+UPPER_BOUND = 10000
+ZERO = 0
+ONE = 1
+LOWER_BOUND = -10000
+# raster_type: (minimum allowed pixel value, maximum allowed pixel value)
+RASTERTYPE_PIXELRANGE_MAPPING = {
+    # v2_global_settings
+    "dem_file": (LOWER_BOUND, UPPER_BOUND),
+    "frict_coef_file": (ZERO, UPPER_BOUND),
+    "initial_groundwater_level_file": (LOWER_BOUND, UPPER_BOUND),
+    "initial_waterlevel_file": (LOWER_BOUND, UPPER_BOUND),
+    "interception_file": (ZERO, UPPER_BOUND),
+    "max_interception_file": (ZERO, UPPER_BOUND),
+    # v2_groundwater
+    "equilibrium_infiltration_rate_file": (ZERO, UPPER_BOUND),
+    "groundwater_hydro_connectivity_file": (ZERO, UPPER_BOUND),
+    "groundwater_impervious_layer_level_file": (LOWER_BOUND, UPPER_BOUND),
+    "infiltration_decay_period_file": (ZERO, UPPER_BOUND),
+    "initial_infiltration_rate_file": (ZERO, UPPER_BOUND),
+    "leakage_file": (LOWER_BOUND, UPPER_BOUND),
+    "phreatic_storage_capacity_file": (ZERO, ONE),
+    # v2_interflow
+    "hydraulic_conductivity_file": (ZERO, UPPER_BOUND),
+    "porosity_file": (ZERO, ONE),
+    # simple infiltration
+    "infiltration_rate_file": (ZERO, UPPER_BOUND),
+    "max_infiltration_capacity_file": (ZERO, UPPER_BOUND),
+}
+
 RASTER_CHECKER_MAPPER = [
     {
         "check_id": 1,
@@ -201,7 +231,7 @@ RASTER_CHECKER_MAPPER = [
         "phase": 2,
         "base_check_name": "extreme_value",
         "description": "{{check_id}}: Are there no extreme pixel values? (dem: "
-        "-10kmMSL<x<10kmMSL, other rasters: 0<x<10k)",
+        "-10kmMSL<x<10kmMSL, other rasters have their own limits",
         "blocking": False,
         "feedback": {
             "info": "{{raster}} has no extreme values.",
