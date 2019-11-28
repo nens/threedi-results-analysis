@@ -124,7 +124,6 @@ installer: zip
 	    -v $(shell pwd)/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
 	    -v $(shell pwd)/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
 		-it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
-	#docker run -v //d/dev/git/ThreeDiToolbox/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS -v //d/dev/git/ThreeDiToolbox/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions -it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
 	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
 
 clean-installer:
