@@ -144,3 +144,9 @@ file: you'll need to set one environment variable. Afterwards, run it like
 this::
 
   $ ./upload-modeller-interface.sh modeller-interface-xyz.exe
+
+It is uploaded to https://artifacts.lizard.net and there is some configuration
+there that shows the upload directory as
+https://docs.3di.live/modeller-interface-downloads/ (and similarly for
+docs.staging.3di.live and the old docs.3di.lizard.net: it is all the same
+upload directory).
