@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.13 (unreleased)
+1.13 (2019-12-02)
 -----------------
 
 - Added installer build script for ``3Di Modeller interface`` to makefile.
