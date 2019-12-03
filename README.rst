@@ -128,7 +128,7 @@ This creates a new release and tag on github. Additionally, a zip file
 create this zip and upload it to https://plugins.lizard.net/ when a new tag is
 created, using the ``upload-artifact.sh`` script.
 
-You can also manually create a zip file of the current checkout out code with the
+You can also manually create a zip file of the current checked out code with the
 following command::
 
     $ docker-compose run qgis-desktop make zip
@@ -155,7 +155,7 @@ Uploading the ``.exe`` is done locally with the shell script
 environment variable ``MODELLER_INTERFACE_ARTIFACTS_KEY``. Afterwards, run it like
 this::
 
-  $ ./upload-modeller-interface.sh 3DiModellerInterface-<QGIS_VERSION>.exe
+  $ ./upload-modeller-interface.sh 3DiModellerInterface-OSGeo4W-<QGIS_VERSION>-Setup-x86_64.exe
 
 It is uploaded to https://artifacts.lizard.net and there is some configuration
 there that shows the upload directory as
