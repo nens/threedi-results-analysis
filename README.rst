@@ -124,12 +124,12 @@ commands and follow their steps::
     $ fullrelease
 
 This creates a new release and tag on github. Additionally, a zip file
-``ThreeDiToolbox.<version>.zip`` is created. Upload this file the to server from where
-you want to distribute the new release::
+``ThreeDiToolbox.<version>.zip`` is created. Travis is configured to also
+create this zip and upload it to https://plugins.lizard.net/ when a new tag is
+created, using the ``upload-artifact.sh`` script.
 
-    $ scp ThreeDiToolbox.<version>.zip <user.name>@packages-server.example.local:/srv/packages.lizard.net/var/plugins
-
-You can also manually create this zip file with the following command::
+You can also manually create a zip file of the current checkout out code with the
+following command::
 
     $ docker-compose run qgis-desktop make zip
 
@@ -137,16 +137,33 @@ You can also manually create this zip file with the following command::
 Modeller interface release
 --------------------------
 
-TODO: make modellerinterfaceofzoiets documenteren.
+We also provide the 3Di-modeller-interface for our users. This is standalone Qgis
+installation for windows including the plugins ThreeDiToolbox and ThreeDiCustomizations
+(https://github.com/nens/ThreeDiCustomizations). In the ``Makefile`` file you can specify
+the version of Qgis you want to build with the ``QGIS_VERSION``. To build the installer
+make sure you checked out the specific ThreediToolbox tag you want to build the
+installer for, then enter the following commands::
 
-Uploading the ``.exe`` is done locally with a shell script. Look inside that
-file: you'll need to set one environment variable. Afterwards, run it like
+    $ git checkout tags/<TAG>
+    $ make installer
+
+This process can take a while as it will download over 2GB of data. Eventually it
+creates a ``3DiModellerInterface-OSGeo4W-<QGIS_VERSION>-Setup-x86_64.exe`` file.
+
+Uploading the ``.exe`` is done locally with the shell script
+``upload-modeller-interface.sh``. Look inside that file: you'll need to set one
+environment variable ``MODELLER_INTERFACE_ARTIFACTS_KEY``. Afterwards, run it like
 this::
 
-  $ ./upload-modeller-interface.sh modeller-interface-xyz.exe
+  $ ./upload-modeller-interface.sh 3DiModellerInterface-<QGIS_VERSION>.exe
 
 It is uploaded to https://artifacts.lizard.net and there is some configuration
 there that shows the upload directory as
 https://docs.3di.live/modeller-interface-downloads/ (and similarly for
 docs.staging.3di.live and the old docs.3di.lizard.net: it is all the same
 upload directory).
+
+You can clean up the files created for the 3Di-modeller-interface and the ``.exe`` file
+with the following command::
+
+    $ make clean-installer
