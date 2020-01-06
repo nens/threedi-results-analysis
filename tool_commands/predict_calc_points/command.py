@@ -128,7 +128,7 @@ class CustomCommand(CustomCommandBase):
             )
 
             if pop_up_question(question, "Warning"):
-                predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
                 predictor.threedi_db.delete_from(constants.TABLE_NAME_CONN_PNT)
+                predictor.threedi_db.delete_from(constants.TABLE_NAME_CALC_PNT)
                 fresh = True
         return fresh
