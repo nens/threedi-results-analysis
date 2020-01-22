@@ -50,7 +50,7 @@ You need to install Qgis 3.4 (the "long term release"). On ubuntu 18.04
 (bionic), the following works::
 
   $ echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-  $ apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
+  $ apt-key adv --keyserver keyserver.ubuntu.com --recv-key 51F523511C7028C
   $ apt-get update
   $ apt-get install qgis python3-h5py
 
