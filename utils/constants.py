@@ -62,6 +62,6 @@ DICT_TABLE_ID = {
 DICT_ACTION_TYPES = {
     "culvert": ["set_discharge_coefficients"],
     "orifice": ["set_crest_level", "set_discharge_coefficients"],
-    "pumpstation": ["set_capacity"],
+    "pumpstation": ["set_pump_capacity"],
     "weir": ["set_crest_level", "set_discharge_coefficients"],
 }
