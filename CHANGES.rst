@@ -6,8 +6,6 @@ ThreeDiToolBox changelog
 
 - Bug fix vertical infiltation lines and pumplines not showing correctly.
 
-- Bump threedigrid to 1.0.20.3.
-
 - Set qgis installer version to final-3_10_4.
 
 - Small fix in predict_calc_points command.
