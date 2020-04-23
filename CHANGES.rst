@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bug fix vertical infiltation lines and pumplines not showing correctly.
+
 - Bump threedigrid to 1.0.20.3.
 
 - Set qgis installer version to final-3_10_4.

@@ -447,8 +447,8 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 if node_id == -9999:
                     try:
                         line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node1_id] + 5,
-                            self.node_data["coordinates"][1][node1_id] + 5,
+                            self.node_data["coordinates"][0][node1_id] + 0.00002,
+                            self.node_data["coordinates"][1][node1_id] + 0.00002,
                         )
                     except IndexError:
                         logger.exception("Invalid node id: %s", node_id)
