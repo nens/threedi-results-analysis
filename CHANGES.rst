@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bug fix pumplines coords not using the projected coordinates.
+
 - Small fix in predict_calc_points command.
 
 - Update v2_pumpstation action_type from 'set_capacity' to 'set_pump_capacity'.
