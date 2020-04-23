@@ -312,8 +312,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             # are equal. To be able to display line we shift the end vertex
             if line_data["kcu"][i] == 150:
                 line.AddPoint_2D(
-                    line_data["line_coords"][2][i] - 5,
-                    line_data["line_coords"][3][i] - 5,
+                    line_data["line_coords"][2][i] - 0.00002,
+                    line_data["line_coords"][3][i] - 0.00002
                 )
             else:
                 line.AddPoint_2D(
