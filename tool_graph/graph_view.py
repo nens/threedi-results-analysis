@@ -648,7 +648,7 @@ class GraphWidget(QWidget):
         # DS_152_1D_totaal_bergingsbak_result.sqlite'"
 
         if layer.name() not in ("flowlines", "nodes", "pumplines"):
-            msg = """Please select results from either the 'flowlines', 'nodes' or 
+            msg = """Please select results from either the 'flowlines', 'nodes' or
             'pumplines' layer."""
             messagebar_message("Info", msg, level=0, duration=5)
             return
