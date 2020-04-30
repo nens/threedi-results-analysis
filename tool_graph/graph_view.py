@@ -646,6 +646,13 @@ class GraphWidget(QWidget):
         # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
         # DS_152_1D_totaal_bergingsbak/results/
         # DS_152_1D_totaal_bergingsbak_result.sqlite'"
+
+        if layer.name() not in ("flowlines", "nodes", "pumps"):
+            msg = """Please select results from either the 'flowlines', 'nodes' or 
+            'pumps' layer."""
+            messagebar_message("Info", msg, level=0, duration=5)
+            return
+
         conn_info = QgsDataSourceUri(
             layer.dataProvider().dataSourceUri()
         ).connectionInfo()

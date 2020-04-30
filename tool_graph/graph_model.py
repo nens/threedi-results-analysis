@@ -118,7 +118,7 @@ class LocationTimeseriesModel(BaseModel):
                 result_ds_nr
             ].threedi_result()
             timeseries = threedi_result.get_timeseries(
-                parameters, self.object_id.value, fill_value=np.NaN
+                parameters, node_id=self.object_id.value, fill_value=np.NaN
             )
             if timeseries.shape[1] == 1:
                 return EMPTY_TIMESERIES
