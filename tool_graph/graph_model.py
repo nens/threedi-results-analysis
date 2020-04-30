@@ -117,6 +117,14 @@ class LocationTimeseriesModel(BaseModel):
             threedi_result = self.model.ts_datasources.rows[
                 result_ds_nr
             ].threedi_result()
+
+            ga = threedi_result.get_gridadmin(parameters)
+            pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
+            if self.object_type.value == "pumplines" and parameters not in pump_fields:
+                return EMPTY_TIMESERIES
+            if self.object_type.value == "flowlines" and parameters in pump_fields:
+                return EMPTY_TIMESERIES
+
             timeseries = threedi_result.get_timeseries(
                 parameters, node_id=self.object_id.value, fill_value=np.NaN
             )
