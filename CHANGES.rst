@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bug fix pumplines coords not using the projected coordinates.
+
 - Graph-tool: only allow users to add graphs via the results-group, i.e. from the
   layers 'nodes', 'flowlines' and 'pumplines'.
 
