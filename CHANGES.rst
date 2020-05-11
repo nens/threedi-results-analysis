@@ -6,6 +6,12 @@ ThreeDiToolBox changelog
 
 - Bug fix pumplines coords not using the projected coordinates.
 
+- Graph-tool: only allow users to add graphs via the results-group, i.e. from the
+  layers 'nodes', 'flowlines' and 'pumplines'.
+
+- Graph-tool fix bug where pumpline-id was used to look up flowline variables and
+  flowline-id for pumpline variables.
+
 - Small fix in predict_calc_points command.
 
 - Update v2_pumpstation action_type from 'set_capacity' to 'set_pump_capacity'.
