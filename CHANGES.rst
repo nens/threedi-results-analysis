@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bump threedigrid to 1.0.20.6.
+
 - Bug fix vertical infiltation lines and pumplines not showing correctly.
 
 - Set qgis installer version to final-3_10_4.
@@ -15,7 +17,7 @@ ThreeDiToolBox changelog
 
 - Graph-tool fix bug where pumpline-id was used to look up flowline variables and
   flowline-id for pumpline variables.
-
+  
 - Small fix in predict_calc_points command.
 
 - Update v2_pumpstation action_type from 'set_capacity' to 'set_pump_capacity'.
