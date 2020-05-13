@@ -312,8 +312,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             # are equal. To be able to display line we shift the end vertex
             if line_data["kcu"][i] == 150:
                 line.AddPoint_2D(
-                    line_data["line_coords"][2][i] - 5,
-                    line_data["line_coords"][3][i] - 5,
+                    line_data["line_coords"][2][i] - 0.00002,
+                    line_data["line_coords"][3][i] - 0.00002
                 )
             else:
                 line.AddPoint_2D(
@@ -447,16 +447,16 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
                 if node_id == -9999:
                     try:
                         line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node1_id] + 5,
-                            self.node_data["coordinates"][1][node1_id] + 5,
+                            pump_data['coordinates'][0][i] + 0.00002,
+                            pump_data['coordinates'][1][i] + 0.00002,
                         )
                     except IndexError:
                         logger.exception("Invalid node id: %s", node_id)
                 else:
                     try:
                         line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node_id],
-                            self.node_data["coordinates"][1][node_id],
+                            pump_data['coordinates'][0][i],
+                            pump_data['coordinates'][1][i],
                         )
                     except IndexError:
                         logger.exception("Invalid node id: %s", node_id)
