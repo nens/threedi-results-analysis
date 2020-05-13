@@ -161,7 +161,7 @@ def _uninstall_dependency(dependency):
     print(result)
     exit_code = process.wait()
     if exit_code:
-        raise RuntimeError("Uninstalling %s failed" % dependency.name)
+        print("Uninstalling %s failed" % dependency.name)
 
 
 def _install_dependencies(dependencies, target_dir):
