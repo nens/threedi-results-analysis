@@ -4,6 +4,10 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bug fix vertical infiltation lines and pumplines not showing correctly.
+
+- Set qgis installer version to final-3_10_4.
+
 - Bug fix pumplines coords not using the projected coordinates.
 
 - Graph-tool: only allow users to add graphs via the results-group, i.e. from the
