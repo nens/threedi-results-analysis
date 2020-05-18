@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bumped threedi_modelchecker to 0.10.1.
+
 - Bug fix pummplines: where the pumplines would use twice the same coordinates and thus
   be an invisible line.
 
