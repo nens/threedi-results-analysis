@@ -4,6 +4,9 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Bug fix pummplines: where the pumplines would use twice the same coordinates and thus
+  be an invisible line.
+
 - Bump threedigrid to 1.0.20.6.
 
 - Bug fix vertical infiltation lines and pumplines not showing correctly.
