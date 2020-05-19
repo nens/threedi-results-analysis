@@ -119,11 +119,11 @@ installer: zip
 	git clone --branch master --depth 1 \
 		git@github.com:nens/ThreeDiCustomizations.git \
 		./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/ThreeDiCustomizations
-    git clone --branch THREEDI_API_QGIS_CLIENT_VERION --depth 1 \
+	git clone --branch THREEDI_API_QGIS_CLIENT_VERION --depth 1 \
 		https://github.com/nens/threedi-api-qgis-client.git \
 		/tmp/threedi-api-qgis-client
-    mv /tmp/threedi-api-qgis-client/threedi_api_qgis_client \
-        ./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_api_qgis_client
+	mv /tmp/threedi-api-qgis-client/threedi_api_qgis_client \
+    	./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_api_qgis_client
 	git clone --branch $(QGIS_VERSION) --depth 1 \
 		git@github.com:qgis/qgis.git ./$(INSTALLER_BUILDDIR)/QGIS
 	docker run \
