@@ -312,8 +312,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             # are equal. To be able to display line we shift the end vertex
             if line_data["kcu"][i] == 150:
                 line.AddPoint_2D(
-                    line_data["line_coords"][2][i] - 5,
-                    line_data["line_coords"][3][i] - 5,
+                    line_data["line_coords"][2][i] - 0.00002,
+                    line_data["line_coords"][3][i] - 0.00002
                 )
             else:
                 line.AddPoint_2D(
@@ -443,23 +443,16 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
             if node1_id == -9999:
                 raise AssertionError("start_node has not-null constraint")
 
-            for node_id in [node1_id, node2_id]:
-                if node_id == -9999:
-                    try:
-                        line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node1_id] + 5,
-                            self.node_data["coordinates"][1][node1_id] + 5,
-                        )
-                    except IndexError:
-                        logger.exception("Invalid node id: %s", node_id)
-                else:
-                    try:
-                        line.AddPoint_2D(
-                            self.node_data["coordinates"][0][node_id],
-                            self.node_data["coordinates"][1][node_id],
-                        )
-                    except IndexError:
-                        logger.exception("Invalid node id: %s", node_id)
+            node1_coords = pump_data['node_coordinates'][0:2, i]
+            if node2_id == -9999:
+                node2_coords = node1_coords + 0.00002
+            else:
+                node2_coords = pump_data['node_coordinates'][2:4, i]
+            try:
+                line.AddPoint_2D(node1_coords[0], node1_coords[1])
+                line.AddPoint_2D(node2_coords[0], node2_coords[1])
+            except IndexError:
+                logger.exception("Invalid node id: %s", node1_id)
 
             feature = ogr.Feature(_definition)
             feature.SetGeometry(line)

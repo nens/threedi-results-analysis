@@ -41,9 +41,9 @@ DEPENDENCIES = [
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
-    Dependency("threedigrid", "threedigrid", "==1.0.16"),
+    Dependency("threedigrid", "threedigrid", "==1.0.20.6"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.8"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.10.1"),
     Dependency("click", "click", ">=7.0")
 ]
 
@@ -161,7 +161,7 @@ def _uninstall_dependency(dependency):
     print(result)
     exit_code = process.wait()
     if exit_code:
-        raise RuntimeError("Uninstalling %s failed" % dependency.name)
+        print("Uninstalling %s failed" % dependency.name)
 
 
 def _install_dependencies(dependencies, target_dir):
