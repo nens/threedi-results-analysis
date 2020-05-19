@@ -56,7 +56,8 @@ RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g'
 INSTALLER_BUILDDIR = installer-build
 INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 
-QGIS_VERSION = final-3_4_13
+# Get your tag from https://github.com/qgis/QGIS
+QGIS_VERSION = final-3_10_6
 
 default: compile
 
@@ -126,7 +127,7 @@ installer: zip
 	docker run \
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
-		-it -e PYTHONUNBUFFERED=0 harbor.lizard.net/threedi/3dimi-installer:latest ./create_qgis_3di_nsis.pl
+		-it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
 	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
 
 clean-installer:
