@@ -4,6 +4,9 @@ ThreeDiToolBox changelog
 1.14 (unreleased)
 -----------------
 
+- Added threedi-api-qgis-client to the modeller-interface. You can specify the version
+  via the `THREEDI_API_QGIS_CLIENT_VERION` variable in the Makefile.
+
 - Bumped threedi_modelchecker to 0.10.1.
 
 - Bug fix pummplines: where the pumplines would use twice the same coordinates and thus

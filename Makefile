@@ -57,7 +57,9 @@ INSTALLER_BUILDDIR = installer-build
 INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 
 # Get your tag from https://github.com/qgis/QGIS
-QGIS_VERSION = final-3_10_4
+QGIS_VERSION = final-3_10_6
+# For building the installer https://github.com/nens/threedi-api-qgis-client
+THREEDI_API_QGIS_CLIENT_VERION = release-0.5.5
 
 default: compile
 
@@ -114,16 +116,20 @@ installer: zip
 		git@github.com:nens/3Di-modeller-interface-installer.git \
 		./$(INSTALLER_BUILDDIR)
 	unzip $(PLUGINNAME).zip -d ./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/
-	cd ./$(INSTALLER_BUILDDIR); docker build -t 3dimi-installer:latest .
 	git clone --branch master --depth 1 \
 		git@github.com:nens/ThreeDiCustomizations.git \
 		./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/ThreeDiCustomizations
+	git clone --branch THREEDI_API_QGIS_CLIENT_VERION --depth 1 \
+		https://github.com/nens/threedi-api-qgis-client.git \
+		/tmp/threedi-api-qgis-client
+	mv /tmp/threedi-api-qgis-client/threedi_api_qgis_client \
+    	./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_api_qgis_client
 	git clone --branch $(QGIS_VERSION) --depth 1 \
 		git@github.com:qgis/qgis.git ./$(INSTALLER_BUILDDIR)/QGIS
 	docker run \
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
-		-it -e PYTHONUNBUFFERED=0 3dimi-installer ./create_qgis_3di_nsis.pl
+		-it -e PYTHONUNBUFFERED=0 harbor.lizard.net/threedi/3dimi-installer:latest ./create_qgis_3di_nsis.pl
 	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
 
 clean-installer:
