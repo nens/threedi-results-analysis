@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.14 (unreleased)
+1.14 (2020-05-25)
 -----------------
 
 - Added threedi-api-qgis-client to the modeller-interface. You can specify the version
