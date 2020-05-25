@@ -59,7 +59,7 @@ INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 # Get your tag from https://github.com/qgis/QGIS
 QGIS_VERSION = final-3_10_6
 # For building the installer https://github.com/nens/threedi-api-qgis-client
-THREEDI_API_QGIS_CLIENT_VERION = release-0.5.5
+THREEDI_API_QGIS_CLIENT_VERION = release-0.6.1
 
 default: compile
 
@@ -119,7 +119,8 @@ installer: zip
 	git clone --branch master --depth 1 \
 		git@github.com:nens/ThreeDiCustomizations.git \
 		./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/ThreeDiCustomizations
-	git clone --branch THREEDI_API_QGIS_CLIENT_VERION --depth 1 \
+	rm -rf /tmp/threedi-api-qgis-client
+	git clone --branch ${THREEDI_API_QGIS_CLIENT_VERION} --depth 1 \
 		https://github.com/nens/threedi-api-qgis-client.git \
 		/tmp/threedi-api-qgis-client
 	mv /tmp/threedi-api-qgis-client/threedi_api_qgis_client \
