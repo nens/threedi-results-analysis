@@ -4,7 +4,8 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bug fix: graphview trying to get pump variables on models where there are not
+  pumps.
 
 
 1.14 (2020-05-25)
