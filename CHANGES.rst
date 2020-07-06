@@ -1,8 +1,11 @@
 ThreeDiToolBox changelog
 ========================
 
-1.15 (unreleased)
+1.14.1 (unreleased)
 -----------------
+
+- Bug fix: graphview trying to get pump variables on models where there are not
+  pumps.
 
 - Bug fix in the sufhyd-importer-tool: using the wrong material.
 
