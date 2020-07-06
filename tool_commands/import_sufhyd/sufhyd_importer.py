@@ -350,7 +350,7 @@ class SufhydReader(object):
             "invert_level_start_point": leiding.bob_kn1,
             "invert_level_end_point": leiding.bob_kn2,
             "sewerage_type": self.get_sewerage_type(leiding.lei_typ, code),
-            "material": self.get_material_type(leiding.lei_typ, code),
+            "material": self.get_material_type(leiding.pro_mat, code),
             "pipe_quality": leiding.mat_sdr,
         }  # not supported:
 
