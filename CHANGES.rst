@@ -4,7 +4,7 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Bug fix in the sufhyd-importer-tool: using the wrong material.
 
 
 1.14 (2020-05-25)
