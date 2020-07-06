@@ -86,7 +86,7 @@ class CustomCommand(CustomCommandBase):
             msg = (
                 "Predicted calculation points failed! "
                 'Are you sure the table "v2_calculation_point" '
-                "is empty?".format(len(features))
+                "is empty?".format()
             )
             level = 1
         messagebar_message("Finished", msg, level=level, duration=12)
