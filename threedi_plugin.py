@@ -7,7 +7,7 @@ from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
-from ThreeDiToolbox.processing_provider.provider import Provider
+from ThreeDiToolbox.processing.provider import ThreediProvider
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -177,7 +177,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def initProcessing(self):
         """Create the Qgis Processing Toolbox provider and its algorithms"""
-        self.provider = Provider()
+        self.provider = ThreediProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def initGui(self):

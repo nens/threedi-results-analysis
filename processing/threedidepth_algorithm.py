@@ -31,7 +31,6 @@ from threedidepth.calculate import (
 )
 
 
-
 class ThreediDepth(QgsProcessingAlgorithm):
     """
     Calculates waterdepths for 3Di results

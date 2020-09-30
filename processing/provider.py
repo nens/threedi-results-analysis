@@ -2,10 +2,11 @@
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 
-from ThreeDiToolbox.processing_provider.threedidepth_algorithm import ThreediDepth
+from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
 
 
-class Provider(QgsProcessingProvider):
+class ThreediProvider(QgsProcessingProvider):
+    """Loads the Processing Toolbox algorithms for 3Di"""
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepth())
