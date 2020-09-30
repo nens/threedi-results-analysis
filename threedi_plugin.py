@@ -1,3 +1,4 @@
+from qgis.core import QgsApplication
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -6,6 +7,7 @@ from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
+from ThreeDiToolbox.processing_provider.provider import Provider
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -97,6 +99,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
+        # Processing Toolbox scripts
+        self.provider = None
+
     def add_action(
         self,
         tool_instance,
@@ -170,6 +175,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.actions.append(action)
         return action
 
+    def initProcessing(self):
+        """Create the Qgis Processing Toolbox provider and its algorithms"""
+        self.provider = Provider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         for tool in self.tools:
@@ -180,6 +190,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 callback=tool.run,
                 parent=self.iface.mainWindow(),
             )
+        # Processing Toolbox of Qgis will eventually replace our custom-toolbox
+        self.initProcessing()
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
         self.toolbar_animation.addWidget(self.timeslider_widget)
@@ -256,6 +268,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
         self.unload_state_sync()
+        QgsApplication.processingRegistry().removeProvider(self.provider)
 
         for action in self.actions:
             self.iface.removePluginMenu("&3Di toolbox", action)

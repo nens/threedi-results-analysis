@@ -43,13 +43,15 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
     Dependency("threedigrid", "threedigrid", "==1.0.20.6"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.10.1"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.10.2"),
+    Dependency("threedidepth", "threedidepth", ">=0.1.2"),
     Dependency("click", "click", ">=7.0")
 ]
 
 # Dependencies that contain compiled extensions for windows platform
 WINDOWS_PLATFORM_DEPENDENCIES = [
     Dependency("h5py", "h5py", "==2.10.0"),
+    Dependency("scipy", "scipy", "==1.5.2"),
 ]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
