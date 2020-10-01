@@ -10,6 +10,8 @@
 *                                                                         *
 ***************************************************************************
 """
+from collections import namedtuple
+
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsFeedback,
@@ -27,8 +29,12 @@ from threedidepth.calculate import (
     MODE_INTERPOLATED,
     MODE_CONSTANT,
     MODE_INTERPOLATED_S1,
-    MODE_CONSTANT_S1
+    MODE_CONSTANT_S1,
+    MODE_COPY
 )
+
+
+Mode = namedtuple("Mode", ["name", "description"])
 
 
 class ThreediDepth(QgsProcessingAlgorithm):
@@ -40,11 +46,11 @@ class ThreediDepth(QgsProcessingAlgorithm):
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    INTERPOLATION_MODES = [
-        MODE_INTERPOLATED,
-        MODE_INTERPOLATED_S1,
-        # MODE_CONSTANT,
-        # MODE_CONSTANT_S1
+    MODES = [
+        Mode(MODE_INTERPOLATED, "Interpolated waterdepth"),
+        Mode(MODE_CONSTANT, "Waterdepth"),
+        Mode(MODE_INTERPOLATED_S1, "Interpolated waterlevel"),
+        Mode(MODE_CONSTANT_S1, "Waterlevel"),
     ]
 
     GRIDADMIN_INPUT = 'GRIDADMIN_INPUT'
@@ -135,7 +141,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 name=self.MODE_INPUT,
                 description=self.tr('Interpolation mode'),
-                options=self.INTERPOLATION_MODES,
+                options=[m.description for m in self.MODES],
                 defaultValue=MODE_INTERPOLATED
             )
         )
@@ -143,7 +149,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 name=self.CALCULATION_STEP_INPUT,
                 description=self.tr(
-                    'The timestep in the calculation for which you want to generate a '
+                    'The timestep in the simulation for which you want to generate a '
                     'waterdepth raster'
                 ),
                 defaultValue=-1
@@ -165,9 +171,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         waterdepth_output_file = self.parameterAsOutputLayer(
             parameters, self.WATERDEPTH_OUTPUT, context
         )
-        mode = self.parameterAsEnum(
-            parameters, self.MODE_INPUT, context
-        )
+        mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
         try:
             calculate_waterdepth(
                 gridadmin_path=parameters[self.GRIDADMIN_INPUT],
@@ -175,7 +179,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 dem_path=parameters[self.DEM_INPUT],
                 waterdepth_path=waterdepth_output_file,
                 calculation_step=parameters[self.CALCULATION_STEP_INPUT],
-                mode=self.INTERPOLATION_MODES[mode],
+                mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
             )
         except CancelError:
