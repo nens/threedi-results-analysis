@@ -11,11 +11,15 @@
 ***************************************************************************
 """
 from collections import namedtuple
+import logging
+import os
 
+from processing.gui.NumberInputPanel import NumberInputPanel
+from processing.gui.wrappers import WidgetWrapper, DIALOG_STANDARD
+from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsFeedback,
-    QgsProcessingException,
     QgsProcessingAlgorithm,
     QgsProcessingParameterEnum,
     QgsProcessingParameterFile,
@@ -24,6 +28,7 @@ from qgis.core import (
     QgsProcessingParameterRasterLayer,
 )
 
+import h5py
 from threedidepth.calculate import calculate_waterdepth
 from threedidepth.calculate import (
     MODE_INTERPOLATED,
@@ -34,7 +39,105 @@ from threedidepth.calculate import (
 )
 
 
+logger = logging.getLogger(__name__)
+pluginPath = os.path.split(os.path.dirname(__file__))[0]
 Mode = namedtuple("Mode", ["name", "description"])
+
+
+class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
+    def __init__(self, *args, parentParameterName='', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parentParameterName = parentParameterName
+
+
+WIDGET, BASE = uic.loadUiType(os.path.join(
+    pluginPath, 'processing', 'ui', 'widgetTimeSlider.ui')
+)
+
+
+class TimeSliderWidget(BASE, WIDGET):
+    def __init__(self):
+        super(TimeSliderWidget, self).__init__(None)
+        self.setupUi(self)
+        self.horizontalSlider.valueChanged.connect(self.set_lcd_value)
+        self.index = None
+        self.timestamps = None
+        self.reset()
+
+    def getValue(self):
+        return self.index
+
+    def set_timestamps(self, timestamps):
+        self.setDisabled(False)
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(len(timestamps) - 1)
+        self.timestamps = timestamps
+
+    def set_lcd_value(self, index: int):
+        self.index = index
+        if self.timestamps is not None:
+            value = self.timestamps[index]
+        else:
+            value = 0
+        lcd_value = self.format_lcd_value(value)
+        self.lcdNumber.display(lcd_value)
+
+    def format_lcd_value(self, value: float) -> str:
+        days = int(value // 86400)
+        hours = int((value // 3600) % 24)
+        minutes = int((value // 60) % 60)
+        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
+        return formatted_display
+
+    def reset(self):
+        self.setDisabled(True)
+        self.index = None
+        self.timestamps = None
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(0)
+        self.horizontalSlider.setValue(0)
+
+
+class ThreediResultTimeSliderWidget(WidgetWrapper):
+    def createWidget(self):
+        if self.dialogType == DIALOG_STANDARD:
+            self._slider = TimeSliderWidget()
+        else:
+            self._slider = NumberInputPanel(
+                QgsProcessingParameterNumber(
+                    self.parameterDefinition().name(),
+                    defaultValue=-1,
+                    minValue=-1
+                )
+            )
+        return self._slider
+
+    def value(self):
+        return self._slider.getValue()
+
+    def postInitialize(self, wrappers):
+        if self.dialogType != DIALOG_STANDARD:
+            return
+
+        # Connect this Widget to its parent
+        for wrapper in wrappers:
+            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+                wrapper.wrappedWidget().fileChanged.connect(self.new_file_event)
+
+    def new_file_event(self, file_path):
+        """New file has been selected by the user
+
+        Try to read in the timestamps from the file
+        """
+        try:
+            with h5py.File(file_path, 'r') as results:
+                timestamps = results['time'].value
+                self._slider.set_timestamps(timestamps)
+        except Exception:
+            self.disable()
+
+    def disable(self):
+        self._slider.reset()
 
 
 class ThreediDepth(QgsProcessingAlgorithm):
@@ -145,16 +248,20 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 defaultValue=MODE_INTERPOLATED
             )
         )
-        self.addParameter(
-            QgsProcessingParameterNumber(
-                name=self.CALCULATION_STEP_INPUT,
-                description=self.tr(
-                    'The timestep in the simulation for which you want to generate a '
-                    'waterdepth raster'
-                ),
-                defaultValue=-1
-            )
+
+        calculation_step_parameter = ProcessingParamterNetcdfNumber(
+            name=self.CALCULATION_STEP_INPUT,
+            description=self.tr(
+                'The timestep in the simulation for which you want to generate a '
+                'waterdepth raster'
+            ),
+            defaultValue=-1,
+            parentParameterName=self.RESULTS_3DI_INPUT
         )
+        calculation_step_parameter.setMetadata(
+            {'widget_wrapper': {'class': ThreediResultTimeSliderWidget}}
+        )
+        self.addParameter(calculation_step_parameter)
 
         # Output raster
         self.addParameter(
