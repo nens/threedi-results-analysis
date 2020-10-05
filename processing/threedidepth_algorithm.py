@@ -48,6 +48,9 @@ class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
     def __init__(self, *args, parentParameterName='', **kwargs):
         super().__init__(*args, **kwargs)
         self.parentParameterName = parentParameterName
+        self.setMetadata(
+            {'widget_wrapper': {'class': ThreediResultTimeSliderWidget}}
+        )
 
 
 WIDGET, BASE = uic.loadUiType(os.path.join(
@@ -56,6 +59,11 @@ WIDGET, BASE = uic.loadUiType(os.path.join(
 
 
 class TimeSliderWidget(BASE, WIDGET):
+    """Timeslider form widget
+
+    Provide a horizontal slider and an LCD display connected to the slider.
+    """
+
     def __init__(self):
         super(TimeSliderWidget, self).__init__(None)
         self.setupUi(self)
@@ -97,33 +105,6 @@ class TimeSliderWidget(BASE, WIDGET):
         self.horizontalSlider.setMaximum(0)
         self.horizontalSlider.setValue(0)
 
-
-class ThreediResultTimeSliderWidget(WidgetWrapper):
-    def createWidget(self):
-        if self.dialogType == DIALOG_STANDARD:
-            self._slider = TimeSliderWidget()
-        else:
-            self._slider = NumberInputPanel(
-                QgsProcessingParameterNumber(
-                    self.parameterDefinition().name(),
-                    defaultValue=-1,
-                    minValue=-1
-                )
-            )
-        return self._slider
-
-    def value(self):
-        return self._slider.getValue()
-
-    def postInitialize(self, wrappers):
-        if self.dialogType != DIALOG_STANDARD:
-            return
-
-        # Connect this Widget to its parent
-        for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
-                wrapper.wrappedWidget().fileChanged.connect(self.new_file_event)
-
     def new_file_event(self, file_path):
         """New file has been selected by the user
 
@@ -132,12 +113,36 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
         try:
             with h5py.File(file_path, 'r') as results:
                 timestamps = results['time'].value
-                self._slider.set_timestamps(timestamps)
+                self.set_timestamps(timestamps)
         except Exception:
-            self.disable()
+            self.reset()
 
-    def disable(self):
-        self._slider.reset()
+
+class ThreediResultTimeSliderWidget(WidgetWrapper):
+    def createWidget(self):
+        if self.dialogType == DIALOG_STANDARD:
+            self._widget = TimeSliderWidget()
+        else:
+            self._widget = NumberInputPanel(
+                QgsProcessingParameterNumber(
+                    self.parameterDefinition().name(),
+                    defaultValue=-1,
+                    minValue=-1
+                )
+            )
+        return self._widget
+
+    def value(self):
+        return self._widget.getValue()
+
+    def postInitialize(self, wrappers):
+        if self.dialogType != DIALOG_STANDARD:
+            return
+
+        # Connect the result-file parameter to the TimeSliderWidget
+        for wrapper in wrappers:
+            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
 class ThreediDepth(QgsProcessingAlgorithm):
@@ -173,13 +178,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         return ThreediDepth()
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
+        """Returns the algorithm name, used for identifying the algorithm"""
         return 'threedidepth'
 
     def displayName(self):
@@ -190,35 +189,19 @@ class ThreediDepth(QgsProcessingAlgorithm):
         return self.tr('Waterdepth')
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
+        """Returns the name of the group this algorithm belongs to"""
         return self.tr('Post-process results')
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
+        """Returns the unique ID of the group this algorithm belongs to"""
         return 'postprocessing'
 
     def shortHelpString(self):
-        """
-        Returns a localised short helper string for the algorithm. This string
-        should provide a basic description about what the algorithm does and the
-        parameters and outputs associated with it..
-        """
+        """Returns a localised short helper string for the algorithm"""
         return self.tr("Calculate waterdepths for 3Di results.")
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
+        """Here we define the inputs and output of the algorithm"""
         # Input parameters
         self.addParameter(
             QgsProcessingParameterFile(
@@ -248,20 +231,17 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 defaultValue=MODE_INTERPOLATED
             )
         )
-
-        calculation_step_parameter = ProcessingParamterNetcdfNumber(
-            name=self.CALCULATION_STEP_INPUT,
-            description=self.tr(
-                'The timestep in the simulation for which you want to generate a '
-                'waterdepth raster'
-            ),
-            defaultValue=-1,
-            parentParameterName=self.RESULTS_3DI_INPUT
+        self.addParameter(
+            ProcessingParamterNetcdfNumber(
+                name=self.CALCULATION_STEP_INPUT,
+                description=self.tr(
+                    'The timestep in the simulation for which you want to generate a '
+                    'waterdepth raster'
+                ),
+                defaultValue=-1,
+                parentParameterName=self.RESULTS_3DI_INPUT
+            )
         )
-        calculation_step_parameter.setMetadata(
-            {'widget_wrapper': {'class': ThreediResultTimeSliderWidget}}
-        )
-        self.addParameter(calculation_step_parameter)
 
         # Output raster
         self.addParameter(
@@ -273,7 +253,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         """
-        Create the waterdepth raster with the provided user settings
+        Create the waterdepth raster with the provided user inputs
         """
         waterdepth_output_file = self.parameterAsOutputLayer(
             parameters, self.WATERDEPTH_OUTPUT, context
