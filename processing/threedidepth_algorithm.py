@@ -35,7 +35,6 @@ from threedidepth.calculate import (
     MODE_CONSTANT,
     MODE_INTERPOLATED_S1,
     MODE_CONSTANT_S1,
-    MODE_COPY
 )
 
 
