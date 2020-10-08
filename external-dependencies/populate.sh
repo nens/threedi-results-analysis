@@ -22,6 +22,9 @@ DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
 # Copy the custom compiled windows h5py to external dependencies
 cp ../h5py/h5py-2.10.0-cp37-cp37m-win_amd64.whl ..
 
+# Copy the compiled windows scipy to external dependencies
+cp ../scipy/scipy-1.5.2-cp37-cp37m-win_amd64.whl ..
+
 # Back up a level and clean up the build/ directory.
 cd ..
 rm -rf build
