@@ -31,10 +31,12 @@ from qgis.core import (
 import h5py
 from threedidepth.calculate import calculate_waterdepth
 from threedidepth.calculate import (
-    MODE_INTERPOLATED,
+    MODE_LINEAR,  # ! old MODE_INTERPOLATED
     MODE_CONSTANT,
-    MODE_INTERPOLATED_S1,
+    MODE_LINEAR_S1,  # ! old MODE_INTERPOLATED_S1
     MODE_CONSTANT_S1,
+    MODE_LIZARD,
+    MODE_LIZARD_S1
 )
 
 
@@ -154,10 +156,12 @@ class ThreediDepth(QgsProcessingAlgorithm):
     # calling from the QGIS console.
 
     MODES = [
-        Mode(MODE_INTERPOLATED, "Interpolated waterdepth"),
+        Mode(MODE_LINEAR, "Linear interpolated waterdepth"),
         Mode(MODE_CONSTANT, "Waterdepth"),
-        Mode(MODE_INTERPOLATED_S1, "Interpolated waterlevel"),
+        Mode(MODE_LINEAR_S1, "Linear interpolated waterlevel"),
         Mode(MODE_CONSTANT_S1, "Waterlevel"),
+        Mode(MODE_LIZARD, "Lizard interpolated waterdepth"),
+        Mode(MODE_LIZARD_S1, "Lizard interpolated waterlevel"),
     ]
 
     GRIDADMIN_INPUT = 'GRIDADMIN_INPUT'
@@ -227,7 +231,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 name=self.MODE_INPUT,
                 description=self.tr('Interpolation mode'),
                 options=[m.description for m in self.MODES],
-                defaultValue=MODE_INTERPOLATED
+                defaultValue=MODE_LINEAR
             )
         )
         self.addParameter(
