@@ -21,6 +21,7 @@ As we're called directly from ``__init__.py``, the imports should be
 resticted. No qgis message boxes and so!
 
 """
+import re
 from collections import namedtuple
 from pathlib import Path
 
@@ -31,6 +32,8 @@ import pkg_resources
 import platform
 import subprocess
 import sys
+
+from qgis.PyQt.QtWidgets import QMessageBox
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -60,6 +63,11 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
+def pop_up_info(msg="", title="Information", parent=None):
+    """Display an info message via Qt box"""
+    QMessageBox.information(parent, title, "%s" % msg)
+
+
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
     print("sys.path:")
@@ -69,8 +77,109 @@ def ensure_everything_installed():
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == 'Windows':
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
+        _ensure_h5py_installed()
     target_dir = _dependencies_target_dir()
     _install_dependencies(missing, target_dir=target_dir)
+
+
+def _ensure_h5py_installed():
+    """
+
+    On Windows Qgis comes with a hdf5 version installed. Somewhere between
+    Qgis version 3.10.8 and 3.10.12 the HDF5 version got upgraded from HDF5 1.10.4 to
+    HDF5 1.10.5.
+
+    This plugin uses the h5py python package, which is built against a specific version
+    of HDF5. The Qgis HDF5 version and the HDF5 version of the h5py package must be the
+    same, otherwise it will not work. In the external-dependencies folder we supply a
+    Windows version of h5py built using HDF5 1.10.4. On pypi a h5py package is available
+    built with HDF5 1.10.5.
+
+    The following situations can occur:
+
+                           | QGIS HDF5 1.10.4  | QGIS HDF5 1.10.5
+    -----------------------|-------------------|---------------
+    h5py build with 1.10.4 | A: Good           | B: Qgis crash
+    h5py build with 1.10.5 | C: AttributeError | D: Good
+
+    The different situations are marked A, B, C and D in the table above.
+
+    In situations A and D everything is good and the plugin can be loaded without any
+    problems.
+
+    Situations B and C occur when a user upgrades/downgrades their Qgis version when
+    the ThreediToolbox is already installed with a specific version of h5py.
+    In these cases we also need to upgrade/downgrade the h5py version installed with
+    ThreediToolbox.
+
+    In situations B Qgis will crash when trying to import h5py.
+    Because Qgis can crash when importing the h5py module, we use H5pyFailureMarker
+    before importing the h5py module.
+    """
+    h5py_dependency = Dependency("h5py", "h5py", "==2.10.0")
+
+    h5py_missing = _check_presence([h5py_dependency])
+    if h5py_missing or H5pyFailureMarker.exists():
+        # determine which version of h5py we need
+        hdf5_version = _get_hdf5_version()
+        print(f"Detected hdf5 version: {hdf5_version}")
+        target_dir = _dependencies_target_dir()
+        _uninstall_dependency(h5py_dependency)
+        if hdf5_version == "1.10.5":
+            # install h5py from pypi
+            _install_dependencies(
+                [h5py_dependency],
+                target_dir=target_dir,
+                use_pypi=True
+            )
+        elif hdf5_version == "1.10.4":
+            # install h5py from external-dependencies folder
+            _install_dependencies(
+                [h5py_dependency],
+                target_dir=target_dir,
+                use_pypi=False
+            )
+        else:
+            message = f"The hdf5 version {hdf5_version} is not supported, " \
+                      f"please install QGIS with HDF5 version 1.10.5 or 1.10.4."
+            pop_up_info(msg=message)
+        H5pyFailureMarker.remove()
+
+    H5pyFailureMarker.create()
+    try:
+        import h5py
+    except Exception as e:
+        # Wrong h5py version
+        message = "The h5py-package and hdf5 version do not match, please restart " \
+                  "QGIS to install the correct version of h5py."
+        pop_up_info(message)
+        raise e
+    else:
+        H5pyFailureMarker.remove()
+
+
+class H5pyFailureMarker:
+    """Marker indicating whether the importing of h5py has failed or not.
+
+    Because QGIS can crash when importing the h5py package, we use this marker-file
+    indicating whether the importing was successful or not. When the H5PY_MARKER exists
+    the h5py could not be imported. Qgis might have crashed previously trying to import
+    h5py.
+    """
+
+    H5PY_MARKER = OUR_DIR / ".h5py_marker"
+
+    @classmethod
+    def exists(cls):
+        return cls.H5PY_MARKER.exists()
+
+    @classmethod
+    def create(cls):
+        cls.H5PY_MARKER.touch(exist_ok=False)
+
+    @classmethod
+    def remove(cls):
+        cls.H5PY_MARKER.unlink()
 
 
 def _ensure_prerequisite_is_installed(prerequisite="pip"):
@@ -164,25 +273,31 @@ def _uninstall_dependency(dependency):
         print("Uninstalling %s failed" % dependency.name)
 
 
-def _install_dependencies(dependencies, target_dir):
+def _install_dependencies(dependencies, target_dir, use_pypi=False):
+    python_interpreter = _get_python_interpreter()
+    base_command = [
+        python_interpreter,
+        "-m",
+        "pip",
+        "install",
+        "--upgrade",
+        "--no-deps",
+        "--find-links",
+        str(OUR_DIR / "external-dependencies"),
+        "--target",
+        str(target_dir),
+    ]
+    if use_pypi:
+        index = base_command.index("--find-links")
+        base_command.pop(index)
+        base_command.pop(index)
+
     for dependency in dependencies:
         _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
-        python_interpreter = _get_python_interpreter()
+        command = base_command + [dependency.name + dependency.constraint]
         process = subprocess.Popen(
-            [
-                python_interpreter,
-                "-m",
-                "pip",
-                "install",
-                "--upgrade",
-                "--no-deps",
-                "--find-links",
-                str(OUR_DIR / "external-dependencies"),
-                "--target",
-                str(target_dir),
-                (dependency.name + dependency.constraint),
-            ],
+            command,
             universal_newlines=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -221,6 +336,33 @@ def _get_python_interpreter():
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
     return interpreter
+
+
+def _get_hdf5_version() -> str:
+    process = subprocess.Popen(
+        [
+            "h5stat.exe",
+            "--version",
+        ],
+        universal_newlines=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    # The input/output/error stream handling is a bit involved, but it is
+    # necessary because of a python bug on windows 7, see
+    # https://bugs.python.org/issue3905 .
+    i, o, e = (process.stdin, process.stdout, process.stderr)
+    i.close()
+    result = o.read() + e.read()
+    o.close()
+    e.close()
+    pattern = re.compile("[\d]+.[\d]+.[\d]+")
+    match = pattern.search(result)
+    if match:
+        return match.group()
+    else:
+        return None
 
 
 def _check_presence(dependencies):
