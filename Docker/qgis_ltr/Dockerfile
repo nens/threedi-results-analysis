@@ -19,7 +19,7 @@ RUN apt-get update \
         software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 RUN echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 51F523511C7028C3
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key F7E06F06199EF2F2
 
 # Now install the ubuntu packages we need.
 RUN apt-get update \
@@ -36,6 +36,8 @@ RUN apt-get update \
         libhdf5-dev \
         python3-pip \
         python3-qgis \
+        # Needed for the threedi-api-qgis-client
+        python3-pyqt5.qtwebsockets \
         qgis \
         qgis-provider-grass \
         unzip \
@@ -50,6 +52,8 @@ RUN dbus-uuidgen > /var/lib/dbus/machine-id
 ADD requirements-dev.txt .
 RUN pip3 install -U pip setuptools
 RUN pip3 install -r requirements-dev.txt
+# Required for threedidepth
+RUN pip3 install scipy==1.5.2
 
 # Add the qgis-core plugins (like 'db_manager') and our own plugin dir and the
 # python dirto the PYTHONPATH. This is needed for pytest and so to find the
