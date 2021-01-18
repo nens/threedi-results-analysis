@@ -147,7 +147,7 @@ def _ensure_h5py_installed():
 
     H5pyFailureMarker.create()
     try:
-        import h5py
+        import h5py  # noqa
     except Exception as e:
         # Wrong h5py version
         message = "The h5py-package and hdf5 version do not match, please restart " \
