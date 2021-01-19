@@ -63,11 +63,6 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def pop_up_info(msg="", title="Information", parent=None):
-    """Display an info message via Qt box"""
-    QMessageBox.information(parent, title, "%s" % msg)
-
-
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
     print("sys.path:")
