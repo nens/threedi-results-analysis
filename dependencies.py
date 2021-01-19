@@ -33,8 +33,6 @@ import platform
 import subprocess
 import sys
 
-from qgis.PyQt.QtWidgets import QMessageBox
-
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
