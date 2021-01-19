@@ -51,9 +51,9 @@ DEPENDENCIES = [
 ]
 
 # Dependencies that contain compiled extensions for windows platform
-WINDOWS_PLATFORM_DEPENDENCIES = [
-    Dependency("h5py", "h5py", "==2.10.0"),
-]
+WINDOWS_PLATFORM_DEPENDENCIES = []
+H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0")
+SUPPORTED_HDF5_VERSIONS = ["1.10.4", "1.10.5"]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
 INTERESTING_IMPORTS = ["numpy", "gdal", "pip", "setuptools"]
@@ -84,7 +84,6 @@ def ensure_everything_installed():
 
 def _ensure_h5py_installed():
     """
-
     On Windows Qgis comes with a hdf5 version installed. Somewhere between
     Qgis version 3.10.8 and 3.10.12 the HDF5 version got upgraded from HDF5 1.10.4 to
     HDF5 1.10.5.
@@ -113,69 +112,71 @@ def _ensure_h5py_installed():
     ThreediToolbox.
 
     In situations B Qgis will crash when trying to import h5py.
-    Because Qgis can crash when importing the h5py module, we use H5pyFailureMarker
-    before importing the h5py module.
+
+    We use the H5pyMarker to mark the installed h5py version. This is because we cannot check the version
+    by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
     h5py_dependency = Dependency("h5py", "h5py", "==2.10.0")
-
+    hdf5_version = _get_hdf5_version()
     h5py_missing = _check_presence([h5py_dependency])
-    if h5py_missing or H5pyFailureMarker.exists():
-        # determine which version of h5py we need
-        hdf5_version = _get_hdf5_version()
-        print(f"Detected hdf5 version: {hdf5_version}")
-        target_dir = _dependencies_target_dir()
-        _uninstall_dependency(h5py_dependency)
-        if hdf5_version == "1.10.5":
-            # install h5py from pypi
-            _install_dependencies(
-                [h5py_dependency],
-                target_dir=target_dir,
-                use_pypi=True
-            )
-        elif hdf5_version == "1.10.4":
-            # install h5py from external-dependencies folder
-            _install_dependencies(
-                [h5py_dependency],
-                target_dir=target_dir,
-                use_pypi=False
-            )
+    marker_version = H5pyMarker.version()
+
+    if h5py_missing:
+        _install_h5py(hdf5_version)
+
+    if hdf5_version == "1.10.5":
+        if marker_version == "1.10.5":
+            # Do nothing
+            pass
         else:
-            message = f"The hdf5 version {hdf5_version} is not supported, " \
-                      f"please install QGIS with HDF5 version 1.10.5 or 1.10.4."
-            pop_up_info(msg=message)
-        H5pyFailureMarker.remove()
-
-    H5pyFailureMarker.create()
-    try:
-        import h5py  # noqa
-    except Exception as e:
-        # Wrong h5py version
-        message = "The h5py-package and hdf5 version do not match, please restart " \
-                  "QGIS to install the correct version of h5py."
-        pop_up_info(message)
-        raise e
-    else:
-        H5pyFailureMarker.remove()
+            _install_h5py(hdf5_version)
+    elif hdf5_version == "1.10.4":
+        if marker_version == "1.10.4":
+            # Do nothing
+            pass
+        else:
+            _install_h5py(hdf5_version)
 
 
-class H5pyFailureMarker:
-    """Marker indicating whether the importing of h5py has failed or not.
+def _install_h5py(hdf5_version: str):
+    if hdf5_version not in SUPPORTED_HDF5_VERSIONS:
+        # raise a error because we cannot continue
+        message = f"Unsupported HDF5 version: {hdf5_version}. " \
+                  f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
+        raise RuntimeError(message)
+    use_pypi = hdf5_version == "1.10.5"
+    _uninstall_dependency(H5PY_DEPENDENCY)
+    _install_dependencies(
+        [H5PY_DEPENDENCY],
+        target_dir=_dependencies_target_dir(),
+        use_pypi=use_pypi
+    )
+    H5pyMarker.create(hdf5_version)
 
-    Because QGIS can crash when importing the h5py package, we use this marker-file
-    indicating whether the importing was successful or not. When the H5PY_MARKER exists
-    the h5py could not be imported. Qgis might have crashed previously trying to import
-    h5py.
+
+class H5pyMarker:
+    """Marker indicating with which HDF5 binaries the h5py is installed.
+
+    Currently there are 2 supported HDF5 version:
+    - 1.10.4: use h5py from the external-dependencies folder in this repo
+    - 1.10.5: use the h5py from pypi
     """
 
     H5PY_MARKER = OUR_DIR / ".h5py_marker"
 
     @classmethod
-    def exists(cls):
-        return cls.H5PY_MARKER.exists()
+    def version(cls) -> str:
+        if cls.H5PY_MARKER.exists():
+            with open(cls.H5PY_MARKER, 'r') as marker:
+                version = marker.readline()
+            return version
+        else:
+            return ""
 
     @classmethod
-    def create(cls):
-        cls.H5PY_MARKER.touch(exist_ok=False)
+    def create(cls, version: str):
+        with open(cls.H5PY_MARKER, 'w') as marker:
+            marker.write(version)
 
     @classmethod
     def remove(cls):
