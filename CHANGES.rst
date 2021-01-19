@@ -4,7 +4,7 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add support for h5py with hdf5 1.10.5
 
 
 1.14.1 (2020-07-06)
