@@ -14,6 +14,7 @@ from collections import namedtuple
 import logging
 import os
 
+from ThreeDiToolbox.utils.user_messages import pop_up_info
 from processing.gui.NumberInputPanel import NumberInputPanel
 from processing.gui.wrappers import WidgetWrapper, DIALOG_STANDARD
 from qgis.PyQt import uic
@@ -92,7 +93,7 @@ class TimeSliderWidget(BASE, WIDGET):
         self.lcdNumber.display(lcd_value)
 
     def format_lcd_value(self, value: float) -> str:
-        days, seconds = divmod(value, 24*60*60)
+        days, seconds = divmod(int(value), 24*60*60)
         hours, seconds = divmod(seconds, 60*60)
         minutes, seconds = divmod(seconds, 60)
         formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
@@ -111,11 +112,17 @@ class TimeSliderWidget(BASE, WIDGET):
 
         Try to read in the timestamps from the file
         """
+        if file_path == '':
+            self.reset()
+            return
+
         try:
             with h5py.File(file_path, 'r') as results:
                 timestamps = results['time'].value
                 self.set_timestamps(timestamps)
-        except Exception:
+        except Exception as e:
+            logger.exception(e)
+            pop_up_info(msg="Unable to read the file, see the logging for more information.")
             self.reset()
 
 
@@ -238,8 +245,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             ProcessingParamterNetcdfNumber(
                 name=self.CALCULATION_STEP_INPUT,
                 description=self.tr(
-                    'The timestep in the simulation for which you want to generate a '
-                    'waterdepth raster'
+                    'The timestep in the simulation for which you want to generate a raster'
                 ),
                 defaultValue=-1,
                 parentParameterName=self.RESULTS_3DI_INPUT
