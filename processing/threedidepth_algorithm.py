@@ -250,7 +250,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterRasterDestination(
                 self.WATER_DEPTH_OUTPUT,
-                self.tr('Waterdepth raster')
+                self.tr('Water depth raster')
             )
         )
 
