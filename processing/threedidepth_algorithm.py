@@ -196,7 +196,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Waterdepth')
+        return self.tr('Water depth')
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -208,7 +208,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
-        return self.tr("Calculate waterdepths for 3Di results.")
+        return self.tr("Calculate water depths for 3Di results.")
 
     def initAlgorithm(self, config=None):
         """Here we define the inputs and output of the algorithm"""
