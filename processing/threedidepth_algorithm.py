@@ -92,9 +92,9 @@ class TimeSliderWidget(BASE, WIDGET):
         self.lcdNumber.display(lcd_value)
 
     def format_lcd_value(self, value: float) -> str:
-        days = int(value // 86400)
-        hours = int((value // 3600) % 24)
-        minutes = int((value // 60) % 60)
+        days, seconds = divmod(value, 24*60*60)
+        hours, seconds = divmod(seconds, 60*60)
+        minutes, seconds = divmod(seconds, 60)
         formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
         return formatted_display
 
@@ -156,12 +156,12 @@ class ThreediDepth(QgsProcessingAlgorithm):
     # calling from the QGIS console.
 
     MODES = [
-        Mode(MODE_LINEAR, "Linear interpolated waterdepth"),
+        Mode(MODE_LINEAR, "Linear interpolated water depth"),
         Mode(MODE_CONSTANT, "Waterdepth"),
-        Mode(MODE_LINEAR_S1, "Linear interpolated waterlevel"),
+        Mode(MODE_LINEAR_S1, "Linear interpolated water level"),
         Mode(MODE_CONSTANT_S1, "Waterlevel"),
-        Mode(MODE_LIZARD, "Lizard interpolated waterdepth"),
-        Mode(MODE_LIZARD_S1, "Lizard interpolated waterlevel"),
+        Mode(MODE_LIZARD, "Lizard interpolated water depth"),
+        Mode(MODE_LIZARD_S1, "Lizard interpolated water level"),
     ]
 
     GRIDADMIN_INPUT = 'GRIDADMIN_INPUT'
@@ -169,7 +169,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
     DEM_INPUT = 'DEM_INPUT'
     MODE_INPUT = 'MODE_INPUT'
     CALCULATION_STEP_INPUT = 'CALCULATION_STEP_INPUT'
-    WATERDEPTH_OUTPUT = 'WATERDEPTH_OUTPUT'
+    WATER_DEPTH_OUTPUT = 'WATER_DEPTH_OUTPUT'
 
     def tr(self, string):
         """
@@ -249,7 +249,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         # Output raster
         self.addParameter(
             QgsProcessingParameterRasterDestination(
-                self.WATERDEPTH_OUTPUT,
+                self.WATER_DEPTH_OUTPUT,
                 self.tr('Waterdepth raster')
             )
         )
@@ -259,7 +259,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         Create the waterdepth raster with the provided user inputs
         """
         waterdepth_output_file = self.parameterAsOutputLayer(
-            parameters, self.WATERDEPTH_OUTPUT, context
+            parameters, self.WATER_DEPTH_OUTPUT, context
         )
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
         try:
@@ -276,7 +276,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             # When the process is cancelled, we just show the intermediate product
             pass
 
-        return {self.WATERDEPTH_OUTPUT: waterdepth_output_file}
+        return {self.WATER_DEPTH_OUTPUT: waterdepth_output_file}
 
 
 class CancelError(Exception):
