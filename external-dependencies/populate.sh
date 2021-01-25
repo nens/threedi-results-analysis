@@ -6,7 +6,7 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
@@ -21,6 +21,9 @@ DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
 
 # Copy the custom compiled windows h5py to external dependencies
 cp ../h5py/h5py-2.10.0-cp37-cp37m-win_amd64.whl ..
+
+# Copy the compiled windows scipy to external dependencies
+cp ../scipy/scipy-1.5.2-cp37-cp37m-win_amd64.whl ..
 
 # Back up a level and clean up the build/ directory.
 cd ..

@@ -42,14 +42,17 @@ DEPENDENCIES = [
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.6"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.10.0"),
-    Dependency("threedigrid", "threedigrid", "==1.0.20.6"),
+    Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.10.1"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.10.2"),
+    Dependency("threedidepth", "threedidepth", "==0.2"),
     Dependency("click", "click", ">=7.0")
 ]
 
 # Dependencies that contain compiled extensions for windows platform
-WINDOWS_PLATFORM_DEPENDENCIES = []
+WINDOWS_PLATFORM_DEPENDENCIES = [
+    Dependency("scipy", "scipy", "==1.5.2"),
+]
 H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0")
 SUPPORTED_HDF5_VERSIONS = ["1.10.4", "1.10.5"]
 
