@@ -6,6 +6,11 @@ ThreeDiToolBox changelog
 
 - Add support for h5py with hdf5 1.10.5
 
+- Added a extra processing provider for 3Di
+
+- Added integration with threedidepth as a processing plugin
+
+- Updated the threedi-modelchecker version to 0.11: https://github.com/nens/threedi-modelchecker/blob/master/CHANGES.rst#011-2021-01-26  # noqa
 
 1.14.1 (2020-07-06)
 -------------------
