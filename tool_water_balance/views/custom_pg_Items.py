@@ -44,8 +44,8 @@ class RotateLabelAxisItem(AxisItem):
             p.drawLine(p1, p2)
 
         # Draw all text
-        if self.tickFont is not None:
-            p.setFont(self.tickFont)
+        if self.style['tickFont'] is not None:
+            p.setFont(self.style['tickFont'])
         p.setPen(self.pen())
 
         text_flags = Qt.TextDontClip | Qt.AlignLeft | Qt.AlignTop
