@@ -163,12 +163,10 @@ class ThreediDepth(QgsProcessingAlgorithm):
     # calling from the QGIS console.
 
     MODES = [
-        Mode(MODE_LINEAR, "Linear interpolated water depth"),
-        Mode(MODE_CONSTANT, "Waterdepth"),
-        Mode(MODE_LINEAR_S1, "Linear interpolated water level"),
-        Mode(MODE_CONSTANT_S1, "Waterlevel"),
-        Mode(MODE_LIZARD, "Lizard interpolated water depth"),
-        Mode(MODE_LIZARD_S1, "Lizard interpolated water level"),
+        Mode(MODE_LIZARD, "Interpolated water depth"),
+        Mode(MODE_LIZARD_S1, "Interpolated water level"),
+        Mode(MODE_CONSTANT, "Non-interpolated water depth"),
+        Mode(MODE_CONSTANT_S1, "Non-interpolated water level"),
     ]
 
     GRIDADMIN_INPUT = 'GRIDADMIN_INPUT'
