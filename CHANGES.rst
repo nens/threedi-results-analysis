@@ -12,7 +12,7 @@ ThreeDiToolBox changelog
 
 - Updated the threedi-modelchecker version to 0.11: https://github.com/nens/threedi-modelchecker/blob/master/CHANGES.rst#011-2021-01-26  # noqa
 
-- Pin pyqtgraph to 0.10.0
+- Make RotateLabelAxisItem compatible with pyqtgraph 0.11
 
 
 1.14.1 (2020-07-06)
