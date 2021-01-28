@@ -1,21 +1,22 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis hasScaleBasedVisibilityFlag="0" labelsEnabled="0" simplifyAlgorithm="0" styleCategories="AllStyleCategories" minScale="1e+08" version="3.10.10-A Coruña" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" readOnly="0" simplifyLocal="1" simplifyMaxScale="1">
+<qgis styleCategories="AllStyleCategories" simplifyDrawingTol="1" maxScale="0" labelsEnabled="0" simplifyDrawingHints="1" readOnly="0" hasScaleBasedVisibilityFlag="0" version="3.10.10-A Coruña" simplifyMaxScale="1" minScale="1e+08" simplifyLocal="1" simplifyAlgorithm="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 attr="surface_class" type="categorizedSymbol" enableorderby="0" forceraster="0" symbollevels="0">
+  <renderer-v2 symbollevels="0" enableorderby="0" forceraster="0" type="categorizedSymbol" attr="surface_class">
     <categories>
-      <category render="true" label="unpaved (onverhard)" symbol="0" value="onverhard"/>
-      <category render="true" label="semi-pervious paving (half verhard)" symbol="1" value="half verhard"/>
-      <category render="true" label="pervious paving (open verharding)" symbol="2" value="open verharding"/>
-      <category render="true" label="impervious paving (gesloten verharding)" symbol="3" value="gesloten verharding"/>
-      <category render="true" label="building (pand)" symbol="4" value="pand"/>
+      <category symbol="0" label="unpaved (onverhard)" render="true" value="onverhard"/>
+      <category symbol="1" label="semi-pervious paving (half verhard)" render="true" value="half verhard"/>
+      <category symbol="2" label="pervious paving (open verharding)" render="true" value="open verharding"/>
+      <category symbol="3" label="impervious paving (gesloten verharding)" render="true" value="gesloten verharding"/>
+      <category symbol="4" label="building (pand)" render="true" value="pand"/>
+      <category symbol="5" label="invalid type" render="true" value=""/>
     </categories>
     <symbols>
-      <symbol name="0" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="0" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="186,221,105,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -36,8 +37,8 @@
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="1" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="1" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="205,205,205,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -57,7 +58,7 @@
             </Option>
           </data_defined_properties>
         </layer>
-        <layer class="PointPatternFill" locked="0" pass="0" enabled="1">
+        <layer locked="0" enabled="1" class="PointPatternFill" pass="0">
           <prop v="0.75" k="displacement_x"/>
           <prop v="3x:0,0,0,0,0,0" k="displacement_x_map_unit_scale"/>
           <prop v="MM" k="displacement_x_unit"/>
@@ -85,8 +86,8 @@
               <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol name="@1@1" alpha="1" type="marker" force_rhr="0" clip_to_extent="1">
-            <layer class="SimpleMarker" locked="0" pass="0" enabled="1">
+          <symbol name="@1@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="0" k="angle"/>
               <prop v="240,240,240,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -115,7 +116,7 @@
             </layer>
           </symbol>
         </layer>
-        <layer class="SimpleLine" locked="0" pass="0" enabled="1">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -141,8 +142,8 @@
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="2" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="2" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="182,182,182,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -163,8 +164,8 @@
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="3" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="3" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="117,117,117,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -185,8 +186,8 @@
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol name="4" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="4" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="251,154,153,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -207,10 +208,32 @@
           </data_defined_properties>
         </layer>
       </symbol>
+      <symbol name="5" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
+          <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+          <prop v="255,35,35,255" k="color"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="0,0" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="251,201,201,255" k="outline_color"/>
+          <prop v="solid" k="outline_style"/>
+          <prop v="0" k="outline_width"/>
+          <prop v="MM" k="outline_width_unit"/>
+          <prop v="solid" k="style"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
     </symbols>
     <source-symbol>
-      <symbol name="0" alpha="1" type="fill" force_rhr="0" clip_to_extent="1">
-        <layer class="SimpleFill" locked="0" pass="0" enabled="1">
+      <symbol name="0" type="fill" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleFill" pass="0">
           <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
           <prop v="117,117,117,255" k="color"/>
           <prop v="bevel" k="joinstyle"/>
@@ -237,9 +260,9 @@
   </renderer-v2>
   <customproperties>
     <property key="dualview/previewExpressions">
-      <value>display_name</value>
+      <value>"display_name"</value>
     </property>
-    <property key="embeddedWidgets/count" value="0"/>
+    <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
@@ -247,12 +270,12 @@
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
   <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
-    <DiagramCategory barWidth="5" maxScaleDenominator="1e+08" width="15" backgroundColor="#ffffff" scaleDependency="Area" penColor="#000000" backgroundAlpha="255" height="15" diagramOrientation="Up" minScaleDenominator="0" scaleBasedVisibility="0" lineSizeScale="3x:0,0,0,0,0,0" sizeType="MM" opacity="1" penWidth="0" sizeScale="3x:0,0,0,0,0,0" enabled="0" rotationOffset="270" labelPlacementMethod="XHeight" penAlpha="255" lineSizeType="MM" minimumSize="0">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" color="#000000" field=""/>
+    <DiagramCategory maxScaleDenominator="1e+08" width="15" opacity="1" barWidth="5" minimumSize="0" rotationOffset="270" scaleBasedVisibility="0" height="15" lineSizeScale="3x:0,0,0,0,0,0" scaleDependency="Area" enabled="0" labelPlacementMethod="XHeight" penColor="#000000" diagramOrientation="Up" penWidth="0" sizeType="MM" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" backgroundAlpha="255" lineSizeType="MM" penAlpha="255" backgroundColor="#ffffff">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" field="" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings zIndex="0" dist="0" obstacle="0" priority="0" showAll="1" placement="0" linePlacementFlags="2">
+  <DiagramLayerSettings dist="0" priority="0" zIndex="0" showAll="1" obstacle="0" placement="0" linePlacementFlags="2">
     <properties>
       <Option type="Map">
         <Option name="name" type="QString" value=""/>
@@ -447,62 +470,62 @@
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default applyOnUpdate="0" expression="" field="function"/>
-    <default applyOnUpdate="0" expression="" field="surface_class"/>
-    <default applyOnUpdate="0" expression="'new'" field="code"/>
-    <default applyOnUpdate="0" expression="'new'" field="display_name"/>
-    <default applyOnUpdate="0" expression="" field="surface_sub_class"/>
-    <default applyOnUpdate="0" expression="-1" field="zoom_category"/>
-    <default applyOnUpdate="0" expression="" field="nr_of_inhabitants"/>
-    <default applyOnUpdate="0" expression="$area" field="area"/>
-    <default applyOnUpdate="0" expression="" field="dry_weather_flow"/>
-    <default applyOnUpdate="0" expression="" field="surface_inclination"/>
-    <default applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)" field="id"/>
+    <default field="function" applyOnUpdate="0" expression=""/>
+    <default field="surface_class" applyOnUpdate="0" expression=""/>
+    <default field="code" applyOnUpdate="0" expression="'new'"/>
+    <default field="display_name" applyOnUpdate="0" expression="'new'"/>
+    <default field="surface_sub_class" applyOnUpdate="0" expression=""/>
+    <default field="zoom_category" applyOnUpdate="0" expression="-1"/>
+    <default field="nr_of_inhabitants" applyOnUpdate="0" expression=""/>
+    <default field="area" applyOnUpdate="0" expression="$area"/>
+    <default field="dry_weather_flow" applyOnUpdate="0" expression=""/>
+    <default field="surface_inclination" applyOnUpdate="0" expression=""/>
+    <default field="id" applyOnUpdate="0" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
   </defaults>
   <constraints>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="function" constraints="0"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="surface_class" constraints="1"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="code" constraints="1"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="display_name" constraints="1"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="surface_sub_class" constraints="0"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="zoom_category" constraints="1"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="nr_of_inhabitants" constraints="0"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="area" constraints="1"/>
-    <constraint unique_strength="0" notnull_strength="0" exp_strength="0" field="dry_weather_flow" constraints="0"/>
-    <constraint unique_strength="0" notnull_strength="2" exp_strength="0" field="surface_inclination" constraints="1"/>
-    <constraint unique_strength="1" notnull_strength="1" exp_strength="0" field="id" constraints="3"/>
+    <constraint field="function" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="surface_class" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="code" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="display_name" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="surface_sub_class" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="zoom_category" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="nr_of_inhabitants" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="area" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="dry_weather_flow" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="surface_inclination" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="id" constraints="3" unique_strength="1" notnull_strength="1" exp_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint exp="" desc="" field="function"/>
-    <constraint exp="" desc="" field="surface_class"/>
-    <constraint exp="" desc="" field="code"/>
-    <constraint exp="" desc="" field="display_name"/>
-    <constraint exp="" desc="" field="surface_sub_class"/>
-    <constraint exp="" desc="" field="zoom_category"/>
-    <constraint exp="" desc="" field="nr_of_inhabitants"/>
-    <constraint exp="" desc="" field="area"/>
-    <constraint exp="" desc="" field="dry_weather_flow"/>
-    <constraint exp="" desc="" field="surface_inclination"/>
-    <constraint exp="" desc="" field="id"/>
+    <constraint desc="" exp="" field="function"/>
+    <constraint desc="" exp="" field="surface_class"/>
+    <constraint desc="" exp="" field="code"/>
+    <constraint desc="" exp="" field="display_name"/>
+    <constraint desc="" exp="" field="surface_sub_class"/>
+    <constraint desc="" exp="" field="zoom_category"/>
+    <constraint desc="" exp="" field="nr_of_inhabitants"/>
+    <constraint desc="" exp="" field="area"/>
+    <constraint desc="" exp="" field="dry_weather_flow"/>
+    <constraint desc="" exp="" field="surface_inclination"/>
+    <constraint desc="" exp="" field="id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortOrder="0" actionWidgetStyle="dropDown" sortExpression="">
+  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
     <columns>
-      <column name="function" type="field" hidden="0" width="-1"/>
-      <column name="surface_class" type="field" hidden="0" width="-1"/>
-      <column name="code" type="field" hidden="0" width="-1"/>
-      <column name="display_name" type="field" hidden="0" width="-1"/>
-      <column name="surface_sub_class" type="field" hidden="0" width="-1"/>
-      <column name="zoom_category" type="field" hidden="0" width="-1"/>
-      <column name="nr_of_inhabitants" type="field" hidden="0" width="-1"/>
-      <column name="area" type="field" hidden="0" width="-1"/>
-      <column name="dry_weather_flow" type="field" hidden="0" width="-1"/>
-      <column name="surface_inclination" type="field" hidden="0" width="-1"/>
-      <column name="id" type="field" hidden="0" width="-1"/>
-      <column type="actions" hidden="1" width="-1"/>
+      <column hidden="0" name="function" type="field" width="-1"/>
+      <column hidden="0" name="surface_class" type="field" width="-1"/>
+      <column hidden="0" name="code" type="field" width="-1"/>
+      <column hidden="0" name="display_name" type="field" width="-1"/>
+      <column hidden="0" name="surface_sub_class" type="field" width="-1"/>
+      <column hidden="0" name="zoom_category" type="field" width="-1"/>
+      <column hidden="0" name="nr_of_inhabitants" type="field" width="-1"/>
+      <column hidden="0" name="area" type="field" width="-1"/>
+      <column hidden="0" name="dry_weather_flow" type="field" width="-1"/>
+      <column hidden="0" name="surface_inclination" type="field" width="-1"/>
+      <column hidden="0" name="id" type="field" width="-1"/>
+      <column hidden="1" type="actions" width="-1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -532,27 +555,27 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer name="Impervious surface" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-      <attributeEditorContainer name="General" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-        <attributeEditorField name="id" showLabel="1" index="10"/>
-        <attributeEditorField name="display_name" showLabel="1" index="3"/>
-        <attributeEditorField name="code" showLabel="1" index="2"/>
+    <attributeEditorContainer columnCount="1" name="Impervious surface" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+      <attributeEditorContainer columnCount="1" name="General" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="id" index="10" showLabel="1"/>
+        <attributeEditorField name="display_name" index="3" showLabel="1"/>
+        <attributeEditorField name="code" index="2" showLabel="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Characteristics" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-        <attributeEditorContainer name="Storm water" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-          <attributeEditorField name="surface_class" showLabel="1" index="1"/>
-          <attributeEditorField name="surface_sub_class" showLabel="1" index="4"/>
-          <attributeEditorField name="surface_inclination" showLabel="1" index="9"/>
-          <attributeEditorField name="area" showLabel="1" index="7"/>
+      <attributeEditorContainer columnCount="1" name="Characteristics" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorContainer columnCount="1" name="Storm water" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+          <attributeEditorField name="surface_class" index="1" showLabel="1"/>
+          <attributeEditorField name="surface_sub_class" index="4" showLabel="1"/>
+          <attributeEditorField name="surface_inclination" index="9" showLabel="1"/>
+          <attributeEditorField name="area" index="7" showLabel="1"/>
         </attributeEditorContainer>
-        <attributeEditorContainer name="Municipal water" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-          <attributeEditorField name="dry_weather_flow" showLabel="1" index="8"/>
-          <attributeEditorField name="nr_of_inhabitants" showLabel="1" index="6"/>
+        <attributeEditorContainer columnCount="1" name="Municipal water" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+          <attributeEditorField name="dry_weather_flow" index="8" showLabel="1"/>
+          <attributeEditorField name="nr_of_inhabitants" index="6" showLabel="1"/>
         </attributeEditorContainer>
       </attributeEditorContainer>
-      <attributeEditorContainer name="Visualization" columnCount="1" showLabel="1" visibilityExpression="" visibilityExpressionEnabled="0" groupBox="1">
-        <attributeEditorField name="zoom_category" showLabel="1" index="5"/>
-        <attributeEditorField name="function" showLabel="1" index="0"/>
+      <attributeEditorContainer columnCount="1" name="Visualization" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="zoom_category" index="5" showLabel="1"/>
+        <attributeEditorField name="function" index="0" showLabel="1"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>

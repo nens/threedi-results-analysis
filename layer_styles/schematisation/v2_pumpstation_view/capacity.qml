@@ -1,26 +1,27 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis simplifyMaxScale="1" simplifyDrawingHints="1" readOnly="0" version="3.10.10-A Coruña" simplifyLocal="1" hasScaleBasedVisibilityFlag="0" maxScale="0" minScale="1e+08" simplifyAlgorithm="0" simplifyDrawingTol="1" styleCategories="AllStyleCategories" labelsEnabled="1">
+<qgis styleCategories="AllStyleCategories" simplifyDrawingTol="1" maxScale="0" labelsEnabled="1" simplifyDrawingHints="1" readOnly="0" hasScaleBasedVisibilityFlag="0" version="3.10.10-A Coruña" simplifyMaxScale="1" minScale="1e+08" simplifyLocal="1" simplifyAlgorithm="0">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 type="graduatedSymbol" enableorderby="0" attr="pump_capacity" symbollevels="0" forceraster="0" graduatedMethod="GraduatedSize">
-    <ranges>
-      <range label="&lt; 1 L/s" render="true" symbol="0" lower="0.000000000000000" upper="1.000000000000000"/>
-      <range label="1 - 10 L/s" render="true" symbol="1" lower="1.000000000000000" upper="10.000000000000000"/>
-      <range label="10 - 20 L/s" render="true" symbol="2" lower="10.000000000000000" upper="20.000000000000000"/>
-      <range label="20 - 50 L/s" render="true" symbol="3" lower="20.000000000000000" upper="50.000000000000000"/>
-      <range label="50 - 100 L/s" render="true" symbol="4" lower="50.000000000000000" upper="100.000000000000000"/>
-      <range label="100 - 200 L/s" render="true" symbol="5" lower="100.000000000000000" upper="200.000000000000000"/>
-      <range label="200 - 500 L/s" render="true" symbol="6" lower="200.000000000000000" upper="500.000000000000000"/>
-      <range label="500 - 1000 L/s" render="true" symbol="7" lower="500.000000000000000" upper="1000.000000000000000"/>
-      <range label="1000 - 2000 L/s" render="true" symbol="8" lower="1000.000000000000000" upper="2000.000000000000000"/>
-      <range label="> 2000 L/s" render="true" symbol="9" lower="2000.000000000000000" upper="999999999.000000000000000"/>
-    </ranges>
+  <renderer-v2 symbollevels="0" enableorderby="0" forceraster="0" type="RuleRenderer">
+    <rules key="{b0f646f2-cb19-477c-9666-b184f8a00d6b}">
+      <rule symbol="0" filter="&quot;pump_capacity&quot; >= 0.000000 AND &quot;pump_capacity&quot; &lt;= 1.000000" label="&lt; 1 L/s" key="{82ff332c-5db8-41b8-bbff-cb16afe2694e}"/>
+      <rule symbol="1" filter="&quot;pump_capacity&quot; > 1.000000 AND &quot;pump_capacity&quot; &lt;= 10.000000" label="1 - 10 L/s" key="{44b516e4-08db-4c4f-97ca-cd76213c2977}"/>
+      <rule symbol="2" filter="&quot;pump_capacity&quot; > 10.000000 AND &quot;pump_capacity&quot; &lt;= 20.000000" label="10 - 20 L/s" key="{a0ae35d5-51ea-445a-9314-fef8b6d9f51f}"/>
+      <rule symbol="3" filter="&quot;pump_capacity&quot; > 20.000000 AND &quot;pump_capacity&quot; &lt;= 50.000000" label="20 - 50 L/s" key="{881e7a06-d666-4872-9373-84ba9b44c377}"/>
+      <rule symbol="4" filter="&quot;pump_capacity&quot; > 50.000000 AND &quot;pump_capacity&quot; &lt;= 100.000000" label="50 - 100 L/s" key="{a90b9973-a163-4d9a-93c5-80ee9cdff631}"/>
+      <rule symbol="5" filter="&quot;pump_capacity&quot; > 100.000000 AND &quot;pump_capacity&quot; &lt;= 200.000000" label="100 - 200 L/s" key="{2b9a6909-a0d4-402a-8c0f-33312fd88460}"/>
+      <rule symbol="6" filter="&quot;pump_capacity&quot; > 200.000000 AND &quot;pump_capacity&quot; &lt;= 500.000000" label="200 - 500 L/s" key="{80f995a1-6d5a-433c-83b3-235322952714}"/>
+      <rule symbol="7" filter="&quot;pump_capacity&quot; > 500.000000 AND &quot;pump_capacity&quot; &lt;= 1000.000000" label="500 - 1000 L/s" key="{09e34478-8e46-4bf5-91d9-f3428217414c}"/>
+      <rule symbol="8" filter="&quot;pump_capacity&quot; > 1000.000000 AND &quot;pump_capacity&quot; &lt;= 2000.000000" label="1000 - 2000 L/s" key="{39d2f7fe-6cd6-4e63-96de-be8509520ec0}"/>
+      <rule symbol="9" filter="&quot;pump_capacity&quot; > 2000.000000 AND &quot;pump_capacity&quot; &lt;= 999999999.000000" label="> 2000 L/s" key="{c25377d1-8530-4be9-8f98-f368e6daf248}"/>
+      <rule symbol="10" filter="ELSE" label="NULL" key="{b951cc38-1084-4105-9e4c-d0617ad4c1ab}"/>
+    </rules>
     <symbols>
-      <symbol type="line" force_rhr="0" name="0" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="0" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -39,13 +40,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -63,13 +64,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@0@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@0@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -90,15 +91,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -117,13 +118,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -142,15 +143,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="1" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="1" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -169,13 +170,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -193,13 +194,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@1@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@1@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -220,15 +221,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -247,13 +248,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -272,15 +273,145 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="2" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="10" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
+          <prop v="square" k="capstyle"/>
+          <prop v="5;2" k="customdash"/>
+          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
+          <prop v="MM" k="customdash_unit"/>
+          <prop v="0" k="draw_inside_polygon"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="255,213,181,255" k="line_color"/>
+          <prop v="solid" k="line_style"/>
+          <prop v="3.61111" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
+          <prop v="0" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="0" k="ring_filter"/>
+          <prop v="0" k="use_custom_dash"/>
+          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
+          <prop v="4" k="average_angle_length"/>
+          <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
+          <prop v="MM" k="average_angle_unit"/>
+          <prop v="2" k="interval"/>
+          <prop v="3x:0,0,0,0,0,0" k="interval_map_unit_scale"/>
+          <prop v="MM" k="interval_unit"/>
+          <prop v="0" k="offset"/>
+          <prop v="0" k="offset_along_line"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_along_line_map_unit_scale"/>
+          <prop v="MM" k="offset_along_line_unit"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="interval" k="placement"/>
+          <prop v="0" k="ring_filter"/>
+          <prop v="1" k="rotate"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+          <symbol name="@10@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
+              <prop v="90" k="angle"/>
+              <prop v="255,35,35,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="bevel" k="joinstyle"/>
+              <prop v="triangle" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="0,0,0,0" k="outline_color"/>
+              <prop v="no" k="outline_style"/>
+              <prop v="0" k="outline_width"/>
+              <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
+              <prop v="MM" k="outline_width_unit"/>
+              <prop v="area" k="scale_method"/>
+              <prop v="3.61111" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option name="name" type="QString" value=""/>
+                  <Option name="properties"/>
+                  <Option name="type" type="QString" value="collection"/>
+                </Option>
+              </data_defined_properties>
+            </layer>
+          </symbol>
+        </layer>
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
+          <prop v="square" k="capstyle"/>
+          <prop v="5;2" k="customdash"/>
+          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
+          <prop v="MM" k="customdash_unit"/>
+          <prop v="0" k="draw_inside_polygon"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="255,35,35,255" k="line_color"/>
+          <prop v="solid" k="line_style"/>
+          <prop v="0" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
+          <prop v="1.80556" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="0" k="ring_filter"/>
+          <prop v="0" k="use_custom_dash"/>
+          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
+          <prop v="square" k="capstyle"/>
+          <prop v="5;2" k="customdash"/>
+          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
+          <prop v="MM" k="customdash_unit"/>
+          <prop v="0" k="draw_inside_polygon"/>
+          <prop v="bevel" k="joinstyle"/>
+          <prop v="255,35,35,255" k="line_color"/>
+          <prop v="solid" k="line_style"/>
+          <prop v="0" k="line_width"/>
+          <prop v="MM" k="line_width_unit"/>
+          <prop v="-1.80556" k="offset"/>
+          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+          <prop v="MM" k="offset_unit"/>
+          <prop v="0" k="ring_filter"/>
+          <prop v="0" k="use_custom_dash"/>
+          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
+          <data_defined_properties>
+            <Option type="Map">
+              <Option name="name" type="QString" value=""/>
+              <Option name="properties"/>
+              <Option name="type" type="QString" value="collection"/>
+            </Option>
+          </data_defined_properties>
+        </layer>
+      </symbol>
+      <symbol name="2" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -299,13 +430,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -323,13 +454,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@2@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@2@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -350,15 +481,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -377,13 +508,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -402,15 +533,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="3" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="3" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -429,13 +560,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -453,13 +584,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@3@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@3@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -480,15 +611,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -507,13 +638,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -532,15 +663,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="4" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="4" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -559,13 +690,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -583,13 +714,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@4@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@4@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -610,15 +741,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -637,13 +768,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -662,15 +793,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="5" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="5" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -689,13 +820,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -713,13 +844,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@5@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@5@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -740,15 +871,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -767,13 +898,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -792,15 +923,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="6" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="6" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -819,13 +950,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -843,13 +974,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@6@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@6@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -870,15 +1001,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -897,13 +1028,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -922,15 +1053,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="7" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="7" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -949,13 +1080,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -973,13 +1104,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@7@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@7@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -1000,15 +1131,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1027,13 +1158,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1052,15 +1183,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="8" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="8" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1079,13 +1210,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -1103,13 +1234,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@8@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@8@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -1130,15 +1261,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1157,13 +1288,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1182,15 +1313,15 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol type="line" force_rhr="0" name="9" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+      <symbol name="9" type="line" clip_to_extent="1" alpha="1" force_rhr="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1209,13 +1340,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="MarkerLine" pass="0">
           <prop v="4" k="average_angle_length"/>
           <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
           <prop v="MM" k="average_angle_unit"/>
@@ -1233,13 +1364,13 @@
           <prop v="1" k="rotate"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@9@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+          <symbol name="@9@1" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="90" k="angle"/>
               <prop v="77,77,77,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -1260,15 +1391,15 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1287,13 +1418,13 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
+        <layer locked="0" enabled="1" class="SimpleLine" pass="0">
           <prop v="square" k="capstyle"/>
           <prop v="5;2" k="customdash"/>
           <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
@@ -1312,161 +1443,22 @@
           <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option name="name" type="QString" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option name="type" type="QString" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
     </symbols>
-    <source-symbol>
-      <symbol type="line" force_rhr="0" name="0" alpha="1" clip_to_extent="1">
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
-          <prop v="square" k="capstyle"/>
-          <prop v="5;2" k="customdash"/>
-          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
-          <prop v="MM" k="customdash_unit"/>
-          <prop v="0" k="draw_inside_polygon"/>
-          <prop v="bevel" k="joinstyle"/>
-          <prop v="185,185,185,255" k="line_color"/>
-          <prop v="solid" k="line_style"/>
-          <prop v="1.5" k="line_width"/>
-          <prop v="MM" k="line_width_unit"/>
-          <prop v="0" k="offset"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-          <prop v="MM" k="offset_unit"/>
-          <prop v="0" k="ring_filter"/>
-          <prop v="0" k="use_custom_dash"/>
-          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
-          <data_defined_properties>
-            <Option type="Map">
-              <Option type="QString" value="" name="name"/>
-              <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
-            </Option>
-          </data_defined_properties>
-        </layer>
-        <layer pass="0" class="MarkerLine" enabled="1" locked="0">
-          <prop v="4" k="average_angle_length"/>
-          <prop v="3x:0,0,0,0,0,0" k="average_angle_map_unit_scale"/>
-          <prop v="MM" k="average_angle_unit"/>
-          <prop v="2" k="interval"/>
-          <prop v="3x:0,0,0,0,0,0" k="interval_map_unit_scale"/>
-          <prop v="MM" k="interval_unit"/>
-          <prop v="0" k="offset"/>
-          <prop v="0" k="offset_along_line"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_along_line_map_unit_scale"/>
-          <prop v="MM" k="offset_along_line_unit"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-          <prop v="MM" k="offset_unit"/>
-          <prop v="interval" k="placement"/>
-          <prop v="0" k="ring_filter"/>
-          <prop v="1" k="rotate"/>
-          <data_defined_properties>
-            <Option type="Map">
-              <Option type="QString" value="" name="name"/>
-              <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
-            </Option>
-          </data_defined_properties>
-          <symbol type="marker" force_rhr="0" name="@0@1" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
-              <prop v="90" k="angle"/>
-              <prop v="77,77,77,255" k="color"/>
-              <prop v="1" k="horizontal_anchor_point"/>
-              <prop v="bevel" k="joinstyle"/>
-              <prop v="triangle" k="name"/>
-              <prop v="0,0" k="offset"/>
-              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-              <prop v="MM" k="offset_unit"/>
-              <prop v="0,0,0,0" k="outline_color"/>
-              <prop v="no" k="outline_style"/>
-              <prop v="0" k="outline_width"/>
-              <prop v="3x:0,0,0,0,0,0" k="outline_width_map_unit_scale"/>
-              <prop v="MM" k="outline_width_unit"/>
-              <prop v="area" k="scale_method"/>
-              <prop v="1.5" k="size"/>
-              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
-              <prop v="MM" k="size_unit"/>
-              <prop v="1" k="vertical_anchor_point"/>
-              <data_defined_properties>
-                <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
-                  <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
-                </Option>
-              </data_defined_properties>
-            </layer>
-          </symbol>
-        </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
-          <prop v="square" k="capstyle"/>
-          <prop v="5;2" k="customdash"/>
-          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
-          <prop v="MM" k="customdash_unit"/>
-          <prop v="0" k="draw_inside_polygon"/>
-          <prop v="bevel" k="joinstyle"/>
-          <prop v="77,77,77,255" k="line_color"/>
-          <prop v="solid" k="line_style"/>
-          <prop v="0" k="line_width"/>
-          <prop v="MM" k="line_width_unit"/>
-          <prop v="0.75" k="offset"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-          <prop v="MM" k="offset_unit"/>
-          <prop v="0" k="ring_filter"/>
-          <prop v="0" k="use_custom_dash"/>
-          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
-          <data_defined_properties>
-            <Option type="Map">
-              <Option type="QString" value="" name="name"/>
-              <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
-            </Option>
-          </data_defined_properties>
-        </layer>
-        <layer pass="0" class="SimpleLine" enabled="1" locked="0">
-          <prop v="square" k="capstyle"/>
-          <prop v="5;2" k="customdash"/>
-          <prop v="3x:0,0,0,0,0,0" k="customdash_map_unit_scale"/>
-          <prop v="MM" k="customdash_unit"/>
-          <prop v="0" k="draw_inside_polygon"/>
-          <prop v="bevel" k="joinstyle"/>
-          <prop v="77,77,77,255" k="line_color"/>
-          <prop v="solid" k="line_style"/>
-          <prop v="0" k="line_width"/>
-          <prop v="MM" k="line_width_unit"/>
-          <prop v="-0.75" k="offset"/>
-          <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
-          <prop v="MM" k="offset_unit"/>
-          <prop v="0" k="ring_filter"/>
-          <prop v="0" k="use_custom_dash"/>
-          <prop v="3x:0,0,0,0,0,0" k="width_map_unit_scale"/>
-          <data_defined_properties>
-            <Option type="Map">
-              <Option type="QString" value="" name="name"/>
-              <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
-            </Option>
-          </data_defined_properties>
-        </layer>
-      </symbol>
-    </source-symbol>
-    <classificationMethod id="Logarithmic">
-      <symmetricMode astride="0" symmetrypoint="0" enabled="0"/>
-      <labelFormat format="%1 - %2 " labelprecision="2" trimtrailingzeroes="1"/>
-      <extraInformation/>
-    </classificationMethod>
-    <rotation/>
-    <sizescale/>
   </renderer-v2>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style fontWeight="50" fontWordSpacing="0" fontCapitals="0" fontSize="8" fontSizeUnit="Point" textOrientation="horizontal" fontUnderline="0" fontItalic="0" fontStrikeout="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" previewBkgrdColor="255,255,255,255" textColor="0,0,0,255" fieldName="coalesce(format_number(round(pump_capacity, 2),2), 'NULL')|| ' L/s'" fontFamily="MS Gothic" blendMode="0" textOpacity="1" multilineHeight="1" namedStyle="Regular" fontLetterSpacing="0" fontKerning="1" useSubstitutions="0" isExpression="1">
-        <text-buffer bufferDraw="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferNoFill="1" bufferOpacity="1" bufferSize="0.7" bufferSizeUnits="MM" bufferBlendMode="0" bufferJoinStyle="128" bufferColor="255,255,255,255"/>
-        <background shapeOpacity="1" shapeSVGFile="" shapeBorderColor="128,128,128,255" shapeRadiiX="0" shapeDraw="0" shapeSizeUnit="MM" shapeBorderWidthUnit="MM" shapeType="0" shapeOffsetUnit="MM" shapeOffsetY="0" shapeJoinStyle="64" shapeFillColor="255,255,255,255" shapeRadiiUnit="MM" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeRotation="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeOffsetX="0" shapeRotationType="0" shapeRadiiY="0" shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeBorderWidth="0" shapeSizeType="0" shapeSizeX="0" shapeSizeY="0" shapeBlendMode="0">
-          <symbol type="marker" force_rhr="0" name="markerSymbol" alpha="1" clip_to_extent="1">
-            <layer pass="0" class="SimpleMarker" enabled="1" locked="0">
+      <text-style blendMode="0" fontSizeUnit="Point" textOrientation="horizontal" isExpression="1" fontUnderline="0" fontWeight="50" namedStyle="Regular" fontCapitals="0" textColor="0,0,0,255" fontFamily="MS Gothic" useSubstitutions="0" fontStrikeout="0" fontWordSpacing="0" fontKerning="1" multilineHeight="1" fontSize="8" previewBkgrdColor="255,255,255,255" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textOpacity="1" fontLetterSpacing="0" fieldName="coalesce(format_number(round(pump_capacity, 2),2), 'NULL')|| ' L/s'" fontItalic="0">
+        <text-buffer bufferSizeUnits="MM" bufferNoFill="1" bufferSize="0.7" bufferColor="255,255,255,255" bufferOpacity="1" bufferJoinStyle="128" bufferDraw="1" bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferBlendMode="0"/>
+        <background shapeSVGFile="" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeBorderColor="128,128,128,255" shapeBorderWidthUnit="MM" shapeOpacity="1" shapeRadiiY="0" shapeRotation="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeOffsetUnit="MM" shapeOffsetY="0" shapeSizeX="0" shapeFillColor="255,255,255,255" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeBorderWidth="0" shapeSizeUnit="MM" shapeSizeY="0" shapeRadiiX="0" shapeDraw="0" shapeRadiiUnit="MM" shapeType="0" shapeRotationType="0" shapeOffsetX="0" shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeJoinStyle="64" shapeBlendMode="0" shapeSizeType="0">
+          <symbol name="markerSymbol" type="marker" clip_to_extent="1" alpha="1" force_rhr="0">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop v="0" k="angle"/>
               <prop v="243,166,178,255" k="color"/>
               <prop v="1" k="horizontal_anchor_point"/>
@@ -1487,54 +1479,54 @@
               <prop v="1" k="vertical_anchor_point"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option name="name" type="QString" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option name="type" type="QString" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </background>
-        <shadow shadowScale="100" shadowColor="0,0,0,255" shadowRadius="1.5" shadowDraw="0" shadowOffsetGlobal="1" shadowUnder="0" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowOpacity="0.7" shadowOffsetUnit="MM" shadowOffsetDist="1" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowRadiusAlphaOnly="0" shadowBlendMode="6" shadowOffsetAngle="135" shadowRadiusUnit="MM"/>
+        <shadow shadowDraw="0" shadowColor="0,0,0,255" shadowOffsetUnit="MM" shadowRadius="1.5" shadowBlendMode="6" shadowOffsetDist="1" shadowScale="100" shadowOffsetAngle="135" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowOpacity="0.7" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowOffsetGlobal="1" shadowUnder="0" shadowRadiusUnit="MM" shadowRadiusAlphaOnly="0"/>
         <dd_properties>
           <Option type="Map">
-            <Option type="QString" value="" name="name"/>
+            <Option name="name" type="QString" value=""/>
             <Option name="properties"/>
-            <Option type="QString" value="collection" name="type"/>
+            <Option name="type" type="QString" value="collection"/>
           </Option>
         </dd_properties>
         <substitutions/>
       </text-style>
-      <text-format rightDirectionSymbol=">" multilineAlign="0" reverseDirectionSymbol="0" formatNumbers="0" decimals="3" plussign="0" useMaxLineLengthForAutoWrap="1" placeDirectionSymbol="0" addDirectionSymbol="0" autoWrapLength="0" leftDirectionSymbol="&lt;" wrapChar=""/>
-      <placement placementFlags="10" dist="0" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" overrunDistance="0" maxCurvedCharAngleOut="-25" geometryGeneratorType="PointGeometry" yOffset="0" priority="5" repeatDistance="0" xOffset="0" layerType="LineGeometry" distMapUnitScale="3x:0,0,0,0,0,0" quadOffset="4" offsetType="0" maxCurvedCharAngleIn="25" fitInPolygonOnly="0" placement="2" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" rotationAngle="0" offsetUnits="MM" overrunDistanceUnit="MM" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" geometryGenerator="" centroidWhole="0" centroidInside="0" geometryGeneratorEnabled="0" distUnits="MM" preserveRotation="1" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" repeatDistanceUnits="MM"/>
-      <rendering fontMinPixelSize="3" obstacle="1" minFeatureSize="0" drawLabels="1" zIndex="0" fontLimitPixelSize="0" obstacleFactor="1" upsidedownLabels="0" scaleMin="0" fontMaxPixelSize="10000" displayAll="0" mergeLines="0" scaleMax="0" labelPerPart="0" obstacleType="0" limitNumLabels="0" maxNumLabels="2000" scaleVisibility="0"/>
+      <text-format decimals="3" leftDirectionSymbol="&lt;" placeDirectionSymbol="0" formatNumbers="0" autoWrapLength="0" wrapChar="" useMaxLineLengthForAutoWrap="1" reverseDirectionSymbol="0" addDirectionSymbol="0" rightDirectionSymbol=">" plussign="0" multilineAlign="0"/>
+      <placement offsetType="0" maxCurvedCharAngleIn="25" rotationAngle="0" geometryGenerator="" geometryGeneratorEnabled="0" distUnits="MM" quadOffset="4" offsetUnits="MM" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" maxCurvedCharAngleOut="-25" overrunDistance="0" geometryGeneratorType="PointGeometry" dist="0" repeatDistance="0" priority="5" placementFlags="10" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" repeatDistanceUnits="MM" centroidWhole="0" centroidInside="0" layerType="LineGeometry" xOffset="0" preserveRotation="1" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" distMapUnitScale="3x:0,0,0,0,0,0" fitInPolygonOnly="0" placement="2" yOffset="0" overrunDistanceUnit="MM"/>
+      <rendering scaleVisibility="0" obstacleType="0" limitNumLabels="0" drawLabels="1" upsidedownLabels="0" scaleMin="0" minFeatureSize="0" fontMaxPixelSize="10000" displayAll="0" obstacle="1" fontMinPixelSize="3" labelPerPart="0" fontLimitPixelSize="0" zIndex="0" obstacleFactor="1" scaleMax="0" maxNumLabels="2000" mergeLines="0"/>
       <dd_properties>
         <Option type="Map">
-          <Option type="QString" value="" name="name"/>
+          <Option name="name" type="QString" value=""/>
           <Option name="properties"/>
-          <Option type="QString" value="collection" name="type"/>
+          <Option name="type" type="QString" value="collection"/>
         </Option>
       </dd_properties>
       <callout type="simple">
         <Option type="Map">
-          <Option type="QString" value="pole_of_inaccessibility" name="anchorPoint"/>
-          <Option type="Map" name="ddProperties">
-            <Option type="QString" value="" name="name"/>
+          <Option name="anchorPoint" type="QString" value="pole_of_inaccessibility"/>
+          <Option name="ddProperties" type="Map">
+            <Option name="name" type="QString" value=""/>
             <Option name="properties"/>
-            <Option type="QString" value="collection" name="type"/>
+            <Option name="type" type="QString" value="collection"/>
           </Option>
-          <Option type="bool" value="false" name="drawToAllParts"/>
-          <Option type="QString" value="0" name="enabled"/>
-          <Option type="QString" value="&lt;symbol type=&quot;line&quot; force_rhr=&quot;0&quot; name=&quot;symbol&quot; alpha=&quot;1&quot; clip_to_extent=&quot;1&quot;>&lt;layer pass=&quot;0&quot; class=&quot;SimpleLine&quot; enabled=&quot;1&quot; locked=&quot;0&quot;>&lt;prop v=&quot;square&quot; k=&quot;capstyle&quot;/>&lt;prop v=&quot;5;2&quot; k=&quot;customdash&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;customdash_map_unit_scale&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;customdash_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;draw_inside_polygon&quot;/>&lt;prop v=&quot;bevel&quot; k=&quot;joinstyle&quot;/>&lt;prop v=&quot;60,60,60,255&quot; k=&quot;line_color&quot;/>&lt;prop v=&quot;solid&quot; k=&quot;line_style&quot;/>&lt;prop v=&quot;0.3&quot; k=&quot;line_width&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;line_width_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;offset&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;offset_map_unit_scale&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;offset_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;ring_filter&quot;/>&lt;prop v=&quot;0&quot; k=&quot;use_custom_dash&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;width_map_unit_scale&quot;/>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>" name="lineSymbol"/>
-          <Option type="double" value="0" name="minLength"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="minLengthMapUnitScale"/>
-          <Option type="QString" value="MM" name="minLengthUnit"/>
-          <Option type="double" value="0" name="offsetFromAnchor"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="offsetFromAnchorMapUnitScale"/>
-          <Option type="QString" value="MM" name="offsetFromAnchorUnit"/>
-          <Option type="double" value="0" name="offsetFromLabel"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="offsetFromLabelMapUnitScale"/>
-          <Option type="QString" value="MM" name="offsetFromLabelUnit"/>
+          <Option name="drawToAllParts" type="bool" value="false"/>
+          <Option name="enabled" type="QString" value="0"/>
+          <Option name="lineSymbol" type="QString" value="&lt;symbol name=&quot;symbol&quot; type=&quot;line&quot; clip_to_extent=&quot;1&quot; alpha=&quot;1&quot; force_rhr=&quot;0&quot;>&lt;layer locked=&quot;0&quot; enabled=&quot;1&quot; class=&quot;SimpleLine&quot; pass=&quot;0&quot;>&lt;prop v=&quot;square&quot; k=&quot;capstyle&quot;/>&lt;prop v=&quot;5;2&quot; k=&quot;customdash&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;customdash_map_unit_scale&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;customdash_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;draw_inside_polygon&quot;/>&lt;prop v=&quot;bevel&quot; k=&quot;joinstyle&quot;/>&lt;prop v=&quot;60,60,60,255&quot; k=&quot;line_color&quot;/>&lt;prop v=&quot;solid&quot; k=&quot;line_style&quot;/>&lt;prop v=&quot;0.3&quot; k=&quot;line_width&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;line_width_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;offset&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;offset_map_unit_scale&quot;/>&lt;prop v=&quot;MM&quot; k=&quot;offset_unit&quot;/>&lt;prop v=&quot;0&quot; k=&quot;ring_filter&quot;/>&lt;prop v=&quot;0&quot; k=&quot;use_custom_dash&quot;/>&lt;prop v=&quot;3x:0,0,0,0,0,0&quot; k=&quot;width_map_unit_scale&quot;/>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option name=&quot;name&quot; type=&quot;QString&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option name=&quot;type&quot; type=&quot;QString&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"/>
+          <Option name="minLength" type="double" value="0"/>
+          <Option name="minLengthMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"/>
+          <Option name="minLengthUnit" type="QString" value="MM"/>
+          <Option name="offsetFromAnchor" type="double" value="0"/>
+          <Option name="offsetFromAnchorMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"/>
+          <Option name="offsetFromAnchorUnit" type="QString" value="MM"/>
+          <Option name="offsetFromLabel" type="double" value="0"/>
+          <Option name="offsetFromLabelMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"/>
+          <Option name="offsetFromLabelUnit" type="QString" value="MM"/>
         </Option>
       </callout>
     </settings>
@@ -1548,22 +1540,22 @@
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
-    <DiagramCategory opacity="1" maxScaleDenominator="1e+08" rotationOffset="270" backgroundAlpha="255" diagramOrientation="Up" width="15" penAlpha="255" height="15" barWidth="5" penColor="#000000" scaleBasedVisibility="0" scaleDependency="Area" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" minScaleDenominator="0" enabled="0" sizeScale="3x:0,0,0,0,0,0" backgroundColor="#ffffff" minimumSize="0" labelPlacementMethod="XHeight" sizeType="MM" penWidth="0">
-      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
+    <DiagramCategory maxScaleDenominator="1e+08" width="15" opacity="1" barWidth="5" minimumSize="0" rotationOffset="270" scaleBasedVisibility="0" height="15" lineSizeScale="3x:0,0,0,0,0,0" scaleDependency="Area" enabled="0" labelPlacementMethod="XHeight" penColor="#000000" diagramOrientation="Up" penWidth="0" sizeType="MM" minScaleDenominator="0" sizeScale="3x:0,0,0,0,0,0" backgroundAlpha="255" lineSizeType="MM" penAlpha="255" backgroundColor="#ffffff">
+      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
+      <attribute color="#000000" field="" label=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings priority="0" showAll="1" linePlacementFlags="2" dist="0" obstacle="0" zIndex="0" placement="2">
+  <DiagramLayerSettings dist="0" priority="0" zIndex="0" showAll="1" obstacle="0" placement="2" linePlacementFlags="2">
     <properties>
       <Option type="Map">
-        <Option type="QString" value="" name="name"/>
+        <Option name="name" type="QString" value=""/>
         <Option name="properties"/>
-        <Option type="QString" value="collection" name="type"/>
+        <Option name="type" type="QString" value="collection"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
-  <geometryOptions geometryPrecision="0" removeDuplicateNodes="0">
+  <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
     <activeChecks/>
     <checkConfiguration/>
   </geometryOptions>
@@ -1579,8 +1571,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1589,8 +1581,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1599,8 +1591,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1609,8 +1601,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1619,12 +1611,12 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="1" name="1: Pump behaviour is based on water levels on the suction-side of the pump"/>
+                <Option name="1: Pump behaviour is based on water levels on the suction-side of the pump" type="QString" value="1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="2" name="2: Pump behaviour is based on water levels on the delivery-side of the pump"/>
+                <Option name="2: Pump behaviour is based on water levels on the delivery-side of the pump" type="QString" value="2"/>
               </Option>
             </Option>
           </Option>
@@ -1635,8 +1627,8 @@
       <editWidget type="CheckBox">
         <config>
           <Option type="Map">
-            <Option type="QString" value="1" name="CheckedState"/>
-            <Option type="QString" value="0" name="UncheckedState"/>
+            <Option name="CheckedState" type="QString" value="1"/>
+            <Option name="UncheckedState" type="QString" value="0"/>
           </Option>
         </config>
       </editWidget>
@@ -1645,8 +1637,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1655,8 +1647,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1665,8 +1657,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1675,8 +1667,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1685,27 +1677,27 @@
       <editWidget type="ValueMap">
         <config>
           <Option type="Map">
-            <Option type="List" name="map">
+            <Option name="map" type="List">
               <Option type="Map">
-                <Option type="QString" value="-1" name="-1"/>
+                <Option name="-1" type="QString" value="-1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="0" name="0"/>
+                <Option name="0" type="QString" value="0"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="1" name="1"/>
+                <Option name="1" type="QString" value="1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="2" name="2"/>
+                <Option name="2" type="QString" value="2"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="3" name="3"/>
+                <Option name="3" type="QString" value="3"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="4" name="4"/>
+                <Option name="4" type="QString" value="4"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="5" name="5"/>
+                <Option name="5" type="QString" value="5"/>
               </Option>
             </Option>
           </Option>
@@ -1716,8 +1708,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -1726,100 +1718,100 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option name="IsMultiline" type="bool" value="false"/>
+            <Option name="UseHtml" type="bool" value="false"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias field="ROWID" index="0" name=""/>
-    <alias field="pump_id" index="1" name="id"/>
-    <alias field="pump_display_name" index="2" name="display_name"/>
-    <alias field="pump_code" index="3" name="code"/>
-    <alias field="pump_classification" index="4" name="classification"/>
-    <alias field="pump_type" index="5" name="type"/>
-    <alias field="pump_sewerage" index="6" name="sewerage"/>
-    <alias field="pump_start_level" index="7" name="start_level"/>
-    <alias field="pump_lower_stop_level" index="8" name="lower_stop_level"/>
-    <alias field="pump_upper_stop_level" index="9" name="upper_stop_level"/>
-    <alias field="pump_capacity" index="10" name="capacity"/>
-    <alias field="pump_zoom_category" index="11" name="zoom_category"/>
-    <alias field="pump_connection_node_start_id" index="12" name="connection_node_start_id"/>
-    <alias field="pump_connection_node_end_id" index="13" name="connection_node_end_id"/>
+    <alias name="" index="0" field="ROWID"/>
+    <alias name="id" index="1" field="pump_id"/>
+    <alias name="display_name" index="2" field="pump_display_name"/>
+    <alias name="code" index="3" field="pump_code"/>
+    <alias name="classification" index="4" field="pump_classification"/>
+    <alias name="type" index="5" field="pump_type"/>
+    <alias name="sewerage" index="6" field="pump_sewerage"/>
+    <alias name="start_level" index="7" field="pump_start_level"/>
+    <alias name="lower_stop_level" index="8" field="pump_lower_stop_level"/>
+    <alias name="upper_stop_level" index="9" field="pump_upper_stop_level"/>
+    <alias name="capacity" index="10" field="pump_capacity"/>
+    <alias name="zoom_category" index="11" field="pump_zoom_category"/>
+    <alias name="connection_node_start_id" index="12" field="pump_connection_node_start_id"/>
+    <alias name="connection_node_end_id" index="13" field="pump_connection_node_end_id"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default field="ROWID" expression="" applyOnUpdate="0"/>
-    <default field="pump_id" expression="if(maximum(pump_id) is null,1, maximum(pump_id)+1)" applyOnUpdate="0"/>
-    <default field="pump_display_name" expression="'new'" applyOnUpdate="0"/>
-    <default field="pump_code" expression="'new'" applyOnUpdate="0"/>
-    <default field="pump_classification" expression="" applyOnUpdate="0"/>
-    <default field="pump_type" expression="1" applyOnUpdate="0"/>
-    <default field="pump_sewerage" expression="" applyOnUpdate="0"/>
-    <default field="pump_start_level" expression="" applyOnUpdate="0"/>
-    <default field="pump_lower_stop_level" expression="" applyOnUpdate="0"/>
-    <default field="pump_upper_stop_level" expression="" applyOnUpdate="0"/>
-    <default field="pump_capacity" expression="" applyOnUpdate="0"/>
-    <default field="pump_zoom_category" expression="2" applyOnUpdate="0"/>
-    <default field="pump_connection_node_start_id" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))))" applyOnUpdate="0"/>
-    <default field="pump_connection_node_end_id" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))))" applyOnUpdate="0"/>
+    <default field="ROWID" applyOnUpdate="0" expression=""/>
+    <default field="pump_id" applyOnUpdate="0" expression="if(maximum(pump_id) is null,1, maximum(pump_id)+1)"/>
+    <default field="pump_display_name" applyOnUpdate="0" expression="'new'"/>
+    <default field="pump_code" applyOnUpdate="0" expression="'new'"/>
+    <default field="pump_classification" applyOnUpdate="0" expression=""/>
+    <default field="pump_type" applyOnUpdate="0" expression="1"/>
+    <default field="pump_sewerage" applyOnUpdate="0" expression=""/>
+    <default field="pump_start_level" applyOnUpdate="0" expression=""/>
+    <default field="pump_lower_stop_level" applyOnUpdate="0" expression=""/>
+    <default field="pump_upper_stop_level" applyOnUpdate="0" expression=""/>
+    <default field="pump_capacity" applyOnUpdate="0" expression=""/>
+    <default field="pump_zoom_category" applyOnUpdate="0" expression="2"/>
+    <default field="pump_connection_node_start_id" applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent)))))"/>
+    <default field="pump_connection_node_end_id" applyOnUpdate="0" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent)))))"/>
   </defaults>
   <constraints>
-    <constraint field="ROWID" unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="pump_id" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_display_name" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_code" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_classification" unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="pump_type" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_sewerage" unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="pump_start_level" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_lower_stop_level" unique_strength="0" notnull_strength="2" exp_strength="2" constraints="5"/>
-    <constraint field="pump_upper_stop_level" unique_strength="0" notnull_strength="0" exp_strength="2" constraints="4"/>
-    <constraint field="pump_capacity" unique_strength="0" notnull_strength="2" exp_strength="2" constraints="5"/>
-    <constraint field="pump_zoom_category" unique_strength="0" notnull_strength="2" exp_strength="0" constraints="1"/>
-    <constraint field="pump_connection_node_start_id" unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="pump_connection_node_end_id" unique_strength="0" notnull_strength="0" exp_strength="0" constraints="0"/>
+    <constraint field="ROWID" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="pump_id" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_display_name" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_code" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_classification" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="pump_type" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_sewerage" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="pump_start_level" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_lower_stop_level" constraints="5" unique_strength="0" notnull_strength="2" exp_strength="2"/>
+    <constraint field="pump_upper_stop_level" constraints="4" unique_strength="0" notnull_strength="0" exp_strength="2"/>
+    <constraint field="pump_capacity" constraints="5" unique_strength="0" notnull_strength="2" exp_strength="2"/>
+    <constraint field="pump_zoom_category" constraints="1" unique_strength="0" notnull_strength="2" exp_strength="0"/>
+    <constraint field="pump_connection_node_start_id" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
+    <constraint field="pump_connection_node_end_id" constraints="0" unique_strength="0" notnull_strength="0" exp_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint field="ROWID" exp="" desc=""/>
-    <constraint field="pump_id" exp="" desc=""/>
-    <constraint field="pump_display_name" exp="" desc=""/>
-    <constraint field="pump_code" exp="" desc=""/>
-    <constraint field="pump_classification" exp="" desc=""/>
-    <constraint field="pump_type" exp="" desc=""/>
-    <constraint field="pump_sewerage" exp="" desc=""/>
-    <constraint field="pump_start_level" exp="" desc=""/>
-    <constraint field="pump_lower_stop_level" exp="&quot;pump_lower_stop_level&quot; &lt; &quot;pump_start_level&quot;" desc=""/>
-    <constraint field="pump_upper_stop_level" exp="&quot;pump_upper_stop_level&quot;>&quot;start_level&quot; or &quot;pump_upper_stop_level&quot; is null" desc=""/>
-    <constraint field="pump_capacity" exp="&quot;pump_capacity&quot;>=0" desc=""/>
-    <constraint field="pump_zoom_category" exp="" desc=""/>
-    <constraint field="pump_connection_node_start_id" exp="" desc=""/>
-    <constraint field="pump_connection_node_end_id" exp="" desc=""/>
+    <constraint desc="" exp="" field="ROWID"/>
+    <constraint desc="" exp="" field="pump_id"/>
+    <constraint desc="" exp="" field="pump_display_name"/>
+    <constraint desc="" exp="" field="pump_code"/>
+    <constraint desc="" exp="" field="pump_classification"/>
+    <constraint desc="" exp="" field="pump_type"/>
+    <constraint desc="" exp="" field="pump_sewerage"/>
+    <constraint desc="" exp="" field="pump_start_level"/>
+    <constraint desc="" exp="&quot;pump_lower_stop_level&quot; &lt; &quot;pump_start_level&quot;" field="pump_lower_stop_level"/>
+    <constraint desc="" exp="&quot;pump_upper_stop_level&quot;>&quot;start_level&quot; or &quot;pump_upper_stop_level&quot; is null" field="pump_upper_stop_level"/>
+    <constraint desc="" exp="&quot;pump_capacity&quot;>=0" field="pump_capacity"/>
+    <constraint desc="" exp="" field="pump_zoom_category"/>
+    <constraint desc="" exp="" field="pump_connection_node_start_id"/>
+    <constraint desc="" exp="" field="pump_connection_node_end_id"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
     <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
+  <attributetableconfig sortExpression="" sortOrder="0" actionWidgetStyle="dropDown">
     <columns>
-      <column type="field" name="ROWID" hidden="0" width="-1"/>
-      <column type="field" name="pump_id" hidden="0" width="-1"/>
-      <column type="field" name="pump_display_name" hidden="0" width="-1"/>
-      <column type="field" name="pump_code" hidden="0" width="-1"/>
-      <column type="field" name="pump_classification" hidden="0" width="-1"/>
-      <column type="field" name="pump_type" hidden="0" width="-1"/>
-      <column type="field" name="pump_sewerage" hidden="0" width="-1"/>
-      <column type="field" name="pump_start_level" hidden="0" width="-1"/>
-      <column type="field" name="pump_lower_stop_level" hidden="0" width="-1"/>
-      <column type="field" name="pump_upper_stop_level" hidden="0" width="-1"/>
-      <column type="field" name="pump_capacity" hidden="0" width="-1"/>
-      <column type="field" name="pump_zoom_category" hidden="0" width="-1"/>
-      <column type="field" name="pump_connection_node_start_id" hidden="0" width="-1"/>
-      <column type="field" name="pump_connection_node_end_id" hidden="0" width="-1"/>
-      <column type="actions" hidden="1" width="-1"/>
+      <column hidden="0" name="ROWID" type="field" width="-1"/>
+      <column hidden="0" name="pump_id" type="field" width="-1"/>
+      <column hidden="0" name="pump_display_name" type="field" width="-1"/>
+      <column hidden="0" name="pump_code" type="field" width="-1"/>
+      <column hidden="0" name="pump_classification" type="field" width="-1"/>
+      <column hidden="0" name="pump_type" type="field" width="-1"/>
+      <column hidden="0" name="pump_sewerage" type="field" width="-1"/>
+      <column hidden="0" name="pump_start_level" type="field" width="-1"/>
+      <column hidden="0" name="pump_lower_stop_level" type="field" width="-1"/>
+      <column hidden="0" name="pump_upper_stop_level" type="field" width="-1"/>
+      <column hidden="0" name="pump_capacity" type="field" width="-1"/>
+      <column hidden="0" name="pump_zoom_category" type="field" width="-1"/>
+      <column hidden="0" name="pump_connection_node_start_id" type="field" width="-1"/>
+      <column hidden="0" name="pump_connection_node_end_id" type="field" width="-1"/>
+      <column hidden="1" type="actions" width="-1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -1849,26 +1841,26 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer visibilityExpression="" columnCount="1" groupBox="0" name="Pumpstation view" showLabel="1" visibilityExpressionEnabled="0">
-      <attributeEditorContainer visibilityExpression="" columnCount="1" groupBox="1" name="General" showLabel="1" visibilityExpressionEnabled="0">
-        <attributeEditorField index="1" name="pump_id" showLabel="1"/>
-        <attributeEditorField index="2" name="pump_display_name" showLabel="1"/>
-        <attributeEditorField index="3" name="pump_code" showLabel="1"/>
+    <attributeEditorContainer columnCount="1" name="Pumpstation view" visibilityExpression="" groupBox="0" visibilityExpressionEnabled="0" showLabel="1">
+      <attributeEditorContainer columnCount="1" name="General" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="pump_id" index="1" showLabel="1"/>
+        <attributeEditorField name="pump_display_name" index="2" showLabel="1"/>
+        <attributeEditorField name="pump_code" index="3" showLabel="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpression="" columnCount="1" groupBox="1" name="Characteristics" showLabel="1" visibilityExpressionEnabled="0">
-        <attributeEditorField index="7" name="pump_start_level" showLabel="1"/>
-        <attributeEditorField index="8" name="pump_lower_stop_level" showLabel="1"/>
-        <attributeEditorField index="9" name="pump_upper_stop_level" showLabel="1"/>
-        <attributeEditorField index="10" name="pump_capacity" showLabel="1"/>
-        <attributeEditorField index="5" name="pump_type" showLabel="1"/>
+      <attributeEditorContainer columnCount="1" name="Characteristics" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="pump_start_level" index="7" showLabel="1"/>
+        <attributeEditorField name="pump_lower_stop_level" index="8" showLabel="1"/>
+        <attributeEditorField name="pump_upper_stop_level" index="9" showLabel="1"/>
+        <attributeEditorField name="pump_capacity" index="10" showLabel="1"/>
+        <attributeEditorField name="pump_type" index="5" showLabel="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpression="" columnCount="1" groupBox="1" name="Visualization" showLabel="1" visibilityExpressionEnabled="0">
-        <attributeEditorField index="6" name="pump_sewerage" showLabel="1"/>
-        <attributeEditorField index="11" name="pump_zoom_category" showLabel="1"/>
+      <attributeEditorContainer columnCount="1" name="Visualization" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="pump_sewerage" index="6" showLabel="1"/>
+        <attributeEditorField name="pump_zoom_category" index="11" showLabel="1"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpression="" columnCount="1" groupBox="1" name="Connection nodes" showLabel="1" visibilityExpressionEnabled="0">
-        <attributeEditorField index="12" name="pump_connection_node_start_id" showLabel="1"/>
-        <attributeEditorField index="13" name="pump_connection_node_end_id" showLabel="1"/>
+      <attributeEditorContainer columnCount="1" name="Connection nodes" visibilityExpression="" groupBox="1" visibilityExpressionEnabled="0" showLabel="1">
+        <attributeEditorField name="pump_connection_node_start_id" index="12" showLabel="1"/>
+        <attributeEditorField name="pump_connection_node_end_id" index="13" showLabel="1"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>

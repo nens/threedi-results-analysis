@@ -1,14 +1,14 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis minScale="1e+08" simplifyDrawingTol="1" maxScale="0" labelsEnabled="0" simplifyMaxScale="1" simplifyDrawingHints="1" readOnly="0" hasScaleBasedVisibilityFlag="0" styleCategories="AllStyleCategories" version="3.10.10-A Coruña" simplifyAlgorithm="0" simplifyLocal="1">
+<qgis readOnly="0" simplifyLocal="1" labelsEnabled="0" simplifyDrawingTol="1" version="3.10.10-A Coruña" simplifyAlgorithm="0" minScale="1e+08" styleCategories="AllStyleCategories" hasScaleBasedVisibilityFlag="0" maxScale="0" simplifyDrawingHints="1" simplifyMaxScale="1">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 enableorderby="0" type="singleSymbol" symbollevels="0" forceraster="0">
+  <renderer-v2 forceraster="0" type="singleSymbol" symbollevels="0" enableorderby="0">
     <symbols>
-      <symbol type="line" name="0" force_rhr="0" alpha="1" clip_to_extent="1">
-        <layer enabled="1" pass="0" locked="0" class="SimpleLine">
+      <symbol type="line" clip_to_extent="1" name="0" force_rhr="0" alpha="1">
+        <layer class="SimpleLine" pass="0" enabled="1" locked="0">
           <prop k="capstyle" v="square"/>
           <prop k="customdash" v="5;2"/>
           <prop k="customdash_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -28,12 +28,18 @@
           <data_defined_properties>
             <Option type="Map">
               <Option type="QString" name="name" value=""/>
-              <Option name="properties"/>
+              <Option type="Map" name="properties">
+                <Option type="Map" name="outlineWidth">
+                  <Option type="bool" name="active" value="true"/>
+                  <Option type="QString" name="expression" value="if(@map_scale&lt;10000, 0.66,0.3)"/>
+                  <Option type="int" name="type" value="3"/>
+                </Option>
+              </Option>
               <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer enabled="1" pass="0" locked="0" class="MarkerLine">
+        <layer class="MarkerLine" pass="0" enabled="1" locked="0">
           <prop k="average_angle_length" v="4"/>
           <prop k="average_angle_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="average_angle_unit" v="MM"/>
@@ -56,8 +62,8 @@
               <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
-          <symbol type="marker" name="@0@1" force_rhr="0" alpha="1" clip_to_extent="1">
-            <layer enabled="1" pass="0" locked="0" class="SimpleMarker">
+          <symbol type="marker" clip_to_extent="1" name="@0@1" force_rhr="0" alpha="1">
+            <layer class="SimpleMarker" pass="0" enabled="1" locked="0">
               <prop k="angle" v="90"/>
               <prop k="color" v="5,77,209,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
@@ -79,7 +85,13 @@
               <data_defined_properties>
                 <Option type="Map">
                   <Option type="QString" name="name" value=""/>
-                  <Option name="properties"/>
+                  <Option type="Map" name="properties">
+                    <Option type="Map" name="size">
+                      <Option type="bool" name="active" value="true"/>
+                      <Option type="QString" name="expression" value="if(@map_scale&lt;10000, 2.4,1.2)"/>
+                      <Option type="int" name="type" value="3"/>
+                    </Option>
+                  </Option>
                   <Option type="QString" name="type" value="collection"/>
                 </Option>
               </data_defined_properties>
@@ -92,21 +104,21 @@
     <sizescale/>
   </renderer-v2>
   <customproperties>
-    <property key="dualview/previewExpressions" value="display_name"/>
-    <property key="embeddedWidgets/count" value="0"/>
+    <property value="display_name" key="dualview/previewExpressions"/>
+    <property value="0" key="embeddedWidgets/count"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
-    <DiagramCategory diagramOrientation="Up" height="15" lineSizeScale="3x:0,0,0,0,0,0" barWidth="5" scaleBasedVisibility="0" minScaleDenominator="0" penWidth="0" penColor="#000000" sizeType="MM" labelPlacementMethod="XHeight" opacity="1" lineSizeType="MM" backgroundAlpha="255" sizeScale="3x:0,0,0,0,0,0" rotationOffset="270" penAlpha="255" width="15" enabled="0" maxScaleDenominator="1e+08" backgroundColor="#ffffff" minimumSize="0" scaleDependency="Area">
+  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
+    <DiagramCategory width="15" diagramOrientation="Up" rotationOffset="270" penAlpha="255" labelPlacementMethod="XHeight" minScaleDenominator="0" opacity="1" sizeScale="3x:0,0,0,0,0,0" penColor="#000000" lineSizeScale="3x:0,0,0,0,0,0" enabled="0" barWidth="5" penWidth="0" scaleBasedVisibility="0" backgroundColor="#ffffff" sizeType="MM" minimumSize="0" scaleDependency="Area" maxScaleDenominator="1e+08" lineSizeType="MM" height="15" backgroundAlpha="255">
       <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
-      <attribute label="" field="" color="#000000"/>
+      <attribute field="" label="" color="#000000"/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings linePlacementFlags="2" priority="0" zIndex="0" placement="2" dist="0" obstacle="0" showAll="1">
+  <DiagramLayerSettings obstacle="0" priority="0" showAll="1" placement="2" zIndex="0" linePlacementFlags="2" dist="0">
     <properties>
       <Option type="Map">
         <Option type="QString" name="name" value=""/>
@@ -241,52 +253,52 @@
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias index="0" name="" field="id"/>
-    <alias index="1" name="" field="display_name"/>
-    <alias index="2" name="" field="code"/>
-    <alias index="3" name="" field="calculation_type"/>
-    <alias index="4" name="" field="dist_calc_points"/>
-    <alias index="5" name="" field="zoom_category"/>
-    <alias index="6" name="" field="connection_node_start_id"/>
-    <alias index="7" name="" field="connection_node_end_id"/>
+    <alias name="" field="id" index="0"/>
+    <alias name="" field="display_name" index="1"/>
+    <alias name="" field="code" index="2"/>
+    <alias name="" field="calculation_type" index="3"/>
+    <alias name="" field="dist_calc_points" index="4"/>
+    <alias name="" field="zoom_category" index="5"/>
+    <alias name="" field="connection_node_start_id" index="6"/>
+    <alias name="" field="connection_node_end_id" index="7"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default expression="if(maximum(id) is null,1, maximum(id)+1)" applyOnUpdate="0" field="id"/>
-    <default expression="'new'" applyOnUpdate="0" field="display_name"/>
-    <default expression="'new'" applyOnUpdate="0" field="code"/>
-    <default expression="" applyOnUpdate="0" field="calculation_type"/>
-    <default expression="" applyOnUpdate="0" field="dist_calc_points"/>
-    <default expression="5" applyOnUpdate="0" field="zoom_category"/>
-    <default expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent))))" applyOnUpdate="0" field="connection_node_start_id"/>
-    <default expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent))))" applyOnUpdate="0" field="connection_node_end_id"/>
+    <default applyOnUpdate="0" field="id" expression="if(maximum(id) is null,1, maximum(id)+1)"/>
+    <default applyOnUpdate="0" field="display_name" expression="'new'"/>
+    <default applyOnUpdate="0" field="code" expression="'new'"/>
+    <default applyOnUpdate="0" field="calculation_type" expression=""/>
+    <default applyOnUpdate="0" field="dist_calc_points" expression=""/>
+    <default applyOnUpdate="0" field="zoom_category" expression="5"/>
+    <default applyOnUpdate="0" field="connection_node_start_id" expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,start_point(geometry(@parent))))"/>
+    <default applyOnUpdate="0" field="connection_node_end_id" expression="aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,end_point(geometry(@parent))))"/>
   </defaults>
   <constraints>
-    <constraint exp_strength="0" notnull_strength="1" unique_strength="1" constraints="3" field="id"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="display_name"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="code"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="calculation_type"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="dist_calc_points"/>
-    <constraint exp_strength="0" notnull_strength="0" unique_strength="0" constraints="0" field="zoom_category"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="connection_node_start_id"/>
-    <constraint exp_strength="0" notnull_strength="2" unique_strength="0" constraints="1" field="connection_node_end_id"/>
+    <constraint unique_strength="1" constraints="3" field="id" notnull_strength="1" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="display_name" notnull_strength="2" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="code" notnull_strength="2" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="calculation_type" notnull_strength="2" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="dist_calc_points" notnull_strength="2" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="0" field="zoom_category" notnull_strength="0" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="connection_node_start_id" notnull_strength="2" exp_strength="0"/>
+    <constraint unique_strength="0" constraints="1" field="connection_node_end_id" notnull_strength="2" exp_strength="0"/>
   </constraints>
   <constraintExpressions>
-    <constraint field="id" desc="" exp=""/>
-    <constraint field="display_name" desc="" exp=""/>
-    <constraint field="code" desc="" exp=""/>
-    <constraint field="calculation_type" desc="" exp=""/>
-    <constraint field="dist_calc_points" desc="" exp=""/>
-    <constraint field="zoom_category" desc="" exp=""/>
-    <constraint field="connection_node_start_id" desc="" exp=""/>
-    <constraint field="connection_node_end_id" desc="" exp=""/>
+    <constraint desc="" field="id" exp=""/>
+    <constraint desc="" field="display_name" exp=""/>
+    <constraint desc="" field="code" exp=""/>
+    <constraint desc="" field="calculation_type" exp=""/>
+    <constraint desc="" field="dist_calc_points" exp=""/>
+    <constraint desc="" field="zoom_category" exp=""/>
+    <constraint desc="" field="connection_node_start_id" exp=""/>
+    <constraint desc="" field="connection_node_end_id" exp=""/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
+    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
   </attributeactions>
-  <attributetableconfig sortExpression="" actionWidgetStyle="dropDown" sortOrder="0">
+  <attributetableconfig sortOrder="0" sortExpression="" actionWidgetStyle="dropDown">
     <columns>
       <column type="field" name="id" hidden="0" width="-1"/>
       <column type="field" name="display_name" hidden="0" width="-1"/>
@@ -328,18 +340,18 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" name="Channel" visibilityExpression="" columnCount="1" groupBox="0">
-      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" name="General" visibilityExpression="" columnCount="1" groupBox="1">
+    <attributeEditorContainer groupBox="0" visibilityExpressionEnabled="0" showLabel="1" name="Channel" visibilityExpression="" columnCount="1">
+      <attributeEditorContainer groupBox="1" visibilityExpressionEnabled="0" showLabel="1" name="General" visibilityExpression="" columnCount="1">
         <attributeEditorField showLabel="1" name="id" index="0"/>
         <attributeEditorField showLabel="1" name="display_name" index="1"/>
         <attributeEditorField showLabel="1" name="code" index="2"/>
         <attributeEditorField showLabel="1" name="calculation_type" index="3"/>
         <attributeEditorField showLabel="1" name="dist_calc_points" index="4"/>
       </attributeEditorContainer>
-      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" name="Visualization" visibilityExpression="" columnCount="1" groupBox="1">
+      <attributeEditorContainer groupBox="1" visibilityExpressionEnabled="0" showLabel="1" name="Visualization" visibilityExpression="" columnCount="1">
         <attributeEditorField showLabel="1" name="zoom_category" index="5"/>
       </attributeEditorContainer>
-      <attributeEditorContainer showLabel="1" visibilityExpressionEnabled="0" name="Connection nodes" visibilityExpression="" columnCount="1" groupBox="1">
+      <attributeEditorContainer groupBox="1" visibilityExpressionEnabled="0" showLabel="1" name="Connection nodes" visibilityExpression="" columnCount="1">
         <attributeEditorField showLabel="1" name="connection_node_start_id" index="6"/>
         <attributeEditorField showLabel="1" name="connection_node_end_id" index="7"/>
       </attributeEditorContainer>
