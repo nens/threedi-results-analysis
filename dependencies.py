@@ -33,6 +33,8 @@ import platform
 import subprocess
 import sys
 
+from ThreeDiToolbox.utils.user_messages import pop_up_info
+
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
@@ -141,12 +143,24 @@ def _install_h5py(hdf5_version: str):
                   f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
         raise RuntimeError(message)
     use_pypi = hdf5_version == "1.10.5"
-    _uninstall_dependency(H5PY_DEPENDENCY)
-    _install_dependencies(
-        [H5PY_DEPENDENCY],
-        target_dir=_dependencies_target_dir(),
-        use_pypi=use_pypi
-    )
+
+    # In case the (old) h5py library is already imported, we cannot uninstall
+    # h5py because the windows acquires a lock on the *.dll-files. Therefore
+    # we need to restart Qgis.
+    # _uninstall_dependency(H5PY_DEPENDENCY)
+    try:
+        _install_dependencies(
+            [H5PY_DEPENDENCY],
+            target_dir=_dependencies_target_dir(),
+            use_pypi=use_pypi
+        )
+    except RuntimeError:
+        pop_up_info(
+            "Please restart QGIS to complete the installation process of "
+            "ThreediToolbox.",
+            title="Restart required"
+        )
+        return
     H5pyMarker.create(hdf5_version)
 
 
