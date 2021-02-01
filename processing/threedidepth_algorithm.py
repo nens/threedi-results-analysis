@@ -34,7 +34,6 @@ from threedidepth.calculate import calculate_waterdepth
 from threedidepth.calculate import (
     MODE_LINEAR,
     MODE_CONSTANT,
-    MODE_LINEAR_S1,
     MODE_CONSTANT_S1,
     MODE_LIZARD,
     MODE_LIZARD_S1
