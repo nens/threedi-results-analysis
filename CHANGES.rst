@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
+- Bump lizard-connector to version 0.7.3
+
 - Add support for h5py with hdf5 1.10.5
 
 - Added a extra processing provider for 3Di

@@ -1,5 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 from io import IOBase
+from urllib.parse import urlparse
+
 from qgis.core import QgsNetworkAccessManager
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QObject
@@ -246,7 +248,8 @@ class ThreeDiResultSelection(QObject):
         # TODO: do some exception handling if the download did not succeed
         reply = self.sender()
         raw_chunk = reply.readAll()  # QByteArray
-        filename = reply.url().toString().split("/")[-1]
+        url = urlparse(reply.url().toString())
+        filename = url.path.split("/")[-1]
         download_directory = reply.request().attribute(USER_DOWNLOAD_DIRECTORY)
         if not download_directory:
             raise RuntimeError(

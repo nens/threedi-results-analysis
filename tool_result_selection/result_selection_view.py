@@ -413,7 +413,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             scenarios_endpoint = Endpoint(
                 username=username, password=password, endpoint="scenarios"
             )
-            endpoint = scenarios_endpoint.download_paginated(page_size=10)
+            endpoint = scenarios_endpoint.get_paginated(page_size=10)
         except HTTPError as e:
             logger.exception("Error trying to log in")
             if e.code == 401:
