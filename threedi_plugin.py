@@ -178,7 +178,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def initProcessing(self):
         """Create the Qgis Processing Toolbox provider and its algorithms"""
         self.provider = ThreediProvider()
-        QgsApplication.processingRegistry().addProvider(self.provider)
+        # Disabled until threedidepth is fixed
+        # QgsApplication.processingRegistry().addProvider(self.provider)
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
