@@ -1,22 +1,22 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis labelsEnabled="1" readOnly="0" simplifyAlgorithm="0" version="3.10.10-A Coruña" maxScale="-4.65661e-10" hasScaleBasedVisibilityFlag="0" simplifyMaxScale="1" minScale="1e+08" simplifyDrawingHints="0" simplifyLocal="1" styleCategories="AllStyleCategories" simplifyDrawingTol="1">
+<qgis styleCategories="AllStyleCategories" minScale="1e+08" simplifyDrawingHints="0" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyMaxScale="1" simplifyAlgorithm="0" simplifyDrawingTol="1" readOnly="0" maxScale="-4.65661e-10" version="3.10.10-A Coruña" labelsEnabled="1">
   <flags>
     <Identifiable>1</Identifiable>
     <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
-  <renderer-v2 type="RuleRenderer" symbollevels="0" enableorderby="0" forceraster="0">
+  <renderer-v2 symbollevels="0" type="RuleRenderer" forceraster="0" enableorderby="0">
     <rules key="{4fbba513-a3b1-4a92-97bc-3d44735ac986}">
-      <rule symbol="0" filter="manh_manhole_indicator = 0" label="Manhole (inspection)" scalemaxdenom="5000" key="{a951db60-faa9-4c95-9eaa-a51d84ff90b1}"/>
-      <rule symbol="1" filter="manh_manhole_indicator = 1" label="Outlet" scalemaxdenom="15000" key="{c9e7ab73-45d5-45d6-970d-b4e28230c1e5}"/>
-      <rule symbol="2" filter="manh_manhole_indicator = 2" label="Pumping station" key="{a1d98efc-8098-4201-a75e-93dc7c47f076}"/>
-      <rule symbol="3" filter="ELSE" label="Manhole (unspecified)" scalemaxdenom="5000" key="{1b6d21ed-8a83-4e3f-850e-ca64e766f7da}"/>
+      <rule label="Manhole (inspection)" key="{a951db60-faa9-4c95-9eaa-a51d84ff90b1}" filter="manh_manhole_indicator = 0" scalemaxdenom="5000" symbol="0"/>
+      <rule label="Outlet" key="{c9e7ab73-45d5-45d6-970d-b4e28230c1e5}" filter="manh_manhole_indicator = 1" scalemaxdenom="15000" symbol="1"/>
+      <rule label="Pumping station" key="{a1d98efc-8098-4201-a75e-93dc7c47f076}" filter="manh_manhole_indicator = 2" symbol="2"/>
+      <rule label="Manhole (unspecified)" key="{1b6d21ed-8a83-4e3f-850e-ca64e766f7da}" filter="ELSE" scalemaxdenom="5000" symbol="3"/>
     </rules>
     <symbols>
-      <symbol force_rhr="0" clip_to_extent="1" alpha="1" type="marker" name="0">
-        <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+      <symbol force_rhr="0" type="marker" alpha="1" name="0" clip_to_extent="1">
+        <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="85,255,127,0"/>
+          <prop k="color" v="255,255,255,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="name" v="square"/>
@@ -35,15 +35,15 @@
           <prop k="vertical_anchor_point" v="1"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option type="QString" name="name" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol force_rhr="0" clip_to_extent="1" alpha="1" type="marker" name="1">
-        <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+      <symbol force_rhr="0" type="marker" alpha="1" name="1" clip_to_extent="1">
+        <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="63,128,192,255"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -62,7 +62,7 @@
           <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
-          <effect type="effectStack" enabled="0">
+          <effect enabled="0" type="effectStack">
             <effect type="dropShadow">
               <prop k="blend_mode" v="13"/>
               <prop k="blur_level" v="0.5"/>
@@ -136,21 +136,21 @@
           </effect>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option type="QString" name="name" value=""/>
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
-                  <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(@map_scale&lt;10000, 2.5,1.5)" name="expression"/>
-                  <Option type="int" value="3" name="type"/>
+                  <Option type="bool" name="active" value="true"/>
+                  <Option type="QString" name="expression" value="if(@map_scale&lt;10000, 2.5,1.5)"/>
+                  <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
-              <Option type="QString" value="collection" name="type"/>
+              <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol force_rhr="0" clip_to_extent="1" alpha="1" type="marker" name="2">
-        <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+      <symbol force_rhr="0" type="marker" alpha="1" name="2" clip_to_extent="1">
+        <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="85,255,127,0"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -169,7 +169,7 @@
           <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
-          <effect type="effectStack" enabled="0">
+          <effect enabled="0" type="effectStack">
             <effect type="dropShadow">
               <prop k="blend_mode" v="13"/>
               <prop k="blur_level" v="0.5"/>
@@ -243,19 +243,19 @@
           </effect>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option type="QString" name="name" value=""/>
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
-                  <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(@map_scale&lt;10000, 4.1,3.1)" name="expression"/>
-                  <Option type="int" value="3" name="type"/>
+                  <Option type="bool" name="active" value="true"/>
+                  <Option type="QString" name="expression" value="if(@map_scale&lt;10000, 4.1,3.1)"/>
+                  <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
-              <Option type="QString" value="collection" name="type"/>
+              <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
-        <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+        <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="85,255,127,0"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -274,7 +274,7 @@
           <prop k="size_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="size_unit" v="MM"/>
           <prop k="vertical_anchor_point" v="1"/>
-          <effect type="effectStack" enabled="0">
+          <effect enabled="0" type="effectStack">
             <effect type="dropShadow">
               <prop k="blend_mode" v="13"/>
               <prop k="blur_level" v="0.5"/>
@@ -348,21 +348,21 @@
           </effect>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option type="QString" name="name" value=""/>
               <Option type="Map" name="properties">
                 <Option type="Map" name="size">
-                  <Option type="bool" value="true" name="active"/>
-                  <Option type="QString" value="if(@map_scale&lt;10000, 4,3)" name="expression"/>
-                  <Option type="int" value="3" name="type"/>
+                  <Option type="bool" name="active" value="true"/>
+                  <Option type="QString" name="expression" value="if(@map_scale&lt;10000, 4,3)"/>
+                  <Option type="int" name="type" value="3"/>
                 </Option>
               </Option>
-              <Option type="QString" value="collection" name="type"/>
+              <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
       </symbol>
-      <symbol force_rhr="0" clip_to_extent="1" alpha="1" type="marker" name="3">
-        <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+      <symbol force_rhr="0" type="marker" alpha="1" name="3" clip_to_extent="1">
+        <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
           <prop k="angle" v="0"/>
           <prop k="color" v="85,255,127,0"/>
           <prop k="horizontal_anchor_point" v="1"/>
@@ -383,9 +383,9 @@
           <prop k="vertical_anchor_point" v="1"/>
           <data_defined_properties>
             <Option type="Map">
-              <Option type="QString" value="" name="name"/>
+              <Option type="QString" name="name" value=""/>
               <Option name="properties"/>
-              <Option type="QString" value="collection" name="type"/>
+              <Option type="QString" name="type" value="collection"/>
             </Option>
           </data_defined_properties>
         </layer>
@@ -394,11 +394,11 @@
   </renderer-v2>
   <labeling type="simple">
     <settings calloutType="simple">
-      <text-style fontItalic="0" multilineHeight="1" blendMode="0" fontCapitals="0" fontWeight="50" useSubstitutions="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" fieldName="manh_code" fontUnderline="0" fontWordSpacing="0" fontLetterSpacing="0" fontFamily="MS Gothic" fontStrikeout="0" fontKerning="1" fontSizeUnit="Point" textOrientation="horizontal" textOpacity="1" isExpression="0" fontSize="8" textColor="0,0,0,255" previewBkgrdColor="255,255,255,255" namedStyle="Regular">
-        <text-buffer bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferJoinStyle="128" bufferNoFill="1" bufferSizeUnits="MM" bufferDraw="1" bufferColor="255,255,255,255" bufferBlendMode="0" bufferOpacity="1" bufferSize="0.7"/>
-        <background shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeSizeUnit="MM" shapeType="0" shapeOffsetUnit="MM" shapeRadiiX="0" shapeJoinStyle="64" shapeOffsetX="0" shapeOffsetY="0" shapeBlendMode="0" shapeSVGFile="" shapeRotationType="0" shapeBorderColor="128,128,128,255" shapeOpacity="1" shapeRotation="0" shapeSizeY="0" shapeFillColor="255,255,255,255" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeDraw="0" shapeSizeX="0" shapeRadiiY="0" shapeSizeType="0" shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeRadiiUnit="MM" shapeBorderWidthUnit="MM" shapeBorderWidth="0" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0">
-          <symbol force_rhr="0" clip_to_extent="1" alpha="1" type="marker" name="markerSymbol">
-            <layer pass="0" locked="0" class="SimpleMarker" enabled="1">
+      <text-style fontCapitals="0" fieldName="manh_code" fontStrikeout="0" isExpression="0" fontLetterSpacing="0" useSubstitutions="0" fontSizeMapUnitScale="3x:0,0,0,0,0,0" textColor="0,0,0,255" fontWeight="50" textOrientation="horizontal" fontItalic="0" multilineHeight="1" previewBkgrdColor="255,255,255,255" fontWordSpacing="0" fontSize="8" blendMode="0" fontUnderline="0" namedStyle="Regular" fontSizeUnit="Point" fontFamily="MS Gothic" textOpacity="1" fontKerning="1">
+        <text-buffer bufferSizeMapUnitScale="3x:0,0,0,0,0,0" bufferJoinStyle="128" bufferDraw="1" bufferNoFill="1" bufferBlendMode="0" bufferColor="255,255,255,255" bufferOpacity="1" bufferSizeUnits="MM" bufferSize="0.7"/>
+        <background shapeOffsetMapUnitScale="3x:0,0,0,0,0,0" shapeJoinStyle="64" shapeRotation="0" shapeBorderWidthMapUnitScale="3x:0,0,0,0,0,0" shapeSizeX="0" shapeSizeY="0" shapeRadiiMapUnitScale="3x:0,0,0,0,0,0" shapeSizeType="0" shapeSVGFile="" shapeOpacity="1" shapeOffsetUnit="MM" shapeRadiiX="0" shapeBorderWidth="0" shapeRotationType="0" shapeBorderColor="128,128,128,255" shapeOffsetY="0" shapeBorderWidthUnit="MM" shapeBlendMode="0" shapeSizeMapUnitScale="3x:0,0,0,0,0,0" shapeType="0" shapeRadiiY="0" shapeOffsetX="0" shapeFillColor="255,255,255,255" shapeSizeUnit="MM" shapeRadiiUnit="MM" shapeDraw="0">
+          <symbol force_rhr="0" type="marker" alpha="1" name="markerSymbol" clip_to_extent="1">
+            <layer locked="0" enabled="1" class="SimpleMarker" pass="0">
               <prop k="angle" v="0"/>
               <prop k="color" v="125,139,143,255"/>
               <prop k="horizontal_anchor_point" v="1"/>
@@ -419,79 +419,79 @@
               <prop k="vertical_anchor_point" v="1"/>
               <data_defined_properties>
                 <Option type="Map">
-                  <Option type="QString" value="" name="name"/>
+                  <Option type="QString" name="name" value=""/>
                   <Option name="properties"/>
-                  <Option type="QString" value="collection" name="type"/>
+                  <Option type="QString" name="type" value="collection"/>
                 </Option>
               </data_defined_properties>
             </layer>
           </symbol>
         </background>
-        <shadow shadowOffsetAngle="135" shadowRadius="1.5" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowOffsetGlobal="1" shadowScale="100" shadowRadiusUnit="MM" shadowDraw="0" shadowRadiusAlphaOnly="0" shadowOffsetDist="1" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowColor="0,0,0,255" shadowBlendMode="6" shadowOpacity="0.7" shadowOffsetUnit="MM" shadowUnder="0"/>
+        <shadow shadowDraw="0" shadowOffsetAngle="135" shadowRadiusAlphaOnly="0" shadowRadiusMapUnitScale="3x:0,0,0,0,0,0" shadowScale="100" shadowOffsetGlobal="1" shadowBlendMode="6" shadowUnder="0" shadowOffsetMapUnitScale="3x:0,0,0,0,0,0" shadowRadiusUnit="MM" shadowOffsetUnit="MM" shadowOpacity="0.7" shadowColor="0,0,0,255" shadowRadius="1.5" shadowOffsetDist="1"/>
         <dd_properties>
           <Option type="Map">
-            <Option type="QString" value="" name="name"/>
+            <Option type="QString" name="name" value=""/>
             <Option name="properties"/>
-            <Option type="QString" value="collection" name="type"/>
+            <Option type="QString" name="type" value="collection"/>
           </Option>
         </dd_properties>
         <substitutions/>
       </text-style>
-      <text-format decimals="3" formatNumbers="0" autoWrapLength="0" addDirectionSymbol="0" reverseDirectionSymbol="0" multilineAlign="3" placeDirectionSymbol="0" plussign="0" useMaxLineLengthForAutoWrap="1" wrapChar="" leftDirectionSymbol="&lt;" rightDirectionSymbol=">"/>
-      <placement repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" priority="5" repeatDistanceUnits="MM" xOffset="0" yOffset="0" placementFlags="10" quadOffset="4" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" maxCurvedCharAngleIn="25" centroidInside="0" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" overrunDistanceUnit="MM" layerType="PointGeometry" offsetUnits="MM" distUnits="MM" offsetType="0" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" distMapUnitScale="3x:0,0,0,0,0,0" preserveRotation="1" centroidWhole="0" rotationAngle="0" maxCurvedCharAngleOut="-25" geometryGeneratorType="PointGeometry" fitInPolygonOnly="0" geometryGeneratorEnabled="0" placement="0" dist="0" overrunDistance="0" repeatDistance="0" geometryGenerator=""/>
-      <rendering displayAll="0" fontMinPixelSize="3" maxNumLabels="2000" fontLimitPixelSize="0" minFeatureSize="0" scaleMax="0" fontMaxPixelSize="10000" mergeLines="0" drawLabels="1" obstacleType="0" scaleMin="0" obstacle="1" scaleVisibility="0" obstacleFactor="1" zIndex="0" upsidedownLabels="0" limitNumLabels="0" labelPerPart="0"/>
+      <text-format placeDirectionSymbol="0" wrapChar="" useMaxLineLengthForAutoWrap="1" reverseDirectionSymbol="0" plussign="0" decimals="3" autoWrapLength="0" addDirectionSymbol="0" multilineAlign="3" rightDirectionSymbol=">" formatNumbers="0" leftDirectionSymbol="&lt;"/>
+      <placement placement="0" offsetType="0" yOffset="0" dist="0" offsetUnits="MM" labelOffsetMapUnitScale="3x:0,0,0,0,0,0" maxCurvedCharAngleOut="-25" repeatDistanceUnits="MM" distMapUnitScale="3x:0,0,0,0,0,0" fitInPolygonOnly="0" repeatDistance="0" xOffset="0" maxCurvedCharAngleIn="25" predefinedPositionOrder="TR,TL,BR,BL,R,L,TSR,BSR" centroidWhole="0" centroidInside="0" distUnits="MM" layerType="PointGeometry" priority="5" preserveRotation="1" overrunDistance="0" overrunDistanceUnit="MM" repeatDistanceMapUnitScale="3x:0,0,0,0,0,0" geometryGeneratorType="PointGeometry" geometryGenerator="" placementFlags="10" overrunDistanceMapUnitScale="3x:0,0,0,0,0,0" rotationAngle="0" quadOffset="4" geometryGeneratorEnabled="0"/>
+      <rendering drawLabels="1" upsidedownLabels="0" fontMinPixelSize="3" minFeatureSize="0" maxNumLabels="2000" mergeLines="0" obstacleType="0" labelPerPart="0" fontMaxPixelSize="10000" scaleVisibility="0" limitNumLabels="0" scaleMax="0" zIndex="0" obstacleFactor="1" displayAll="0" obstacle="1" scaleMin="0" fontLimitPixelSize="0"/>
       <dd_properties>
         <Option type="Map">
-          <Option type="QString" value="" name="name"/>
+          <Option type="QString" name="name" value=""/>
           <Option name="properties"/>
-          <Option type="QString" value="collection" name="type"/>
+          <Option type="QString" name="type" value="collection"/>
         </Option>
       </dd_properties>
       <callout type="simple">
         <Option type="Map">
-          <Option type="QString" value="pole_of_inaccessibility" name="anchorPoint"/>
+          <Option type="QString" name="anchorPoint" value="pole_of_inaccessibility"/>
           <Option type="Map" name="ddProperties">
-            <Option type="QString" value="" name="name"/>
+            <Option type="QString" name="name" value=""/>
             <Option name="properties"/>
-            <Option type="QString" value="collection" name="type"/>
+            <Option type="QString" name="type" value="collection"/>
           </Option>
-          <Option type="bool" value="false" name="drawToAllParts"/>
-          <Option type="QString" value="0" name="enabled"/>
-          <Option type="QString" value="&lt;symbol force_rhr=&quot;0&quot; clip_to_extent=&quot;1&quot; alpha=&quot;1&quot; type=&quot;line&quot; name=&quot;symbol&quot;>&lt;layer pass=&quot;0&quot; locked=&quot;0&quot; class=&quot;SimpleLine&quot; enabled=&quot;1&quot;>&lt;prop k=&quot;capstyle&quot; v=&quot;square&quot;/>&lt;prop k=&quot;customdash&quot; v=&quot;5;2&quot;/>&lt;prop k=&quot;customdash_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;prop k=&quot;customdash_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;draw_inside_polygon&quot; v=&quot;0&quot;/>&lt;prop k=&quot;joinstyle&quot; v=&quot;bevel&quot;/>&lt;prop k=&quot;line_color&quot; v=&quot;60,60,60,255&quot;/>&lt;prop k=&quot;line_style&quot; v=&quot;solid&quot;/>&lt;prop k=&quot;line_width&quot; v=&quot;0.3&quot;/>&lt;prop k=&quot;line_width_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;offset&quot; v=&quot;0&quot;/>&lt;prop k=&quot;offset_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;prop k=&quot;offset_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;ring_filter&quot; v=&quot;0&quot;/>&lt;prop k=&quot;use_custom_dash&quot; v=&quot;0&quot;/>&lt;prop k=&quot;width_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>" name="lineSymbol"/>
-          <Option type="double" value="0" name="minLength"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="minLengthMapUnitScale"/>
-          <Option type="QString" value="MM" name="minLengthUnit"/>
-          <Option type="double" value="0" name="offsetFromAnchor"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="offsetFromAnchorMapUnitScale"/>
-          <Option type="QString" value="MM" name="offsetFromAnchorUnit"/>
-          <Option type="double" value="0" name="offsetFromLabel"/>
-          <Option type="QString" value="3x:0,0,0,0,0,0" name="offsetFromLabelMapUnitScale"/>
-          <Option type="QString" value="MM" name="offsetFromLabelUnit"/>
+          <Option type="bool" name="drawToAllParts" value="false"/>
+          <Option type="QString" name="enabled" value="0"/>
+          <Option type="QString" name="lineSymbol" value="&lt;symbol force_rhr=&quot;0&quot; type=&quot;line&quot; alpha=&quot;1&quot; name=&quot;symbol&quot; clip_to_extent=&quot;1&quot;>&lt;layer locked=&quot;0&quot; enabled=&quot;1&quot; class=&quot;SimpleLine&quot; pass=&quot;0&quot;>&lt;prop k=&quot;capstyle&quot; v=&quot;square&quot;/>&lt;prop k=&quot;customdash&quot; v=&quot;5;2&quot;/>&lt;prop k=&quot;customdash_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;prop k=&quot;customdash_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;draw_inside_polygon&quot; v=&quot;0&quot;/>&lt;prop k=&quot;joinstyle&quot; v=&quot;bevel&quot;/>&lt;prop k=&quot;line_color&quot; v=&quot;60,60,60,255&quot;/>&lt;prop k=&quot;line_style&quot; v=&quot;solid&quot;/>&lt;prop k=&quot;line_width&quot; v=&quot;0.3&quot;/>&lt;prop k=&quot;line_width_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;offset&quot; v=&quot;0&quot;/>&lt;prop k=&quot;offset_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;prop k=&quot;offset_unit&quot; v=&quot;MM&quot;/>&lt;prop k=&quot;ring_filter&quot; v=&quot;0&quot;/>&lt;prop k=&quot;use_custom_dash&quot; v=&quot;0&quot;/>&lt;prop k=&quot;width_map_unit_scale&quot; v=&quot;3x:0,0,0,0,0,0&quot;/>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"/>
+          <Option type="double" name="minLength" value="0"/>
+          <Option type="QString" name="minLengthMapUnitScale" value="3x:0,0,0,0,0,0"/>
+          <Option type="QString" name="minLengthUnit" value="MM"/>
+          <Option type="double" name="offsetFromAnchor" value="0"/>
+          <Option type="QString" name="offsetFromAnchorMapUnitScale" value="3x:0,0,0,0,0,0"/>
+          <Option type="QString" name="offsetFromAnchorUnit" value="MM"/>
+          <Option type="double" name="offsetFromLabel" value="0"/>
+          <Option type="QString" name="offsetFromLabelMapUnitScale" value="3x:0,0,0,0,0,0"/>
+          <Option type="QString" name="offsetFromLabelUnit" value="MM"/>
         </Option>
       </callout>
     </settings>
   </labeling>
   <customproperties>
-    <property value="manh_display_name" key="dualview/previewExpressions"/>
-    <property value="0" key="embeddedWidgets/count"/>
+    <property key="dualview/previewExpressions" value="manh_display_name"/>
+    <property key="embeddedWidgets/count" value="0"/>
     <property key="variableNames"/>
     <property key="variableValues"/>
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerOpacity>1</layerOpacity>
-  <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Pie">
-    <DiagramCategory penAlpha="255" opacity="1" lineSizeScale="3x:0,0,0,0,0,0" labelPlacementMethod="XHeight" backgroundAlpha="255" width="15" penWidth="0" lineSizeType="MM" maxScaleDenominator="1e+08" height="15" sizeScale="3x:0,0,0,0,0,0" scaleDependency="Area" diagramOrientation="Up" sizeType="MM" minScaleDenominator="-4.65661e-10" penColor="#000000" barWidth="5" scaleBasedVisibility="0" enabled="0" backgroundColor="#ffffff" rotationOffset="270" minimumSize="0">
-      <fontProperties style="" description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0"/>
-      <attribute field="" color="#000000" label=""/>
+  <SingleCategoryDiagramRenderer diagramType="Pie" attributeLegend="1">
+    <DiagramCategory scaleBasedVisibility="0" backgroundAlpha="255" penWidth="0" sizeType="MM" penAlpha="255" scaleDependency="Area" rotationOffset="270" height="15" minScaleDenominator="-4.65661e-10" maxScaleDenominator="1e+08" barWidth="5" labelPlacementMethod="XHeight" sizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" opacity="1" enabled="0" minimumSize="0" penColor="#000000" width="15" backgroundColor="#ffffff" lineSizeScale="3x:0,0,0,0,0,0" diagramOrientation="Up">
+      <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+      <attribute label="" color="#000000" field=""/>
     </DiagramCategory>
   </SingleCategoryDiagramRenderer>
-  <DiagramLayerSettings dist="0" obstacle="0" linePlacementFlags="2" priority="0" showAll="1" placement="0" zIndex="0">
+  <DiagramLayerSettings dist="0" obstacle="0" zIndex="0" placement="0" showAll="1" linePlacementFlags="2" priority="0">
     <properties>
       <Option type="Map">
-        <Option type="QString" value="" name="name"/>
+        <Option type="QString" name="name" value=""/>
         <Option name="properties"/>
-        <Option type="QString" value="collection" name="type"/>
+        <Option type="QString" name="type" value="collection"/>
       </Option>
     </properties>
   </DiagramLayerSettings>
@@ -504,8 +504,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -514,8 +514,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -524,8 +524,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -534,8 +534,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -544,8 +544,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -556,13 +556,13 @@
           <Option type="Map">
             <Option type="List" name="map">
               <Option type="Map">
-                <Option type="QString" value="00" name="00: square"/>
+                <Option type="QString" name="00: square" value="00"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="01" name="01: round"/>
+                <Option type="QString" name="01: round" value="01"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="02" name="02: rectangle"/>
+                <Option type="QString" name="02: rectangle" value="02"/>
               </Option>
             </Option>
           </Option>
@@ -573,8 +573,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -583,8 +583,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -595,13 +595,13 @@
           <Option type="Map">
             <Option type="List" name="map">
               <Option type="Map">
-                <Option type="QString" value="0" name="0: inspection"/>
+                <Option type="QString" name="0: inspection" value="0"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="1" name="1: outlet"/>
+                <Option type="QString" name="1: outlet" value="1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="2" name="2: pump"/>
+                <Option type="QString" name="2: pump" value="2"/>
               </Option>
             </Option>
           </Option>
@@ -614,13 +614,13 @@
           <Option type="Map">
             <Option type="List" name="map">
               <Option type="Map">
-                <Option type="QString" value="0" name="0: embedded"/>
+                <Option type="QString" name="0: embedded" value="0"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="1" name="1: isolated"/>
+                <Option type="QString" name="1: isolated" value="1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="2" name="2: connected"/>
+                <Option type="QString" name="2: connected" value="2"/>
               </Option>
             </Option>
           </Option>
@@ -631,8 +631,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -641,8 +641,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -651,8 +651,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -661,8 +661,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -673,25 +673,25 @@
           <Option type="Map">
             <Option type="List" name="map">
               <Option type="Map">
-                <Option type="QString" value="-1" name="-1"/>
+                <Option type="QString" name="-1" value="-1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="0" name="0"/>
+                <Option type="QString" name="0" value="0"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="1" name="1"/>
+                <Option type="QString" name="1" value="1"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="2" name="2"/>
+                <Option type="QString" name="2" value="2"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="3" name="3"/>
+                <Option type="QString" name="3" value="3"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="4" name="4"/>
+                <Option type="QString" name="4" value="4"/>
               </Option>
               <Option type="Map">
-                <Option type="QString" value="5" name="5"/>
+                <Option type="QString" name="5" value="5"/>
               </Option>
             </Option>
           </Option>
@@ -702,8 +702,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -712,8 +712,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -722,8 +722,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -732,8 +732,8 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
@@ -742,130 +742,130 @@
       <editWidget type="TextEdit">
         <config>
           <Option type="Map">
-            <Option type="bool" value="false" name="IsMultiline"/>
-            <Option type="bool" value="false" name="UseHtml"/>
+            <Option type="bool" name="IsMultiline" value="false"/>
+            <Option type="bool" name="UseHtml" value="false"/>
           </Option>
         </config>
       </editWidget>
     </field>
   </fieldConfiguration>
   <aliases>
-    <alias field="ROWID" name="" index="0"/>
-    <alias field="manh_id" name="id" index="1"/>
-    <alias field="manh_display_name" name="display_name" index="2"/>
-    <alias field="manh_code" name="code" index="3"/>
-    <alias field="manh_connection_node_id" name="connection_node_id" index="4"/>
-    <alias field="manh_shape" name="shape" index="5"/>
-    <alias field="manh_width" name="width" index="6"/>
-    <alias field="manh_length" name="length" index="7"/>
-    <alias field="manh_manhole_indicator" name="manhole_indicator" index="8"/>
-    <alias field="manh_calculation_type" name="calculation_type" index="9"/>
-    <alias field="manh_bottom_level" name="bottom_level" index="10"/>
-    <alias field="manh_surface_level" name="surface_level" index="11"/>
-    <alias field="manh_drain_level" name="drain_level" index="12"/>
-    <alias field="manh_sediment_level" name="sediment_level" index="13"/>
-    <alias field="manh_zoom_category" name="zoom_category" index="14"/>
-    <alias field="node_id" name="" index="15"/>
-    <alias field="node_storage_area" name="" index="16"/>
-    <alias field="node_initial_waterlevel" name="" index="17"/>
-    <alias field="node_code" name="" index="18"/>
-    <alias field="node_the_geom_linestring" name="the_geom_linestring" index="19"/>
+    <alias index="0" name="" field="ROWID"/>
+    <alias index="1" name="id" field="manh_id"/>
+    <alias index="2" name="display_name" field="manh_display_name"/>
+    <alias index="3" name="code" field="manh_code"/>
+    <alias index="4" name="connection_node_id" field="manh_connection_node_id"/>
+    <alias index="5" name="shape" field="manh_shape"/>
+    <alias index="6" name="width" field="manh_width"/>
+    <alias index="7" name="length" field="manh_length"/>
+    <alias index="8" name="manhole_indicator" field="manh_manhole_indicator"/>
+    <alias index="9" name="calculation_type" field="manh_calculation_type"/>
+    <alias index="10" name="bottom_level" field="manh_bottom_level"/>
+    <alias index="11" name="surface_level" field="manh_surface_level"/>
+    <alias index="12" name="drain_level" field="manh_drain_level"/>
+    <alias index="13" name="sediment_level" field="manh_sediment_level"/>
+    <alias index="14" name="zoom_category" field="manh_zoom_category"/>
+    <alias index="15" name="" field="node_id"/>
+    <alias index="16" name="" field="node_storage_area"/>
+    <alias index="17" name="" field="node_initial_waterlevel"/>
+    <alias index="18" name="" field="node_code"/>
+    <alias index="19" name="the_geom_linestring" field="node_the_geom_linestring"/>
   </aliases>
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <defaults>
-    <default field="ROWID" expression="" applyOnUpdate="0"/>
-    <default field="manh_id" expression="if(maximum(manh_id) is null,1, maximum(manh_id)+1)" applyOnUpdate="0"/>
-    <default field="manh_display_name" expression="'new'" applyOnUpdate="0"/>
-    <default field="manh_code" expression="'new'" applyOnUpdate="0"/>
-    <default field="manh_connection_node_id" expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))))" applyOnUpdate="0"/>
-    <default field="manh_shape" expression="" applyOnUpdate="0"/>
-    <default field="manh_width" expression="" applyOnUpdate="0"/>
-    <default field="manh_length" expression="" applyOnUpdate="0"/>
-    <default field="manh_manhole_indicator" expression="'0'" applyOnUpdate="0"/>
-    <default field="manh_calculation_type" expression="" applyOnUpdate="0"/>
-    <default field="manh_bottom_level" expression="&quot;manh_bottom_level&quot;&lt;&quot;manh_surface_level&quot;" applyOnUpdate="0"/>
-    <default field="manh_surface_level" expression="" applyOnUpdate="0"/>
-    <default field="manh_drain_level" expression="" applyOnUpdate="0"/>
-    <default field="manh_sediment_level" expression="" applyOnUpdate="0"/>
-    <default field="manh_zoom_category" expression="1" applyOnUpdate="0"/>
-    <default field="node_id" expression="'filled automatically'" applyOnUpdate="0"/>
-    <default field="node_storage_area" expression="" applyOnUpdate="0"/>
-    <default field="node_initial_waterlevel" expression="" applyOnUpdate="0"/>
-    <default field="node_code" expression="'new'" applyOnUpdate="0"/>
-    <default field="node_the_geom_linestring" expression="" applyOnUpdate="0"/>
+    <default expression="" applyOnUpdate="0" field="ROWID"/>
+    <default expression="if(maximum(manh_id) is null,1, maximum(manh_id)+1)" applyOnUpdate="0" field="manh_id"/>
+    <default expression="'new'" applyOnUpdate="0" field="manh_display_name"/>
+    <default expression="'new'" applyOnUpdate="0" field="manh_code"/>
+    <default expression="if(aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))) is null,'Created automatically',aggregate('v2_connection_nodes','min',&quot;id&quot;, intersects($geometry,geometry(@parent))))" applyOnUpdate="0" field="manh_connection_node_id"/>
+    <default expression="" applyOnUpdate="0" field="manh_shape"/>
+    <default expression="" applyOnUpdate="0" field="manh_width"/>
+    <default expression="" applyOnUpdate="0" field="manh_length"/>
+    <default expression="'0'" applyOnUpdate="0" field="manh_manhole_indicator"/>
+    <default expression="" applyOnUpdate="0" field="manh_calculation_type"/>
+    <default expression="&quot;manh_bottom_level&quot;&lt;&quot;manh_surface_level&quot;" applyOnUpdate="0" field="manh_bottom_level"/>
+    <default expression="" applyOnUpdate="0" field="manh_surface_level"/>
+    <default expression="" applyOnUpdate="0" field="manh_drain_level"/>
+    <default expression="" applyOnUpdate="0" field="manh_sediment_level"/>
+    <default expression="1" applyOnUpdate="0" field="manh_zoom_category"/>
+    <default expression="'filled automatically'" applyOnUpdate="0" field="node_id"/>
+    <default expression="" applyOnUpdate="0" field="node_storage_area"/>
+    <default expression="" applyOnUpdate="0" field="node_initial_waterlevel"/>
+    <default expression="'new'" applyOnUpdate="0" field="node_code"/>
+    <default expression="" applyOnUpdate="0" field="node_the_geom_linestring"/>
   </defaults>
   <constraints>
-    <constraint field="ROWID" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="manh_id" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="manh_display_name" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_code" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_connection_node_id" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_shape" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_width" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_length" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="manh_manhole_indicator" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_calculation_type" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_bottom_level" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_surface_level" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="manh_drain_level" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="manh_sediment_level" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="manh_zoom_category" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="node_id" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="node_storage_area" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="node_initial_waterlevel" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
-    <constraint field="node_code" notnull_strength="2" unique_strength="0" exp_strength="0" constraints="1"/>
-    <constraint field="node_the_geom_linestring" notnull_strength="0" unique_strength="0" exp_strength="0" constraints="0"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="ROWID"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="manh_id"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_display_name"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_code"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_connection_node_id"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_shape"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_width"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="manh_length"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_manhole_indicator"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_calculation_type"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_bottom_level"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_surface_level"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="manh_drain_level"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="manh_sediment_level"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="manh_zoom_category"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="node_id"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="node_storage_area"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="node_initial_waterlevel"/>
+    <constraint notnull_strength="2" constraints="1" unique_strength="0" exp_strength="0" field="node_code"/>
+    <constraint notnull_strength="0" constraints="0" unique_strength="0" exp_strength="0" field="node_the_geom_linestring"/>
   </constraints>
   <constraintExpressions>
-    <constraint field="ROWID" exp="" desc=""/>
-    <constraint field="manh_id" exp="" desc=""/>
-    <constraint field="manh_display_name" exp="" desc=""/>
-    <constraint field="manh_code" exp="" desc=""/>
-    <constraint field="manh_connection_node_id" exp="" desc=""/>
-    <constraint field="manh_shape" exp="" desc=""/>
-    <constraint field="manh_width" exp="" desc=""/>
-    <constraint field="manh_length" exp="" desc=""/>
-    <constraint field="manh_manhole_indicator" exp="" desc=""/>
-    <constraint field="manh_calculation_type" exp="" desc=""/>
-    <constraint field="manh_bottom_level" exp="" desc=""/>
-    <constraint field="manh_surface_level" exp="" desc=""/>
-    <constraint field="manh_drain_level" exp="" desc=""/>
-    <constraint field="manh_sediment_level" exp="" desc=""/>
-    <constraint field="manh_zoom_category" exp="" desc=""/>
-    <constraint field="node_id" exp="" desc=""/>
-    <constraint field="node_storage_area" exp="" desc=""/>
-    <constraint field="node_initial_waterlevel" exp="" desc=""/>
-    <constraint field="node_code" exp="" desc=""/>
-    <constraint field="node_the_geom_linestring" exp="" desc=""/>
+    <constraint desc="" exp="" field="ROWID"/>
+    <constraint desc="" exp="" field="manh_id"/>
+    <constraint desc="" exp="" field="manh_display_name"/>
+    <constraint desc="" exp="" field="manh_code"/>
+    <constraint desc="" exp="" field="manh_connection_node_id"/>
+    <constraint desc="" exp="" field="manh_shape"/>
+    <constraint desc="" exp="" field="manh_width"/>
+    <constraint desc="" exp="" field="manh_length"/>
+    <constraint desc="" exp="" field="manh_manhole_indicator"/>
+    <constraint desc="" exp="" field="manh_calculation_type"/>
+    <constraint desc="" exp="" field="manh_bottom_level"/>
+    <constraint desc="" exp="" field="manh_surface_level"/>
+    <constraint desc="" exp="" field="manh_drain_level"/>
+    <constraint desc="" exp="" field="manh_sediment_level"/>
+    <constraint desc="" exp="" field="manh_zoom_category"/>
+    <constraint desc="" exp="" field="node_id"/>
+    <constraint desc="" exp="" field="node_storage_area"/>
+    <constraint desc="" exp="" field="node_initial_waterlevel"/>
+    <constraint desc="" exp="" field="node_code"/>
+    <constraint desc="" exp="" field="node_the_geom_linestring"/>
   </constraintExpressions>
   <expressionfields/>
   <attributeactions>
-    <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
+    <defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/>
   </attributeactions>
-  <attributetableconfig actionWidgetStyle="dropDown" sortOrder="0" sortExpression="&quot;manh_manhole_indicator&quot;">
+  <attributetableconfig sortExpression="&quot;manh_manhole_indicator&quot;" sortOrder="0" actionWidgetStyle="dropDown">
     <columns>
-      <column width="-1" hidden="0" type="field" name="ROWID"/>
-      <column width="-1" hidden="0" type="field" name="manh_id"/>
-      <column width="-1" hidden="0" type="field" name="manh_display_name"/>
-      <column width="-1" hidden="0" type="field" name="manh_code"/>
-      <column width="-1" hidden="0" type="field" name="manh_connection_node_id"/>
-      <column width="-1" hidden="0" type="field" name="manh_shape"/>
-      <column width="-1" hidden="0" type="field" name="manh_width"/>
-      <column width="-1" hidden="0" type="field" name="manh_length"/>
-      <column width="-1" hidden="0" type="field" name="manh_manhole_indicator"/>
-      <column width="-1" hidden="0" type="field" name="manh_calculation_type"/>
-      <column width="-1" hidden="0" type="field" name="manh_bottom_level"/>
-      <column width="-1" hidden="0" type="field" name="manh_surface_level"/>
-      <column width="-1" hidden="0" type="field" name="manh_drain_level"/>
-      <column width="-1" hidden="0" type="field" name="manh_sediment_level"/>
-      <column width="-1" hidden="0" type="field" name="manh_zoom_category"/>
-      <column width="-1" hidden="0" type="field" name="node_id"/>
-      <column width="-1" hidden="0" type="field" name="node_storage_area"/>
-      <column width="-1" hidden="0" type="field" name="node_initial_waterlevel"/>
-      <column width="-1" hidden="0" type="field" name="node_code"/>
-      <column width="-1" hidden="0" type="field" name="node_the_geom_linestring"/>
-      <column width="-1" hidden="1" type="actions"/>
+      <column type="field" name="ROWID" hidden="0" width="-1"/>
+      <column type="field" name="manh_id" hidden="0" width="-1"/>
+      <column type="field" name="manh_display_name" hidden="0" width="-1"/>
+      <column type="field" name="manh_code" hidden="0" width="-1"/>
+      <column type="field" name="manh_connection_node_id" hidden="0" width="-1"/>
+      <column type="field" name="manh_shape" hidden="0" width="-1"/>
+      <column type="field" name="manh_width" hidden="0" width="-1"/>
+      <column type="field" name="manh_length" hidden="0" width="-1"/>
+      <column type="field" name="manh_manhole_indicator" hidden="0" width="-1"/>
+      <column type="field" name="manh_calculation_type" hidden="0" width="-1"/>
+      <column type="field" name="manh_bottom_level" hidden="0" width="-1"/>
+      <column type="field" name="manh_surface_level" hidden="0" width="-1"/>
+      <column type="field" name="manh_drain_level" hidden="0" width="-1"/>
+      <column type="field" name="manh_sediment_level" hidden="0" width="-1"/>
+      <column type="field" name="manh_zoom_category" hidden="0" width="-1"/>
+      <column type="field" name="node_id" hidden="0" width="-1"/>
+      <column type="field" name="node_storage_area" hidden="0" width="-1"/>
+      <column type="field" name="node_initial_waterlevel" hidden="0" width="-1"/>
+      <column type="field" name="node_code" hidden="0" width="-1"/>
+      <column type="field" name="node_the_geom_linestring" hidden="0" width="-1"/>
+      <column type="actions" hidden="1" width="-1"/>
     </columns>
   </attributetableconfig>
   <conditionalstyles>
@@ -897,30 +897,30 @@ def my_form_open(dialog, layer, feature):
   <featformsuppress>0</featformsuppress>
   <editorlayout>tablayout</editorlayout>
   <attributeEditorForm>
-    <attributeEditorContainer visibilityExpressionEnabled="0" visibilityExpression="" groupBox="0" name="Manhole_view" columnCount="1" showLabel="1">
-      <attributeEditorContainer visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" name="General" columnCount="1" showLabel="1">
-        <attributeEditorField name="manh_id" showLabel="1" index="1"/>
-        <attributeEditorField name="manh_display_name" showLabel="1" index="2"/>
-        <attributeEditorField name="manh_code" showLabel="1" index="3"/>
-        <attributeEditorField name="manh_calculation_type" showLabel="1" index="9"/>
+    <attributeEditorContainer groupBox="0" visibilityExpression="" showLabel="1" visibilityExpressionEnabled="0" columnCount="1" name="Manhole_view">
+      <attributeEditorContainer groupBox="1" visibilityExpression="" showLabel="1" visibilityExpressionEnabled="0" columnCount="1" name="General">
+        <attributeEditorField showLabel="1" index="1" name="manh_id"/>
+        <attributeEditorField showLabel="1" index="2" name="manh_display_name"/>
+        <attributeEditorField showLabel="1" index="3" name="manh_code"/>
+        <attributeEditorField showLabel="1" index="9" name="manh_calculation_type"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" name="Characteristics" columnCount="1" showLabel="1">
-        <attributeEditorField name="manh_shape" showLabel="1" index="5"/>
-        <attributeEditorField name="manh_width" showLabel="1" index="6"/>
-        <attributeEditorField name="manh_length" showLabel="1" index="7"/>
-        <attributeEditorField name="manh_bottom_level" showLabel="1" index="10"/>
-        <attributeEditorField name="manh_surface_level" showLabel="1" index="11"/>
-        <attributeEditorField name="manh_drain_level" showLabel="1" index="12"/>
+      <attributeEditorContainer groupBox="1" visibilityExpression="" showLabel="1" visibilityExpressionEnabled="0" columnCount="1" name="Characteristics">
+        <attributeEditorField showLabel="1" index="5" name="manh_shape"/>
+        <attributeEditorField showLabel="1" index="6" name="manh_width"/>
+        <attributeEditorField showLabel="1" index="7" name="manh_length"/>
+        <attributeEditorField showLabel="1" index="10" name="manh_bottom_level"/>
+        <attributeEditorField showLabel="1" index="11" name="manh_surface_level"/>
+        <attributeEditorField showLabel="1" index="12" name="manh_drain_level"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" name="Visualisation" columnCount="1" showLabel="1">
-        <attributeEditorField name="manh_manhole_indicator" showLabel="1" index="8"/>
-        <attributeEditorField name="manh_zoom_category" showLabel="1" index="14"/>
+      <attributeEditorContainer groupBox="1" visibilityExpression="" showLabel="1" visibilityExpressionEnabled="0" columnCount="1" name="Visualisation">
+        <attributeEditorField showLabel="1" index="8" name="manh_manhole_indicator"/>
+        <attributeEditorField showLabel="1" index="14" name="manh_zoom_category"/>
       </attributeEditorContainer>
-      <attributeEditorContainer visibilityExpressionEnabled="0" visibilityExpression="" groupBox="1" name="Connection node" columnCount="1" showLabel="1">
-        <attributeEditorField name="manh_connection_node_id" showLabel="1" index="4"/>
-        <attributeEditorField name="node_code" showLabel="1" index="18"/>
-        <attributeEditorField name="node_initial_waterlevel" showLabel="1" index="17"/>
-        <attributeEditorField name="node_storage_area" showLabel="1" index="16"/>
+      <attributeEditorContainer groupBox="1" visibilityExpression="" showLabel="1" visibilityExpressionEnabled="0" columnCount="1" name="Connection node">
+        <attributeEditorField showLabel="1" index="4" name="manh_connection_node_id"/>
+        <attributeEditorField showLabel="1" index="18" name="node_code"/>
+        <attributeEditorField showLabel="1" index="17" name="node_initial_waterlevel"/>
+        <attributeEditorField showLabel="1" index="16" name="node_storage_area"/>
       </attributeEditorContainer>
     </attributeEditorContainer>
   </attributeEditorForm>
