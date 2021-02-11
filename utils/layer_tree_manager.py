@@ -279,19 +279,17 @@ class LayerTreeManager(object):
         oned_layers = [
             "v2_connection_nodes",
             "v2_manhole_view",
-            "v2_cross_section_location_view",
-            "v2_cross_section_location",
-            "v2_pumpstation_view",
             "v2_pumpstation_point_view",
+            "v2_pumpstation_view",
             "v2_weir_view",
             "v2_culvert_view",
             "v2_orifice_view",
             "v2_pipe_view",
-            "v2_culvert",  # yes.. this table has its own geom
+            "v2_cross_section_location_view",
             "v2_channel",
-        ]  # yes.. this table has its own geom
+        ]
 
-        additional_oned_layers = []
+        additional_oned_layers = ["v2_culvert", "v2_cross_section_location"]
 
         obstacle_layers = ["v2_obstacle", "v2_levee"]
 
@@ -360,11 +358,14 @@ class LayerTreeManager(object):
                     styler.apply_style(vector_layer, layer_name, "schematisation")
                     QgsProject.instance().addMapLayer(vector_layer, False)
                     group.insertLayer(100, vector_layer)
+                    if group == additional_oned_group:
+                        node = group.findLayer(vector_layer)
+                        if node:
+                            node.setItemVisibilityChecked(False)
 
         # Secondly, handle tables without geometry
         tables = [
             (settings_group, "v2_groundwater"),
-            (settings_group, "v2_simmple_infiltration"),
             (settings_group, "v2_interflow"),
             (settings_group, "v2_aggregation_settings"),
             (settings_group, "v2_global_settings"),
