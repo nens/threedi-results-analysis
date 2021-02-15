@@ -4,6 +4,8 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
+- Add multiple stylings for the schematisation.
+
 - Bump lizard-connector to version 0.7.3
 
 - Add support for h5py with hdf5 1.10.5

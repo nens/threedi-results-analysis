@@ -47,7 +47,7 @@ DEPENDENCIES = [
     Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.11"),
-    Dependency("threedidepth", "threedidepth", "==0.2"),
+    Dependency("threedidepth", "threedidepth", "==0.3"),
     Dependency("click", "click", ">=7.0")
 ]
 
