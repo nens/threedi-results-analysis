@@ -1,17 +1,16 @@
 import logging
 import os
+from pathlib import Path
 
 from qgis.core import QgsMapLayerStyle
 
 logger = logging.getLogger(__name__)
 
-STYLES_ROOT = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), os.path.pardir, "layer_styles"
-)
+STYLES_ROOT = Path(__file__).parent.parent / "layer_styles"
 
 
 def apply_style(layer, style_name, stype="tools"):
-    qml_path = os.path.join(STYLES_ROOT, stype, style_name)
+    qml_path = STYLES_ROOT / stype / style_name
 
     style_manager = layer.styleManager()
     style_manager.reset()
@@ -21,10 +20,8 @@ def apply_style(layer, style_name, stype="tools"):
 
     current_style_name = layer.styleManager().currentStyle()  # default style name depends on language settings
 
-    for qml_file in [f for f in os.listdir(qml_path)
-                     if os.path.isfile(os.path.join(qml_path, f)) and
-                     f.endswith('.qml')]:
-        style_name = os.path.basename(qml_file)[:-4].capitalize()
+    for qml_file in qml_path.glob("*.qml"):
+        style_name = qml_file.stem.capitalize()
         style_manager.addStyle(style_name, style)
         style_manager.setCurrentStyle(style_name)
         (message, success) = layer.loadNamedStyle(os.path.join(qml_path, qml_file))
