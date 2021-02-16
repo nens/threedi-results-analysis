@@ -10,6 +10,7 @@ cache:
 
 before_install:
   # Decrypt .coveralls.yml
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - >
      openssl aes-256-cbc
      -K $encrypted_1f076a31531a_key -iv $encrypted_1f076a31531a_iv
