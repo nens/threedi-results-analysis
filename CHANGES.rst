@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.15 (unreleased)
+1.15 (2021-02-16)
 -----------------
 
 Bump threedi-api-qgis-client to 2.2.0
