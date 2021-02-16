@@ -4,6 +4,10 @@ ThreeDiToolBox changelog
 1.15 (unreleased)
 -----------------
 
+Bump threedi-api-qgis-client to 2.2.0
+
+- Bump QGIS version of the modeller interface to QGIS 3.10.14
+
 - Add multiple stylings for the schematisation.
 
 - Bump lizard-connector to version 0.7.3
