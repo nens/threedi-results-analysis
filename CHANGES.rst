@@ -1,8 +1,8 @@
 ThreeDiToolBox changelog
 ========================
 
-1.16.1 (unreleased)
------------------
+1.16.1 (2021-03-04)
+-------------------
 
 - Bump metadata.txt version
 
