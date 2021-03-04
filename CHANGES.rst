@@ -4,7 +4,9 @@ ThreeDiToolBox changelog
 1.16 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Enable the 3Di processing provider with threedidepth processing script.
+
+- Bump version of pyqtgraph, QGIS_VERSION and THREEDI_API_QGIS_CLIENT_VERSION
 
 
 1.15 (2021-02-16)
