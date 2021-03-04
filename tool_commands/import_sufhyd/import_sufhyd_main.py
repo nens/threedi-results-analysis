@@ -34,8 +34,8 @@ def transform(wkt, srid_source, srid_dest):
     dest_crs.ImportFromEPSG(srid_dest)
     if int(gdal.__version__[0]) >= 3:
         source_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        dest_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER) 
-    
+        dest_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
     transformation = osr.CoordinateTransformation(source_crs, dest_crs)
 
     point = ogr.CreateGeometryFromWkt(wkt)
