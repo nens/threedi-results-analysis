@@ -1,6 +1,12 @@
 ThreeDiToolBox changelog
 ========================
 
+1.17 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
 1.16 (2021-03-04)
 -----------------
 
