@@ -57,9 +57,9 @@ INSTALLER_BUILDDIR = installer-build
 INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 
 # Get your tag from https://github.com/qgis/QGIS
-QGIS_VERSION = final-3_10_14
+QGIS_VERSION = final-3_16_4
 # For building the installer https://github.com/nens/threedi-api-qgis-client
-THREEDI_API_QGIS_CLIENT_VERION = release-2.2.0
+THREEDI_API_QGIS_CLIENT_VERION = release-2.4.0
 
 default: compile
 
