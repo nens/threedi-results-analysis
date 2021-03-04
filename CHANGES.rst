@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.16 (unreleased)
+1.16 (2021-03-04)
 -----------------
 
 - Enable the 3Di processing provider with threedidepth processing script.
