@@ -8,11 +8,13 @@ ThreeDiToolBox changelog
 
 - Bump version of pyqtgraph, QGIS_VERSION and THREEDI_API_QGIS_CLIENT_VERSION
 
+- Fix import sufhydx coordinates swapped on newer gdal versions.
+
 
 1.15 (2021-02-16)
 -----------------
 
-Bump threedi-api-qgis-client to 2.2.0
+- Bump threedi-api-qgis-client to 2.2.0
 
 - Bump QGIS version of the modeller interface to QGIS 3.10.14
 
