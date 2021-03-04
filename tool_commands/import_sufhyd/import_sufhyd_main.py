@@ -4,6 +4,7 @@ from collections import OrderedDict
 from copy import copy
 from osgeo import ogr
 from osgeo import osr
+from osgeo import gdal
 from sqlalchemy.orm import load_only
 from ThreeDiToolbox.sql_models.constants import Constants
 from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
@@ -31,6 +32,10 @@ def transform(wkt, srid_source, srid_dest):
     source_crs.ImportFromEPSG(srid_source)
     dest_crs = osr.SpatialReference()
     dest_crs.ImportFromEPSG(srid_dest)
+    if int(gdal.__version__[0]) >= 3:
+        source_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        dest_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
     transformation = osr.CoordinateTransformation(source_crs, dest_crs)
 
     point = ogr.CreateGeometryFromWkt(wkt)
