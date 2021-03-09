@@ -33,8 +33,6 @@ import platform
 import subprocess
 import sys
 
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
@@ -155,6 +153,7 @@ def _install_h5py(hdf5_version: str):
             use_pypi=use_pypi
         )
     except RuntimeError:
+        from ThreeDiToolbox.utils.user_messages import pop_up_info
         pop_up_info(
             "Please restart QGIS to complete the installation process of "
             "ThreediToolbox.",
