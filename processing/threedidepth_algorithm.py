@@ -27,6 +27,7 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingParameterRasterDestination,
     QgsProcessingParameterRasterLayer,
+    QgsProcessingParameterBoolean,
 )
 
 import h5py
@@ -46,12 +47,49 @@ Mode = namedtuple("Mode", ["name", "description"])
 
 
 class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
-    def __init__(self, *args, parentParameterName='', **kwargs):
+    def __init__(
+            self,
+            *args,
+            parentParameterName='',
+            optional=False,
+            **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.parentParameterName = parentParameterName
-        self.setMetadata(
-            {'widget_wrapper': {'class': ThreediResultTimeSliderWidget}}
-        )
+        self.optional = optional
+        self.setMetadata({'widget_wrapper': {'class': ThreediResultTimeSliderWidget}})
+
+
+
+class ThreediResultTimeSliderWidget(WidgetWrapper):
+    def createWidget(self):
+        if self.dialogType == DIALOG_STANDARD:
+            if not self.parameterDefinition().optional:
+                self._widget = TimeSliderWidget()
+            else:
+                self._widget = CheckboxTimeSliderWidget()
+        else:
+            self._widget = NumberInputPanel(
+                QgsProcessingParameterNumber(
+                    self.parameterDefinition().name(),
+                    defaultValue=self.parameterDefinition().defaultValue(),
+                    minValue=-1,
+                    optional=self.parameterDefinition().optional
+                )
+            )
+        return self._widget
+
+    def value(self):
+        return self._widget.getValue()
+
+    def postInitialize(self, wrappers):
+        if self.dialogType != DIALOG_STANDARD:
+            return
+
+        # Connect the result-file parameter to the TimeSliderWidget
+        for wrapper in wrappers:
+            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
+                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
 WIDGET, BASE = uic.loadUiType(os.path.join(
@@ -125,31 +163,27 @@ class TimeSliderWidget(BASE, WIDGET):
             self.reset()
 
 
-class ThreediResultTimeSliderWidget(WidgetWrapper):
-    def createWidget(self):
-        if self.dialogType == DIALOG_STANDARD:
-            self._widget = TimeSliderWidget()
+WIDGET, BASE = uic.loadUiType(os.path.join(
+    pluginPath, 'processing', 'ui', 'widgetTimeSliderCheckbox.ui')
+)
+
+
+class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
+    """Timeslider widget with a checkbox to enable/disable the timeslider"""
+
+    def __init__(self):
+        super().__init__()
+        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
+        self.checkBox.stateChanged.connect(self.new_check_box_event)
+
+    def getValue(self):
+        if self.checkBox.isChecked():
+            return self.index
         else:
-            self._widget = NumberInputPanel(
-                QgsProcessingParameterNumber(
-                    self.parameterDefinition().name(),
-                    defaultValue=-1,
-                    minValue=-1
-                )
-            )
-        return self._widget
+            return None
 
-    def value(self):
-        return self._widget.getValue()
-
-    def postInitialize(self, wrappers):
-        if self.dialogType != DIALOG_STANDARD:
-            return
-
-        # Connect the result-file parameter to the TimeSliderWidget
-        for wrapper in wrappers:
-            if wrapper.parameterDefinition().name() == self.param.parentParameterName:
-                wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
+    def new_check_box_event(self, state):
+        self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
 
 
 class ThreediDepth(QgsProcessingAlgorithm):
@@ -173,6 +207,8 @@ class ThreediDepth(QgsProcessingAlgorithm):
     DEM_INPUT = 'DEM_INPUT'
     MODE_INPUT = 'MODE_INPUT'
     CALCULATION_STEP_INPUT = 'CALCULATION_STEP_INPUT'
+    AS_NETCDF_INPUT = 'AS_NETCDF_INPUT'
+    CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
     WATER_DEPTH_OUTPUT = 'WATER_DEPTH_OUTPUT'
 
     def tr(self, string):
@@ -248,8 +284,26 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 parentParameterName=self.RESULTS_3DI_INPUT
             )
         )
+        self.addParameter(
+            ProcessingParamterNetcdfNumber(
+                name=self.CALCULATION_STEP_END_INPUT,
+                description=self.tr(
+                    'In case you want to export water depths of multiple timesteps, enable this option and select '
+                    'the last timestep. All water depth rasters between these two timesteps will be generated.'
+                ),
+                defaultValue=-2,
+                parentParameterName=self.RESULTS_3DI_INPUT,
+                optional=True
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.AS_NETCDF_INPUT,
+                description="export the water depth as a netcdf file",
+                defaultValue=False,
+            )
+        )
 
-        # Output raster
         self.addParameter(
             QgsProcessingParameterRasterDestination(
                 self.WATER_DEPTH_OUTPUT,
@@ -265,15 +319,29 @@ class ThreediDepth(QgsProcessingAlgorithm):
             parameters, self.WATER_DEPTH_OUTPUT, context
         )
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
+
+        endstep = parameters[self.CALCULATION_STEP_END_INPUT]
+        if endstep:
+            if endstep <= parameters[self.CALCULATION_STEP_INPUT]:
+                feedback.reportError(
+                    "The last timestep should be larger than the first timestep.",
+                    fatalError=True
+                )
+                return {}
+            timesteps = list(range(parameters[self.CALCULATION_STEP_INPUT], endstep))
+        else:
+            timesteps = [parameters[self.CALCULATION_STEP_INPUT]]
+
         try:
             calculate_waterdepth(
                 gridadmin_path=parameters[self.GRIDADMIN_INPUT],
                 results_3di_path=parameters[self.RESULTS_3DI_INPUT],
                 dem_path=parameters[self.DEM_INPUT],
                 waterdepth_path=waterdepth_output_file,
-                calculation_step=parameters[self.CALCULATION_STEP_INPUT],
+                calculation_steps=timesteps,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
+                netcdf=parameters[self.AS_NETCDF_INPUT]
             )
         except CancelError:
             # When the process is cancelled, we just show the intermediate product
