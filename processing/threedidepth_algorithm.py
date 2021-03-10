@@ -60,7 +60,6 @@ class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
         self.setMetadata({'widget_wrapper': {'class': ThreediResultTimeSliderWidget}})
 
 
-
 class ThreediResultTimeSliderWidget(WidgetWrapper):
     def createWidget(self):
         if self.dialogType == DIALOG_STANDARD:

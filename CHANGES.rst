@@ -4,7 +4,8 @@ ThreeDiToolBox changelog
 1.17 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Update threedidepth algorithm with new functionalities: multiple timesteps
+  and export as netcdf file.
 
 
 1.16.1 (2021-03-04)
