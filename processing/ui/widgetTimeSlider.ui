@@ -16,6 +16,12 @@
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
     <widget class="QSlider" name="horizontalSlider">
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">selection-background-color: rgb(218, 218, 218);</string>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
