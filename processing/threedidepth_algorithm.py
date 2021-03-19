@@ -81,7 +81,7 @@ class TimeSliderWidget(BASE, WIDGET):
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(len(timestamps) - 1)
         self.timestamps = timestamps
-        self.index = 0
+        self.set_lcd_value(0)  # also sets self.index
 
     def set_lcd_value(self, index: int):
         self.index = index
