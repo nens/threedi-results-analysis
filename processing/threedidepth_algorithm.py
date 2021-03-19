@@ -26,7 +26,7 @@ from qgis.core import (
     QgsProcessingParameterFile,
     QgsProcessingParameterNumber,
     QgsProcessingParameterRasterDestination,
-    QgsProcessingParameterRasterLayer,
+    QgsProcessingParameterRasterLayer
 )
 
 import h5py
@@ -45,7 +45,7 @@ pluginPath = os.path.split(os.path.dirname(__file__))[0]
 Mode = namedtuple("Mode", ["name", "description"])
 
 
-class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
+class ProcessingParameterNetcdfNumber(QgsProcessingParameterNumber):
     def __init__(self, *args, parentParameterName='', **kwargs):
         super().__init__(*args, **kwargs)
         self.parentParameterName = parentParameterName
@@ -81,6 +81,7 @@ class TimeSliderWidget(BASE, WIDGET):
         self.horizontalSlider.setMinimum(0)
         self.horizontalSlider.setMaximum(len(timestamps) - 1)
         self.timestamps = timestamps
+        self.index = 0
 
     def set_lcd_value(self, index: int):
         self.index = index
@@ -154,7 +155,7 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
 
 class ThreediDepth(QgsProcessingAlgorithm):
     """
-    Calculates waterdepths for 3Di results
+    Calculates water depth or water level rasters from 3Di result NetCDF
     """
 
     # Constants used to refer to parameters and outputs. They will be
@@ -193,7 +194,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Water depth')
+        return self.tr('Water depth or water level raster')
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -205,7 +206,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
-        return self.tr("Calculate water depths for 3Di results.")
+        return self.tr("Calculate water depth or water level raster for specified timestep")
 
     def initAlgorithm(self, config=None):
         """Here we define the inputs and output of the algorithm"""
@@ -239,7 +240,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            ProcessingParamterNetcdfNumber(
+            ProcessingParameterNetcdfNumber(
                 name=self.CALCULATION_STEP_INPUT,
                 description=self.tr(
                     'The timestep in the simulation for which you want to generate a raster'
@@ -253,23 +254,26 @@ class ThreediDepth(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterRasterDestination(
                 self.WATER_DEPTH_OUTPUT,
-                self.tr('Water depth raster')
+                self.tr('Water depth or water level raster')
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
         """
-        Create the waterdepth raster with the provided user inputs
+        Create the water depth raster with the provided user inputs
         """
         waterdepth_output_file = self.parameterAsOutputLayer(
             parameters, self.WATER_DEPTH_OUTPUT, context
         )
+        dem_filename = self.parameterAsRasterLayer(
+            parameters, self.DEM_INPUT, context
+        ).source()
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
         try:
             calculate_waterdepth(
                 gridadmin_path=parameters[self.GRIDADMIN_INPUT],
                 results_3di_path=parameters[self.RESULTS_3DI_INPUT],
-                dem_path=parameters[self.DEM_INPUT],
+                dem_path=dem_filename,
                 waterdepth_path=waterdepth_output_file,
                 calculation_step=parameters[self.CALCULATION_STEP_INPUT],
                 mode=self.MODES[mode_index].name,

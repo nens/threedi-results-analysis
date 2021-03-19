@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>305</width>
-    <height>41</height>
+    <height>45</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,17 @@
     </widget>
    </item>
    <item>
-    <widget class="QLCDNumber" name="lcdNumber"/>
+    <widget class="QLCDNumber" name="lcdNumber">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="segmentStyle">
+      <enum>QLCDNumber::Flat</enum>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
