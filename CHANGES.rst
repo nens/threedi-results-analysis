@@ -7,6 +7,8 @@ ThreeDiToolBox changelog
 - Restricting pyqtgraph to <0.12 to prevent ``from PyQt5 import sip`` import
   errors.
 
+- Fixed error in notifying of necessary qgis restart.  
+
 
 1.16.1 (2021-03-04)
 -------------------
