@@ -142,9 +142,13 @@ installation for windows including the plugins ThreeDiToolbox and ThreeDiCustomi
 (https://github.com/nens/ThreeDiCustomizations). In the ``Makefile`` file you can specify
 the version of Qgis you want to build with the ``QGIS_VERSION``. To build the installer
 make sure you checked out the specific ThreediToolbox tag you want to build the
-installer for, then enter the following commands::
+installer for. Also, a really clean checkout is important, so do something like this::
 
-    $ git checkout tags/<TAG>
+    $ mdir /tmp/reallyclean
+    $ cd /tmp/reallyclean
+    $ git clone git@github.com:nens/ThreeDiToolbox.git
+    $ cd ThreediToolbox
+    $ git checkout 1.17    <== the tag that you want to release
     $ make installer
 
 This process can take a while as it will download over 2GB of data. Eventually it
