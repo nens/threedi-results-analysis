@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.17 (unreleased)
+1.17 (2021-04-01)
 -----------------
 
 - Restricting pyqtgraph to <0.12 to prevent ``from PyQt5 import sip`` import
