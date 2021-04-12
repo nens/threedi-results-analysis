@@ -121,20 +121,20 @@ class DatasourceLayerHelper(object):
 
         """
         if progress_bar is None:
-            progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
-        progress_bar.increase_progress(0, "create flowline layer")
-        progress_bar.increase_progress(33, "create node layer")
+            progress_bar = StatusProgressBar(100, "3Di Toolbox")
+        progress_bar.increase_progress(0, "Create flowline layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(33, "create pumplayer layer")
+        progress_bar.increase_progress(33, "Create node layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(34, "done")
+        progress_bar.increase_progress(33, "Create pumpline layer")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
+        progress_bar.increase_progress(33, "Created result layers")
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
@@ -196,8 +196,8 @@ class TimeseriesDatasourceModel(BaseModel):
             # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
             return self.datasource_layer_helper.sqlite_gridadmin_filepath
 
-        def get_result_layers(self):
-            return self.datasource_layer_helper.get_result_layers()
+        def get_result_layers(self, progress_bar=None):
+            return self.datasource_layer_helper.get_result_layers(progress_bar=progress_bar)
 
     def reset(self):
         self.removeRows(0, self.rowCount())
