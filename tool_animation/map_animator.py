@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (
     QComboBox,
     QHBoxLayout,
     QLabel,
+    QFrame,
     QPushButton,
     QWidget
 )
@@ -693,7 +694,7 @@ class MapAnimator(QWidget):
             provider.changeAttributeValues(update_dict)
 
             if self.difference_checkbox.isChecked() and layer in (self.node_layer, self.node_layer_groundwater):
-                layer_name_postfix = 'difference'
+                layer_name_postfix = 'relative to t0'
             else:
                 layer_name_postfix = 'current timestep'
             layer_name = f'{parameter_long_name} [{parameter_units}] ({layer_name_postfix})'
@@ -712,19 +713,30 @@ class MapAnimator(QWidget):
         self.line_parameter_combo_box = QComboBox(self)
         self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.line_parameter_combo_box.setToolTip('Choose flowline variable to display')
+        self.HLayout.addWidget(self.line_parameter_combo_box)
+
+        hline1 = QFrame()
+        hline1.setFrameShape(QFrame.VLine)
+        hline1.setFrameShadow(QFrame.Sunken)
+        self.HLayout.addWidget(hline1)
+
         self.node_parameter_combo_box = QComboBox(self)
         self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.node_parameter_combo_box.setToolTip('Choose node variable to display')
-        self.HLayout.addWidget(self.line_parameter_combo_box)
         self.HLayout.addWidget(self.node_parameter_combo_box)
 
         self.difference_checkbox = QCheckBox(self)
         self.difference_checkbox.setToolTip('Display difference relative to simulation start (nodes only)')
         self.difference_label = QLabel(self)
-        self.difference_label.setText('Difference')
+        self.difference_label.setText('Relative')
         self.difference_label.setToolTip('Display difference relative to simulation start (nodes only)')
         self.HLayout.addWidget(self.difference_checkbox)
         self.HLayout.addWidget(self.difference_label)
+
+        hline2 = QFrame()
+        hline2.setFrameShape(QFrame.VLine)
+        hline2.setFrameShadow(QFrame.Sunken)
+        self.HLayout.addWidget(hline2)
 
         # connect to signals
         self.activateButton.clicked.connect(self.on_activate_button_clicked)
