@@ -365,19 +365,12 @@ class MapAnimator(QWidget):
             )
 
         if update_lines:
-            if self.difference_checkbox.isChecked():
-                lower_threshold = float('-Inf')
-                absolute = False
-            else:
-                lower_threshold = float(0)
-                absolute = True
-
             self.line_parameter_class_bounds = threedi_result_percentiles(
                 gr=gr,
                 variable=self.current_line_parameter["parameters"],
                 percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
-                absolute=absolute,
-                lower_threshold=lower_threshold,
+                absolute=True,
+                lower_threshold=float(0),
                 relative_to_t0=self.difference_checkbox.isChecked()
             )
 
