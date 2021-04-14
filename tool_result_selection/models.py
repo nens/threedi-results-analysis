@@ -134,7 +134,7 @@ class DatasourceLayerHelper(object):
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(33, "Created result layers")
+        progress_bar.increase_progress(33, "Add layers to project")
         return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
