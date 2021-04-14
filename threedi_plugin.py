@@ -266,7 +266,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
-            self.map_animator_widget.set_active(False)
+            self.map_animator_widget.active = False
             self.map_animator_widget.setEnabled(False)
         if (
             self.ts_datasources.rowCount() > 0
