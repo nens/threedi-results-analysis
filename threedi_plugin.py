@@ -217,6 +217,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.check_status_model_and_results()
 
+    def update_slider_enabled_state(self):
+        timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
+        self.timeslider_widget.setEnabled(timeslider_needed)
+        self.lcd.setEnabled(timeslider_needed)
+
     def on_slider_change(self, time_index):
         """Callback for slider valueChanged signal.
 

@@ -151,7 +151,7 @@ class MapAnimator(QWidget):
         self._line_layer_groundwater = None   # store only layer id str to avoid keeping reference to deleted C++ object
         self._node_layer_groundwater = None   # store only layer id str to avoid keeping reference to deleted C++ object
         self.setup_ui()
-        self.set_active(False)
+        self.active = False
         self.setEnabled(False)
 
     @staticmethod
@@ -162,6 +162,48 @@ class MapAnimator(QWidget):
             return layer.id()
         else:
             raise TypeError
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, activate: bool):
+        """Enables/disables UI (except activateButtion) and adds/removes animation layers to QGIS project"""
+        if activate:
+            if not self._active:
+                progress_bar = StatusProgressBar(300, "3Di Animation")
+                self.prepare_animation_layers(progress_bar=progress_bar)
+                progress_bar.increase_progress(1, "Create flowline animation layer")
+                self.fill_parameter_combobox_items()
+                self.on_line_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
+                progress_bar.increase_progress(99, "Create node animation layer")
+                self.on_node_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
+                self.root_tool.timeslider_widget.sliderReleased.connect(self.on_slider_released) # TODO: check if this doesn't result in multiple connections to same signal
+                self.root_tool.timeslider_widget.setValue(0)
+
+                # Fake setting the slider to start to fill layers
+                self.root_tool.timeslider_widget.sliderReleased.emit()
+                self.root_tool.timeslider_widget.valueChanged.emit(0)
+                progress_bar.increase_progress(100, "Ready")
+                self._active = True
+
+        else:
+            self.line_parameter_combo_box.clear()
+            self.node_parameter_combo_box.clear()
+            self.remove_animation_layers()
+            self.activateButton.setChecked(False)
+            self._active = False
+
+        self.line_parameter_combo_box.setEnabled(activate)
+        self.node_parameter_combo_box.setEnabled(activate)
+        self.difference_checkbox.setEnabled(activate)
+        self.difference_label.setEnabled(activate)
+        self.root_tool.lcd.setEnabled(activate)
+        self.root_tool.timeslider_widget.setEnabled(activate)
+
+        self.iface.mapCanvas().refresh()
+
 
     @property
     def node_layer(self):
@@ -211,47 +253,11 @@ class MapAnimator(QWidget):
         self.activateButton.setEnabled(enable)
         if enable:
             if self.node_layer is None:
-                self.set_active(False)
+                self.active = False
             else:
-                self.set_active(True)
+                self.active = True
         else:
-            self.set_active(False)
-
-    def set_active(self, activate: bool):
-        """Enables/disables UI (except activateButtion) and adds/removes animation layers to QGIS project"""
-        if activate:
-            if not self.is_active:
-                progress_bar = StatusProgressBar(300, "3Di Animation")
-                self.prepare_animation_layers(progress_bar=progress_bar)
-                progress_bar.increase_progress(1, "Create flowline animation layer")
-                self.fill_parameter_combobox_items()
-                self.on_line_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
-                progress_bar.increase_progress(99, "Create node animation layer")
-                self.on_node_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
-                self.root_tool.timeslider_widget.sliderReleased.connect(self.on_slider_released) # TODO: check if this doesn't result in multiple connections to same signal
-                self.root_tool.timeslider_widget.setValue(0)
-
-                # Fake setting the slider to start to fill layers
-                self.root_tool.timeslider_widget.sliderReleased.emit()
-                self.root_tool.timeslider_widget.valueChanged.emit(0)
-                progress_bar.increase_progress(100, "Ready")
-                self.is_active = True
-
-        else:
-            self.line_parameter_combo_box.clear()
-            self.node_parameter_combo_box.clear()
-            self.remove_animation_layers()
-            self.activateButton.setChecked(False)
-            self.is_active = False
-
-        self.line_parameter_combo_box.setEnabled(activate)
-        self.node_parameter_combo_box.setEnabled(activate)
-        self.difference_checkbox.setEnabled(activate)
-        self.difference_label.setEnabled(activate)
-        self.root_tool.lcd.setEnabled(activate)
-        self.root_tool.timeslider_widget.setEnabled(activate)
-
-        self.iface.mapCanvas().refresh()
+            self.active = False
 
     def style_layers(self, style_lines: bool, style_nodes: bool):
         """
@@ -436,7 +442,7 @@ class MapAnimator(QWidget):
 
     def on_activate_button_clicked(self, checked: bool):
         activate = checked and self.root_tool.ts_datasources.rowCount() > 0
-        self.set_active(activate)
+        self.active(activate)
 
     def prepare_animation_layers(self, progress_bar=None):
         result = self.root_tool.timeslider_widget.active_ts_datasource
