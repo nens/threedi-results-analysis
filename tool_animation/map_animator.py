@@ -129,7 +129,6 @@ def threedi_result_percentiles(
         result = float(np_percentiles)
     return result
 
-
 class MapAnimator(QWidget):
     """
     """
@@ -203,7 +202,6 @@ class MapAnimator(QWidget):
         self.root_tool.timeslider_widget.setEnabled(activate)
 
         self.iface.mapCanvas().refresh()
-
 
     @property
     def node_layer(self):
@@ -442,7 +440,7 @@ class MapAnimator(QWidget):
 
     def on_activate_button_clicked(self, checked: bool):
         activate = checked and self.root_tool.ts_datasources.rowCount() > 0
-        self.active(activate)
+        self.active = activate
 
     def prepare_animation_layers(self, progress_bar=None):
         result = self.root_tool.timeslider_widget.active_ts_datasource
@@ -616,7 +614,7 @@ class MapAnimator(QWidget):
     def update_results(self, update_nodes: bool, update_lines: bool):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 
-        if not self.is_active:
+        if not self.active:
             return
 
         result = self.root_tool.timeslider_widget.active_ts_datasource
@@ -651,62 +649,62 @@ class MapAnimator(QWidget):
                 )
 
         for layer, parameter_config in layers_to_update:
+            if layer is not None:
+                provider = layer.dataProvider()
+                parameter = parameter_config['parameters']
+                parameter_long_name = parameter_config['name']
+                parameter_units = parameter_config['unit']
+                values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
+                values_ti = threedi_result.get_values_by_timestep_nr(parameter, timestep_nr)
 
-            provider = layer.dataProvider()
-            parameter = parameter_config['parameters']
-            parameter_long_name = parameter_config['name']
-            parameter_units = parameter_config['unit']
-            values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
-            values_ti = threedi_result.get_values_by_timestep_nr(parameter, timestep_nr)
+                if isinstance(values_t0, np.ma.MaskedArray):
+                    values_t0 = values_t0.filled(np.NaN)
+                if isinstance(values_ti, np.ma.MaskedArray):
+                    values_ti = values_ti.filled(np.NaN)
 
-            if isinstance(values_t0, np.ma.MaskedArray):
-                values_t0 = values_t0.filled(np.NaN)
-            if isinstance(values_ti, np.ma.MaskedArray):
-                values_ti = values_ti.filled(np.NaN)
+                # I suspect the two lines above intend to do the same as the two (new) lines below, but the lines above
+                # don't work. Perhaps issue should be solved in threedigrid? [LvW]
+                if parameter == WATERLEVEL.name:
+                    # dry cells have a NO_DATA_VALUE water level
+                    values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
+                    values_ti[values_ti == NO_DATA_VALUE] = np.NaN
 
-            # I suspect the two lines above intend to do the same as the two (new) lines below, but the lines above
-            # don't work. Perhaps issue should be solved in threedigrid? [LvW]
-            if parameter == WATERLEVEL.name:
-                # dry cells have a NO_DATA_VALUE water level
-                values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
-                values_ti[values_ti == NO_DATA_VALUE] = np.NaN
+                update_dict = {}
+                t0_field_index = layer.fields().lookupField("initial_value")
+                ti_field_index = layer.fields().lookupField("result")
 
-            update_dict = {}
-            t0_field_index = layer.fields().lookupField("initial_value")
-            ti_field_index = layer.fields().lookupField("result")
+                for feature in layer.getFeatures():
+                    fields_values_map = {}
+                    ids = int(feature.id())
+                    # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+                    # groundwater because those indexes start from 1 (something to
+                    # do with a trash element), but for the non-groundwater version
+                    # it is not. HOWEVER, due to some magic hackery in how the
+                    # *_result layers are created/copied from the regular result
+                    # layers, the resulting feature ids also start from 1, which
+                    # why we need to subtract it in both cases, which btw is
+                    # purely coincidental.
+                    # TODO: to avoid all this BS this part should be refactored
+                    # by passing the index to get_values_by_timestep_nr, which
+                    # should take this into account
+                    value_t0 = float(values_t0[ids - 1])
+                    if isnan(value_t0):
+                        value_t0 = NULL
+                    value_ti = float(values_ti[ids - 1])
+                    if isnan(value_ti):
+                        value_ti = NULL
+                    update_dict[ids] = {t0_field_index: value_t0, ti_field_index: value_ti}
 
-            for feature in layer.getFeatures():
-                fields_values_map = {}
-                ids = int(feature.id())
-                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
-                # groundwater because those indexes start from 1 (something to
-                # do with a trash element), but for the non-groundwater version
-                # it is not. HOWEVER, due to some magic hackery in how the
-                # *_result layers are created/copied from the regular result
-                # layers, the resulting feature ids also start from 1, which
-                # why we need to subtract it in both cases, which btw is
-                # purely coincidental.
-                # TODO: to avoid all this BS this part should be refactored
-                # by passing the index to get_values_by_timestep_nr, which
-                # should take this into account
-                value_t0 = float(values_t0[ids - 1])
-                if isnan(value_t0):
-                    value_t0 = NULL
-                value_ti = float(values_ti[ids - 1])
-                if isnan(value_ti):
-                    value_ti = NULL
-                update_dict[ids] = {t0_field_index: value_t0, ti_field_index: value_ti}
+                provider.changeAttributeValues(update_dict)
 
-            provider.changeAttributeValues(update_dict)
+                if self.difference_checkbox.isChecked() and layer in (self.node_layer, self.node_layer_groundwater):
+                    layer_name_postfix = 'relative to t0'
+                else:
+                    layer_name_postfix = 'current timestep'
+                layer_name = f'{parameter_long_name} [{parameter_units}] ({layer_name_postfix})'
 
-            if self.difference_checkbox.isChecked() and layer in (self.node_layer, self.node_layer_groundwater):
-                layer_name_postfix = 'relative to t0'
-            else:
-                layer_name_postfix = 'current timestep'
-            layer_name = f'{parameter_long_name} [{parameter_units}] ({layer_name_postfix})'
-
-            layer.setName(layer_name)
-            layer.triggerRepaint()
+                layer.setName(layer_name)
+                layer.triggerRepaint()
 
     def setup_ui(self):
         self.HLayout = QHBoxLayout(self)
