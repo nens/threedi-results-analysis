@@ -6,9 +6,12 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import (
+    get_or_create_cell_layer,
+    get_or_create_flowline_layer,
+    get_or_create_node_layer,
+    get_or_create_pumpline_layer
+)
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
@@ -107,6 +110,7 @@ class DatasourceLayerHelper(object):
         # The following three are caches for self.get_result_layers()
         self._line_layer = None
         self._node_layer = None
+        self._cell_layer = None
         self._pumpline_layer = None
 
     @cached_property
@@ -126,16 +130,20 @@ class DatasourceLayerHelper(object):
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(33, "Create node layer")
+        progress_bar.increase_progress(25, "Create node layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(33, "Create pumpline layer")
+        progress_bar.increase_progress(25, "Create cell layer")
+        self._cell_layer = self._cell_layer or get_or_create_cell_layer(
+            self.threedi_result, self.sqlite_gridadmin_filepath
+        )
+        progress_bar.increase_progress(25, "Create pumpline layer")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(33, "Add layers to project")
-        return [self._line_layer, self._node_layer, self._pumpline_layer]
+        progress_bar.increase_progress(25, "Processing...")
+        return [self._line_layer, self._node_layer, self._cell_layer, self._pumpline_layer]
 
 
 class TimeseriesDatasourceModel(BaseModel):

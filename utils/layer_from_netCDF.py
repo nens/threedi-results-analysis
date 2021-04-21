@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 # Hardcoded default names
 FLOWLINES_LAYER_NAME = "flowlines"
 NODES_LAYER_NAME = "nodes"
+CELLS_LAYER_NAME = "cells"
 PUMPLINES_LAYER_NAME = "pumplines"
 WGS84_EPSG = 4326
 
@@ -73,6 +74,23 @@ def get_or_create_node_layer(ds, output_path):
             output_path, NODES_LAYER_NAME, sliced.data, WGS84_EPSG
         )
     return _get_vector_layer(output_path, NODES_LAYER_NAME)
+
+
+@disable_sqlite_synchronous
+def get_or_create_cell_layer(ds, output_path):
+    if not os.path.exists(output_path) or not contains_layer(
+        output_path, CELLS_LAYER_NAME
+    ):
+        ga = ds.gridadmin
+        from .gridadmin import QgisNodesOgrExporter
+
+        exporter = QgisNodesOgrExporter("dont matter")
+        exporter.driver = ogr.GetDriverByName("SQLite")
+        sliced = ga.cells.slice(IGNORE_FIRST)  # do not reproject to prevent coordinate drift
+        exporter.save(
+            output_path, CELLS_LAYER_NAME, sliced.data, int(ga.epsg_code), as_cells=True
+        )
+    return _get_vector_layer(output_path, CELLS_LAYER_NAME)
 
 
 @disable_sqlite_synchronous

@@ -30,7 +30,7 @@ from qgis.PyQt.QtWidgets import (
     QPushButton,
     QWidget
 )
-from ThreeDiToolbox.utils import styler
+from ThreeDiToolbox.utils import (styler, layer_from_netCDF)
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.styler import ANIMATION_LAYERS_NR_LEGEND_CLASSES
@@ -146,9 +146,11 @@ class MapAnimator(QWidget):
         self.node_parameter_class_bounds = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
         self.animation_group = None
         self._node_layer = None  # store only layer id str to avoid keeping reference to deleted C++ object
+        self._cell_layer = None  # store only layer id str to avoid keeping reference to deleted C++ object
         self._line_layer = None  # store only layer id str to avoid keeping reference to deleted C++ object
         self._line_layer_groundwater = None   # store only layer id str to avoid keeping reference to deleted C++ object
         self._node_layer_groundwater = None   # store only layer id str to avoid keeping reference to deleted C++ object
+        self._cell_layer_groundwater = None   # store only layer id str to avoid keeping reference to deleted C++ object
         self.setup_ui()
         self.active = False
         self.setEnabled(False)
@@ -212,6 +214,14 @@ class MapAnimator(QWidget):
         self._node_layer = self.id_from_layer(layer)
 
     @property
+    def cell_layer(self):
+        return QgsProject.instance().mapLayer(self._cell_layer)
+
+    @cell_layer.setter
+    def cell_layer(self, layer: QgsVectorLayer):
+        self._cell_layer = self.id_from_layer(layer)
+
+    @property
     def line_layer(self):
         return QgsProject.instance().mapLayer(self._line_layer)
 
@@ -226,6 +236,14 @@ class MapAnimator(QWidget):
     @node_layer_groundwater.setter
     def node_layer_groundwater(self, layer: QgsVectorLayer):
         self._node_layer_groundwater = self.id_from_layer(layer)
+
+    @property
+    def cell_layer_groundwater(self):
+        return QgsProject.instance().mapLayer(self._cell_layer_groundwater)
+
+    @cell_layer_groundwater.setter
+    def cell_layer_groundwater(self, layer: QgsVectorLayer):
+        self._cell_layer_groundwater = self.id_from_layer(layer)
 
     @property
     def line_layer_groundwater(self):
@@ -291,21 +309,61 @@ class MapAnimator(QWidget):
 
         if style_nodes:
             if self.difference_checkbox.isChecked():
+                # nodes
                 styler.style_animation_node_difference(
                     self.node_layer,
                     self.node_parameter_class_bounds,
                     self.current_node_parameter['parameters']
                 )
+                # cells
+                styler.style_animation_node_difference(
+                    self.cell_layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter['parameters'],
+                    cells=True
+                )
                 if has_groundwater:
+                    # nodes
                     styler.style_animation_node_difference(
                         self.node_layer_groundwater,
                         self.node_parameter_class_bounds,
                         self.current_node_parameter['parameters']
                     )
+                    # cells
+                    styler.style_animation_node_difference(
+                        self.node_layer_groundwater,
+                        self.node_parameter_class_bounds,
+                        self.current_node_parameter['parameters'],
+                        cells=True
+                    )
             else:
-                styler.style_animation_node_current(self.node_layer, self.node_parameter_class_bounds)
+                # nodes
+                styler.style_animation_node_current(
+                    self.node_layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter['parameters']
+                )
+                # cells
+                styler.style_animation_node_current(
+                    self.cell_layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter['parameters'],
+                    cells=True
+                )
                 if has_groundwater:
-                    styler.style_animation_node_current(self.node_layer_groundwater, self.node_parameter_class_bounds)
+                    # nodes
+                    styler.style_animation_node_current(
+                        self.node_layer_groundwater,
+                        self.node_parameter_class_bounds,
+                        self.current_node_parameter['parameters']
+                    )
+                    # cells
+                    styler.style_animation_node_current(
+                        self.cell_layer_groundwater,
+                        self.node_parameter_class_bounds,
+                        self.current_node_parameter['parameters'],
+                        cells=True
+                    )
 
     def on_datasource_change(self):
         self.setEnabled(self.root_tool.ts_datasources.rowCount() > 0)
@@ -442,6 +500,50 @@ class MapAnimator(QWidget):
         activate = checked and self.root_tool.ts_datasources.rowCount() > 0
         self.active = activate
 
+    @staticmethod
+    def prepare_animation_layer(
+            source_layer: QgsVectorLayer,
+            result_admin: GridH5ResultAdmin,
+            output_layer_name: str,
+            attributes: List[QgsField],
+            groundwater: bool,
+            only_1d: bool
+    ):
+        output_layer = copy_layer_into_memory_layer(source_layer, output_layer_name)
+        output_layer.dataProvider().addAttributes(attributes)
+        features = output_layer.getFeatures()
+
+        exclude_types = set()
+        if groundwater:
+            exclude_types.update({'2d', '1d', '2d_bound', '1d_bound'})
+        else:
+            exclude_types.update({"2d_groundwater", "2d_groundwater_bound"})
+        if only_1d:
+            exclude_types.update({'2d', '2d_bound', '2d_groundwater', '2d_groundwater_bound'})
+        delete_ids = [
+            f.id()
+            for f in features
+            if f.attribute("type") in exclude_types
+        ]
+        provider = output_layer.dataProvider()
+        provider.deleteFeatures(delete_ids)
+        output_layer.updateFields()
+
+        field_index = output_layer.fields().lookupField('z_coordinate')
+        if field_index != -1:
+            data = result_admin.cells.only('id', 'z_coordinate').data
+            id_z_coordinate_map = dict(zip(data['id'], data['z_coordinate']))
+            update_dict = {}
+            for feature in output_layer.getFeatures():
+                node_id = feature['id']
+                feature_id = feature.id()
+                z_coordinate = float(id_z_coordinate_map[node_id])
+                if node_id in id_z_coordinate_map.keys():
+                    update_dict[feature_id] = {field_index: z_coordinate}
+            provider.changeAttributeValues(update_dict)
+
+        return output_layer
+
     def prepare_animation_layers(self, progress_bar=None):
         result = self.root_tool.timeslider_widget.active_ts_datasource
 
@@ -455,115 +557,81 @@ class MapAnimator(QWidget):
 
         result_admin = result.threedi_result().result_admin
 
-        line, node, pump = result.get_result_layers(progress_bar=progress_bar)
+        line, node, cell, pump = result.get_result_layers(progress_bar=progress_bar)
+        node_attributes = [
+            QgsField("z_coordinate", QVariant.Double),
+            QgsField("initial_value", QVariant.Double),
+            QgsField("result", QVariant.Double)
+        ]
+        line_attributes = [
+            QgsField("initial_value", QVariant.Double),
+            QgsField("result", QVariant.Double)
+        ]
 
         # update lines without groundwater results
-        line_layer = copy_layer_into_memory_layer(line, "Flowlines")
-        line_layer.dataProvider().addAttributes(
-            [
-                QgsField("initial_value", QVariant.Double),
-                QgsField("result", QVariant.Double)
-            ]
+        line_layer = self.prepare_animation_layer(
+            source_layer=line,
+            result_admin=result_admin,
+            output_layer_name="Flowlines",
+            attributes=line_attributes,
+            groundwater=False,
+            only_1d=False
         )
-        features = line_layer.getFeatures()
-        ids = [
-            f.id()
-            for f in features
-            if f.attribute("type") == "2d_groundwater"
-               or f.attribute("type") == "1d_2d_groundwater"
-        ]
-        line_layer.dataProvider().deleteFeatures(ids)
-        line_layer.updateFields()
 
         # update lines with groundwater results
         if result_admin.has_groundwater:
-            line_layer_groundwater = copy_layer_into_memory_layer(
-                line, "Groundwater: Flowlines"
+            line_layer_groundwater = self.prepare_animation_layer(
+                source_layer=line,
+                result_admin=result_admin,
+                output_layer_name="Groundwater: Flowlines",
+                attributes=line_attributes,
+                groundwater=True,
+                only_1d=False
             )
-            line_layer_groundwater.dataProvider().addAttributes(
-                [
-                    QgsField("initial_value", QVariant.Double),
-                    QgsField("result", QVariant.Double)
-                ]
-            )
-            features = line_layer_groundwater.getFeatures()
-            ids = [
-                f.id()
-                for f in features
-                if f.attribute("type") != "2d_groundwater"
-                   and f.attribute("type") != "1d_2d_groundwater"
-            ]
-            line_layer_groundwater.dataProvider().deleteFeatures(ids)
-            line_layer_groundwater.updateFields()
 
         # update nodes without groundwater results
-        node_layer = copy_layer_into_memory_layer(node, "Nodes")
-        node_layer.dataProvider().addAttributes(
-            [
-                QgsField("z_coordinate", QVariant.Double),
-                QgsField("initial_value", QVariant.Double),
-                QgsField("result", QVariant.Double)
-            ]
-        )
-        features = node_layer.getFeatures()
-        ids = [
-            f.id()
-            for f in features
-            if f.attribute("type") == "2d_groundwater"
-               or f.attribute("type") == "2d_groundwater_bound"
-        ]
-        provider = node_layer.dataProvider()
-        provider.deleteFeatures(ids)
-        node_layer.updateFields()
-
-        # fill z_coordinate for 2d nodes
-        data = result_admin.cells.only('id', 'z_coordinate').data
-        id_z_coordinate_map = dict(zip(data['id'], data['z_coordinate']))
-        update_dict = {}
-        field_index = node_layer.fields().lookupField('z_coordinate')
-        for feature in node_layer.getFeatures():
-            node_id = feature['id']  # instead of feature.id() to avoid the problem described in self.prepare_animation_layers
-            feature_id = feature.id()
-            z_coordinate = float(id_z_coordinate_map[node_id])
-            if node_id in id_z_coordinate_map.keys():
-                update_dict[feature_id] = {field_index: z_coordinate}
-        provider.changeAttributeValues(update_dict)
+        node_layer = self.prepare_animation_layer(
+                source_layer=node,
+                result_admin=result_admin,
+                output_layer_name="Nodes",
+                attributes=node_attributes,
+                groundwater=False,
+                only_1d=True
+            )
+        # node_layer.setSubsetString("type IN ('1d', '1d_bound')")
 
         # update nodes with groundwater results
         if result_admin.has_groundwater:
-            node_layer_groundwater = copy_layer_into_memory_layer(
-                node, "Groundwater: Nodes"
+            node_layer_groundwater = self.prepare_animation_layer(
+                source_layer=node,
+                result_admin=result_admin,
+                output_layer_name="Groundwater: Nodes",
+                attributes=node_attributes,
+                groundwater=False,
+                only_1d=True
             )
-            node_layer_groundwater.dataProvider().addAttributes(
-                [
-                    QgsField("z_coordinate", QVariant.Double),
-                    QgsField("initial_value", QVariant.Double),
-                    QgsField("result", QVariant.Double)
-                ]
-            )
-            features = node_layer_groundwater.getFeatures()
-            ids = [
-                f.id()
-                for f in features
-                if f.attribute("type") != "2d_groundwater"
-                   and f.attribute("type") != "2d_groundwater_bound"
-            ]
-            provider = node_layer_groundwater.dataProvider()
-            provider.deleteFeatures(ids)
-            node_layer_groundwater.updateFields()
+            # node_layer_groundwater.setSubsetString("type IN ('1d', '1d_bound')")
 
-            # fill z_coordinate for 2d nodes
-            data = result_admin.cells.only('id', 'z_coordinate').data
-            id_z_coordinate_map = dict(zip(data['id'], data['z_coordinate']))
-            update_dict = {}
-            field_index = node_layer.fields().lookupField('z_coordinate')
-            for feature in node_layer.getFeatures():
-                node_id = feature['id']  # instead of feature.id() to avoid the problem described in self.prepare_animation_layers
-                feature_id = feature.id()
-                z_coordinate = float(id_z_coordinate_map[node_id])
-                if node_id in id_z_coordinate_map.keys():
-                    update_dict[feature_id] = {field_index: z_coordinate}
-            provider.changeAttributeValues(update_dict)
+        # update cells without groundwater results
+        cell_layer = self.prepare_animation_layer(
+                source_layer=cell,
+                result_admin=result_admin,
+                output_layer_name="Cells",
+                attributes=node_attributes,
+                groundwater=False,
+                only_1d=False
+            )
+
+        # update cells with groundwater results
+        if result_admin.has_groundwater:
+            cell_layer_groundwater = self.prepare_animation_layer(
+                source_layer=cell,
+                result_admin=result_admin,
+                output_layer_name="Groundwater: Cells",
+                attributes=node_attributes,
+                groundwater=False,
+                only_1d=False
+            )
 
         self.style_layers(style_lines=True, style_nodes=True)
 
@@ -580,15 +648,20 @@ class MapAnimator(QWidget):
 
         QgsProject.instance().addMapLayer(line_layer, False)
         QgsProject.instance().addMapLayer(node_layer, False)
+        QgsProject.instance().addMapLayer(cell_layer, False)
         if result_admin.has_groundwater:
             QgsProject.instance().addMapLayer(line_layer_groundwater, False)
             QgsProject.instance().addMapLayer(node_layer_groundwater, False)
 
         if result_admin.has_groundwater:
+            animation_group.insertLayer(0, cell_layer_groundwater)
+            self.cell_layer_groundwater = cell_layer_groundwater
             animation_group.insertLayer(0, line_layer_groundwater)
             self.line_layer_groundwater = line_layer_groundwater
             animation_group.insertLayer(0, node_layer_groundwater)
             self.node_layer_groundwater = node_layer_groundwater
+        animation_group.insertLayer(0, cell_layer)
+        self.cell_layer = cell_layer
         animation_group.insertLayer(0, line_layer)
         self.line_layer = line_layer
         animation_group.insertLayer(0, node_layer)
@@ -599,13 +672,16 @@ class MapAnimator(QWidget):
         """Remove animation layers and remove group if it is empty"""
         if self.animation_group is not None:
             project = QgsProject.instance()
-            for lyr in (self.line_layer, self.node_layer, self.line_layer_groundwater, self.node_layer_groundwater):
+            for lyr in (self.line_layer, self.node_layer, self.cell_layer,
+                        self.line_layer_groundwater, self.node_layer_groundwater, self.cell_layer_groundwater):
                 if lyr is not None:
                     project.removeMapLayer(lyr)
             self.line_layer = None
             self.node_layer = None
+            self.cell_layer = None
             self.node_layer_groundwater = None
             self.line_layer_groundwater = None
+            self.cell_layer_groundwater = None
             if len(self.animation_group.children()) == 0:
                 # ^^^ to prevent deleting the group when a user has added other layers into it
                 QgsProject.instance().layerTreeRoot().removeChildNode(self.animation_group)
@@ -623,30 +699,16 @@ class MapAnimator(QWidget):
 
         layers_to_update = []
         if update_nodes:
-            layers_to_update.append(
-                (self.node_layer,
-                 self.current_node_parameter,
-                 )
-            )
+            layers_to_update.append((self.node_layer, self.current_node_parameter))
+            layers_to_update.append((self.cell_layer, self.current_node_parameter))
             if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append(
-                    (self.node_layer_groundwater,
-                     self.current_node_parameter,
-                    )
-                )
-
+                layers_to_update.append((self.node_layer_groundwater, self.current_node_parameter))
+                layers_to_update.append((self.cell_layer_groundwater, self.current_node_parameter))
         if update_lines:
             layers_to_update.append(
-                (self.line_layer,
-                 self.current_line_parameter,
-                 )
-            )
+                (self.line_layer, self.current_line_parameter))
             if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append(
-                    (self.line_layer_groundwater,
-                     self.current_line_parameter,
-                     )
-                )
+                layers_to_update.append((self.line_layer_groundwater, self.current_line_parameter))
 
         for layer, parameter_config in layers_to_update:
             if layer is not None:
@@ -697,7 +759,12 @@ class MapAnimator(QWidget):
 
                 provider.changeAttributeValues(update_dict)
 
-                if self.difference_checkbox.isChecked() and layer in (self.node_layer, self.node_layer_groundwater):
+                if self.difference_checkbox.isChecked() and layer in (
+                        self.node_layer,
+                        self.node_layer_groundwater,
+                        self.cell_layer,
+                        self.cell_layer_groundwater
+                ):
                     layer_name_postfix = 'relative to t0'
                 else:
                     layer_name_postfix = 'current timestep'

@@ -93,18 +93,29 @@ def style_animation_flowline_current(
 
 def style_animation_node_current(
         lyr: QgsVectorLayer,
-        percentiles: List[float]
+        percentiles: List[float],
+        variable: str,
+        cells: bool = False
 ):
     """Applies styling to Animation Toolbar node layer in 'current' mode"""
 
     # Load basic style settings from qml file
-    qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_current.qml'
+    if cells:
+        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'cell_current.qml'
+    else:
+        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_current.qml'
     lyr.loadNamedStyle(str(qml_path))
     ren = lyr.renderer()
 
     # Set classes
+    if variable == 's1':
+        class_attribute_str = str('coalesce(result, z_coordinate)')
+    else:
+        class_attribute_str = str('result')
+    lyr.renderer().setClassAttribute(class_attribute_str)
     ren.deleteAllClasses()
     nr_classes = len(percentiles) - 1
+    percentiles[0] = -9999  # to make nodes / cells are also visible when dry and z_coordinate < percentile[0]
     for i in range(nr_classes):
         ren.addClassLowerUpper(
             lower=percentiles[i],
@@ -120,12 +131,16 @@ def style_animation_node_current(
 def style_animation_node_difference(
         lyr: QgsVectorLayer,
         percentiles: List[float],
-        variable: str
+        variable: str,
+        cells: bool = False
 ):
     """Applies styling to Animation Toolbar node layer in 'difference' mode"""
 
     # Load basic style settings from qml file
-    qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_difference.qml'
+    if cells:
+        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'cell_current.qml'
+    else:
+        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_difference.qml'
     lyr.loadNamedStyle(str(qml_path))
 
     abs_high = max(abs(percentiles[1]), abs(percentiles[-2]))

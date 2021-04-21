@@ -46,7 +46,7 @@ COLOR_RAMP_OCEAN_HALINE = ColorRampData(
 COLOR_RAMP_OCEAN_CURL = ColorRampData(
     'Ocean Curl',
     [
-        '#0D163E',
+        # '#0D163E',
         '#1B3E57',
         '#185F6A',
         '#1B8179',
@@ -60,7 +60,7 @@ COLOR_RAMP_OCEAN_CURL = ColorRampData(
         '#B24560',
         '#8D2560',
         '#611554',
-        '#330C34'
+        # '#330C34'
     ],
     {'source': 'Thyng, K.M., C.A. Greene, R.D. Hetland, H.M. Zimmerle, and S.F. DiMarco (2016). True colors of '
                'oceanography: Guidelines for effective and accurate colormap selection. Oceanography, 29(3):9-13, '
