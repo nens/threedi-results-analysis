@@ -87,6 +87,25 @@ def style_animation_flowline_current(
 
     # Symbol size
     ren.setSymbolSizes(0.1, max_symbol_size)
+
+    # Add velocity thresholds style
+    style_manager = lyr.styleManager()
+    lyr.styleManager().removeStyle('Thresholds')
+    if variable == 'u1':
+        default_style_name = style_manager.currentStyle()  # default style name depends on language settings
+        style_name = 'Thresholds'
+        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'velocity_thresholds.qml'
+        style = QgsMapLayerStyle()
+        style.readFromLayer(lyr)
+        style_manager.addStyle(style_name, style)
+        style_manager.setCurrentStyle(style_name)
+        (message, success) = lyr.loadNamedStyle(os.path.join(qml_path, qml_path))
+        if not success:  # if style not loaded remove it
+            style_manager.removeStyle(style_name)
+            logger.info("Styling file not succesfully loaded: {fn}".format(fn=qml_path))
+            logger.info(message)
+        style_manager.setCurrentStyle(default_style_name)
+
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
 
