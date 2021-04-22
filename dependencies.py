@@ -38,7 +38,7 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
 #: List of expected dependencies.
 DEPENDENCIES = [
-    Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
+    Dependency("SQLAlchemy", "sqlalchemy", ">=1.3.0, <1.4"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
@@ -46,7 +46,9 @@ DEPENDENCIES = [
     Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.12"),
     Dependency("threedidepth", "threedidepth", "==0.3"),
-    Dependency("click", "click", ">=7.0")
+    Dependency("click", "click", ">=7.0"),
+    Dependency("alembic", "alembic", ">=0.9"),
+    Dependency("mako", "mako", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -70,7 +72,7 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     _ensure_prerequisite_is_installed()
-    _append_independend_wheels_to_path()
+    # _append_independend_wheels_to_path()  # Might want to add this later.
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == 'Windows':
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
@@ -284,17 +286,18 @@ def _uninstall_dependency(dependency):
         print("Uninstalling %s failed" % dependency.name)
 
 
-def _append_independend_wheels_to_path():
-    """Append the platform-independent wheels to the sys.path
+# Might want to add this later.
+# def _append_independend_wheels_to_path():
+#     """Append the platform-independent wheels to the sys.path
 
-    This is a very light-weight operation. The added bonus is that we get 
-    exactly the versions that we've bundled.
+#     This is a very light-weight operation. The added bonus is that we get 
+#     exactly the versions that we've bundled.
 
-    """
-    external_dependencies_dir = OUR_DIR / "external-dependencies"
-    for wheel_archive in external_dependencies_dir.glob("*-none-any.whl"):
-        sys.path.append(str(wheel_archive))
-        logger.info("Added library %s to sys.path", wheel_archive)
+#     """
+#     external_dependencies_dir = OUR_DIR / "external-dependencies"
+#     for wheel_archive in external_dependencies_dir.glob("*-none-any.whl"):
+#         sys.path.append(str(wheel_archive))
+#         logger.info("Added library %s to sys.path", wheel_archive)
 
 
 def _install_dependencies(dependencies, target_dir, use_pypi=False):
@@ -308,13 +311,15 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         "--no-deps",
         "--find-links",
         str(OUR_DIR / "external-dependencies"),
+        "--no-index",
         "--target",
         str(target_dir),
     ]
     if use_pypi:
         index = base_command.index("--find-links")
-        base_command.pop(index)
-        base_command.pop(index)
+        base_command.pop(index)  # --find-links
+        base_command.pop(index)  # the dir
+        base_command.pop(index)  # --no-index
 
     for dependency in dependencies:
         _uninstall_dependency(dependency)

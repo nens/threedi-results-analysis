@@ -7,14 +7,14 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
 cd build
 
 # Grab sqlalchemy. Use a small trick to get a universal egg.
-pip3 download --constraint ../../constraints.txt SQLAlchemy
+pip3 download --no-binary :all: --constraint ../../constraints.txt SQLAlchemy
 tar -xzf SQLAlchemy*gz
 rm SQLAlchemy*gz
 sed -i 's/distclass/\#distclass/g' SQLAlchemy*/setup.py
