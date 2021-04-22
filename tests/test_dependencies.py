@@ -61,7 +61,7 @@ def test_uninstall_dependency(tmpdir, monkeypatch):
     small_dependencies = [
         Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.5")
     ]
-    dependencies._install_dependencies(small_dependencies, target_dir=tmpdir)
+    dependencies._install_dependencies(small_dependencies, target_dir=tmpdir, use_pypi=True)
     dependencies._uninstall_dependency(small_dependencies[0])
     for directory in os.listdir(tmpdir):
         assert 'threedi_modelchecker' not in directory

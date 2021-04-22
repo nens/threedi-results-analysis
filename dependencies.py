@@ -38,15 +38,17 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
 #: List of expected dependencies.
 DEPENDENCIES = [
-    Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
+    Dependency("SQLAlchemy", "sqlalchemy", ">=1.3.0, <1.4"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
     Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.11"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.12"),
     Dependency("threedidepth", "threedidepth", "==0.3"),
-    Dependency("click", "click", ">=7.0")
+    Dependency("click", "click", ">=7.0"),
+    Dependency("alembic", "alembic", ">=0.9"),
+    Dependency("mako", "mako", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -294,13 +296,15 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         "--no-deps",
         "--find-links",
         str(OUR_DIR / "external-dependencies"),
+        "--no-index",
         "--target",
         str(target_dir),
     ]
     if use_pypi:
         index = base_command.index("--find-links")
-        base_command.pop(index)
-        base_command.pop(index)
+        base_command.pop(index)  # --find-links
+        base_command.pop(index)  # the dir
+        base_command.pop(index)  # --no-index
 
     for dependency in dependencies:
         _uninstall_dependency(dependency)
@@ -367,7 +371,7 @@ def _get_hdf5_version() -> str:
     result = o.read() + e.read()
     o.close()
     e.close()
-    pattern = re.compile("[\d]+.[\d]+.[\d]+")
+    pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
     match = pattern.search(result)
     if match:
         return match.group()
