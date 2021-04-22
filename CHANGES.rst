@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.18 (unreleased)
+1.18 (2021-04-22)
 -----------------
 
 - Adjusted dependencies for new threedi-modelchecker release.
