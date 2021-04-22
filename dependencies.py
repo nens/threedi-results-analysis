@@ -44,7 +44,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
     Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.11"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.12"),
     Dependency("threedidepth", "threedidepth", "==0.3"),
     Dependency("click", "click", ">=7.0")
 ]
@@ -70,6 +70,7 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     _ensure_prerequisite_is_installed()
+    _append_independend_wheels_to_path()
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == 'Windows':
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
@@ -283,6 +284,19 @@ def _uninstall_dependency(dependency):
         print("Uninstalling %s failed" % dependency.name)
 
 
+def _append_independend_wheels_to_path():
+    """Append the platform-independent wheels to the sys.path
+
+    This is a very light-weight operation. The added bonus is that we get 
+    exactly the versions that we've bundled.
+
+    """
+    external_dependencies_dir = OUR_DIR / "external-dependencies"
+    for wheel_archive in external_dependencies_dir.glob("*-none-any.whl"):
+        sys.path.append(str(wheel_archive))
+        logger.info("Added library %s to sys.path", wheel_archive)
+
+
 def _install_dependencies(dependencies, target_dir, use_pypi=False):
     python_interpreter = _get_python_interpreter()
     base_command = [
@@ -367,7 +381,7 @@ def _get_hdf5_version() -> str:
     result = o.read() + e.read()
     o.close()
     e.close()
-    pattern = re.compile("[\d]+.[\d]+.[\d]+")
+    pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
     match = pattern.search(result)
     if match:
         return match.group()
