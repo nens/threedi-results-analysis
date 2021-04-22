@@ -72,7 +72,6 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     _ensure_prerequisite_is_installed()
-    # _append_independend_wheels_to_path()  # Might want to add this later.
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == 'Windows':
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
@@ -284,20 +283,6 @@ def _uninstall_dependency(dependency):
     exit_code = process.wait()
     if exit_code:
         print("Uninstalling %s failed" % dependency.name)
-
-
-# Might want to add this later.
-# def _append_independend_wheels_to_path():
-#     """Append the platform-independent wheels to the sys.path
-
-#     This is a very light-weight operation. The added bonus is that we get 
-#     exactly the versions that we've bundled.
-
-#     """
-#     external_dependencies_dir = OUR_DIR / "external-dependencies"
-#     for wheel_archive in external_dependencies_dir.glob("*-none-any.whl"):
-#         sys.path.append(str(wheel_archive))
-#         logger.info("Added library %s to sys.path", wheel_archive)
 
 
 def _install_dependencies(dependencies, target_dir, use_pypi=False):
