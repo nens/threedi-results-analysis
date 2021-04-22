@@ -1,4 +1,5 @@
 #!/bin/bash
+export LANG=C.UTF-8
 # Cleanup, we don't want old stuff to linger around.
 rm *.whl
 rm -rf *.egg
