@@ -4,7 +4,11 @@ ThreeDiToolBox changelog
 1.18 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Adjusted dependencies for new threedi-modelchecker release.
+
+- Installing bundled dependencies should no longer fetch newer releases 
+  from pypi, but stick to what we bundle in our external-dependencies
+  directory.
 
 
 1.17 (2021-04-01)
