@@ -330,6 +330,12 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         if exit_code:
             raise RuntimeError("Installing %s failed" % dependency.name)
         print("Installed %s into %s" % (dependency.name, target_dir))
+        if dependency.package in sys.modules:
+            print("Unloading old %s module" % dependency.package)
+            del sys.modules[dependency.package]
+            # check_importability() will be called soon, which will import them again.
+            # By removing them from sys.modules, we prevent older versions from 
+            # sticking around.
 
 
 def _get_python_interpreter():
@@ -372,7 +378,7 @@ def _get_hdf5_version() -> str:
     o.close()
     e.close()
     pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
-    match = pattern.search(result)
+dd    match = pattern.search(result)
     if match:
         return match.group()
     else:
