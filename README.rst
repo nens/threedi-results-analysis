@@ -147,7 +147,7 @@ installer for. Also, a really clean checkout is important, so do something like 
     $ mdir /tmp/reallyclean
     $ cd /tmp/reallyclean
     $ git clone git@github.com:nens/ThreeDiToolbox.git
-    $ cd ThreediToolbox
+    $ cd ThreeDiToolbox
     $ git checkout 1.17    <== the tag that you want to release
     $ make installer
 
