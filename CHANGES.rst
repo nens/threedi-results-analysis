@@ -4,7 +4,9 @@ ThreeDiToolBox changelog
 1.19 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Updated dependencies are un-imported (technically: removed from ``sys.modules``)
+  to prevent old versions from sticking around. In 1.18, you could get an error
+  from the ``alembic`` dependency that complained about a too old sqlalchemy.
 
 
 1.18 (2021-04-22)
