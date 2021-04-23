@@ -378,7 +378,7 @@ def _get_hdf5_version() -> str:
     o.close()
     e.close()
     pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
-dd    match = pattern.search(result)
+    match = pattern.search(result)
     if match:
         return match.group()
     else:
