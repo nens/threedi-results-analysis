@@ -107,7 +107,7 @@ def test_datasource_layer_helper_get_result_layers():
     datasource_layer_helper = models.DatasourceLayerHelper(THREEDI_RESULTS_PATH)
     # Just call it, check if we get three layers.
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
-    assert len(results) == 3
+    assert len(results) == 4
 
 
 def test_datasource_layer_helper_get_result_layers_validation():
@@ -116,7 +116,8 @@ def test_datasource_layer_helper_get_result_layers_validation():
     results = datasource_layer_helper.get_result_layers(progress_bar=mock.Mock())
     lines = results[0]
     nodes = results[1]
-    pumps = results[2]
+    cells = results[2]
+    pumps = results[3]
     assert lines.featureCount() == 31915
     assert nodes.isValid()
     assert pumps.name() == "pumplines"

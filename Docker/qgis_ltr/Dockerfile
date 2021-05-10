@@ -17,9 +17,11 @@ RUN apt-get update \
         dirmngr \
         gpg-agent \
         software-properties-common \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 RUN echo "deb https://qgis.org/ubuntu-ltr bionic main" >> /etc/apt/sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key F7E06F06199EF2F2
+RUN curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x39877635093f2656019711faf7e06f06199ef2f2' | apt-key add -
+#RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key F7E06F06199EF2F2
 
 # Now install the ubuntu packages we need.
 RUN apt-get update \

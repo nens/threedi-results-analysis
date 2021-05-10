@@ -201,6 +201,6 @@ flake8:
 
 
 beautiful:
-	isort -y
+	isort .
 	black .
 	flake8 .
