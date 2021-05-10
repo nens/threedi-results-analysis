@@ -411,7 +411,7 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(2, name)
                     self._mark(group, "result_" + result.file_path.value)
 
-                line, node, cell, pumpline = result.get_result_layers()
+                line, node, pumpline = result.get_result_layers()
 
                 if self._find_marked_child(group, "flowlines") is None:
                     # apply default styling on memory layers

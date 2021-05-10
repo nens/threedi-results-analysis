@@ -91,8 +91,7 @@ class TestSpatialiteDataSource(unittest.TestCase):
 
         self.assertIsNotNone(spl_layer)
         self.assertTrue("table_one" in [c[1] for c in spl.getTables()])
-        # TODO 2021-03-31: re-enable the following line and fix the test!
-        # self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(layer.featureCount(), 1)
 
 
 class TestNetcdfGroundwaterDataSource(unittest.TestCase):

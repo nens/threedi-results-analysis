@@ -118,7 +118,7 @@ class WaterBalanceCalculation(object):
         }
         pump_selection = {"in": [], "out": []}
 
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
 
         # all links in and out
         # use bounding box and spatial index to prefilter lines
@@ -387,7 +387,7 @@ class WaterBalanceCalculation(object):
 
         nodes = {"1d": [], "2d": [], "2d_groundwater": []}
 
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
 
         # use bounding box and spatial index to prefilter lines
         request_filter = QgsFeatureRequest().setFilterRect(

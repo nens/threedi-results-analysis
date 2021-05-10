@@ -3,13 +3,12 @@ from collections import OrderedDict
 from osgeo import ogr
 from osgeo import osr
 from qgis.core import QgsWkbTypes
-from threedigrid.admin.constants import TYPE_FUNC_MAP, NO_DATA_VALUE
+from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.admin.utils import KCUDescriptor
 from threedigrid.orm.base.exporters import BaseOgrExporter
 
 import logging
 import numpy as np
-
 
 
 logger = logging.getLogger(__name__)
@@ -88,7 +87,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         layer_name,
         node_data,
         target_epsg_code,
-        as_cells=False,
         **kwargs
     ):
         """
@@ -96,7 +94,6 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         :param file_name: name of the outputfile
         :param node_data: dict of node data
-        :param as_cells: export nodes as cells (polygons) - exports 2d nodes only
         """
         assert self.driver is not None
 
@@ -104,16 +101,9 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         spl = Spatialite(file_name)
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
-        if as_cells:
-            qgs_wkb_type = QgsWkbTypes.Polygon
-            ogr_wkb_type = ogr.wkbPolygon
-        else:
-            qgs_wkb_type = QgsWkbTypes.Point
-            ogr_wkb_type = ogr.wkbPoint
-
         spl.create_empty_layer_only(
             layer_name,
-            wkb_type=qgs_wkb_type,
+            wkb_type=QgsWkbTypes.Point,
             fields=self.TABLE_FIELDS,
             id_field="id",
             geom_field="the_geom",
@@ -129,27 +119,12 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         layer.StartTransaction()
         for i in range(node_data["id"].size):
-            geom = ogr.Geometry(ogr_wkb_type)
-            if as_cells:
-                if np.all(np.equal(node_data["cell_coords"][:, i], np.array([-9999., -9999., -9999., -9999.]))):
-                    continue
-                else:
-                    xmin, ymin, xmax, ymax = node_data["cell_coords"][:, i]
-                    geom_ring = ogr.Geometry(ogr.wkbLinearRing)
-                    geom_ring.AddPoint_2D(xmin, ymin)
-                    geom_ring.AddPoint_2D(xmin, ymax)
-                    geom_ring.AddPoint_2D(xmax, ymax)
-                    geom_ring.AddPoint_2D(xmax, ymin)
-                    geom_ring.AddPoint_2D(xmin, ymin)
-                    geom.AddGeometry(geom_ring)
-                    if (not geom.IsValid()) or geom.IsEmpty():
-                        continue
-            else:
-                geom.AddPoint_2D(
-                    node_data["coordinates"][0][i], node_data["coordinates"][1][i]
-                )
+            point = ogr.Geometry(ogr.wkbPoint)
+            point.AddPoint_2D(
+                node_data["coordinates"][0][i], node_data["coordinates"][1][i]
+            )
             feature = ogr.Feature(_definition)
-            feature.SetGeometry(geom)
+            feature.SetGeometry(point)
             for field_name, field_type in self.QGIS_NODE_FIELDS.items():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == "type":

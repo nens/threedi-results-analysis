@@ -1,57 +1,26 @@
-# TODO: calculate seperate class_bounds for groundwater
-# TODO: add listeners to result selection switch (ask if ok)
-
 import copy
 
-from typing import (
-    Iterable,
-    List,
-    Union
-)
-from math import isnan
-from qgis.core import (
-    NULL,
-    Qgis,
-    QgsMessageLog,
-    QgsExpressionContextUtils,
-    QgsField,
-    QgsLayerTreeGroup,
-    QgsProject,
-    QgsVectorLayer,
-    QgsWkbTypes
-)
+from qgis.core import QgsField
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.PyQt.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QHBoxLayout,
-    QLabel,
-    QFrame,
-    QPushButton,
-    QWidget
-)
-from ThreeDiToolbox.utils import (styler, layer_from_netCDF)
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox.utils.utils import generate_parameter_config
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
-from ThreeDiToolbox.utils.styler import ANIMATION_LAYERS_NR_LEGEND_CLASSES
-from ThreeDiToolbox.datasource.result_constants import (
-    Q_TYPES,
-    H_TYPES,
-    NEG_POSSIBLE,
-    WATERLEVEL,
-    DISCHARGE
-)
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from threedigrid.admin.constants import NO_DATA_VALUE
 
 import logging
 import numpy as np
 import os
 
+
 logger = logging.getLogger(__name__)
 
 
 def copy_layer_into_memory_layer(source_layer, layer_name):
+
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
@@ -71,66 +40,17 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     return dest_layer
 
 
-def threedi_result_percentiles(
-        gr: GridH5ResultAdmin,
-        variable: str,
-        percentile: Union[float, Iterable],
-        absolute: bool,
-        lower_threshold: float,
-        relative_to_t0: bool,
-        nodatavalue=NO_DATA_VALUE
-) -> Union[float, List[float]]:
-    """
-    Calculate given percentile given variable in a 3Di results netcdf
-
-    If variable is water level and relative_to_t0 = True,
-    nodatavalues in the water level timeseries (i.e., dry nodes)
-    will be replaced by the node's bottom level (z-coordinate)
-
-    :param gr: GridH5ResultAdmin
-    :param variable: one of ThreeDiToolbox.datasource.result_constants.SUBGRID_MAP_VARIABLES,
-    with the exception of q_pump
-    :param percentile: Percentile or sequence of class_bounds to compute, which must be between 0 and 100 inclusive.
-    :param absolute: calculate percentiles on absolute values
-    :param lower_threshold: ignore values below this threshold
-    :param relative_to_t0: calculate percentiles on difference w/ initial values (applied before absolute)
-    :param nodatavalue: ignore these values
-    """
-    if variable in Q_TYPES:
-        nodes_or_lines = gr.lines
-    elif variable in H_TYPES:
-        nodes_or_lines = gr.nodes
-        if variable == WATERLEVEL.name and relative_to_t0:
-            z_coordinates = gr.cells.z_coordinate
-    else:
-        raise ValueError('unknown variable')
-
-    last_timestamp = nodes_or_lines.timestamps[-1]
-    ts = nodes_or_lines.timeseries(0, last_timestamp)
-    values = getattr(ts, variable)
-    values_t0 = values[0]
-    if absolute:
-        values = np.absolute(values)
-        values_t0 = np.absolute(values_t0)
-    values[values == nodatavalue] = np.nan
-    values_t0[values_t0 == nodatavalue] = np.nan
-
-    if relative_to_t0:
-        if variable == WATERLEVEL.name:
-            values_t0[np.isnan(values_t0)] = z_coordinates[np.isnan(values_t0)]
-            z_coordinates_tiled = np.tile(z_coordinates, (values.shape[0], 1))
-            values[np.isnan(values)] = z_coordinates_tiled[np.isnan(values)]
-        values -= values_t0
-    values_above_threshold = values[values > lower_threshold]
-    np_percentiles = np.nanpercentile(values_above_threshold, percentile)
-    if isinstance(np_percentiles, np.ndarray):
-        result = list(map(float, np_percentiles))
-    else:
-        result = float(np_percentiles)
-    return result
-
 class MapAnimator(QWidget):
     """
+    todo:
+    - make active button toggle between states
+    - enable/ disable pulldowns on activate
+    - on enable, copy current model layers to memory and add column
+    - add listener to slider - set current values in layer
+    - add listeners to pulldown -
+    - add listeners to result selection switch (ask if ok)
+    - styling for layers
+
     """
 
     def __init__(self, parent, iface, root_tool):
@@ -142,355 +62,86 @@ class MapAnimator(QWidget):
         self.line_parameters = {}
         self.current_node_parameter = None
         self.current_line_parameter = None
-        self.line_parameter_class_bounds = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
-        self.node_parameter_class_bounds = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
-        self.subgroup_1d = None
-        self.subgroup_2d = None
-        self._animation_group = None
-
-        # layers: store only layer id str to avoid keeping reference to deleted C++ object
-        self._node_layer = None
-        self._cell_layer = None
-        self._line_layer_1d = None
-        self._line_layer_2d = None
-        self._line_layer_groundwater = None
-        self._node_layer_groundwater = None
-        self._cell_layer_groundwater = None
+        self.node_layer = None
+        self.line_layer = None
+        self.line_layer_groundwater = None
+        self.node_layer_groundwater = None
+        self.state = False
         self.setup_ui()
-        self.active = False
-        self.setEnabled(False)
 
-    @staticmethod
-    def id_from_layer(layer: QgsVectorLayer):
-        if layer is None:
-            return None
-        elif isinstance(layer, QgsVectorLayer):
-            return layer.id()
-        else:
-            raise TypeError
+        # set initial state
+        self.line_parameter_combo_box.setEnabled(False)
+        self.node_parameter_combo_box.setEnabled(False)
 
-    @property
-    def active(self):
-        return self._active
+        # connect to signals
+        self.activateButton.clicked.connect(self.set_activation_state)
 
-    @active.setter
-    def active(self, activate: bool):
-        """Enables/disables UI (except activateButtion) and adds/removes animation layers to QGIS project"""
-        if activate:
-            if not self._active:
-                progress_bar = StatusProgressBar(300, "3Di Animation")
-                self.prepare_animation_layers(progress_bar=progress_bar)
-                progress_bar.increase_progress(1, "Create flowline animation layer")
-                self.fill_parameter_combobox_items()
-                self.on_line_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
-                progress_bar.increase_progress(99, "Create node animation layer")
-                self.on_node_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
-                self.root_tool.timeslider_widget.sliderReleased.connect(self.on_slider_released) # TODO: check if this doesn't result in multiple connections to same signal
-                self.root_tool.timeslider_widget.setValue(0)
+        self.state_connectiong_set = False
 
-                # Fake setting the slider to start to fill layers
-                self.root_tool.timeslider_widget.sliderReleased.emit()
-                self.root_tool.timeslider_widget.valueChanged.emit(0)
-                progress_bar.increase_progress(100, "Ready")
-                self._active = True
+        self.line_parameter_combo_box.currentIndexChanged.connect(
+            self.on_line_parameter_change
+        )
+        self.node_parameter_combo_box.currentIndexChanged.connect(
+            self.on_node_parameter_change
+        )
 
-        else:
-            self.line_parameter_combo_box.clear()
-            self.node_parameter_combo_box.clear()
-            self.remove_animation_layers()
-            self.activateButton.setChecked(False)
-            self._active = False
+        self.root_tool.timeslider_widget.datasource_changed.connect(
+            self.on_active_ts_datasource_change
+        )
 
-        self.line_parameter_combo_box.setEnabled(activate)
-        self.node_parameter_combo_box.setEnabled(activate)
-        self.difference_checkbox.setEnabled(activate)
-        self.difference_label.setEnabled(activate)
-        self.root_tool.lcd.setEnabled(activate)
-        self.root_tool.timeslider_widget.setEnabled(activate)
-
-        self.iface.mapCanvas().refresh()
-
-    @property
-    def node_layer(self):
-        return QgsProject.instance().mapLayer(self._node_layer)
-
-    @node_layer.setter
-    def node_layer(self, layer: QgsVectorLayer):
-        self._node_layer = self.id_from_layer(layer)
-
-    @property
-    def cell_layer(self):
-        return QgsProject.instance().mapLayer(self._cell_layer)
-
-    @cell_layer.setter
-    def cell_layer(self, layer: QgsVectorLayer):
-        self._cell_layer = self.id_from_layer(layer)
-
-    @property
-    def line_layer_2d(self):
-        return QgsProject.instance().mapLayer(self._line_layer_2d)
-
-    @line_layer_2d.setter
-    def line_layer_2d(self, layer: QgsVectorLayer):
-        self._line_layer_2d = self.id_from_layer(layer)
-
-    @property
-    def line_layer_1d(self):
-        return QgsProject.instance().mapLayer(self._line_layer_1d)
-
-    @line_layer_1d.setter
-    def line_layer_1d(self, layer: QgsVectorLayer):
-        self._line_layer_1d = self.id_from_layer(layer)
-
-
-    @property
-    def node_layer_groundwater(self):
-        return QgsProject.instance().mapLayer(self._node_layer_groundwater)
-
-    @node_layer_groundwater.setter
-    def node_layer_groundwater(self, layer: QgsVectorLayer):
-        self._node_layer_groundwater = self.id_from_layer(layer)
-
-    @property
-    def cell_layer_groundwater(self):
-        return QgsProject.instance().mapLayer(self._cell_layer_groundwater)
-
-    @cell_layer_groundwater.setter
-    def cell_layer_groundwater(self, layer: QgsVectorLayer):
-        self._cell_layer_groundwater = self.id_from_layer(layer)
-
-    @property
-    def line_layer_groundwater(self):
-        return QgsProject.instance().mapLayer(self._line_layer_groundwater)
-
-    @line_layer_groundwater.setter
-    def line_layer_groundwater(self, layer: QgsVectorLayer):
-        self._line_layer_groundwater = self.id_from_layer(layer)
-
-    @property
-    def animation_group(self):
-        return QgsProject.instance().layerTreeRoot().findGroup(self._animation_group)
-
-    @animation_group.setter
-    def animation_group(self, group: QgsLayerTreeGroup):
-        if group is None:
-            self._animation_group = None
-        else:
-            self._animation_group = group.name()
-
-    def setEnabled(self, enable: bool):
-        """Toggles activateButton enabled and sets tool to active if animation layers already exist"""
-        self.activateButton.setEnabled(enable)
-        if enable:
-            if self.node_layer is None:
-                self.active = False
-            else:
-                self.active = True
-        else:
-            self.active = False
-
-    def style_layers(self, style_lines: bool, style_nodes: bool):
-        """
-        Apply styling to surface water and groundwater flowline layers,
-        based value distribution in the results and difference vs. current choice
-        """
-        has_groundwater = self. \
-            root_tool. \
-            timeslider_widget. \
-            active_ts_datasource. \
-            threedi_result(). \
-            result_admin. \
-            has_groundwater
-
-        if self.current_line_parameter is None:
-            style_lines = False
-
-        if self.current_node_parameter is None:
-            style_nodes = False
-
-        if style_lines:
-            # 1d
-            styler.style_animation_flowline_current(
-                self.line_layer_1d,
-                self.line_parameter_class_bounds,
-                self.current_line_parameter['parameters']
-            )
-            # 2d
-            styler.style_animation_flowline_current(
-                self.line_layer_2d,
-                self.line_parameter_class_bounds,
-                self.current_line_parameter['parameters']
-            )
-            if has_groundwater:
-                styler.style_animation_flowline_current(
-                    self.line_layer_groundwater,
-                    self.line_parameter_class_bounds,
-                    self.current_line_parameter['parameters']
-                )
-
-        if style_nodes:
-            if self.difference_checkbox.isChecked():
-                # nodes
-                styler.style_animation_node_difference(
-                    self.node_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter['parameters']
-                )
-                # cells
-                styler.style_animation_node_difference(
-                    self.cell_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter['parameters'],
-                    cells=True
-                )
-                if has_groundwater:
-                    # nodes
-                    styler.style_animation_node_difference(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters']
-                    )
-                    # cells
-                    styler.style_animation_node_difference(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters'],
-                        cells=True
-                    )
-            else:
-                # nodes
-                styler.style_animation_node_current(
-                    self.node_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter['parameters']
-                )
-                # cells
-                styler.style_animation_node_current(
-                    self.cell_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter['parameters'],
-                    cells=True
-                )
-                if has_groundwater:
-                    # nodes
-                    styler.style_animation_node_current(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters']
-                    )
-                    # cells
-                    styler.style_animation_node_current(
-                        self.cell_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters'],
-                        cells=True
-                    )
-
-    def on_datasource_change(self):
-        self.setEnabled(self.root_tool.ts_datasources.rowCount() > 0)
-
-    def on_slider_released(self):
-        self.update_results(update_nodes=True, update_lines=True)
+        self.on_active_ts_datasource_change()
 
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter
-        combobox_current_text = self.line_parameter_combo_box.currentText()
-        if combobox_current_text in self.line_parameters.keys():
-            self.current_line_parameter = self.line_parameters[combobox_current_text]
-        else:
-            self.current_line_parameter = None
-            return
+
+        self.current_line_parameter = self.line_parameters[
+            self.line_parameter_combo_box.currentText()
+        ]
 
         if old_parameter != self.current_line_parameter:
-            self.update_class_bounds(update_nodes=False, update_lines=True)
-            self.update_results(update_nodes=False, update_lines=True)
-            self.style_layers(style_nodes=False, style_lines=True)
+            self.update_results()
 
     def on_node_parameter_change(self):
         old_parameter = self.current_node_parameter
-        combobox_current_text = self.node_parameter_combo_box.currentText()
-        if combobox_current_text in self.node_parameters.keys():
-            self.current_node_parameter = self.node_parameters[combobox_current_text]
-        else:
-            self.current_node_parameter = None
-            return
+        self.current_node_parameter = self.node_parameters[
+            self.node_parameter_combo_box.currentText()
+        ]
 
         if old_parameter != self.current_node_parameter:
-            self.update_class_bounds(update_nodes=True, update_lines=False)
-            self.update_results(update_nodes=True, update_lines=False)
-            self.style_layers(style_nodes=True, style_lines=False)
+            self.update_results()
 
-    def on_difference_checkbox_state_change(self):
-        self.update_class_bounds(update_nodes=True, update_lines=False)
-        self.update_results(update_nodes=True, update_lines=False)
-        self.style_layers(style_nodes=True, style_lines=False)
-
-    def update_class_bounds(self, update_nodes: bool, update_lines: bool):
-        gr = self. \
-            root_tool. \
-            timeslider_widget. \
-            active_ts_datasource. \
-            threedi_result(). \
-            result_admin
-
-        if update_nodes:
-            if NEG_POSSIBLE[self.current_node_parameter['parameters']] or self.difference_checkbox.isChecked():
-                lower_threshold = float('-Inf')
-            else:
-                lower_threshold = 0
-
-            self.node_parameter_class_bounds = threedi_result_percentiles(
-                gr=gr,
-                variable=self.current_node_parameter["parameters"],
-                percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
-                absolute=False,
-                lower_threshold=lower_threshold,
-                relative_to_t0=self.difference_checkbox.isChecked()
-            )
-
-        if update_lines:
-            self.line_parameter_class_bounds = threedi_result_percentiles(
-                gr=gr,
-                variable=self.current_line_parameter["parameters"],
-                percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
-                absolute=True,
-                lower_threshold=float(0),
-                relative_to_t0=self.difference_checkbox.isChecked()
-            )
-
-    def fill_parameter_combobox_items(self):
-        """
-        Callback for datasource_changed signal
-
-        Also sets self.line_parameters and self.node_parameters
-        """
-
+    def on_active_ts_datasource_change(self):
         # reset
         parameter_config = self._get_active_parameter_config()
 
         for combo_box, parameters, pc in (
-                (
-                        self.line_parameter_combo_box,
-                        self.line_parameters,
-                        parameter_config["q"],
-                ),
-                (
-                        self.node_parameter_combo_box,
-                        self.node_parameters,
-                        parameter_config["h"],
-                ),
+            (
+                self.line_parameter_combo_box,
+                self.line_parameters,
+                parameter_config["q"],
+            ),
+            (
+                self.node_parameter_combo_box,
+                self.node_parameters,
+                parameter_config["h"],
+            ),
         ):
 
-            combo_box.clear()
+            nr_old_parameters = combo_box.count()
 
             parameters.update(dict([(p["name"], p) for p in pc]))
-            for param_name, param in parameters.items():
-                if param["parameters"] in (DISCHARGE.name, WATERLEVEL.name):
-                    idx = 0
-                else:
-                    idx = 99999
-                combo_box.insertItem(idx, param_name)
-            combo_box.setCurrentIndex(0)
+
+            combo_box.insertItems(0, [p["name"] for p in pc])
+
+            # todo: find best matching parameter based on previous selection
+            if nr_old_parameters > 0:
+                combo_box.setCurrentIndex(0)
+
+            nr_parameters_tot = combo_box.count()
+            for i in reversed(
+                list(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot))
+            ):
+                combo_box.removeItem(i)
 
     def _get_active_parameter_config(self):
 
@@ -517,69 +168,30 @@ class MapAnimator(QWidget):
 
         return parameter_config
 
-    def on_activate_button_clicked(self, checked: bool):
-        activate = checked and self.root_tool.ts_datasources.rowCount() > 0
-        self.active = activate
+    def set_activation_state(self, state):
+        self.state = self.activateButton.isChecked()
 
-    @staticmethod
-    def prepare_animation_layer(
-            source_layer: QgsVectorLayer,
-            result_admin: GridH5ResultAdmin,
-            output_layer_name: str,
-            attributes: List[QgsField],
-            groundwater: bool,
-            only_1d: bool,
-            only_2d: bool
-    ):
-        output_layer = copy_layer_into_memory_layer(source_layer, output_layer_name)
-        output_layer.dataProvider().addAttributes(attributes)
-        features = output_layer.getFeatures()
+        if state:
+            if self.root_tool.ts_datasources.rowCount() > 0:
+                self.line_parameter_combo_box.setEnabled(True)
+                self.node_parameter_combo_box.setEnabled(True)
+                self.prepare_animation_layers()
+                self.root_tool.timeslider_widget.sliderReleased.connect(
+                    self.update_results
+                )
 
-        exclude_types = set()
-        reverse_exclude_type_str = 'this string will never occur in any type'
-        if groundwater:
-            exclude_types.update({'2d', '1d', '2d_bound', '1d_bound'})
-            reverse_exclude_type_str = 'v2'
+            # add listeners
+            self.state_connection_set = True
         else:
-            exclude_types.update({"2d_groundwater",
-                                  "2d_groundwater_bound",
-                                  "2d_vertical_infiltration",
-                                  "1d_2d_groundwater"})
-        if only_1d:
-            exclude_types.update({'2d',
-                                  '2d_bound',
-                                  '2d_groundwater',
-                                  '2d_groundwater_bound',
-                                  "2d_vertical_infiltration",
-                                  "1d_2d"})
-        if only_2d:
-            exclude_types.update({'1d', '1d_bound'})
-            reverse_exclude_type_str = 'v2'
-        delete_ids = [
-            f.id()
-            for f in features
-            if f.attribute("type") in exclude_types or reverse_exclude_type_str in f.attribute("type")
-        ]
-        provider = output_layer.dataProvider()
-        provider.deleteFeatures(delete_ids)
-        output_layer.updateFields()
+            self.line_parameter_combo_box.setEnabled(False)
+            self.node_parameter_combo_box.setEnabled(False)
 
-        field_index = output_layer.fields().lookupField('z_coordinate')
-        if field_index != -1:
-            data = result_admin.cells.only('id', 'z_coordinate').data
-            id_z_coordinate_map = dict(zip(data['id'], data['z_coordinate']))
-            update_dict = {}
-            for feature in output_layer.getFeatures():
-                node_id = feature['id']
-                feature_id = feature.id()
-                z_coordinate = float(id_z_coordinate_map[node_id])
-                if node_id in id_z_coordinate_map.keys():
-                    update_dict[feature_id] = {field_index: z_coordinate}
-            provider.changeAttributeValues(update_dict)
+            if self.state_connection_set:
+                # remove listeners
+                self.state_connection_set = False
 
-        return output_layer
+    def prepare_animation_layers(self):
 
-    def prepare_animation_layers(self, progress_bar=None):
         result = self.root_tool.timeslider_widget.active_ts_datasource
 
         if result is None:
@@ -590,267 +202,195 @@ class MapAnimator(QWidget):
             # todo: react on datasource change
             return
 
-        result_admin = result.threedi_result().result_admin
+        line, node, pump = result.get_result_layers()
 
-        line, node, cell, pump = result.get_result_layers(progress_bar=progress_bar)
-        node_attributes = [
-            QgsField("z_coordinate", QVariant.Double),
-            QgsField("initial_value", QVariant.Double),
-            QgsField("result", QVariant.Double)
+        # lines without groundwater results
+        self.line_layer = copy_layer_into_memory_layer(line, "line_results")
+        self.line_layer.dataProvider().addAttributes(
+            [QgsField("result", QVariant.Double)]
+        )
+        features = self.line_layer.getFeatures()
+        ids = [
+            f.id()
+            for f in features
+            if f.attribute("type") == "2d_groundwater"
+            or f.attribute("type") == "1d_2d_groundwater"
         ]
-        line_attributes = [
-            QgsField("initial_value", QVariant.Double),
-            QgsField("result", QVariant.Double)
-        ]
+        self.line_layer.dataProvider().deleteFeatures(ids)
+        self.line_layer.updateFields()
 
-        # update lines without groundwater results
-        # 1d
-        line_layer_1d = self.prepare_animation_layer(
-            source_layer=line,
-            result_admin=result_admin,
-            output_layer_name="Flowlines",
-            attributes=line_attributes,
-            groundwater=False,
-            only_1d=True,
-            only_2d=False
+        # lines with groundwater results
+        self.line_layer_groundwater = copy_layer_into_memory_layer(
+            line, "line_results_groundwater"
+        )
+        self.line_layer_groundwater.dataProvider().addAttributes(
+            [QgsField("result", QVariant.Double)]
+        )
+        features = self.line_layer_groundwater.getFeatures()
+        ids = [
+            f.id()
+            for f in features
+            if f.attribute("type") != "2d_groundwater"
+            and f.attribute("type") != "1d_2d_groundwater"
+        ]
+        self.line_layer_groundwater.dataProvider().deleteFeatures(ids)
+        self.line_layer_groundwater.updateFields()
+
+        # nodes without groundwater results
+        self.node_layer = copy_layer_into_memory_layer(node, "node_results")
+        self.node_layer.dataProvider().addAttributes(
+            [QgsField("result", QVariant.Double)]
+        )
+        features = self.node_layer.getFeatures()
+        ids = [
+            f.id()
+            for f in features
+            if f.attribute("type") == "2d_groundwater"
+            or f.attribute("type") == "2d_groundwater_bound"
+        ]
+        self.node_layer.dataProvider().deleteFeatures(ids)
+        self.node_layer.updateFields()
+
+        # nodes with groundwater results
+        self.node_layer_groundwater = copy_layer_into_memory_layer(
+            node, "node_results_groundwater"
+        )
+        self.node_layer_groundwater.dataProvider().addAttributes(
+            [QgsField("result", QVariant.Double)]
+        )
+        features = self.node_layer_groundwater.getFeatures()
+        ids = [
+            f.id()
+            for f in features
+            if f.attribute("type") != "2d_groundwater"
+            and f.attribute("type") != "2d_groundwater_bound"
+        ]
+        self.node_layer_groundwater.dataProvider().deleteFeatures(ids)
+        self.node_layer_groundwater.updateFields()
+
+        # todo: add this layers to the correct location
+        self.line_layer.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                os.path.pardir,
+                "layer_styles",
+                "tools",
+                "line_discharge.qml",
+            )
         )
 
-        line_layer_2d = self.prepare_animation_layer(
-            source_layer=line,
-            result_admin=result_admin,
-            output_layer_name="Flowlines",
-            attributes=line_attributes,
-            groundwater=False,
-            only_1d=False,
-            only_2d=True
+        self.line_layer_groundwater.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                os.path.pardir,
+                "layer_styles",
+                "tools",
+                "line_groundwater_velocity.qml",
+            )
         )
 
-        # update lines with groundwater results
-        if result_admin.has_groundwater:
-            line_layer_groundwater = self.prepare_animation_layer(
-                source_layer=line,
-                result_admin=result_admin,
-                output_layer_name="Groundwater: Flowlines",
-                attributes=line_attributes,
-                groundwater=True,
-                only_1d=False,
-                only_2d=False
+        self.node_layer.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                os.path.pardir,
+                "layer_styles",
+                "tools",
+                "node_waterlevel_diff.qml",
             )
+        )
 
-        # update nodes without groundwater results
-        node_layer = self.prepare_animation_layer(
-                source_layer=node,
-                result_admin=result_admin,
-                output_layer_name="Nodes",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=True,
-                only_2d=False
+        self.node_layer_groundwater.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                os.path.pardir,
+                "layer_styles",
+                "tools",
+                "node_groundwaterlevel_diff.qml",
             )
-        # node_layer.setSubsetString("type IN ('1d', '1d_bound')")
-
-        # update nodes with groundwater results
-        if result_admin.has_groundwater:
-            node_layer_groundwater = self.prepare_animation_layer(
-                source_layer=node,
-                result_admin=result_admin,
-                output_layer_name="Groundwater: Nodes",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=True,
-                only_2d=False
-            )
-            # node_layer_groundwater.setSubsetString("type IN ('1d', '1d_bound')")
-
-        # update cells without groundwater results
-        cell_layer = self.prepare_animation_layer(
-                source_layer=cell,
-                result_admin=result_admin,
-                output_layer_name="Cells",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=False,
-                only_2d=True  # doesn't matter in fact, source layer already containts only 2d
-            )
-
-        # update cells with groundwater results
-        if result_admin.has_groundwater:
-            cell_layer_groundwater = self.prepare_animation_layer(
-                source_layer=cell,
-                result_admin=result_admin,
-                output_layer_name="Groundwater: Cells",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=False,
-                only_2d=True  # doesn't matter in fact, source layer already containts only 2d
-            )
-
-        self.style_layers(style_lines=True, style_nodes=True)
+        )
 
         root = QgsProject.instance().layerTreeRoot()
 
-        animation_group_name = "3Di Animation Layers"
-        if self.animation_group is None:
-            animation_group = root.findGroup(animation_group_name)
-            if animation_group is None:
-                animation_group = root.insertGroup(0, animation_group_name)
-        else:
-            animation_group = self.animation_group
-        animation_group.removeAllChildren()  # TODO: do not remove child layers put there by the user
-        subgroup_2d = animation_group.insertGroup(0, '2D and domain exchange')
-        subgroup_1d = animation_group.insertGroup(0, '1D')
+        animation_group_name = "animation_layers"
+        animation_group = root.findGroup(animation_group_name)
+        if animation_group is None:
+            animation_group = root.insertGroup(0, animation_group_name)
+        animation_group.removeAllChildren()
 
-        QgsProject.instance().addMapLayer(line_layer_1d, False)
-        QgsProject.instance().addMapLayer(line_layer_2d, False)
-        QgsProject.instance().addMapLayer(node_layer, False)
-        QgsProject.instance().addMapLayer(cell_layer, False)
-        if result_admin.has_groundwater:
-            QgsProject.instance().addMapLayer(line_layer_groundwater, False)
-            QgsProject.instance().addMapLayer(node_layer_groundwater, False)
+        QgsProject.instance().addMapLayer(self.line_layer, False)
+        QgsProject.instance().addMapLayer(self.line_layer_groundwater, False)
+        QgsProject.instance().addMapLayer(self.node_layer, False)
+        QgsProject.instance().addMapLayer(self.node_layer_groundwater, False)
 
-        if result_admin.has_groundwater:
-            # 1D group
-            subgroup_1d.insertLayer(0, node_layer_groundwater)
-            self.node_layer_groundwater = node_layer_groundwater
+        animation_group.insertLayer(0, self.line_layer)
+        animation_group.insertLayer(1, self.line_layer_groundwater)
+        animation_group.insertLayer(2, self.node_layer)
+        animation_group.insertLayer(3, self.node_layer_groundwater)
 
-            # 2D group
-            subgroup_2d.insertLayer(0, cell_layer_groundwater)
-            self.cell_layer_groundwater = cell_layer_groundwater
-            subgroup_2d.insertLayer(0, line_layer_groundwater)
-            self.line_layer_groundwater = line_layer_groundwater
-
-        # 1D group
-        subgroup_1d.insertLayer(0, line_layer_1d)
-        self.line_layer_1d = line_layer_1d
-        subgroup_1d.insertLayer(0, node_layer)
-        self.node_layer = node_layer
-
-        # 2D group
-        subgroup_2d.insertLayer(0, cell_layer)
-        self.cell_layer = cell_layer
-        subgroup_2d.insertLayer(0, line_layer_2d)
-        self.line_layer_2d = line_layer_2d
-
-        self.subgroup_1d = subgroup_1d
-        self.subgroup_2d = subgroup_2d
-        self.animation_group = animation_group
-
-    def remove_animation_layers(self):
-        """Remove animation layers and remove group if it is empty"""
-        if self.animation_group is not None:
-            project = QgsProject.instance()
-            for lyr in (self.line_layer_1d, self.line_layer_2d, self.node_layer, self.cell_layer,
-                        self.line_layer_groundwater, self.node_layer_groundwater, self.cell_layer_groundwater):
-                if lyr is not None:
-                    project.removeMapLayer(lyr)
-            self.line_layer_1d = None
-            self.line_layer_2d = None
-            self.node_layer = None
-            self.cell_layer = None
-            self.node_layer_groundwater = None
-            self.line_layer_groundwater = None
-            self.cell_layer_groundwater = None
-
-            if len(self.subgroup_1d.children()) == 0:
-                # ^^^ to prevent deleting the group when a user has added other layers into it
-                self.animation_group.removeChildNode(self.subgroup_1d)
-                self.subgroup_1d = None
-
-            if len(self.subgroup_2d.children()) == 0:
-                # ^^^ to prevent deleting the group when a user has added other layers into it
-                self.animation_group.removeChildNode(self.subgroup_2d)
-                self.subgroup_2d = None
-
-            if len(self.animation_group.children()) == 0:
-                # ^^^ to prevent deleting the group when a user has added other layers into it
-                QgsProject.instance().layerTreeRoot().removeChildNode(self.animation_group)
-                self.animation_group = None
-
-    def update_results(self, update_nodes: bool, update_lines: bool):
-        """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
-
-        if not self.active:
+    def update_results(self):
+        if not self.state:
             return
 
         result = self.root_tool.timeslider_widget.active_ts_datasource
+
         timestep_nr = self.root_tool.timeslider_widget.value()
+
         threedi_result = result.threedi_result()
 
-        layers_to_update = []
-        if update_nodes:
-            layers_to_update.append((self.node_layer, self.current_node_parameter))
-            layers_to_update.append((self.cell_layer, self.current_node_parameter))
-            if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append((self.node_layer_groundwater, self.current_node_parameter))
-                layers_to_update.append((self.cell_layer_groundwater, self.current_node_parameter))
-        if update_lines:
-            layers_to_update.append((self.line_layer_1d, self.current_line_parameter))
-            layers_to_update.append((self.line_layer_2d, self.current_line_parameter))
-            if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append((self.line_layer_groundwater, self.current_line_parameter))
+        for layer, parameter, stat in (
+            (self.node_layer, self.current_node_parameter["parameters"], "diff"),
+            (self.line_layer, self.current_line_parameter["parameters"], "act"),
+            (
+                self.node_layer_groundwater,
+                self.current_node_parameter["parameters"],
+                "diff",
+            ),
+            (
+                self.line_layer_groundwater,
+                self.current_line_parameter["parameters"],
+                "act",
+            ),
+        ):  # updated to act for actual, display actual value
 
-        for layer, parameter_config in layers_to_update:
-            if layer is not None:
-                provider = layer.dataProvider()
-                parameter = parameter_config['parameters']
-                parameter_long_name = parameter_config['name']
-                parameter_units = parameter_config['unit']
-                values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
-                values_ti = threedi_result.get_values_by_timestep_nr(parameter, timestep_nr)
+            provider = layer.dataProvider()
 
-                if isinstance(values_t0, np.ma.MaskedArray):
-                    values_t0 = values_t0.filled(np.NaN)
-                if isinstance(values_ti, np.ma.MaskedArray):
-                    values_ti = values_ti.filled(np.NaN)
+            values = threedi_result.get_values_by_timestep_nr(parameter, timestep_nr)
+            if isinstance(values, np.ma.MaskedArray):
+                values = values.filled(np.NaN)
+            if stat == "diff":
+                values = values - threedi_result.get_values_by_timestep_nr(parameter, 0)
+            # updated to act for actual, display actual value
+            elif stat == "act":
+                values = values  # removed np.fabs(values) to get actual value
 
-                # I suspect the two lines above intend to do the same as the two (new) lines below, but the lines above
-                # don't work. Perhaps issue should be solved in threedigrid? [LvW]
-                if parameter == WATERLEVEL.name:
-                    # dry cells have a NO_DATA_VALUE water level
-                    values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
-                    values_ti[values_ti == NO_DATA_VALUE] = np.NaN
+            update_dict = {}
+            field_index = layer.fields().lookupField("result")
 
-                update_dict = {}
-                t0_field_index = layer.fields().lookupField("initial_value")
-                ti_field_index = layer.fields().lookupField("result")
+            for feature in layer.getFeatures():
+                ids = int(feature.id())
+                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+                # groundwater because those indexes start from 1 (something to
+                # do with a trash element), but for the non-groundwater version
+                # it is not. HOWEVER, due to some magic hackery in how the
+                # *_result layers are created/copied from the regular result
+                # layers, the resulting feature ids also start from 1, which
+                # why we need to subtract it in both cases, which btw is
+                # purely coincidental.
+                # TODO: to avoid all this BS this part should be refactored
+                # by passing the index to get_values_by_timestep_nr, which
+                # should take this into account
+                value = values[ids - 1]
+                update_dict[ids] = {field_index: float(value)}
 
-                for feature in layer.getFeatures():
-                    fields_values_map = {}
-                    ids = int(feature.id())
-                    # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
-                    # groundwater because those indexes start from 1 (something to
-                    # do with a trash element), but for the non-groundwater version
-                    # it is not. HOWEVER, due to some magic hackery in how the
-                    # *_result layers are created/copied from the regular result
-                    # layers, the resulting feature ids also start from 1, which
-                    # why we need to subtract it in both cases, which btw is
-                    # purely coincidental.
-                    # TODO: to avoid all this BS this part should be refactored
-                    # by passing the index to get_values_by_timestep_nr, which
-                    # should take this into account
-                    value_t0 = float(values_t0[ids - 1])
-                    if isnan(value_t0):
-                        value_t0 = NULL
-                    value_ti = float(values_ti[ids - 1])
-                    if isnan(value_ti):
-                        value_ti = NULL
-                    update_dict[ids] = {t0_field_index: value_t0, ti_field_index: value_ti}
+            provider.changeAttributeValues(update_dict)
+            # layer.setCacheImage(None)
+            layer.triggerRepaint()
 
-                provider.changeAttributeValues(update_dict)
+    def activate_animator(self):
+        pass
 
-                if self.difference_checkbox.isChecked() and layer in (
-                        self.node_layer,
-                        self.node_layer_groundwater,
-                        self.cell_layer,
-                        self.cell_layer_groundwater
-                ):
-                    layer_name_postfix = 'relative to t0'
-                else:
-                    layer_name_postfix = 'current timestep'
-                layer_name = f'{parameter_long_name} [{parameter_units}] ({layer_name_postfix})'
-
-                layer.setName(layer_name)
-                layer.triggerRepaint()
+    def deactivate_animator(self):
+        pass
 
     def setup_ui(self):
         self.HLayout = QHBoxLayout(self)
@@ -861,36 +401,7 @@ class MapAnimator(QWidget):
         self.HLayout.addWidget(self.activateButton)
 
         self.line_parameter_combo_box = QComboBox(self)
-        self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.line_parameter_combo_box.setToolTip('Choose flowline variable to display')
-        self.HLayout.addWidget(self.line_parameter_combo_box)
-
-        hline1 = QFrame()
-        hline1.setFrameShape(QFrame.VLine)
-        hline1.setFrameShadow(QFrame.Sunken)
-        self.HLayout.addWidget(hline1)
-
         self.node_parameter_combo_box = QComboBox(self)
-        self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.node_parameter_combo_box.setToolTip('Choose node variable to display')
+
+        self.HLayout.addWidget(self.line_parameter_combo_box)
         self.HLayout.addWidget(self.node_parameter_combo_box)
-
-        self.difference_checkbox = QCheckBox(self)
-        self.difference_checkbox.setToolTip('Display difference relative to simulation start (nodes only)')
-        self.difference_label = QLabel(self)
-        self.difference_label.setText('Relative')
-        self.difference_label.setToolTip('Display difference relative to simulation start (nodes only)')
-        self.HLayout.addWidget(self.difference_checkbox)
-        self.HLayout.addWidget(self.difference_label)
-
-        hline2 = QFrame()
-        hline2.setFrameShape(QFrame.VLine)
-        hline2.setFrameShadow(QFrame.Sunken)
-        self.HLayout.addWidget(hline2)
-
-        # connect to signals
-        self.activateButton.clicked.connect(self.on_activate_button_clicked)
-        self.line_parameter_combo_box.currentIndexChanged.connect(self.on_line_parameter_change)
-        self.node_parameter_combo_box.currentIndexChanged.connect(self.on_node_parameter_change)
-        self.difference_checkbox.stateChanged.connect(self.on_difference_checkbox_state_change)
-        self.root_tool.timeslider_widget.datasource_changed.connect(self.on_datasource_change)

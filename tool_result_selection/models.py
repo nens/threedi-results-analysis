@@ -6,12 +6,9 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import (
-    get_or_create_cell_layer,
-    get_or_create_flowline_layer,
-    get_or_create_node_layer,
-    get_or_create_pumpline_layer
-)
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
@@ -110,7 +107,6 @@ class DatasourceLayerHelper(object):
         # The following three are caches for self.get_result_layers()
         self._line_layer = None
         self._node_layer = None
-        self._cell_layer = None
         self._pumpline_layer = None
 
     @cached_property
@@ -125,25 +121,21 @@ class DatasourceLayerHelper(object):
 
         """
         if progress_bar is None:
-            progress_bar = StatusProgressBar(100, "3Di Toolbox")
-        progress_bar.increase_progress(0, "Create flowline layer")
+            progress_bar = StatusProgressBar(100, "create gridadmin.sqlite")
+        progress_bar.increase_progress(0, "create flowline layer")
+        progress_bar.increase_progress(33, "create node layer")
         self._line_layer = self._line_layer or get_or_create_flowline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(25, "Create node layer")
+        progress_bar.increase_progress(33, "create pumplayer layer")
         self._node_layer = self._node_layer or get_or_create_node_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(25, "Create cell layer")
-        self._cell_layer = self._cell_layer or get_or_create_cell_layer(
-            self.threedi_result, self.sqlite_gridadmin_filepath
-        )
-        progress_bar.increase_progress(25, "Create pumpline layer")
+        progress_bar.increase_progress(34, "done")
         self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
-        progress_bar.increase_progress(25, "Processing...")
-        return [self._line_layer, self._node_layer, self._cell_layer, self._pumpline_layer]
+        return [self._line_layer, self._node_layer, self._pumpline_layer]
 
 
 class TimeseriesDatasourceModel(BaseModel):
@@ -204,8 +196,8 @@ class TimeseriesDatasourceModel(BaseModel):
             # Note: this is the older sqlite gridadmin, not the newer gridadmin.h5!
             return self.datasource_layer_helper.sqlite_gridadmin_filepath
 
-        def get_result_layers(self, progress_bar=None):
-            return self.datasource_layer_helper.get_result_layers(progress_bar=progress_bar)
+        def get_result_layers(self):
+            return self.datasource_layer_helper.get_result_layers()
 
     def reset(self):
         self.removeRows(0, self.rowCount())

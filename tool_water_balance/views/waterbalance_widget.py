@@ -1196,7 +1196,7 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_lower)
 
     def get_wb_result_layers(self):
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
         return lines, points, pumps
 
     def get_wb_polygon(self):

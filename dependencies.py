@@ -41,7 +41,7 @@ DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
-    Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
+    Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1"),
     Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.11"),

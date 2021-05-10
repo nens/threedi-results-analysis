@@ -5,7 +5,6 @@ from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtWidgets import QProgressBar
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.utils import iface
 
 
@@ -68,11 +67,10 @@ class StatusProgressBar(object):
 
         self.message_bar.layout().addWidget(self.progress_bar)
         if iface is not None:
-            iface.messageBar().pushWidget(self.message_bar, Qgis.Info)
+            iface.messageBar().pushWidget(self.message_bar, Qgis.MessageLevel())
 
         self.step_size = 1
         self.progress = 0
-        iface.mainWindow().repaint()
 
     def set_step_size(self, step_size):
 
@@ -84,7 +82,6 @@ class StatusProgressBar(object):
         self.progress_bar.setValue(self.progress)
         if message:
             self.message_bar.setText(message)
-        QApplication.processEvents()
 
     def __del__(self):
         if iface is not None:

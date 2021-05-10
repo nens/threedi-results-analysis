@@ -16,7 +16,6 @@ class TimesliderWidget(QSlider):
             which provides the hook by which you can manipulate the QGIS
             application at run time.
         :type iface: QgsInterface
-        :type ts_datasources: TimeseriesDatasourceModel
         """
         # Save reference to the QGIS interface
         super().__init__(Qt.Horizontal)

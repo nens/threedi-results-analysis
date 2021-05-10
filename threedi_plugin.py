@@ -18,8 +18,6 @@ from ThreeDiToolbox.tool_statistics import StatisticsTool
 from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from ThreeDiToolbox.utils import color
-from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
 import logging
@@ -62,11 +60,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
 
         self.timeslider_widget = TimesliderWidget(self.iface, self.ts_datasources)
-        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
-
         self.lcd = QLCDNumber()
         self.lcd.setToolTip('Time format: "days hours:minutes"')
-        self.lcd.setSegmentStyle(QLCDNumber.Flat)
+        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
 
@@ -105,10 +101,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Processing Toolbox scripts
         self.provider = None
-
-        # Styling
-        for color_ramp in color.COLOR_RAMPS:
-            styler.add_color_ramp(color_ramp)
 
     def add_action(
         self,
@@ -217,11 +209,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.check_status_model_and_results()
 
-    def update_slider_enabled_state(self):
-        timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
-        self.timeslider_widget.setEnabled(timeslider_needed)
-        self.lcd.setEnabled(timeslider_needed)
-
     def on_slider_change(self, time_index):
         """Callback for slider valueChanged signal.
 
@@ -262,12 +249,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.ts_datasources.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
-            self.map_animator_widget.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
-            self.map_animator_widget.active = False
-            self.map_animator_widget.setEnabled(False)
+
         if (
             self.ts_datasources.rowCount() > 0
             and self.ts_datasources.model_spatialite_filepath is not None
