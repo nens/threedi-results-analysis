@@ -51,6 +51,11 @@ import os
 logger = logging.getLogger(__name__)
 
 
+class PercentileError(ValueError):
+    """Raised when calculation of percentiles resulted in NaN"""
+    pass
+
+
 def copy_layer_into_memory_layer(source_layer, layer_name):
     source_provider = source_layer.dataProvider()
 
@@ -73,6 +78,7 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
 
 def threedi_result_percentiles(
         gr: GridH5ResultAdmin,
+        groundwater: bool,
         variable: str,
         percentile: Union[float, Iterable],
         absolute: bool,
@@ -87,7 +93,9 @@ def threedi_result_percentiles(
     nodatavalues in the water level timeseries (i.e., dry nodes)
     will be replaced by the node's bottom level (z-coordinate)
 
+
     :param gr: GridH5ResultAdmin
+    :param groundwater: calculate percentiles for groundwater (True) or anything but groundwater (False)
     :param variable: one of ThreeDiToolbox.datasource.result_constants.SUBGRID_MAP_VARIABLES,
     with the exception of q_pump
     :param percentile: Percentile or sequence of class_bounds to compute, which must be between 0 and 100 inclusive.
@@ -97,11 +105,19 @@ def threedi_result_percentiles(
     :param nodatavalue: ignore these values
     """
     if variable in Q_TYPES:
-        nodes_or_lines = gr.lines
+        if groundwater:
+            nodes_or_lines = gr.lines.filter(kcu__in=[-150, 150])
+        else:
+            nodes_or_lines = gr.lines.filter(kcu__ne=-150).filter(kcu__ne=150)
     elif variable in H_TYPES:
-        nodes_or_lines = gr.nodes
-        if variable == WATERLEVEL.name and relative_to_t0:
-            z_coordinates = gr.cells.z_coordinate
+        if groundwater:
+            nodes_or_lines = gr.nodes.filter(node_type__in=[2, 6])
+            if variable == WATERLEVEL.name and relative_to_t0:
+                z_coordinates = gr.cells.filter(node_type__in=[2, 6]).z_coordinate
+        else:
+            nodes_or_lines = gr.nodes.filter(node_type__ne=2).filter(node_type__ne=6)
+            if variable == WATERLEVEL.name and relative_to_t0:
+                z_coordinates = gr.cells.filter(node_type__ne=2).filter(node_type__ne=6).z_coordinate
     else:
         raise ValueError('unknown variable')
 
@@ -122,6 +138,8 @@ def threedi_result_percentiles(
             values[np.isnan(values)] = z_coordinates_tiled[np.isnan(values)]
         values -= values_t0
     values_above_threshold = values[values > lower_threshold]
+    if np.isnan(values_above_threshold).all():
+        raise PercentileError
     np_percentiles = np.nanpercentile(values_above_threshold, percentile)
     if isinstance(np_percentiles, np.ndarray):
         result = list(map(float, np_percentiles))
@@ -129,9 +147,11 @@ def threedi_result_percentiles(
         result = float(np_percentiles)
     return result
 
+
 class MapAnimator(QWidget):
     """
     """
+    EMPTY_CLASS_BOUNDS = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
 
     def __init__(self, parent, iface, root_tool):
 
@@ -142,10 +162,13 @@ class MapAnimator(QWidget):
         self.line_parameters = {}
         self.current_node_parameter = None
         self.current_line_parameter = None
-        self.line_parameter_class_bounds = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
-        self.node_parameter_class_bounds = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
+        self.line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        self.node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        self.groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        self.groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         self.subgroup_1d = None
         self.subgroup_2d = None
+        self.subgroup_groundwater = None
         self._animation_group = None
 
         # layers: store only layer id str to avoid keeping reference to deleted C++ object
@@ -324,7 +347,7 @@ class MapAnimator(QWidget):
             if has_groundwater:
                 styler.style_animation_flowline_current(
                     self.line_layer_groundwater,
-                    self.line_parameter_class_bounds,
+                    self.groundwater_line_parameter_class_bounds,
                     self.current_line_parameter['parameters']
                 )
 
@@ -344,16 +367,10 @@ class MapAnimator(QWidget):
                     cells=True
                 )
                 if has_groundwater:
-                    # nodes
-                    styler.style_animation_node_difference(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters']
-                    )
                     # cells
                     styler.style_animation_node_difference(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
+                        self.cell_layer_groundwater,
+                        self.groundwater_node_parameter_class_bounds,
                         self.current_node_parameter['parameters'],
                         cells=True
                     )
@@ -372,16 +389,10 @@ class MapAnimator(QWidget):
                     cells=True
                 )
                 if has_groundwater:
-                    # nodes
-                    styler.style_animation_node_current(
-                        self.node_layer_groundwater,
-                        self.node_parameter_class_bounds,
-                        self.current_node_parameter['parameters']
-                    )
                     # cells
                     styler.style_animation_node_current(
                         self.cell_layer_groundwater,
-                        self.node_parameter_class_bounds,
+                        self.groundwater_node_parameter_class_bounds,
                         self.current_node_parameter['parameters'],
                         cells=True
                     )
@@ -439,24 +450,60 @@ class MapAnimator(QWidget):
             else:
                 lower_threshold = 0
 
-            self.node_parameter_class_bounds = threedi_result_percentiles(
-                gr=gr,
-                variable=self.current_node_parameter["parameters"],
-                percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
-                absolute=False,
-                lower_threshold=lower_threshold,
-                relative_to_t0=self.difference_checkbox.isChecked()
-            )
+            try:
+                self.node_parameter_class_bounds = threedi_result_percentiles(
+                    gr=gr,
+                    groundwater=False,
+                    variable=self.current_node_parameter["parameters"],
+                    percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
+                    absolute=False,
+                    lower_threshold=lower_threshold,
+                    relative_to_t0=self.difference_checkbox.isChecked()
+                )
+            except PercentileError:
+                self.node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+
+            if gr.has_groundwater:
+                try:
+                    self.groundwater_node_parameter_class_bounds = threedi_result_percentiles(
+                        gr=gr,
+                        groundwater=True,
+                        variable=self.current_node_parameter["parameters"],
+                        percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
+                        absolute=False,
+                        lower_threshold=lower_threshold,
+                        relative_to_t0=self.difference_checkbox.isChecked()
+                    )
+                except PercentileError:
+                    self.groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
 
         if update_lines:
-            self.line_parameter_class_bounds = threedi_result_percentiles(
-                gr=gr,
-                variable=self.current_line_parameter["parameters"],
-                percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
-                absolute=True,
-                lower_threshold=float(0),
-                relative_to_t0=self.difference_checkbox.isChecked()
-            )
+            try:
+                self.line_parameter_class_bounds = threedi_result_percentiles(
+                    gr=gr,
+                    groundwater=False,
+                    variable=self.current_line_parameter["parameters"],
+                    percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
+                    absolute=True,
+                    lower_threshold=float(0),
+                    relative_to_t0=self.difference_checkbox.isChecked()
+                )
+            except PercentileError:
+                self.line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+
+            if gr.has_groundwater:
+                try:
+                    self.groundwater_line_parameter_class_bounds = threedi_result_percentiles(
+                        gr=gr,
+                        groundwater=True,
+                        variable=self.current_line_parameter["parameters"],
+                        percentile=list(range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))) + [100],
+                        absolute=True,
+                        lower_threshold=float(0),
+                        relative_to_t0=self.difference_checkbox.isChecked()
+                    )
+                except PercentileError:
+                    self.groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
 
     def fill_parameter_combobox_items(self):
         """
@@ -538,7 +585,7 @@ class MapAnimator(QWidget):
         exclude_types = set()
         reverse_exclude_type_str = 'this string will never occur in any type'
         if groundwater:
-            exclude_types.update({'2d', '1d', '2d_bound', '1d_bound'})
+            exclude_types.update({'2d', '1d', '2d_bound', '1d_bound', '1d_2d'})
             reverse_exclude_type_str = 'v2'
         else:
             exclude_types.update({"2d_groundwater",
@@ -630,7 +677,7 @@ class MapAnimator(QWidget):
             line_layer_groundwater = self.prepare_animation_layer(
                 source_layer=line,
                 result_admin=result_admin,
-                output_layer_name="Groundwater: Flowlines",
+                output_layer_name="Flowlines",
                 attributes=line_attributes,
                 groundwater=True,
                 only_1d=False,
@@ -638,49 +685,36 @@ class MapAnimator(QWidget):
             )
 
         # update nodes without groundwater results
+        # NB: there is no 1D groundwater, so no groundwater nodes layer
         node_layer = self.prepare_animation_layer(
-                source_layer=node,
-                result_admin=result_admin,
-                output_layer_name="Nodes",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=True,
-                only_2d=False
-            )
-        # node_layer.setSubsetString("type IN ('1d', '1d_bound')")
-
-        # update nodes with groundwater results
-        if result_admin.has_groundwater:
-            node_layer_groundwater = self.prepare_animation_layer(
-                source_layer=node,
-                result_admin=result_admin,
-                output_layer_name="Groundwater: Nodes",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=True,
-                only_2d=False
-            )
-            # node_layer_groundwater.setSubsetString("type IN ('1d', '1d_bound')")
+            source_layer=node,
+            result_admin=result_admin,
+            output_layer_name="Nodes",
+            attributes=node_attributes,
+            groundwater=False,
+            only_1d=True,
+            only_2d=False
+        )
 
         # update cells without groundwater results
         cell_layer = self.prepare_animation_layer(
-                source_layer=cell,
-                result_admin=result_admin,
-                output_layer_name="Cells",
-                attributes=node_attributes,
-                groundwater=False,
-                only_1d=False,
-                only_2d=True  # doesn't matter in fact, source layer already containts only 2d
-            )
+            source_layer=cell,
+            result_admin=result_admin,
+            output_layer_name="Cells",
+            attributes=node_attributes,
+            groundwater=False,
+            only_1d=False,
+            only_2d=True  # doesn't matter in fact, source layer already containts only 2d
+        )
 
         # update cells with groundwater results
         if result_admin.has_groundwater:
             cell_layer_groundwater = self.prepare_animation_layer(
                 source_layer=cell,
                 result_admin=result_admin,
-                output_layer_name="Groundwater: Cells",
+                output_layer_name="Cells",
                 attributes=node_attributes,
-                groundwater=False,
+                groundwater=True,
                 only_1d=False,
                 only_2d=True  # doesn't matter in fact, source layer already containts only 2d
             )
@@ -697,6 +731,8 @@ class MapAnimator(QWidget):
         else:
             animation_group = self.animation_group
         animation_group.removeAllChildren()  # TODO: do not remove child layers put there by the user
+        if result_admin.has_groundwater:
+            subgroup_groundwater = animation_group.insertGroup(0, 'Groundwater')
         subgroup_2d = animation_group.insertGroup(0, '2D and domain exchange')
         subgroup_1d = animation_group.insertGroup(0, '1D')
 
@@ -706,18 +742,7 @@ class MapAnimator(QWidget):
         QgsProject.instance().addMapLayer(cell_layer, False)
         if result_admin.has_groundwater:
             QgsProject.instance().addMapLayer(line_layer_groundwater, False)
-            QgsProject.instance().addMapLayer(node_layer_groundwater, False)
-
-        if result_admin.has_groundwater:
-            # 1D group
-            subgroup_1d.insertLayer(0, node_layer_groundwater)
-            self.node_layer_groundwater = node_layer_groundwater
-
-            # 2D group
-            subgroup_2d.insertLayer(0, cell_layer_groundwater)
-            self.cell_layer_groundwater = cell_layer_groundwater
-            subgroup_2d.insertLayer(0, line_layer_groundwater)
-            self.line_layer_groundwater = line_layer_groundwater
+            QgsProject.instance().addMapLayer(cell_layer_groundwater, False)
 
         # 1D group
         subgroup_1d.insertLayer(0, line_layer_1d)
@@ -731,8 +756,16 @@ class MapAnimator(QWidget):
         subgroup_2d.insertLayer(0, line_layer_2d)
         self.line_layer_2d = line_layer_2d
 
+        # Groundwater group
+        if result_admin.has_groundwater:
+            subgroup_groundwater.insertLayer(0, cell_layer_groundwater)
+            self.cell_layer_groundwater = cell_layer_groundwater
+            subgroup_groundwater.insertLayer(0, line_layer_groundwater)
+            self.line_layer_groundwater = line_layer_groundwater
+
         self.subgroup_1d = subgroup_1d
         self.subgroup_2d = subgroup_2d
+        self.subgroup_groundwater = subgroup_groundwater
         self.animation_group = animation_group
 
     def remove_animation_layers(self):
@@ -760,6 +793,11 @@ class MapAnimator(QWidget):
                 # ^^^ to prevent deleting the group when a user has added other layers into it
                 self.animation_group.removeChildNode(self.subgroup_2d)
                 self.subgroup_2d = None
+
+            if len(self.subgroup_groundwater.children()) == 0:
+                # ^^^ to prevent deleting the group when a user has added other layers into it
+                self.animation_group.removeChildNode(self.subgroup_groundwater)
+                self.subgroup_groundwater = None
 
             if len(self.animation_group.children()) == 0:
                 # ^^^ to prevent deleting the group when a user has added other layers into it
