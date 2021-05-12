@@ -749,12 +749,14 @@ class MapAnimator(QWidget):
         self.line_layer_1d = line_layer_1d
         subgroup_1d.insertLayer(0, node_layer)
         self.node_layer = node_layer
+        self.subgroup_1d = subgroup_1d
 
         # 2D group
         subgroup_2d.insertLayer(0, cell_layer)
         self.cell_layer = cell_layer
         subgroup_2d.insertLayer(0, line_layer_2d)
         self.line_layer_2d = line_layer_2d
+        self.subgroup_2d = subgroup_2d
 
         # Groundwater group
         if result_admin.has_groundwater:
@@ -762,10 +764,8 @@ class MapAnimator(QWidget):
             self.cell_layer_groundwater = cell_layer_groundwater
             subgroup_groundwater.insertLayer(0, line_layer_groundwater)
             self.line_layer_groundwater = line_layer_groundwater
+            self.subgroup_groundwater = subgroup_groundwater
 
-        self.subgroup_1d = subgroup_1d
-        self.subgroup_2d = subgroup_2d
-        self.subgroup_groundwater = subgroup_groundwater
         self.animation_group = animation_group
 
     def remove_animation_layers(self):
