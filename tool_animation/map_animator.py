@@ -794,10 +794,11 @@ class MapAnimator(QWidget):
                 self.animation_group.removeChildNode(self.subgroup_2d)
                 self.subgroup_2d = None
 
-            if len(self.subgroup_groundwater.children()) == 0:
-                # ^^^ to prevent deleting the group when a user has added other layers into it
-                self.animation_group.removeChildNode(self.subgroup_groundwater)
-                self.subgroup_groundwater = None
+            if self.subgroup_groundwater is not None:
+                if len(self.subgroup_groundwater.children()) == 0:
+                    # ^^^ to prevent deleting the group when a user has added other layers into it
+                    self.animation_group.removeChildNode(self.subgroup_groundwater)
+                    self.subgroup_groundwater = None
 
             if len(self.animation_group.children()) == 0:
                 # ^^^ to prevent deleting the group when a user has added other layers into it
