@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.19 (unreleased)
+1.19 (2021-05-21)
 -----------------
 
 - Update to modeler interface: qgis 3.16.7 and threedi-api-qgis-client 2.4.1. (No changes
