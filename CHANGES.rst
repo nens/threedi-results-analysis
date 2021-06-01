@@ -1,10 +1,27 @@
 ThreeDiToolBox changelog
 ========================
 
-1.18 (unreleased)
+1.20 (unreleased)
 -----------------
 
 - Nothing changed yet.
+
+
+1.19 (2021-05-21)
+-----------------
+
+- Update to modeler interface: qgis 3.16.7 and threedi-api-qgis-client 2.4.1. (No changes
+  to ThreeDiToolBox itself!)
+
+
+1.18 (2021-04-22)
+-----------------
+
+- Adjusted dependencies for new threedi-modelchecker release.
+
+- Installing bundled dependencies should no longer fetch newer releases 
+  from pypi, but stick to what we bundle in our external-dependencies
+  directory.
 
 
 1.17 (2021-04-01)
