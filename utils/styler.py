@@ -18,21 +18,22 @@ import numpy as np
 import os
 
 
-logger = logging.getLogger(__name__)
-
 STYLES_ROOT = Path(__file__).parent.parent / "layer_styles"
 ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
 assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
 
+logger = logging.getLogger(__name__)
+
 
 def color_ramp_from_data(data: ColorRampData):
+    assert len(data.colors) >= 2, "A color ramp needs at least three colors"
     color1 = QColor(data.colors[0])
     color2 = QColor(data.colors[-1])
     stops = []
-    for i, color in enumerate(data.colors[1:-1]):
-        stop = QgsGradientStop((i + 1) / (len(data.colors) - 1), QColor(color))
-        stops.append(stop)
-
+    if len(data.colors) > 2:
+        for i, color in enumerate(data.colors[1:-1]):
+            stop = QgsGradientStop((i + 1) / (len(data.colors) - 1), QColor(color))
+            stops.append(stop)
     ramp = QgsGradientColorRamp(color1=color1, color2=color2, stops=stops)
     ramp.setInfo(data.info)
     return ramp
@@ -53,33 +54,33 @@ def style_animation_flowline_current(
     # Load basic style settings from qml file
     qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "flowline_current.qml"
     lyr.loadNamedStyle(str(qml_path))
-    ren = lyr.renderer()
+    renderer = lyr.renderer()
 
     # Set correct legend symbol rotation
-    sym = ren.sourceSymbol().clone()
+    symbol = renderer.sourceSymbol().clone()
     if variable == WET_CROSS_SECTION_AREA.name:
-        sym.deleteSymbolLayer(1)
+        symbol.deleteSymbolLayer(1)
         max_symbol_size = 1.5
     else:
-        sym.symbolLayers()[1].setSymbolAngle(90)
+        symbol.symbolLayers()[1].setSymbolAngle(90)
         max_symbol_size = 2.5
-    ren.updateSymbols(sym)
+    renderer.updateSymbols(symbol)
 
     # Set classes and colors
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_DEEP)
-    ren.deleteAllClasses()
+    renderer.deleteAllClasses()
     nr_classes = len(class_bounds) - 1
     for i in range(nr_classes):
-        ren.addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
+        renderer.addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
         class_middle = (class_bounds[i] + class_bounds[i + 1]) / 2
-        sym = ren.symbolForValue(class_middle).clone()
+        symbol = renderer.symbolForValue(class_middle).clone()
         color_ramp_fraction = (i + 0.5) / nr_classes
         color = color_ramp.color(color_ramp_fraction)
-        sym.setColor(color)
-        ren.setLegendSymbolItem(str(i), sym)
+        symbol.setColor(color)
+        renderer.setLegendSymbolItem(str(i), symbol)
 
     # Symbol size
-    ren.setSymbolSizes(0.1, max_symbol_size)
+    renderer.setSymbolSizes(0.1, max_symbol_size)
 
     # Add velocity thresholds style
     style_manager = lyr.styleManager()
@@ -118,23 +119,19 @@ def style_animation_node_current(
     else:
         qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "node_current.qml"
     lyr.loadNamedStyle(str(qml_path))
-    ren = lyr.renderer()
+    renderer = lyr.renderer()
 
     # Set classes
     if variable == "s1":
-        class_attribute_str = str("coalesce(result, z_coordinate)")
+        class_attribute_str = "coalesce(result, z_coordinate)"
     else:
-        class_attribute_str = str("result")
+        class_attribute_str = "result"
     lyr.renderer().setClassAttribute(class_attribute_str)
-    ren.deleteAllClasses()
+    renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1
-    percentiles[
-        0
-    ] = (
-        -9999
-    )  # to make nodes / cells are also visible when dry and z_coordinate < percentile[0]
+    percentiles[0] = float(-9999)  # to make nodes / cells also visible when dry and z_coordinate < percentile[0]
     for i in range(nr_classes):
-        ren.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
+        renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
     lyr.renderer().updateColorRamp(color_ramp)
 
@@ -154,6 +151,9 @@ def style_animation_node_difference(
         qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "node_difference.qml"
     lyr.loadNamedStyle(str(qml_path))
 
+    # disregard the absolute maximum values when defining class bounds for a prettier result
+    # instead, base the class bounds on the second highest percentile value (abs_high)
+    # and include the absolute maximum afterwards, so that all values are visualized
     abs_high = max(abs(percentiles[1]), abs(percentiles[-2]))
     abs_max = max(abs(percentiles[0]), abs(percentiles[-1]))
 

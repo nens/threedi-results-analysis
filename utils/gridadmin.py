@@ -131,6 +131,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         for i in range(node_data["id"].size):
             geom = ogr.Geometry(ogr_wkb_type)
             if as_cells:
+                # skip cells with invalid coordinates
                 if np.all(
                     np.equal(
                         node_data["cell_coords"][:, i],
