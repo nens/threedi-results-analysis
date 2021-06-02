@@ -23,7 +23,7 @@ from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from ThreeDiToolbox.datasource.result_constants import DISCHARGE
 from ThreeDiToolbox.datasource.result_constants import H_TYPES
-from ThreeDiToolbox.datasource.result_constants import NEG_POSSIBLE
+from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
 from ThreeDiToolbox.utils import layer_from_netCDF
@@ -439,7 +439,7 @@ class MapAnimator(QWidget):
 
         if update_nodes:
             if (
-                NEG_POSSIBLE[self.current_node_parameter["parameters"]]
+                NEGATIVE_POSSIBLE[self.current_node_parameter["parameters"]]
                 or self.difference_checkbox.isChecked()
             ):
                 lower_threshold = float("-Inf")

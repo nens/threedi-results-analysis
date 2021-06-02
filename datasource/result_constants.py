@@ -2,7 +2,7 @@ from collections import namedtuple
 
 
 #: namedtuple for NetCDF variable information
-NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit", "neg_possible"])
+NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit", "negative_possible"])
 
 WATERLEVEL = NcVar("s1", "waterlevel", "m MSL", True)
 DISCHARGE = NcVar("q", "discharge", "m3/s", True)
@@ -52,7 +52,7 @@ H_TYPES = [v.name for v in _H_TYPES]
 # TODO: look at the name
 SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
 
-NEG_POSSIBLE = dict([(v.name, v.neg_possible) for v in SUBGRID_MAP_VARIABLES])
+NEGATIVE_POSSIBLE = dict([(v.name, v.negative_possible) for v in SUBGRID_MAP_VARIABLES])
 
 AGGREGATION_VARIABLES = [
     DISCHARGE,

@@ -108,10 +108,10 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     {'q': [{"name": str, "unit": str, "parameters": (str, [str]) }], 'h': [<same structure as q>]}.
     """
     subgrid_map_vars_mapping = {
-        var: (lbl, unit) for (var, lbl, unit, neg_possible) in SUBGRID_MAP_VARIABLES
+        var: (lbl, unit) for (var, lbl, unit, negative_possible) in SUBGRID_MAP_VARIABLES
     }
     agg_vars_mapping = {
-        var: (lbl, unit) for (var, lbl, unit, neg_possible) in AGGREGATION_VARIABLES
+        var: (lbl, unit) for (var, lbl, unit, negative_possible) in AGGREGATION_VARIABLES
     }
     config = {"q": [], "h": []}
 
