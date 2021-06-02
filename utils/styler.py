@@ -10,14 +10,14 @@ from qgis.core import (
     QgsGradientStop,
     QgsMapLayerStyle,
     QgsStyle,
-    QgsVectorLayer
+    QgsVectorLayer,
 )
 from qgis.utils import iface
 from ThreeDiToolbox.utils.color import (
     ColorRampData,
     COLOR_RAMP_OCEAN_DEEP,
     COLOR_RAMP_OCEAN_HALINE,
-    COLOR_RAMP_OCEAN_CURL
+    COLOR_RAMP_OCEAN_CURL,
 )
 from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
 
@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 STYLES_ROOT = Path(__file__).parent.parent / "layer_styles"
 ANIMATION_LAYERS_NR_LEGEND_CLASSES = 24
 assert ANIMATION_LAYERS_NR_LEGEND_CLASSES % 2 == 0
+
 
 def color_ramp_from_data(data: ColorRampData):
     color1 = QColor(data.colors[0])
@@ -48,14 +49,12 @@ def add_color_ramp(data: ColorRampData):
 
 
 def style_animation_flowline_current(
-        lyr: QgsVectorLayer,
-        class_bounds: List[float],
-        variable
+    lyr: QgsVectorLayer, class_bounds: List[float], variable
 ):
     """Applies styling to Animation Toolbar flowline layer in 'current' mode"""
 
     # Load basic style settings from qml file
-    qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'flowline_current.qml'
+    qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "flowline_current.qml"
     lyr.loadNamedStyle(str(qml_path))
     ren = lyr.renderer()
 
@@ -74,13 +73,10 @@ def style_animation_flowline_current(
     ren.deleteAllClasses()
     nr_classes = len(class_bounds) - 1
     for i in range(nr_classes):
-        ren.addClassLowerUpper(
-            lower=class_bounds[i],
-            upper=class_bounds[i + 1]
-        )
+        ren.addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
         class_middle = (class_bounds[i] + class_bounds[i + 1]) / 2
         sym = ren.symbolForValue(class_middle).clone()
-        color_ramp_fraction = ((i + 0.5) / nr_classes)
+        color_ramp_fraction = (i + 0.5) / nr_classes
         color = color_ramp.color(color_ramp_fraction)
         sym.setColor(color)
         ren.setLegendSymbolItem(str(i), sym)
@@ -90,11 +86,15 @@ def style_animation_flowline_current(
 
     # Add velocity thresholds style
     style_manager = lyr.styleManager()
-    lyr.styleManager().removeStyle('Thresholds')
-    if variable == 'u1':
-        default_style_name = style_manager.currentStyle()  # default style name depends on language settings
-        style_name = 'Thresholds'
-        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'velocity_thresholds.qml'
+    lyr.styleManager().removeStyle("Thresholds")
+    if variable == "u1":
+        default_style_name = (
+            style_manager.currentStyle()
+        )  # default style name depends on language settings
+        style_name = "Thresholds"
+        qml_path = (
+            STYLES_ROOT / "tools" / "animation_toolbar" / "velocity_thresholds.qml"
+        )
         style = QgsMapLayerStyle()
         style.readFromLayer(lyr)
         style_manager.addStyle(style_name, style)
@@ -111,35 +111,33 @@ def style_animation_flowline_current(
 
 
 def style_animation_node_current(
-        lyr: QgsVectorLayer,
-        percentiles: List[float],
-        variable: str,
-        cells: bool = False
+    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool = False
 ):
     """Applies styling to Animation Toolbar node layer in 'current' mode"""
 
     # Load basic style settings from qml file
     if cells:
-        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'cell_current.qml'
+        qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "cell_current.qml"
     else:
-        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_current.qml'
+        qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "node_current.qml"
     lyr.loadNamedStyle(str(qml_path))
     ren = lyr.renderer()
 
     # Set classes
-    if variable == 's1':
-        class_attribute_str = str('coalesce(result, z_coordinate)')
+    if variable == "s1":
+        class_attribute_str = str("coalesce(result, z_coordinate)")
     else:
-        class_attribute_str = str('result')
+        class_attribute_str = str("result")
     lyr.renderer().setClassAttribute(class_attribute_str)
     ren.deleteAllClasses()
     nr_classes = len(percentiles) - 1
-    percentiles[0] = -9999  # to make nodes / cells are also visible when dry and z_coordinate < percentile[0]
+    percentiles[
+        0
+    ] = (
+        -9999
+    )  # to make nodes / cells are also visible when dry and z_coordinate < percentile[0]
     for i in range(nr_classes):
-        ren.addClassLowerUpper(
-            lower=percentiles[i],
-            upper=percentiles[i + 1]
-        )
+        ren.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
     lyr.renderer().updateColorRamp(color_ramp)
 
@@ -148,41 +146,48 @@ def style_animation_node_current(
 
 
 def style_animation_node_difference(
-        lyr: QgsVectorLayer,
-        percentiles: List[float],
-        variable: str,
-        cells: bool = False
+    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool = False
 ):
     """Applies styling to Animation Toolbar node layer in 'difference' mode"""
 
     # Load basic style settings from qml file
     if cells:
-        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'cell_current.qml'
+        qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "cell_current.qml"
     else:
-        qml_path = STYLES_ROOT / 'tools' / 'animation_toolbar' / 'node_difference.qml'
+        qml_path = STYLES_ROOT / "tools" / "animation_toolbar" / "node_difference.qml"
     lyr.loadNamedStyle(str(qml_path))
 
     abs_high = max(abs(percentiles[1]), abs(percentiles[-2]))
     abs_max = max(abs(percentiles[0]), abs(percentiles[-1]))
 
     if abs_high != 0:
-        class_bounds = \
-            [abs_max * -1] + \
-            list(np.arange(
-                start=abs_high * -1,
-                stop=abs_high,
-                step=((abs_high - abs_high * -1) / (ANIMATION_LAYERS_NR_LEGEND_CLASSES - 2))
-            )) + \
-            [abs_high, abs_max]
+        class_bounds = (
+            [abs_max * -1]
+            + list(
+                np.arange(
+                    start=abs_high * -1,
+                    stop=abs_high,
+                    step=(
+                        (abs_high - abs_high * -1)
+                        / (ANIMATION_LAYERS_NR_LEGEND_CLASSES - 2)
+                    ),
+                )
+            )
+            + [abs_high, abs_max]
+        )
 
-        if variable == 's1':
-            class_attribute_str = str('coalesce(result, z_coordinate) - coalesce(initial_value, z_coordinate)')
+        if variable == "s1":
+            class_attribute_str = str(
+                "coalesce(result, z_coordinate) - coalesce(initial_value, z_coordinate)"
+            )
         else:
-            class_attribute_str = str('result - initial_value')
+            class_attribute_str = str("result - initial_value")
         lyr.renderer().setClassAttribute(class_attribute_str)
         lyr.renderer().deleteAllClasses()
         for i in range(len(class_bounds) - 1):
-            lyr.renderer().addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
+            lyr.renderer().addClassLowerUpper(
+                lower=class_bounds[i], upper=class_bounds[i + 1]
+            )
 
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_CURL)
     lyr.renderer().updateColorRamp(color_ramp)
@@ -199,7 +204,9 @@ def apply_style(layer, style_name, stype="tools"):
     style = QgsMapLayerStyle()
     style.readFromLayer(layer)
 
-    current_style_name = layer.styleManager().currentStyle()  # default style name depends on language settings
+    current_style_name = (
+        layer.styleManager().currentStyle()
+    )  # default style name depends on language settings
 
     for qml_file in qml_path.glob("*.qml"):
         style_name = qml_file.stem.capitalize()
@@ -212,6 +219,6 @@ def apply_style(layer, style_name, stype="tools"):
             logger.info("Styling file not succesfully loaded: {fn}".format(fn=qml_file))
             logger.info(message)
 
-    layer.styleManager().setCurrentStyle('Default')
+    layer.styleManager().setCurrentStyle("Default")
     layer.styleManager().removeStyle(current_style_name)
     return

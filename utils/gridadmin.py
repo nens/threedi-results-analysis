@@ -11,7 +11,6 @@ import logging
 import numpy as np
 
 
-
 logger = logging.getLogger(__name__)
 
 ogr.UseExceptions()  # fail fast
@@ -131,7 +130,12 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         for i in range(node_data["id"].size):
             geom = ogr.Geometry(ogr_wkb_type)
             if as_cells:
-                if np.all(np.equal(node_data["cell_coords"][:, i], np.array([-9999., -9999., -9999., -9999.]))):
+                if np.all(
+                    np.equal(
+                        node_data["cell_coords"][:, i],
+                        np.array([-9999.0, -9999.0, -9999.0, -9999.0]),
+                    )
+                ):
                     continue
                 else:
                     xmin, ymin, xmax, ymax = node_data["cell_coords"][:, i]
@@ -287,14 +291,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         self.supported_drivers = {SPATIALITE_DRIVER_NAME}
         self.driver = None
 
-    def save(
-        self,
-        file_name,
-        layer_name,
-        line_data,
-        target_epsg_code,
-        **kwargs
-    ):
+    def save(self, file_name, layer_name, line_data, target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -338,7 +335,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             if line_data["kcu"][i] == 150:
                 line.AddPoint_2D(
                     line_data["line_coords"][2][i] - 0.00002,
-                    line_data["line_coords"][3][i] - 0.00002
+                    line_data["line_coords"][3][i] - 0.00002,
                 )
             else:
                 line.AddPoint_2D(
@@ -423,14 +420,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         self.node_data = node_data
         self.driver = None
 
-    def save(
-        self,
-        file_name,
-        layer_name,
-        pump_data,
-        target_epsg_code,
-        **kwargs
-    ):
+    def save(self, file_name, layer_name, pump_data, target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -468,11 +458,11 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
             if node1_id == -9999:
                 raise AssertionError("start_node has not-null constraint")
 
-            node1_coords = pump_data['node_coordinates'][0:2, i]
+            node1_coords = pump_data["node_coordinates"][0:2, i]
             if node2_id == -9999:
                 node2_coords = node1_coords + 0.00002
             else:
-                node2_coords = pump_data['node_coordinates'][2:4, i]
+                node2_coords = pump_data["node_coordinates"][2:4, i]
             try:
                 line.AddPoint_2D(node1_coords[0], node1_coords[1])
                 line.AddPoint_2D(node2_coords[0], node2_coords[1])

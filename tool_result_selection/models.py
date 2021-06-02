@@ -10,7 +10,7 @@ from ThreeDiToolbox.utils.layer_from_netCDF import (
     get_or_create_cell_layer,
     get_or_create_flowline_layer,
     get_or_create_node_layer,
-    get_or_create_pumpline_layer
+    get_or_create_pumpline_layer,
 )
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
@@ -101,6 +101,7 @@ class DatasourceLayerHelper(object):
     methods on *that* class.
 
     """
+
     def __init__(self, file_path):
         self.file_path = Path(file_path)
         self.datasource_dir = self.file_path.parent
@@ -143,7 +144,12 @@ class DatasourceLayerHelper(object):
             self.threedi_result, self.sqlite_gridadmin_filepath
         )
         progress_bar.increase_progress(25, "Processing...")
-        return [self._line_layer, self._node_layer, self._cell_layer, self._pumpline_layer]
+        return [
+            self._line_layer,
+            self._node_layer,
+            self._cell_layer,
+            self._pumpline_layer,
+        ]
 
 
 class TimeseriesDatasourceModel(BaseModel):
@@ -205,7 +211,9 @@ class TimeseriesDatasourceModel(BaseModel):
             return self.datasource_layer_helper.sqlite_gridadmin_filepath
 
         def get_result_layers(self, progress_bar=None):
-            return self.datasource_layer_helper.get_result_layers(progress_bar=progress_bar)
+            return self.datasource_layer_helper.get_result_layers(
+                progress_bar=progress_bar
+            )
 
     def reset(self):
         self.removeRows(0, self.rowCount())

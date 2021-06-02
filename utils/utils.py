@@ -110,7 +110,9 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
     subgrid_map_vars_mapping = {
         var: (lbl, unit) for (var, lbl, unit, neg_possible) in SUBGRID_MAP_VARIABLES
     }
-    agg_vars_mapping = {var: (lbl, unit) for (var, lbl, unit, neg_possible) in AGGREGATION_VARIABLES}
+    agg_vars_mapping = {
+        var: (lbl, unit) for (var, lbl, unit, neg_possible) in AGGREGATION_VARIABLES
+    }
     config = {"q": [], "h": []}
 
     verbose_agg_method = {

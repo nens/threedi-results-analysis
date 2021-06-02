@@ -488,8 +488,7 @@ def add_spatialite_connection(spatialite_path, iface):
     """Add spatialite_path as a spatialite connection in the qgis-browser"""
     filename = os.path.basename(spatialite_path)
     QgsSettings().setValue(
-        f"SpatiaLite/connections/{filename}/sqlitepath",
-        spatialite_path
+        f"SpatiaLite/connections/{filename}/sqlitepath", spatialite_path
     )
     iface.reloadConnections()
 
