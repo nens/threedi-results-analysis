@@ -17,5 +17,5 @@ curl -X POST \
      -H "Content-Type: multipart/form-data" \
      -F key=${THREEDITOOLBOX_ARTIFACTS_KEY} \
      -F artifact=@${ARTIFACT} \
-     -F branch=${TRAVIS_BRANCH} \
+     -F branch=${GITHUB_REF} \
      https://artifacts.lizard.net/upload/${PROJECT}/
