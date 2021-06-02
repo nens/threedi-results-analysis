@@ -1,12 +1,12 @@
 from . import styler
 from .threedi_database import ThreediDatabase
+from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsLayerTreeNode
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsVectorLayer
-from PyQt5.QtCore import QSettings
 
 import os.path
 

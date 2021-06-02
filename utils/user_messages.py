@@ -3,9 +3,9 @@
 from contextlib import contextmanager
 from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.PyQt.QtWidgets import QProgressBar
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.utils import iface
 
 

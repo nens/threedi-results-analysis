@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 ColorRampData = namedtuple("ColorRampData", ["name", "colors", "info"])
 
 COLOR_RAMP_OCEAN_DEEP = ColorRampData(

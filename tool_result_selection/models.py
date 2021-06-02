@@ -6,12 +6,10 @@ from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ValueField
-from ThreeDiToolbox.utils.layer_from_netCDF import (
-    get_or_create_cell_layer,
-    get_or_create_flowline_layer,
-    get_or_create_node_layer,
-    get_or_create_pumpline_layer,
-)
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 

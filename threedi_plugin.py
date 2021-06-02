@@ -16,10 +16,10 @@ from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultS
 from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 from ThreeDiToolbox.tool_statistics import StatisticsTool
 from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
-from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
-from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
+from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
+from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
 import logging

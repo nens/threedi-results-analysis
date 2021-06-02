@@ -1,48 +1,45 @@
 # TODO: calculate seperate class_bounds for groundwater
 # TODO: add listeners to result selection switch (ask if ok)
 
-import copy
-
-from typing import Iterable, List, Union
 from math import isnan
-from qgis.core import (
-    NULL,
-    Qgis,
-    QgsMessageLog,
-    QgsExpressionContextUtils,
-    QgsField,
-    QgsLayerTreeGroup,
-    QgsProject,
-    QgsVectorLayer,
-    QgsWkbTypes,
-)
+from qgis.core import NULL
+from qgis.core import Qgis
+from qgis.core import QgsExpressionContextUtils
+from qgis.core import QgsField
+from qgis.core import QgsLayerTreeGroup
+from qgis.core import QgsMessageLog
+from qgis.core import QgsProject
+from qgis.core import QgsVectorLayer
+from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.PyQt.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QHBoxLayout,
-    QLabel,
-    QFrame,
-    QPushButton,
-    QWidget,
-)
-from ThreeDiToolbox.utils import styler, layer_from_netCDF
-from ThreeDiToolbox.utils.utils import generate_parameter_config
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
-from ThreeDiToolbox.utils.styler import ANIMATION_LAYERS_NR_LEGEND_CLASSES
-from ThreeDiToolbox.datasource.result_constants import (
-    Q_TYPES,
-    H_TYPES,
-    NEG_POSSIBLE,
-    WATERLEVEL,
-    DISCHARGE,
-)
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QFrame
+from qgis.PyQt.QtWidgets import QHBoxLayout
+from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QPushButton
+from qgis.PyQt.QtWidgets import QWidget
 from threedigrid.admin.constants import NO_DATA_VALUE
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from ThreeDiToolbox.datasource.result_constants import DISCHARGE
+from ThreeDiToolbox.datasource.result_constants import H_TYPES
+from ThreeDiToolbox.datasource.result_constants import NEG_POSSIBLE
+from ThreeDiToolbox.datasource.result_constants import Q_TYPES
+from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
+from ThreeDiToolbox.utils import layer_from_netCDF
+from ThreeDiToolbox.utils import styler
+from ThreeDiToolbox.utils.styler import ANIMATION_LAYERS_NR_LEGEND_CLASSES
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+from ThreeDiToolbox.utils.utils import generate_parameter_config
+from typing import Iterable
+from typing import List
+from typing import Union
 
+import copy
 import logging
 import numpy as np
 import os
+
 
 logger = logging.getLogger(__name__)
 

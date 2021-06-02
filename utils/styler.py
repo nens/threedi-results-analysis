@@ -1,25 +1,22 @@
-import logging
-import os
-import numpy as np
-
-from typing import List
 from pathlib import Path
+from qgis.core import QgsGradientColorRamp
+from qgis.core import QgsGradientStop
+from qgis.core import QgsMapLayerStyle
+from qgis.core import QgsStyle
+from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtGui import QColor
-from qgis.core import (
-    QgsGradientColorRamp,
-    QgsGradientStop,
-    QgsMapLayerStyle,
-    QgsStyle,
-    QgsVectorLayer,
-)
 from qgis.utils import iface
-from ThreeDiToolbox.utils.color import (
-    ColorRampData,
-    COLOR_RAMP_OCEAN_DEEP,
-    COLOR_RAMP_OCEAN_HALINE,
-    COLOR_RAMP_OCEAN_CURL,
-)
 from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
+from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_CURL
+from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_DEEP
+from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_HALINE
+from ThreeDiToolbox.utils.color import ColorRampData
+from typing import List
+
+import logging
+import numpy as np
+import os
+
 
 logger = logging.getLogger(__name__)
 
