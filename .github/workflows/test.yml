@@ -39,6 +39,8 @@ jobs:
           docker-compose run qgis-desktop make docstrings
           docker-compose run qgis-desktop coveralls
           docker-compose run qgis-desktop make zip
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
       - name: store cache, if needed
         run: |
@@ -46,10 +48,6 @@ jobs:
           scripts/travis-cache-ok.sh || docker save qgis-desktop > $HOME/docker-cache/our-image.tar
           scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
-      # - name: coverage report
-      #   run: bin/coveralls
-      #   env:
-      #     COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
         run: bash upload-artifact.sh
