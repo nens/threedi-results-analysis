@@ -247,6 +247,8 @@ def check_importability():
     packages = [dependency.package for dependency in DEPENDENCIES]
     packages += INTERESTING_IMPORTS
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
+    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
+    logger.info("Contents of our profile's python dir:\n    %s", "\n    ".join(profile_python_names))
     for package in packages:
         imported_package = importlib.import_module(package)
         logger.info(
@@ -331,11 +333,7 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
             raise RuntimeError("Installing %s failed" % dependency.name)
         print("Installed %s into %s" % (dependency.name, target_dir))
         if dependency.package in sys.modules:
-            print("Unloading old %s module" % dependency.package)
-            del sys.modules[dependency.package]
-            # check_importability() will be called soon, which will import them again.
-            # By removing them from sys.modules, we prevent older versions from 
-            # sticking around.
+            print("An older version of the %s module might still be in memory." % dependency.package)
 
 
 def _get_python_interpreter():
