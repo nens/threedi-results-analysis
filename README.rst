@@ -1,9 +1,6 @@
 ThreeDiToolbox
 ==============
 
-.. image:: https://travis-ci.org/nens/ThreeDiToolbox.svg?branch=master
-    :target: https://travis-ci.org/nens/ThreeDiToolbox
-
 .. image:: https://coveralls.io/repos/github/nens/ThreeDiToolbox/badge.svg?branch=HEAD
     :target: https://coveralls.io/github/nens/ThreeDiToolbox?branch=HEAD
 
@@ -86,11 +83,10 @@ If your user ID isn't ``1000``, you can run it like this::
 The docker-qgis's settings are persisted in a "named docker volume",
 ``qgis-docker``. To wipe it clean, run ``docker-compose down -v``.
 
-The tests that run on travis-ci.org cache the docker image that is being build
+The tests that run on github cache the docker image that is being build
 in order to shave 5 minutes off the test duration. The image is automatically
 rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
-`requirements` files changes. It is also possible to empty travis' cache in
-case something seems to be wrong.
+`requirements` files changes.
 
 To run the full tests including coverage report and flake8::
 
@@ -124,7 +120,7 @@ commands and follow their steps::
     $ fullrelease
 
 This creates a new release and tag on github. Additionally, a zip file
-``ThreeDiToolbox.<version>.zip`` is created. Travis is configured to also
+``ThreeDiToolbox.<version>.zip`` is created. Github actions is configured to also
 create this zip and upload it to https://plugins.lizard.net/ when a new tag is
 created, using the ``upload-artifact.sh`` script.
 
