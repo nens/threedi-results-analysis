@@ -20,14 +20,14 @@ jobs:
       - uses: actions/cache@v2
         id: cache
         with:
-          path: $HOME/docker-cache
-          key: "valid-for-all"
+          path: ~/docker-cache
+          key: ${{ hashFiles('docker-compose.yml', 'Docker/qgis_ltr/Dockerfile', 'requirements-dev.txt') }}
 
       - name: build
         run: |
           # If the docker cache is still valid, use the cached docker image.
           scripts/travis-cache-ok.sh && \
-          cat $HOME/docker-cache/our-image.tar | docker load || true
+          cat ~/docker-cache/our-image.tar | docker load || true
           # Rebuild the docker image, but only if the docker cache isn't valid anymore.
           scripts/travis-cache-ok.sh || \
           docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
@@ -44,8 +44,8 @@ jobs:
 
       - name: store cache, if needed
         run: |
-          mkdir -p $HOME/docker-cache
-          scripts/travis-cache-ok.sh || docker save qgis-desktop > $HOME/docker-cache/our-image.tar
+          mkdir -p ~/docker-cache
+          scripts/travis-cache-ok.sh || docker save qgis-desktop > ~/docker-cache/our-image.tar
           scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
       - name: Publish package
