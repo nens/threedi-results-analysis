@@ -90,22 +90,22 @@ rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
 
 To run the full tests including coverage report and flake8::
 
-  $ docker-compose run qgis-desktop make test
+  $ docker-compose run --rm qgis-desktop make test
 
 You can also just run pytest. You won't get the coverage report. You *can*
 however then use one of the pytest options, like ``-x``, which aborts the test
 at the first failure::
 
-  $ docker-compose run qgis-desktop pytest -x
+  $ docker-compose run --rm qgis-desktop pytest -x
 
 To get a "coverage" report for the docstrings or to run flake8::
 
-  $ docker-compose run qgis-desktop make docstrings
+  $ docker-compose run --rm qgis-desktop make docstrings
 
 To run black (standard pep8-compatible code formatting), isort (import
 sorting) and flake8 (reporting missing imports and so), run::
 
-  $ docker-compose run qgis-desktop make beautiful
+  $ docker-compose run --rm qgis-desktop make beautiful
 
 
 Release
@@ -127,7 +127,7 @@ created, using the ``upload-artifact.sh`` script.
 You can also manually create a zip file of the current checked out code with the
 following command::
 
-    $ docker-compose run qgis-desktop make zip
+    $ docker-compose run --rm qgis-desktop make zip
 
 
 Modeller interface release
