@@ -4,4 +4,4 @@
 
 set -e  # Fail immediately upon an error.
 echo "Checking if all the files the image depends on are still the same..."
-md5sum --check $HOME/docker-cache/docker-checksum
+md5sum --check ~/docker-cache/docker-checksum
