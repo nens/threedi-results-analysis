@@ -4,8 +4,12 @@ ThreeDiToolBox changelog
 1.20 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Updated dependencies are un-imported (technically: removed from ``sys.modules``)
+  to prevent old versions from sticking around. In 1.18, you could get an error
+  from the ``alembic`` dependency that complained about a too old sqlalchemy.
 
+- Moved automatic tests from travis-ci to github actions.
+  
 
 1.19 (2021-05-21)
 -----------------
