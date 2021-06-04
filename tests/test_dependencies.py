@@ -51,6 +51,8 @@ def test_install_dependencies(tmpdir):
     dependencies._install_dependencies(small_dependencies, target_dir=tmpdir)
     installed_directory = Path(tmpdir) / "lizard_connector"
     assert installed_directory.exists()
+    # Cleanup
+    dependencies.ensure_everything_installed()
 
 
 def test_uninstall_dependency(tmpdir, monkeypatch):

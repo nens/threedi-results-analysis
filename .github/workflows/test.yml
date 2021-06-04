@@ -1,0 +1,55 @@
+name: test
+
+# Run on pull requests and on the master branch itself.
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  pull_request:
+
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-20.04
+    steps:
+      # Checkout the code.
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ~/docker-cache
+          key: ${{ hashFiles('docker-compose.yml', 'Docker/qgis_ltr/Dockerfile', 'requirements-dev.txt') }}
+
+      - name: build
+        run: |
+          # If the docker cache is still valid, use the cached docker image.
+          scripts/travis-cache-ok.sh && \
+          cat ~/docker-cache/our-image.tar | docker load || true
+          # Rebuild the docker image, but only if the docker cache isn't valid anymore.
+          scripts/travis-cache-ok.sh || \
+          docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
+
+      - name: test
+        run: |
+          docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
+          docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make flake8
+          docker-compose run qgis-desktop make docstrings
+          docker-compose run qgis-desktop coveralls
+          docker-compose run qgis-desktop make zip
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+      - name: store cache, if needed
+        run: |
+          mkdir -p ~/docker-cache
+          scripts/travis-cache-ok.sh || docker save qgis-desktop > ~/docker-cache/our-image.tar
+          scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
+
+      - name: Publish package
+        if: startsWith(github.event.ref, 'refs/tags')
+        run: bash upload-artifact.sh
+        env:
+          THREEDITOOLBOX_ARTIFACTS_KEY: ${{ secrets.THREEDITOOLBOX_ARTIFACTS_KEY }}

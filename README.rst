@@ -1,9 +1,6 @@
 ThreeDiToolbox
 ==============
 
-.. image:: https://travis-ci.org/nens/ThreeDiToolbox.svg?branch=master
-    :target: https://travis-ci.org/nens/ThreeDiToolbox
-
 .. image:: https://coveralls.io/repos/github/nens/ThreeDiToolbox/badge.svg?branch=HEAD
     :target: https://coveralls.io/github/nens/ThreeDiToolbox?branch=HEAD
 
@@ -86,30 +83,29 @@ If your user ID isn't ``1000``, you can run it like this::
 The docker-qgis's settings are persisted in a "named docker volume",
 ``qgis-docker``. To wipe it clean, run ``docker-compose down -v``.
 
-The tests that run on travis-ci.org cache the docker image that is being build
+The tests that run on github cache the docker image that is being build
 in order to shave 5 minutes off the test duration. The image is automatically
 rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
-`requirements` files changes. It is also possible to empty travis' cache in
-case something seems to be wrong.
+`requirements` files changes.
 
 To run the full tests including coverage report and flake8::
 
-  $ docker-compose run qgis-desktop make test
+  $ docker-compose run --rm qgis-desktop make test
 
 You can also just run pytest. You won't get the coverage report. You *can*
 however then use one of the pytest options, like ``-x``, which aborts the test
 at the first failure::
 
-  $ docker-compose run qgis-desktop pytest -x
+  $ docker-compose run --rm qgis-desktop pytest -x
 
 To get a "coverage" report for the docstrings or to run flake8::
 
-  $ docker-compose run qgis-desktop make docstrings
+  $ docker-compose run --rm qgis-desktop make docstrings
 
 To run black (standard pep8-compatible code formatting), isort (import
 sorting) and flake8 (reporting missing imports and so), run::
 
-  $ docker-compose run qgis-desktop make beautiful
+  $ docker-compose run --rm qgis-desktop make beautiful
 
 
 Release
@@ -124,14 +120,14 @@ commands and follow their steps::
     $ fullrelease
 
 This creates a new release and tag on github. Additionally, a zip file
-``ThreeDiToolbox.<version>.zip`` is created. Travis is configured to also
+``ThreeDiToolbox.<version>.zip`` is created. Github actions is configured to also
 create this zip and upload it to https://plugins.lizard.net/ when a new tag is
 created, using the ``upload-artifact.sh`` script.
 
 You can also manually create a zip file of the current checked out code with the
 following command::
 
-    $ docker-compose run qgis-desktop make zip
+    $ docker-compose run --rm qgis-desktop make zip
 
 
 Modeller interface release
@@ -147,7 +143,7 @@ installer for. Also, a really clean checkout is important, so do something like 
     $ mdir /tmp/reallyclean
     $ cd /tmp/reallyclean
     $ git clone git@github.com:nens/ThreeDiToolbox.git
-    $ cd ThreediToolbox
+    $ cd ThreeDiToolbox
     $ git checkout 1.17    <== the tag that you want to release
     $ make installer
 

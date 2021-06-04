@@ -7,4 +7,4 @@ md5sum \
     docker-compose.yml \
     Docker/qgis_ltr/Dockerfile \
     requirements-dev.txt \
-    > $HOME/docker-cache/docker-checksum
+    > ~/docker-cache/docker-checksum
