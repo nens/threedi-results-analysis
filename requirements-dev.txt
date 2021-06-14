@@ -9,7 +9,8 @@ mock
 pytest
 pytest-cov
 pytest-flake8
-pytest-qt
+pytest-qt < 4.0.0
+# pytest-qt 4+ needs pyqt 5.11+
 sphinx
 sphinx_rtd_theme
 wheel

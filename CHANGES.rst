@@ -1,11 +1,42 @@
 ThreeDiToolBox changelog
 ========================
 
-1.17 (unreleased)
+1.20 (unreleased)
 -----------------
 
 - Update threedidepth algorithm with new functionalities: multiple timesteps
   and export as netcdf file.
+- Updated dependencies are un-imported (technically: removed from ``sys.modules``)
+  to prevent old versions from sticking around. In 1.18, you could get an error
+  from the ``alembic`` dependency that complained about a too old sqlalchemy.
+
+- Moved automatic tests from travis-ci to github actions.
+  
+
+1.19 (2021-05-21)
+-----------------
+
+- Update to modeler interface: qgis 3.16.7 and threedi-api-qgis-client 2.4.1. (No changes
+  to ThreeDiToolBox itself!)
+
+
+1.18 (2021-04-22)
+-----------------
+
+- Adjusted dependencies for new threedi-modelchecker release.
+
+- Installing bundled dependencies should no longer fetch newer releases 
+  from pypi, but stick to what we bundle in our external-dependencies
+  directory.
+
+
+1.17 (2021-04-01)
+-----------------
+
+- Restricting pyqtgraph to <0.12 to prevent ``from PyQt5 import sip`` import
+  errors.
+
+- Fixed error in notifying of necessary qgis restart.  
 
 
 1.16.1 (2021-03-04)

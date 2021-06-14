@@ -16,8 +16,8 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_prework
+from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.tool_commands.raster_checker.constants import (
-    RASTER_CHECKER_MAPPER,
     RASTERTYPE_PIXELRANGE_MAPPING,
 )
 from ThreeDiToolbox.utils.user_messages import pop_up_info

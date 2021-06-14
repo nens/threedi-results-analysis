@@ -33,22 +33,22 @@ import platform
 import subprocess
 import sys
 
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
 #: List of expected dependencies.
 DEPENDENCIES = [
-    Dependency("SQLAlchemy", "sqlalchemy", ">=1.1.11, <1.2"),
+    Dependency("SQLAlchemy", "sqlalchemy", ">=1.3.0, <1.4"),
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
-    Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1"),
+    Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
     Dependency("threedigrid", "threedigrid", "==1.0.24"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.11"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.12"),
     Dependency("threedidepth", "threedidepth", "==0.3"),
-    Dependency("click", "click", ">=7.0")
+    Dependency("click", "click", ">=7.0"),
+    Dependency("alembic", "alembic", ">=0.9"),
+    Dependency("mako", "mako", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -71,6 +71,8 @@ def ensure_everything_installed():
     print("sys.path:")
     for directory in sys.path:
         print("  - %s" % directory)
+    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
+    print("Contents of our profile's python dir:\n    %s" % "\n    ".join(profile_python_names))
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == 'Windows':
@@ -155,6 +157,7 @@ def _install_h5py(hdf5_version: str):
             use_pypi=use_pypi
         )
     except RuntimeError:
+        from ThreeDiToolbox.utils.user_messages import pop_up_info
         pop_up_info(
             "Please restart QGIS to complete the installation process of "
             "ThreediToolbox.",
@@ -246,6 +249,8 @@ def check_importability():
     packages = [dependency.package for dependency in DEPENDENCIES]
     packages += INTERESTING_IMPORTS
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
+    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
+    logger.info("Contents of our profile's python dir:\n    %s", "\n    ".join(profile_python_names))
     for package in packages:
         imported_package = importlib.import_module(package)
         logger.info(
@@ -295,13 +300,15 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         "--no-deps",
         "--find-links",
         str(OUR_DIR / "external-dependencies"),
+        "--no-index",
         "--target",
         str(target_dir),
     ]
     if use_pypi:
         index = base_command.index("--find-links")
-        base_command.pop(index)
-        base_command.pop(index)
+        base_command.pop(index)  # --find-links
+        base_command.pop(index)  # the dir
+        base_command.pop(index)  # --no-index
 
     for dependency in dependencies:
         _uninstall_dependency(dependency)
@@ -327,6 +334,12 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         if exit_code:
             raise RuntimeError("Installing %s failed" % dependency.name)
         print("Installed %s into %s" % (dependency.name, target_dir))
+        if dependency.package in sys.modules:
+            print("Unloading old %s module" % dependency.package)
+            del sys.modules[dependency.package]
+            # check_importability() will be called soon, which will import them again.
+            # By removing them from sys.modules, we prevent older versions from
+            # sticking around.
 
 
 def _get_python_interpreter():
@@ -368,7 +381,7 @@ def _get_hdf5_version() -> str:
     result = o.read() + e.read()
     o.close()
     e.close()
-    pattern = re.compile("[\d]+.[\d]+.[\d]+")
+    pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
     match = pattern.search(result)
     if match:
         return match.group()
@@ -381,8 +394,10 @@ def _check_presence(dependencies):
     missing = []
     for dependency in dependencies:
         requirement = dependency.name + dependency.constraint
+        print("Checking presence of %s..." % requirement)
         try:
-            pkg_resources.require(requirement)
+            result = pkg_resources.require(requirement)
+            print("Requirement %s found: %s" % (requirement, result))
         except pkg_resources.DistributionNotFound:
             print(
                 "Dependency '%s' (%s) not found"
