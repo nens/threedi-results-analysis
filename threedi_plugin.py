@@ -34,7 +34,7 @@ resources  # noqa
 
 
 class ThreeDiPlugin(QObject, ProjectStateMixin):
-    """Main Plugin Class which register toolbar ad menu and add tools """
+    """Main Plugin Class which register toolbar ad menu and add tools"""
 
     def __init__(self, iface):
         """Constructor.
@@ -236,11 +236,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.lcd.display(formatted_display)
 
     def check_status_model_and_results(self, *args):
-        """ Check if a (new and valid) model or result is selected and react on
-            this by pre-processing of things and activation/ deactivation of
-            tools. function is triggered by changes in the ts_datasources
-            args:
-                *args: (list) the arguments provided by the different signals
+        """Check if a (new and valid) model or result is selected and react on
+        this by pre-processing of things and activation/ deactivation of
+        tools. function is triggered by changes in the ts_datasources
+        args:
+            *args: (list) the arguments provided by the different signals
         """
         # First some logging.
         logger.info(

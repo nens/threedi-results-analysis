@@ -21,7 +21,6 @@ As we're called directly from ``__init__.py``, the imports should be
 resticted. No qgis message boxes and so!
 
 """
-import re
 from collections import namedtuple
 from pathlib import Path
 
@@ -30,6 +29,7 @@ import logging
 import os
 import pkg_resources
 import platform
+import re
 import subprocess
 import sys
 
@@ -72,10 +72,13 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
-    print("Contents of our profile's python dir:\n    %s" % "\n    ".join(profile_python_names))
+    print(
+        "Contents of our profile's python dir:\n    %s"
+        % "\n    ".join(profile_python_names)
+    )
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
         _ensure_h5py_installed()
     target_dir = _dependencies_target_dir()
@@ -141,8 +144,10 @@ def _ensure_h5py_installed():
 def _install_h5py(hdf5_version: str):
     if hdf5_version not in SUPPORTED_HDF5_VERSIONS:
         # raise a error because we cannot continue
-        message = f"Unsupported HDF5 version: {hdf5_version}. " \
-                  f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
+        message = (
+            f"Unsupported HDF5 version: {hdf5_version}. "
+            f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
+        )
         raise RuntimeError(message)
     use_pypi = hdf5_version == "1.10.5"
 
@@ -152,16 +157,15 @@ def _install_h5py(hdf5_version: str):
     # _uninstall_dependency(H5PY_DEPENDENCY)
     try:
         _install_dependencies(
-            [H5PY_DEPENDENCY],
-            target_dir=_dependencies_target_dir(),
-            use_pypi=use_pypi
+            [H5PY_DEPENDENCY], target_dir=_dependencies_target_dir(), use_pypi=use_pypi
         )
     except RuntimeError:
         from ThreeDiToolbox.utils.user_messages import pop_up_info
+
         pop_up_info(
             "Please restart QGIS to complete the installation process of "
             "ThreediToolbox.",
-            title="Restart required"
+            title="Restart required",
         )
         return
     H5pyMarker.create(hdf5_version)
@@ -180,7 +184,7 @@ class H5pyMarker:
     @classmethod
     def version(cls) -> str:
         if cls.H5PY_MARKER.exists():
-            with open(cls.H5PY_MARKER, 'r') as marker:
+            with open(cls.H5PY_MARKER, "r") as marker:
                 version = marker.readline()
             return version
         else:
@@ -188,7 +192,7 @@ class H5pyMarker:
 
     @classmethod
     def create(cls, version: str):
-        with open(cls.H5PY_MARKER, 'w') as marker:
+        with open(cls.H5PY_MARKER, "w") as marker:
             marker.write(version)
 
     @classmethod
@@ -250,7 +254,10 @@ def check_importability():
     packages += INTERESTING_IMPORTS
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
-    logger.info("Contents of our profile's python dir:\n    %s", "\n    ".join(profile_python_names))
+    logger.info(
+        "Contents of our profile's python dir:\n    %s",
+        "\n    ".join(profile_python_names),
+    )
     for package in packages:
         imported_package = importlib.import_module(package)
         logger.info(

@@ -93,7 +93,7 @@ class Importer(object):
 
     def run_import(self):
         """
-            main function for performing all import tasks
+        main function for performing all import tasks
         """
 
         # self.db.create_and_check_fields()

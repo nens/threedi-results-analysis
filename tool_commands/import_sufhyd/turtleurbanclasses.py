@@ -41,8 +41,7 @@ def isSufHydKey(key):
 
 
 def fieldwise(obj, representation=None):
-    """let obj split its representation according to the field lengths
-    """
+    """let obj split its representation according to the field lengths"""
 
     if representation is None:
         representation = obj.toSufHyd().strip()
@@ -316,8 +315,7 @@ class HydroObject(object):
         return geb + glue + self.ide_kn2
 
     def x(self):
-        """returns the x coordinate of the (first) point of this object or None
-        """
+        """returns the x coordinate of the (first) point of this object or None"""
         try:
             return self.knp_xco
         except AttributeError:
@@ -327,8 +325,7 @@ class HydroObject(object):
             return None
 
     def y(self):
-        """returns the x coordinate of the (first) point of this object
-        """
+        """returns the x coordinate of the (first) point of this object"""
         try:
             return self.knp_yco
         except AttributeError:

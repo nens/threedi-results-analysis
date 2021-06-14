@@ -1,6 +1,6 @@
 """Tests QGIS plugin init."""
-from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox import dependencies
+from ThreeDiToolbox import PLUGIN_DIR
 
 import configparser
 import importlib

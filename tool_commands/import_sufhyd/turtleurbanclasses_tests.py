@@ -1683,13 +1683,13 @@ class Bug00040(unittest.TestCase):
         self.assertTrue(output.count("234654.800") >= 3)
 
     def test02(self):
-        " - the nodes identify themselves with gebiedsarea - ticket 40"
+        "- the nodes identify themselves with gebiedsarea - ticket 40"
         obj_list = HydroObjectFactory.hydroObjectListFromSUFHYD(self.input)
         (knp246,) = [i for i in obj_list if i.ide_geb == "24"]
         self.assertEqual(knp246.get_start_pointId(), "24_6")
 
     def test03(self):
-        " - nodes with similar name in different areas must be kept apart - ticket 40"
+        "- nodes with similar name in different areas must be kept apart - ticket 40"
         obj_list = HydroObjectFactory.hydroObjectListFromSUFHYD(self.input)
         mockXsdFile = MockWriter()
         mockGmlFile = MockWriter()
@@ -1908,8 +1908,7 @@ class GlueAreaAndLocation(unittest.TestCase):
 
 
 class Bug02713(object):  # (unittest.TestCase):
-    """TODO: this test is not yet working, so it's not included
-    """
+    """TODO: this test is not yet working, so it's not included"""
 
     ticket_test = """\
 *KNP   20                         232221000  556283000

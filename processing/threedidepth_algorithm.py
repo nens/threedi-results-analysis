@@ -11,34 +11,30 @@
 ***************************************************************************
 """
 from collections import namedtuple
-import logging
-import os
-
-from ThreeDiToolbox.utils.user_messages import pop_up_info
 from processing.gui.NumberInputPanel import NumberInputPanel
-from processing.gui.wrappers import WidgetWrapper, DIALOG_STANDARD
+from processing.gui.wrappers import DIALOG_STANDARD
+from processing.gui.wrappers import WidgetWrapper
+from qgis.core import QgsFeedback
+from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingParameterBoolean
+from qgis.core import QgsProcessingParameterEnum
+from qgis.core import QgsProcessingParameterFile
+from qgis.core import QgsProcessingParameterNumber
+from qgis.core import QgsProcessingParameterRasterDestination
+from qgis.core import QgsProcessingParameterRasterLayer
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (
-    QgsFeedback,
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterEnum,
-    QgsProcessingParameterFile,
-    QgsProcessingParameterNumber,
-    QgsProcessingParameterRasterDestination,
-    QgsProcessingParameterRasterLayer,
-    QgsProcessingParameterBoolean,
-)
+from threedidepth.calculate import calculate_waterdepth
+from threedidepth.calculate import MODE_CONSTANT
+from threedidepth.calculate import MODE_CONSTANT_S1
+from threedidepth.calculate import MODE_LINEAR
+from threedidepth.calculate import MODE_LIZARD
+from threedidepth.calculate import MODE_LIZARD_S1
+from ThreeDiToolbox.utils.user_messages import pop_up_info
 
 import h5py
-from threedidepth.calculate import calculate_waterdepth
-from threedidepth.calculate import (
-    MODE_LINEAR,
-    MODE_CONSTANT,
-    MODE_CONSTANT_S1,
-    MODE_LIZARD,
-    MODE_LIZARD_S1
-)
+import logging
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -47,17 +43,11 @@ Mode = namedtuple("Mode", ["name", "description"])
 
 
 class ProcessingParamterNetcdfNumber(QgsProcessingParameterNumber):
-    def __init__(
-            self,
-            *args,
-            parentParameterName='',
-            optional=False,
-            **kwargs
-    ):
+    def __init__(self, *args, parentParameterName="", optional=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.parentParameterName = parentParameterName
         self.optional = optional
-        self.setMetadata({'widget_wrapper': {'class': ThreediResultTimeSliderWidget}})
+        self.setMetadata({"widget_wrapper": {"class": ThreediResultTimeSliderWidget}})
 
 
 class ThreediResultTimeSliderWidget(WidgetWrapper):
@@ -73,7 +63,7 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
                     self.parameterDefinition().name(),
                     defaultValue=self.parameterDefinition().defaultValue(),
                     minValue=-1,
-                    optional=self.parameterDefinition().optional
+                    optional=self.parameterDefinition().optional,
                 )
             )
         return self._widget
@@ -91,8 +81,8 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
-WIDGET, BASE = uic.loadUiType(os.path.join(
-    pluginPath, 'processing', 'ui', 'widgetTimeSlider.ui')
+WIDGET, BASE = uic.loadUiType(
+    os.path.join(pluginPath, "processing", "ui", "widgetTimeSlider.ui")
 )
 
 
@@ -129,8 +119,8 @@ class TimeSliderWidget(BASE, WIDGET):
         self.lcdNumber.display(lcd_value)
 
     def format_lcd_value(self, value: float) -> str:
-        days, seconds = divmod(int(value), 24*60*60)
-        hours, seconds = divmod(seconds, 60*60)
+        days, seconds = divmod(int(value), 24 * 60 * 60)
+        hours, seconds = divmod(seconds, 60 * 60)
         minutes, seconds = divmod(seconds, 60)
         formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
         return formatted_display
@@ -148,22 +138,24 @@ class TimeSliderWidget(BASE, WIDGET):
 
         Try to read in the timestamps from the file
         """
-        if file_path == '':
+        if file_path == "":
             self.reset()
             return
 
         try:
-            with h5py.File(file_path, 'r') as results:
-                timestamps = results['time'].value
+            with h5py.File(file_path, "r") as results:
+                timestamps = results["time"].value
                 self.set_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
-            pop_up_info(msg="Unable to read the file, see the logging for more information.")
+            pop_up_info(
+                msg="Unable to read the file, see the logging for more information."
+            )
             self.reset()
 
 
-WIDGET, BASE = uic.loadUiType(os.path.join(
-    pluginPath, 'processing', 'ui', 'widgetTimeSliderCheckbox.ui')
+WIDGET, BASE = uic.loadUiType(
+    os.path.join(pluginPath, "processing", "ui", "widgetTimeSliderCheckbox.ui")
 )
 
 
@@ -201,42 +193,42 @@ class ThreediDepth(QgsProcessingAlgorithm):
         Mode(MODE_CONSTANT_S1, "Non-interpolated water level"),
     ]
 
-    GRIDADMIN_INPUT = 'GRIDADMIN_INPUT'
-    RESULTS_3DI_INPUT = 'RESULTS_3DI_INPUT'
-    DEM_INPUT = 'DEM_INPUT'
-    MODE_INPUT = 'MODE_INPUT'
-    CALCULATION_STEP_INPUT = 'CALCULATION_STEP_INPUT'
-    AS_NETCDF_INPUT = 'AS_NETCDF_INPUT'
+    GRIDADMIN_INPUT = "GRIDADMIN_INPUT"
+    RESULTS_3DI_INPUT = "RESULTS_3DI_INPUT"
+    DEM_INPUT = "DEM_INPUT"
+    MODE_INPUT = "MODE_INPUT"
+    CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
+    AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
     CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
-    WATER_DEPTH_OUTPUT = 'WATER_DEPTH_OUTPUT'
+    WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
     def tr(self, string):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return ThreediDepth()
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""
-        return 'threedidepth'
+        return "threedidepth"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Water depth')
+        return self.tr("Water depth")
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
-        return self.tr('Post-process results')
+        return self.tr("Post-process results")
 
     def groupId(self):
         """Returns the unique ID of the group this algorithm belongs to"""
-        return 'postprocessing'
+        return "postprocessing"
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
@@ -247,52 +239,45 @@ class ThreediDepth(QgsProcessingAlgorithm):
         # Input parameters
         self.addParameter(
             QgsProcessingParameterFile(
-                self.GRIDADMIN_INPUT,
-                self.tr('Gridadmin.h5 file'),
-                extension="h5"
+                self.GRIDADMIN_INPUT, self.tr("Gridadmin.h5 file"), extension="h5"
             )
         )
         self.addParameter(
             QgsProcessingParameterFile(
-                self.RESULTS_3DI_INPUT,
-                self.tr('Results_3di.nc file'),
-                extension="nc"
+                self.RESULTS_3DI_INPUT, self.tr("Results_3di.nc file"), extension="nc"
             )
         )
         self.addParameter(
-            QgsProcessingParameterRasterLayer(
-                self.DEM_INPUT,
-                self.tr('DEM')
-            )
+            QgsProcessingParameterRasterLayer(self.DEM_INPUT, self.tr("DEM"))
         )
         self.addParameter(
             QgsProcessingParameterEnum(
                 name=self.MODE_INPUT,
-                description=self.tr('Interpolation mode'),
+                description=self.tr("Interpolation mode"),
                 options=[m.description for m in self.MODES],
-                defaultValue=MODE_LINEAR
+                defaultValue=MODE_LINEAR,
             )
         )
         self.addParameter(
             ProcessingParamterNetcdfNumber(
                 name=self.CALCULATION_STEP_INPUT,
                 description=self.tr(
-                    'The timestep in the simulation for which you want to generate a raster'
+                    "The timestep in the simulation for which you want to generate a raster"
                 ),
                 defaultValue=-1,
-                parentParameterName=self.RESULTS_3DI_INPUT
+                parentParameterName=self.RESULTS_3DI_INPUT,
             )
         )
         self.addParameter(
             ProcessingParamterNetcdfNumber(
                 name=self.CALCULATION_STEP_END_INPUT,
                 description=self.tr(
-                    'In case you want to export water depths of multiple timesteps, enable this option and select '
-                    'the last timestep. All water depth rasters between these two timesteps will be generated.'
+                    "In case you want to export water depths of multiple timesteps, enable this option and select "
+                    "the last timestep. All water depth rasters between these two timesteps will be generated."
                 ),
                 defaultValue=-2,
                 parentParameterName=self.RESULTS_3DI_INPUT,
-                optional=True
+                optional=True,
             )
         )
         self.addParameter(
@@ -305,8 +290,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterRasterDestination(
-                self.WATER_DEPTH_OUTPUT,
-                self.tr('Water depth raster')
+                self.WATER_DEPTH_OUTPUT, self.tr("Water depth raster")
             )
         )
 
@@ -324,7 +308,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             if endstep <= parameters[self.CALCULATION_STEP_INPUT]:
                 feedback.reportError(
                     "The last timestep should be larger than the first timestep.",
-                    fatalError=True
+                    fatalError=True,
                 )
                 return {}
             timesteps = list(range(parameters[self.CALCULATION_STEP_INPUT], endstep))
@@ -340,7 +324,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 calculation_steps=timesteps,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
-                netcdf=parameters[self.AS_NETCDF_INPUT]
+                netcdf=parameters[self.AS_NETCDF_INPUT],
             )
         except CancelError:
             # When the process is cancelled, we just show the intermediate product

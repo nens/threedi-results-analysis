@@ -85,7 +85,7 @@ class CommandBox(object):
         return module_path
 
     def get_import_string(self, display_name):
-        """ return: string (e.g. 'ThreeDiToolbox.tool_commands.raster_checker.') """
+        """return: string (e.g. 'ThreeDiToolbox.tool_commands.raster_checker.')"""
         package_name = display_name.replace(" ", "_")
         command_without_extension = DEFAULT_COMMAND_NAME.split(".py")[0]
         import_string = (

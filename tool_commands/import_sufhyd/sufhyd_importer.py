@@ -281,7 +281,7 @@ class SufhydReader(object):
         self.errors.append(("input", error_type, message))
 
     def parse_knoop(self, knp):
-        """ parse knoop into manhole and impervious service
+        """parse knoop into manhole and impervious service
 
         :param knp:
         :return:

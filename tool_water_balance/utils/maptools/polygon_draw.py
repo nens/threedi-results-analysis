@@ -13,7 +13,7 @@ RGBA = 255, 0, 0
 
 
 class SelectionVisualisation(object):
-    """Visualize selected lines and points. """
+    """Visualize selected lines and points."""
 
     def __init__(self, canvas, color=QColor(*RGBA)):
         self.canvas = canvas

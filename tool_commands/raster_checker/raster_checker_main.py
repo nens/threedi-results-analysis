@@ -92,9 +92,9 @@ class RasterChecker(object):
             # offset_y + block_height), arr
 
     def iter_blocks(self, band, block_width=0, block_height=0):
-        """ Iterate over native blocks in a GDal raster data band.
+        """Iterate over native blocks in a GDal raster data band.
         Optionally, provide a minimum block dimension.
-        Returns a tuple of bbox (x1, y1, x2, y2) and the data as ndarray. """
+        Returns a tuple of bbox (x1, y1, x2, y2) and the data as ndarray."""
         nrows = int(band.YSize / block_height)
         for j in range(nrows):
             for block in self.iter_block_row(
@@ -140,7 +140,7 @@ class RasterChecker(object):
         return block_width, block_height, nr_blocks
 
     def get_rast_type(self, setting_id, rast_item):
-        """ Get raster type (e.g 'dem_file', or 'frict_coef_file') from entries_metadata """
+        """Get raster type (e.g 'dem_file', or 'frict_coef_file') from entries_metadata"""
         for entry in self.entries_metadata:
             entry_setting_id = entry[0]
             entry_rast_item = entry[3]
@@ -549,8 +549,8 @@ class RasterChecker(object):
         )
 
     def check_cnt_nodata(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
-        """ compare data/nodata count of dem with another raster and store the
-        counts as we use it later before pixel alignment check """
+        """compare data/nodata count of dem with another raster and store the
+        counts as we use it later before pixel alignment check"""
         detail = ""
         dem_cnt_data, dem_cnt_nodata = self.count_data_nodata(dem_src_ds)
         cnt_data, cnt_nodata = self.count_data_nodata(src_ds)
@@ -585,7 +585,7 @@ class RasterChecker(object):
         )
 
     def check_extent(self, setting_id, rast_item, check_id, src_ds, dem_src_ds):
-        """ compare extent (number rows/colums) of dem with another raster """
+        """compare extent (number rows/colums) of dem with another raster"""
         detail = ""
         dem_cols = dem_src_ds.RasterXSize
         dem_rows = dem_src_ds.RasterYSize
@@ -727,7 +727,7 @@ class RasterChecker(object):
         return pixel_specs
 
     def get_wrong_pixel(self, bbox1, compare_mask):
-        """ The function finds the x,y coordinates (in same projection as the
+        """The function finds the x,y coordinates (in same projection as the
         dem) of wrong pixels:
         - where dem is data and other raster nodata
         - where dem is nodata and other raster data
@@ -1131,9 +1131,9 @@ class RasterChecker(object):
             raise AssertionError("this result combination is impossible")
 
     def run(self, tasks):
-        """ runs the Raster checks.
+        """runs the Raster checks.
         :param tasks: list with strings dependent on what user selected
-        ['check all rasters', 'improve rasters] <-- latter is optional """
+        ['check all rasters', 'improve rasters] <-- latter is optional"""
 
         self.run_all_checks()
 

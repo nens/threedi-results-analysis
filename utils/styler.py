@@ -129,7 +129,9 @@ def style_animation_node_current(
     lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1
-    percentiles[0] = float(-9999)  # to make nodes / cells also visible when dry and z_coordinate < percentile[0]
+    percentiles[0] = float(
+        -9999
+    )  # to make nodes / cells also visible when dry and z_coordinate < percentile[0]
     for i in range(nr_classes):
         renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)

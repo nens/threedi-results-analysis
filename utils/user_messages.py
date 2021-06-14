@@ -19,14 +19,14 @@ def pop_up_info(msg="", title="Information", parent=None):
 
 
 def statusbar_message(msg=""):
-    """Display message in status bar """
+    """Display message in status bar"""
     if iface is None:
         return
     iface.mainWindow().statusBar().showMessage(msg)
 
 
 def messagebar_message(title, msg, level=None, duration=0):
-    """ Show message in the message bar (just above the map)
+    """Show message in the message bar (just above the map)
 
     Args:
         title (str): title of messages, showed bold in the start of the message

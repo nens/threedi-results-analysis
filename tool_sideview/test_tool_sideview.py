@@ -8,7 +8,7 @@ import unittest
 
 class TestThreeDiSideView(unittest.TestCase):
     def setUp(self):
-        """test whether ThreeDiSideView can be instantiated """
+        """test whether ThreeDiSideView can be instantiated"""
         iface = mock.Mock()
         ts_datasources = TimeseriesDatasourceModel()
         # tdi_root_tool = mock.Mock()

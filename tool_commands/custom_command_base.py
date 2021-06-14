@@ -12,6 +12,5 @@ class CustomCommandBase:
         raise NotImplementedError
 
     def run(self):
-        """Entry point of CustomCommand. Either call show_gui or run_it here.
-        """
+        """Entry point of CustomCommand. Either call show_gui or run_it here."""
         raise NotImplementedError

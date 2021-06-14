@@ -72,7 +72,7 @@ TIMESTEPS_EXPECTED = np.array(
 
 
 def _helper_round_numpy(one_array):
-    """round numpy values to certain decimal precision so that we can test it more easily """
+    """round numpy values to certain decimal precision so that we can test it more easily"""
     DECIMAL_PRECISION = 6
     return np.around(one_array, decimals=DECIMAL_PRECISION)
 
@@ -139,7 +139,7 @@ def test_get_incoming_and_outcoming_link_ids(
 ):
     """We mock StatusProgressBar which is not refered from
     'utils.user_messages.StatusProgressBar', but from
-    .tool_result_selection.models.StatusProgressBar' """
+    .tool_result_selection.models.StatusProgressBar'"""
     links = wb_calculation.get_incoming_and_outcoming_link_ids(wb_polygon, None)
     assert links == LINKS_EXPECTED
 
@@ -153,7 +153,7 @@ def test_get_nodes(progress_bar_mock, wb_calculation, wb_polygon):
 @mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
 def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
     """test A) number of timesteps, B) wheter we get a time series for each link,
-     pump and node"""
+    pump and node"""
     link_ids = LINKS_EXPECTED[0]
     pump_ids = LINKS_EXPECTED[1]
     node_ids = NODES_EXPECTED

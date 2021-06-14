@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class CustomCommand(CustomCommandBase):
-    """
-    """
+    """ """
 
     class Fields(object):
         name = "Guess indicator script"

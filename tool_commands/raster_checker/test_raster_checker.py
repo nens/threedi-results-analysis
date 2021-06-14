@@ -36,7 +36,7 @@ class TestRasterCheckerEntries(unittest.TestCase):
         self.rc_entries = RasterCheckerEntries(self.datamodel, session)
 
     def test_if_testdata_exists(self):
-        """ we need 1 sqlite and 3 rasters """
+        """we need 1 sqlite and 3 rasters"""
         self.assertTrue(os.path.isfile(self.test_sqlite_path))
         for tif in ["test1.tif", "test2.tif", "test3.tif"]:
             self.assertTrue(os.path.isfile(os.path.join(TEST_DATA_DIR, "rasters", tif)))
@@ -107,7 +107,7 @@ class TestRasterChecker(unittest.TestCase):
         self.checker.sqlite_dir = TEST_DATA_DIR
 
     def test_if_testdata_exists(self):
-        """ TestRasterChecker does not use the sqlite, but only needs some rasters """
+        """TestRasterChecker does not use the sqlite, but only needs some rasters"""
         for tif in ["test1.tif", "test2.tif", "test3.tif"]:
             self.assertTrue(os.path.isfile(os.path.join(TEST_DATA_DIR, "rasters", tif)))
 
@@ -158,7 +158,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertEqual(self.checker.nr_phases, 5)
 
     def test_result_per_check(self):
-        """ each check should add a result (a list with dict per raster) to
+        """each check should add a result (a list with dict per raster) to
         self.checker.results.result_per_check. We test two things:
         1. what happens we run a check with 1 raster?
         2. what happens we run a check with 2 rasters?
@@ -209,10 +209,12 @@ class TestRasterChecker(unittest.TestCase):
         ]
         self.assertEqual(self.checker.results.result_per_check, expect)
 
-    def get_result(self,):
-        """ this is not a test, but just a helperfunction to get the result for
+    def get_result(
+        self,
+    ):
+        """this is not a test, but just a helperfunction to get the result for
         result_per_check. From now on, we only compare result of a check with
-        what we expect (instead of the whole dict..) """
+        what we expect (instead of the whole dict..)"""
         result = [x.get("result") for x in self.checker.results.result_per_check][0]
         return result
 
@@ -461,7 +463,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     def test_pixel_alignment(self):
-        """" this test updates appends two lists (with dicts). we test both """
+        """ " this test updates appends two lists (with dicts). we test both"""
         self.checker.results.result_per_check = []  # test this list
         self.checker.input_data_shp = []  # test this list
 
