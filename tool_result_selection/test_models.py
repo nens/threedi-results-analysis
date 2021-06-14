@@ -118,6 +118,7 @@ def test_datasource_layer_helper_get_result_layers_validation():
     nodes = results[1]
     cells = results[2]
     pumps = results[3]
+    cells  # flake8
     assert lines.featureCount() == 31915
     assert nodes.isValid()
     assert pumps.name() == "pumplines"

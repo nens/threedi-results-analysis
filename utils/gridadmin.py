@@ -3,7 +3,6 @@ from collections import OrderedDict
 from osgeo import ogr
 from osgeo import osr
 from qgis.core import QgsWkbTypes
-from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.constants import TYPE_FUNC_MAP
 from threedigrid.admin.utils import KCUDescriptor
 from threedigrid.orm.base.exporters import BaseOgrExporter
