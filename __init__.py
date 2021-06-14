@@ -21,7 +21,7 @@ PLUGIN_DIR = Path(__file__).parent
 
 # sys.stderr is not available under Windows in Qgis, which is what the faulthandler
 # uses by default.
-if sys.stderr is not None and hasattr(sys.stderr, 'fileno'):
+if sys.stderr is not None and hasattr(sys.stderr, "fileno"):
     faulthandler.enable()
 dependencies.ensure_everything_installed()
 
