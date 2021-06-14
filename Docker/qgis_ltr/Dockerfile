@@ -42,6 +42,8 @@ RUN apt-get update \
         python3-pyqt5.qtwebsockets \
         qgis \
         qgis-provider-grass \
+        # strace is for debugging segfaults
+        strace \
         unzip \
         wget \
         zip \
