@@ -5,7 +5,7 @@ import unittest
 
 
 class TestLocationTimeseriesModelItem(unittest.TestCase):
-    """ Test LocationTimeseriesModelItem created by LocationTimeseriesModel"""
+    """Test LocationTimeseriesModelItem created by LocationTimeseriesModel"""
 
     test_values = {
         "active": False,
@@ -69,7 +69,7 @@ class TestLocationTimeseriesModelItem(unittest.TestCase):
 
 
 class TestLocationTimeseriesModel(unittest.TestCase):
-    """ Test LocationTimeseriesModel functions"""
+    """Test LocationTimeseriesModel functions"""
 
     ts_datasources = "bla"
 
@@ -134,7 +134,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         )
 
     def test_insert_remove_rows(self):
-        """ test insertRows and removeRows function"""
+        """test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
             ts_datasources=self.ts_datasources, initial_data=self.initial_data
@@ -165,7 +165,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         )
 
     def test_set_get_data(self):
-        """ test insertRows and removeRows function"""
+        """test insertRows and removeRows function"""
 
         collection = LocationTimeseriesModel(
             ts_datasources=self.ts_datasources, initial_data=self.initial_data

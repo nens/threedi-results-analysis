@@ -126,7 +126,7 @@ class StatisticsTool(object):
 
     def run(self, *args, **kwargs):
         """Start processing on first selected model result (netcdf).
-            Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
+        Assumption is that sqlite1 already exist and is filled with flowlines, pumps and nodes.
         """
         # TODO: the last ts_datasource is taken instead of the first.
         # And result_db_qmodel is called active_ts_datasource in the rest of the code.

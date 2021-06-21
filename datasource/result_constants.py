@@ -2,26 +2,26 @@ from collections import namedtuple
 
 
 #: namedtuple for NetCDF variable information
-NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit"])
+NcVar = namedtuple("NcVar", ["name", "verbose_name", "unit", "negative_possible"])
 
-WATERLEVEL = NcVar("s1", "waterlevel", "m MSL")
-DISCHARGE = NcVar("q", "discharge", "m3/s")
-VELOCITY = NcVar("u1", "velocity", "m/s")
-VOLUME = NcVar("vol", "volume", "m3")
-DISCHARGE_PUMP = NcVar("q_pump", "discharge pump", "m3/s")
-DISCHARGE_INTERFLOW = NcVar("qp", "discharge interflow", "m3/s")
-DISCHARGE_LATERAL = NcVar("q_lat", "discharge lateral", "m3/s")
-VELOCITY_INTERFLOW = NcVar("up1", "velocity interflow", "m/s")
-RAIN_INTENSITY = NcVar("rain", "rain intensity", "m3/s")
-WET_SURFACE_AREA = NcVar("su", "wet surface area", "m2")
-INFILTRATION = NcVar("infiltration_rate", "infiltration rate", "m3/s")
+WATERLEVEL = NcVar("s1", "waterlevel", "m MSL", True)
+DISCHARGE = NcVar("q", "discharge", "m3/s", True)
+VELOCITY = NcVar("u1", "velocity", "m/s", True)
+VOLUME = NcVar("vol", "volume", "m3", False)
+DISCHARGE_PUMP = NcVar("q_pump", "discharge pump", "m3/s", False)
+DISCHARGE_INTERFLOW = NcVar("qp", "discharge interflow", "m3/s", True)
+DISCHARGE_LATERAL = NcVar("q_lat", "discharge lateral", "m3/s", True)
+VELOCITY_INTERFLOW = NcVar("up1", "velocity interflow", "m/s", True)
+RAIN_INTENSITY = NcVar("rain", "rain intensity", "m3/s", False)
+WET_SURFACE_AREA = NcVar("su", "wet surface area", "m2", False)
+INFILTRATION = NcVar("infiltration_rate", "infiltration rate", "m3/s", True)
 INFILTRATION_RATE_SIMPLE = NcVar(
-    "infiltration_rate_simple", "infiltration_rate_simple", "m3/s"
+    "infiltration_rate_simple", "infiltration rate simple", "m3/s", False
 )
-WET_CROSS_SECTION_AREA = NcVar("au", "wet cross section area", "m2")
-LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s")
-INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3")
-SOURCES_AND_SINKS = NcVar("q_sss", "sources and sinks", "m3/s")
+WET_CROSS_SECTION_AREA = NcVar("au", "wet cross-sectional area", "m2", False)
+LEAKAGE_RATE = NcVar("leak", "leakage rate", "m3/s", True)
+INTERCEPTION = NcVar("intercepted_volume", "intercepted volume", "m3", False)
+SOURCES_AND_SINKS = NcVar("q_sss", "sources and sinks", "m3/s", True)
 
 # TODO: rename Line_types
 _Q_TYPES = [
@@ -51,6 +51,8 @@ H_TYPES = [v.name for v in _H_TYPES]
 
 # TODO: look at the name
 SUBGRID_MAP_VARIABLES = _Q_TYPES + _H_TYPES  # just take all variables..
+
+NEGATIVE_POSSIBLE = dict([(v.name, v.negative_possible) for v in SUBGRID_MAP_VARIABLES])
 
 AGGREGATION_VARIABLES = [
     DISCHARGE,

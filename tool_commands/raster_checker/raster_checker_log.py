@@ -231,7 +231,7 @@ class RasterCheckerResults(object):
         return msg
 
     def add_found_rasters(self, entries_metadata):
-        """ write some log file lines about which rasters have been checked
+        """write some log file lines about which rasters have been checked
         :param entries_metadata: tuple with tuples e.g:
         ((1, 'v2_global_settings', 'dem_file', 'rasters/test1.tif'))
         :return: none
@@ -273,11 +273,11 @@ class RasterCheckerResults(object):
 
     @cached_property
     def last_check_phase(self):
-        """ returns last checkphase (int) of RASTER_CHECKER_MAPPER """
+        """returns last checkphase (int) of RASTER_CHECKER_MAPPER"""
         return max([chck.get("phase") for chck in RASTER_CHECKER_MAPPER])
 
     def add_intro(self):
-        """ enters some (general) explaining lines."""
+        """enters some (general) explaining lines."""
         msg = (
             "-- Intro: --\n"
             "The RasterChecker checks your rasters based on the raster "

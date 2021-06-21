@@ -87,6 +87,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         layer_name,
         node_data,
         target_epsg_code,
+        as_cells=False,
         **kwargs
     ):
         """
@@ -94,6 +95,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         :param file_name: name of the outputfile
         :param node_data: dict of node data
+        :param as_cells: export nodes as cells (polygons) - exports 2d nodes only
         """
         assert self.driver is not None
 
@@ -101,9 +103,16 @@ class QgisNodesOgrExporter(BaseOgrExporter):
         spl = Spatialite(file_name)
         # create a new spatially enabled layer. The Spatialite connector is
         # used to create a custom geometry column name
+        if as_cells:
+            qgs_wkb_type = QgsWkbTypes.Polygon
+            ogr_wkb_type = ogr.wkbPolygon
+        else:
+            qgs_wkb_type = QgsWkbTypes.Point
+            ogr_wkb_type = ogr.wkbPoint
+
         spl.create_empty_layer_only(
             layer_name,
-            wkb_type=QgsWkbTypes.Point,
+            wkb_type=qgs_wkb_type,
             fields=self.TABLE_FIELDS,
             id_field="id",
             geom_field="the_geom",
@@ -119,12 +128,33 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
         layer.StartTransaction()
         for i in range(node_data["id"].size):
-            point = ogr.Geometry(ogr.wkbPoint)
-            point.AddPoint_2D(
-                node_data["coordinates"][0][i], node_data["coordinates"][1][i]
-            )
+            geom = ogr.Geometry(ogr_wkb_type)
+            if as_cells:
+                # skip cells with invalid coordinates
+                if np.all(
+                    np.equal(
+                        node_data["cell_coords"][:, i],
+                        np.array([-9999.0, -9999.0, -9999.0, -9999.0]),
+                    )
+                ):
+                    continue
+                else:
+                    xmin, ymin, xmax, ymax = node_data["cell_coords"][:, i]
+                    geom_ring = ogr.Geometry(ogr.wkbLinearRing)
+                    geom_ring.AddPoint_2D(xmin, ymin)
+                    geom_ring.AddPoint_2D(xmin, ymax)
+                    geom_ring.AddPoint_2D(xmax, ymax)
+                    geom_ring.AddPoint_2D(xmax, ymin)
+                    geom_ring.AddPoint_2D(xmin, ymin)
+                    geom.AddGeometry(geom_ring)
+                    if (not geom.IsValid()) or geom.IsEmpty():
+                        continue
+            else:
+                geom.AddPoint_2D(
+                    node_data["coordinates"][0][i], node_data["coordinates"][1][i]
+                )
             feature = ogr.Feature(_definition)
-            feature.SetGeometry(point)
+            feature.SetGeometry(geom)
             for field_name, field_type in self.QGIS_NODE_FIELDS.items():
                 fname = self.QGIS_NODE_FIELD_NAME_MAP[field_name]
                 if field_name == "type":
@@ -262,14 +292,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
         self.supported_drivers = {SPATIALITE_DRIVER_NAME}
         self.driver = None
 
-    def save(
-        self,
-        file_name,
-        layer_name,
-        line_data,
-        target_epsg_code,
-        **kwargs
-    ):
+    def save(self, file_name, layer_name, line_data, target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -313,7 +336,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             if line_data["kcu"][i] == 150:
                 line.AddPoint_2D(
                     line_data["line_coords"][2][i] - 0.00002,
-                    line_data["line_coords"][3][i] - 0.00002
+                    line_data["line_coords"][3][i] - 0.00002,
                 )
             else:
                 line.AddPoint_2D(
@@ -398,14 +421,7 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
         self.node_data = node_data
         self.driver = None
 
-    def save(
-        self,
-        file_name,
-        layer_name,
-        pump_data,
-        target_epsg_code,
-        **kwargs
-    ):
+    def save(self, file_name, layer_name, pump_data, target_epsg_code, **kwargs):
         """
         save to file format specified by the driver, e.g. shapefile
 
@@ -443,11 +459,11 @@ class QgisPumpsOgrExporter(BaseOgrExporter):
             if node1_id == -9999:
                 raise AssertionError("start_node has not-null constraint")
 
-            node1_coords = pump_data['node_coordinates'][0:2, i]
+            node1_coords = pump_data["node_coordinates"][0:2, i]
             if node2_id == -9999:
                 node2_coords = node1_coords + 0.00002
             else:
-                node2_coords = pump_data['node_coordinates'][2:4, i]
+                node2_coords = pump_data["node_coordinates"][2:4, i]
             try:
                 line.AddPoint_2D(node1_coords[0], node1_coords[1])
                 line.AddPoint_2D(node2_coords[0], node2_coords[1])

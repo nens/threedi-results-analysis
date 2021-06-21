@@ -2,9 +2,9 @@
 
 from collections import OrderedDict
 from copy import copy
+from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
-from osgeo import gdal
 from sqlalchemy.orm import load_only
 from ThreeDiToolbox.sql_models.constants import Constants
 from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
@@ -93,7 +93,7 @@ class Importer(object):
 
     def run_import(self):
         """
-            main function for performing all import tasks
+        main function for performing all import tasks
         """
 
         # self.db.create_and_check_fields()

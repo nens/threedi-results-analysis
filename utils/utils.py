@@ -100,16 +100,21 @@ def parse_aggvarname(aggvarname):
 
 
 def generate_parameter_config(subgrid_map_vars, agg_vars):
-    """Dynamically create the parameter config.
+    """Dynamically create the parameter config
 
-    Args:
-        subgrid_map_vars: available vars from subgrid_map.nc
-        agg_vars: available vars from aggregation netCDF
+    :param subgrid_map_vars: available vars from subgrid_map.nc
+    :param agg_vars: available vars from aggregation netCDF
+    :returns: dict with two lists of parameters for lines ('q') and nodes ('h'). Structure:
+    {'q': [{"name": str, "unit": str, "parameters": (str, [str]) }], 'h': [<same structure as q>]}.
     """
     subgrid_map_vars_mapping = {
-        var: (lbl, unit) for (var, lbl, unit) in SUBGRID_MAP_VARIABLES
+        var: (lbl, unit)
+        for (var, lbl, unit, negative_possible) in SUBGRID_MAP_VARIABLES
     }
-    agg_vars_mapping = {var: (lbl, unit) for (var, lbl, unit) in AGGREGATION_VARIABLES}
+    agg_vars_mapping = {
+        var: (lbl, unit)
+        for (var, lbl, unit, negative_possible) in AGGREGATION_VARIABLES
+    }
     config = {"q": [], "h": []}
 
     verbose_agg_method = {

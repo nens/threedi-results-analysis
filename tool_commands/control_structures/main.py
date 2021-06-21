@@ -35,7 +35,7 @@ class ControlledStructures(object):
                 be omitted for spatialite
             'schema' --> database schema name
 
-         """
+        """
 
         self._uri = QgsDataSourceUri()
         host = kwargs["host"]

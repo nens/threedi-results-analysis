@@ -1,12 +1,12 @@
 from . import styler
 from .threedi_database import ThreediDatabase
+from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsLayerTreeNode
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsVectorLayer
-from PyQt5.QtCore import QSettings
 
 import os.path
 
@@ -411,7 +411,7 @@ class LayerTreeManager(object):
                     group = self.model_layergroup.insertGroup(2, name)
                     self._mark(group, "result_" + result.file_path.value)
 
-                line, node, pumpline = result.get_result_layers()
+                line, node, cell, pumpline = result.get_result_layers()
 
                 if self._find_marked_child(group, "flowlines") is None:
                     # apply default styling on memory layers

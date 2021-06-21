@@ -34,7 +34,7 @@ def get_pump_or_outlet_manholes(session, ids):
 
 def get_all_manholes(session):
     """Get all manholes from sqlite (also manhole_outlet, manhole_pump).
-    :return: a dict with key=manhole.id, value=manhole.manhole_indicator """
+    :return: a dict with key=manhole.id, value=manhole.manhole_indicator"""
     manholes_id_indicator = {}
     sql_manholes = session.query(Manhole)
     for manhole in sql_manholes:
@@ -91,7 +91,7 @@ def empty_manhole_indicator(session, manholes_pre_empty):
 
 
 def empty_pipe_friction_value(session, pipes_pre_empty):
-    """ empty column manhole_indicator (set is to NULL) of table v2_manhole """
+    """empty column manhole_indicator (set is to NULL) of table v2_manhole"""
     pipes_ids = list(pipes_pre_empty)
     update_query = (
         update(Pipe)
@@ -105,8 +105,8 @@ def empty_pipe_friction_value(session, pipes_pre_empty):
 @pytest.fixture()
 def db(tmpdir):
     """Copy original sqlite to tmpdir as we modify the sqlite data (with sqlalchemy
-     in these tests. Pytest fixes cleanup op tmpdir: "entries older than 3 temporary
-     directories will be removed"."""
+    in these tests. Pytest fixes cleanup op tmpdir: "entries older than 3 temporary
+    directories will be removed"."""
     sqlite_filename = "v2_bergermeer.sqlite"
     orig_sqlite_path = TEST_DATA_DIR / "testmodel" / "v2_bergermeer" / sqlite_filename
     tmp_sqlite_dir = Path(tmpdir)

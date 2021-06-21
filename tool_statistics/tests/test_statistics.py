@@ -28,14 +28,14 @@ class DummyTimeseriesDatasourceModel(object):
 
 
 class TestStatistics(unittest.TestCase):
-    """ In TestStatistics the gridadmin.sqlite is updated: tables are added if
+    """In TestStatistics the gridadmin.sqlite is updated: tables are added if
     they not exist (or removed first if they exist). ThreeDiToolbox assumes:
     - gridadmin.sqlite is in same folder as model.sqlite and two netcdf files
     - filename must be "gridadmin.sqlite"
     We do not want to copy (large!) netcdfs to tempdir, therefore we
     - create copy of gridadmin.sqlite into tempdir
     - mock path to gridadmin.sqlite (becomes '/tmpdir/gridadmin.sqlite')
-    - remove tempdir (e.g. in a tearDownClass() is not needed apparently """
+    - remove tempdir (e.g. in a tearDownClass() is not needed apparently"""
 
     @classmethod
     @mock.patch("ThreeDiToolbox.tool_statistics.tools.statistics.progress_bar")

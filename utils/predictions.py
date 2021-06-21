@@ -57,7 +57,7 @@ class Predictor(object):
                 be omitted for spatialite
             'schema' --> database schema name
 
-         """
+        """
         # TODO: this get_uri() method doesn't seem to be used.
         self._uri = QgsDataSourceUri()
         host = kwargs["host"]

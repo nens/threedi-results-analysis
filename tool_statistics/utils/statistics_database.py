@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 class StaticsticsDatabase(ThreediDatabase):
     """Wrapper around sql alchemy interface with functions to create, update
-        databases and get connections.
-        This class is equal to ThreediDatabase, except fix_views
-        Two functions create_db and get_metadata added because of link to Base
-        (code is beside link to different 'Base;  equal to ThreediDatabase
+    databases and get connections.
+    This class is equal to ThreediDatabase, except fix_views
+    Two functions create_db and get_metadata added because of link to Base
+    (code is beside link to different 'Base;  equal to ThreediDatabase
 
 
 

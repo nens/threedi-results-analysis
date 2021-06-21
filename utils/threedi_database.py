@@ -325,7 +325,7 @@ class ThreediDatabase(object):
         return missing_index_tables
 
     def fix_spatial_indices(self):
-        """ fixes spatial index all tables in spatialite in multiple steps
+        """fixes spatial index all tables in spatialite in multiple steps
         1.  Create new spatial indices.
             -   Each v2_ tbl must have spatial index, otherwise one gets an SQL error
                 while deleting an feature (row) from a table (e.g.

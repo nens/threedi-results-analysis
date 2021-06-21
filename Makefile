@@ -57,11 +57,11 @@ INSTALLER_BUILDDIR = installer-build
 INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 
 # Get your tag from https://github.com/qgis/QGIS
-QGIS_TAG = final-3_16_4
+QGIS_TAG = final-3_16_7
 # Should correspond with QGIS_TAG and in the form: major.minor.patch
-QGIS_VERSION = 3.16.4
+QGIS_VERSION = 3.16.7
 # For building the installer https://github.com/nens/threedi-api-qgis-client
-THREEDI_API_QGIS_CLIENT_VERSION = 2.4.0
+THREEDI_API_QGIS_CLIENT_VERSION = 2.4.1
 
 default: compile
 
@@ -127,7 +127,7 @@ installer: zip
 		https://github.com/nens/threedi-api-qgis-client.git \
 		/tmp/threedi-api-qgis-client
 	mv /tmp/threedi-api-qgis-client/threedi_api_qgis_client \
-    	./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_api_qgis_client
+	./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_api_qgis_client
 	git clone --branch $(QGIS_TAG) --depth 1 \
 		git@github.com:qgis/qgis.git ./$(INSTALLER_BUILDDIR)/QGIS
 	docker run \

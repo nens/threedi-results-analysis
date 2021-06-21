@@ -26,6 +26,16 @@ class ThreeDiSideView(object):
 
         self.dock_widgets = []
         self.widget_nr = 0
+        self._active = False
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, activate):
+        self._active = activate
+        self.tdi_root_tool.update_slider_enabled_state()
 
     def on_unload(self):
         """
@@ -51,6 +61,8 @@ class ThreeDiSideView(object):
 
             del self.dock_widgets[nr]
 
+        self.active = False
+
     def run(self):
         """
         Run method that loads and starts the plugin (docked graph widget)
@@ -75,5 +87,8 @@ class ThreeDiSideView(object):
         if len(self.dock_widgets) > 1:
             window = qgis.core.QgsApplication.activeWindow()
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
+
+        # activate timeslider
+        self.active = True
 
         new_widget.show()

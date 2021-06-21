@@ -105,8 +105,7 @@ def _get_feature_iterator(layer, request_filter):
 
 @functools.total_ordering
 class Bar(object):
-    """Bar for waterbalance barchart with positive and negative components.
-    """
+    """Bar for waterbalance barchart with positive and negative components."""
 
     SERIES_NAME_TO_INDEX = {name: idx for (name, idx, _, part) in INPUT_SERIES}
 
@@ -159,8 +158,7 @@ class Bar(object):
             self.convert_to_net()
 
     def convert_to_net(self):
-        """Make a bar that contains the net value (positive or negative).
-        """
+        """Make a bar that contains the net value (positive or negative)."""
         # NOTE: use addition because out is negative
         net_val = self._balance_in + self._balance_out
         if net_val > 0:
@@ -1196,7 +1194,7 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_lower)
 
     def get_wb_result_layers(self):
-        lines, points, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
         return lines, points, pumps
 
     def get_wb_polygon(self):
