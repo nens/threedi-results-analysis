@@ -130,6 +130,10 @@ two exceptions:
   problems as h5py. So on linux we need ``apt install
   python3-netcdf4``, this is done in the dockerfile. For windows,
   ``populate.sh`` downloads a binary wheel.
+
+- netcdf4 needs cftime. For linux, this is already handled by the
+  package, but for windows we need a binary wheel. See the paragraph
+  above.
   
 
 Our dependency handling
