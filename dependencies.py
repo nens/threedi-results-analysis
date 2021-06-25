@@ -49,6 +49,7 @@ DEPENDENCIES = [
     Dependency("click", "click", ">=7.0"),
     Dependency("alembic", "alembic", ">=0.9"),
     Dependency("mako", "mako", ""),
+    Dependency("netCDF4", "netCDF4", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform

@@ -126,6 +126,11 @@ two exceptions:
         ``pip3 wheel -w . --no-binary=h5py --no-deps h5py==2.10.0``
   On linux, it means ``apt install python3-h5py``.
 
+- Our ``threedidepth`` package needs netcdf4, this has the same
+  problems as h5py. So on linux we need ``apt install
+  python3-netcdf4``, this is done in the dockerfile. For windows,
+  ``populate.sh`` downloads a binary wheel.
+  
 
 Our dependency handling
 -----------------------

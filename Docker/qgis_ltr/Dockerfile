@@ -38,8 +38,10 @@ RUN apt-get update \
         libhdf5-dev \
         python3-pip \
         python3-qgis \
-        # Needed for the threedi-api-qgis-client
+        # Needed for the threedi-api-qgis-client:
         python3-pyqt5.qtwebsockets \
+        # Needed for threedidepth:
+        python3-netcdf4 \
         qgis \
         qgis-provider-grass \
         # strace is for debugging segfaults
