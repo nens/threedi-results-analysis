@@ -7,6 +7,8 @@ ThreeDiToolBox changelog
 - Update threedidepth algorithm with new functionalities: multiple timesteps
   and export as netcdf file.
 
+- Added netCDF4 binary for windows.  
+
 - Added new animation slider.
   
 - Updated dependencies are un-imported (technically: removed from ``sys.modules``)
