@@ -128,9 +128,8 @@ two exceptions:
 
 - Our ``threedidepth`` package needs netcdf4, this has the same
   problems as h5py. So on linux we need ``apt install
-  python3-netcdf4``.
-  TODO: windows build. Put it in a subdir like h5py and copy it to the
-  directory of this readme in ``populate.sh``.
+  python3-netcdf4``, this is done in the dockerfile. For windows,
+  ``populate.sh`` downloads a binary wheel.
   
 
 Our dependency handling
