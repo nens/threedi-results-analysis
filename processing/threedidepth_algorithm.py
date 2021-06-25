@@ -270,7 +270,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            ProcessingParamterNetcdfNumber(
+            ProcessingParameterNetcdfNumber(
                 name=self.CALCULATION_STEP_END_INPUT,
                 description=self.tr(
                     "In case you want to export water depths of multiple timesteps, enable this option and select "
