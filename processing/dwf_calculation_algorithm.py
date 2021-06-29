@@ -30,46 +30,26 @@ __copyright__ = '(C) 2021 by Nelen en Schuurmans'
 
 __revision__ = '$Format:%H$'
 
-
 import os
+import logging
 import sqlite3
 import json
 import csv
-from datetime import datetime
+import datetime
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterString,
-                       QgsProcessingParameterFileDestination,
-                       QgsProcessingParameterProviderConnection,
-                       QgsProviderRegistry,
-                       QgsProviderConnectionException,
-                       QgsProcessingException)
-
-
-
-# OUTPUT : lateral as a json file 
-
-# {
-#   "offset": 180,
-#   "interpolate": false,
-#   "values": [
-#     [0.0, 0.0002],
-#     [900.0, 0.0],
-#     [1200.0, 0.0001],
-#     [1620.0, 0.0]
-#   ],
-#   "units": "m3/s",
-#   "connection_node": 4
-# }
-
-# INPUT CSV FOR API CLIENT :
-# FORMAT : lat_id, connection_node_id, timeseries
+from qgis.core import QgsProcessing
+from qgis.core import QgsFeatureSink
+from qgis.core import QgsProcessingAlgorithm
+from qgis.core import QgsProcessingParameterFeatureSource
+from qgis.core import QgsProcessingParameterFeatureSink
+from qgis.core import QgsProcessingParameterFile
+from qgis.core import QgsProcessingParameterString
+from qgis.core import QgsProcessingParameterFileDestination
+from qgis.core import QgsProcessingParameterProviderConnection
+from qgis.core import QgsProviderRegistry
+from qgis.core import QgsProviderConnectionException
+from qgis.core import QgsProcessingException
 
 # Default values
 DWF_FACTORS = [
@@ -99,11 +79,12 @@ DWF_FACTORS = [
     [23, 0.04],
 ]
 
+# DWF per person = 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
+DWF_PER_PERSON = 0.12
 
 def get_dwf_factors_from_file(file_path):
     
-    dwf_factors = []
-    
+    dwf_factors = []    
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file, delimiter = ',')
         for row in reader:
@@ -111,102 +92,86 @@ def get_dwf_factors_from_file(file_path):
             dwf_factors += [[int(row[0]), float(row[1])]]
 
     return dwf_factors
-    
 
+
+def start_time_and_duration_to_dwf_factors(start_time, duration, dwf_factors):
+    
+    starting_time = datetime.datetime.strptime(start_time, "%H:%M:%S")
+    
+    # First timestep at 0 seconds
+    current_hour = starting_time.hour
+    dwf_factor_per_timestep = [[0, dwf_factors[starting_time.hour % 24][1]]]
+        
+    for second in range(1, duration+1):
+        time = starting_time + datetime.timedelta(seconds=second)
+        if time.hour != current_hour:
+            dwf_factor_per_timestep.append([second, 
+                                            dwf_factors[time.hour % 24][1]])
+        elif second == duration:
+            dwf_factor_per_timestep.append([second, 
+                                            dwf_factors[time.hour % 24][1]])
+        
+        current_hour = time.hour
+    
+    return dwf_factor_per_timestep
 
 def read_dwf_per_node(spatialite_path):
     
-    """Obtains the 24h dry weather flow per connection node from the a 3Di model sqlite-file."""
+    """Obtains the DWF per connection node per second a 3Di model sqlite-file."""
+
     conn = sqlite3.connect(spatialite_path)
     c = conn.cursor()
 
-    # DWF per person = 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
-    dwfPerPerson = 0.12
-
     # Create empty list that holds total 24h dry weather flow per node
-    dwfPerNode24h = []
-
-    cnt = 0
+    dwf_per_node_per_second = []
+    
     # Create a table that contains nr_of_inhabitants per connection_node and iterate over it
     for row in c.execute(
-        "WITH imp_surface_count AS ( SELECT impsurf.id, impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0 AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id), inhibs_per_node AS ( SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants, impmap.connection_node_id FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap WHERE impsurfcount.id = impmap.impervious_surface_id) SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants) FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id"
+        """
+        WITH imp_surface_count AS 
+            ( SELECT impsurf.id, impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants 
+             FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap 
+             WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0 
+             AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id), 
+        inhibs_per_node AS ( 
+            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants, impmap.connection_node_id 
+            FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap 
+            WHERE impsurfcount.id = impmap.impervious_surface_id) 
+        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants) 
+        FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id
+        """
     ):
-        dwfPerNode24h.append([row[0], row[1] * dwfPerPerson / 3600])
-        cnt += row[1]
+        dwf_per_node_per_second.append([row[0], row[1] * DWF_PER_PERSON / 3600])
 
     conn.close()
 
-    return dwfPerNode24h
+    return dwf_per_node_per_second
 
 def generate_dwf_lateral_json(
-    spatialite_filepath, start_time, duration, dwfFactors
+    spatialite_filepath, start_time, duration, dwf_factors
 ):
-    """Generates a JSON-file that contains information about the dry weather flow on each connection node during the entire simulation."""
 
     dwf_on_each_node = read_dwf_per_node(spatialite_filepath)
-
-    # Determine the starting hour
-    starting_hour = datetime.strptime(start_time, "%H:%M:%S").hour
-
-    # Determine amount of seconds in first hour
-    secs_in_first_hour = get_sec(
-        datetime.strftime(datetime.strptime(start_time, "%H:%M:%S"), "%M:%S")
-    )
-    if secs_in_first_hour == 0:
-        secs_in_first_hour = 3600
-
-    # Calculate the seconds remaining
-    remaining_seconds = duration - secs_in_first_hour
-
-    # Calculate the whole hours remaining
-    remaining_hours = remaining_seconds // 3600
-
-    # Calculate the seconds remaining in the last hour
-    secs_in_last_hour = remaining_seconds % 3600
-
-    # Create a list that will hold the dwf factor for each timestep of the 1D lateral and fill with the first two timesteps
-    dwfFactorPerTimestep = [
-        [0, dwfFactors[starting_hour % 24][1]],
-        [secs_in_first_hour, dwfFactors[(starting_hour + 1) % 24][1]],
-    ]
-
-    number_of_whole_hours = list(range(1, remaining_hours + 1))
-    # Loop over the remaining whole hours and append the new timesteps and their corresponding dwf factors
-    for h in number_of_whole_hours:
-        new_timestep = dwfFactorPerTimestep[-1][0] + 3600
-        newFactorHour = starting_hour + h + 1
-        new_factor = dwfFactors[newFactorHour % 24][1]
-        dwfFactorPerTimestep.append([new_timestep, new_factor])
-
-    # Append last timestep if there are seconds in the last hour
-    if secs_in_last_hour > 0:
-        dwfFactorPerTimestep.append(
-            [new_timestep + secs_in_last_hour, dwfFactors[(newFactorHour + 1) % 24][1]]
-        )
-
+    dwf_factor_per_timestep = start_time_and_duration_to_dwf_factors(start_time = start_time,
+                                                                     duration = duration,
+                                                                     dwf_factors = dwf_factors)
     # Initialize list that will hold JSON
     dwf_list = []
     
     # Generate JSON for each connection node
-    for i in enumerate(dwf_on_each_node):
+    for dwf_node in dwf_on_each_node:        
+        dwf_per_timestep = """"""
+        for row in dwf_factor_per_timestep:
+            dwf_per_timestep = dwf_per_timestep + str(row[0]) + ',' + str(dwf_node[1] * row[1]) + '\n'
 
-        # print(dwf_on_each_node[i[0]][1])
-        #dwfPerTimeStep = [
-        #    [row[0], row[1] * dwf_on_each_node[i[0]][1]] for row in dwfFactorPerTimestep
-        #]
-        
-        dwfPerTimeStep = """"""
-        for row in dwfFactorPerTimestep:
-            dwfPerTimeStep = dwfPerTimeStep + str(row[0]) + ',' + str(dwf_on_each_node[i[0]][1] * row[1]) + '\n'
-
-        dwfPerTimeStep = dwfPerTimeStep[:-1]
+        dwf_per_timestep = dwf_per_timestep[:-1]
         dwf_list.append(
             {
                 "offset": 0,
                 "interpolate": 0,
-                "values": dwfPerTimeStep,
+                "values": dwf_per_timestep,
                 "units": "m3/s",
-                "connection_node": dwf_on_each_node[i[0]][0],
+                "connection_node": dwf_node[0],
             }
         )
 
@@ -214,8 +179,6 @@ def generate_dwf_lateral_json(
 
 def dwf_json_to_csv(dwf_list, output_csv_file):
         
-    # INPUT CSV FOR API CLIENT :
-    # FORMAT : lat_id, connection_node_id, timeseries
     with open(output_csv_file,'w', newline='') as csv_file: 
         writer = csv.writer(csv_file)
         for i, row in enumerate(dwf_list):
@@ -224,29 +187,13 @@ def dwf_json_to_csv(dwf_list, output_csv_file):
             timeseries = row['values']
             writer.writerow([str(lat_id), str(connection_node_id), timeseries])
 
-def get_sec(time_str):
+def str_to_seconds(time_str):
     """Get Seconds from time."""
     m, s = time_str.split(":")
     return int(m) * 60 + int(s)
 
 
 class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
-    """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
-
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
-    """
-
-    # Constants used to refer to parameters and outputs. They will be
-    # used when calling the algorithm from another algorithm, or when
-    # calling from the QGIS console.
 
     OUTPUT = 'OUTPUT'
     INPUT = 'INPUT'
@@ -282,7 +229,6 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
             )
         )
         
-        
         self.addParameter(
             QgsProcessingParameterFile(
                 'dwf_progress_file',
@@ -292,7 +238,6 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
                 optional = True
             )
         )
-
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
@@ -319,19 +264,20 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
             md = QgsProviderRegistry.instance().providerMetadata('spatialite')
             conn = md.createConnection(connection_name)
         except QgsProviderConnectionException:
+            logging.exception("Error setting up connection to spatialite") 
             raise QgsProcessingException(self.tr('Could not retrieve connection details for {}').format(connection_name))
             
-        spatialite_fn = conn.uri()[8:-1]
+        spatialite_filename = conn.uri()[8:-1]
 
         if dwf_factor_input:
-            dwfFactors = get_dwf_factors_from_file(dwf_factor_input)
+            dwf_factors = get_dwf_factors_from_file(dwf_factor_input)
         else:
-            dwfFactors = DWF_FACTORS
+            dwf_factors= DWF_FACTORS
                 
-        dwf_list = generate_dwf_lateral_json(spatialite_filepath = spatialite_fn, 
+        dwf_list = generate_dwf_lateral_json(spatialite_filepath = spatialite_filename, 
                                   start_time = start_time, 
                                   duration = int(duration),
-                                  dwfFactors = dwfFactors)
+                                  dwf_factors = dwf_factors)
         
         dwf_json_to_csv(dwf_list = dwf_list, output_csv_file = output_csv)
         
