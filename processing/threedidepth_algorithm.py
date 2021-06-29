@@ -233,7 +233,9 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
-        return self.tr("Calculate water depth or water level raster for specified timestep")
+        return self.tr(
+            "Calculate water depth or water level raster for specified timestep"
+        )
 
     def initAlgorithm(self, config=None):
         """Here we define the inputs and output of the algorithm"""
@@ -291,7 +293,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterRasterDestination(
-                self.WATER_DEPTH_OUTPUT, self.tr('Water depth or water level raster')
+                self.WATER_DEPTH_OUTPUT, self.tr("Water depth or water level raster")
             )
         )
 

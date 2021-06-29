@@ -1,6 +1,7 @@
 # See https://docs.qgis.org/3.10/en/docs/pyqgis_developer_cookbook/processing.html
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
+from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
 
 
@@ -9,6 +10,7 @@ class ThreediProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepth())
+        self.addAlgorithm(DWFCalculatorAlgorithm())
         # add additional algorithms here
         # self.addAlgorithm(MyOtherAlgorithm())
 
