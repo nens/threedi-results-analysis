@@ -22,34 +22,35 @@
  ***************************************************************************/
 """
 
-__author__ = 'Nelen en Schuurmans'
-__date__ = '2021-01-27'
-__copyright__ = '(C) 2021 by Nelen en Schuurmans'
+__author__ = "Nelen en Schuurmans"
+__date__ = "2021-01-27"
+__copyright__ = "(C) 2021 by Nelen en Schuurmans"
 
 # This will get replaced with a git SHA1 when you do a git archive
 
-__revision__ = '$Format:%H$'
+__revision__ = "$Format:%H$"
 
-import os
-import logging
-import sqlite3
-import json
-import csv
-import datetime
-
-from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import QgsProcessing
 from qgis.core import QgsFeatureSink
+from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
-from qgis.core import QgsProcessingParameterFeatureSource
+from qgis.core import QgsProcessingException
 from qgis.core import QgsProcessingParameterFeatureSink
+from qgis.core import QgsProcessingParameterFeatureSource
 from qgis.core import QgsProcessingParameterFile
-from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterProviderConnection
-from qgis.core import QgsProviderRegistry
+from qgis.core import QgsProcessingParameterString
 from qgis.core import QgsProviderConnectionException
-from qgis.core import QgsProcessingException
+from qgis.core import QgsProviderRegistry
+from qgis.PyQt.QtCore import QCoreApplication
+
+import csv
+import datetime
+import json
+import logging
+import os
+import sqlite3
+
 
 # Default values
 DWF_FACTORS = [
@@ -82,11 +83,12 @@ DWF_FACTORS = [
 # DWF per person = 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
 DWF_PER_PERSON = 0.12
 
+
 def get_dwf_factors_from_file(file_path):
-    
-    dwf_factors = []    
+
+    dwf_factors = []
     with open(file_path) as csv_file:
-        reader = csv.reader(csv_file, delimiter = ',')
+        reader = csv.reader(csv_file, delimiter=",")
         for row in reader:
             print(row)
             dwf_factors += [[int(row[0]), float(row[1])]]
@@ -95,28 +97,27 @@ def get_dwf_factors_from_file(file_path):
 
 
 def start_time_and_duration_to_dwf_factors(start_time, duration, dwf_factors):
-    
+
     starting_time = datetime.datetime.strptime(start_time, "%H:%M:%S")
-    
+
     # First timestep at 0 seconds
     current_hour = starting_time.hour
     dwf_factor_per_timestep = [[0, dwf_factors[starting_time.hour % 24][1]]]
-        
-    for second in range(1, duration+1):
+
+    for second in range(1, duration + 1):
         time = starting_time + datetime.timedelta(seconds=second)
         if time.hour != current_hour:
-            dwf_factor_per_timestep.append([second, 
-                                            dwf_factors[time.hour % 24][1]])
+            dwf_factor_per_timestep.append([second, dwf_factors[time.hour % 24][1]])
         elif second == duration:
-            dwf_factor_per_timestep.append([second, 
-                                            dwf_factors[time.hour % 24][1]])
-        
+            dwf_factor_per_timestep.append([second, dwf_factors[time.hour % 24][1]])
+
         current_hour = time.hour
-    
+
     return dwf_factor_per_timestep
 
+
 def read_dwf_per_node(spatialite_path):
-    
+
     """Obtains the DWF per connection node per second a 3Di model sqlite-file."""
 
     conn = sqlite3.connect(spatialite_path)
@@ -124,7 +125,7 @@ def read_dwf_per_node(spatialite_path):
 
     # Create empty list that holds total 24h dry weather flow per node
     dwf_per_node_per_second = []
-    
+
     # Create a table that contains nr_of_inhabitants per connection_node and iterate over it
     for row in c.execute(
         """
@@ -147,22 +148,23 @@ def read_dwf_per_node(spatialite_path):
 
     return dwf_per_node_per_second
 
-def generate_dwf_lateral_json(
-    spatialite_filepath, start_time, duration, dwf_factors
-):
+
+def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_factors):
 
     dwf_on_each_node = read_dwf_per_node(spatialite_filepath)
-    dwf_factor_per_timestep = start_time_and_duration_to_dwf_factors(start_time = start_time,
-                                                                     duration = duration,
-                                                                     dwf_factors = dwf_factors)
+    dwf_factor_per_timestep = start_time_and_duration_to_dwf_factors(
+        start_time=start_time, duration=duration, dwf_factors=dwf_factors
+    )
     # Initialize list that will hold JSON
     dwf_list = []
-    
+
     # Generate JSON for each connection node
-    for dwf_node in dwf_on_each_node:        
+    for dwf_node in dwf_on_each_node:
         dwf_per_timestep = """"""
         for row in dwf_factor_per_timestep:
-            dwf_per_timestep = dwf_per_timestep + str(row[0]) + ',' + str(dwf_node[1] * row[1]) + '\n'
+            dwf_per_timestep = (
+                dwf_per_timestep + str(row[0]) + "," + str(dwf_node[1] * row[1]) + "\n"
+            )
 
         dwf_per_timestep = dwf_per_timestep[:-1]
         dwf_list.append(
@@ -177,15 +179,17 @@ def generate_dwf_lateral_json(
 
     return dwf_list
 
+
 def dwf_json_to_csv(dwf_list, output_csv_file):
-        
-    with open(output_csv_file,'w', newline='') as csv_file: 
+
+    with open(output_csv_file, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         for i, row in enumerate(dwf_list):
             lat_id = i
-            connection_node_id = row['connection_node']
-            timeseries = row['values']
+            connection_node_id = row["connection_node"]
+            timeseries = row["values"]
             writer.writerow([str(lat_id), str(connection_node_id), timeseries])
+
 
 def str_to_seconds(time_str):
     """Get Seconds from time."""
@@ -195,8 +199,8 @@ def str_to_seconds(time_str):
 
 class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
 
-    OUTPUT = 'OUTPUT'
-    INPUT = 'INPUT'
+    OUTPUT = "OUTPUT"
+    INPUT = "INPUT"
 
     def initAlgorithm(self, config):
         """
@@ -208,79 +212,82 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         # geometry.
         self.addParameter(
             QgsProcessingParameterProviderConnection(
-                name = self.INPUT,
-                description = self.tr('Input spatialite (.sqlite)'),
-                provider = 'spatialite'
+                name=self.INPUT,
+                description=self.tr("Input spatialite (.sqlite)"),
+                provider="spatialite",
             )
         )
-        
+
         self.addParameter(
             QgsProcessingParameterString(
-                'start_time',
-                self.tr('Start time of day (HH:MM:SS)'),
-                '00:00:00'
+                "start_time", self.tr("Start time of day (HH:MM:SS)"), "00:00:00"
             )
         )
-                    
+
         self.addParameter(
             QgsProcessingParameterString(
-                'duration',
-                self.tr('Simulation duration (seconds)')
+                "duration", self.tr("Simulation duration (seconds)")
             )
         )
-        
+
         self.addParameter(
             QgsProcessingParameterFile(
-                'dwf_progress_file',
-                self.tr('DWF progress file (.csv)'),
-                extension = 'csv',
-                defaultValue = None,
-                optional = True
+                "dwf_progress_file",
+                self.tr("DWF progress file (.csv)"),
+                extension="csv",
+                defaultValue=None,
+                optional=True,
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr('Output CSV'),
-                'csv(*.csv)'
+                self.OUTPUT, self.tr("Output CSV"), "csv(*.csv)"
             )
         )
-        
-        
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         Here is where the processing itself takes place.
         """
-        
-        start_time = self.parameterAsString(parameters, 'start_time', context)
-        duration = self.parameterAsDouble(parameters, 'duration', context)
-        connection_name = self.parameterAsConnectionName(parameters, self.INPUT, context)
+
+        start_time = self.parameterAsString(parameters, "start_time", context)
+        duration = self.parameterAsDouble(parameters, "duration", context)
+        connection_name = self.parameterAsConnectionName(
+            parameters, self.INPUT, context
+        )
         output_csv = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
-        dwf_factor_input = self.parameterAsFile(parameters, 'dwf_progress_file', context)
+        dwf_factor_input = self.parameterAsFile(
+            parameters, "dwf_progress_file", context
+        )
 
         try:
-            md = QgsProviderRegistry.instance().providerMetadata('spatialite')
+            md = QgsProviderRegistry.instance().providerMetadata("spatialite")
             conn = md.createConnection(connection_name)
         except QgsProviderConnectionException:
-            logging.exception("Error setting up connection to spatialite") 
-            raise QgsProcessingException(self.tr('Could not retrieve connection details for {}').format(connection_name))
-            
+            logging.exception("Error setting up connection to spatialite")
+            raise QgsProcessingException(
+                self.tr("Could not retrieve connection details for {}").format(
+                    connection_name
+                )
+            )
+
         spatialite_filename = conn.uri()[8:-1]
 
         if dwf_factor_input:
             dwf_factors = get_dwf_factors_from_file(dwf_factor_input)
         else:
-            dwf_factors= DWF_FACTORS
-                
-        dwf_list = generate_dwf_lateral_json(spatialite_filepath = spatialite_filename, 
-                                  start_time = start_time, 
-                                  duration = int(duration),
-                                  dwf_factors = dwf_factors)
-        
-        dwf_json_to_csv(dwf_list = dwf_list, output_csv_file = output_csv)
-        
+            dwf_factors = DWF_FACTORS
+
+        dwf_list = generate_dwf_lateral_json(
+            spatialite_filepath=spatialite_filename,
+            start_time=start_time,
+            duration=int(duration),
+            dwf_factors=dwf_factors,
+        )
+
+        dwf_json_to_csv(dwf_list=dwf_list, output_csv_file=output_csv)
+
         return {self.OUTPUT: output_csv}
 
     def name(self):
@@ -291,21 +298,21 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'DWFCalculator'
+        return "DWFCalculator"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('DWF Calculator')
+        return self.tr("DWF Calculator")
 
     def group(self):
         """
         Returns the name of the group this algorithm belongs to. This string
         should be localised.
         """
-        return self.tr('Dry weather flow')
+        return self.tr("Dry weather flow")
 
     def groupId(self):
         """
@@ -315,10 +322,10 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'dwf'
-    
+        return "dwf"
+
     def shortHelpString(self):
-        
+
         help_string = """
         Calculate dry weather flow on connection nodes for a given model schematisation and simulation settings. Produces a formatted csv that can be used as a 1d lateral in the 3Di API Client.
         Input spatialite: valid spatialite containing the schematisation of a 3Di model. \n
@@ -332,11 +339,11 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         Defaults to a pattern specified by Rioned.
         Output CSV: csv file to which the output 1d laterals are saved. This will be the input used by the API Client.
         """
-        
+
         return self.tr(help_string)
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return DWFCalculatorAlgorithm()
