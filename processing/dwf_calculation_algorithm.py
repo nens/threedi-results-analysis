@@ -30,12 +30,8 @@ __copyright__ = "(C) 2021 by Nelen en Schuurmans"
 
 __revision__ = "$Format:%H$"
 
-from qgis.core import QgsFeatureSink
-from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingException
-from qgis.core import QgsProcessingParameterFeatureSink
-from qgis.core import QgsProcessingParameterFeatureSource
 from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterFileDestination
 from qgis.core import QgsProcessingParameterProviderConnection
@@ -46,9 +42,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 
 import csv
 import datetime
-import json
 import logging
-import os
 import sqlite3
 
 
@@ -129,16 +123,16 @@ def read_dwf_per_node(spatialite_path):
     # Create a table that contains nr_of_inhabitants per connection_node and iterate over it
     for row in c.execute(
         """
-        WITH imp_surface_count AS 
-            ( SELECT impsurf.id, impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants 
-             FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap 
-             WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0 
-             AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id), 
-        inhibs_per_node AS ( 
-            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants, impmap.connection_node_id 
-            FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap 
-            WHERE impsurfcount.id = impmap.impervious_surface_id) 
-        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants) 
+        WITH imp_surface_count AS
+            ( SELECT impsurf.id, impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants
+             FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap
+             WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0
+             AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id),
+        inhibs_per_node AS (
+            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants, impmap.connection_node_id
+            FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap
+            WHERE impsurfcount.id = impmap.impervious_surface_id)
+        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants)
         FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id
         """
     ):
