@@ -19,6 +19,10 @@ ThreeDiToolBox changelog
 
 - Fixed issue with broken sideview tool for qgis 3.16.6 and higher
   
+- For *internal test purposes only*, fresh zips (for manual
+  installation) are made of all pull requests and of master. See
+  https://docs.3di.live/threeditoolbox-dev/ .
+
 
 1.19 (2021-05-21)
 -----------------
