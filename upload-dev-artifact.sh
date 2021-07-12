@@ -1,21 +1,21 @@
 #!/bin/bash
+# We upload a fresh zip to https://docs.3di.live/threeditoolbox-dev/
+# for development purposes only.
 set -e
-set -u
+#set -u
 
-VERSION=$(grep "^version" metadata.txt| cut -d= -f2)
+BRANCH=${GITHUB_HEAD_REF:-master}
 
-# TODO: THREEDITOOLBOX_ARTIFACTS_KEY should be set as env variable in the travis UI.
-# TODO: TRAVIS_BRANCH is set automatically by travis
-ARTIFACT=ThreeDiToolbox.${VERSION}.zip
-PROJECT=ThreeDiToolbox
+ARTIFACT=ThreeDiToolbox-${BRANCH}.zip
+PROJECT=threeditoolbox-dev
 
-# Rename generated ThreeDiToolbox.zip to include version number.
+# Rename generated ThreeDiToolbox.zip to include branch name.
 cp ThreeDiToolbox.zip ${ARTIFACT}
 
 curl -X POST \
      --retry 3 \
      -H "Content-Type: multipart/form-data" \
-     -F key=${THREEDITOOLBOX_ARTIFACTS_KEY} \
+     -F key=${THREEDITOOLBOX_DEV_ARTIFACTS_KEY} \
      -F artifact=@${ARTIFACT} \
-     -F branch=${GITHUB_REF} \
+     -F branch=${BRANCH} \
      https://artifacts.lizard.net/upload/${PROJECT}/
