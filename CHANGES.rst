@@ -16,7 +16,10 @@ ThreeDiToolBox changelog
   from the ``alembic`` dependency that complained about a too old sqlalchemy.
 
 - Moved automatic tests from travis-ci to github actions.
-  
+
+- For *internal test purposes only*, fresh zips (for manual
+  installation) are made of all pull requests and of master. See
+  https://docs.3di.live/threeditoolbox-dev/ .
 
 1.19 (2021-05-21)
 -----------------
