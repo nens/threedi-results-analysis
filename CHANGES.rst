@@ -16,6 +16,8 @@ ThreeDiToolBox changelog
   from the ``alembic`` dependency that complained about a too old sqlalchemy.
 
 - Moved automatic tests from travis-ci to github actions.
+
+- Fixed issue with broken sideview tool for qgis 3.16.6 and higher
   
 
 1.19 (2021-05-21)
