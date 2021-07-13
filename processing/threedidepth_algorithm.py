@@ -229,7 +229,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr("Water depth or water level raster")
+        return self.tr("Water depth/level raster")
 
     def group(self):
         """Returns the name of the group this algorithm belongs to"""
@@ -242,7 +242,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
         return self.tr(
-            "Calculate water depth or water level raster for specified timestep"
+            "Calculate water depth/level raster for specified timestep"
         )
 
     def initAlgorithm(self, config=None):
@@ -283,8 +283,8 @@ class ThreediDepth(QgsProcessingAlgorithm):
             ProcessingParameterNetcdfNumber(
                 name=self.CALCULATION_STEP_END_INPUT,
                 description=self.tr(
-                    "In case you want to export water depths of multiple timesteps, enable this option and select "
-                    "the last timestep. All water depth rasters between these two timesteps will be generated."
+                    "In case you want to export water depths/levels of multiple timesteps, enable this option and "
+                    "select the last timestep. All water depth rasters between these two timesteps will be generated."
                 ),
                 defaultValue=-2,
                 parentParameterName=self.RESULTS_3DI_INPUT,
@@ -292,25 +292,25 @@ class ThreediDepth(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterBoolean(
-                name=self.AS_NETCDF_INPUT,
-                description="export the water depth as a netcdf file",
-                defaultValue=False,
-            )
-        )
-        self.addParameter(
             QgsProcessingParameterString(
                 self.WATER_DEPTH_LEVEL_NAME,
-                self.tr("Water depth or water level raster name"),
+                self.tr("Water depth/level raster name"),
                 defaultValue="water_depth_level",
             )
         )
         output_param = QgsProcessingParameterFile(
             self.OUTPUT_DIRECTORY,
-            self.tr("Destination folder for water depth or water level raster"),
+            self.tr("Destination folder for water depth/level raster"),
             behavior=QgsProcessingParameterFile.Folder,
         )
         self.addParameter(output_param)
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.AS_NETCDF_INPUT,
+                description="Export the water depth/level as a NetCDF file",
+                defaultValue=False,
+            )
+        )
 
     def processAlgorithm(self, parameters, context, feedback):
         """
