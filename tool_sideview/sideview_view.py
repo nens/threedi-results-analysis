@@ -1573,9 +1573,6 @@ class SideViewDockWidget(QDockWidget):
                         "length": 0.0,
                     }
 
-        #  make point dict permanent
-        self.point_dict = points
-
         # create line layer
         uri = "LineString?crs=epsg:4326&index=yes"
         vl = QgsVectorLayer(uri, "graph_layer", "memory")
@@ -1621,21 +1618,22 @@ class SideViewDockWidget(QDockWidget):
             # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
 
             feat.setGeometry(geom)
-
+            channel_id = line.get("channel_id", None),
+            # Casting ids to strings is needed due to issue with casting values in memory layers in QGIS < 3.16.6
             feat.setAttributes(
                 [
                     i,
-                    line["id"],
+                    str(line["id"]),
                     line["type"],
-                    line["start_node"],
-                    line["end_node"],
+                    str(line["start_node"]),
+                    str(line["end_node"]),
                     line.get("start_node_idx", None),
                     line.get("end_node_idx", None),
                     line.get("start_level", None),
                     line.get("end_level", None),
                     line.get("start_height", None),
                     line.get("end_height", None),
-                    line.get("channel_id", None),
+                    str(channel_id) if channel_id is not None else None,
                     line.get("sub_channel_nr", None),
                     line.get("start_channel_distance", None),
                     line.get("real_length", None),
@@ -1648,7 +1646,10 @@ class SideViewDockWidget(QDockWidget):
         vl.updateExtents()
 
         QgsProject.instance().addMapLayer(vl)
-
+        # We need to make sure that all ids are strings
+        points = {str(point_id): point for point_id, point in points.items()}
+        #  make point dict permanent
+        self.point_dict = points
         return vl, points, channel_profiles
 
     def unset_route_tool(self):
