@@ -1633,7 +1633,7 @@ class SideViewDockWidget(QDockWidget):
                     line.get("end_level", None),
                     line.get("start_height", None),
                     line.get("end_height", None),
-                    str(channel_id) if channel_id is not None else channel_id,
+                    str(channel_id) if channel_id is not None else None,
                     line.get("sub_channel_nr", None),
                     line.get("start_channel_distance", None),
                     line.get("real_length", None),
