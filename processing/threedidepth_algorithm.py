@@ -14,14 +14,20 @@ from collections import namedtuple
 from processing.gui.NumberInputPanel import NumberInputPanel
 from processing.gui.wrappers import DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
-from qgis.core import QgsFeedback
-from qgis.core import QgsProcessingAlgorithm
-from qgis.core import QgsProcessingParameterBoolean
-from qgis.core import QgsProcessingParameterEnum
-from qgis.core import QgsProcessingParameterFile
-from qgis.core import QgsProcessingParameterNumber
-from qgis.core import QgsProcessingParameterRasterDestination
-from qgis.core import QgsProcessingParameterRasterLayer
+from qgis.core import (
+    QgsFeedback,
+    QgsProcessingAlgorithm,
+    QgsProcessingContext,
+    QgsProcessingException,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterFile,
+    QgsProcessingParameterNumber,
+    QgsProcessingParameterRasterLayer,
+    QgsProcessingParameterString,
+    QgsRasterLayer,
+    QgsMeshLayer,
+)
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
 from threedidepth.calculate import calculate_waterdepth
@@ -201,6 +207,8 @@ class ThreediDepth(QgsProcessingAlgorithm):
     CALCULATION_STEP_INPUT = "CALCULATION_STEP_INPUT"
     AS_NETCDF_INPUT = "AS_NETCDF_INPUT"
     CALCULATION_STEP_END_INPUT = "CALCULATION_STEP_END_INPUT"
+    WATER_DEPTH_LEVEL_NAME = "WATER_DEPTH_LEVEL_NAME"
+    OUTPUT_DIRECTORY = "OUTPUT_DIRECTORY"
     WATER_DEPTH_OUTPUT = "WATER_DEPTH_OUTPUT"
 
     def tr(self, string):
@@ -290,20 +298,24 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 defaultValue=False,
             )
         )
-
         self.addParameter(
-            QgsProcessingParameterRasterDestination(
-                self.WATER_DEPTH_OUTPUT, self.tr("Water depth or water level raster")
+            QgsProcessingParameterString(
+                self.WATER_DEPTH_LEVEL_NAME,
+                self.tr("Water depth or water level raster name"),
+                defaultValue="water_depth_level",
             )
         )
+        output_param = QgsProcessingParameterFile(
+            self.OUTPUT_DIRECTORY,
+            self.tr("Destination folder for water depth or water level raster"),
+            behavior=QgsProcessingParameterFile.Folder,
+        )
+        self.addParameter(output_param)
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         Create the water depth raster with the provided user inputs
         """
-        waterdepth_output_file = self.parameterAsOutputLayer(
-            parameters, self.WATER_DEPTH_OUTPUT, context
-        )
         dem_filename = self.parameterAsRasterLayer(
             parameters, self.DEM_INPUT, context
         ).source()
@@ -321,6 +333,21 @@ class ThreediDepth(QgsProcessingAlgorithm):
         else:
             timesteps = [parameters[self.CALCULATION_STEP_INPUT]]
 
+        raster_filename = parameters[self.WATER_DEPTH_LEVEL_NAME]
+        if not raster_filename:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME))
+
+        output_location = parameters[self.OUTPUT_DIRECTORY]
+        if not output_location:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY))
+
+        as_netcdf = parameters[self.AS_NETCDF_INPUT]
+        raster_extension = "nc" if as_netcdf else "tif"
+        raster_filename_with_ext = f"{raster_filename}.{raster_extension}"
+        waterdepth_output_file = os.path.join(output_location, raster_filename_with_ext)
+        if os.path.isfile(waterdepth_output_file):
+            os.remove(waterdepth_output_file)
+
         try:
             calculate_waterdepth(
                 gridadmin_path=parameters[self.GRIDADMIN_INPUT],
@@ -330,13 +357,20 @@ class ThreediDepth(QgsProcessingAlgorithm):
                 calculation_steps=timesteps,
                 mode=self.MODES[mode_index].name,
                 progress_func=Progress(feedback),
-                netcdf=parameters[self.AS_NETCDF_INPUT],
+                netcdf=as_netcdf,
             )
         except CancelError:
             # When the process is cancelled, we just show the intermediate product
             pass
 
-        return {self.WATER_DEPTH_OUTPUT: waterdepth_output_file}
+        if as_netcdf:
+            layer = QgsMeshLayer(waterdepth_output_file, raster_filename, "mdal")
+        else:
+            layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
+        context.temporaryLayerStore().addMapLayer(layer)
+        layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
+        context.addLayerToLoadOnCompletion(layer.id(), layer_details)
+        return {}
 
 
 class CancelError(Exception):
