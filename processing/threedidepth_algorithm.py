@@ -282,10 +282,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         self.addParameter(
             ProcessingParameterNetcdfNumber(
                 name=self.CALCULATION_STEP_END_INPUT,
-                description=self.tr(
-                    "In case you want to export water depths/levels of multiple timesteps, enable this option and "
-                    "select the last timestep. All water depth rasters between these two timesteps will be generated."
-                ),
+                description=self.tr("Last timestep (for multiple timesteps export)"),
                 defaultValue=-2,
                 parentParameterName=self.RESULTS_3DI_INPUT,
                 optional=True,
