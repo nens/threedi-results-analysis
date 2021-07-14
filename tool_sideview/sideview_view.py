@@ -815,7 +815,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         )
                     else:
                         ts = ds.get_timeseries(
-                            "s1", content_pk=node["id"], fill_value=np.NaN
+                            "s1", content_pk=int(node["id"]), fill_value=np.NaN
                         )
                 except KeyError:
                     # This can be "idx", "nr" or "id": are both equally
