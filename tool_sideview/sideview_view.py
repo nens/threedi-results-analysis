@@ -1594,7 +1594,7 @@ class SideViewDockWidget(QDockWidget):
                 QgsField("end_level", QVariant.Double),
                 QgsField("start_height", QVariant.Double),
                 QgsField("end_height", QVariant.Double),
-                QgsField("channel_id", QVariant.String, len=25),
+                QgsField("channel_id", QVariant.Int),
                 QgsField("sub_channel_nr", QVariant.Int),
                 QgsField("start_channel_distance", QVariant.Double),
                 QgsField("real_length", QVariant.Double),
@@ -1618,7 +1618,6 @@ class SideViewDockWidget(QDockWidget):
             # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
 
             feat.setGeometry(geom)
-            channel_id = line.get("channel_id", None),
             # Casting ids to strings is needed due to issue with casting values in memory layers in QGIS < 3.16.6
             feat.setAttributes(
                 [
@@ -1633,7 +1632,7 @@ class SideViewDockWidget(QDockWidget):
                     line.get("end_level", None),
                     line.get("start_height", None),
                     line.get("end_height", None),
-                    str(channel_id) if channel_id is not None else None,
+                    line.get("channel_id", None),
                     line.get("sub_channel_nr", None),
                     line.get("start_channel_distance", None),
                     line.get("real_length", None),

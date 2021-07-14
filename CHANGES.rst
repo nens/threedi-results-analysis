@@ -23,6 +23,7 @@ ThreeDiToolBox changelog
   installation) are made of all pull requests and of master. See
   https://docs.3di.live/threeditoolbox-dev/ .
 
+- Enhancements for the water depth/level calculation processing tool.
 
 1.19 (2021-05-21)
 -----------------
