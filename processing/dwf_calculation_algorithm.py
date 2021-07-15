@@ -178,7 +178,7 @@ def dwf_json_to_csv(dwf_list, output_csv_file):
 
     with open(output_csv_file, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(["id","connection_node_id","timeseries"])
+        writer.writerow(["id", "connection_node_id", "timeseries"])
         for i, row in enumerate(dwf_list):
             lat_id = i
             connection_node_id = row["connection_node"]
