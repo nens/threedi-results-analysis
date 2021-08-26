@@ -122,23 +122,24 @@ def read_dwf_per_node(spatialite_path):
         """
         WITH imp_surface_count AS
             ( SELECT impsurf.id, impsurf.dry_weather_flow,
+                     impsurf.dry_weather_flow * impsurf.nr_of_inhabitants AS weighted_flow,
                      impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants
              FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap
              WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0
              AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id),
         inhibs_per_node AS (
             SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants,
-                   impmap.connection_node_id, impsurfcount.dry_weather_flow
+                   impmap.connection_node_id, impsurfcount.dry_weather_flow, impsurfcount.weighted_flow
             FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap
             WHERE impsurfcount.id = impmap.impervious_surface_id)
-        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants), SUM(ipn.dry_weather_flow)
+        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants), SUM(ipn.weighted_flow)
         FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id
         """
     ):
-        connection_node_id, nr_of_inhabitants_sum, dry_weather_flow_sum = row
+        connection_node_id, nr_of_inhabitants_sum, weighted_flow_sum = row
         # DWF per person example: 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
-        dwf_per_person = (dry_weather_flow_sum / nr_of_inhabitants_sum) / 1000
-        dwf_per_node_per_second.append([connection_node_id, dwf_per_person / 3600])
+        dwf_per_node = nr_of_inhabitants_sum * (weighted_flow_sum / nr_of_inhabitants_sum) / 1000
+        dwf_per_node_per_second.append([connection_node_id, dwf_per_node / 3600])
 
     conn.close()
 
