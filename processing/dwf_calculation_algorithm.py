@@ -74,9 +74,6 @@ DWF_FACTORS = [
     [23, 0.04],
 ]
 
-# DWF per person = 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
-DWF_PER_PERSON = 0.12
-
 
 def get_dwf_factors_from_file(file_path):
 
@@ -124,19 +121,25 @@ def read_dwf_per_node(spatialite_path):
     for row in c.execute(
         """
         WITH imp_surface_count AS
-            ( SELECT impsurf.id, impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants
+            ( SELECT impsurf.id, impsurf.dry_weather_flow,
+                     impsurf.dry_weather_flow * impsurf.nr_of_inhabitants AS weighted_flow,
+                     impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants
              FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap
              WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0
              AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id),
         inhibs_per_node AS (
-            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants, impmap.connection_node_id
+            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants,
+                   impmap.connection_node_id, impsurfcount.dry_weather_flow, impsurfcount.weighted_flow
             FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap
             WHERE impsurfcount.id = impmap.impervious_surface_id)
-        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants)
+        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants), SUM(ipn.weighted_flow)
         FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id
         """
     ):
-        dwf_per_node_per_second.append([row[0], row[1] * DWF_PER_PERSON / 3600])
+        connection_node_id, nr_of_inhabitants_sum, weighted_flow_sum = row
+        # DWF per person example: 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
+        dwf_per_node = nr_of_inhabitants_sum * (weighted_flow_sum / nr_of_inhabitants_sum) / 1000
+        dwf_per_node_per_second.append([connection_node_id, dwf_per_node / 3600])
 
     conn.close()
 
@@ -221,7 +224,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterString(
-                "duration", self.tr("Simulation duration (seconds)")
+                "duration", self.tr("Simulation duration (hours)")
             )
         )
 
@@ -247,7 +250,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         """
 
         start_time = self.parameterAsString(parameters, "start_time", context)
-        duration = self.parameterAsDouble(parameters, "duration", context)
+        duration = self.parameterAsInt(parameters, "duration", context)
         connection_name = self.parameterAsConnectionName(
             parameters, self.INPUT, context
         )
@@ -277,7 +280,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         dwf_list = generate_dwf_lateral_json(
             spatialite_filepath=spatialite_filename,
             start_time=start_time,
-            duration=int(duration),
+            duration=int(duration * 3600),
             dwf_factors=dwf_factors,
         )
 
@@ -325,7 +328,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         Calculate dry weather flow on connection nodes for a given model schematisation and simulation settings. Produces a formatted csv that can be used as a 1d lateral in the 3Di API Client.
         Input spatialite: valid spatialite containing the schematisation of a 3Di model. \n
         Start time of day: at which hour of the day the simulation is started (HH:MM:SS). \n
-        Simulation duration: amount of time the simulation is run (seconds). \n
+        Simulation duration: amount of time the simulation is run (hours). \n
         DWF progress file:  timeseries that contains the fraction of the maximum dry weather flow at each hour of the day. Formatted as follows:\n
         '0, 0.03'\n
         '1, 0.015'\n
