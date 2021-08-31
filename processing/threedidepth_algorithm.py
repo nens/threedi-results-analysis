@@ -302,7 +302,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterBoolean(
                 name=self.AS_NETCDF_INPUT,
-                description="Export the water depth/level as a NetCDF file",
+                description="Export the water depth/level as a NetCDF file (experimental)",
                 defaultValue=False,
             )
         )
