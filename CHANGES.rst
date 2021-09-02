@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.20 (unreleased)
+1.20 (2021-09-02)
 -----------------
 
 - Update threedidepth algorithm with new functionalities: multiple timesteps
