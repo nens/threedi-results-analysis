@@ -4,7 +4,8 @@ ThreeDiToolBox changelog
 1.21 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixed constructing the cells layer from new gridadmins (which contains NaN
+  instead of -9999. for 1D nodes).
 
 
 1.20 (2021-09-02)
