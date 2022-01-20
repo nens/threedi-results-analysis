@@ -131,15 +131,11 @@ class QgisNodesOgrExporter(BaseOgrExporter):
             geom = ogr.Geometry(ogr_wkb_type)
             if as_cells:
                 # skip cells with invalid coordinates
-                if np.all(
-                    np.equal(
-                        node_data["cell_coords"][:, i],
-                        np.array([-9999.0, -9999.0, -9999.0, -9999.0]),
-                    )
-                ):
+                cell_coords = node_data["cell_coords"][:, i]
+                if np.any(np.isnan(cell_coords) | (cell_coords == -9999.0)):
                     continue
                 else:
-                    xmin, ymin, xmax, ymax = node_data["cell_coords"][:, i]
+                    xmin, ymin, xmax, ymax = cell_coords
                     geom_ring = ogr.Geometry(ogr.wkbLinearRing)
                     geom_ring.AddPoint_2D(xmin, ymin)
                     geom_ring.AddPoint_2D(xmin, ymax)
