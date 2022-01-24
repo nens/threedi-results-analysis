@@ -25,6 +25,8 @@ jobs:
 
       - name: build
         run: |
+          # Populate External Dependecies
+          sh ./external-dependecies/populate.sh
           # If the docker cache is still valid, use the cached docker image.
           scripts/travis-cache-ok.sh && \
           cat ~/docker-cache/our-image.tar | docker load || true
