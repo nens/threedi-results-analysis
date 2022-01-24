@@ -25,8 +25,6 @@ jobs:
 
       - name: build
         run: |
-          # Populate External Dependecies
-          sh ./external-dependecies/populate.sh
           # If the docker cache is still valid, use the cached docker image.
           scripts/travis-cache-ok.sh && \
           cat ~/docker-cache/our-image.tar | docker load || true
@@ -52,12 +50,18 @@ jobs:
 
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
-        run: bash upload-artifact.sh
+        run: |
+          # Populate External Dependecies
+          sh ./external-dependecies/populate.sh
+          bash upload-artifact.sh
         env:
           THREEDITOOLBOX_ARTIFACTS_KEY: ${{ secrets.THREEDITOOLBOX_ARTIFACTS_KEY }}
 
       - name: Publish dev-only package
         if: ${{ !startsWith(github.event.ref, 'refs/tags') }}
-        run: bash upload-dev-artifact.sh
+        run: |
+          # Populate External Dependecies
+          sh ./external-dependecies/populate.sh
+          bash upload-dev-artifact.sh
         env:
           THREEDITOOLBOX_DEV_ARTIFACTS_KEY: ${{ secrets.THREEDITOOLBOX_DEV_ARTIFACTS_KEY }}
