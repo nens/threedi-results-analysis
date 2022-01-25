@@ -117,14 +117,14 @@ def start_time_and_duration_to_dwf_factors(start_time: str, duration: int, dwf_f
 def read_dwf_per_node(spatialite_path):
     """Obtains the total dry weather flow in m3/d per connection node from a 3Di model sqlite-file."""
     sql = """
-        SELECT 	ism.connection_node_id, 
+        SELECT 	ism.connection_node_id,
                 sum(isu.dry_weather_flow * isu.nr_of_inhabitants * ism.percentage/100)/1000 AS dwf
-        FROM 	v2_impervious_surface isu 
+        FROM 	v2_impervious_surface isu
         JOIN 	v2_impervious_surface_map ism
         ON 		isu.id = ism.impervious_surface_id
         WHERE 	isu.dry_weather_flow IS NOT NULL
                 and isu.nr_of_inhabitants != 0
-                and isu.nr_of_inhabitants IS NOT NULL 
+                and isu.nr_of_inhabitants IS NOT NULL
                 and ism.percentage IS NOT NULL
         GROUP BY ism.connection_node_id
         ;
