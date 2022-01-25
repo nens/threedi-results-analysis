@@ -73,10 +73,17 @@ DWF_FACTORS = [
     [22, 0.045],
     [23, 0.04],
 ]
+INFLOW_0D_NONE = 0
+INFLOW_0D_IMPERVIOUS_SURFACE = 1
+INFLOW_0D_SURFACE = 2
+INFLOW_TABLE_NAME_BASES = {
+    INFLOW_0D_NONE: None,
+    INFLOW_0D_IMPERVIOUS_SURFACE: "impervious_surface",
+    INFLOW_0D_SURFACE: "surface",
+}
 
 
 def get_dwf_factors_from_file(file_path):
-
     dwf_factors = []
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file, delimiter=",")
@@ -114,38 +121,55 @@ def start_time_and_duration_to_dwf_factors(start_time: str, duration: int, dwf_f
     return dwf_factor_per_timestep
 
 
+def read_inflow_type(spatialite_connection):
+    c = spatialite_connection.cursor()
+
+    sql = """SELECT use_0d_inflow FROM v2_global_settings;"""
+    c.execute(sql)
+    use_0d_inflow = int(c.fetchone()[0])
+    return use_0d_inflow
+
+
 def read_dwf_per_node(spatialite_path):
-    """Obtains the total dry weather flow in m3/d per connection node from a 3Di model sqlite-file."""
-    sql = """
-        SELECT 	ism.connection_node_id,
-                sum(isu.dry_weather_flow * isu.nr_of_inhabitants * ism.percentage/100)/1000 AS dwf
-        FROM 	v2_impervious_surface isu
-        JOIN 	v2_impervious_surface_map ism
-        ON 		isu.id = ism.impervious_surface_id
-        WHERE 	isu.dry_weather_flow IS NOT NULL
-                and isu.nr_of_inhabitants != 0
-                and isu.nr_of_inhabitants IS NOT NULL
-                and ism.percentage IS NOT NULL
-        GROUP BY ism.connection_node_id
-        ;
     """
-
+    Obtains the total dry weather flow in m3/d per connection node from a 3Di model sqlite-file.
+    Returns None if use_0d_inflow = 0
+    """
     conn = sqlite3.connect(spatialite_path)
-    c = conn.cursor()
-    dwf = [row for row in c.execute(sql)]
-    conn.close()
+    use_0d_inflow = read_inflow_type(conn)
+    if use_0d_inflow == INFLOW_0D_NONE:
+        return None
+    else:
+        basename = INFLOW_TABLE_NAME_BASES[use_0d_inflow]
+        sql = f"""
+                SELECT 	map.connection_node_id,
+                        sum(surf.dry_weather_flow * surf.nr_of_inhabitants * map.percentage/100)/1000 AS dwf
+                FROM 	v2_{basename} AS surf
+                JOIN 	v2_{basename}_map AS map
+                ON 		surf.id = map.{basename}_id
+                WHERE 	surf.dry_weather_flow IS NOT NULL
+                        and surf.nr_of_inhabitants != 0
+                        and surf.nr_of_inhabitants IS NOT NULL
+                        and map.percentage IS NOT NULL
+                GROUP BY map.connection_node_id
+                ;
+        """
+        c = conn.cursor()
+        dwf = [row for row in c.execute(sql)]
+        conn.close()
 
-    return dwf
+        return dwf
 
 
 def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_factors):
-
+    dwf_list = []
     dwf_on_each_node = read_dwf_per_node(spatialite_filepath)
+    if not dwf_on_each_node:
+        return dwf_list
     dwf_factor_per_timestep = start_time_and_duration_to_dwf_factors(
         start_time=start_time, duration=duration, dwf_factors=dwf_factors
     )
-    # Initialize list that will hold JSON
-    dwf_list = []
+
 
     # Generate JSON for each connection node
     for connection_node_id, dwf_m3_d in dwf_on_each_node:
@@ -168,7 +192,6 @@ def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_fac
 
 
 def dwf_json_to_csv(dwf_list, output_csv_file):
-
     with open(output_csv_file, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["id", "connection_node_id", "timeseries"])
