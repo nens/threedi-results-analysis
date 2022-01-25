@@ -6,6 +6,7 @@ ThreeDiToolBox changelog
 
 - Fixed constructing the cells layer from new gridadmins (which contains NaN
   instead of -9999. for 1D nodes).
+- DWF Calculator now takes the 'percentage' attribute of the impervious_surface_map into account + cleaner code
 
 
 1.20 (2021-09-02)
