@@ -170,7 +170,6 @@ def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_fac
         start_time=start_time, duration=duration, dwf_factors=dwf_factors
     )
 
-
     # Generate JSON for each connection node
     for connection_node_id, dwf_m3_d in dwf_on_each_node:
         values_list = []
