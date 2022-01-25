@@ -44,7 +44,7 @@ import csv
 import datetime
 import logging
 import sqlite3
-
+from typing import List
 
 # Default values
 DWF_FACTORS = [
@@ -73,10 +73,16 @@ DWF_FACTORS = [
     [22, 0.045],
     [23, 0.04],
 ]
+INFLOW_0D_NONE = 0
+INFLOW_0D_IMPERVIOUS_SURFACE = 1
+INFLOW_0D_SURFACE = 2
+INFLOW_TABLE_NAME_BASES = {
+    INFLOW_0D_IMPERVIOUS_SURFACE: "impervious_surface",
+    INFLOW_0D_SURFACE: "surface",
+}
 
 
 def get_dwf_factors_from_file(file_path):
-
     dwf_factors = []
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file, delimiter=",")
@@ -87,8 +93,15 @@ def get_dwf_factors_from_file(file_path):
     return dwf_factors
 
 
-def start_time_and_duration_to_dwf_factors(start_time, duration, dwf_factors):
+def start_time_and_duration_to_dwf_factors(start_time: str, duration: int, dwf_factors: List[List]) -> List[List]:
+    """
+    Get list of [timestep, dwf_factor] pairs for given timeframe
 
+    :param start_time: time in the format HH:MM:SS
+    :param duration: length of the resulting time series in s
+    :param dwf_factors: list of 24 [hour, factor] pairs. sum of factors must be 1
+    :return: list of [timestep, dwf_factor] pairs. one value per hour. timestep in s since start_time
+    """
     starting_time = datetime.datetime.strptime(start_time, "%H:%M:%S")
 
     # First timestep at 0 seconds
@@ -107,70 +120,69 @@ def start_time_and_duration_to_dwf_factors(start_time, duration, dwf_factors):
     return dwf_factor_per_timestep
 
 
+def read_inflow_type(spatialite_connection):
+    c = spatialite_connection.cursor()
+
+    sql = """SELECT use_0d_inflow FROM v2_global_settings;"""
+    c.execute(sql)
+    use_0d_inflow = int(c.fetchone()[0])
+    return use_0d_inflow
+
+
 def read_dwf_per_node(spatialite_path):
-
-    """Obtains the DWF per connection node per second a 3Di model sqlite-file."""
-
+    """
+    Obtains the total dry weather flow in m3/d per connection node from a 3Di model sqlite-file.
+    Returns None if use_0d_inflow = 0
+    """
     conn = sqlite3.connect(spatialite_path)
-    c = conn.cursor()
-
-    # Create empty list that holds total 24h dry weather flow per node
-    dwf_per_node_per_second = []
-
-    # Create a table that contains nr_of_inhabitants per connection_node and iterate over it
-    for row in c.execute(
+    use_0d_inflow = read_inflow_type(conn)
+    if use_0d_inflow == INFLOW_0D_NONE:
+        return None
+    else:
+        basename = INFLOW_TABLE_NAME_BASES[use_0d_inflow]
+        sql = f"""
+                SELECT 	map.connection_node_id,
+                        sum(surf.dry_weather_flow * surf.nr_of_inhabitants * map.percentage/100)/1000 AS dwf
+                FROM 	v2_{basename} AS surf
+                JOIN 	v2_{basename}_map AS map
+                ON 		surf.id = map.{basename}_id
+                WHERE 	surf.dry_weather_flow IS NOT NULL
+                        and surf.nr_of_inhabitants != 0
+                        and surf.nr_of_inhabitants IS NOT NULL
+                        and map.percentage IS NOT NULL
+                GROUP BY map.connection_node_id
+                ;
         """
-        WITH imp_surface_count AS
-            ( SELECT impsurf.id, impsurf.dry_weather_flow,
-                     impsurf.dry_weather_flow * impsurf.nr_of_inhabitants AS weighted_flow,
-                     impsurf.nr_of_inhabitants / COUNT(impmap.impervious_surface_id) AS nr_of_inhabitants
-             FROM v2_impervious_surface impsurf, v2_impervious_surface_map impmap
-             WHERE impsurf.nr_of_inhabitants IS NOT NULL AND impsurf.nr_of_inhabitants != 0
-             AND impsurf.id = impmap.impervious_surface_id GROUP BY impsurf.id),
-        inhibs_per_node AS (
-            SELECT impmap.impervious_surface_id, impsurfcount.nr_of_inhabitants,
-                   impmap.connection_node_id, impsurfcount.dry_weather_flow, impsurfcount.weighted_flow
-            FROM imp_surface_count impsurfcount, v2_impervious_surface_map impmap
-            WHERE impsurfcount.id = impmap.impervious_surface_id)
-        SELECT ipn.connection_node_id, SUM(ipn.nr_of_inhabitants), SUM(ipn.weighted_flow)
-        FROM inhibs_per_node ipn GROUP BY ipn.connection_node_id
-        """
-    ):
-        connection_node_id, nr_of_inhabitants_sum, weighted_flow_sum = row
-        # DWF per person example: 120 l/inhabitant / 1000 = 0.12 m3/inhabitant
-        dwf_per_node = nr_of_inhabitants_sum * (weighted_flow_sum / nr_of_inhabitants_sum) / 1000
-        dwf_per_node_per_second.append([connection_node_id, dwf_per_node / 3600])
+        c = conn.cursor()
+        dwf = [row for row in c.execute(sql)]
+        conn.close()
 
-    conn.close()
-
-    return dwf_per_node_per_second
+        return dwf
 
 
 def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_factors):
-
+    dwf_list = []
     dwf_on_each_node = read_dwf_per_node(spatialite_filepath)
+    if not dwf_on_each_node:
+        return dwf_list
     dwf_factor_per_timestep = start_time_and_duration_to_dwf_factors(
         start_time=start_time, duration=duration, dwf_factors=dwf_factors
     )
-    # Initialize list that will hold JSON
-    dwf_list = []
 
     # Generate JSON for each connection node
-    for dwf_node in dwf_on_each_node:
-        dwf_per_timestep = """"""
-        for row in dwf_factor_per_timestep:
-            dwf_per_timestep = (
-                dwf_per_timestep + str(row[0]) + "," + str(dwf_node[1] * row[1]) + "\n"
-            )
-
-        dwf_per_timestep = dwf_per_timestep[:-1]
+    for connection_node_id, dwf_m3_d in dwf_on_each_node:
+        values_list = []
+        for timestep, dwf_factor in dwf_factor_per_timestep:
+            dwf_m3_s = dwf_m3_d * dwf_factor / 3600
+            values_list.append(f"{timestep},{dwf_m3_s}")
+        values_str = "\n".join(values_list)
         dwf_list.append(
             {
                 "offset": 0,
                 "interpolate": 0,
-                "values": dwf_per_timestep,
+                "values": values_str,
                 "units": "m3/s",
-                "connection_node": dwf_node[0],
+                "connection_node": connection_node_id,
             }
         )
 
@@ -178,7 +190,6 @@ def generate_dwf_lateral_json(spatialite_filepath, start_time, duration, dwf_fac
 
 
 def dwf_json_to_csv(dwf_list, output_csv_file):
-
     with open(output_csv_file, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(["id", "connection_node_id", "timeseries"])
@@ -187,12 +198,6 @@ def dwf_json_to_csv(dwf_list, output_csv_file):
             connection_node_id = row["connection_node"]
             timeseries = row["values"]
             writer.writerow([str(lat_id), str(connection_node_id), timeseries])
-
-
-def str_to_seconds(time_str):
-    """Get Seconds from time."""
-    m, s = time_str.split(":")
-    return int(m) * 60 + int(s)
 
 
 class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
