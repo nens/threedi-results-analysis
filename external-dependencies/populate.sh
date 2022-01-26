@@ -12,7 +12,7 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako dataclasses
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako dataclasses importlib-resources
 # dataclasses is only needed for us on python3.6, it can be removed
 # when we update to ubuntu 20.04.
 
