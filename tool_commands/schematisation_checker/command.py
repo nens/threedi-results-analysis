@@ -57,24 +57,9 @@ class CustomCommand(CustomCommandBase):
             )
             pop_up_info(
                 "The selected 3Di model does not have the latest migration, please "
-                "migrate your model to the latest version. Download the latest "
-                "version of the model here: <a href='https://3di.lizard.net/models/'>https://3di.lizard.net/models/</a>"  # noqa
+                "migrate your model to the latest version."
             )
             return
-        except errors.MigrationTooHighError:
-            logger.exception(
-                "The selected 3Di model has a higher migration than expected."
-            )
-            pop_up_info(
-                "The 3Di model has a higher migration than expected, do you have "
-                "the latest version of ThreediToolbox?"
-            )
-            return
-        except errors.MigrationNameError:
-            logger.exception(
-                "Unexpected migration name, but migration id is matching. "
-                "We are gonna continue for now and hope for the best."
-            )
 
         _, output_filename = os.path.split(output_file_path)
         session = model_checker.db.get_session()
@@ -85,9 +70,9 @@ class CustomCommand(CustomCommandBase):
             ) as output_file:
                 writer = csv.writer(output_file)
                 writer.writerow(
-                    ["id", "table", "column", "value", "description", "type of check"]
+                    ["id", "table", "column", "value", "error_code", "level", "description"]
                 )
-                for i, check in enumerate(model_checker.checks()):
+                for i, check in enumerate(model_checker.checks(level="info")):
                     model_errors = check.get_invalid(session)
                     for error_row in model_errors:
                         writer.writerow(
@@ -96,8 +81,9 @@ class CustomCommand(CustomCommandBase):
                                 check.table.name,
                                 check.column.name,
                                 getattr(error_row, check.column.name),
+                                check.error_code,
+                                check.level.value,
                                 check.description(),
-                                check,
                             ]
                         )
                     pb.setValue(i)
