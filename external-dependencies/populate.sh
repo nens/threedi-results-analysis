@@ -1,7 +1,11 @@
 #!/bin/bash
 export LANG=C.UTF-8
+
+# Fail immediately upon error exit code.
+set -e
+
 # Cleanup, we don't want old stuff to linger around.
-rm *.whl
+rm -f *.whl
 rm -rf *.egg
 rm -rf SQLAlchemy*
 rm -rf build
