@@ -11,6 +11,8 @@ ThreeDiToolBox changelog
 
 - DWF Calculator also works for v2_surface and use_0d_inflow from global settings determines its behaviour
 
+- Updated threedi_modelchecker to 0.25.2.  
+  
 
 1.20 (2021-09-02)
 -----------------
