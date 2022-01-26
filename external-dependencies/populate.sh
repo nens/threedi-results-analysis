@@ -7,11 +7,14 @@ set -e
 # Cleanup, we don't want old stuff to linger around.
 rm -f *.whl
 rm -rf *.egg
+rm -f *.gz
 rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako dataclasses
+# dataclasses is only needed for us on python3.6, it can be removed
+# when we update to ubuntu 20.04.
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
