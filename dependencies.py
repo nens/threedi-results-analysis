@@ -47,7 +47,7 @@ DEPENDENCIES = [
     Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.25.2"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", ">=1.7.5"),
+    Dependency("alembic", "alembic", "==1.6.5"),
     Dependency("mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
