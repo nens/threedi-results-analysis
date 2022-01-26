@@ -42,14 +42,15 @@ DEPENDENCIES = [
     Dependency("GeoAlchemy2", "geoalchemy2", ">=0.6.2, <0.7"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1, <0.12"),
-    Dependency("threedigrid", "threedigrid", "==1.0.24"),
+    Dependency("threedigrid", "threedigrid", "==1.1.13"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.12"),
-    Dependency("threedidepth", "threedidepth", "==0.4"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.24"),
+    Dependency("threedidepth", "threedidepth", "==0.5"),
     Dependency("click", "click", ">=7.0"),
     Dependency("alembic", "alembic", "==1.6.5"),
     Dependency("mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
+    Dependency("h5netcdf", "h5netcdf", ""),
     Dependency("cftime", "cftime", ""),
 ]
 
