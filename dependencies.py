@@ -51,6 +51,8 @@ DEPENDENCIES = [
     Dependency("mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
+    Dependency("dataclasses", "dataclasses", ""),
+    Dependency("packaging", "packaging", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
