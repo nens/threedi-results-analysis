@@ -12,5 +12,4 @@ alembic==1.6.5
 mako
 netCDF4
 cftime
-dataclasses
 packaging
