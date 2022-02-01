@@ -44,13 +44,14 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=1.1.13"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.24.2"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.25.2"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", ">=1.7.5"),
+    Dependency("alembic", "alembic", "==1.6.5"),
     Dependency("mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
+    Dependency("packaging", "packaging", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform

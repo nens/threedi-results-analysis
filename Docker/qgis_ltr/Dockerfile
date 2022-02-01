@@ -60,6 +60,8 @@ RUN pip3 install -U pip setuptools
 RUN pip3 install -r requirements-dev.txt
 # Required for threedidepth
 RUN pip3 install scipy==1.5.2
+# Required only because we run on 18.04 and thus on python3.6:
+RUN pip3 install dataclasses
 
 # Add the qgis-core plugins (like 'db_manager') and our own plugin dir and the
 # python dirto the PYTHONPATH. This is needed for pytest and so to find the
