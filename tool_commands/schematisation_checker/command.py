@@ -70,19 +70,19 @@ class CustomCommand(CustomCommandBase):
             ) as output_file:
                 writer = csv.writer(output_file)
                 writer.writerow(
-                    ["id", "table", "column", "value", "error_code", "level", "description"]
+                    ["level", "error_code", "id", "table", "column", "value", "description"]
                 )
                 for i, check in enumerate(model_checker.checks(level="info")):
                     model_errors = check.get_invalid(session)
                     for error_row in model_errors:
                         writer.writerow(
                             [
+                                check.level.name,
+                                check.error_code,
                                 error_row.id,
                                 check.table.name,
                                 check.column.name,
                                 getattr(error_row, check.column.name),
-                                check.error_code,
-                                check.level.value,
                                 check.description(),
                             ]
                         )
