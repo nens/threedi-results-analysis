@@ -18,7 +18,9 @@ ThreeDiToolBox changelog
 - Include info and warning level messages in schematisation checker results csv
 
 - Fix encoding error when reading gridadmin.h5
-  
+
+- Add processing algorithm to migrate sqlite to newest schema
+
 
 1.20 (2021-09-02)
 -----------------
