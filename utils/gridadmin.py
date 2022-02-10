@@ -358,12 +358,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                         cont_type_raw_value = None
 
                     if cont_type_raw_value:
-                        if type(cont_type_raw_value) is np.bytes_:
-                            value = TYPE_FUNC_MAP[field_type](
-                                cont_type_raw_value, encoding="utf-8"
-                            )
-                        else:
-                            value = TYPE_FUNC_MAP[field_type](cont_type_raw_value)
+                        value = TYPE_FUNC_MAP[field_type](cont_type_raw_value)
                     else:
                         try:
                             value = str(kcu_dict[int(line_data["kcu"][i])])
@@ -378,12 +373,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
                 else:
                     try:
                         raw_value = line_data[fname][i]
-                        if type(raw_value) is np.bytes_:
-                            value = TYPE_FUNC_MAP[field_type](
-                                raw_value, encoding="utf-8"
-                            )
-                        else:
-                            value = TYPE_FUNC_MAP[field_type](raw_value)
+                        value = TYPE_FUNC_MAP[field_type](raw_value)
                     except IndexError:
                         logger.debug("Error getting index %s from %s array", i, fname)
                         value = None
