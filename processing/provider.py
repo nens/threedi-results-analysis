@@ -3,7 +3,10 @@ from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
-from ThreeDiToolbox.processing.schematisation_algorithms import MigrateAlgorithm
+from ThreeDiToolbox.processing.schematisation_algorithms import (
+    CheckSchematisationAlgorithm,
+    MigrateAlgorithm
+)
 
 
 class ThreediProvider(QgsProcessingProvider):
@@ -12,6 +15,7 @@ class ThreediProvider(QgsProcessingProvider):
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreediDepth())
         self.addAlgorithm(DWFCalculatorAlgorithm())
+        self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
 
     def id(self, *args, **kwargs):
