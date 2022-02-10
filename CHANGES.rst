@@ -21,6 +21,7 @@ ThreeDiToolBox changelog
 
 - Add processing algorithm to migrate sqlite to newest schema
 
+- Add processing algorithm to check schematisation
 
 1.20 (2021-09-02)
 -----------------
