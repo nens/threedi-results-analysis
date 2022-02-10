@@ -15,7 +15,9 @@ ThreeDiToolBox changelog
 
 - Schematisation checker compatible with threedi-modelchecker 0.25.2
 
-- Include info and warning level messages in schematisation checker results csv  
+- Include info and warning level messages in schematisation checker results csv
+
+- Fix encoding error when reading gridadmin.h5
   
 
 1.20 (2021-09-02)
