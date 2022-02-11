@@ -18,7 +18,8 @@ ThreeDiToolBox changelog
 - Include info and warning level messages in schematisation checker results csv
 
 - Fix encoding error when reading gridadmin.h5
-  
+
+- Update styling of result nodes and flowlines, mainly to also show flowlines with content_type = 'v2_added_c'
 
 1.20 (2021-09-02)
 -----------------
