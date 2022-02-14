@@ -23,6 +23,9 @@ ThreeDiToolBox changelog
 
 - Add processing algorithm to check schematisation
 
+- Update styling of result nodes and flowlines, mainly to also show flowlines with content_type = 'v2_added_c'
+
+
 1.20 (2021-09-02)
 -----------------
 
