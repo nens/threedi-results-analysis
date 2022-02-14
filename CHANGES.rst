@@ -19,7 +19,12 @@ ThreeDiToolBox changelog
 
 - Fix encoding error when reading gridadmin.h5
 
+- Add processing algorithm to migrate sqlite to newest schema
+
+- Add processing algorithm to check schematisation
+
 - Update styling of result nodes and flowlines, mainly to also show flowlines with content_type = 'v2_added_c'
+
 
 1.20 (2021-09-02)
 -----------------
