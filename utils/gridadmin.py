@@ -359,6 +359,8 @@ class QgisLinesOgrExporter(BaseOgrExporter):
 
                     if cont_type_raw_value:
                         value = TYPE_FUNC_MAP[field_type](cont_type_raw_value)
+                        if value == 'v2_added_c':
+                            value = '1d_2d'
                     else:
                         try:
                             value = str(kcu_dict[int(line_data["kcu"][i])])
