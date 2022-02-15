@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.32 (unreleased)
+1.32 (2022-02-15)
 -----------------
 
 - Changes to the modelinterface builder: *only* threedi_models_and_simulations
