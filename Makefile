@@ -61,7 +61,7 @@ QGIS_TAG = final-3_16_7
 # Should correspond with QGIS_TAG and in the form: major.minor.patch
 QGIS_VERSION = 3.16.7
 # For building the installer https://github.com/nens/threedi-api-qgis-client
-THREEDI_API_QGIS_CLIENT_VERSION = 2.5.1
+THREEDI_API_QGIS_CLIENT_VERSION = 2.5.0
 # And... the new name for the same repo
 THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.2
 
