@@ -110,7 +110,7 @@ def test_get_python_interpreter_windows():
     ), mock.patch("os.path.exists", return_value=True):
         python_interpreter = dependencies._get_python_interpreter()
         directory, filename = os.path.split(python_interpreter)
-        assert filename == "python3.exe"
+        assert filename == "pythonw3.exe"
 
 
 def test_get_python_interpreter_unknown():
