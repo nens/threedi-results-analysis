@@ -4,7 +4,8 @@ ThreeDiToolBox changelog
 1.32 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Changes to the modelinterface builder: *only* threedi_models_and_simulations
+  plugin is bundled, *not anymore* the threedi_qgis_api_client.
 
 
 1.31 (2022-02-15)
