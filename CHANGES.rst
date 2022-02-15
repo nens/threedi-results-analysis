@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-1.21 (unreleased)
+1.30 (2022-02-15)
 -----------------
 
 - Fixed constructing the cells layer from new gridadmins (which contains NaN
