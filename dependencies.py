@@ -365,7 +365,7 @@ def _get_python_interpreter():
     if "python3" in filename.lower():
         interpreter = executable
     elif "qgis" in filename.lower():
-        interpreter = os.path.join(directory, "python3.exe")
+        interpreter = os.path.join(directory, "pythonw3.exe")
     else:
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
