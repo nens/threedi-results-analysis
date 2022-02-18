@@ -30,16 +30,16 @@ cd ..
 rm -rf build
 
 # Copy the custom compiled windows h5py to external dependencies
-cp h5py/h5py-2.10.0-cp37-cp37m-win_amd64.whl .
+cp h5py/h5py-2.10.0-cp39-cp39-win_amd64.whl .
 
 # Copy the compiled windows scipy to external dependencies
-cp scipy/scipy-1.5.2-cp37-cp37m-win_amd64.whl .
+cp scipy/scipy-1.6.2-cp39-cp39-win_amd64.whl .
 
-# Download windows wheel (cp37, win, amd64) from https://pypi.org/simple/netcdf4/
-wget https://files.pythonhosted.org/packages/85/6d/eafbe5378c6307a322f29a1afe2c1a19fca6822fb6bb5f8c5a84492d689d/netCDF4-1.5.7-cp37-cp37m-win_amd64.whl#sha256=1ee78d5c129fcfeafd6d4a6339984d6108dbabfb8a2cec651f9dc2132c792c78
+# Download windows wheel (cp39, win, amd64) from https://pypi.org/simple/netcdf4/
+wget https://files.pythonhosted.org/packages/92/2e/8a85d66cd4646a81027f3efbc17278beaa86fd351b5f1339a7a5b0d79c14/netCDF4-1.5.4-cp39-cp39-win_amd64.whl#sha256=223b84f8d2a148e889b1933944109bdecbefc097200ab42e8a66c967b1398e1b
 # Same with cftime, but now also for linux
-wget https://files.pythonhosted.org/packages/ff/ee/d3c8cf711e150a76aa13ddab2257fefb843694456ed758fc2bb312b358f7/cftime-1.5.0-cp37-none-win_amd64.whl
-wget https://files.pythonhosted.org/packages/9b/a9/3779e0825580bac8cbf9331965297a3125ab35e5d1ef8f61947f12364a61/cftime-1.5.0-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+wget https://files.pythonhosted.org/packages/43/10/ead321694ef6adf0717ca4b3a7d4cf5b52e8456cc35c2b82abbd3777fd06/cftime-1.5.0-cp39-none-win_amd64.whl
+wget https://files.pythonhosted.org/packages/d8/4b/ba9f72ae150d0a887e53b476ee29609c0ae1d28cd914bb66685a03ddfad2/cftime-1.5.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
 wget https://files.pythonhosted.org/packages/a1/f1/cbded664cf2b68224ff1915e6fdc722dcd3c86143d72c31036a519653d6d/cftime-1.5.0.tar.gz
 
 touch .generated.marker

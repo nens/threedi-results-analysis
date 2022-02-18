@@ -56,13 +56,13 @@ DEPENDENCIES = [
 
 # Dependencies that contain compiled extensions for windows platform
 WINDOWS_PLATFORM_DEPENDENCIES = [
-    Dependency("scipy", "scipy", "==1.5.2"),
+    Dependency("scipy", "scipy", "==1.6.2"),
 ]
 H5PY_DEPENDENCY = Dependency("h5py", "h5py", "==2.10.0")
-SUPPORTED_HDF5_VERSIONS = ["1.10.4", "1.10.5"]
+SUPPORTED_HDF5_VERSIONS = ["1.10.7"]
 
 # If you add a dependency, also adjust external-dependencies/populate.sh
-INTERESTING_IMPORTS = ["numpy", "gdal", "pip", "setuptools"]
+INTERESTING_IMPORTS = ["numpy", "osgeo", "pip", "setuptools"]
 
 OUR_DIR = Path(__file__).parent
 
@@ -75,10 +75,7 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
-    print(
-        "Contents of our profile's python dir:\n    %s"
-        % "\n    ".join(profile_python_names)
-    )
+    print("Contents of our profile's python dir:\n    %s" % "\n    ".join(profile_python_names))
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == "Windows":
@@ -90,29 +87,25 @@ def ensure_everything_installed():
 
 def _ensure_h5py_installed():
     """
-    On Windows Qgis comes with a hdf5 version installed. Somewhere between
-    Qgis version 3.10.8 and 3.10.12 the HDF5 version got upgraded from HDF5 1.10.4 to
-    HDF5 1.10.5.
-
+    On Windows Qgis comes with a hdf5 version installed.
     This plugin uses the h5py python package, which is built against a specific version
     of HDF5. The Qgis HDF5 version and the HDF5 version of the h5py package must be the
     same, otherwise it will not work. In the external-dependencies folder we supply a
-    Windows version of h5py built using HDF5 1.10.4. On pypi a h5py package is available
-    built with HDF5 1.10.5.
+    Windows version of h5py built using HDF5 1.10.7. On pypi there is no h5py 2.10.0 package available
+    built with Python 3.9 and HDF5 1.10.7. We need creat such wheel ourselves.
 
     The following situations can occur:
 
-                           | QGIS HDF5 1.10.4  | QGIS HDF5 1.10.5
-    -----------------------|-------------------|---------------
-    h5py build with 1.10.4 | A: Good           | B: Qgis crash
-    h5py build with 1.10.5 | C: AttributeError | D: Good
+                           | QGIS HDF5 = 1.10.7  | QGIS HDF5 != 1.10.7
+    -----------------------|---------------------|---------------
+    h5py build with 1.10.7 | A: Good             | B: Qgis crash
 
-    The different situations are marked A, B, C and D in the table above.
+    The different situations are marked A and B in the table above.
 
-    In situations A and D everything is good and the plugin can be loaded without any
+    In situations A everything is good and the plugin can be loaded without any
     problems.
 
-    Situations B and C occur when a user upgrades/downgrades their Qgis version when
+    Situations B occur when a user upgrades/downgrades their Qgis version when
     the ThreediToolbox is already installed with a specific version of h5py.
     In these cases we also need to upgrade/downgrade the h5py version installed with
     ThreediToolbox.
@@ -123,21 +116,14 @@ def _ensure_h5py_installed():
     by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
     h5py_dependency = Dependency("h5py", "h5py", "==2.10.0")
-    hdf5_version = _get_hdf5_version()
+    hdf5_version = "1.10.7"  # there is only one version of HDF5 available in the QGIS installer
     h5py_missing = _check_presence([h5py_dependency])
     marker_version = H5pyMarker.version()
-
     if h5py_missing:
         _install_h5py(hdf5_version)
 
-    if hdf5_version == "1.10.5":
-        if marker_version == "1.10.5":
-            # Do nothing
-            pass
-        else:
-            _install_h5py(hdf5_version)
-    elif hdf5_version == "1.10.4":
-        if marker_version == "1.10.4":
+    if hdf5_version == "1.10.7":
+        if marker_version == "1.10.7":
             # Do nothing
             pass
         else:
@@ -146,28 +132,25 @@ def _ensure_h5py_installed():
 
 def _install_h5py(hdf5_version: str):
     if hdf5_version not in SUPPORTED_HDF5_VERSIONS:
-        # raise a error because we cannot continue
+        # raise an error because we cannot continue
         message = (
             f"Unsupported HDF5 version: {hdf5_version}. "
             f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
         )
         raise RuntimeError(message)
-    use_pypi = hdf5_version == "1.10.5"
+    use_pypi = False  # There is no official Python 3.9 wheel for h5py 2.10.0
 
     # In case the (old) h5py library is already imported, we cannot uninstall
     # h5py because the windows acquires a lock on the *.dll-files. Therefore
     # we need to restart Qgis.
     # _uninstall_dependency(H5PY_DEPENDENCY)
     try:
-        _install_dependencies(
-            [H5PY_DEPENDENCY], target_dir=_dependencies_target_dir(), use_pypi=use_pypi
-        )
+        _install_dependencies([H5PY_DEPENDENCY], target_dir=_dependencies_target_dir(), use_pypi=use_pypi)
     except RuntimeError:
         from ThreeDiToolbox.utils.user_messages import pop_up_info
 
         pop_up_info(
-            "Please restart QGIS to complete the installation process of "
-            "ThreediToolbox.",
+            "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
             title="Restart required",
         )
         return
@@ -177,9 +160,8 @@ def _install_h5py(hdf5_version: str):
 class H5pyMarker:
     """Marker indicating with which HDF5 binaries the h5py is installed.
 
-    Currently there are 2 supported HDF5 version:
-    - 1.10.4: use h5py from the external-dependencies folder in this repo
-    - 1.10.5: use the h5py from pypi
+    Currently, there is 1 supported HDF5 version:
+    - 1.10.7: use h5py from the external-dependencies folder in this repo
     """
 
     H5PY_MARKER = OUR_DIR / ".h5py_marker"
@@ -207,7 +189,7 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
     """Check the basics: pip.
 
     People using OSGEO custom installs sometimes exclude those
-    dependencies. Our install scripts fail, then, because of the missing
+    dependencies. Our installation scripts fail, then, because of the missing
     'pip'.
 
     """
@@ -263,9 +245,7 @@ def check_importability():
     )
     for package in packages:
         imported_package = importlib.import_module(package)
-        logger.info(
-            "Import '%s' found at \n    '%s'", package, imported_package.__file__
-        )
+        logger.info("Import '%s' found at \n    '%s'", package, imported_package.__file__)
 
 
 def _uninstall_dependency(dependency):
@@ -409,16 +389,10 @@ def _check_presence(dependencies):
             result = pkg_resources.require(requirement)
             print("Requirement %s found: %s" % (requirement, result))
         except pkg_resources.DistributionNotFound:
-            print(
-                "Dependency '%s' (%s) not found"
-                % (dependency.name, dependency.constraint)
-            )
+            print("Dependency '%s' (%s) not found" % (dependency.name, dependency.constraint))
             missing.append(dependency)
         except pkg_resources.VersionConflict:
-            print(
-                "Dependency '%s' (%s) has the wrong version"
-                % (dependency.name, dependency.constraint)
-            )
+            print("Dependency '%s' (%s) has the wrong version" % (dependency.name, dependency.constraint))
             missing.append(dependency)
     return missing
 
