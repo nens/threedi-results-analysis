@@ -1,12 +1,32 @@
 ThreeDiToolBox changelog
 ========================
 
-1.21 (unreleased)
+1.33 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
+1.32 (2022-02-15)
+-----------------
+
+- Changes to the modelinterface builder: *only* threedi_models_and_simulations
+  plugin is bundled, *not anymore* the threedi_qgis_api_client.
+
+
+1.31 (2022-02-15)
+-----------------
+
+- Changes to the modelinterface builder: the threedi_models_and_simulations
+  plugin is now also bundled.
+
+
+1.30 (2022-02-15)
 -----------------
 
 - Fixed constructing the cells layer from new gridadmins (which contains NaN
   instead of -9999. for 1D nodes).
-  
+
 - DWF Calculator now takes the 'percentage' attribute of the impervious_surface_map into account + cleaner code
 
 - DWF Calculator also works for v2_surface and use_0d_inflow from global settings determines its behaviour
@@ -35,7 +55,7 @@ ThreeDiToolBox changelog
 - Added netCDF4 binary for windows. Also added cftime (netcdf4 dependency).
 
 - Added new animation slider.
-  
+
 - Updated dependencies are un-imported (technically: removed from ``sys.modules``)
   to prevent old versions from sticking around. In 1.18, you could get an error
   from the ``alembic`` dependency that complained about a too old sqlalchemy.
@@ -43,7 +63,7 @@ ThreeDiToolBox changelog
 - Moved automatic tests from travis-ci to github actions.
 
 - Fixed issue with broken sideview tool for qgis 3.16.6 and higher
-  
+
 - For *internal test purposes only*, fresh zips (for manual
   installation) are made of all pull requests and of master. See
   https://docs.3di.live/threeditoolbox-dev/ .
@@ -62,7 +82,7 @@ ThreeDiToolBox changelog
 
 - Adjusted dependencies for new threedi-modelchecker release.
 
-- Installing bundled dependencies should no longer fetch newer releases 
+- Installing bundled dependencies should no longer fetch newer releases
   from pypi, but stick to what we bundle in our external-dependencies
   directory.
 
@@ -73,7 +93,7 @@ ThreeDiToolBox changelog
 - Restricting pyqtgraph to <0.12 to prevent ``from PyQt5 import sip`` import
   errors.
 
-- Fixed error in notifying of necessary qgis restart.  
+- Fixed error in notifying of necessary qgis restart.
 
 
 1.16.1 (2021-03-04)
@@ -147,7 +167,7 @@ ThreeDiToolBox changelog
 
 - Graph-tool fix bug where pumpline-id was used to look up flowline variables and
   flowline-id for pumpline variables.
-  
+
 - Small fix in predict_calc_points command.
 
 - Update v2_pumpstation action_type from 'set_capacity' to 'set_pump_capacity'.
