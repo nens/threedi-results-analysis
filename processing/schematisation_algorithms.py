@@ -306,9 +306,11 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         if not threedi_db:
             return {self.OUTPUT: None}
         try:
-            threedi_db.schema.validate_schema()
+            schema = ModelSchema(threedi_db)
+            schema.validate_schema()
             checker = RasterChecker(threedi_db)
-            msg = checker.run(["check all rasters"])
+            checker.run_all_checks(feedback=feedback)
+            checker.close_session()
 
         except errors.MigrationMissingError:
             feedback.pushWarning(
@@ -319,32 +321,20 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
 
         generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
-        session = model_checker.db.get_session()
-        total_checks = len(model_checker.config.checks)
-        progress_per_check = 100.0 / total_checks
-        checks_passed = 0
         try:
             with open(self.output_file_path, "w", newline="") as output_file:
                 writer = csv.writer(output_file)
                 writer.writerow(
-                    ["level", "error_code", "id", "table", "column", "value", "description"]
+                    ["level", "global_settings_id", "error_code", "description"]
                 )
-                for i, check in enumerate(model_checker.checks(level="info")):
-                    model_errors = check.get_invalid(session)
-                    for error_row in model_errors:
-                        writer.writerow(
-                            [
-                                check.level.name,
-                                check.error_code,
-                                error_row.id,
-                                check.table.name,
-                                check.column.name,
-                                getattr(error_row, check.column.name),
-                                check.description(),
-                            ]
-                        )
-                    checks_passed += 1
-                    feedback.setProgress(int(checks_passed * progress_per_check))
+                checker.results.sort_results()
+                for result_row in checker.results.result_per_check:
+                    str_row = checker.results.result_per_check_to_msg(result_row)
+                    list_row = str_row.split(",")
+                    if list_row[0] in ['warning', 'error']:
+                        list_row[0] = list_row[0].upper()
+                        writer.writerow(list_row)
+
         except PermissionError:
             # PermissionError happens for example when a user has the file already open
             # with Excel on Windows, which locks the file.
@@ -361,7 +351,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, '3Di schematisation errors')
+                result_layer = QgsVectorLayer(self.output_file_path, '3Di raster errors')
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT: self.output_file_path}
 
@@ -403,4 +393,4 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return CheckSchematisationAlgorithm()
+        return CheckRastersAlgorithm()

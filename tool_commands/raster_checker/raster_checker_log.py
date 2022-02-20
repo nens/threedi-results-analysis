@@ -221,7 +221,7 @@ class RasterCheckerResults(object):
         rendered_feedback = self.get_rendered_feedback(
             raster, setting_id, template_feedback
         )
-        msg = "%s, %02d, %02d, %s %s \n" % (
+        msg = "%s, %02d, %02d, %s %s" % (
             feedback_level,
             setting_id,
             check_id,
@@ -302,7 +302,7 @@ class RasterCheckerResults(object):
         checkid_description = self.get_intro_lines(check_phase=[4])
         self.write_intro_lines(checkid_description)
 
-        msg = "\n-- Pixel allignment: -- \n"
+        msg = "\n-- Pixel alignment: -- \n"
         self.log_file.write(msg)
         checkid_description = self.get_intro_lines(check_phase=[5])
         self.write_intro_lines(checkid_description)
@@ -314,7 +314,7 @@ class RasterCheckerResults(object):
 
         self.count_error = 0
         for result_row in self.result_per_check:
-            log_row = self.result_per_check_to_msg(result_row)
+            log_row = self.result_per_check_to_msg(result_row) + "\n"
             self.log_file.write(log_row)
 
     def result_per_phase_to_log(self):
@@ -379,10 +379,9 @@ class RasterCheckerResults(object):
 
 
 class RasterCheckerProgressBar(StatusProgressBar):
-    def __init__(self, nr_phases, maximum=100, message_title=""):
-        StatusProgressBar.__init__(self, maximum=100, message_title="")
-        self.maximum = maximum
-        self.progress_per_phase = int(maximum / nr_phases)
+    def __init__(self, nr_phases):
+        self.maximum = 100  # set maximum to 100 always to make it make it more similar to QgsFeedback
+        super().__init__(maximum=self.maximum, message_title="Raster Checker")
 
     def get_progress_per_raster(self, entries, results, current_status):
         """
@@ -408,7 +407,11 @@ class RasterCheckerProgressBar(StatusProgressBar):
     def current_status(self):
         return self.progress
 
-    def set_progress(self, progress):
+    def setProgress(self, progress):  # mimic QgsProcessingFeedback.setProgress()
         if progress > self.maximum or progress < 0:
             raise AssertionError("not possible to set progress")
         self.progress = progress
+        self.progress_bar.setValue(progress)
+
+    def setProgressText(self, text):  # mimic QgsProcessingFeedback.setProgressText()
+        self.message_bar.setText(text)

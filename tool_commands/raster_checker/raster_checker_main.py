@@ -1,4 +1,6 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
+from typing import Union
+
 from cached_property import cached_property
 from gdal import GA_ReadOnly
 from osgeo import gdal
@@ -9,9 +11,11 @@ from qgis.core import QgsField
 from qgis.core import QgsFields
 from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
+from qgis.core import QgsProcessingFeedback
 from qgis.core import QgsVectorFileWriter
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtWidgets import QApplication
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
@@ -20,6 +24,7 @@ from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER
 from ThreeDiToolbox.tool_commands.raster_checker.constants import (
     RASTERTYPE_PIXELRANGE_MAPPING,
 )
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import RasterCheckerProgressBar
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -27,6 +32,7 @@ import logging
 import numpy as np
 import os
 import string
+
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +60,6 @@ class RasterChecker(object):
         self.sqlite_dir = os.path.split(sqlite_path)[0]
         self.results = raster_checker_log.RasterCheckerResults(sqlite_path)
 
-        self.progress_bar = None
         self.unique_id_name = []
         self.too_many_wrong_pixels = False
 
@@ -661,12 +666,6 @@ class RasterChecker(object):
         generator_dem = self.create_generator(dem_band)
         generator_other = self.create_generator(other_tif_band)
 
-        current_status = self.progress_bar.current_status
-        progress_per_raster = self.progress_bar.get_progress_per_raster(
-            self.entries, self.results, current_status
-        )
-        self.progress_bar.increase_progress(progress_per_raster)
-
         self.pixel_specs = self.get_pixel_specs(dem_path)
 
         found_wrong_pixel = False
@@ -901,7 +900,7 @@ class RasterChecker(object):
                         dem=dem,
                     )
 
-    def run_all_checks(self):
+    def run_all_checks(self, feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]):
         """
         - We run checks in phases. Each phase consists of 1 or more checks:
         - Phase 1 has e.g. a check: "can the .tif be found on machine?"
@@ -916,18 +915,19 @@ class RasterChecker(object):
         ps: adding or deleting a check can be done via RASTER_CHECKER_MAPPER
         """
 
-        self.progress_bar = raster_checker_log.RasterCheckerProgressBar(
-            self.nr_phases, maximum=100, message_title="Raster Checker"
-        )
-
-        progress_per_phase = self.progress_bar.progress_per_phase
+        progress_per_phase = 100 / self.nr_phases
+        nr_items = len(self.entries.items())
+        progress_per_item = progress_per_phase/nr_items
 
         phase = 1
-        self.progress_bar.set_progress(0)
+        feedback.setProgress(0)
+        current_progress = 0
         for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, "done phase 1")
+            current_progress += progress_per_item
+            feedback.setProgress(current_progress)
+            QApplication.processEvents()
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
@@ -937,7 +937,9 @@ class RasterChecker(object):
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, "done phase 2")
+            current_progress += progress_per_item
+            feedback.setProgress(current_progress)
+            QApplication.processEvents()
 
         phase = 3
         # cumulative pixels of all rasters in 1 entry not too much?
@@ -946,7 +948,9 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, "done phase 3")
+            current_progress += progress_per_item
+            feedback.setProgress(current_progress)
+            QApplication.processEvents()
 
         phase = 4
         # compare rasters with dem in same entry
@@ -961,7 +965,9 @@ class RasterChecker(object):
                 rasters_sorted = self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_sorted, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-        self.progress_bar.increase_progress(progress_per_phase, "done phase 4")
+            current_progress += progress_per_item
+            feedback.setProgress(current_progress)
+            QApplication.processEvents()
 
         phase = 5
         self.input_data_shp = []
@@ -978,8 +984,11 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-
-        self.progress_bar.set_progress(100)
+            current_progress += progress_per_item
+            feedback.setProgress(current_progress)
+            QApplication.processEvents()
+        feedback.setProgress(100)
+        QApplication.processEvents()
 
     def create_shp(self):
         fields = QgsFields()
@@ -1135,7 +1144,9 @@ class RasterChecker(object):
         :param tasks: list with strings dependent on what user selected
         ['check all rasters', 'improve rasters] <-- latter is optional"""
 
-        self.run_all_checks()
+        feedback = raster_checker_log.RasterCheckerProgressBar(self.nr_phases)
+
+        self.run_all_checks(feedback=feedback)
 
         # TODO: improve rasters here
         # if 'improve rasters' in tasks:
@@ -1153,6 +1164,6 @@ class RasterChecker(object):
             self.create_shp()
 
         # delete progress bar
-        self.progress_bar.__del__()
+        del feedback
 
         self.pop_up_finished_or_question()
