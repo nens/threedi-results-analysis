@@ -899,6 +899,13 @@ class RasterChecker(object):
                         dem=dem,
                     )
 
+    @staticmethod
+    def update_progress(current_progress, progress_increase, feedback):
+        current_progress += progress_increase
+        feedback.setProgress(current_progress)
+        QApplication.processEvents()
+        return current_progress
+
     def run_all_checks(self, feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]):
         """
         - We run checks in phases. Each phase consists of 1 or more checks:
@@ -924,9 +931,7 @@ class RasterChecker(object):
         for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress += progress_per_item
-            feedback.setProgress(current_progress)
-            QApplication.processEvents()
+            self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
@@ -936,9 +941,7 @@ class RasterChecker(object):
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress += progress_per_item
-            feedback.setProgress(current_progress)
-            QApplication.processEvents()
+            self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 3
         # cumulative pixels of all rasters in 1 entry not too much?
@@ -947,9 +950,7 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress += progress_per_item
-            feedback.setProgress(current_progress)
-            QApplication.processEvents()
+            self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 4
         # compare rasters with dem in same entry
@@ -964,9 +965,7 @@ class RasterChecker(object):
                 rasters_sorted = self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_sorted, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress += progress_per_item
-            feedback.setProgress(current_progress)
-            QApplication.processEvents()
+            self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 5
         self.input_data_shp = []
@@ -983,9 +982,7 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress += progress_per_item
-            feedback.setProgress(current_progress)
-            QApplication.processEvents()
+            self.update_progress(current_progress, progress_per_item, feedback)
         feedback.setProgress(100)
         QApplication.processEvents()
 
