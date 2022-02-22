@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-from typing import Union
+from typing import Union, List, Tuple
 
 from cached_property import cached_property
 from gdal import GA_ReadOnly
@@ -13,6 +13,7 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProcessingFeedback
 from qgis.core import QgsVectorFileWriter
+from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QApplication
@@ -640,7 +641,7 @@ class RasterChecker(object):
         max_wrong_pixels = 50000
         if diff_data > max_wrong_pixels or diff_nodata > max_wrong_pixels:
             detail = (
-                "Wrong pixels are not written too .shp as too many "
+                f"Wrong pixels are not written to vector layer as too many (> {max_wrong_pixels})"
                 "wrong pixels were found"
             )
             self.too_many_wrong_pixels = True
@@ -900,7 +901,11 @@ class RasterChecker(object):
                     )
 
     @staticmethod
-    def update_progress(current_progress, progress_increase, feedback):
+    def update_progress(
+            current_progress,
+            progress_increase,
+            feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]
+    ):
         current_progress += progress_increase
         feedback.setProgress(current_progress)
         QApplication.processEvents()
@@ -931,7 +936,7 @@ class RasterChecker(object):
         for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
@@ -941,7 +946,7 @@ class RasterChecker(object):
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 3
         # cumulative pixels of all rasters in 1 entry not too much?
@@ -950,7 +955,7 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 4
         # compare rasters with dem in same entry
@@ -965,7 +970,7 @@ class RasterChecker(object):
                 rasters_sorted = self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_sorted, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
 
         phase = 5
         self.input_data_shp = []
@@ -982,17 +987,35 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
         feedback.setProgress(100)
         QApplication.processEvents()
 
-    def create_shp(self):
+    def wrong_pixels_as_features(self) -> Tuple[QgsFields, List[QgsFeature]]:
         fields = QgsFields()
         fields.append(QgsField("setting_id", QVariant.String))
         fields.append(QgsField("raster", QVariant.String))
         fields.append(QgsField("x centre", QVariant.String))
         fields.append(QgsField("y centre", QVariant.String))
+        features = []
+        for pixel_check_dict in self.input_data_shp:
+            setting_id = pixel_check_dict["setting_id"]
+            raster = pixel_check_dict["raster"]
+            coords = pixel_check_dict["coords"]
+            for row in coords:
+                for point in row:
+                    point_y = point[0]  # this odd coord sequence is created in self.get_wrong_pixel
+                    point_x = point[1]
+                    feat = QgsFeature(fields)
+                    feat.setGeometry(
+                        QgsGeometry.fromPointXY(QgsPointXY(point_x, point_y))
+                    )
+                    feat.setAttributes([setting_id, raster, point_x, point_y])
+                    features.append(feat)
+        return fields, features
 
+    def create_shp(self):
+        fields, features = self.wrong_pixels_as_features()
         self.shape_path = self.results.log_path.split(".log")[0] + ".shp"
         writer = QgsVectorFileWriter(
             self.shape_path,
@@ -1008,20 +1031,8 @@ class RasterChecker(object):
                 logger.error(msg)
                 raise Exception(msg)
             else:
-                for pixel_check_dict in self.input_data_shp:
-                    raster = pixel_check_dict.get("raster")
-                    setting_id = pixel_check_dict.get("setting_id")
-                    coords = pixel_check_dict.get("coords")
-                    for row in coords:
-                        for point in row:
-                            point_y = point[0]
-                            point_x = point[1]
-                            feat = QgsFeature()
-                            feat.setGeometry(
-                                QgsGeometry.fromPointXY(QgsPointXY(point_x, point_y))
-                            )
-                            feat.setAttributes([setting_id, raster, point_x, point_y])
-                            writer.addFeature(feat)
+                for feature in features:
+                    writer.addFeature(feature)
         except Exception:
             # TODO: there's a "raise" inside the try, there's a raise
             # below. What's the intention?

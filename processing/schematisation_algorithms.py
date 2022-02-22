@@ -18,18 +18,22 @@ from uuid import uuid4
 
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
+from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import RasterChecker
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
+    QgsCoordinateReferenceSystem,
     QgsProject,
-    QgsVectorLayer,
     QgsProcessingAlgorithm,
     QgsProcessingParameterBoolean,
+    QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination
+    QgsProcessingParameterFileDestination,
+    QgsVectorLayer,
+    QgsWkbTypes
 )
 
 
@@ -270,7 +274,8 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     Run the raster checker
     """
     INPUT = 'INPUT'
-    OUTPUT = 'OUTPUT'
+    OUTPUT_CSV = 'OUTPUT_CSV'
+    OUTPUT_POINTS = 'OUTPUT_POINTS'
     ADD_TO_PROJECT = 'ADD_TO_PROJECT'
 
     def initAlgorithm(self, config):
@@ -284,9 +289,16 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr('Output'),
+                self.OUTPUT_CSV,
+                self.tr('CSV Output'),
                 fileFilter="csv"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSink(
+                self.OUTPUT_POINTS,
+                self.tr('Points Output (wrong pixels)')
             )
         )
 
@@ -304,7 +316,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
         if not threedi_db:
-            return {self.OUTPUT: None}
+            return {self.OUTPUT_CSV: None}
         try:
             schema = ModelSchema(threedi_db)
             schema.validate_schema()
@@ -317,9 +329,9 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
                 "The selected 3Di model does not have the latest migration. Please "
                 "migrate your model to the latest version."
             )
-            return {self.OUTPUT: None}
+            return {self.OUTPUT_CSV: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
+        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT_CSV, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         try:
             with open(self.output_file_path, "w", newline="") as output_file:
@@ -344,16 +356,31 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
                 "other programs using the file or select another output "
                 "file."
             )
-            return {self.OUTPUT: None}
+            return {self.OUTPUT_CSV: None}
 
-        return {self.OUTPUT: self.output_file_path}
+        wrong_pixels_fields, wrong_pixels = checker.wrong_pixels_as_features()
+        session = threedi_db.get_session()
+        epsg_code = session.query(GlobalSetting).first().epsg_code
+        session.close()
+        (point_sink, point_sink_dest_id) = self.parameterAsSink(
+            parameters,
+            self.OUTPUT_POINTS,
+            context,
+            fields=wrong_pixels_fields,
+            geometryType=QgsWkbTypes.Point,
+            crs=QgsCoordinateReferenceSystem.fromEpsgId(epsg_code)
+        )
+        for feat in wrong_pixels:
+            point_sink.addFeature(feat)
+
+        return {self.OUTPUT_CSV: self.output_file_path, self.OUTPUT_POINTS: point_sink_dest_id}
 
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
                 result_layer = QgsVectorLayer(self.output_file_path, '3Di raster errors')
                 QgsProject.instance().addMapLayer(result_layer)
-        return {self.OUTPUT: self.output_file_path}
+        return {self.OUTPUT_CSV: self.output_file_path}
 
     def name(self):
         """
