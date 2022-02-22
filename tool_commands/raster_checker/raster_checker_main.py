@@ -13,7 +13,6 @@ from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProcessingFeedback
 from qgis.core import QgsVectorFileWriter
-from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QApplication
