@@ -298,7 +298,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT_POINTS,
-                self.tr('Points Output (wrong pixels)')
+                self.tr('3Di raster errors - wrong pixels')
             )
         )
 
