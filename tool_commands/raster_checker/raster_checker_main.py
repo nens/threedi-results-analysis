@@ -15,7 +15,7 @@ from qgis.core import QgsProcessingFeedback
 from qgis.core import QgsVectorFileWriter
 from qgis.core import QgsWkbTypes
 from qgis.PyQt.QtCore import QVariant
-from qgis.PyQt.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication, QProgressBar
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
@@ -903,10 +903,13 @@ class RasterChecker(object):
     def update_progress(
             current_progress,
             progress_increase,
-            feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]
+            feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback, QProgressBar]
     ):
         current_progress += progress_increase
-        feedback.setProgress(current_progress)
+        if isinstance(feedback, QProgressBar):
+            feedback.setValue(current_progress)
+        else:
+            feedback.setProgress(current_progress)
         QApplication.processEvents()
         return current_progress
 
@@ -930,8 +933,7 @@ class RasterChecker(object):
         progress_per_item = progress_per_phase/nr_items
 
         phase = 1
-        feedback.setProgress(0)
-        current_progress = 0
+        current_progress = self.update_progress(0, 0, feedback)
         for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
@@ -987,7 +989,7 @@ class RasterChecker(object):
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
             current_progress = self.update_progress(current_progress, progress_per_item, feedback)
-        feedback.setProgress(100)
+        self.update_progress(100, 0, feedback)
         QApplication.processEvents()
 
     def wrong_pixels_as_features(self) -> Tuple[QgsFields, List[QgsFeature]]:
