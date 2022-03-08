@@ -6,7 +6,7 @@ from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
 from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     CheckRastersAlgorithm,
-    MigrateAlgorithm
+    MigrateAlgorithm,
 )
 
 

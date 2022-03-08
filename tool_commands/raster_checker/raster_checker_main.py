@@ -24,7 +24,9 @@ from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER
 from ThreeDiToolbox.tool_commands.raster_checker.constants import (
     RASTERTYPE_PIXELRANGE_MAPPING,
 )
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import RasterCheckerProgressBar
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import (
+    RasterCheckerProgressBar,
+)
 from ThreeDiToolbox.utils.user_messages import pop_up_info
 from ThreeDiToolbox.utils.user_messages import pop_up_question
 
@@ -901,9 +903,9 @@ class RasterChecker(object):
 
     @staticmethod
     def update_progress(
-            current_progress,
-            progress_increase,
-            feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback, QProgressBar]
+        current_progress,
+        progress_increase,
+        feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback, QProgressBar],
     ):
         current_progress += progress_increase
         if isinstance(feedback, QProgressBar):
@@ -913,7 +915,9 @@ class RasterChecker(object):
         QApplication.processEvents()
         return current_progress
 
-    def run_all_checks(self, feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]):
+    def run_all_checks(
+        self, feedback: Union[RasterCheckerProgressBar, QgsProcessingFeedback]
+    ):
         """
         - We run checks in phases. Each phase consists of 1 or more checks:
         - Phase 1 has e.g. a check: "can the .tif be found on machine?"
@@ -930,14 +934,16 @@ class RasterChecker(object):
 
         progress_per_phase = 100 / self.nr_phases
         nr_items = len(self.entries.items())
-        progress_per_item = progress_per_phase/nr_items
+        progress_per_item = progress_per_phase / nr_items
 
         phase = 1
         current_progress = self.update_progress(0, 0, feedback)
         for setting_id, rasters in self.entries.items():
             self.run_phase_checks(setting_id, rasters, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(
+                current_progress, progress_per_item, feedback
+            )
 
         phase = 2
         # invidual raster checks (e.g. datatype, projection unit, etc)
@@ -947,7 +953,9 @@ class RasterChecker(object):
             if rasters_ready:
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(
+                current_progress, progress_per_item, feedback
+            )
 
         phase = 3
         # cumulative pixels of all rasters in 1 entry not too much?
@@ -956,7 +964,9 @@ class RasterChecker(object):
             rasters_ready = self.results.get_rasters_ready(setting_id, phase)
             self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(
+                current_progress, progress_per_item, feedback
+            )
 
         phase = 4
         # compare rasters with dem in same entry
@@ -971,7 +981,9 @@ class RasterChecker(object):
                 rasters_sorted = self.dem_to_first_index(rasters, rasters_ready)
                 self.run_phase_checks(setting_id, rasters_sorted, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(
+                current_progress, progress_per_item, feedback
+            )
 
         phase = 5
         self.input_data_shp = []
@@ -988,7 +1000,9 @@ class RasterChecker(object):
                 rasters_ready.insert(0, rasters[0])
                 self.run_phase_checks(setting_id, rasters_ready, phase)
             self.results.update_result_per_phase(setting_id, rasters, phase)
-            current_progress = self.update_progress(current_progress, progress_per_item, feedback)
+            current_progress = self.update_progress(
+                current_progress, progress_per_item, feedback
+            )
         self.update_progress(100, 0, feedback)
         QApplication.processEvents()
 
@@ -1005,7 +1019,9 @@ class RasterChecker(object):
             coords = pixel_check_dict["coords"]
             for row in coords:
                 for point in row:
-                    point_y = point[0]  # this odd coord sequence is created in self.get_wrong_pixel
+                    point_y = point[
+                        0
+                    ]  # this odd coord sequence is created in self.get_wrong_pixel
                     point_x = point[1]
                     feat = QgsFeature(fields)
                     feat.setGeometry(

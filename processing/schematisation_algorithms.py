@@ -22,7 +22,9 @@ from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import RasterChecker
+from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
+    RasterChecker,
+)
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
@@ -33,7 +35,7 @@ from qgis.core import (
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
     QgsVectorLayer,
-    QgsWkbTypes
+    QgsWkbTypes,
 )
 
 
@@ -42,7 +44,9 @@ def backup_sqlite(filename):
     backup_folder = os.path.join(os.path.dirname(os.path.dirname(filename)), "_backup")
     os.makedirs(backup_folder, exist_ok=True)
     prefix = str(uuid4())[:8]
-    backup_sqlite_path = os.path.join(backup_folder, f"{prefix}_{os.path.basename(filename)}")
+    backup_sqlite_path = os.path.join(
+        backup_folder, f"{prefix}_{os.path.basename(filename)}"
+    )
     shutil.copyfile(filename, backup_sqlite_path)
     return backup_sqlite_path
 
@@ -63,15 +67,14 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     """
     Migrate 3Di model schema to the current version
     """
-    INPUT = 'INPUT'
-    OUTPUT = 'OUTPUT'
+
+    INPUT = "INPUT"
+    OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT,
-                self.tr('3Di Spatialite'),
-                extension="sqlite"
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
             )
         )
 
@@ -98,14 +101,14 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'migrate'
+        return "migrate"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Migrate Spatialite')
+        return self.tr("Migrate Spatialite")
 
     def group(self):
         """
@@ -122,10 +125,10 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Schematisation'
+        return "Schematisation"
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return MigrateAlgorithm()
@@ -135,37 +138,34 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     """
     Run the schematisation checker
     """
-    INPUT = 'INPUT'
-    OUTPUT = 'OUTPUT'
-    ADD_TO_PROJECT = 'ADD_TO_PROJECT'
+
+    INPUT = "INPUT"
+    OUTPUT = "OUTPUT"
+    ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT,
-                self.tr('3Di Spatialite'),
-                extension="sqlite"
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr('Output'),
-                fileFilter="csv"
+                self.OUTPUT, self.tr("Output"), fileFilter="csv"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterBoolean(
-                self.ADD_TO_PROJECT,
-                self.tr('Add result to project'),
-                defaultValue=True
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -180,7 +180,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             )
             return {self.OUTPUT: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT, context
+        )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
         total_checks = len(model_checker.config.checks)
@@ -190,7 +192,15 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             with open(self.output_file_path, "w", newline="") as output_file:
                 writer = csv.writer(output_file)
                 writer.writerow(
-                    ["level", "error_code", "id", "table", "column", "value", "description"]
+                    [
+                        "level",
+                        "error_code",
+                        "id",
+                        "table",
+                        "column",
+                        "value",
+                        "description",
+                    ]
                 )
                 for i, check in enumerate(model_checker.checks(level="info")):
                     model_errors = check.get_invalid(session)
@@ -224,7 +234,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, '3Di schematisation errors')
+                result_layer = QgsVectorLayer(
+                    self.output_file_path, "3Di schematisation errors"
+                )
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT: self.output_file_path}
 
@@ -236,14 +248,14 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'check_schematisation'
+        return "check_schematisation"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Check Schematisation')
+        return self.tr("Check Schematisation")
 
     def group(self):
         """
@@ -260,10 +272,10 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Schematisation'
+        return "Schematisation"
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return CheckSchematisationAlgorithm()
@@ -273,45 +285,41 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     """
     Run the raster checker
     """
-    INPUT = 'INPUT'
-    OUTPUT_CSV = 'OUTPUT_CSV'
-    OUTPUT_POINTS = 'OUTPUT_POINTS'
-    ADD_TO_PROJECT = 'ADD_TO_PROJECT'
+
+    INPUT = "INPUT"
+    OUTPUT_CSV = "OUTPUT_CSV"
+    OUTPUT_POINTS = "OUTPUT_POINTS"
+    ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT,
-                self.tr('3Di Spatialite'),
-                extension="sqlite"
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT_CSV,
-                self.tr('CSV Output'),
-                fileFilter="csv"
+                self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFeatureSink(
-                self.OUTPUT_POINTS,
-                self.tr('3Di raster errors - wrong pixels')
+                self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels")
             )
         )
 
         self.addParameter(
             QgsProcessingParameterBoolean(
-                self.ADD_TO_PROJECT,
-                self.tr('Add result to project'),
-                defaultValue=True
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -331,7 +339,9 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
             )
             return {self.OUTPUT_CSV: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT_CSV, context)
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT_CSV, context
+        )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         try:
             with open(self.output_file_path, "w", newline="") as output_file:
@@ -343,7 +353,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
                 for result_row in checker.results.result_per_check:
                     str_row = checker.results.result_per_check_to_msg(result_row)
                     list_row = str_row.split(",")
-                    if list_row[0] in ['warning', 'error']:
+                    if list_row[0] in ["warning", "error"]:
                         list_row[0] = list_row[0].upper()
                         writer.writerow(list_row)
 
@@ -368,17 +378,22 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
             context,
             fields=wrong_pixels_fields,
             geometryType=QgsWkbTypes.Point,
-            crs=QgsCoordinateReferenceSystem.fromEpsgId(epsg_code)
+            crs=QgsCoordinateReferenceSystem.fromEpsgId(epsg_code),
         )
         for feat in wrong_pixels:
             point_sink.addFeature(feat)
 
-        return {self.OUTPUT_CSV: self.output_file_path, self.OUTPUT_POINTS: point_sink_dest_id}
+        return {
+            self.OUTPUT_CSV: self.output_file_path,
+            self.OUTPUT_POINTS: point_sink_dest_id,
+        }
 
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, '3Di raster errors')
+                result_layer = QgsVectorLayer(
+                    self.output_file_path, "3Di raster errors"
+                )
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT_CSV: self.output_file_path}
 
@@ -390,14 +405,14 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'check_rasters'
+        return "check_rasters"
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Check Rasters')
+        return self.tr("Check Rasters")
 
     def group(self):
         """
@@ -414,10 +429,10 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Schematisation'
+        return "Schematisation"
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return CheckRastersAlgorithm()

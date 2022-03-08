@@ -93,7 +93,9 @@ def get_dwf_factors_from_file(file_path):
     return dwf_factors
 
 
-def start_time_and_duration_to_dwf_factors(start_time: str, duration: int, dwf_factors: List[List]) -> List[List]:
+def start_time_and_duration_to_dwf_factors(
+    start_time: str, duration: int, dwf_factors: List[List]
+) -> List[List]:
     """
     Get list of [timestep, dwf_factor] pairs for given timeframe
 
