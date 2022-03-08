@@ -239,9 +239,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         """Returns a localised short helper string for the algorithm"""
-        return self.tr(
-            "Calculate water depth/level raster for specified timestep"
-        )
+        return self.tr("Calculate water depth/level raster for specified timestep")
 
     def initAlgorithm(self, config=None):
         """Here we define the inputs and output of the algorithm"""
@@ -330,11 +328,15 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
         raster_filename = parameters[self.WATER_DEPTH_LEVEL_NAME]
         if not raster_filename:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME))
+            raise QgsProcessingException(
+                self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME)
+            )
 
         output_location = parameters[self.OUTPUT_DIRECTORY]
         if not output_location:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY))
+            raise QgsProcessingException(
+                self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY)
+            )
 
         as_netcdf = parameters[self.AS_NETCDF_INPUT]
         raster_extension = "nc" if as_netcdf else "tif"
@@ -363,7 +365,9 @@ class ThreediDepth(QgsProcessingAlgorithm):
         else:
             layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
         context.temporaryLayerStore().addMapLayer(layer)
-        layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
+        layer_details = QgsProcessingContext.LayerDetails(
+            raster_filename, context.project(), self.WATER_DEPTH_OUTPUT
+        )
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
         return {}
 

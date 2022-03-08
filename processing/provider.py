@@ -5,7 +5,8 @@ from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlg
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
 from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
-    MigrateAlgorithm
+    CheckRastersAlgorithm,
+    MigrateAlgorithm,
 )
 
 
@@ -16,6 +17,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(ThreediDepth())
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
+        self.addAlgorithm(CheckRastersAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
 
     def id(self, *args, **kwargs):

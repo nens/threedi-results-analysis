@@ -209,9 +209,7 @@ class TestRasterChecker(unittest.TestCase):
         ]
         self.assertEqual(self.checker.results.result_per_check, expect)
 
-    def get_result(
-        self,
-    ):
+    def get_result(self,):
         """this is not a test, but just a helperfunction to get the result for
         result_per_check. From now on, we only compare result of a check with
         what we expect (instead of the whole dict..)"""
