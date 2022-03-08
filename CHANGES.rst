@@ -4,7 +4,7 @@ ThreeDiToolBox changelog
 1.33 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add processing algorithm to check rasters
 
 
 1.32 (2022-02-15)
