@@ -61,7 +61,7 @@ QGIS_TAG = final-3_16_7
 # Should correspond with QGIS_TAG and in the form: major.minor.patch
 QGIS_VERSION = 3.16.7
 # https://github.com/nens/threedi-api-qgis-client plugin (different name, btw)
-THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.2
+THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.3
 
 default: compile
 
