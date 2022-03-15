@@ -60,8 +60,12 @@ INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
 QGIS_TAG = final-3_16_7
 # Should correspond with QGIS_TAG and in the form: major.minor.patch
 QGIS_VERSION = 3.16.7
+# Postfix after the version. Should be an integer. Set it back to 1
+# when using a new qgis version. Corresponds to the 'binary' option to
+# the qgis installer-builder-script.
+QGIS_BINARY = 2
 # https://github.com/nens/threedi-api-qgis-client plugin (different name, btw)
-THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.2
+THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.3
 
 default: compile
 
@@ -134,7 +138,8 @@ installer: zip
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
 	    -v ${PWD}/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
 		-it -e PYTHONUNBUFFERED=0 harbor.lizard.net/threedi/3dimi-installer:latest ./create_qgis_3di_nsis.pl \
-		-version ${QGIS_VERSION}
+		-version ${QGIS_VERSION} \
+		-binary ${QGIS_BINARY}
 	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
 
 clean-installer:
