@@ -63,7 +63,7 @@ QGIS_VERSION = 3.16.7
 # Postfix after the version. Should be an integer. Set it back to 1
 # when using a new qgis version. Corresponds to the 'binary' option to
 # the qgis installer-builder-script.
-QGIS_BINARY = 1
+QGIS_BINARY = 2
 # https://github.com/nens/threedi-api-qgis-client plugin (different name, btw)
 THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.3
 
