@@ -1,5 +1,5 @@
 from qgis/qgis:release-3_22
-RUN apt-get update && apt-get install -y python3-pyqt5.qtwebsockets wget && apt-get clean
+RUN apt-get update && apt-get install -y python3-pyqt5.qtwebsockets wget python3-netcdf4 && apt-get clean
 # RUN mkdir -p /tests_directory
 COPY requirements-dev.txt /root
 # coverage is already installed globally, so we need to force-install it explicitly
