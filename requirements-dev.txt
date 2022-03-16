@@ -1,6 +1,6 @@
 # Dependencies for development and tests.
 black
-coverage
+coverage > 5
 coveralls
 docstr-coverage >= 1.0.4
 flake8
@@ -9,8 +9,7 @@ mock
 pytest
 pytest-cov
 pytest-flake8
-pytest-qt < 4.0.0
-# pytest-qt 4+ needs pyqt 5.11+
+pytest-qt
 sphinx
 sphinx_rtd_theme
 wheel

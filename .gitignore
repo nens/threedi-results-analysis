@@ -9,6 +9,7 @@ doc/build/
 remote_debugger_settings.py
 docker-compose.override.yml
 .coveralls.yml
+.coverage.*
 
 # external python dependencies
 external-dependencies/*.whl
