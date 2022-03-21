@@ -1,0 +1,10 @@
+[general]
+name=threedi-results-analysis
+description=QGIS plugin for viewing and analysing 3Di computational grids and simulation results
+about=QGIS plugin for viewing and analysing 3Di computational grids and simulation results
+version=0.1
+qgisMinimumVersion=3.22
+author=3Di
+email=some@3di.com
+repository=https://github.com/nens/threedi-results-analysis
+hasProcessingProvider=yes
