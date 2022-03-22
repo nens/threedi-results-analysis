@@ -4,7 +4,8 @@ ThreeDiToolBox changelog
 1.34 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Pinned geoalchemy2 to ``0.10.2`` instead of ``>0.10`` due to some
+  issue. The one bundled with the previous version was ``0.11.1``.
 
 
 1.33 (2022-03-17)
