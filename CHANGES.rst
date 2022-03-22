@@ -10,8 +10,10 @@ ThreeDiToolBox changelog
 1.34 (2022-03-22)
 -----------------
 
-- Pinned geoalchemy2 to ``0.10.2`` instead of ``>0.10`` due to some
-  issue. The one bundled with the previous version was ``0.11.1``.
+- Pinned geoalchemy2 to ``0.10.2`` instead of ``>0.10`` due to a
+  migration bug:
+  https://github.com/geoalchemy/geoalchemy2/issues/372. The one
+  bundled with the previous version was ``0.11.1``.
 
 
 1.33 (2022-03-17)
