@@ -4,7 +4,11 @@ ThreeDiToolBox changelog
 1.33 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- First go at updating dependencies for python 3.9 and the new 3.22 LTR on
+  windows.
+
+- Updated the dockerfile to work with the new 3.22 dependencies on linux.
+  Also switched to the official qgis development base dockerfile.
 
 
 1.32 (2022-02-15)

@@ -21,7 +21,7 @@ jobs:
         id: cache
         with:
           path: ~/docker-cache
-          key: ${{ hashFiles('docker-compose.yml', 'Docker/qgis_ltr/Dockerfile', 'requirements-dev.txt') }}
+          key: ${{ hashFiles('docker-compose.yml', 'Dockerfile', 'requirements-dev.txt') }}
 
       - name: build
         run: |
@@ -45,7 +45,7 @@ jobs:
       - name: store cache, if needed
         run: |
           mkdir -p ~/docker-cache
-          scripts/travis-cache-ok.sh || docker save qgis-desktop > ~/docker-cache/our-image.tar
+          scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop > ~/docker-cache/our-image.tar
           scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
       - name: Publish package
