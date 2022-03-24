@@ -1,8 +1,8 @@
 [general]
 name=3Di toolbox
-qgisMinimumVersion=3.4
+qgisMinimumVersion=3.22
 description=Toolbox for working with 3Di hydraulic models
-version=1.35
+version=2.0
 author=Nelen&Schuurmans
 email=servicedesk@nelen-schuurmans.nl
 
