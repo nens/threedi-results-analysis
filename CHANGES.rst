@@ -1,8 +1,8 @@
 ThreeDiToolBox changelog
 ========================
 
-1.35 (unreleased)
------------------
+2.0 (unreleased)
+----------------
 
 - First go at updating dependencies for python 3.9 and the new 3.22 LTR on
   windows.
