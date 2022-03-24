@@ -2,7 +2,6 @@
 from typing import Union, List, Tuple
 
 from cached_property import cached_property
-from gdal import GA_ReadOnly
 from osgeo import gdal
 from osgeo import osr
 from qgis.core import QgsCoordinateReferenceSystem
@@ -473,7 +472,7 @@ class RasterChecker(object):
         cum_pixelcount = 0
         for rast_item in rasters:
             raster_path = os.path.join(self.sqlite_dir, rast_item)
-            src_ds = gdal.Open(raster_path, GA_ReadOnly)
+            src_ds = gdal.Open(raster_path, gdal.GA_ReadOnly)
             cols = src_ds.RasterXSize
             rows = src_ds.RasterYSize
             src_ds = None  # close raster
@@ -657,11 +656,11 @@ class RasterChecker(object):
             return
 
         dem_path = os.path.join(self.sqlite_dir, dem)
-        dem_raster = gdal.Open(dem_path, GA_ReadOnly)
+        dem_raster = gdal.Open(dem_path, gdal.GA_ReadOnly)
         dem_band = dem_raster.GetRasterBand(1)
 
         other_tif_path = os.path.join(self.sqlite_dir, rast_item)
-        other_tif_raster = gdal.Open(other_tif_path, GA_ReadOnly)
+        other_tif_raster = gdal.Open(other_tif_path, gdal.GA_ReadOnly)
         other_tif_band = other_tif_raster.GetRasterBand(1)
 
         generator_dem = self.create_generator(dem_band)
@@ -705,7 +704,7 @@ class RasterChecker(object):
         )
 
     def get_nr_blocks(self, raster_path):
-        raster = gdal.Open(raster_path, GA_ReadOnly)
+        raster = gdal.Open(raster_path, gdal.GA_ReadOnly)
         band = raster.GetRasterBand(1)
         raster = None  # close raster
         # optimize_blocksize
@@ -720,7 +719,7 @@ class RasterChecker(object):
 
     @staticmethod
     def get_pixel_specs(dem_path):
-        dem = gdal.Open(dem_path, GA_ReadOnly)
+        dem = gdal.Open(dem_path, gdal.GA_ReadOnly)
         ulx, xres, xskew, uly, yskew, yres = dem.GetGeoTransform()
         pixelsize = abs(min(xres, yres))
         pixel_specs = (ulx, xres, xskew, uly, yskew, yres, pixelsize)
@@ -846,7 +845,7 @@ class RasterChecker(object):
         elif check_phase == 2:
             for rast_item in rasters:
                 raster_path = os.path.join(self.sqlite_dir, rast_item)
-                src_ds = gdal.Open(raster_path, GA_ReadOnly)
+                src_ds = gdal.Open(raster_path, gdal.GA_ReadOnly)
                 for check_id, base_check_name in check_ids_names:
                     self.run_check(
                         base_check_name,
@@ -872,10 +871,10 @@ class RasterChecker(object):
         elif check_phase == 4:
             dem = rasters[0]
             dem_path = os.path.join(self.sqlite_dir, dem)
-            dem_src_ds = gdal.Open(dem_path, GA_ReadOnly)
+            dem_src_ds = gdal.Open(dem_path, gdal.GA_ReadOnly)
             for rast_item in rasters[1:]:
                 path = os.path.join(self.sqlite_dir, rast_item)
-                src_ds = gdal.Open(path, GA_ReadOnly)
+                src_ds = gdal.Open(path, gdal.GA_ReadOnly)
                 for check_id, base_check_name in check_ids_names:
                     self.run_check(
                         base_check_name,
