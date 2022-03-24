@@ -5,6 +5,6 @@
 set -e  # Fail immediately upon an error.
 md5sum \
     docker-compose.yml \
-    Docker/qgis_ltr/Dockerfile \
+    Dockerfile \
     requirements-dev.txt \
     > ~/docker-cache/docker-checksum

@@ -3,16 +3,13 @@ version: '3.0'
 services:
 
   qgis-desktop:
-    image: qgis-desktop:3.4.5
     # platform: linux/x86_64
-    build:
-      context: .
-      dockerfile: Docker/qgis_ltr/Dockerfile
+    build: .
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # Allow GUI application to run in docker
-      - .:/home/nens/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
-      - qgis-settings:/home/nens/.local/share/QGIS/
+      - .:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox
+      - qgis-settings:/root/.local/share/QGIS/
     environment:
       - DISPLAY=unix${DISPLAY}
       - COVERALLS_REPO_TOKEN=${COVERALLS_REPO_TOKEN}

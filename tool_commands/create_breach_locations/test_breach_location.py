@@ -304,7 +304,7 @@ class TestBreachLocationUtils(unittest.TestCase):
     def test_it_can_get_distance_between_points(self):
         pnt, pnt1 = QgsPointXY(0, 0), QgsPointXY(0, 10)
         dist = breach_location_utils.get_distance(pnt, pnt1, 4326)
-        self.assertEqual(dist, 1105854.8332357334)
+        self.assertEqual(dist, 1105854.8332343723)
         dist = breach_location_utils.get_distance(pnt, pnt1, 28992)
         self.assertEqual(dist, 10.0)
 
