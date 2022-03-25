@@ -1,6 +1,6 @@
 SET DIR=%cd%
 SET PLUGIN=threedi-results-analysis
-SET SRC=%DIR%\%PLUGIN%
+SET SRC="%DIR%\%PLUGIN%"
 SET DEST=%UserProfile%\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins
 SET DEST_PLUGIN=%DEST%\%PLUGIN%
 rd %DEST_PLUGIN% /s /q

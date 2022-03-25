@@ -14,32 +14,16 @@
 import os
 import sys
 
-from qgis.PyQt.QtCore import QCoreApplication, QVariant, QSettings
+from qgis.PyQt.QtCore import QCoreApplication, QSettings
 from qgis.core import (
     QgsCoordinateReferenceSystem,
-    QgsExpression,
-    QgsFeature,
-    QgsFeatureRequest,
-    QgsField,
-    QgsFields,
-    QgsGeometry,
-    QgsPointXY,
-    QgsProcessing,
     QgsProcessingAlgorithm,
     QgsProcessingException,
-    QgsProcessingParameterFileDestination,
-    QgsProcessingParameterFeatureSource,
     QgsProcessingContext,
-    QgsProcessingOutputHtml,
-    QgsProcessingOutputMultipleLayers,
     QgsProcessingParameterFile,
     QgsProcessingParameterFolderDestination,
-    QgsProcessingParameterString,
-    QgsProject,
-    QgsRasterLayer,
     QgsSettings,
     QgsVectorLayer,
-    QgsVectorFileWriter,
 )
 from qgis.utils import iface
 from ..user_communication import UserCommunication
@@ -52,6 +36,7 @@ try:
     from threedigrid.admin.levees.exporters import LeveeOgrExporter
     from threedigrid.admin.lines.exporters import LinesOgrExporter
     from threedigrid.admin.nodes.exporters import NodesOgrExporter
+    from threedigrid.admin.nodes.exporters import CellsOgrExporter
     from threedigrid.orm.constants import GEO_PACKAGE_DRIVER_NAME
 except (ImportError, ModuleNotFoundError):
     this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -63,6 +48,8 @@ except (ImportError, ModuleNotFoundError):
     from threedigrid.admin.levees.exporters import LeveeOgrExporter
     from threedigrid.admin.lines.exporters import LinesOgrExporter
     from threedigrid.admin.nodes.exporters import NodesOgrExporter
+    from threedigrid.admin.nodes.exporters import CellsOgrExporter
+    from threedigrid.orm.constants import GEO_PACKAGE_DRIVER_NAME
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
@@ -71,8 +58,6 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
     INPUT = "INPUT"
     EPSG = "EPSG"
     OUTPUT_DIR = "OUTPUT_DIR"
-    OUTPUT_LAYERS = "OUTPUT_LAYERS"
-    EMPTY_SUBSETS = "EMPTY_SUBSETS"
 
     def flags(self):
         return super().flags()  # | QgsProcessingAlgorithm.FlagNoThreading
@@ -139,62 +124,50 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         plugin_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
         ga = GridH5Admin(input_gridadmin)
-
-        feedback.pushInfo(f"nodes subsets:\n{ga.nodes.known_subset}\n\n")
-        feedback.pushInfo(f"lines subsets:\n{ga.lines.known_subset}\n\n")
+        feedback.pushInfo(f"Opened gridadmin:\n{ga.model_name}\n\n")
 
         self.uc.start_timer("exports")
         layers = dict()
         empty_layers = []
-
+        epsg_codes = set()
         models = {
             # model description -> (model part, model exporter)
-            "NODES": (ga.nodes, NodesOgrExporter),
-            "LINES": (ga.lines, LinesOgrExporter),
-            "LEVEES": (ga.levees, LeveeOgrExporter),
-            # "BREACHES": (ga.breaches, BreachesOgrExporter),  # contained in ga.lines
+            "Node": (ga.nodes, NodesOgrExporter),
+            "Cell": (ga.cells, CellsOgrExporter),
+            "Flowline": (ga.lines, LinesOgrExporter),
+            "Linear obstacle": (ga.levees, LeveeOgrExporter),
         }
-
-        epsg_codes = set()
-
-        def export_model(model_name):
+        for model_name in models.keys():
             model, exporter_class = models[model_name]
-            feedback.pushInfo(f"\n\nConverting {model_name}\n\n")
-            for subset_name in model.known_subset:
-                layer_name = f"{model_name.lower()}_{subset_name}"
-                gpkg_path = os.path.join(gpkgs_dir, f"{layer_name}")
-                feedback.pushInfo(f"Converting {layer_name}")
-                try:
-                    subset = model.subset(subset_name)
-                    exporter = exporter_class(subset)
-                    exporter.set_driver(driver_name=GEO_PACKAGE_DRIVER_NAME)
-                    exporter.save(gpkg_path, subset.data, subset.epsg_code)
-                    epsg_codes.add(subset.epsg_code)
-                except (AttributeError, TypeError) as e:
-                    feedback.pushInfo(f"The input file doesn't contain subset {subset_name} in model {model_name}")
-                    continue
-                feedback.pushInfo(f"done in {round(self.uc.read_timer('exports'), 1)} sec")
+            layer_name = f"{model_name}"
+            gpkg_path = os.path.join(gpkgs_dir, f"{layer_name}.gpkg")
+            feedback.pushInfo(f"Converting {layer_name}")
+            exporter = exporter_class(model)
+            exporter.set_driver(driver_name=GEO_PACKAGE_DRIVER_NAME)
+            exporter.save(gpkg_path, model.data, model.epsg_code)
+            epsg_codes.add(model.epsg_code)
+            info_done = f"done in {round(self.uc.read_timer('exports'), 1)} sec"
+            feedback.pushInfo(info_done)
+            self.uc.log_info(info_done)
 
-                uri = gpkg_path + f"|layername={layer_name}"
-                # feedback.pushInfo(f"    uri:{uri}")
-                layers[layer_name] = QgsVectorLayer(uri, layer_name, "ogr")
+            # create output layer
+            uri = gpkg_path + f"|layername={layer_name}.gpkg"  # TODO: gridadmin exporter saves layers with extention
+            self.uc.log_info(f"uri:{uri}")
+            layers[layer_name] = QgsVectorLayer(uri, layer_name, "ogr")
 
-                # only load layers that contain some features
-                if not layers[layer_name].featureCount():
-                    empty_layers.append(layer_name)
-                    continue
+            # only load layers that contain some features
+            if not layers[layer_name].featureCount():
+                empty_layers.append(layer_name)
+                continue
 
-                qml_path = safe_join(plugin_dir, "styles", f"{subset_name}.qml")
-                if os.path.exists(qml_path):
-                    layers[layer_name].loadNamedStyle(qml_path)
-                context.temporaryLayerStore().addMapLayer(layers[layer_name])
-                context.addLayerToLoadOnCompletion(
-                    layers[layer_name].id(),
-                    QgsProcessingContext.LayerDetails(layer_name, context.project(), layer_name)
-                )
-
-        for name in models.keys():
-            export_model(name)
+            qml_path = safe_join(plugin_dir, "styles", f"{layer_name}.qml")
+            if os.path.exists(qml_path):
+                layers[layer_name].loadNamedStyle(qml_path)
+            context.temporaryLayerStore().addMapLayer(layers[layer_name])
+            context.addLayerToLoadOnCompletion(
+                layers[layer_name].id(),
+                QgsProcessingContext.LayerDetails(layers[layer_name].id(), context.project(), layer_name)
+            )
 
         # Empty layers info
         if empty_layers:
