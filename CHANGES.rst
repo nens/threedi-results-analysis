@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-2.0 (unreleased)
+2.0 (2022-03-30)
 ----------------
 
 - First go at updating dependencies for python 3.9 and the new 3.22 LTR on
