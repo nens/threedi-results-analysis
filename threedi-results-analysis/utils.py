@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 
 def safe_join(*path):
@@ -11,3 +12,12 @@ def safe_join(*path):
 
 def icon_path(icon_filename):
     return safe_join(os.path.dirname(os.path.realpath(__file__)), "img", icon_filename)
+
+
+def same_path(path1, path2):
+    """Check if the two paths are the same."""
+    if not path1 or not path2:
+        return False
+    p1 = pathlib.Path(path1)
+    p2 = pathlib.Path(path2)
+    return p1 == p2

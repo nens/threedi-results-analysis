@@ -14,7 +14,7 @@
 import os
 import sys
 
-from qgis.PyQt.QtCore import QCoreApplication, QSettings
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
@@ -56,7 +56,6 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
     """ Convert gridadmin.h5 to GeoPackage with vector layers """
 
     INPUT = "INPUT"
-    EPSG = "EPSG"
     OUTPUT_DIR = "OUTPUT_DIR"
 
     def flags(self):
@@ -87,8 +86,8 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
         self.uc = UserCommunication(iface, "3Di Results Analysis")
         s = QgsSettings()
-        last_input_dir = s.value("threedi-results-analysis/last_input_dir", None)
-        last_output_dir = s.value("threedi-results-analysis/last_output_dir", None)
+        last_input_dir = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input", None)
+        last_output_dir = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_output_dir", None)
 
         self.addParameter(
             QgsProcessingParameterFile(
@@ -118,9 +117,9 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         if gpkgs_dir is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_DIR))
 
-        s = QSettings()
-        s.setValue("threedi-results-analysis/last_input_dir", input_gridadmin)
-        s.setValue("threedi-results-analysis/last_output_dir", gpkgs_dir)
+        s = QgsSettings()
+        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", input_gridadmin)
+        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_dir", gpkgs_dir)
         plugin_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
         ga = GridH5Admin(input_gridadmin)
