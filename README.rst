@@ -140,7 +140,7 @@ the version of Qgis you want to build with the ``QGIS_VERSION``. To build the in
 make sure you checked out the specific ThreediToolbox tag you want to build the
 installer for. Also, a really clean checkout is important, so do something like this::
 
-    $ mdir /tmp/reallyclean
+    $ mkdir /tmp/reallyclean
     $ cd /tmp/reallyclean
     $ git clone git@github.com:nens/ThreeDiToolbox.git
     $ cd ThreeDiToolbox
@@ -167,3 +167,8 @@ You can clean up the files created for the 3Di-modeller-interface and the ``.exe
 with the following command::
 
     $ make clean-installer
+
+The Makefile starts a ``makensis`` docker container from harbor.lizard.net that runs a perl script  
+``create_qgis_3di_nsis.pl`` that is a modification of the original QGIS installer script. The code
+for this docker image can be found at https://github.com/nens/3Di-modeller-interface-installer/.
+
