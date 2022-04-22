@@ -74,6 +74,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         s = QgsSettings()
         last_input_sqlite = s.value("threedi-results-analysis/generate_computational_grid/last_input_sqlite", None)
+        last_input_dem = s.value("threedi-results-analysis/generate_computational_grid/last_input_dem", None)
         last_output = s.value("threedi-results-analysis/generate_computational_grid/last_output", None)
 
         self.addParameter(
@@ -90,7 +91,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
                 self.INPUT_DEM,
                 self.tr("Input DEM file"),
                 behavior=QgsProcessingParameterFile.File,
-                optional=True,
+                defaultValue=last_input_dem
             )
         )
 
@@ -106,6 +107,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFileDestination(
                 self.OUTPUT,
                 self.tr("Output computational grid file"),
+                fileFilter="*.h5",
                 defaultValue=last_output
             )
         )
@@ -113,36 +115,38 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
 
         input_slite = self.parameterAsFile(parameters, self.INPUT_SPATIALITE, context)
-        if input_slite is None:
+        if not input_slite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
 
         input_dem = self.parameterAsFile(parameters, self.INPUT_DEM, context)
+        if not input_dem:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_DEM))
+
         allow_diff_dem = self.parameterAsBoolean(parameters, self.ALLOW_DIFF_DEM, context)
-        if input_dem is not None:
-            uri = input_slite + f"|layername=v2_global_settings"
-            feedback.pushInfo(f"Reading DEM settings from: {uri}")
-            settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
-            if not settings_lyr.isValid():
-                err = f"Global Spatialite settings table could not be loaded from {uri}" \
-                        "Check your Spatialite file."
-                raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
-            try:
-                set_feat = next(settings_lyr.getFeatures())
-            except StopIteration:
-                err = f"No global settings entries in {uri}" \
-                      "Check your Spatialite file."
-                raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
-            set_dem_rel_path = set_feat["dem_file"]
-            input_slite_dir = os.path.dirname(input_slite)
-            set_dem_path = os.path.join(input_slite_dir, set_dem_rel_path)
-            feedback.pushInfo(input_dem)
-            feedback.pushInfo(set_dem_path)
-            if not same_path(set_dem_path, input_dem):
-                warn = f"Warning! The selected DEM is different from the DEM that is referenced in the Spatialite."
-                if not allow_diff_dem:
-                    raise QgsProcessingException(warn)
-                else:
-                    feedback.reportError(warn)
+
+        uri = input_slite + f"|layername=v2_global_settings"
+        feedback.pushInfo(f"Reading DEM settings from: {uri}")
+        settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
+        if not settings_lyr.isValid():
+            err = f"Global Spatialite settings table could not be loaded from {uri}\n" \
+                    "Check your Spatialite file."
+            raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
+        try:
+            set_feat = next(settings_lyr.getFeatures())
+        except StopIteration:
+            err = f"No global settings entries in {uri}" \
+                  "Check your Spatialite file."
+            raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
+        set_dem_rel_path = set_feat["dem_file"]
+        input_slite_dir = os.path.dirname(input_slite)
+        set_dem_path = os.path.join(input_slite_dir, set_dem_rel_path)
+        feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
+        if not same_path(set_dem_path, input_dem):
+            warn = f"Warning! Selected DEM is different from the DEM referenced in the Spatialite settings."
+            if not allow_diff_dem:
+                raise QgsProcessingException(warn)
+            else:
+                feedback.reportError(warn)
 
         output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output is None:
@@ -150,17 +154,18 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         s = QgsSettings()
         s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_slite)
+        s.setValue("threedi-results-analysis/generate_computational_grid/last_input_dem", input_dem)
         s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output)
 
         def progress_rep(progress, info):
             feedback.setProgress(int(progress * 100))
             feedback.pushInfo(info)
 
+        # make_gridadmin(input_slite, input_dem, output, progress_callback=progress_rep)
         try:
             make_gridadmin(input_slite, input_dem, output, progress_callback=progress_rep)
-        except SchematisationError:
-            err = "The selected Spatialite does not have the latest migration. "\
-                  f"Please migrate your Spatialite to the latest version."
-            raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
+        except SchematisationError as e:
+            err = f"Creating grid file failed with the following error: {repr(e)}"
+            raise QgsProcessingException(err)
 
         return {self.OUTPUT: output}
