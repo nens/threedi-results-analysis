@@ -161,7 +161,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             feedback.setProgress(int(progress * 100))
             feedback.pushInfo(info)
 
-        # make_gridadmin(input_slite, input_dem, output, progress_callback=progress_rep)
         try:
             make_gridadmin(input_slite, input_dem, output, progress_callback=progress_rep)
         except SchematisationError as e:
