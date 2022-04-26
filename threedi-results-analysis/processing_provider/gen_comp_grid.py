@@ -18,14 +18,11 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingException,
-    QgsProcessingParameterBoolean,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
     QgsSettings,
     QgsVectorLayer,
 )
-from qgis.utils import iface
-from ..utils import same_path
 
 try:
     from threedigrid_builder import make_gridadmin, SchematisationError
@@ -39,11 +36,9 @@ except (ImportError, ModuleNotFoundError, FileNotFoundError):
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
-    """ Generate a gridadmin.h5 file ot of Spatialite db and DEM """
+    """ Generate a gridadmin.h5 file out of Spatialite database """
 
     INPUT_SPATIALITE = "INPUT_SPATIALITE"
-    INPUT_DEM = "INPUT_DEM"
-    ALLOW_DIFF_DEM = "ALLOW_DIFF_DEM"
     OUTPUT = "OUTPUT"
 
     def flags(self):
@@ -74,7 +69,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         s = QgsSettings()
         last_input_sqlite = s.value("threedi-results-analysis/generate_computational_grid/last_input_sqlite", None)
-        last_input_dem = s.value("threedi-results-analysis/generate_computational_grid/last_input_dem", None)
         last_output = s.value("threedi-results-analysis/generate_computational_grid/last_output", None)
 
         self.addParameter(
@@ -83,23 +77,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
                 self.tr("Input SpatiaLite file"),
                 behavior=QgsProcessingParameterFile.File,
                 defaultValue=last_input_sqlite
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUT_DEM,
-                self.tr("Input DEM file"),
-                behavior=QgsProcessingParameterFile.File,
-                defaultValue=last_input_dem
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                self.ALLOW_DIFF_DEM,
-                self.tr("Allow to use a DEM different from Spatialite settings"),
-                defaultValue=False
             )
         )
 
@@ -118,12 +95,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         if not input_slite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
 
-        input_dem = self.parameterAsFile(parameters, self.INPUT_DEM, context)
-        if not input_dem:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_DEM))
-
-        allow_diff_dem = self.parameterAsBoolean(parameters, self.ALLOW_DIFF_DEM, context)
-
         uri = input_slite + f"|layername=v2_global_settings"
         feedback.pushInfo(f"Reading DEM settings from: {uri}")
         settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
@@ -141,12 +112,10 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         input_slite_dir = os.path.dirname(input_slite)
         set_dem_path = os.path.join(input_slite_dir, set_dem_rel_path)
         feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
-        if not same_path(set_dem_path, input_dem):
-            warn = f"Warning! Selected DEM is different from the DEM referenced in the Spatialite settings."
-            if not allow_diff_dem:
-                raise QgsProcessingException(warn)
-            else:
-                feedback.reportError(warn)
+        if not os.path.exists(set_dem_path):
+            set_dem_path = None
+            info = f"The DEM referenced in the Spatialite settings doesn't exist - skipping."
+            feedback.pushInfo(info)
 
         output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output is None:
@@ -154,7 +123,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         s = QgsSettings()
         s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_slite)
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_input_dem", input_dem)
         s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output)
 
         def progress_rep(progress, info):
@@ -162,7 +130,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             feedback.pushInfo(info)
 
         try:
-            make_gridadmin(input_slite, input_dem, output, progress_callback=progress_rep)
+            make_gridadmin(input_slite, set_dem_path, output, progress_callback=progress_rep)
         except SchematisationError as e:
             err = f"Creating grid file failed with the following error: {repr(e)}"
             raise QgsProcessingException(err)
