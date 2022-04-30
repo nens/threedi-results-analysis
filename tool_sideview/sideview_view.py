@@ -255,8 +255,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 ltype = feature["type"]
 
-                begin_node = self.node_dict[begin_node_id]
-                end_node = self.node_dict[end_node_id]
+                begin_node = self.node_dict[str(begin_node_id)]
+                end_node = self.node_dict[str(end_node_id)]
 
                 # 1. add manhole if needed
                 if first and begin_node["type"] == SideViewDockWidget.MANHOLE:
@@ -399,8 +399,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         sub_distance += link_length
                         sub_end_dist = sub_distance
 
-                        sub_begin_node = self.node_dict[sub_begin_node_id]
-                        sub_end_node = self.node_dict[sub_end_node_id]
+                        sub_begin_node = self.node_dict[str(sub_begin_node_id)]
+                        sub_end_node = self.node_dict[str(sub_end_node_id)]
 
                         if sub_begin_node["type"] != SideViewDockWidget.CROSS_SECTION:
                             # only level is known at cross_section. For other
