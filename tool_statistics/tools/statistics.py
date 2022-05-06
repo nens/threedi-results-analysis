@@ -12,6 +12,7 @@ from collections import OrderedDict
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
+from qgis.core import NULL
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import MetaData
@@ -238,14 +239,21 @@ class StatisticsTool(object):
 
         # get idx and surface level
         manhole_idx = []
-        manhole_surface_level = []
+        manhole_surface_levels = []
+        invalid_surface_levels = [None, NULL]
         for manhole in mod_session.query(manhole_table).order_by(
             manhole_table.c.connection_node_id
         ):
-
-            if manhole.connection_node_id in node_mapping:
-                manhole_idx.append(node_mapping[manhole.connection_node_id])
-                manhole_surface_level.append(manhole.surface_level)
+            manhole_conn_id = manhole.connection_node_id
+            if manhole_conn_id in node_mapping:
+                manhole_surface_level = manhole.surface_level
+                if manhole_surface_level not in invalid_surface_levels:
+                    manhole_idx.append(node_mapping[manhole_conn_id])
+                    manhole_surface_levels.append(manhole_surface_level)
+                else:
+                    error_msg = "Manhole with id '%s' is missing 'surface_level' value."
+                    logger.warning(error_msg, manhole.id)
+                    return
             else:
                 logger.warning("Manhole with id '%s' not in the results.", manhole.id)
 
@@ -257,7 +265,7 @@ class StatisticsTool(object):
             return
 
         manhole_idx = np.array(manhole_idx)
-        manhole_surface_level = np.array(manhole_surface_level)
+        manhole_surface_levels = np.array(manhole_surface_levels)
 
         logger.info("Read results and calculate statistics. ")
         # check if statistic is available, otherwise make empty arrays for getting result from normal results
@@ -293,7 +301,7 @@ class StatisticsTool(object):
             if not agg_h_max:
                 h_max = np.maximum(h_max, h_array)
 
-            t_water_surface[h >= manhole_surface_level] += timestep
+            t_water_surface[h >= manhole_surface_levels] += timestep
 
         h_end = self.ds.get_values_by_timestep_nr(
             "s1", len(self.ds.timestamps) - 1, node_ids=manhole_idx
