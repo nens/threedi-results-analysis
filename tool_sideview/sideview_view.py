@@ -1699,7 +1699,6 @@ class SideViewDockWidget(QDockWidget):
         if not success:
             statusbar_message(msg)
 
-
         values_valid = self.validate_path_nodes_values(self.route.path, "surface_level")
         if values_valid:
             self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
