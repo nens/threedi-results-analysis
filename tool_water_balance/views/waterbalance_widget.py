@@ -347,7 +347,7 @@ class WaterBalancePlotWidget(pg.PlotWidget):
         super().__init__(parent)
         self.name = name
         self.showGrid(True, True, 0.5)
-        self.setLabel("bottom", "time", "s")
+        self.setLabel("bottom", "time", "hrs")
         self.setLabel("left", "flow", "m3/s")
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
         self.getAxis("left").enableAutoSIPrefix(False)
@@ -681,6 +681,7 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.insertItems(0, ["1d and 2d", "1d", "2d"])
         self.sum_type_combo_box.insertItems(0, list(serie_settings.keys()))
         self.agg_combo_box.insertItems(0, ["m3/s", "m3 cumulative"])
+        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
 
         # add listeners
         self.select_polygon_button.toggled.connect(self.toggle_polygon_button)
@@ -690,6 +691,7 @@ class WaterBalanceWidget(QDockWidget):
         self.modelpart_combo_box.currentIndexChanged.connect(self.update_wb)
         self.sum_type_combo_box.currentIndexChanged.connect(self.update_wb)
         self.agg_combo_box.currentIndexChanged.connect(self.update_wb)
+        self.ts_units_combo_box.currentIndexChanged.connect(self.update_wb)
         self.wb_item_table.hoverEnterRow.connect(self.hover_enter_map_visualization)
         self.wb_item_table.hoverExitAllRows.connect(self.hover_exit_map_visualization)
         self.activate_all_button.clicked.connect(self.activate_layers)
@@ -1172,7 +1174,14 @@ class WaterBalanceWidget(QDockWidget):
         )
 
         self.model.removeRows(0, len(self.model.rows))
-        self.model.ts = ts
+        time_units = self.ts_units_combo_box.currentText()
+        if time_units == "hrs":
+            time_divisor = 3600
+        elif time_units == "mins":
+            time_divisor = 60
+        else:
+            time_divisor = 1
+        self.model.ts = ts / time_divisor
 
         # self.layers_in_table = self.get_modelpart_graph_layers(
         #     graph_series['items'])
@@ -1180,10 +1189,13 @@ class WaterBalanceWidget(QDockWidget):
         self.model.insertRows(self.get_modelpart_graph_layers(graph_series["items"]))
         if self.agg_combo_box.currentText() == "m3/s":
             self.plot_widget.setLabel("left", "Flow", "m3/s")
+            self.plot_widget.setLabel("bottom", "time", time_units)
         elif self.agg_combo_box.currentText() == "m3 cumulative":
             self.plot_widget.setLabel("left", "Cumulative flow", "m3")
+            self.plot_widget.setLabel("bottom", "time", time_units)
         else:
             self.plot_widget.setLabel("left", "-", "-")
+            self.plot_widget.setLabel("bottom", "-", "-")
 
         # set labels for in and out fluxes
         text_upper = pg.TextItem(text="in", anchor=(0, 1), angle=-90)
@@ -1477,6 +1489,8 @@ class WaterBalanceWidget(QDockWidget):
 
         self.agg_combo_box = QComboBox(self)
         self.button_bar_hlayout.addWidget(self.agg_combo_box)
+        self.ts_units_combo_box = QComboBox(self)
+        self.button_bar_hlayout.addWidget(self.ts_units_combo_box)
 
         # now first add a QSpacerItem so that the QPushButton (added sub-
         # sequently) are aligned on the right-side of the button_bar_hlayout
