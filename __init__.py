@@ -56,5 +56,3 @@ def classFactory(iface):
     from .threedi_plugin import ThreeDiPlugin
 
     return ThreeDiPlugin(iface)
-
-
