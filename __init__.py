@@ -26,6 +26,18 @@ if sys.stderr is not None and hasattr(sys.stderr, "fileno"):
 dependencies.ensure_everything_installed()
 
 
+def enable_high_dpi_scaling():
+    """Enable High DPI scaling."""
+    from qgis.PyQt.QtCore import Qt
+    from qgis.PyQt.QtCore import QCoreApplication
+    from qgis.PyQt.QtWidgets import QApplication
+    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
+
+enable_high_dpi_scaling()
+
+
 def classFactory(iface):
     """Return ThreeDiToolbox class from file ThreeDiToolbox.
 
@@ -44,3 +56,5 @@ def classFactory(iface):
     from .threedi_plugin import ThreeDiPlugin
 
     return ThreeDiPlugin(iface)
+
+
