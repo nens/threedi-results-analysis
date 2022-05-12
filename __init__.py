@@ -31,8 +31,10 @@ def enable_high_dpi_scaling():
     from qgis.PyQt.QtCore import Qt
     from qgis.PyQt.QtCore import QCoreApplication
     from qgis.PyQt.QtWidgets import QApplication
-    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(Qt, "HighDpiScaleFactorRoundingPolicy"):
+        QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
 def classFactory(iface):
