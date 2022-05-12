@@ -35,9 +35,6 @@ def enable_high_dpi_scaling():
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
-enable_high_dpi_scaling()
-
-
 def classFactory(iface):
     """Return ThreeDiToolbox class from file ThreeDiToolbox.
 
@@ -50,6 +47,7 @@ def classFactory(iface):
     """
     from ThreeDiToolbox.utils.qlogging import setup_logging
 
+    enable_high_dpi_scaling()
     setup_logging()
     dependencies.check_importability()
 
