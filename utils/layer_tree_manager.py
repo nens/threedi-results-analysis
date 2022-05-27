@@ -1,5 +1,8 @@
 from . import styler
 from .threedi_database import ThreediDatabase
+from .user_messages import pop_up_info
+from threedi_modelchecker import threedi_database
+from threedi_modelchecker.spatialite_versions import get_spatialite_version
 from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
@@ -177,7 +180,15 @@ class LayerTreeManager(object):
         name = self.model_layergroup_basename + "/".join((split_dir[-1], split[-1]))
 
         # adjust spatialite for correct visualization of layers
-        threedi_db = ThreediDatabase({"db_path": filename})
+        db_settings = {"db_path": filename}
+        model_checker_db = threedi_database.ThreediDatabase(db_settings, db_type="spatialite")
+        lib_version, file_version = get_spatialite_version(model_checker_db)
+        spatialite_version_upgrade_needed = True if file_version == 3 and lib_version in (4, 5) else False
+        if spatialite_version_upgrade_needed:
+            msg = "Selected file is based on Spatialite 3 and needs to be upgraded. Please run 'Migrate Spatialite' processing tool before opening this file."
+            pop_up_info(msg, "Warning")
+            return
+        threedi_db = ThreediDatabase(db_settings)
         threedi_db.fix_spatial_indices()
 
         if self.model_layergroup is None:
