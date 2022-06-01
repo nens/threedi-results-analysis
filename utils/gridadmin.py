@@ -49,7 +49,7 @@ class QgisNodesOgrExporter(BaseOgrExporter):
 
     QGIS_NODE_FIELD_NAME_MAP = OrderedDict(
         [
-            ("inp_id", "seq_id"),
+            ("inp_id", "id"),
             ("spatialite_id", "content_pk"),
             ("feature_type", "node_type"),
             ("type", "node_type"),
@@ -263,7 +263,7 @@ class QgisLinesOgrExporter(BaseOgrExporter):
             ("type", "does not matter"),
             ("start_node_idx", "does not matter"),
             ("end_node_idx", "does not matter"),
-            ("inp_id", "lik"),
+            ("inp_id", "id"),
             ("content_type", "content_type"),
             ("spatialite_id", "content_pk"),
         ]
