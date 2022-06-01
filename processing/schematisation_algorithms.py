@@ -21,7 +21,6 @@ from threedi_modelchecker.threedi_database import ThreediDatabase
 from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
-from threedi_modelchecker.spatialite_versions import get_spatialite_version
 from threedi_modelchecker import errors
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
     RasterChecker,
@@ -85,13 +84,11 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         if not threedi_db:
             return {self.OUTPUT: None}
         schema = ModelSchema(threedi_db)
-        lib_version, file_version = get_spatialite_version(threedi_db)
-        spatialite_version_upgrade_needed = True if file_version == 3 and lib_version in (4, 5) else False
         try:
             schema.validate_schema()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
-            schema.upgrade(backup=False, upgrade_spatialite_version=spatialite_version_upgrade_needed)
+            schema.upgrade(backup=False, upgrade_spatialite_version=True)
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             feedback.pushWarning(

@@ -181,7 +181,7 @@ class LayerTreeManager(object):
 
         # adjust spatialite for correct visualization of layers
         db_settings = {"db_path": filename}
-        model_checker_db = threedi_database.ThreediDatabase(db_settings, db_type="spatialite")
+        model_checker_db = threedi_database.ThreediDatabase(db_settings)
         lib_version, file_version = get_spatialite_version(model_checker_db)
         spatialite_version_upgrade_needed = True if file_version == 3 and lib_version in (4, 5) else False
         if spatialite_version_upgrade_needed:
