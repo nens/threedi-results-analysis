@@ -574,6 +574,7 @@ class GraphWidget(QWidget):
         time_units = self.ts_units_combo_box.currentText()
         self.graph_plot.setLabel("bottom", "Time", time_units)
         self.graph_plot.set_parameter(self.current_parameter, time_units)
+        self.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def time_units_change(self):
         parameter_idx = self.parameter_combo_box.currentIndex()

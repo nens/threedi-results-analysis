@@ -340,8 +340,10 @@ class StatisticsTool(object):
             if manhole.connection_node_id in node_mapping:
                 idx = node_mapping[manhole.connection_node_id]
                 # get element number of manhole result array
-                ri = int(np.where(manhole_idx == idx)[0][0])
-
+                manhole_result_array = np.where(manhole_idx == idx)[0]
+                if manhole_result_array.size == 0:
+                    continue
+                ri = int(manhole_result_array[0])
                 mhs = ManholeStats(
                     id=idx,
                     code=manhole.code,
