@@ -12,6 +12,7 @@ from collections import OrderedDict
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
+from qgis.core import NULL
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import MetaData
@@ -237,27 +238,42 @@ class StatisticsTool(object):
         pipe_table = self.get_modeldb_table("v2_pipe")
 
         # get idx and surface level
+        manholes_ids_without_surface_level = []
         manhole_idx = []
-        manhole_surface_level = []
+        manhole_surface_levels = []
+        invalid_surface_levels = [None, NULL]
         for manhole in mod_session.query(manhole_table).order_by(
             manhole_table.c.connection_node_id
         ):
-
-            if manhole.connection_node_id in node_mapping:
-                manhole_idx.append(node_mapping[manhole.connection_node_id])
-                manhole_surface_level.append(manhole.surface_level)
+            manhole_conn_id = manhole.connection_node_id
+            manhole_id = manhole.id
+            if manhole_conn_id in node_mapping:
+                manhole_surface_level = manhole.surface_level
+                if manhole_surface_level not in invalid_surface_levels:
+                    manhole_idx.append(node_mapping[manhole_conn_id])
+                    manhole_surface_levels.append(manhole_surface_level)
+                else:
+                    error_msg = "Manhole with id '%s' is missing 'surface_level' value."
+                    logger.warning(error_msg, manhole_id)
+                    manholes_ids_without_surface_level.append(manhole_id)
             else:
-                logger.warning("Manhole with id '%s' not in the results.", manhole.id)
+                logger.warning("Manhole with id '%s' not in the results.", manhole_id)
 
-        # create numpy arrays for index for index based reading of the netcdf and
+        # create numpy arrays for index based reading of the netcdf and
         # surface level for calculating time on surface
+        missing_surface_level_manholes = len(manholes_ids_without_surface_level)
+        if missing_surface_level_manholes > 0:
+            warn_msg = (
+                f"{missing_surface_level_manholes} manholes are missing 'surface_level' value. "
+                "Check logfile to get more details."
+            )
+            pop_up_info(warn_msg, "Missing surface level values")
         nr_manholes = len(manhole_idx)
         if nr_manholes == 0:
-            logger.warning("No manholes found, skip manhoile statistics.")
+            logger.warning("No manholes found, skip manhole statistics.")
             return
-
         manhole_idx = np.array(manhole_idx)
-        manhole_surface_level = np.array(manhole_surface_level)
+        manhole_surface_levels = np.array(manhole_surface_levels)
 
         logger.info("Read results and calculate statistics. ")
         # check if statistic is available, otherwise make empty arrays for getting result from normal results
@@ -293,7 +309,7 @@ class StatisticsTool(object):
             if not agg_h_max:
                 h_max = np.maximum(h_max, h_array)
 
-            t_water_surface[h >= manhole_surface_level] += timestep
+            t_water_surface[h >= manhole_surface_levels] += timestep
 
         h_end = self.ds.get_values_by_timestep_nr(
             "s1", len(self.ds.timestamps) - 1, node_ids=manhole_idx
@@ -324,8 +340,10 @@ class StatisticsTool(object):
             if manhole.connection_node_id in node_mapping:
                 idx = node_mapping[manhole.connection_node_id]
                 # get element number of manhole result array
-                ri = int(np.where(manhole_idx == idx)[0][0])
-
+                manhole_result_array = np.where(manhole_idx == idx)[0]
+                if manhole_result_array.size == 0:
+                    continue
+                ri = int(manhole_result_array[0])
                 mhs = ManholeStats(
                     id=idx,
                     code=manhole.code,

@@ -55,15 +55,14 @@ class GraphPlot(pg.PlotWidget):
         """
 
         super().__init__(parent)
-
         self.showGrid(True, True, 0.5)
-        self.setLabel("bottom", "Time", "s")
-
         self.current_parameter = None
         self.location_model = None
         self.datasource_model = None
         self.parent = parent
         self.absolute = False
+        self.current_time_units = "hrs"
+        self.setLabel("bottom", "Time", self.current_time_units)
         # Auto SI prefix scaling doesn't work properly with m3, m2 etc.
         self.getAxis("left").enableAutoSIPrefix(False)
 
@@ -95,14 +94,12 @@ class GraphPlot(pg.PlotWidget):
         event.accept()
 
     def set_location_model(self, model):
-
         self.location_model = model
         self.location_model.dataChanged.connect(self.location_data_changed)
         self.location_model.rowsInserted.connect(self.on_insert_locations)
         self.location_model.rowsAboutToBeRemoved.connect(self.on_remove_locations)
 
     def set_ds_model(self, model):
-
         self.ds_model = model
         self.ds_model.dataChanged.connect(self.ds_data_changed)
         self.ds_model.rowsInserted.connect(self.on_insert_ds)
@@ -125,6 +122,7 @@ class GraphPlot(pg.PlotWidget):
                                 self.current_parameter["parameters"],
                                 i,
                                 absolute=self.absolute,
+                                time_units=self.current_time_units,
                             )
                         )
 
@@ -142,7 +140,7 @@ class GraphPlot(pg.PlotWidget):
                 for item in self.location_model.rows:
                     if item.active.value:
                         self.removeItem(
-                            item.plots(self.current_parameter["parameters"], i)
+                            item.plots(self.current_parameter["parameters"], i, time_units=self.current_time_units,)
                         )
 
     def ds_data_changed(self, index):
@@ -177,6 +175,7 @@ class GraphPlot(pg.PlotWidget):
                             self.current_parameter["parameters"],
                             index,
                             absolute=self.absolute,
+                            time_units=self.current_time_units,
                         )
                     )
 
@@ -195,7 +194,7 @@ class GraphPlot(pg.PlotWidget):
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
                         self.removeItem(
-                            item.plots(self.current_parameter["parameters"], index)
+                            item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units,)
                         )
 
     def location_data_changed(self, index):
@@ -218,14 +217,14 @@ class GraphPlot(pg.PlotWidget):
                 for ds in self.ds_model.rows:
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
-                        item.plots(self.current_parameter["parameters"], index).setPen(
+                        item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units).setPen(
                             color=item.color.qvalue, width=5, style=ds.pattern.value
                         )
             else:
                 for ds in self.ds_model.rows:
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
-                        item.plots(self.current_parameter["parameters"], index).setPen(
+                        item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units).setPen(
                             color=item.color.qvalue, width=2, style=ds.pattern.value
                         )
 
@@ -236,7 +235,7 @@ class GraphPlot(pg.PlotWidget):
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], ds_nr
+            self.current_parameter["parameters"], ds_nr, time_units=self.current_time_units,
         )
         self.removeItem(plot)
 
@@ -247,21 +246,24 @@ class GraphPlot(pg.PlotWidget):
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], ds_nr
+            self.current_parameter["parameters"], ds_nr, time_units=self.current_time_units,
         )
         self.addItem(plot)
 
-    def set_parameter(self, parameter):
+    def set_parameter(self, parameter, time_units):
         """
         on selection of parameter (in combobox), change timeseries in graphs
-        :param parameter: parameter indentification string
+        :param parameter: parameter identification string
+        :param time_units: current time units string
         """
 
-        if self.current_parameter == parameter:
+        if self.current_parameter == parameter and self.current_time_units == time_units:
             return
 
         old_parameter = self.current_parameter
+        old_time_units = self.current_time_units
         self.current_parameter = parameter
+        self.current_time_units = time_units
 
         for item in self.location_model.rows:
             if item.active.value:
@@ -269,9 +271,9 @@ class GraphPlot(pg.PlotWidget):
                     if ds.active.value:
                         index = self.ds_model.rows.index(ds)
 
-                        self.removeItem(item.plots(old_parameter["parameters"], index))
+                        self.removeItem(item.plots(old_parameter["parameters"], index, time_units=old_time_units,))
                         self.addItem(
-                            item.plots(self.current_parameter["parameters"], index)
+                            item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units)
                         )
 
         self.setLabel(
@@ -397,6 +399,7 @@ class GraphWidget(QWidget):
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
+        self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
 
         # init parameter selection
@@ -496,6 +499,10 @@ class GraphWidget(QWidget):
         self.hLayout = QHBoxLayout(self)
         self.hLayout.setObjectName("hLayout")
 
+        # add combobox for time units selection
+        self.ts_units_combo_box = QComboBox(self)
+        self.ts_units_combo_box.insertItems(0, ["hrs", "mins", "s"])
+
         # add graphplot
         self.graph_plot = GraphPlot(self)
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -513,6 +520,7 @@ class GraphWidget(QWidget):
         # add combobox for parameter selection
         self.parameter_combo_box = QComboBox(self)
         self.vLayoutTable.addWidget(self.parameter_combo_box)
+        self.vLayoutTable.addWidget(self.ts_units_combo_box)
 
         # add timeseries table
         self.location_timeseries_table = LocationTimeseriesTable(self)
@@ -563,7 +571,14 @@ class GraphWidget(QWidget):
         :return:
         """
         self.current_parameter = self.parameters[self.parameter_combo_box.currentText()]
-        self.graph_plot.set_parameter(self.current_parameter)
+        time_units = self.ts_units_combo_box.currentText()
+        self.graph_plot.setLabel("bottom", "Time", time_units)
+        self.graph_plot.set_parameter(self.current_parameter, time_units)
+        self.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
+
+    def time_units_change(self):
+        parameter_idx = self.parameter_combo_box.currentIndex()
+        self.parameter_change(parameter_idx)
 
     def get_feature_index(self, layer, feature):
         """
@@ -850,12 +865,14 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
             )
+            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
             return
         elif current_layer.name() == "nodes":
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget)
             )
+            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
             return
 
         if LAYER_QH_TYPE_MAPPING[current_layer.name()] == "q":
@@ -863,11 +880,13 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
             )
+            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
         else:
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget)
             )
+            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def on_btnstate(self, state):
         """Toggle ``absolute`` state of the GraphPlots"""

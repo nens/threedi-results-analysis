@@ -84,19 +84,19 @@ class LocationTimeseriesModel(BaseModel):
 
         _plots = {}
 
-        def plots(self, parameters=None, result_ds_nr=0, absolute=False):
+        def plots(self, parameters=None, result_ds_nr=0, absolute=False, time_units="s"):
             """
             get pyqtgraph plot of selected object and timeseries
             :param parameters: string, parameter identification
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            result_key = str(self.model.ts_datasources.rows[result_ds_nr])
+            result_key = (str(self.model.ts_datasources.rows[result_ds_nr]), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(
-                    parameters=parameters, result_ds_nr=result_ds_nr, absolute=absolute
+                    parameters=parameters, result_ds_nr=result_ds_nr, absolute=absolute, time_units=time_units,
                 )
                 pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
                 pen = pg.mkPen(color=self.color.qvalue, width=2, style=pattern)
@@ -106,7 +106,7 @@ class LocationTimeseriesModel(BaseModel):
 
             return self._plots[str(parameters)][result_key]
 
-        def timeseries_table(self, parameters=None, result_ds_nr=0, absolute=False):
+        def timeseries_table(self, parameters=None, result_ds_nr=0, absolute=False, time_units="s"):
             """
             get list of timestamp values for object and parameters
             from result ts_datasources
@@ -135,4 +135,10 @@ class LocationTimeseriesModel(BaseModel):
                 return EMPTY_TIMESERIES
             if absolute:
                 timeseries = np.abs(timeseries)
-            return timeseries
+            if time_units == "hrs":
+                vector = np.array([3600, 1])
+            elif time_units == "mins":
+                vector = np.array([60, 1])
+            else:
+                vector = np.array([1, 1])
+            return timeseries / vector

@@ -14,6 +14,8 @@ from qgis.core import QgsProject
 from qgis.core import QgsRectangle
 from qgis.core import QgsUnitTypes
 from qgis.core import QgsVectorLayer
+from qgis.core import Qgis
+from qgis.core import NULL
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsMapTool
 from qgis.gui import QgsRubberBand
@@ -38,6 +40,7 @@ from ThreeDiToolbox.tool_sideview.route import Route
 from ThreeDiToolbox.tool_sideview.utils import haversine
 from ThreeDiToolbox.tool_sideview.utils import split_line_at_points
 from ThreeDiToolbox.utils.user_messages import statusbar_message
+from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 import logging
 import numpy as np
@@ -255,8 +258,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 ltype = feature["type"]
 
-                begin_node = self.node_dict[begin_node_id]
-                end_node = self.node_dict[end_node_id]
+                begin_node = self.node_dict[str(begin_node_id)]
+                end_node = self.node_dict[str(end_node_id)]
 
                 # 1. add manhole if needed
                 if first and begin_node["type"] == SideViewDockWidget.MANHOLE:
@@ -399,8 +402,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         sub_distance += link_length
                         sub_end_dist = sub_distance
 
-                        sub_begin_node = self.node_dict[sub_begin_node_id]
-                        sub_end_node = self.node_dict[sub_end_node_id]
+                        sub_begin_node = self.node_dict[str(sub_begin_node_id)]
+                        sub_end_node = self.node_dict[str(sub_end_node_id)]
 
                         if sub_begin_node["type"] != SideViewDockWidget.CROSS_SECTION:
                             # only level is known at cross_section. For other
@@ -1696,9 +1699,33 @@ class SideViewDockWidget(QDockWidget):
         if not success:
             statusbar_message(msg)
 
-        self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
+        values_valid = self.validate_path_nodes_values(self.route.path, "surface_level")
+        if values_valid:
+            self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
+            self.map_visualisation.set_sideview_route(self.route)
+        else:
+            self.reset_sideview()
 
-        self.map_visualisation.set_sideview_route(self.route)
+    def validate_path_nodes_values(self, profile, *attributes):
+        nodes = {}
+        invalid_values = [None, NULL]
+        for route_part in profile:
+            for begin_dist, end_dist, distance, direction, feature in route_part:
+                start_node_id = str(feature["start_node"])
+                end_node_id = str(feature["end_node"])
+                start_node = self.point_dict[start_node_id]
+                end_node = self.point_dict[end_node_id]
+                nodes[start_node_id] = start_node
+                nodes[end_node_id] = end_node
+
+        for node_id, node in nodes.items():
+            if node["type"] == SideViewDockWidget.MANHOLE:
+                for attr in attributes:
+                    if node[attr] in invalid_values:
+                        error_msg = f"Manhole with 'connection_node_id' {node_id} is missing '{attr}' value."
+                        messagebar_message("Missing values", error_msg, level=Qgis.Warning, duration=5)
+                        return False
+        return True
 
     def reset_sideview(self):
         self.route.reset()
