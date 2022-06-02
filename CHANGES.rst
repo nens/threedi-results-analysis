@@ -4,7 +4,12 @@ ThreeDiToolBox changelog
 2.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Removed the create_views routine, this is now done by the modelchecker (migration tool).
+
+- Upgrade sqlites from 3 to 4.3 when possible (migration tool). Warn users that this is necessary if
+  their file has version 3.
+
+- Removed the 'pipe_quality' column from v2_pipe.
 
 
 2.0 (2022-03-30)
