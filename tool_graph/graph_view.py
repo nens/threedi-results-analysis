@@ -865,12 +865,14 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
             )
+            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
             return
         elif current_layer.name() == "nodes":
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget)
             )
+            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
             return
 
         if LAYER_QH_TYPE_MAPPING[current_layer.name()] == "q":
@@ -878,11 +880,13 @@ class GraphDockWidget(QDockWidget):
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
             )
+            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
         else:
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget)
             )
+            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def on_btnstate(self, state):
         """Toggle ``absolute`` state of the GraphPlots"""
