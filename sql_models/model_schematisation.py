@@ -283,7 +283,6 @@ class Pipe(Base):
     dist_calc_points = Column(Float)
 
     material = Column(Integer)  # MATERIALS
-    pipe_quality = Column(Float)
 
 
 class Culvert(Base):
