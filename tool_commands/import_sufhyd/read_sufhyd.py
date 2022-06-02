@@ -48,7 +48,6 @@ class TestReadSufhyd(unittest.TestCase):
         self.assertEqual(obj.data["invert_level_end_point"], 2.00)
         self.assertEqual(obj.data["sewerage_type"], None)
         self.assertEqual(obj.data["material"], None)
-        self.assertEqual(obj.data["pipe_quality"], None)
 
     def test_gemaal(self):
 
