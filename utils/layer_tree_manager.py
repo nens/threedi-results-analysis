@@ -185,7 +185,7 @@ class LayerTreeManager(object):
         lib_version, file_version = get_spatialite_version(model_checker_db)
         spatialite_version_upgrade_needed = True if file_version == 3 and lib_version in (4, 5) else False
         if spatialite_version_upgrade_needed:
-            msg = "Selected file is based on Spatialite 3 and needs to be upgraded. Please run 'Migrate Spatialite' processing tool before opening this file."
+            msg = "The selected file is based on Spatialite 3 and needs to be upgraded. Please run the 'Migrate Spatialite' processing tool before opening this file."
             pop_up_info(msg, "Warning")
             return
         threedi_db = ThreediDatabase(db_settings)
