@@ -30,7 +30,7 @@ except (ImportError, ModuleNotFoundError, FileNotFoundError):
     # TODO - adding the wheel with dlls fails - the module needs to be installed with its own deps using pip
     this_dir = os.path.dirname(os.path.realpath(__file__))
     parent_dir = os.path.dirname(this_dir)
-    whl_path = os.path.join(parent_dir, "deps", "threedigrid_builder-1.3.5-cp39-cp39-win_amd64.whl")
+    whl_path = os.path.join(parent_dir, "deps", "threedigrid_builder-1.3.6-cp39-cp39-win_amd64.whl")
     sys.path.append(whl_path)
     from threedigrid_builder import make_gridadmin, SchematisationError
 

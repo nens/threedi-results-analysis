@@ -15,7 +15,7 @@ def import_deps():
     try:
         import threedigrid_builder
     except (ImportError, FileNotFoundError):
-        install_package_from_wheel(os.path.join(DEPS_DIR, "threedigrid_builder-1.3.5-cp39-cp39-win_amd64.whl"))
+        install_package_from_wheel(os.path.join(DEPS_DIR, "threedigrid_builder-1.3.6-cp39-cp39-win_amd64.whl"))
 
 
 def install_package_from_wheel(wheel_path):
