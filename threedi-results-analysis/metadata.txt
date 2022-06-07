@@ -1,10 +1,12 @@
 [general]
-name=threedi-results-analysis
-description=QGIS plugin for viewing and analysing 3Di computational grids and simulation results
-about=QGIS plugin for viewing and analysing 3Di computational grids and simulation results
+name=3Di Results Analysis
+description=View and analyse 3Di computational grids and simulation results
+about=View and analyse 3Di computational grids and simulation results
 version=0.1
 qgisMinimumVersion=3.16
-author=3Di
-email=some@3di.com
+author=Lutra Consulting for 3Di Water Management
+email=servicedesk@nelen-schuurmans.nl
 repository=https://github.com/nens/threedi-results-analysis
+tracker=https://github.com/nens/threedi-results-analysis/issues
+
 hasProcessingProvider=yes
