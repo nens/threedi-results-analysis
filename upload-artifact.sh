@@ -2,7 +2,7 @@
 set -e
 set -u
 
-VERSION=$(grep "^version" ./threedi_schematisation_editor/metadata.txt | cut -d= -f2)
+VERSION=$(grep "^version" ./threedi-results-analysis/metadata.txt | cut -d= -f2)
 
 # ARTIFACTS_KEY should be set as env variable in the travis UI.
 ARTIFACT=threedi_schematisation_editor.${VERSION}.zip
