@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - deploy
     tags:
       - "*"
   pull_request:
