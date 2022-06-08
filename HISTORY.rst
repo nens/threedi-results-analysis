@@ -1,7 +1,7 @@
 History
 =======
 
-0.0.2 (unreleased)
+0.0.2 (2022-06-08)
 ------------------
 
 - Fixed deploy bug.
