@@ -2,7 +2,7 @@
 name=3Di Results Analysis
 description=View and analyse 3Di computational grids and simulation results
 about=View and analyse 3Di computational grids and simulation results
-version=0.0.1
+version=0.0.2
 qgisMinimumVersion=3.16
 qgisMaximumVersion=3.99
 author=Lutra Consulting for 3Di Water Management
