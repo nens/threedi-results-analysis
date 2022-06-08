@@ -5,8 +5,8 @@ set -u
 VERSION=$(grep "^version" ./threedi-results-analysis/metadata.txt | cut -d= -f2)
 
 # ARTIFACTS_KEY should be set as env variable in the travis UI.
-ARTIFACT=threedi_schematisation_editor.${VERSION}.zip
-PROJECT=threedi-schematisation-editor
+ARTIFACT=threedi-results-analysis.${VERSION}.zip
+PROJECT=threedi-results-analysis
 
 curl -X POST \
      --retry 3 \
