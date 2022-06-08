@@ -1,0 +1,28 @@
+name: release-action
+
+# Run on pull requests and on the master branch itself.
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  pull_request:
+
+
+jobs:
+  build_upload:
+    runs-on: ubuntu-20.04
+    steps:
+      # Checkout the code.
+      - uses: actions/checkout@v2
+
+      - name: build
+        run: make zip
+
+      - name: Publish package
+        if: startsWith(github.event.ref, 'refs/tags')
+        run: bash upload-artifact.sh
+        env:
+          ARTIFACTS_KEY: ${{ secrets.ARTIFACTS_KEY }}
+

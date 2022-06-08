@@ -2,11 +2,21 @@
 name=3Di Results Analysis
 description=View and analyse 3Di computational grids and simulation results
 about=View and analyse 3Di computational grids and simulation results
-version=0.1
+version=0.0.1
 qgisMinimumVersion=3.16
+qgisMaximumVersion=3.99
 author=Lutra Consulting for 3Di Water Management
 email=servicedesk@nelen-schuurmans.nl
 repository=https://github.com/nens/threedi-results-analysis
 tracker=https://github.com/nens/threedi-results-analysis/issues
-
+changelog=https://github.com/nens/threedi-results-analysis/blob/master/HISTORY.rst
 hasProcessingProvider=yes
+# Tags are comma separated with spaces allowed
+tags=analysis
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+homepage=https://github.com/nens/threedi-results-analysis
+category=Plugins
+experimental=True
