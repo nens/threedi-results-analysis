@@ -10,6 +10,8 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QThread
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
+from threedi_modelchecker.threedi_database import ThreediDatabase
+from threedi_modelchecker.spatialite_versions import get_spatialite_version
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
@@ -357,6 +359,15 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         )
 
         if filepath == "":
+            return False
+
+        db_settings = {"db_path": filepath}
+        model_checker_db = ThreediDatabase(db_settings)
+        lib_version, file_version = get_spatialite_version(model_checker_db)
+        spatialite_version_upgrade_needed = True if file_version == 3 and lib_version in (4, 5) else False
+        if spatialite_version_upgrade_needed:
+            msg = "The selected file is based on Spatialite 3 and needs to be upgraded. Please run the 'Migrate Spatialite' processing tool before opening this file."
+            pop_up_info(msg, "Warning")
             return False
 
         self.ts_datasources.spatialite_filepath = filepath
