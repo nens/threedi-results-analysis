@@ -2,16 +2,17 @@ Dependency handling README
 ==========================
 
 Qgis comes bundled with several python libraries, but we need a few more. The
-extra dependencies (as wheels and eggs) are placed in this
+extra dependencies (as wheels and eggs) are retrieved or stored into the
 ``external-dependencies/`` directory and bundled with the plugin.
 
 The main ``ThreeDiToolbox/__init__.py`` (see :py:mod:`ThreeDiToolbox`) calls
-``dependencies.py`` and installs the dependencies into the user profile's
-``python/`` directory, so right next to ``python/plugins/``.
+``dependencies.py`` and installs the dependencies the subfolder ``deps`` of
+the plugin folder.
 
 Qgis always places the python directory (and the plugins directory) on the
 python path, see ``userpythonhome`` in
-https://github.com/qgis/QGIS/blob/master/python/user.py
+https://github.com/qgis/QGIS/blob/master/python/user.py 
+The dependencies (wheels) are also added to the path.
 
 
 Python packages included on linux
@@ -47,67 +48,14 @@ Python packages included on windows
 -----------------------------------
 
 On windows, you can install qgis with osgeo4w, but you can also download a
-standalone installer. This installer also uses osgeo4w. In qgis's script that
-creates a windows installer with nsis
-(https://github.com/qgis/QGIS/blob/master/ms-windows/osgeo4w/creatensis.pl),
-you can see that it defaults to the ``qgis-full`` osgeo4w package and its
-dependenies.
-
-According to the description on
-https://trac.osgeo.org/osgeo4w/wiki/PackagingInstructions, osgeo4w uses the
-information in http://download.osgeo.org/osgeo4w/x86_64/setup.ini to build the
-packages.
-
-In the ``setup.ini``, we also see the ``qgis-ltr-full`` target, which is what
-we need. In may 2019, the combination of ``qgis-ltr`` and ``qgis-ltr-full``
-includes the following python packages::
-
-  python3-core
-  python3-exifread
-  python3-future
-  python3-gdal
-  python3-httplib2
-  python3-jinja2
-  python3-markupsafe
-  python3-matplotlib
-  python3-mock
-  python3-networkx
-  python3-nose2
-  python3-owslib
-  python3-pillow
-  python3-pip
-  python3-plotly
-  python3-psycopg2
-  python3-pygments
-  python3-pyodbc
-  python3-pyparsing
-  python3-pypiwin32
-  python3-pyproj
-  python3-python-dateutil
-  python3-pytz
-  python3-pyyaml
-  python3-qscintilla
-  python3-requests
-  python3-scipy  # Note: depends on python3-numpy
-  python3-shapely
-  python3-simplejson
-  python3-xlrd
-  python3-xlwt
-
+standalone installer. This installer also uses osgeo4w. 
 
 Extra dependencies we need
 --------------------------
 
 There is no ``setup.py`` in qgis plugins, so there's no default place to list
 dependencies (and their versions). ``dependencies.py`` has the master list of
-extra dependencies:
-
-- pyqtgraph
-- sqlalchemy
-- geoalchemy2
-- h5py
-- lizard-connector
-- threedigrid
+extra dependencies.
 
 Most are pip-installable just fine as they're pure python packages. There are
 two exceptions:
@@ -164,8 +112,8 @@ function is called by our main ``ThreeDiToolbox/__init__.py``:
   qgis-bundled or in the profile directory.
 
 - If something is missing, it calls python3's build-in "pip" to install it
-  from the ``external-dependencies/`` directory into the user profile's
-  ``python/`` directory.
+  from the ``external-dependencies/`` directory into the plugin's
+  ``deps/`` directory.
 
 As a last step, ``ThreeDiToolbox/__init__.py`` calls
 :py:func:`ThreeDiToolbox.dependencies.check_importability` to make doubly sure
