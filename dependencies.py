@@ -32,6 +32,7 @@ import platform
 import re
 import subprocess
 import sys
+import shutil
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -82,7 +83,11 @@ def ensure_everything_installed():
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
         _ensure_h5py_installed()
     target_dir = _dependencies_target_dir()
-    _install_dependencies(missing, target_dir=target_dir)
+
+    if len(missing) > 0:
+        _install_dependencies(missing, target_dir=target_dir)
+
+    _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
 
 
 def _ensure_h5py_installed():
@@ -138,14 +143,13 @@ def _install_h5py(hdf5_version: str):
             f"The following HDF5 versions are supported: {SUPPORTED_HDF5_VERSIONS}"
         )
         raise RuntimeError(message)
-    use_pypi = False  # There is no official Python 3.9 wheel for h5py 2.10.0
 
     # In case the (old) h5py library is already imported, we cannot uninstall
     # h5py because the windows acquires a lock on the *.dll-files. Therefore
     # we need to restart Qgis.
     # _uninstall_dependency(H5PY_DEPENDENCY)
     try:
-        _install_dependencies([H5PY_DEPENDENCY], target_dir=_dependencies_target_dir(), use_pypi=use_pypi)
+        _install_dependencies([H5PY_DEPENDENCY], target_dir=_dependencies_target_dir())
     except RuntimeError:
         from ThreeDiToolbox.utils.user_messages import pop_up_info
 
@@ -205,26 +209,35 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
         raise RuntimeError(msg)
 
 
-def _dependencies_target_dir(our_dir=OUR_DIR):
-    """Return python dir inside our profile
+def _dependencies_target_dir(our_dir=OUR_DIR) -> Path:
+    """Returns the folder where the dependencies should be installed
 
-    Return two dirs up if we're inside the plugins dir. If not, we have to
-    import from qgis (which we don't really want in this file) and ask for our
-    profile dir.
+    This is the 'deps' subdirectory of the plugin home folder
 
     """
-    if "plugins" in str(our_dir).lower():
-        # Looks like we're in the plugin dir. Return ../..
-        return OUR_DIR.parent.parent
-    # We're somewhere outside of the plugin directory. Perhaps a symlink?
-    # Perhaps a development setup? We're forced to import qgis and ask for our
-    # profile directory, something we'd rather not do at this stage. But ok.
-    print("We're not in our plugins directory: %s" % our_dir)
-    from qgis.core import QgsApplication
+    return our_dir + '/deps/'
 
-    python_dir = Path(QgsApplication.qgisSettingsDirPath()) / "python"
-    print("We've asked qgis for our python directory: %s" % python_dir)
-    return python_dir
+def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
+    """Return python dir inside our profile
+
+    Return two dirs up if we're inside the plugins dir. This was the
+    previous installation folder of the dependencies.
+    """
+    if "plugins" in str(our_dir).lower():
+        return OUR_DIR.parent.parent
+
+def _remove_old_distributions(dependencies, path):
+    """Remove old distributions of dependencies
+
+    In previous version of the Toolbox, depencencies were
+    stored in the users 'python' folder. This caused 
+    versioning conflicts (as these dependencies were
+    not removed when the plugin was uninstalled).
+
+    """
+    for dependency in dependencies:
+        print(f'Deleting folder {dependency.package} from {path}')
+        shutil.rmtree(path + dependency.package)
 
 
 def check_importability():
@@ -279,7 +292,7 @@ def _uninstall_dependency(dependency):
         print("Uninstalling %s failed" % dependency.name)
 
 
-def _install_dependencies(dependencies, target_dir, use_pypi=False):
+def _install_dependencies(dependencies, target_dir):
     python_interpreter = _get_python_interpreter()
     base_command = [
         python_interpreter,
@@ -294,11 +307,9 @@ def _install_dependencies(dependencies, target_dir, use_pypi=False):
         "--target",
         str(target_dir),
     ]
-    if use_pypi:
-        index = base_command.index("--find-links")
-        base_command.pop(index)  # --find-links
-        base_command.pop(index)  # the dir
-        base_command.pop(index)  # --no-index
+
+    # append the dependency folder to the path
+    sys.path.append(target_dir)
 
     for dependency in dependencies:
         _uninstall_dependency(dependency)
@@ -350,34 +361,6 @@ def _get_python_interpreter():
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
     return interpreter
-
-
-def _get_hdf5_version() -> str:
-    process = subprocess.Popen(
-        [
-            "h5stat.exe",
-            "--version",
-        ],
-        universal_newlines=True,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    # The input/output/error stream handling is a bit involved, but it is
-    # necessary because of a python bug on windows 7, see
-    # https://bugs.python.org/issue3905 .
-    i, o, e = (process.stdin, process.stdout, process.stderr)
-    i.close()
-    result = o.read() + e.read()
-    o.close()
-    e.close()
-    pattern = re.compile(r"[\d]+.[\d]+.[\d]+")
-    match = pattern.search(result)
-    if match:
-        return match.group()
-    else:
-        return None
-
 
 def _check_presence(dependencies):
     """Check if all dependencies are present. Return missing dependencies."""
