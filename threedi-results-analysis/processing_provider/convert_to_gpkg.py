@@ -12,7 +12,6 @@
 """
 
 import os
-import sys
 from collections import OrderedDict
 
 from qgis.PyQt.QtCore import QCoreApplication
@@ -27,17 +26,10 @@ from qgis.core import (
     QgsVectorLayer,
 )
 from qgis.utils import iface
+
 from ..user_communication import UserCommunication
 from ..utils import safe_join
-
-try:
-    from threedigrid.admin.exporters.geopackage import GeopackageExporter
-except (ImportError, ModuleNotFoundError):
-    this_dir = os.path.dirname(os.path.realpath(__file__))
-    parent_dir = os.path.dirname(this_dir)
-    whl_path = os.path.join(parent_dir, "deps", "threedigrid-1.2.3-py2.py3-none-any.whl")
-    sys.path.append(whl_path)
-    from threedigrid.admin.exporters.geopackage import GeopackageExporter
+from threedigrid.admin.exporters.geopackage import GeopackageExporter
 
 
 class Progress(object):
@@ -58,7 +50,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def flags(self):
-        return super().flags()  # | QgsProcessingAlgorithm.FlagNoThreading
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)

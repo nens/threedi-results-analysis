@@ -12,7 +12,6 @@
 """
 
 import os
-import sys
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
@@ -24,15 +23,7 @@ from qgis.core import (
     QgsVectorLayer,
 )
 
-try:
-    from threedigrid_builder import make_gridadmin, SchematisationError
-except (ImportError, ModuleNotFoundError, FileNotFoundError):
-    # TODO - adding the wheel with dlls fails - the module needs to be installed with its own deps using pip
-    this_dir = os.path.dirname(os.path.realpath(__file__))
-    parent_dir = os.path.dirname(this_dir)
-    whl_path = os.path.join(parent_dir, "deps", "threedigrid_builder-1.3.6-cp39-cp39-win_amd64.whl")
-    sys.path.append(whl_path)
-    from threedigrid_builder import make_gridadmin, SchematisationError
+from threedigrid_builder import make_gridadmin, SchematisationError
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
@@ -42,7 +33,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def flags(self):
-        return super().flags()
+        return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -91,7 +82,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        input_slite = self.parameterAsFile(parameters, self.INPUT_SPATIALITE, context)
+        input_slite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
         if not input_slite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
 
