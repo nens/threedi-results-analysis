@@ -76,7 +76,7 @@ def ensure_everything_installed():
     for directory in sys.path:
         print("  - %s" % directory)
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
-    print("Contents of our profile's python dir:\n    %s" % "\n    ".join(profile_python_names))
+    print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == "Windows":
@@ -210,12 +210,17 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
 
 
 def _dependencies_target_dir(our_dir=OUR_DIR) -> Path:
-    """Returns the folder where the dependencies should be installed
+    """Returns (and creates) the desired deps folder
 
     This is the 'deps' subdirectory of the plugin home folder
 
     """
-    return our_dir / '/deps/'
+    target_dir = our_dir / 'deps'
+    if not target_dir.exists():
+        print(f'Creating target dir {target_dir}')
+        target_dir.mkdir()
+
+    return target_dir
 
 def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
     """Return python dir inside our profile
@@ -236,8 +241,10 @@ def _remove_old_distributions(dependencies, path):
 
     """
     for dependency in dependencies:
-        print(f'Deleting folder {dependency.package} from {path}')
-        shutil.rmtree(path + dependency.package)
+        dep_path = str(path / dependency.package)
+        if os.path.exists(dep_path):
+            print(f'Deleting folder {dependency.package} from {path}')
+            shutil.rmtree()
 
 
 def check_importability():
@@ -253,7 +260,7 @@ def check_importability():
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
     logger.info(
-        "Contents of our profile's python dir:\n    %s",
+        "Contents of our dependency dir:\n    %s",
         "\n    ".join(profile_python_names),
     )
     for package in packages:
@@ -309,6 +316,7 @@ def _install_dependencies(dependencies, target_dir):
     ]
 
     # append the dependency folder to the path
+    print(f'Append {target_dir} to sys.path')
     sys.path.append(target_dir)
 
     for dependency in dependencies:

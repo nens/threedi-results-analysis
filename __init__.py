@@ -23,6 +23,8 @@ PLUGIN_DIR = Path(__file__).parent
 # uses by default.
 if sys.stderr is not None and hasattr(sys.stderr, "fileno"):
     faulthandler.enable()
+
+print('Ensuring dependencies are installed')
 dependencies.ensure_everything_installed()
 
 
