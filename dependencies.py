@@ -215,7 +215,7 @@ def _dependencies_target_dir(our_dir=OUR_DIR) -> Path:
     This is the 'deps' subdirectory of the plugin home folder
 
     """
-    return our_dir + '/deps/'
+    return our_dir / '/deps/'
 
 def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
     """Return python dir inside our profile
