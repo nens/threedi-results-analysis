@@ -244,7 +244,7 @@ def _remove_old_distributions(dependencies, path):
         dep_path = str(path / dependency.package)
         if os.path.exists(dep_path):
             print(f'Deleting folder {dependency.package} from {path}')
-            shutil.rmtree()
+            shutil.rmtree(dep_path)
 
 
 def check_importability():
