@@ -86,7 +86,7 @@ constraints.txt: dependencies.py
 
 test: compile transcompile
 	@echo "#### Python tests"
-	QT_QPA_PLATFORM=offscreen pytest --cov
+	QT_QPA_PLATFORM=offscreen pytest --cov --ignore ./deps
 
 docstrings:
 	@echo "#### Docstring coverage report"

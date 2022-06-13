@@ -72,19 +72,29 @@ logger = logging.getLogger(__name__)
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
+
+    # If required, create deps folder and append to the path
+    target_dir = _dependencies_target_dir(create=True)
+    print(f'Append {target_dir} to sys.path')
+    sys.path.append(str(target_dir))
+
+    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
+    print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
+
     print("sys.path:")
     for directory in sys.path:
         print("  - %s" % directory)
-    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
-    print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
+
     _ensure_prerequisite_is_installed()
     missing = _check_presence(DEPENDENCIES)
     if platform.system() == "Windows":
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
         _ensure_h5py_installed()
-    target_dir = _dependencies_target_dir()
-
+    
     if len(missing) > 0:
+        print('Missing dependencies:')
+        for deps in missing:
+            print(deps.name)
         _install_dependencies(missing, target_dir=target_dir)
 
     _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
@@ -209,14 +219,14 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
         raise RuntimeError(msg)
 
 
-def _dependencies_target_dir(our_dir=OUR_DIR) -> Path:
+def _dependencies_target_dir(*, our_dir=OUR_DIR, create=False) -> Path:
     """Returns (and creates) the desired deps folder
 
     This is the 'deps' subdirectory of the plugin home folder
 
     """
     target_dir = our_dir / 'deps'
-    if not target_dir.exists():
+    if not target_dir.exists() and create:
         print(f'Creating target dir {target_dir}')
         target_dir.mkdir()
 
@@ -314,10 +324,6 @@ def _install_dependencies(dependencies, target_dir):
         "--target",
         str(target_dir),
     ]
-
-    # append the dependency folder to the path
-    print(f'Append {target_dir} to sys.path')
-    sys.path.append(target_dir)
 
     for dependency in dependencies:
         _uninstall_dependency(dependency)
