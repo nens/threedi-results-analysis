@@ -266,11 +266,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
             self.map_animator_widget.setEnabled(True)
+            self.watershed_tool.action_icon.setEnabled(True)
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
             self.map_animator_widget.active = False
             self.map_animator_widget.setEnabled(False)
+            self.watershed_tool.action_icon.setEnabled(False)
         if (
             self.ts_datasources.rowCount() > 0
             and self.ts_datasources.model_spatialite_filepath is not None

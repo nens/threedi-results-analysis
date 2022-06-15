@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ThreeDiNetworkAnalystDockWidgetBase</class>
- <widget class="QDockWidget" name="ThreeDiNetworkAnalystDockWidgetBase">
+ <class>ThreeDiWatershedAnalystDockWidgetBase</class>
+ <widget class="QDockWidget" name="ThreeDiWatershedAnalystDockWidgetBase">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +14,7 @@
    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
   </property>
   <property name="windowTitle">
-   <string>3Di Network Analyst</string>
+   <string>Watershed Tool</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
@@ -37,8 +37,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>357</width>
-         <height>855</height>
+         <width>361</width>
+         <height>863</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -74,7 +74,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="QgsFileWidget3DiResults">
+            <widget class="QgsFileWidget" name="QgsFileWidget3DiResults" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -84,7 +84,7 @@
              <property name="acceptDrops">
               <bool>true</bool>
              </property>
-             <property name="filter">
+             <property name="filter" stdset="0">
               <string>results_3di.nc</string>
              </property>
             </widget>
@@ -97,14 +97,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="QgsFileWidgetGridAdmin">
+            <widget class="QgsFileWidget" name="QgsFileWidgetGridAdmin" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="filter">
+             <property name="filter" stdset="0">
               <string>gridadmin.h5</string>
              </property>
             </widget>
@@ -123,14 +123,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QgsFileWidget" name="QgsFileWidgetSqlite">
+            <widget class="QgsFileWidget" name="QgsFileWidgetSqlite" native="true">
              <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="toolTip">
               <string>Required only when analysing (impervious) surfaces (0D inflow)</string>
              </property>
-             <property name="filter">
+             <property name="filter" stdset="0">
               <string>*.sqlite</string>
              </property>
             </widget>

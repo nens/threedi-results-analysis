@@ -975,7 +975,7 @@ class CatchmentMapTool(QgsMapToolIdentify):
 class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingWidget = pyqtSignal()
 
-    def __init__(self, iface, parent=None):
+    def __init__(self, iface, tdi_root_tool, parent=None):
         """Constructor."""
         super(WatershedAnalystDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -986,11 +986,11 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.iface = iface
+        self.tdi_root_tool = tdi_root_tool
         self.tm = QgsApplication.taskManager()
+        self.setup_ds()
         self.connect_gq()
-
         self.mMapLayerComboBoxTargetPolygons.setFilters(QgsMapLayerProxyModel.PolygonLayer)
-
         self.QgsFileWidget3DiResults.fileChanged.connect(self.results_3di_selected)
         self.QgsFileWidgetGridAdmin.fileChanged.connect(self.gridadmin_selected)
         self.QgsFileWidgetSqlite.fileChanged.connect(self.sqlite_selected)
@@ -1013,6 +1013,18 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
         self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
         self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
+        self.update_gr()
+
+    def setup_ds(self):
+        active_ts_datasource = self.tdi_root_tool.rows[0]
+        threedi_result = active_ts_datasource.threedi_result()
+        results_path = str(threedi_result.file_path)
+        gridadmin_path = str(threedi_result.gridadmin.grid_file)
+        spatialite_path = str(self.tdi_root_tool.model_spatialite_filepath)
+        self.QgsFileWidget3DiResults.setFilePath(results_path)
+        self.QgsFileWidgetGridAdmin.setFilePath(gridadmin_path)
+        if spatialite_path:
+            self.QgsFileWidgetSqlite.setFilePath(spatialite_path)
 
     def closeEvent(self, event):
         self.disconnect_gq()

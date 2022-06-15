@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
 
@@ -17,7 +18,7 @@ class ThreeDiWatershedAnalyst:
         self.iface = iface
         self.tdi_root_tool = tdi_root_tool
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_watershed.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
         self.menu_text = "Use network analysis for 3Di results"
 
         self.dock_widget = None
@@ -41,7 +42,7 @@ class ThreeDiWatershedAnalyst:
         """Run method that loads and starts the tool"""
         if not self.active:
             if self.dock_widget is None:
-                self.dock_widget = WatershedAnalystDockWidget(self.iface)
+                self.dock_widget = WatershedAnalystDockWidget(self.iface, self.tdi_root_tool)
             self.dock_widget.closingWidget.connect(self.on_close_child_widget)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dock_widget)
             self.dock_widget.show()
