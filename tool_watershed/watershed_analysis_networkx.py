@@ -30,12 +30,9 @@ import os
 
 # Third-party imports
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-
 from osgeo import ogr
 import numpy as np
 import networkx as nx
-from shapely.geometry import Polygon
-from shapely import wkb
 
 # Local imports
 try:
