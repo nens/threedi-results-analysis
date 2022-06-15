@@ -75,8 +75,9 @@ def ensure_everything_installed():
 
     # If required, create deps folder and append to the path
     target_dir = _dependencies_target_dir(create=True)
-    print(f'Append {target_dir} to sys.path')
-    sys.path.append(str(target_dir))
+    if str(target_dir) not in sys.path:
+        print(f'Prepending {target_dir} to sys.path')
+        sys.path.insert(0, str(target_dir))
 
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
     print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
@@ -96,6 +97,10 @@ def ensure_everything_installed():
         for deps in missing:
             print(deps.name)
         _install_dependencies(missing, target_dir=target_dir)
+
+    # This function should be called if any modules are created/installed while your
+    # program is running to guarantee all finders will notice the new module’s existence.
+    importlib.invalidate_caches()
 
     _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
 
