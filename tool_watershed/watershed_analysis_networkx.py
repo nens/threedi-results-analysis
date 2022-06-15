@@ -276,27 +276,3 @@ class Graph3Di:
         result = cells_multipolygon.UnionCascaded()
 
         return result
-
-
-if __name__ == "__main__":
-    pass
-
-# def catchment_from_polygon(target_area: ogr.Geometry,
-#                            gr: GridH5ResultAdmin,
-#                            threshold=0.01,
-#                            first_ts=0,
-#                            last_ts=14400,
-#                            quiet=True):
-#     # get node ids from ids
-#     # The intersects_geometry expects a shapely geometry for which the intersection will be determined:
-#
-#     target_area_shapely = wkb.loads(target_area.ExportToWkb())
-#     ids = gr.cells.filter(cell_coords__intersects_geometry=target_area_shapely).id
-#
-#     return catchment_from_node_ids(node_ids=ids,
-#                                    gr=gr,
-#                                    threshold=threshold,
-#                                    first_ts=first_ts,
-#                                    last_ts=last_ts,
-#                                    quiet=quiet
-#                                    )
