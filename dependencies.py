@@ -52,6 +52,7 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
+    Dependency("python-editor", "python_editor", ">=0.3"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -82,6 +83,10 @@ def ensure_everything_installed():
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
         _ensure_h5py_installed()
     target_dir = _dependencies_target_dir()
+
+    if len(missing) == 0:
+        print('Dependencies up to date')
+
     _install_dependencies(missing, target_dir=target_dir)
 
 
@@ -345,7 +350,7 @@ def _get_python_interpreter():
     if "python3" in filename.lower():
         interpreter = executable
     elif "qgis" in filename.lower():
-        interpreter = os.path.join(directory, "pythonw3.exe")
+        interpreter = os.path.join(directory, "python3.exe")
     else:
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
@@ -388,8 +393,8 @@ def _check_presence(dependencies):
         try:
             result = pkg_resources.require(requirement)
             print("Requirement %s found: %s" % (requirement, result))
-        except pkg_resources.DistributionNotFound:
-            print("Dependency '%s' (%s) not found" % (dependency.name, dependency.constraint))
+        except pkg_resources.DistributionNotFound as e:
+            print("Dependency '%s' (%s) not found (%s)" % (dependency.name, dependency.constraint, str(e)))
             missing.append(dependency)
         except pkg_resources.VersionConflict:
             print("Dependency '%s' (%s) has the wrong version" % (dependency.name, dependency.constraint))
