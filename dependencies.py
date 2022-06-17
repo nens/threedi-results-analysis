@@ -52,7 +52,7 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "python_editor", ">=0.3"),
+    Dependency("python-editor", "editor", ">=0.3"), #dep of alembic
 ]
 
 # Dependencies that contain compiled extensions for windows platform
