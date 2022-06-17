@@ -659,7 +659,7 @@ class Graph3DiQgsConnector:
         crs = QgsCoordinateReferenceSystem()
         crs.createFromId(4326)
         self.impervious_surface_layer.setCrs(crs)
-        success = self.impervious_surface_layer.dataProvider().addAttributes(fields)
+        self.impervious_surface_layer.dataProvider().addAttributes(fields)
         self.impervious_surface_layer.updateFields()
         qml = os.path.join(STYLE_DIR, "result_impervious_surfaces.qml")
         self.impervious_surface_layer.loadNamedStyle(qml)
@@ -717,11 +717,10 @@ class Graph3DiQgsConnector:
             nodes = self.gr.nodes.filter(id__in=node_ids)
             connection_node_ids = set(nodes.content_pk) - {None, -9999}
             connection_node_ids_str = ",".join(map(str, connection_node_ids))
-            expression = f"""   id in (
-                                    SELECT impervious_surface_id 
-                                    FROM v2_impervious_surface_map 
-                                    WHERE connection_node_id IN ({connection_node_ids_str})
-                                ) """
+            expression = (
+                "id in (SELECT impervious_surface_id FROM v2_impervious_surface_map "
+                f"WHERE connection_node_id IN ({connection_node_ids_str}))"
+            )
             success = self.append_impervious_surfaces(result_set=result_set, expression=expression)
             if not success:
                 raise FindImperviousSurfaceError()
@@ -817,7 +816,7 @@ class Graph3DiQgsConnector:
         project_crs = QgsProject.instance().crs()
         source_crs = QgsCoordinateReferenceSystem(f"EPSG:{self.epsg}")
         transform = QgsCoordinateTransform(source_crs, project_crs, QgsProject.instance())
-        impervious_surface_crs = QgsCoordinateReferenceSystem(f"EPSG:4326")
+        impervious_surface_crs = QgsCoordinateReferenceSystem("EPSG:4326")
         impervious_surface_transform = QgsCoordinateTransform(
             impervious_surface_crs, project_crs, QgsProject.instance()
         )

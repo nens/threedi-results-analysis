@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import Qt
 from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
 
 
