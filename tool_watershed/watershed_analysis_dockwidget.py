@@ -14,9 +14,11 @@
 # TODO: add sub-categories to result flowline styling
 # TODO: add discharge (q net sum) attribute to result flowlines
 # TODO: add flow direction styling to result flowlines
-
-from typing import Iterable
+import os
 import pathlib
+import processing
+import numpy as np
+from typing import Iterable, List
 from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, Qt, QVariant
 from qgis.core import (
@@ -28,40 +30,40 @@ from qgis.core import (
     QgsDataSourceUri,
     QgsFeatureRequest,
     QgsExpression,
+    QgsGeometry,
     QgsProcessingFeedback,
     QgsMapLayerProxyModel,
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
-    QgsField
+    QgsField,
+    QgsVectorLayer,
 )
-
 from qgis.gui import QgsMapToolIdentify
-import processing
-
+from osgeo import ogr, osr
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-
-from .watershed_analysis_networkx import *
-from .watershed_analysis import *
-from .ogr2qgis import *
-from .smoothing import *
+from .watershed_analysis_networkx import Graph3Di
+from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from .ogr2qgis import as_qgis_memory_layer, append_to_qgs_vector_layer
+from .smoothing import polygon_gaussian_smooth
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'watershed_analysis_dockwidget_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "watershed_analysis_dockwidget_base.ui"))
 
-STYLE_DIR = os.path.join(os.path.dirname(__file__), 'style')
-MEMORY_DRIVER = ogr.GetDriverByName('MEMORY')
+STYLE_DIR = os.path.join(os.path.dirname(__file__), "style")
+MEMORY_DRIVER = ogr.GetDriverByName("MEMORY")
 DEFAULT_THRESHOLD = 1
 MESSAGE_CATEGORY = "Watershed Analysis"
 
 
 class LayerExistsError(Exception):
     """Raised when attempting to create a target_node_layer that already exists"""
+
     pass
 
 
 class FindImperviousSurfaceError(Exception):
     """Raised when something goes wrong when finding impervious surfaces"""
+
     pass
 
 
@@ -80,24 +82,25 @@ def bbox_of_features(features: List):
 
 class Graph3DiQgsConnector:
     """Connect a Graph3Di and its inputs and outputs to a QGIS Project"""
+
     # TODO: class alles laten erven van Graph3Di en evt. nieuw object met alle QGIS-dingen
     result_cell_attr_types = {
-        'id': ogr.OFTInteger,
-        'node_type': ogr.OFTInteger,
-        'node_type_description': ogr.OFTString,
-        'location': ogr.OFTString,
-        'catchment_id': ogr.OFTInteger,
-        'from_polygon': ogr.OFTInteger
+        "id": ogr.OFTInteger,
+        "node_type": ogr.OFTInteger,
+        "node_type_description": ogr.OFTString,
+        "location": ogr.OFTString,
+        "catchment_id": ogr.OFTInteger,
+        "from_polygon": ogr.OFTInteger,
     }
 
     result_flowline_attr_types = {
-        'id': ogr.OFTInteger,
-        'content_type': ogr.OFTString,
-        'kcu': ogr.OFTInteger,
-        'kcu_description': ogr.OFTString,
-        'location': ogr.OFTString,
-        'catchment_id': ogr.OFTInteger,
-        'from_polygon': ogr.OFTInteger
+        "id": ogr.OFTInteger,
+        "content_type": ogr.OFTString,
+        "kcu": ogr.OFTInteger,
+        "kcu_description": ogr.OFTString,
+        "location": ogr.OFTString,
+        "catchment_id": ogr.OFTInteger,
+        "from_polygon": ogr.OFTInteger,
     }
 
     def __init__(self, iface):
@@ -186,12 +189,12 @@ class Graph3DiQgsConnector:
         if isinstance(ids, list):
             for id_i in ids:
                 if not isinstance(id_i, int):
-                    raise TypeError('Filter must be set to None or list of int')
+                    raise TypeError("Filter must be set to None or list of int")
             self._filter = ids.copy()
         elif ids is None:
             self._filter = None
         else:
-            raise TypeError('Filter must be set to None or list of int')
+            raise TypeError("Filter must be set to None or list of int")
         self.update_layer_filters()
 
     def average_cell_size(self, result_set_id):
@@ -204,7 +207,7 @@ class Graph3DiQgsConnector:
             count += 1
             area += feat.geometry().area()
         if area > 0:
-            return area/count
+            return area / count
         else:
             return None
 
@@ -258,28 +261,28 @@ class Graph3DiQgsConnector:
 
             if layer_replaced:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY,
-                    "Oops, I needed the layer(s) you deleted! I created them again",
-                    Qgis.Info
+                    MESSAGE_CATEGORY, "Oops, I needed the layer(s) you deleted! I created them again", Qgis.Info
                 )
 
     def update_layer_filters(self):
         filtered_ids = set(self.result_sets) & set(self.filter if self.filter is not None else self.result_sets)
-        filtered_ids_str = ','.join(map(str, filtered_ids))
+        filtered_ids_str = ",".join(map(str, filtered_ids))
         if self.filter is None:
-            subset_string = ''
+            subset_string = ""
             target_node_layer_analyzed_nodes_rule_str = "result_sets != ''"
         else:
-            subset_string = 'catchment_id IN ({})'.format(filtered_ids_str)
-            target_node_layer_analyzed_nodes_rule_str = \
+            subset_string = "catchment_id IN ({})".format(filtered_ids_str)
+            target_node_layer_analyzed_nodes_rule_str = (
                 f'array_intersect( string_to_array("result_sets"),  array({filtered_ids_str}))'
+            )
         # filter to leave subset_string out if empty
-        flowline_subset_string = ' AND '.join(filter(None, [subset_string, 'kcu != 100']))
+        flowline_subset_string = " AND ".join(filter(None, [subset_string, "kcu != 100"]))
         self.result_catchment_layer.setSubsetString(subset_string)
         self.result_cell_layer.setSubsetString(subset_string)
         self.result_flowline_layer.setSubsetString(flowline_subset_string)
-        self.target_node_layer.renderer().rootRule().children()[0].\
-            setFilterExpression(target_node_layer_analyzed_nodes_rule_str)
+        self.target_node_layer.renderer().rootRule().children()[0].setFilterExpression(
+            target_node_layer_analyzed_nodes_rule_str
+        )
         if self.impervious_surface_layer is not None:
             self.impervious_surface_layer.setSubsetString(subset_string)
 
@@ -361,7 +364,7 @@ class Graph3DiQgsConnector:
 
     def create_layer_group(self):
         root = QgsProject.instance().layerTreeRoot()
-        self.layer_group = root.insertGroup(0, '3Di Network Analysis')
+        self.layer_group = root.insertGroup(0, "3Di Network Analysis")
 
     def remove_layer_group(self):
         QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
@@ -369,16 +372,15 @@ class Graph3DiQgsConnector:
     def create_target_node_layer(self):
         if isinstance(self.gr, GridH5ResultAdmin):
             nodes = self.gr.nodes
-            nodes_ds = MEMORY_DRIVER.CreateDataSource('')
-            attributes = {'result_sets': [''] * nodes.count}
-            attr_data_types = {'result_sets': ogr.OFTString}
-            threedigrid_to_ogr(threedigrid_src=nodes,
-                               tgt_ds=nodes_ds,
-                               attributes=attributes,
-                               attr_data_types=attr_data_types)
-            ogr_lyr = nodes_ds.GetLayerByName('node')
-            self.target_node_layer = as_qgis_memory_layer(ogr_lyr, 'Target nodes')
-            qml = os.path.join(STYLE_DIR, 'target_nodes.qml')
+            nodes_ds = MEMORY_DRIVER.CreateDataSource("")
+            attributes = {"result_sets": [""] * nodes.count}
+            attr_data_types = {"result_sets": ogr.OFTString}
+            threedigrid_to_ogr(
+                threedigrid_src=nodes, tgt_ds=nodes_ds, attributes=attributes, attr_data_types=attr_data_types
+            )
+            ogr_lyr = nodes_ds.GetLayerByName("node")
+            self.target_node_layer = as_qgis_memory_layer(ogr_lyr, "Target nodes")
+            qml = os.path.join(STYLE_DIR, "target_nodes.qml")
             self.target_node_layer.loadNamedStyle(qml)
             self.add_to_layer_tree_group(self.target_node_layer)
 
@@ -387,10 +389,10 @@ class Graph3DiQgsConnector:
         if self.target_node_layer is not None:
             request = QgsFeatureRequest()
             request.setFilterExpression("result_sets != ''")
-            idx = self.target_node_layer.fields().indexFromName('result_sets')
+            idx = self.target_node_layer.fields().indexFromName("result_sets")
             self.target_node_layer.startEditing()
             for feat in self.target_node_layer.getFeatures(request):
-                self.target_node_layer.changeAttributeValue(feat.id(), idx, '')
+                self.target_node_layer.changeAttributeValue(feat.id(), idx, "")
             self.target_node_layer.commitChanges()
 
     def remove_target_node_layer(self):
@@ -407,35 +409,35 @@ class Graph3DiQgsConnector:
     def create_result_cell_layer(self):
         try:
             if self.result_cell_layer is not None:
-                raise LayerExistsError('Attempt to create existing result cell layer')
+                raise LayerExistsError("Attempt to create existing result cell layer")
         except AttributeError:
             pass
-        ogr_driver = ogr.GetDriverByName('Memory')
-        ogr_data_source = ogr_driver.CreateDataSource('')
+        ogr_driver = ogr.GetDriverByName("Memory")
+        ogr_data_source = ogr_driver.CreateDataSource("")
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(self.epsg)
-        ogr_lyr = ogr_data_source.CreateLayer('', srs, geom_type=ogr.wkbPolygon)
+        ogr_lyr = ogr_data_source.CreateLayer("", srs, geom_type=ogr.wkbPolygon)
         for fieldname, fieldtype in self.result_cell_attr_types.items():
             field = ogr.FieldDefn(fieldname, fieldtype)
             ogr_lyr.CreateField(field)
 
-        qgs_lyr_name = 'Result cells'
+        qgs_lyr_name = "Result cells"
         self.result_cell_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-        qml = os.path.join(STYLE_DIR, 'result_cells.qml')
+        qml = os.path.join(STYLE_DIR, "result_cells.qml")
         self.result_cell_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_cell_layer)
 
     def update_analyzed_target_cells(self, target_node_ids, result_set):
-        ids_str = ','.join(map(str, target_node_ids))
+        ids_str = ",".join(map(str, target_node_ids))
         request = QgsFeatureRequest()
-        request.setFilterExpression(f'id IN ({ids_str})')
-        idx = self.target_node_layer.fields().indexFromName('result_sets')
+        request.setFilterExpression(f"id IN ({ids_str})")
+        idx = self.target_node_layer.fields().indexFromName("result_sets")
         self.target_node_layer.startEditing()
         for feat in self.target_node_layer.getFeatures(request):
-            old_result_sets = feat['result_sets']
-            result_sets_list = old_result_sets.split(',')
+            old_result_sets = feat["result_sets"]
+            result_sets_list = old_result_sets.split(",")
             result_sets_list.append(result_set)
-            new_result_sets = ','.join(map(str, result_sets_list))
+            new_result_sets = ",".join(map(str, result_sets_list))
             self.target_node_layer.changeAttributeValue(feat.id(), idx, new_result_sets)
         self.target_node_layer.commitChanges()
         self.update_layer_filters()
@@ -458,26 +460,24 @@ class Graph3DiQgsConnector:
         nw_catchment_ids = [result_set] * cells.count
 
         if upstream:
-            location = ['upstream'] * cells.count
+            location = ["upstream"] * cells.count
         else:
-            location = ['downstream'] * cells.count
+            location = ["downstream"] * cells.count
 
         from_polygon = [0] * cells.count
 
         attributes = {
-            'id': nw_ids,
-            'location': location,
-            'catchment_id': nw_catchment_ids,
-            'from_polygon': from_polygon
+            "id": nw_ids,
+            "location": location,
+            "catchment_id": nw_catchment_ids,
+            "from_polygon": from_polygon,
         }
 
-        ds = MEMORY_DRIVER.CreateDataSource('')
-        threedigrid_to_ogr(threedigrid_src=cells,
-                           tgt_ds=ds,
-                           attributes=attributes,
-                           attr_data_types=self.result_cell_attr_types
-                           )
-        layer = ds.GetLayerByName('cell')
+        ds = MEMORY_DRIVER.CreateDataSource("")
+        threedigrid_to_ogr(
+            threedigrid_src=cells, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_cell_attr_types
+        )
+        layer = ds.GetLayerByName("cell")
         append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_cell_layer)
 
     def clear_result_cell_layer(self):
@@ -496,24 +496,24 @@ class Graph3DiQgsConnector:
     def create_result_flowline_layer(self):
         try:
             if self.result_flowline_layer is not None:
-                raise LayerExistsError('Attempt to create existing result flowline layer')
+                raise LayerExistsError("Attempt to create existing result flowline layer")
         except AttributeError:
             pass
-        ogr_driver = ogr.GetDriverByName('Memory')
-        ogr_data_source = ogr_driver.CreateDataSource('')
+        ogr_driver = ogr.GetDriverByName("Memory")
+        ogr_data_source = ogr_driver.CreateDataSource("")
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(self.epsg)
-        ogr_lyr = ogr_data_source.CreateLayer('', srs, geom_type=ogr.wkbLineString)
+        ogr_lyr = ogr_data_source.CreateLayer("", srs, geom_type=ogr.wkbLineString)
         for fieldname, fieldtype in self.result_flowline_attr_types.items():
             field = ogr.FieldDefn(fieldname, fieldtype)
             ogr_lyr.CreateField(field)
 
-        qgs_lyr_name = 'Result flowlines (1D)'
+        qgs_lyr_name = "Result flowlines (1D)"
         self.result_flowline_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-        qml = os.path.join(STYLE_DIR, 'result_flowlines.qml')
+        qml = os.path.join(STYLE_DIR, "result_flowlines.qml")
         self.result_flowline_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_flowline_layer)
-        self.result_flowline_layer.setSubsetString('kcu != 100')
+        self.result_flowline_layer.setSubsetString("kcu != 100")
 
     def find_flowlines(self, node_ids: List, upstream: bool, result_set: int):
         """Find flowlines that connect the input nodes \
@@ -526,24 +526,22 @@ class Graph3DiQgsConnector:
         nw_ids = list(flowlines.id)
         nw_catchment_ids = [result_set] * flowlines.count
         if upstream:
-            location = ['upstream'] * flowlines.count
+            location = ["upstream"] * flowlines.count
         else:
-            location = ['downstream'] * flowlines.count
+            location = ["downstream"] * flowlines.count
         from_polygon = [0] * flowlines.count
         attributes = {
-            'id': nw_ids,
-            'location': location,
-            'catchment_id': nw_catchment_ids,
-            'from_polygon': from_polygon
+            "id": nw_ids,
+            "location": location,
+            "catchment_id": nw_catchment_ids,
+            "from_polygon": from_polygon,
         }
 
-        ds = MEMORY_DRIVER.CreateDataSource('')
-        threedigrid_to_ogr(threedigrid_src=flowlines,
-                           tgt_ds=ds,
-                           attributes=attributes,
-                           attr_data_types=self.result_flowline_attr_types
-                           )
-        layer = ds.GetLayerByName('flowline')
+        ds = MEMORY_DRIVER.CreateDataSource("")
+        threedigrid_to_ogr(
+            threedigrid_src=flowlines, tgt_ds=ds, attributes=attributes, attr_data_types=self.result_flowline_attr_types
+        )
+        layer = ds.GetLayerByName("flowline")
         append_to_qgs_vector_layer(ogr_layer=layer, qgs_vector_layer=self.result_flowline_layer)
 
     def clear_result_flowline_layer(self):
@@ -562,23 +560,22 @@ class Graph3DiQgsConnector:
     def create_catchment_layer(self):
         try:
             if self.result_catchment_layer is not None:
-                raise LayerExistsError('Attempt to create existing result catchment layer')
+                raise LayerExistsError("Attempt to create existing result catchment layer")
         except AttributeError:
             pass
-        ogr_driver = ogr.GetDriverByName('Memory')
-        ogr_data_source = ogr_driver.CreateDataSource('')
+        ogr_driver = ogr.GetDriverByName("Memory")
+        ogr_data_source = ogr_driver.CreateDataSource("")
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(self.epsg)
-        ogr_lyr = ogr_data_source.CreateLayer('', srs, geom_type=ogr.wkbPolygon)
+        ogr_lyr = ogr_data_source.CreateLayer("", srs, geom_type=ogr.wkbPolygon)
 
         for fieldname, fieldtype in self.result_cell_attr_types.items():
             field = ogr.FieldDefn(fieldname, fieldtype)
             ogr_lyr.CreateField(field)
 
-        qgs_lyr_name = 'Result catchments'
+        qgs_lyr_name = "Result catchments"
         self.result_catchment_layer = as_qgis_memory_layer(ogr_lyr, qgs_lyr_name)
-        qml = os.path.join(STYLE_DIR,
-                           'result_catchments.qml')
+        qml = os.path.join(STYLE_DIR, "result_catchments.qml")
         self.result_catchment_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.result_catchment_layer)
 
@@ -593,26 +590,22 @@ class Graph3DiQgsConnector:
         """Dissolve cells in self.result_cells_layer of all not yet dissolved result sets"""
         saved_subsetstring = self.result_cell_layer.subsetString()
         non_dissolved_ids = set(self.result_sets) - set(self.dissolved_result_sets)
-        non_dissolved_ids_str = ','.join(map(str, non_dissolved_ids))
-        subset_string = 'catchment_id IN ({})'.format(non_dissolved_ids_str)
+        non_dissolved_ids_str = ",".join(map(str, non_dissolved_ids))
+        subset_string = "catchment_id IN ({})".format(non_dissolved_ids_str)
         self.result_cell_layer.setSubsetString(subset_string)
 
         feedback = QgsProcessingFeedback()
         dslv_params = {
-            'INPUT': self.result_cell_layer,  # QgsVectorLayer
-            'FIELD': ['location', 'catchment_id'],  # dissolve field (str)
-            'OUTPUT': 'memory:'
+            "INPUT": self.result_cell_layer,  # QgsVectorLayer
+            "FIELD": ["location", "catchment_id"],  # dissolve field (str)
+            "OUTPUT": "memory:",
         }
 
-        multipolys = processing.run('qgis:dissolve', dslv_params, feedback=feedback)['OUTPUT']
-        to_single_params = {
-            'INPUT': multipolys,  # QgsVectorLayer
-            'OUTPUT': 'memory:Result Catchments'
-        }
-        nw_result_catchments_layer = processing.run('qgis:multiparttosingleparts',
-                                                    to_single_params,
-                                                    feedback=feedback
-                                                    )['OUTPUT']
+        multipolys = processing.run("qgis:dissolve", dslv_params, feedback=feedback)["OUTPUT"]
+        to_single_params = {"INPUT": multipolys, "OUTPUT": "memory:Result Catchments"}  # QgsVectorLayer
+        nw_result_catchments_layer = processing.run("qgis:multiparttosingleparts", to_single_params, feedback=feedback)[
+            "OUTPUT"
+        ]
 
         self.result_catchment_layer.startEditing()
         self.result_catchment_layer.dataProvider().addFeatures(nw_result_catchments_layer.getFeatures())
@@ -624,11 +617,11 @@ class Graph3DiQgsConnector:
 
     def smooth_catchment_layer(self):
         saved_subsetstring = self.result_catchment_layer.subsetString()
-        self.result_catchment_layer.setSubsetString('')
+        self.result_catchment_layer.setSubsetString("")
         self.result_catchment_layer.startEditing()
         for feature in self.result_catchment_layer.getFeatures():
             if feature.id() not in self.smooth_result_catchments:
-                avg_cell_size = self.average_cell_size(feature['catchment_id'])
+                avg_cell_size = self.average_cell_size(feature["catchment_id"])
                 avg_grid_space = np.sqrt(avg_cell_size)
                 sigma = np.max([10, 16 * np.log(avg_grid_space) - 30])  # formula fitted to trial and error results
                 sample_dist = np.max([2, 2 * np.log(avg_grid_space) - 3])
@@ -654,21 +647,21 @@ class Graph3DiQgsConnector:
         # This layer is different from the other result layers, because it is a copy of an existing layer from the
         # spatialite; It is easier to copy the layer using the QGIS API
         self.impervious_surface_source_layer = QgsVectorLayer(
-            path=str(self.sqlite) + '|layername=v2_impervious_surface',
-            baseName='v2_impervious_surface',
-            providerLib='ogr'
+            path=str(self.sqlite) + "|layername=v2_impervious_surface",
+            baseName="v2_impervious_surface",
+            providerLib="ogr",
         )
 
         fields = self.impervious_surface_source_layer.fields().toList()
-        catchment_id_field = QgsField('catchment_id', QVariant.Int)
+        catchment_id_field = QgsField("catchment_id", QVariant.Int)
         fields.append(catchment_id_field)
-        self.impervious_surface_layer = QgsVectorLayer('Polygon', 'Impervious surface', 'memory')
+        self.impervious_surface_layer = QgsVectorLayer("Polygon", "Impervious surface", "memory")
         crs = QgsCoordinateReferenceSystem()
         crs.createFromId(4326)
         self.impervious_surface_layer.setCrs(crs)
         success = self.impervious_surface_layer.dataProvider().addAttributes(fields)
         self.impervious_surface_layer.updateFields()
-        qml = os.path.join(STYLE_DIR, 'result_impervious_surfaces.qml')
+        qml = os.path.join(STYLE_DIR, "result_impervious_surfaces.qml")
         self.impervious_surface_layer.loadNamedStyle(qml)
         self.add_to_layer_tree_group(self.impervious_surface_layer)
 
@@ -678,19 +671,19 @@ class Graph3DiQgsConnector:
         impervious surfaces may be selected by ids or by expression. Expression overrules ids
         """
         impervious_surface_layer_subset_string = self.impervious_surface_layer.subsetString()
-        self.impervious_surface_layer.setSubsetString('')
+        self.impervious_surface_layer.setSubsetString("")
         max_fid_before = self.impervious_surface_layer.dataProvider().featureCount()
         if expression is None:
-            ids_str = ','.join(map(str, ids))
-            expression = f'id IN ({ids_str})'
+            ids_str = ",".join(map(str, ids))
+            expression = f"id IN ({ids_str})"
         self.impervious_surface_source_layer.setSubsetString(expression)
         features = self.impervious_surface_source_layer.getFeatures()
         success = self.impervious_surface_layer.dataProvider().addFeatures(features)
         if not success:
             return False
-        request = QgsFeatureRequest(QgsExpression(f'$id > {max_fid_before}'))
+        request = QgsFeatureRequest(QgsExpression(f"$id > {max_fid_before}"))
         added_features = self.impervious_surface_layer.getFeatures(request)
-        catchment_id_field_idx = self.impervious_surface_layer.dataProvider().fieldNameIndex('catchment_id')
+        catchment_id_field_idx = self.impervious_surface_layer.dataProvider().fieldNameIndex("catchment_id")
         attr_map = {feat.id(): {catchment_id_field_idx: result_set} for feat in added_features}
         success = self.impervious_surface_layer.dataProvider().changeAttributeValues(attr_map)
         if not success:
@@ -723,7 +716,7 @@ class Graph3DiQgsConnector:
         if self.impervious_surface_layer is not None and self.sqlite is not None:
             nodes = self.gr.nodes.filter(id__in=node_ids)
             connection_node_ids = set(nodes.content_pk) - {None, -9999}
-            connection_node_ids_str = ','.join(map(str, connection_node_ids))
+            connection_node_ids_str = ",".join(map(str, connection_node_ids))
             expression = f"""   id in (
                                     SELECT impervious_surface_id 
                                     FROM v2_impervious_surface_map 
@@ -733,12 +726,7 @@ class Graph3DiQgsConnector:
             if not success:
                 raise FindImperviousSurfaceError()
 
-    def upstream_downstream_analysis(
-            self,
-            target_node_ids: Iterable,
-            upstream: bool,
-            downstream: bool
-    ):
+    def upstream_downstream_analysis(self, target_node_ids: Iterable, upstream: bool, downstream: bool):
         progress_message_bar = self.iface.messageBar().createMessage("3Di Network Analysis is being performed...")
         progress = QtWidgets.QProgressBar()
         current_progress = 0
@@ -760,61 +748,56 @@ class Graph3DiQgsConnector:
             # upstream_node_ids -= set(target_node_ids) # remove the target nodes from the result
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: upstream_node_ids identified')
+            print(f"{current_progress}/{max_progress}: upstream_node_ids identified")
 
             self.append_result_cells(cell_ids=upstream_node_ids, upstream=True, result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: upstream result cells appended')
+            print(f"{current_progress}/{max_progress}: upstream result cells appended")
 
             upstream_node_ids.update(set(target_node_ids))
             self.find_flowlines(node_ids=list(upstream_node_ids), upstream=True, result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: upstream flowlines found')
+            print(f"{current_progress}/{max_progress}: upstream flowlines found")
 
             try:
-                self.find_impervious_surfaces(
-                    node_ids=list(upstream_node_ids),
-                    result_set=result_set
-                )
+                self.find_impervious_surfaces(node_ids=list(upstream_node_ids), result_set=result_set)
             except FindImperviousSurfaceError:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY,
-                    "Something went wrong when finding impervious surfaces",
-                    Qgis.Warning
+                    MESSAGE_CATEGORY, "Something went wrong when finding impervious surfaces", Qgis.Warning
                 )
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: impervious surfaces found')
+            print(f"{current_progress}/{max_progress}: impervious surfaces found")
 
         if downstream:
             downstream_node_ids = self.graph_3di.downstream_nodes(target_node_ids)
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: downstream_node_ids identified')
+            print(f"{current_progress}/{max_progress}: downstream_node_ids identified")
 
             # downstream_node_ids -= set(target_node_ids) # remove the target nodes from the result
             self.append_result_cells(cell_ids=downstream_node_ids, upstream=False, result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: downstream result cells appended')
+            print(f"{current_progress}/{max_progress}: downstream result cells appended")
 
             downstream_node_ids.update(set(target_node_ids))
             self.find_flowlines(node_ids=list(downstream_node_ids), upstream=False, result_set=result_set)
             current_progress += 1
             progress.setValue(current_progress)
-            print(f'{current_progress}/{max_progress}: downstream flowlines found')
+            print(f"{current_progress}/{max_progress}: downstream flowlines found")
 
         self.dissolve_cells()
         current_progress += 1
         progress.setValue(current_progress)
-        print(f'{current_progress}/{max_progress}: cells dissolved')
+        print(f"{current_progress}/{max_progress}: cells dissolved")
 
         self.smooth_catchment_layer()
         current_progress += 1
         progress.setValue(current_progress)
-        print(f'{current_progress}/{max_progress}: catchments smoothed')
+        print(f"{current_progress}/{max_progress}: catchments smoothed")
 
         self.result_cell_layer.triggerRepaint()
         self.result_flowline_layer.triggerRepaint()
@@ -823,7 +806,7 @@ class Graph3DiQgsConnector:
         self.update_analyzed_target_cells(target_node_ids, result_set)
         current_progress += 1
         progress.setValue(current_progress)
-        print(f'{current_progress}/{max_progress}: finished')
+        print(f"{current_progress}/{max_progress}: finished")
 
         self.iface.messageBar().clearWidgets()
 
@@ -835,9 +818,9 @@ class Graph3DiQgsConnector:
         source_crs = QgsCoordinateReferenceSystem(f"EPSG:{self.epsg}")
         transform = QgsCoordinateTransform(source_crs, project_crs, QgsProject.instance())
         impervious_surface_crs = QgsCoordinateReferenceSystem(f"EPSG:4326")
-        impervious_surface_transform = QgsCoordinateTransform(impervious_surface_crs,
-                                                              project_crs,
-                                                              QgsProject.instance())
+        impervious_surface_transform = QgsCoordinateTransform(
+            impervious_surface_crs, project_crs, QgsProject.instance()
+        )
         transformed_bbox = None
 
         # target nodes
@@ -899,13 +882,7 @@ class Graph3DiQgsConnector:
 
 
 class CatchmentMapTool(QgsMapToolIdentify):
-    def __init__(self,
-                 parent_widget,
-                 parent_button,
-                 gq: Graph3DiQgsConnector,
-                 upstream=False,
-                 downstream=False
-                 ):
+    def __init__(self, parent_widget, parent_button, gq: Graph3DiQgsConnector, upstream=False, downstream=False):
         super().__init__(gq.canvas)
         self.gq = gq
         self.upstream = upstream
@@ -938,16 +915,12 @@ class CatchmentMapTool(QgsMapToolIdentify):
         identify_results = self.identify(x=int(x), y=int(y), layerList=[self.gq.target_node_layer])
         if len(identify_results) == 0:
             self.parent_widget.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY,
-                "Please click on a target node",
-                level=Qgis.Info
+                MESSAGE_CATEGORY, "Please click on a target node", level=Qgis.Info
             )
         else:
             target_node_id = identify_results[0].mFeature.id()
             self.gq.upstream_downstream_analysis(
-                target_node_ids=[target_node_id],
-                upstream=self.upstream,
-                downstream=self.downstream
+                target_node_ids=[target_node_id], upstream=self.upstream, downstream=self.downstream
             )
 
     def activate(self):
@@ -1055,14 +1028,10 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             else:
                 self.gq.threshold = DEFAULT_THRESHOLD
             update_gr_task = UpdateGridAdminTask(
-                description='Preprocess 3Di Results for Network Analysis',
-                parent=self,
-                gr=gr
+                description="Preprocess 3Di Results for Network Analysis", parent=self, gr=gr
             )
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY,
-                'Started pre-processing simulation results',
-                Qgis.Info
+                MESSAGE_CATEGORY, "Started pre-processing simulation results", Qgis.Info
             )
             self.tm.addTask(update_gr_task)
             self.iface.mainWindow().repaint()  # to show the message before the task starts
@@ -1071,7 +1040,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         results_3di = self.QgsFileWidget3DiResults.filePath()
         if os.path.isfile(results_3di):
             results_3di_dir = os.path.dirname(results_3di)
-            gridadmin = os.path.join(results_3di_dir, 'gridadmin.h5')
+            gridadmin = os.path.join(results_3di_dir, "gridadmin.h5")
             if os.path.isfile(gridadmin):
                 self.QgsFileWidgetGridAdmin.setFilePath(gridadmin)
                 # now update_gr will be fired because gridadmin valueChanged() signal will be emitted
@@ -1082,27 +1051,23 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def sqlite_selected(self):
         uri = QgsDataSourceUri()
         uri.setDatabase(self.QgsFileWidgetSqlite.filePath())
-        schema = ''
-        table = 'v2_impervious_surface'
-        geom_column = 'the_geom'
+        schema = ""
+        table = "v2_impervious_surface"
+        geom_column = "the_geom"
         uri.setDataSource(schema, table, geom_column)
 
-        display_name = 'just for validity'
-        vlayer = QgsVectorLayer(uri.uri(), display_name, 'spatialite')
+        display_name = "just for validity"
+        vlayer = QgsVectorLayer(uri.uri(), display_name, "spatialite")
         if vlayer.isValid():
             self.gq.sqlite = self.QgsFileWidgetSqlite.filePath()
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY,
-                "Succesfully added impervious surfaces from model",
-                level=Qgis.Success
+                MESSAGE_CATEGORY, "Succesfully added impervious surfaces from model", level=Qgis.Success
             )
         else:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY,
-                "Invalid 3Di model sqlite selected",
-                level=Qgis.Warning
+                MESSAGE_CATEGORY, "Invalid 3Di model sqlite selected", level=Qgis.Warning
             )
-            self.QgsFileWidgetSqlite.setFilePath('')
+            self.QgsFileWidgetSqlite.setFilePath("")
 
     def threshold_changed(self):
         self.gq.threshold = self.doubleSpinBoxThreshold.value()
@@ -1121,14 +1086,13 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             pass
 
     def pushbutton_click_on_canvas_clicked(self):
-        if self.pushButtonClickOnCanvas.isChecked() \
-                and self.gq.graph_3di.isready:
+        if self.pushButtonClickOnCanvas.isChecked() and self.gq.graph_3di.isready:
             self.catchment_map_tool = CatchmentMapTool(
                 parent_widget=self,
                 parent_button=self.pushButtonClickOnCanvas,
                 gq=self.gq,
                 upstream=self.checkBoxUpstream.isChecked(),
-                downstream=self.checkBoxDownstream.isChecked()
+                downstream=self.checkBoxDownstream.isChecked(),
             )
             self.iface.mapCanvas().setMapTool(self.catchment_map_tool)
         else:
@@ -1141,22 +1105,18 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         if len(selected_node_ids) == 0:
             self.iface.messageBar().pushMessage(
-                MESSAGE_CATEGORY,
-                "Please first select one or more target nodes",
-                level=Qgis.Warning
+                MESSAGE_CATEGORY, "Please first select one or more target nodes", level=Qgis.Warning
             )
         else:
             if self.gq.graph_3di.isready:
                 self.gq.upstream_downstream_analysis(
                     target_node_ids=selected_node_ids,
                     upstream=self.checkBoxUpstream.isChecked(),
-                    downstream=self.checkBoxDownstream.isChecked()
+                    downstream=self.checkBoxDownstream.isChecked(),
                 )
             else:
                 self.iface.messageBar().pushMessage(
-                    MESSAGE_CATEGORY,
-                    "Please select 3Di results first",
-                    level=Qgis.Warning
+                    MESSAGE_CATEGORY, "Please select 3Di results first", level=Qgis.Warning
                 )
 
     def pushbutton_catchment_for_polygons_clicked(self):
@@ -1181,7 +1141,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.gq.upstream_downstream_analysis(
                     target_node_ids=target_node_ids,
                     upstream=self.checkBoxUpstream.isChecked(),
-                    downstream=self.checkBoxDownstream.isChecked()
+                    downstream=self.checkBoxDownstream.isChecked(),
                 )
 
     def pushbutton_clear_results_clicked(self):
@@ -1233,8 +1193,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
 
 class UpdateGridAdminTask(QgsTask):
-
-    def __init__(self, description:str, parent: WatershedAnalystDockWidget, gr: GridH5ResultAdmin):
+    def __init__(self, description: str, parent: WatershedAnalystDockWidget, gr: GridH5ResultAdmin):
         super().__init__(description, QgsTask.CanCancel)
         self.exception = None
         self.parent = parent
@@ -1288,8 +1247,6 @@ class UpdateGridAdminTask(QgsTask):
 
     def cancel(self):
         QgsMessageLog.logMessage(
-            "Pre-processing simulation results cancelled by user",
-            MESSAGE_CATEGORY,
-            level=Qgis.Info
+            "Pre-processing simulation results cancelled by user", MESSAGE_CATEGORY, level=Qgis.Info
         )
         super().cancel()

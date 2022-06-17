@@ -12,13 +12,7 @@ VT_PUMP = 3
 VT_FLOW_HYBRID = 10
 VT_NODE_HYBRID = 20
 
-VT_NAMES = {
-    VT_FLOW: 'Flowline',
-    VT_NODE: 'Node',
-    VT_PUMP: 'Pump',
-    VT_FLOW_HYBRID: 'Flowline',
-    VT_NODE_HYBRID: 'Node'
-}
+VT_NAMES = {VT_FLOW: "Flowline", VT_NODE: "Node", VT_PUMP: "Pump", VT_FLOW_HYBRID: "Flowline", VT_NODE_HYBRID: "Node"}
 
 
 class AggregationVariableList(list):
@@ -29,9 +23,9 @@ class AggregationVariableList(list):
         result = dict()
         for var in self:
             if var.var_type == var_type or var_type is None:
-                if key == 'short':
+                if key == "short":
                     result[var.short_name] = var.long_name
-                elif key == 'long':
+                elif key == "long":
                     result[var.long_name] = var.short_name
         return result
 
@@ -65,8 +59,17 @@ class AggregationVariableList(list):
 
 
 class AggregationVariable:
-    def __init__(self, short_name, long_name, signed: bool, applicable_methods: list, var_type: int, units: dict,
-                 can_resample: bool, pre_resample_method: int = PRM_NONE):
+    def __init__(
+        self,
+        short_name,
+        long_name,
+        signed: bool,
+        applicable_methods: list,
+        var_type: int,
+        units: dict,
+        can_resample: bool,
+        pre_resample_method: int = PRM_NONE,
+    ):
         self.short_name = short_name
         self.long_name = long_name
         self.signed = signed
@@ -84,8 +87,14 @@ class AggregationSign:
 
 
 class AggregationMethod:
-    def __init__(self, short_name, long_name, has_threshold: bool = False,
-                 integrates_over_time: bool = False, is_percentage: bool = False):
+    def __init__(
+        self,
+        short_name,
+        long_name,
+        has_threshold: bool = False,
+        integrates_over_time: bool = False,
+        is_percentage: bool = False,
+    ):
         self.short_name = short_name
         self.long_name = long_name
         self.has_threshold = has_threshold
@@ -94,14 +103,19 @@ class AggregationMethod:
         self.var_type = None
 
 
-NA_TEXT = '[Not applicable]'
-AGGREGATION_SIGN_NA = AggregationSign(short_name='', long_name=NA_TEXT)
+NA_TEXT = "[Not applicable]"
+AGGREGATION_SIGN_NA = AggregationSign(short_name="", long_name=NA_TEXT)
 
 
 class Aggregation:
-    def __init__(self, variable: AggregationVariable, method: AggregationMethod,
-                 sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
-                 threshold: Optional[float] = None, multiplier: float = 1):
+    def __init__(
+        self,
+        variable: AggregationVariable,
+        method: AggregationMethod,
+        sign: Optional[AggregationSign] = AGGREGATION_SIGN_NA,
+        threshold: Optional[float] = None,
+        multiplier: float = 1,
+    ):
         assert isinstance(method, AggregationMethod)
         self.variable = variable
         self.sign = sign
@@ -116,10 +130,10 @@ class Aggregation:
             if self.variable.signed:
                 column_name_list.append(self.sign.short_name)
             column_name_list.append(self.method.short_name)
-            if self.method.short_name in ['above_thres', 'below_thres']:
-                thres_parsed = str(self.threshold).replace('.', '_')
+            if self.method.short_name in ["above_thres", "below_thres"]:
+                thres_parsed = str(self.threshold).replace(".", "_")
                 column_name_list.append(thres_parsed)
-            return '_'.join(column_name_list).lower()
+            return "_".join(column_name_list).lower()
         except AttributeError:
             return None
 
@@ -130,4 +144,3 @@ def filter_demanded_aggregations(das: List[Aggregation], variable_types):
         if da.variable.var_type in variable_types:
             result.append(da)
     return result
-

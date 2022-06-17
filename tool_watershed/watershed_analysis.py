@@ -5,7 +5,6 @@ from .watershed_analysis_dockwidget import WatershedAnalystDockWidget
 
 
 class ThreeDiWatershedAnalyst:
-
     def __init__(self, iface, tdi_root_tool):
         """Constructor.
 

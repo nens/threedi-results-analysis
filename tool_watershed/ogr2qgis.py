@@ -1,26 +1,21 @@
 from osgeo import ogr
-from qgis.core import (
-    QgsVectorLayer,
-    QgsVectorLayerUtils,
-    QgsFeature,
-    QgsWkbTypes,
-    QgsGeometry
-)
+from qgis.core import QgsVectorLayer, QgsFeature, QgsWkbTypes, QgsGeometry
+
 ogr.UseExceptions()
 
 FIELD_TYPES = {
-    ogr.OFTInteger: 'integer',  # OFTInteger, Simple 32bit integer
-    ogr.OFTReal: 'double',  # OFTReal, Double Precision floating point
-    ogr.OFTString: 'string'  # OFTString, String of ASCII chars
+    ogr.OFTInteger: "integer",  # OFTInteger, Simple 32bit integer
+    ogr.OFTReal: "double",  # OFTReal, Double Precision floating point
+    ogr.OFTString: "string",  # OFTString, String of ASCII chars
 }
 
 GEOMETRY_TYPES = {  # See full list: https://gdal.org/doxygen/ogr__core_8h.html, search for OGRwkbGeometryType
-    1: 'Point',
-    2: 'Linestring',
-    3: 'Polygon',
-    4: 'MultiPoint',
-    5: 'MultiLinestring',
-    6: 'MultiPolygon'
+    1: "Point",
+    2: "Linestring",
+    3: "Polygon",
+    4: "MultiPoint",
+    5: "MultiLinestring",
+    6: "MultiPolygon",
 }
 
 
@@ -33,12 +28,12 @@ def field_defn_as_uri_param(field_defn: ogr.FieldDefn) -> str:
     length = field_defn.GetWidth()
     precision = field_defn.GetPrecision()
 
-    uri_param = 'field=' + name + ':' + field_type
+    uri_param = "field=" + name + ":" + field_type
     if length is not None and length != 0:
-        uri_param += '(' + str(length)
+        uri_param += "(" + str(length)
         if precision is not None and length != 0:
-            uri_param += ',' + str(precision)
-        uri_param += ')'
+            uri_param += "," + str(precision)
+        uri_param += ")"
     return uri_param
 
 
@@ -53,11 +48,11 @@ def layer_as_uri(layer: ogr.Layer, index: bool = True) -> str:
 
     # crs (only EPSG code style crs are supported)
     auth_name = layer.GetSpatialRef().GetAuthorityName(None)
-    if auth_name == 'EPSG':
+    if auth_name == "EPSG":
         auth_code = layer.GetSpatialRef().GetAuthorityCode(None)
-        crs_param = 'crs=epsg:' + str(auth_code)
+        crs_param = "crs=epsg:" + str(auth_code)
     else:
-        raise Exception('Layer does not have a EPSG coded crs')
+        raise Exception("Layer does not have a EPSG coded crs")
     other_params.append(crs_param)
 
     # fields
@@ -70,10 +65,10 @@ def layer_as_uri(layer: ogr.Layer, index: bool = True) -> str:
 
     # index
     if index:
-        index_param = 'index=yes'
+        index_param = "index=yes"
         other_params.append(index_param)
 
-    return geom_param + '?' + '&'.join(other_params)
+    return geom_param + "?" + "&".join(other_params)
 
 
 def ogr_feature_as_qgis_feature(ogr_feature: ogr.Feature, qgs_vector_lyr: QgsVectorLayer) -> QgsFeature:
@@ -120,10 +115,8 @@ def as_qgis_memory_layer(ogr_layer: ogr.Layer, base_name: str) -> QgsVectorLayer
     """
     uri = layer_as_uri(ogr_layer)
     qgs_vector_layer = QgsVectorLayer(
-        path=uri,
-        baseName=base_name,
-        providerLib='memory',
-        options=QgsVectorLayer.LayerOptions())
+        path=uri, baseName=base_name, providerLib="memory", options=QgsVectorLayer.LayerOptions()
+    )
     append_to_qgs_vector_layer(ogr_layer=ogr_layer, qgs_vector_layer=qgs_vector_layer)
 
     return qgs_vector_layer

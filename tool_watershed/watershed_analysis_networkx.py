@@ -1,61 +1,33 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Aug 10 12:14:14 2020
-
-@author: leendert.vanwolfswinkel
-
-Network analysis for 3Di
-3Di models and results are networks that can be analysed using generic network analysis algorithms. 
-This notebook uses network analysis to determine the areas that contribute to water accumulation in the model.
-
-README:
-    For many purposes it is more interesting to analyse the results as a directed network,\
-        where the directions of the edges are determined by the mean velocity. 
-        In this case we use the mean velocity with a threshold value.
-     
-        Because the network is directional, 
-        all velocities are positive. 
-        We first add all positive velocities,
-        then we take the negative velocities, 
-        flip the node pairs and then add them to the Network model.
-
-"""
-
-# System imports
-import os
-
-# Grid imports
-# from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-# from threedigrid.admin.gridadmin import GridH5Admin
-
-# Third-party imports
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from osgeo import ogr
 import numpy as np
 import networkx as nx
+from osgeo import ogr
+from .result_aggregation.base import time_aggregate
+from .result_aggregation.aggregation_classes import Aggregation
+from .result_aggregation.constants import AGGREGATION_VARIABLES, AGGREGATION_METHODS, AggregationSign
+from .result_aggregation.threedigrid_ogr import threedigrid_to_ogr
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
-# Local imports
-try:
-    from result_aggregation import *
-except ImportError:
-    from .result_aggregation import *
 
-Q_NET_SUM = Aggregation(variable=AGGREGATION_VARIABLES.get_by_short_name('q'),
-                        method=AGGREGATION_METHODS.get_by_short_name('sum'),
-                        sign=AggregationSign('net', 'Net')
-                        )
+Q_NET_SUM = Aggregation(
+    variable=AGGREGATION_VARIABLES.get_by_short_name("q"),
+    method=AGGREGATION_METHODS.get_by_short_name("sum"),
+    sign=AggregationSign("net", "Net"),
+)
 
 ogr.UseExceptions()
 
 
 class Graph3Di:
-    def __init__(self,
-                 gr: GridH5ResultAdmin = None,
-                 subset: str = None,
-                 start_time: int = None,
-                 end_time: int = None,
-                 aggregation: Aggregation = Q_NET_SUM,
-                 threshold: float = 0):
+    def __init__(
+        self,
+        gr: GridH5ResultAdmin = None,
+        subset: str = None,
+        start_time: int = None,
+        end_time: int = None,
+        aggregation: Aggregation = Q_NET_SUM,
+        threshold: float = 0,
+    ):
         self._gr = gr
         self._subset = subset
         self._start_time = start_time
@@ -159,28 +131,34 @@ class Graph3Di:
     def calculate_aggregate(self):
         """Calculate the aggregate with current attributes"""
         # Split from update_graph because this is not necessary when just the threshold changes
-        if isinstance(self.gr, GridH5ResultAdmin) \
-                and isinstance(self.start_time, int) \
-                and isinstance(self.end_time, int) \
-                and isinstance(self.aggregation, Aggregation):
-            self._aggregate = time_aggregate(nodes_or_lines=self.lines_subset,
-                                             start_time=self.start_time,
-                                             end_time=self.end_time,
-                                             aggregation=self.aggregation)
+        if (
+            isinstance(self.gr, GridH5ResultAdmin)
+            and isinstance(self.start_time, int)
+            and isinstance(self.end_time, int)
+            and isinstance(self.aggregation, Aggregation)
+        ):
+            self._aggregate = time_aggregate(
+                nodes_or_lines=self.lines_subset,
+                start_time=self.start_time,
+                end_time=self.end_time,
+                aggregation=self.aggregation,
+            )
             self._graph = None  # to prevent a mismatch between aggregate and graph
 
         else:
-            print('calculate aggregate not performed')
-            print(f'gr type: {type(self.gr)}')
-            print(f'start time = {self.start_time} type: {type(self.start_time)}')
-            print(f'end time = {self.end_time} type: {type(self.end_time)}')
-            print(f'aggregation type: {type(self.aggregate)}')
+            print("calculate aggregate not performed")
+            print(f"gr type: {type(self.gr)}")
+            print(f"start time = {self.start_time} type: {type(self.start_time)}")
+            print(f"end time = {self.end_time} type: {type(self.end_time)}")
+            print(f"aggregation type: {type(self.aggregate)}")
 
     def update_graph(self):
         """Create NetworkX MultiDiGraph object if necessary properties have valid values"""
-        if isinstance(self.aggregate, np.ndarray) \
-                and isinstance(self.threshold, float) \
-                and isinstance(self.gr, GridH5ResultAdmin):
+        if (
+            isinstance(self.aggregate, np.ndarray)
+            and isinstance(self.threshold, float)
+            and isinstance(self.gr, GridH5ResultAdmin)
+        ):
             # Get flowlines with positive flow
             pos_mask = np.squeeze(self.aggregate > self.threshold)
             pos_flows = self.lines_subset.line.T[pos_mask]
@@ -200,7 +178,7 @@ class Graph3Di:
             flows += list(map(tuple, neg_flows_flipped))
             ids = pos_flows_ids + neg_flows_ids
             for i, line in enumerate(flows):
-                edges.append((line[0], line[1], {'id': ids[i]}))
+                edges.append((line[0], line[1], {"id": ids[i]}))
 
             self._graph.add_edges_from(edges)
 
@@ -237,7 +215,7 @@ class Graph3Di:
 
     def flowlines_between_nodes(self, node_ids):
         """Return list of flowline ids that connect the input nodes"""
-        edges = self.graph.subgraph(nodes=node_ids).edges.data('id')
+        edges = self.graph.subgraph(nodes=node_ids).edges.data("id")
         flowline_ids = [edge[2] for edge in edges]
         return flowline_ids
 
@@ -258,14 +236,10 @@ class Graph3Di:
         WARNING! May result in memory error if somehwat large set of cells is given as input
         """
         upstream_cells = self._gr.cells.filter(id__in=list(cell_ids))
-        cell_drv = ogr.GetDriverByName('MEMORY')
-        cell_ds = cell_drv.CreateDataSource('')
-        threedigrid_to_ogr(threedigrid_src=upstream_cells,
-                           tgt_ds=cell_ds,
-                           attributes={},
-                           attr_data_types={}
-                           )
-        cell_layer = cell_ds.GetLayerByName('cell')
+        cell_drv = ogr.GetDriverByName("MEMORY")
+        cell_ds = cell_drv.CreateDataSource("")
+        threedigrid_to_ogr(threedigrid_src=upstream_cells, tgt_ds=cell_ds, attributes={}, attr_data_types={})
+        cell_layer = cell_ds.GetLayerByName("cell")
         cells_multipolygon = ogr.Geometry(ogr.wkbMultiPolygon)
         for cell in cell_layer:
             cells_multipolygon.AddGeometry(cell.GetGeometryRef())

@@ -27,9 +27,9 @@ def linestring_gaussian_smooth(line: ogr.Geometry, sigma: float = 1.0, sample_di
     if line.IsRing() or first_vertex == last_vertex:
         input_is_ring = True
     if input_is_ring:
-        mode = 'wrap'
+        mode = "wrap"
     else:
-        mode = 'nearest'
+        mode = "nearest"
         out_line.AddPoint(x[0], y[0])  # to ensure start vertex remains in same location
 
     # equally spaced numbers between 0 en 1 for each vertex

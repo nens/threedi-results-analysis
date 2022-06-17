@@ -1,29 +1,29 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" Calculate the resultant of the total outflow per node, resampled to grid_space """
-#TODO: aggregatie-NetCDF ook gebruiken
-
 import argparse
 import warnings
-from typing import List
-
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
-from threedigrid.admin.nodes.models import Nodes, Cells
-from threedigrid.admin.lines.models import Lines
-
-from osgeo import gdal
 import numpy as np
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
+from threedigrid.admin.lines.models import Lines
+from typing import List
+from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
+from .aggregation_classes import Aggregation
+from .constants import (
+    NON_TS_REDUCING_KCU,
+    AGGREGATION_VARIABLES,
+    AggregationSign,
+    PRM_NONE,
+    PRM_SPLIT,
+    PRM_1D,
+    VT_FLOW,
+    VT_NODE,
+    VT_NODE_HYBRID,
+    NP_OGR_DTYPES,
+)
+from .threedigrid_ogr import threedigrid_to_ogr
 
-try:
-    from constants import *
-    from threedigrid_ogr import *
-except ImportError:
-    from .constants import *
-    from .threedigrid_ogr import *
-
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 ogr.UseExceptions()
 
 
@@ -44,7 +44,8 @@ def time_intervals(nodes_or_lines, start_time, end_time):
     all_timestamps = np.array(nodes_or_lines.timestamps)
     filtered_timestamps = all_timestamps[np.where(all_timestamps >= start_time)]  # filters timestamps for start_time
     filtered_timestamps = filtered_timestamps[
-        np.where(filtered_timestamps <= end_time)]  # filters timestamps for end_time
+        np.where(filtered_timestamps <= end_time)
+    ]  # filters timestamps for end_time
 
     ts_start_time_idx = int(np.where(all_timestamps == filtered_timestamps[0])[0])
     ts_end_time_idx = int(np.where(all_timestamps == filtered_timestamps[-1])[0])
@@ -61,7 +62,7 @@ def time_intervals(nodes_or_lines, start_time, end_time):
 
     # Check validity of temporal filtering, part 2 of 2
     if all_timestamps[ts_start_time_idx:ts_end_time_idx].size == 0:
-        raise Exception('No values found within temporal filter')
+        raise Exception("No values found within temporal filter")
 
     # raw_values must be of same length as time_intervals,
     # because we multiply the flow variable by the time interval to obtain the aggregate.
@@ -82,7 +83,7 @@ line_geometries_to_lengths = np.vectorize(line_geometry_length)
 
 
 def find_finite_1d(x: np.array, index: int):
-    """ Find the a finite (non-nan) value in a numpy 1d array,
+    """Find the a finite (non-nan) value in a numpy 1d array,
     returning np.nan if the array contains no valid value
 
     :param x: numpy 1d array
@@ -94,8 +95,7 @@ def find_finite_1d(x: np.array, index: int):
         return np.nan
 
 
-def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregation,
-                   cfl_strictness=1):
+def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregation, cfl_strictness=1):
     """
     Aggregate the variable with method using threshold within time frame
 
@@ -108,18 +108,18 @@ def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregatio
     of filtering (spatial, typological, id-based) are not.
     """
 
-    ts_start_time, ts_end_time, tintervals = time_intervals(nodes_or_lines=nodes_or_lines,
-                                                            start_time=start_time,
-                                                            end_time=end_time)
+    ts_start_time, ts_end_time, tintervals = time_intervals(
+        nodes_or_lines=nodes_or_lines, start_time=start_time, end_time=end_time
+    )
     ts = nodes_or_lines.timeseries(ts_start_time, ts_end_time)
 
     raw_values = np.ndarray((0, 0))
 
     # Line variables
-    if aggregation.variable.short_name in ['q', 'u1', 'au']:
+    if aggregation.variable.short_name in ["q", "u1", "au"]:
         raw_values = getattr(ts, aggregation.variable.short_name)
-    elif aggregation.variable.short_name == 'ts_max':
-        if hasattr(nodes_or_lines, 'line_geometries'):
+    elif aggregation.variable.short_name == "ts_max":
+        if hasattr(nodes_or_lines, "line_geometries"):
             if nodes_or_lines.line_geometries.ndim == 0:
                 a = nodes_or_lines.line_coords[[0, 2, 1, 3], :]
                 b = np.split(a, np.shape(a)[1], 1)
@@ -140,32 +140,42 @@ def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregatio
         raw_values[:, np.in1d(kcu_types, np.array(NON_TS_REDUCING_KCU))] = 9999
 
     # Node variables
-    elif aggregation.variable.short_name in ['s1', 'vol', 'rain', 'su', 'ucx', 'ucy', 'infiltration_rate_simple',
-                                             'q_lat', 'intercepted_volume', 'q_sss']:
+    elif aggregation.variable.short_name in [
+        "s1",
+        "vol",
+        "rain",
+        "su",
+        "ucx",
+        "ucy",
+        "infiltration_rate_simple",
+        "q_lat",
+        "intercepted_volume",
+        "q_sss",
+    ]:
         raw_values = getattr(ts, aggregation.variable.short_name)
-    elif aggregation.variable.short_name == 'rain_depth':
+    elif aggregation.variable.short_name == "rain_depth":
         ts_rain = ts.rain
         ts_rain[ts_rain == -9999] = np.nan
         raw_values = np.divide(ts_rain, nodes_or_lines.sumax)
-    elif aggregation.variable.short_name == 'uc':
+    elif aggregation.variable.short_name == "uc":
         ucx = ts.ucx
         ucx[ucx == -9999] = np.nan
         ucy = ts.ucy
         ucy[ucy == -9999] = np.nan
         raw_values = np.sqrt(np.square(ucx), np.square(ucy))
-    elif aggregation.variable.short_name == 'infiltration_rate_simple_mm':
+    elif aggregation.variable.short_name == "infiltration_rate_simple_mm":
         ts_infiltration_rate_simple = ts.infiltration_rate_simple
         ts_infiltration_rate_simple[ts_infiltration_rate_simple == -9999] = np.nan
         raw_values = np.divide(ts_infiltration_rate_simple, ts.sumax)
-    elif aggregation.variable.short_name == 'q_lat_mm':
+    elif aggregation.variable.short_name == "q_lat_mm":
         ts_q_lat = ts.q_lat
         ts_q_lat[ts_q_lat == -9999] = np.nan
         raw_values = np.divide(ts_q_lat, nodes_or_lines.sumax)
-    elif aggregation.variable.short_name == 'intercepted_volume_mm':
+    elif aggregation.variable.short_name == "intercepted_volume_mm":
         ts_intercepted_volume = ts.intercepted_volume
         ts_intercepted_volume[ts_intercepted_volume == -9999] = np.nan
         raw_values = np.divide(ts_intercepted_volume, nodes_or_lines.sumax)
-    elif aggregation.variable.short_name == 'q_sss_mm':
+    elif aggregation.variable.short_name == "q_sss_mm":
         ts_q_sss = ts.q_sss
         ts_q_sss[ts_q_sss == -9999] = np.nan
         raw_values = np.divide(ts_q_sss, nodes_or_lines.sumax)
@@ -182,48 +192,48 @@ def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregatio
         kcu_types_1d2d = np.array([51, 52, 53, 54, 54, 55, 56, 57, 58])
         raw_values[:, np.in1d(nodes_or_lines.kcu, kcu_types_1d2d)] *= -1
 
-    if aggregation.sign.short_name == 'pos':
+    if aggregation.sign.short_name == "pos":
         raw_values_signed = raw_values * (raw_values >= 0).astype(int)
-    elif aggregation.sign.short_name == 'neg':
+    elif aggregation.sign.short_name == "neg":
         raw_values_signed = raw_values * (raw_values < 0).astype(int)
-    elif aggregation.sign.short_name == 'abs':
+    elif aggregation.sign.short_name == "abs":
         raw_values_signed = np.absolute(raw_values)
-    elif aggregation.sign.short_name == 'net':
+    elif aggregation.sign.short_name == "net":
         raw_values_signed = raw_values
     else:
         raw_values_signed = raw_values
 
     # Apply method
-    if aggregation.method.short_name == 'sum':
+    if aggregation.method.short_name == "sum":
         raw_values_per_time_interval = np.multiply(raw_values_signed.T, tintervals).T
         result = np.sum(raw_values_per_time_interval, axis=0)
-    elif aggregation.method.short_name == 'min':
+    elif aggregation.method.short_name == "min":
         result = np.nanmin(raw_values_signed, axis=0)
-    elif aggregation.method.short_name == 'max':
+    elif aggregation.method.short_name == "max":
         result = np.nanmax(raw_values_signed, axis=0)
-    elif aggregation.method.short_name == 'max_time':
+    elif aggregation.method.short_name == "max_time":
         raw_values_signed[np.isnan(raw_values_signed)] = -9999
         first_max_pos = np.nanargmax(raw_values_signed, axis=0)
         time_steps = np.cumsum(np.insert(tintervals[0:-1], 0, start_time))
         result = time_steps[first_max_pos]
-    elif aggregation.method.short_name == 'mean':
+    elif aggregation.method.short_name == "mean":
         result = np.nanmean(raw_values_signed, axis=0)
-    elif aggregation.method.short_name == 'median':
+    elif aggregation.method.short_name == "median":
         result = np.nanmedian(raw_values_signed, axis=0)
-    elif aggregation.method.short_name == 'first':
+    elif aggregation.method.short_name == "first":
         result = raw_values_signed[0, :]
-    elif aggregation.method.short_name == 'first_non_empty':
+    elif aggregation.method.short_name == "first_non_empty":
         result = np.array([find_finite_1d(col, index=0) for col in raw_values_signed.T])
-    elif aggregation.method.short_name == 'last':
+    elif aggregation.method.short_name == "last":
         result = raw_values_signed[-1, :]
-    elif aggregation.method.short_name == 'last_non_empty':
+    elif aggregation.method.short_name == "last_non_empty":
         result = np.array([find_finite_1d(col, index=-1) for col in raw_values_signed.T])
-    elif aggregation.method.short_name == 'above_thres':
+    elif aggregation.method.short_name == "above_thres":
         raw_values_above_threshold = np.greater(raw_values_signed, aggregation.threshold)
         time_above_treshold = np.sum(np.multiply(raw_values_above_threshold.T, tintervals).T, axis=0)
         total_time = np.sum(tintervals)
         result = np.multiply(np.divide(time_above_treshold, total_time), 100.0)
-    elif aggregation.method.short_name == 'below_thres':
+    elif aggregation.method.short_name == "below_thres":
         raw_values_below_threshold = np.less(raw_values_signed, aggregation.threshold)
         time_below_treshold = np.sum(np.multiply(raw_values_below_threshold.T, tintervals).T, axis=0)
         total_time = np.sum(tintervals)
@@ -237,24 +247,23 @@ def time_aggregate(nodes_or_lines, start_time, end_time, aggregation: Aggregatio
     return result
 
 
-def hybrid_time_aggregate(gr,
-                          ids,
-                          start_time,
-                          end_time,
-                          aggregation):
-    if 'q_' in aggregation.variable.short_name:
-        flows = flow_per_node(gr=gr, node_ids=ids,
-                              start_time=start_time,
-                              end_time=end_time,
-                              out='_out' in aggregation.variable.short_name,
-                              aggregation_method=aggregation.method)
-        if '_x' in aggregation.variable.short_name:
+def hybrid_time_aggregate(gr, ids, start_time, end_time, aggregation):
+    if "q_" in aggregation.variable.short_name:
+        flows = flow_per_node(
+            gr=gr,
+            node_ids=ids,
+            start_time=start_time,
+            end_time=end_time,
+            out="_out" in aggregation.variable.short_name,
+            aggregation_method=aggregation.method,
+        )
+        if "_x" in aggregation.variable.short_name:
             result = flows[:, 1]
-        elif '_y' in aggregation.variable.short_name:
+        elif "_y" in aggregation.variable.short_name:
             result = flows[:, 2]
         else:
             raise ValueError('Unknown aggregation variable "{}".'.format(aggregation.variable.long_name))
-        if '_mm' in aggregation.variable.short_name:
+        if "_mm" in aggregation.variable.short_name:
             surface_area = gr.nodes.filter(id__in=ids).sumax
             result = result / surface_area
     else:
@@ -275,18 +284,17 @@ def flow_per_node(gr: GridH5ResultAdmin, node_ids: list, start_time: int, end_ti
     lines = filter_lines_by_node_ids(gr.lines, node_ids)
 
     start_end_node_ids = lines.line_nodes.T.reshape(
-        lines.line_nodes.size)  # 1d array with first all start nodes, than all end nodes
+        lines.line_nodes.size
+    )  # 1d array with first all start nodes, than all end nodes
     # if there are any nodes without flowlinks, they will not be included in start_end_node_ids
     # this is dealt with just before the end of this function
 
-    da = Aggregation(variable=AGGREGATION_VARIABLES.get_by_short_name('q'),
-                     method=aggregation_method,
-                     sign=AggregationSign(short_name='net', long_name='Net')
-                     )
-    q_agg = time_aggregate(nodes_or_lines=lines,
-                           start_time=start_time,
-                           end_time=end_time,
-                           aggregation=da)
+    da = Aggregation(
+        variable=AGGREGATION_VARIABLES.get_by_short_name("q"),
+        method=aggregation_method,
+        sign=AggregationSign(short_name="net", long_name="Net"),
+    )
+    q_agg = time_aggregate(nodes_or_lines=lines, start_time=start_time, end_time=end_time, aggregation=da)
     if out:
         q_agg_start_nodes = q_agg * (q_agg > 0).astype(int)  # positive flows, to be grouped by start node
         q_agg_end_nodes = q_agg * (q_agg < 0).astype(int)  # negative flows, to be grouped by end node
@@ -295,7 +303,8 @@ def flow_per_node(gr: GridH5ResultAdmin, node_ids: list, start_time: int, end_ti
         q_agg_end_nodes = q_agg * (q_agg > 0).astype(int)  # negative flows, to be grouped by end node
 
     q_agg_in_or_out = np.hstack(
-        [q_agg_start_nodes, q_agg_end_nodes])  # 1d array with first all positive flows, than all negative flows
+        [q_agg_start_nodes, q_agg_end_nodes]
+    )  # 1d array with first all positive flows, than all negative flows
 
     # for both pos and neg flows, use the flowline in pos direction to calc the angle
     angle_x = flowline_angle_x(lines)
@@ -319,15 +328,14 @@ def flow_per_node(gr: GridH5ResultAdmin, node_ids: list, start_time: int, end_ti
     q_agg_in_or_out_x_sum = sums[:, 0]
     q_agg_in_or_out_y_sum = sums[:, 1]
 
-    in_or_out_flow = np.array([start_node_ids_unique,
-                               q_agg_in_or_out_x_sum,
-                               q_agg_in_or_out_y_sum]).T
+    in_or_out_flow = np.array([start_node_ids_unique, q_agg_in_or_out_x_sum, q_agg_in_or_out_y_sum]).T
 
     # if there are any nodes without flowlinks, they will have been missed so far
     linkless_node_ids = node_ids[np.logical_not(np.in1d(node_ids, start_node_ids_unique))]
     if linkless_node_ids.ndim > 0 and linkless_node_ids.size > 0:
-        linkless_node_zeroflow = np.c_[linkless_node_ids, np.zeros(
-            [linkless_node_ids.size, 2])]  # can't use hstack here to add a (x,2)-shaped array to a (x)-shaped array
+        linkless_node_zeroflow = np.c_[
+            linkless_node_ids, np.zeros([linkless_node_ids.size, 2])
+        ]  # can't use hstack here to add a (x,2)-shaped array to a (x)-shaped array
         in_or_out_flow = np.vstack([in_or_out_flow, linkless_node_zeroflow])
 
     in_or_out_flow = in_or_out_flow[in_or_out_flow[:, 0].argsort()]  # sort by first column, i.e., node id
@@ -337,22 +345,18 @@ def flow_per_node(gr: GridH5ResultAdmin, node_ids: list, start_time: int, end_ti
 
 
 def empty_raster_from_vector_layer(layer, pixel_size_x, pixel_size_y, bands=1, nodatavalue=-9999):
-    """ Create in-memory gdal dataset of the same size as the input target_node_layer, filled with nodatavalue. """
+    """Create in-memory gdal dataset of the same size as the input target_node_layer, filled with nodatavalue."""
     xmin, xmax, ymin, ymax = layer.GetExtent()
     width = int((xmax - xmin) / pixel_size_x)
     height = int((ymax - ymin) / pixel_size_y)
-    drv = gdal.GetDriverByName('mem')
+    drv = gdal.GetDriverByName("mem")
 
-    dataset = drv.Create('', xsize=width, ysize=height, bands=bands, eType=gdal.GDT_Float32)
+    dataset = drv.Create("", xsize=width, ysize=height, bands=bands, eType=gdal.GDT_Float32)
 
     shift = 0.0  # set to -0.5 if applied to point data that represent pixel centers
-    dataset.SetGeoTransform((xmin + shift * pixel_size_x,
-                             pixel_size_x,
-                             0,
-                             ymax - shift * pixel_size_x,
-                             0,
-                             -1 * abs(pixel_size_y))
-                            )
+    dataset.SetGeoTransform(
+        (xmin + shift * pixel_size_x, pixel_size_x, 0, ymax - shift * pixel_size_x, 0, -1 * abs(pixel_size_y))
+    )
     dataset.SetProjection(layer.GetSpatialRef().ExportToWkt())
 
     for i in range(bands):
@@ -364,7 +368,7 @@ def empty_raster_from_vector_layer(layer, pixel_size_x, pixel_size_y, bands=1, n
 
 
 def flowline_angle_x(lines):
-    """ Calculate the angle between each flowline and the x-axis 
+    """Calculate the angle between each flowline and the x-axis
     Angles in counter-clockwise values from -pi to pi
     """
     coords = lines.line_coords
@@ -375,28 +379,24 @@ def flowline_angle_x(lines):
 
 
 def rasterize_cell_layer(cell_layer, column_name, pixel_size, interpolation_method=None, pre_resample_method=PRM_NONE):
-    non_interpolated_ds = empty_raster_from_vector_layer(layer=cell_layer,
-                                                         pixel_size_x=pixel_size,
-                                                         pixel_size_y=pixel_size
-                                                         )
-    gdal.RasterizeLayer(dataset=non_interpolated_ds,
-                        bands=[1],
-                        layer=cell_layer,
-                        options=['ATTRIBUTE=' + column_name])
+    non_interpolated_ds = empty_raster_from_vector_layer(
+        layer=cell_layer, pixel_size_x=pixel_size, pixel_size_y=pixel_size
+    )
+    gdal.RasterizeLayer(dataset=non_interpolated_ds, bands=[1], layer=cell_layer, options=["ATTRIBUTE=" + column_name])
     if interpolation_method is None:
         return non_interpolated_ds
     else:
         mask_band = non_interpolated_ds.GetRasterBand(1)
         mask_array = mask_band.ReadAsArray()
 
-        tmp_drv = ogr.GetDriverByName('ESRI Shapefile')
-        tmp_fn = '/vsimem/point.shp'
+        tmp_drv = ogr.GetDriverByName("ESRI Shapefile")
+        tmp_fn = "/vsimem/point.shp"
         tmp_ds = tmp_drv.CreateDataSource(tmp_fn)
         srs = cell_layer.GetSpatialRef()
-        tmp_lyr = tmp_ds.CreateLayer('point', srs, ogr.wkbPoint)
+        tmp_lyr = tmp_ds.CreateLayer("point", srs, ogr.wkbPoint)
 
         # Add input Layer Fields to the output Layer
-        field_defn = ogr.FieldDefn('val', ogr.OFTReal)
+        field_defn = ogr.FieldDefn("val", ogr.OFTReal)
         tmp_lyr.CreateField(field_defn)
 
         # Get the output Layer's Feature Definition
@@ -427,10 +427,10 @@ def rasterize_cell_layer(cell_layer, column_name, pixel_size, interpolation_meth
                 # divide by (res_old/res_new)
                 out_value = in_value / (in_cell_size / pixel_size)
             else:
-                raise Exception('Unknown pre-resample method')
+                raise Exception("Unknown pre-resample method")
 
             # Add field values from input Layer
-            out_feature.SetField('val', out_value)
+            out_feature.SetField("val", out_value)
 
             # Add new feature to output Layer
             tmp_lyr.CreateFeature(out_feature)
@@ -441,17 +441,19 @@ def rasterize_cell_layer(cell_layer, column_name, pixel_size, interpolation_meth
         raster_x_size = (xmax - xmin) / pixel_size
         raster_y_size = (ymax - ymin) / pixel_size
         output_bounds = [xmin, ymax, xmax, ymin]
-        interpolated_ds = gdal.Grid('tmp_rast',
-                                    tmp_fn,
-                                    format='MEM',
-                                    outputType=gdal.GDT_Float32,
-                                    # layers=['point'],
-                                    algorithm=interpolation_method,
-                                    zfield='val',
-                                    width=raster_x_size,
-                                    height=raster_y_size,
-                                    outputBounds=output_bounds,
-                                    noData=-9999)
+        interpolated_ds = gdal.Grid(
+            "tmp_rast",
+            tmp_fn,
+            format="MEM",
+            outputType=gdal.GDT_Float32,
+            # layers=['point'],
+            algorithm=interpolation_method,
+            zfield="val",
+            width=raster_x_size,
+            height=raster_y_size,
+            outputBounds=output_bounds,
+            noData=-9999,
+        )
         interpolated_band = interpolated_ds.GetRasterBand(1)
         interpolated_array = interpolated_band.ReadAsArray()
         interpolated_array[mask_array == -9999] = -9999
@@ -499,11 +501,11 @@ def pixels_to_geoms(raster: gdal.Dataset, column_names, output_geom_type, output
         first_col_x = xmin + pixel_size_x / 2.0
         first_row_y = ymax + pixel_size_y / 2.0
     else:
-        raise Exception('Invalid output geometry type. Choose one of [ogr.wkbPoint, ogr.wkbPolygon].')
+        raise Exception("Invalid output geometry type. Choose one of [ogr.wkbPoint, ogr.wkbPolygon].")
 
     # create output datasource
-    out_driver = ogr.GetDriverByName('MEMORY')
-    out_data_source = out_driver.CreateDataSource('')
+    out_driver = ogr.GetDriverByName("MEMORY")
+    out_data_source = out_driver.CreateDataSource("")
     srs = osr.SpatialReference()
     srs.ImportFromWkt(raster.GetProjection())
     out_layer = out_data_source.CreateLayer(output_layer_name, srs, geom_type=output_geom_type)
@@ -515,19 +517,17 @@ def pixels_to_geoms(raster: gdal.Dataset, column_names, output_geom_type, output
         band = raster.GetRasterBand(i)
         if band is None:
             continue
-        if band.DataType in (gdal.GDT_Byte,
-                             gdal.GDT_CInt16,
-                             gdal.GDT_CInt32,
-                             gdal.GDT_Int16,
-                             gdal.GDT_Int32,
-                             gdal.GDT_UInt16,
-                             gdal.GDT_UInt32):
+        if band.DataType in (
+            gdal.GDT_Byte,
+            gdal.GDT_CInt16,
+            gdal.GDT_CInt32,
+            gdal.GDT_Int16,
+            gdal.GDT_Int32,
+            gdal.GDT_UInt16,
+            gdal.GDT_UInt32,
+        ):
             field_data_type = ogr.OFTInteger
-        if band.DataType in (gdal.GDT_CFloat32,
-                             gdal.GDT_CFloat64,
-                             gdal.GDT_Float32,
-                             gdal.GDT_Float64
-                             ):
+        if band.DataType in (gdal.GDT_CFloat32, gdal.GDT_CFloat64, gdal.GDT_Float32, gdal.GDT_Float64):
             field_data_type = ogr.OFTReal
         field = ogr.FieldDefn(attr_name, field_data_type)
         out_layer.CreateField(field)
@@ -615,11 +615,23 @@ def select_from_2d_array_where_col_x_in(array_2d, col_nr, values):
     return array_2d[np.in1d(array_2d[:, col_nr], values), :]
 
 
-def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggregations: List[Aggregation],
-                              bbox=None, start_time: int = None, end_time: int = None, subsets=None, epsg: int = 28992,
-                              interpolation_method: str = None, resample_point_layer: bool = False,
-                              resolution: float = None, output_flowlines: bool = True, output_nodes: bool = True,
-                              output_cells: bool = True, output_rasters: bool = True):
+def aggregate_threedi_results(
+    gridadmin: str,
+    results_3di: str,
+    demanded_aggregations: List[Aggregation],
+    bbox=None,
+    start_time: int = None,
+    end_time: int = None,
+    subsets=None,
+    epsg: int = 28992,
+    interpolation_method: str = None,
+    resample_point_layer: bool = False,
+    resolution: float = None,
+    output_flowlines: bool = True,
+    output_nodes: bool = True,
+    output_cells: bool = True,
+    output_rasters: bool = True,
+):
     """
     # TODO: use new version of threedi_ogr that inludes adding default attributes to nodes, cells and flowline layers
     :param resolution:
@@ -637,8 +649,8 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
     """
 
     # make output datasource and layers
-    tgt_drv = ogr.GetDriverByName('MEMORY')
-    tgt_ds = tgt_drv.CreateDataSource('')
+    tgt_drv = ogr.GetDriverByName("MEMORY")
+    tgt_ds = tgt_drv.CreateDataSource("")
     out_rasters = {}
 
     if not (output_flowlines or output_nodes or output_cells or output_rasters):
@@ -666,15 +678,16 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
             cells = gr.cells
         else:
             if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
-                raise Exception('Invalid bounding box.')
+                raise Exception("Invalid bounding box.")
             lines = gr.lines.filter(line_coords__in_bbox=bbox)
             if lines.count == 0:
-                raise Exception('No flowlines found within bounding box.')
+                raise Exception("No flowlines found within bounding box.")
             nodes = gr.nodes.filter(coordinates__in_bbox=bbox)
             cells = gr.cells.filter(
-                coordinates__in_bbox=bbox)  # filter on cell center coordinates to have the same results for cells as for nodes
+                coordinates__in_bbox=bbox
+            )  # filter on cell center coordinates to have the same results for cells as for nodes
             if nodes.count == 0:
-                raise Exception('No nodes found within bounding box.')
+                raise Exception("No nodes found within bounding box.")
 
         new_column_name = da.as_column_name()
 
@@ -683,43 +696,36 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
                 if first_pass_flowlines:
                     first_pass_flowlines = False
                 try:
-                    line_results[new_column_name] = time_aggregate(nodes_or_lines=lines,
-                                                                   start_time=start_time,
-                                                                   end_time=end_time,
-                                                                   aggregation=da
-                                                                   )
+                    line_results[new_column_name] = time_aggregate(
+                        nodes_or_lines=lines, start_time=start_time, end_time=end_time, aggregation=da
+                    )
                 except AttributeError:
-                    warnings.warn('Demanded aggregation of variable that is not included in these 3Di results')
-                    line_results[new_column_name] = np.full(len(line_results['id']), fill_value=None, dtype=np.float)
+                    warnings.warn("Demanded aggregation of variable that is not included in these 3Di results")
+                    line_results[new_column_name] = np.full(len(line_results["id"]), fill_value=None, dtype=np.float)
 
         elif da.variable.short_name in AGGREGATION_VARIABLES.short_names(var_types=[VT_NODE]):
             if output_nodes or output_cells or output_rasters:
                 if first_pass_nodes:
                     first_pass_nodes = False
                 try:
-                    node_results[new_column_name] = time_aggregate(nodes_or_lines=nodes,
-                                                                   start_time=start_time,
-                                                                   end_time=end_time,
-                                                                   aggregation=da
-                                                                   )
+                    node_results[new_column_name] = time_aggregate(
+                        nodes_or_lines=nodes, start_time=start_time, end_time=end_time, aggregation=da
+                    )
                 except AttributeError:
-                    warnings.warn('Demanded aggregation of variable that is not included in these 3Di results')
-                    node_results[new_column_name] = np.full(len(node_results['id']), fill_value=None, dtype=np.float)
+                    warnings.warn("Demanded aggregation of variable that is not included in these 3Di results")
+                    node_results[new_column_name] = np.full(len(node_results["id"]), fill_value=None, dtype=np.float)
 
         elif da.variable.short_name in AGGREGATION_VARIABLES.short_names(var_types=[VT_NODE_HYBRID]):
             if output_nodes or output_cells or output_rasters:
                 if first_pass_nodes:
                     first_pass_nodes = False
                 try:
-                    node_results[new_column_name] = hybrid_time_aggregate(gr=gr,
-                                                                          ids=nodes.id,
-                                                                          start_time=start_time,
-                                                                          end_time=end_time,
-                                                                          aggregation=da
-                                                                          )
+                    node_results[new_column_name] = hybrid_time_aggregate(
+                        gr=gr, ids=nodes.id, start_time=start_time, end_time=end_time, aggregation=da
+                    )
                 except AttributeError:
-                    warnings.warn('Demanded aggregation of variable that is not included in these 3Di results')
-                    node_results[new_column_name] = np.full(len(node_results['id']), fill_value=None, dtype=np.float)
+                    warnings.warn("Demanded aggregation of variable that is not included in these 3Di results")
+                    node_results[new_column_name] = np.full(len(node_results["id"]), fill_value=None, dtype=np.float)
 
     # translate results to GIS layers
     # node and cell layers
@@ -732,24 +738,20 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
             except KeyError:
                 attr_data_types[attr] = ogr.OFTString
         if output_nodes:
-            threedigrid_to_ogr(threedigrid_src=nodes,
-                               tgt_ds=tgt_ds,
-                               attributes=attributes,
-                               attr_data_types=attr_data_types
-                               )
+            threedigrid_to_ogr(
+                threedigrid_src=nodes, tgt_ds=tgt_ds, attributes=attributes, attr_data_types=attr_data_types
+            )
         if output_cells or output_rasters or resample_point_layer:
-            threedigrid_to_ogr(threedigrid_src=cells,
-                               tgt_ds=tgt_ds,
-                               attributes=attributes,
-                               attr_data_types=attr_data_types
-                               )
+            threedigrid_to_ogr(
+                threedigrid_src=cells, tgt_ds=tgt_ds, attributes=attributes, attr_data_types=attr_data_types
+            )
 
         # rasters
         if output_rasters or resample_point_layer:
-            cell_layer = tgt_ds.GetLayerByName('cell')
+            cell_layer = tgt_ds.GetLayerByName("cell")
             if cell_layer.GetFeatureCount() > 0:
                 first_pass_rasters = True
-                if (resolution is None or resolution == 0):
+                if resolution is None or resolution == 0:
                     resolution = gr.grid.dx[0]
                 column_names = []
                 band_nr = 0
@@ -757,24 +759,26 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
                     if da.variable.short_name in AGGREGATION_VARIABLES.short_names(var_types=[VT_NODE, VT_NODE_HYBRID]):
                         col = da.as_column_name()
                         band_nr += 1
-                        out_rasters[col] = rasterize_cell_layer(cell_layer=cell_layer,
-                                                                column_name=col,
-                                                                pixel_size=resolution,
-                                                                interpolation_method=interpolation_method,
-                                                                pre_resample_method=da.variable.pre_resample_method)
+                        out_rasters[col] = rasterize_cell_layer(
+                            cell_layer=cell_layer,
+                            column_name=col,
+                            pixel_size=resolution,
+                            interpolation_method=interpolation_method,
+                            pre_resample_method=da.variable.pre_resample_method,
+                        )
                         column_names.append(col)
                         if first_pass_rasters:
                             first_pass_rasters = False
-                            tmp_drv = gdal.GetDriverByName('MEM')
-                            tmp_ds = tmp_drv.CreateCopy('multiband', out_rasters[col])
+                            tmp_drv = gdal.GetDriverByName("MEM")
+                            tmp_ds = tmp_drv.CreateCopy("multiband", out_rasters[col])
 
                             # create resampled nodes output target_node_layer
                             if resample_point_layer:
                                 srs = osr.SpatialReference()
                                 srs.ImportFromWkt(tmp_ds.GetProjection())
-                                points_resampled_lyr = tgt_ds.CreateLayer('node_resampled',
-                                                                          srs=srs,
-                                                                          geom_type=ogr.wkbPoint)
+                                points_resampled_lyr = tgt_ds.CreateLayer(
+                                    "node_resampled", srs=srs, geom_type=ogr.wkbPoint
+                                )
                                 field = ogr.FieldDefn(col, ogr.OFTReal)
                                 points_resampled_lyr.CreateField(field)
                         else:
@@ -789,10 +793,12 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
                                 points_resampled_lyr.CreateField(field)
 
                 if resample_point_layer:
-                    tmp_points_resampled = pixels_to_geoms(raster=tmp_ds,
-                                                           column_names=column_names,
-                                                           output_geom_type=ogr.wkbPoint,
-                                                           output_layer_name='unimportant name')
+                    tmp_points_resampled = pixels_to_geoms(
+                        raster=tmp_ds,
+                        column_names=column_names,
+                        output_geom_type=ogr.wkbPoint,
+                        output_layer_name="unimportant name",
+                    )
                     tmp_points_resampled_lyr = tmp_points_resampled.GetLayer(0)
                     for feat in tmp_points_resampled_lyr:
                         points_resampled_lyr.CreateFeature(feat)
@@ -812,42 +818,44 @@ def aggregate_threedi_results(gridadmin: str, results_3di: str, demanded_aggrega
     if not output_rasters:
         out_rasters = {}
     if (not output_cells) and (resample_point_layer or output_rasters):
-        tgt_ds.DeleteLayer('cell')
+        tgt_ds.DeleteLayer("cell")
     return tgt_ds, out_rasters
 
 
 def get_parser():
-    """ Return argument parser. """
-    parser = argparse.ArgumentParser(
-        description=__doc__
+    """Return argument parser."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(metavar="GRIDADMIN", dest="GridAdminH5", help="gridadmin.h5 file name")
+    parser.add_argument(metavar="RESULTSNETCDF", dest="Results3DiNetCDF", help="results_3di.nc file name")
+    parser.add_argument(metavar="OUTPUT_LAYER", dest="tgtLayer", help="Output target_node_layer name")
+    parser.add_argument(
+        "-fn", dest="tgtFileName", help="Target file name. If specified, database parameters are ignored."
     )
-    parser.add_argument(metavar='GRIDADMIN', dest='GridAdminH5', help='gridadmin.h5 file name')
-    parser.add_argument(metavar='RESULTSNETCDF', dest='Results3DiNetCDF', help='results_3di.nc file name')
-    parser.add_argument(metavar='OUTPUT_LAYER', dest='tgtLayer', help='Output target_node_layer name')
-    parser.add_argument('-fn', dest='tgtFileName',
-                        help='Target file name. If specified, database parameters are ignored.')
-    parser.add_argument('-ho', dest='host', help='PG host name.')
-    parser.add_argument('-po', dest='port', help='PG port. Defaults to 5432.')
-    parser.add_argument('-d', dest='database', help='PG database name.')
-    parser.add_argument('-u', dest='user', help='PG username.')
-    parser.add_argument('-pw', dest='password', help='PG password.')
-    parser.add_argument('-b', dest='bbox', metavar='COORD', nargs=4, type=float,
-                        help='Bounding box. Format: MinX MinY MaxX MaxY')
-    parser.add_argument('-s -start', dest='start_time', metavar='START_TIME', type=int,
-                        help='Start time in s from start of simulation')
-    parser.add_argument('-e -end', dest='end_time', metavar='END_TIME', type=int,
-                        help='End time in s from start of simulation')
+    parser.add_argument("-ho", dest="host", help="PG host name.")
+    parser.add_argument("-po", dest="port", help="PG port. Defaults to 5432.")
+    parser.add_argument("-d", dest="database", help="PG database name.")
+    parser.add_argument("-u", dest="user", help="PG username.")
+    parser.add_argument("-pw", dest="password", help="PG password.")
+    parser.add_argument(
+        "-b", dest="bbox", metavar="COORD", nargs=4, type=float, help="Bounding box. Format: MinX MinY MaxX MaxY"
+    )
+    parser.add_argument(
+        "-s -start", dest="start_time", metavar="START_TIME", type=int, help="Start time in s from start of simulation"
+    )
+    parser.add_argument(
+        "-e -end", dest="end_time", metavar="END_TIME", type=int, help="End time in s from start of simulation"
+    )
 
     return parser
 
 
 def main():
-    """ Call command with args from parser. """
+    """Call command with args from parser."""
     # kwargs = vars(get_parser().parse_args())
     # NotNoneKwargs = {k: v for k, v in kwargs.items() if v is not None}
     # MiniArrowsIO(**NotNoneKwargs)
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     exit(main())
