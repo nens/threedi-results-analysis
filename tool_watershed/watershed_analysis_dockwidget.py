@@ -103,11 +103,12 @@ class Graph3DiQgsConnector:
         "from_polygon": ogr.OFTInteger,
     }
 
-    def __init__(self, iface):
+    def __init__(self, parent_dock):
         """Constructor."""
         self._filter = None
-        self.iface = iface
-        self.canvas = iface.mapCanvas()
+        self.parent_dock = parent_dock
+        self.iface = parent_dock.iface
+        self.canvas = parent_dock.iface.mapCanvas()
         self.epsg = None
         self.graph_3di = Graph3Di(subset=None)
         self._sqlite = None
@@ -122,13 +123,10 @@ class Graph3DiQgsConnector:
         self.result_sets = []
         self.dissolved_result_sets = []
         self.smooth_result_catchments = []
-        QgsProject.instance().cleared.connect(self.remove_empty_layers)
         QgsProject.instance().layersWillBeRemoved.connect(self.qgs_project_layers_will_be_removed)
         self.protect_layers = True
 
     def __del__(self):
-        self.remove_empty_layers()
-        QgsProject.instance().cleared.disconnect(self.remove_empty_layers)
         QgsProject.instance().layersWillBeRemoved.disconnect(self.qgs_project_layers_will_be_removed)
 
     @property
@@ -364,10 +362,13 @@ class Graph3DiQgsConnector:
 
     def create_layer_group(self):
         root = QgsProject.instance().layerTreeRoot()
-        self.layer_group = root.insertGroup(0, "3Di Network Analysis")
+        self.layer_group = root.insertGroup(0, "3Di Watershed Analysis")
 
     def remove_layer_group(self):
-        QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
+        try:
+            QgsProject.instance().layerTreeRoot().removeChildNode(self.layer_group)
+        except RuntimeError:
+            pass
 
     def create_target_node_layer(self):
         if isinstance(self.gr, GridH5ResultAdmin):
@@ -959,6 +960,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         self.iface = iface
         self.tdi_root_tool = tdi_root_tool
+        self.catchment_map_tool = None
         self.tm = QgsApplication.taskManager()
         self.setup_ds()
         self.connect_gq()
@@ -985,6 +987,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.checkBoxBrowseResultSets.stateChanged.connect(self.checkbox_browse_result_sets_state_changed)
         self.spinBoxBrowseResultSets.valueChanged.connect(self.spinbox_browse_result_sets_value_changed)
         self.pushButtonClearResults.clicked.connect(self.pushbutton_clear_results_clicked)
+        QgsProject.instance().cleared.connect(self.close)
         self.update_gr()
 
     def setup_ds(self):
@@ -999,20 +1002,23 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.QgsFileWidgetSqlite.setFilePath(spatialite_path)
 
     def closeEvent(self, event):
+        QgsProject.instance().cleared.disconnect(self.close)
         self.disconnect_gq()
         self.closingWidget.emit()
         event.accept()
 
     def connect_gq(self):
-        self.gq = Graph3DiQgsConnector(iface=self.iface)
+        self.gq = Graph3DiQgsConnector(parent_dock=self)
         self.gq.start_time = 0  # initial value of widget is 0, so valueChanged() signal will not be emitted when ...
         # ... a 3Di result is loaded for the first time
 
     def disconnect_gq(self):
-        QgsProject.instance().layersWillBeRemoved.disconnect(self.gq.qgs_project_layers_will_be_removed)
-        self.gq.remove_empty_layers()
-        self.gq = None
         self.unset_map_tool()
+        self.gq.remove_empty_layers()
+        self.gq.clear_all()
+        if self.gq.layer_group is not None:
+            self.gq.remove_layer_group()
+        self.gq = None
 
     def update_gr(self):
         results_3di = self.QgsFileWidget3DiResults.filePath()
@@ -1081,6 +1087,7 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         try:
             if self.catchment_map_tool is not None:
                 self.iface.mapCanvas().unsetMapTool(self.catchment_map_tool)
+                self.catchment_map_tool = None
         except AttributeError:
             pass
 
