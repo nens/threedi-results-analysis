@@ -14,3 +14,4 @@ netCDF4
 cftime
 packaging
 python-editor>=0.3
+colorama
