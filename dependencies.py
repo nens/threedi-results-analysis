@@ -52,8 +52,8 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"), #dep of alembic
-    Dependency("colorama", "colorama", ""), #dep of click and threedi-modelchecker (windows)
+    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
+    Dependency("colorama", "colorama", ""),  # dep of click and threedi-modelchecker (windows)
 ]
 
 # Dependencies that contain compiled extensions for windows platform
