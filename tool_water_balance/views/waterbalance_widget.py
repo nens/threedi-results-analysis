@@ -28,7 +28,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from threedigrid.admin.gridadmin import GridH5Admin
 
 import copy
 import functools
