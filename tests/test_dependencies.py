@@ -36,12 +36,12 @@ def test_check_presence_3():
         dependency_with_wrong_version
     ], "numpy is installed, but not with the requested version"
 
-
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_ensure_everything_installed_smoke():
     # Should just run without errors as we have a correct test setup.
     dependencies.ensure_everything_installed()
 
-
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_install_dependencies(tmpdir):
     small_dependencies = [
         dependency

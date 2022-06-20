@@ -99,10 +99,16 @@ def ensure_everything_installed():
         for deps in missing:
             print(deps.name)
         _install_dependencies(missing, target_dir=target_dir)
+    else:
+        print('Dependencies up to date')
 
     # This function should be called if any modules are created/installed while your
     # program is running to guarantee all finders will notice the new module’s existence.
     importlib.invalidate_caches()
+    
+    # https://stackoverflow.com/questions/58612272/pkg-resources-get-distributionmymodule-version-not-updated-after-reload
+    # Apparantely pkg_resources needs to be reloaded to be up-to-date with newly installed packages
+    importlib.reload(pkg_resources)
 
     _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
 
