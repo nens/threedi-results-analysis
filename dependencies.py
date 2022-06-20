@@ -53,6 +53,8 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
+    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
+    Dependency("colorama", "colorama", ""),  # dep of click and threedi-modelchecker (windows)
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -390,8 +392,8 @@ def _check_presence(dependencies):
         try:
             result = pkg_resources.require(requirement)
             print("Requirement %s found: %s" % (requirement, result))
-        except pkg_resources.DistributionNotFound:
-            print("Dependency '%s' (%s) not found" % (dependency.name, dependency.constraint))
+        except pkg_resources.DistributionNotFound as e:
+            print("Dependency '%s' (%s) not found (%s)" % (dependency.name, dependency.constraint, str(e)))
             missing.append(dependency)
         except pkg_resources.VersionConflict:
             print("Dependency '%s' (%s) has the wrong version" % (dependency.name, dependency.constraint))
