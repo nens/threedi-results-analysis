@@ -1,7 +1,13 @@
 ThreeDiToolBox changelog
 ========================
 
-2.1 (unreleased)
+2.2 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+2.1 (2022-06-14)
 ----------------
 
 - Removed the create_views routine, this is now done by the modelchecker (migration tool).
