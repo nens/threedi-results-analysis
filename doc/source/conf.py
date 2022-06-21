@@ -19,9 +19,6 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-import sphinx_rtd_theme
-import ThreeDiToolbox.conftest  # Ensure the py import fix has been applied.
-
 
 # -- General configuration ------------------------------------------------
 

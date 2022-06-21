@@ -75,7 +75,7 @@ def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
 
     _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
-    
+
     # If required, create deps folder and append to the path
     target_dir = _dependencies_target_dir(create=True)
     if str(target_dir) not in sys.path:
@@ -97,17 +97,17 @@ def ensure_everything_installed():
     if platform.system() == "Windows":
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
         _ensure_h5py_installed()
-    
+
     if missing:
         print('Missing dependencies:')
         for deps in missing:
             print(deps.name)
         _install_dependencies(missing, target_dir=target_dir)
-    
+
         # This function should be called if any modules are created/installed while your
         # program is running to guarantee all finders will notice the new module’s existence.
         importlib.invalidate_caches()
-    
+
         # https://stackoverflow.com/questions/58612272/pkg-resources-get-distributionmymodule-version-not-updated-after-reload
         # Apparantely pkg_resources needs to be reloaded to be up-to-date with newly installed packages
         importlib.reload(pkg_resources)
@@ -247,6 +247,7 @@ def _dependencies_target_dir(*, our_dir=OUR_DIR, create=False) -> Path:
 
     return target_dir
 
+
 def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
     """Return python dir inside our profile
 
@@ -256,11 +257,12 @@ def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
     if "plugins" in str(our_dir).lower():
         return OUR_DIR.parent.parent
 
+
 def _remove_old_distributions(dependencies, path) :
     """Remove old distributions of dependencies
 
     In previous version of the Toolbox, depencencies were
-    stored in the users 'python' folder. This caused 
+    stored in the users 'python' folder. This caused
     versioning conflicts (as these dependencies were
     not removed when the plugin was uninstalled).
 
@@ -269,7 +271,7 @@ def _remove_old_distributions(dependencies, path) :
     """
     succeeded = True
     files_to_remove = [node for node in os.listdir(str(path)) for dependency in dependencies if (dependency.package in node or dependency.name in node)]
-    
+
     for f in files_to_remove:
         dep_path = str(path / f)
 
@@ -281,7 +283,7 @@ def _remove_old_distributions(dependencies, path) :
                 else:
                     print(f'Deleting folder {f} from {path}')
                     shutil.rmtree(dep_path)
-        except PermissionError as e:
+        except PermissionError:
             succeeded = False
 
     return succeeded
@@ -405,6 +407,7 @@ def _get_python_interpreter():
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
     assert os.path.exists(interpreter)  # safety check
     return interpreter
+
 
 def _check_presence(dependencies):
     """Check if all dependencies are present. Return missing dependencies."""
