@@ -6,7 +6,7 @@ from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
     WaterBalanceWidget,
 )
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
+from threedigrid.admin.gridadmin import GridH5Admin
 
 import logging
 import numpy as np
