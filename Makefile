@@ -201,7 +201,7 @@ html:
 # Run pep8 + pyflakes checks
 flake8:
 	@echo "#### PEP8/pyflakes issues"
-	@flake8 . --exclude ./deps
+	@flake8 . --extend-exclude=deps
 	@echo "No issues found."
 
 
