@@ -76,14 +76,13 @@ def ensure_everything_installed():
 
     _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
 
-    # If required, create deps folder and append to the path
+    # If required, create deps folder and prepend to the path
     target_dir = _dependencies_target_dir(create=True)
     if str(target_dir) not in sys.path:
         print(f'Prepending {target_dir} to sys.path')
         sys.path.insert(0, str(target_dir))
 
-    # pkg_resources needs to be reloaded to be up-to-date with newly installed or removed deps
-    importlib.reload(pkg_resources)
+    _refresh_python_import_mechanism()
 
     profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
     print("Contents of our deps dir:\n    %s" % "\n    ".join(profile_python_names))
@@ -104,13 +103,7 @@ def ensure_everything_installed():
             print(deps.name)
         _install_dependencies(missing, target_dir=target_dir)
 
-        # This function should be called if any modules are created/installed while your
-        # program is running to guarantee all finders will notice the new module’s existence.
-        importlib.invalidate_caches()
-
-        # https://stackoverflow.com/questions/58612272/pkg-resources-get-distributionmymodule-version-not-updated-after-reload
-        # Apparantely pkg_resources needs to be reloaded to be up-to-date with newly installed packages
-        importlib.reload(pkg_resources)
+        _refresh_python_import_mechanism()
     else:
         print('Dependencies up to date')
 
@@ -235,7 +228,7 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
 
 
 def _dependencies_target_dir(*, our_dir=OUR_DIR, create=False) -> Path:
-    """Returns (and creates) the desired deps folder
+    """Return (and create) the desired deps folder
 
     This is the 'deps' subdirectory of the plugin home folder
 
@@ -283,7 +276,8 @@ def _remove_old_distributions(dependencies, path) :
                 else:
                     print(f'Deleting folder {f} from {path}')
                     shutil.rmtree(dep_path)
-        except PermissionError:
+        except PermissionError as e:
+            print(f"Unable to remove {dep_path} ({str(e)})")
             succeeded = False
 
     return succeeded
@@ -300,10 +294,10 @@ def check_importability():
     packages = [dependency.package for dependency in DEPENDENCIES]
     packages += INTERESTING_IMPORTS
     logger.info("sys.path:\n    %s", "\n    ".join(sys.path))
-    profile_python_names = [item.name for item in _dependencies_target_dir().iterdir()]
+    deps_in_target_dir = [item.name for item in _dependencies_target_dir().iterdir()]
     logger.info(
         "Contents of our dependency dir:\n    %s",
-        "\n    ".join(profile_python_names),
+        "\n    ".join(deps_in_target_dir),
     )
     for package in packages:
         imported_package = importlib.import_module(package)
@@ -426,6 +420,20 @@ def _check_presence(dependencies):
             missing.append(dependency)
     return missing
 
+def _refresh_python_import_mechanism():
+    """Refresh the import mechanism.
+
+    This is required when deps are dynamically installed/removed. The modules
+    'importlib' and 'pkg_resources' need to update their internal data structures.
+    
+    """
+    # This function should be called if any modules are created/installed while your
+    # program is running to guarantee all finders will notice the new module’s existence.
+    importlib.invalidate_caches()
+
+    # https://stackoverflow.com/questions/58612272/pkg-resources-get-distributionmymodule-version-not-updated-after-reload
+    # Apparantely pkg_resources needs to be reloaded to be up-to-date with newly installed packages
+    importlib.reload(pkg_resources)
 
 def generate_constraints_txt(target_dir=OUR_DIR):
     """Called from the ``__main__`` to generate ``constraints.txt``."""
