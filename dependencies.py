@@ -52,6 +52,7 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
+    Dependency("networkx", "networkx", ""),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
