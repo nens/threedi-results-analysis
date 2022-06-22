@@ -7,12 +7,12 @@ extra dependencies (as wheels and eggs) are retrieved or stored into the
 
 The main ``ThreeDiToolbox/__init__.py`` (see :py:mod:`ThreeDiToolbox`) calls
 ``dependencies.py`` and installs the dependencies the subfolder ``deps`` of
-the plugin folder.
+the plugin folder. The dependency folder is also added (prepended) to the path.
 
 Qgis always places the python directory (and the plugins directory) on the
 python path, see ``userpythonhome`` in
 https://github.com/qgis/QGIS/blob/master/python/user.py 
-The dependencies (wheels) are also added to the path.
+
 
 
 Python packages included on linux

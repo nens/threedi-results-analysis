@@ -420,12 +420,12 @@ def _check_presence(dependencies):
             missing.append(dependency)
     return missing
 
+
 def _refresh_python_import_mechanism():
     """Refresh the import mechanism.
 
     This is required when deps are dynamically installed/removed. The modules
     'importlib' and 'pkg_resources' need to update their internal data structures.
-    
     """
     # This function should be called if any modules are created/installed while your
     # program is running to guarantee all finders will notice the new module’s existence.
@@ -434,6 +434,7 @@ def _refresh_python_import_mechanism():
     # https://stackoverflow.com/questions/58612272/pkg-resources-get-distributionmymodule-version-not-updated-after-reload
     # Apparantely pkg_resources needs to be reloaded to be up-to-date with newly installed packages
     importlib.reload(pkg_resources)
+
 
 def generate_constraints_txt(target_dir=OUR_DIR):
     """Called from the ``__main__`` to generate ``constraints.txt``."""

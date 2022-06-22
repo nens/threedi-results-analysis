@@ -90,7 +90,7 @@ rebuild when the ``Dockerfile``, ``docker-compose.yml`` or one of the two
 
 To run the full tests including coverage report and flake8::
 
-  $ docker-compose run --rm qgis-desktop make test
+  $ docker-compose run -e QT_QPA_PLATFORM=offscreen qgis-desktop make test
 
 You can also just run pytest. You won't get the coverage report. You *can*
 however then use one of the pytest options, like ``-x``, which aborts the test
