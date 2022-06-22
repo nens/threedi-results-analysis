@@ -109,6 +109,7 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/docker-compose.override.yml
 	rm -rf /tmp/$(PLUGINNAME)/external-dependencies/h5py
 	rm -rf /tmp/$(PLUGINNAME)/external-dependencies/scipy
+	rm -rf /tmp/$(PLUGINNAME)/deps
 	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
