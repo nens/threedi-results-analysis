@@ -991,15 +991,16 @@ class WatershedAnalystDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.update_gr()
 
     def setup_ds(self):
-        active_ts_datasource = self.tdi_root_tool.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
-        results_path = str(threedi_result.file_path)
-        gridadmin_path = str(threedi_result.gridadmin.grid_file)
-        spatialite_path = str(self.tdi_root_tool.model_spatialite_filepath)
-        self.QgsFileWidget3DiResults.setFilePath(results_path)
-        self.QgsFileWidgetGridAdmin.setFilePath(gridadmin_path)
-        if spatialite_path:
-            self.QgsFileWidgetSqlite.setFilePath(spatialite_path)
+        if self.tdi_root_tool.rows:
+            active_ts_datasource = self.tdi_root_tool.rows[0]
+            threedi_result = active_ts_datasource.threedi_result()
+            results_path = str(threedi_result.file_path)
+            gridadmin_path = str(threedi_result.gridadmin.grid_file)
+            spatialite_path = str(self.tdi_root_tool.model_spatialite_filepath)
+            self.QgsFileWidget3DiResults.setFilePath(results_path)
+            self.QgsFileWidgetGridAdmin.setFilePath(gridadmin_path)
+            if spatialite_path:
+                self.QgsFileWidgetSqlite.setFilePath(spatialite_path)
 
     def closeEvent(self, event):
         QgsProject.instance().cleared.disconnect(self.close)

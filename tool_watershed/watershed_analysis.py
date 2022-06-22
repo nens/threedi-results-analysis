@@ -18,7 +18,7 @@ class ThreeDiWatershedAnalyst:
         self.tdi_root_tool = tdi_root_tool
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_watershed.png")
-        self.menu_text = "Use network analysis for 3Di results"
+        self.menu_text = "Watershed Tool"
 
         self.dock_widget = None
         self._active = False
