@@ -111,7 +111,8 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-
+        if output.endswith(".file"):
+            output = output.rsplit(".", 1)[0] + ".h5"
         s = QgsSettings()
         s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_slite)
         s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output)

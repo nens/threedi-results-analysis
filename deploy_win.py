@@ -1,7 +1,7 @@
 import os
 import shutil
 plugin = "threedi-results-analysis"
-qgis_profile_name = "3di"
+qgis_profile_name = "python39"
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 home_dir = os.path.expanduser("~")
@@ -13,5 +13,5 @@ src_dir_plug = os.path.join(this_dir, plugin)
 try:
     shutil.rmtree(dest_dir_plug)
 except OSError:
-    pass  # directory doesn't not exist
+    pass  # directory doesn't exist
 shutil.copytree(src_dir_plug, dest_dir_plug)

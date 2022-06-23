@@ -18,7 +18,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
-    QgsProcessingParameterFolderDestination,
+    QgsProcessingParameterFileDestination,
     QgsProcessingException,
     QgsProcessingContext,
     QgsProcessingParameterFile,
@@ -48,6 +48,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
+    GPKG_NAME = "GPKG_NAME"
 
     def flags(self):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
@@ -74,7 +75,6 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Convert gridadmin.h5 to GeoPackage")
 
     def initAlgorithm(self, config=None):
-
         self.uc = UserCommunication(iface, "3Di Results Analysis")
         s = QgsSettings()
         last_input_dir = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input", None)
@@ -90,9 +90,10 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-            QgsProcessingParameterFolderDestination(
+            QgsProcessingParameterFileDestination(
                 self.OUTPUT,
-                self.tr("Output folder"),
+                self.tr("Output GeoPackage file"),
+                fileFilter="*.gpkg",
                 defaultValue=last_output_gpkg
             )
         )
@@ -104,14 +105,15 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
         input_gridadmin = os.path.join(gridadmin_folder, "gridadmin.h5")
 
-        gpkg_path = self.parameterAsString(parameters, self.OUTPUT, context)
+        gpkg_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if gpkg_path is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-        gpkg_path = os.path.join(gpkg_path, "out.gpkg")
+        if gpkg_path.endswith(".file"):
+            gpkg_path = gpkg_path.rsplit(".", 1)[0] + ".gpkg"
 
         s = QgsSettings()
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", os.path.dirname(gpkg_path))
+        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
         plugin_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
         styles_dir = os.path.join(plugin_dir, "styles")
 
