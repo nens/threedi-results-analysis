@@ -23,17 +23,19 @@ resticted. No qgis message boxes and so!
 """
 from collections import namedtuple
 from pathlib import Path
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QProgressBar
+from PyQt5.QtWidgets import QProgressDialog
 
 import importlib
 import logging
 import os
 import pkg_resources
 import platform
+import shutil
 import subprocess
 import sys
-import shutil
-from PyQt5.QtWidgets import QApplication, QProgressDialog, QProgressBar
-from PyQt5.QtCore import Qt
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -55,7 +57,9 @@ DEPENDENCIES = [
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
     Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
-    Dependency("colorama", "colorama", ""),  # dep of click and threedi-modelchecker (windows)
+    Dependency(
+        "colorama", "colorama", ""
+    ),  # dep of click and threedi-modelchecker (windows)
     Dependency("networkx", "networkx", ""),
 ]
 
@@ -74,7 +78,7 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def prog_dialog(progress):
+def create_progress_dialog(progress):
     dialog = QProgressDialog()
     dialog.setWindowTitle("3Di Toolbox install progress")
     dialog.setLabelText("Installing external dependencies")
@@ -100,7 +104,7 @@ def ensure_everything_installed():
     # If required, create deps folder and prepend to the path
     target_dir = _dependencies_target_dir(create=True)
     if str(target_dir) not in sys.path:
-        print(f'Prepending {target_dir} to sys.path')
+        print(f"Prepending {target_dir} to sys.path")
         sys.path.insert(0, str(target_dir))
 
     _refresh_python_import_mechanism()
@@ -119,7 +123,7 @@ def ensure_everything_installed():
         _ensure_h5py_installed()
 
     if missing:
-        print('Missing dependencies:')
+        print("Missing dependencies:")
         for deps in missing:
             print(deps.name)
 
@@ -139,8 +143,10 @@ def ensure_everything_installed():
             if _is_windows():
                 # We always want to restart when deps are missing
                 from ThreeDiToolbox.utils.user_messages import pop_up_info
+
                 pop_up_info(
-                    "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
+                    "Please restart QGIS to complete the installation process of "
+                    "ThreediToolbox.",
                     title="Restart required",
                 )
                 restart_marker.touch()
@@ -149,7 +155,7 @@ def ensure_everything_installed():
         _refresh_python_import_mechanism()
 
     else:
-        print('Dependencies up to date')
+        print("Dependencies up to date")
 
 
 def _ensure_h5py_installed():
@@ -183,7 +189,9 @@ def _ensure_h5py_installed():
     by importing h5py, as Qgis will crash if the HDF5 and h5py binaries do not match.
     """
     h5py_dependency = Dependency("h5py", "h5py", "==2.10.0")
-    hdf5_version = "1.10.7"  # there is only one version of HDF5 available in the QGIS installer
+    hdf5_version = (
+        "1.10.7"  # there is only one version of HDF5 available in the QGIS installer
+    )
     h5py_missing = _check_presence([h5py_dependency])
     marker_version = H5pyMarker.version()
     if h5py_missing:
@@ -216,7 +224,8 @@ def _install_h5py(hdf5_version: str):
         from ThreeDiToolbox.utils.user_messages import pop_up_info
 
         pop_up_info(
-            "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
+            "Please restart QGIS to complete the installation process of "
+            "ThreediToolbox.",
             title="Restart required",
         )
         return
@@ -271,15 +280,15 @@ def _ensure_prerequisite_is_installed(prerequisite="pip"):
         raise RuntimeError(msg)
 
 
-def _dependencies_target_dir(*, our_dir=OUR_DIR, create=False) -> Path:
+def _dependencies_target_dir(our_dir=OUR_DIR, create=False) -> Path:
     """Return (and create) the desired deps folder
 
     This is the 'deps' subdirectory of the plugin home folder
 
     """
-    target_dir = our_dir / 'deps'
+    target_dir = our_dir / "deps"
     if not target_dir.exists() and create:
-        print(f'Creating target dir {target_dir}')
+        print(f"Creating target dir {target_dir}")
         target_dir.mkdir()
 
     return target_dir
@@ -295,7 +304,7 @@ def _prev_dependencies_target_dir(our_dir=OUR_DIR) -> Path:
         return OUR_DIR.parent.parent
 
 
-def _remove_old_distributions(dependencies, path) :
+def _remove_old_distributions(dependencies, path):
     """Remove old distributions of dependencies
 
     In previous version of the Toolbox, depencencies were
@@ -307,7 +316,12 @@ def _remove_old_distributions(dependencies, path) :
     dependency name or package name
     """
     succeeded = True
-    files_to_remove = [node for node in os.listdir(str(path)) for dependency in dependencies if (dependency.package in node or dependency.name in node)]
+    files_to_remove = [
+        node
+        for node in os.listdir(str(path))
+        for dependency in dependencies
+        if (dependency.package in node or dependency.name in node)
+    ]
 
     for f in files_to_remove:
         dep_path = str(path / f)
@@ -315,10 +329,10 @@ def _remove_old_distributions(dependencies, path) :
         try:
             if os.path.exists(dep_path):
                 if os.path.isfile(dep_path):
-                    print(f'Deleting file {f} from {path}')
+                    print(f"Deleting file {f} from {path}")
                     os.remove(dep_path)
                 else:
-                    print(f'Deleting folder {f} from {path}')
+                    print(f"Deleting folder {f} from {path}")
                     shutil.rmtree(dep_path)
         except PermissionError as e:
             print(f"Unable to remove {dep_path} ({str(e)})")
@@ -345,7 +359,9 @@ def check_importability():
     )
     for package in packages:
         imported_package = importlib.import_module(package)
-        logger.info("Import '%s' found at \n    '%s'", package, imported_package.__file__)
+        logger.info(
+            "Import '%s' found at \n    '%s'", package, imported_package.__file__
+        )
 
 
 def _uninstall_dependency(dependency):
@@ -354,6 +370,7 @@ def _uninstall_dependency(dependency):
     startupinfo = None
     if _is_windows():
         startupinfo = subprocess.STARTUPINFO()
+        # Prevents terminal screens from popping up
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     process = subprocess.Popen(
         [
@@ -368,7 +385,7 @@ def _uninstall_dependency(dependency):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        startupinfo=startupinfo
+        startupinfo=startupinfo,
     )
     # The input/output/error stream handling is a bit involved, but it is
     # necessary because of a python bug on windows 7, see
@@ -404,17 +421,18 @@ def _install_dependencies(dependencies, target_dir):
     bar = None
     startupinfo = None
     if _is_windows():
-        dialog, bar = prog_dialog(0)
+        dialog, bar = create_progress_dialog(0)
         QApplication.processEvents()
+        startupinfo = subprocess.STARTUPINFO()
+        # Prevents terminal screens from popping up
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
     for count, dependency in enumerate(dependencies):
         _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         command = base_command + [dependency.name + dependency.constraint]
 
-        if _is_windows():
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        if dialog:
             dialog.setLabelText(f"Installing {dependency.name}")
 
         process = subprocess.Popen(
@@ -423,7 +441,7 @@ def _install_dependencies(dependencies, target_dir):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            startupinfo=startupinfo
+            startupinfo=startupinfo,
         )
         # The input/output/error stream handling is a bit involved, but it is
         # necessary because of a python bug on windows 7, see
@@ -439,7 +457,9 @@ def _install_dependencies(dependencies, target_dir):
             if dialog:
                 dialog.close()
                 QApplication.processEvents()
-            raise RuntimeError(f"Installing {dependency.name} failed ({exit_code}) ({result})")
+            raise RuntimeError(
+                f"Installing {dependency.name} failed ({exit_code}) ({result})"
+            )
         print("Installed %s into %s" % (dependency.name, target_dir))
         if dependency.package in sys.modules:
             print("Unloading old %s module" % dependency.package)
@@ -458,8 +478,7 @@ def _install_dependencies(dependencies, target_dir):
 
 
 def _is_windows():
-    """Return whether we are starting from QGIS on Windows.
-    """
+    """Return whether we are starting from QGIS on Windows."""
     executable = sys.executable
     _, filename = os.path.split(executable)
     if "python3" in filename.lower():
@@ -499,10 +518,16 @@ def _check_presence(dependencies):
             result = pkg_resources.require(requirement)
             print("Requirement %s found: %s" % (requirement, result))
         except pkg_resources.DistributionNotFound as e:
-            print("Dependency '%s' (%s) not found (%s)" % (dependency.name, dependency.constraint, str(e)))
+            print(
+                "Dependency '%s' (%s) not found (%s)"
+                % (dependency.name, dependency.constraint, str(e))
+            )
             missing.append(dependency)
         except pkg_resources.VersionConflict:
-            print("Dependency '%s' (%s) has the wrong version" % (dependency.name, dependency.constraint))
+            print(
+                "Dependency '%s' (%s) has the wrong version"
+                % (dependency.name, dependency.constraint)
+            )
             missing.append(dependency)
     return missing
 
