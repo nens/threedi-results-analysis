@@ -136,13 +136,14 @@ def ensure_everything_installed():
         restart_marker = Path(target_dir / "restarted.marker")
 
         if restart_required or not restart_marker.exists():
-            # We always want to restart when deps are missing
-            from ThreeDiToolbox.utils.user_messages import pop_up_info
-            pop_up_info(
-                "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
-                title="Restart required",
-            )
-            restart_marker.touch()
+            if _is_windows():
+                # We always want to restart when deps are missing
+                from ThreeDiToolbox.utils.user_messages import pop_up_info
+                pop_up_info(
+                    "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
+                    title="Restart required",
+                )
+                restart_marker.touch()
 
         # Always update the import mechanism
         _refresh_python_import_mechanism()
