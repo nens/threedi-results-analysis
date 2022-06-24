@@ -133,7 +133,7 @@ def ensure_everything_installed():
             pass
 
         restart_marker = Path(target_dir / "restarted.marker")
-        
+
         if restart_required or not restart_marker.exists():
             # We always want to restart when deps are missing
             from ThreeDiToolbox.utils.user_messages import pop_up_info
