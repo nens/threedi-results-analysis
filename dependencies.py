@@ -133,10 +133,10 @@ def ensure_everything_installed():
                 "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
                 title="Restart required",
             )
-        finally: 
+        finally:
             # always update the import mechanism
-            _refresh_python_import_mechanism() 
-        
+            _refresh_python_import_mechanism()
+
     else:
         print('Dependencies up to date')
 
@@ -473,7 +473,7 @@ def _get_python_interpreter():
         interpreter = os.path.join(directory, "python3.exe")
     else:
         interpreter = executable
-        
+
     assert os.path.exists(interpreter)  # safety check
     return interpreter
 
