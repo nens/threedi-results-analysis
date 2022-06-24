@@ -84,7 +84,7 @@ def prog_dialog(progress):
     bar.setValue(0)
     bar.setMaximum(100)
     dialog.setBar(bar)
-    dialog.setMinimumWidth(300)
+    dialog.setMinimumWidth(500)
     dialog.update()
     dialog.setCancelButton(None)
     dialog.show()
