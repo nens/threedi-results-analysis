@@ -44,7 +44,7 @@ class Progress(object):
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
-    """ Convert gridadmin.h5 to GeoPackage with vector layers """
+    """Convert gridadmin.h5 to GeoPackage with vector layers"""
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
@@ -54,22 +54,22 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return ThreeDiConvertToGpkgAlgorithm()
 
     def name(self):
-        return 'threedi_convert_gridadmin_to_gpkg'
+        return "threedi_convert_gridadmin_to_gpkg"
 
     def displayName(self):
-        return self.tr('Convert gridadmin to GeoPackage')
+        return self.tr("Convert gridadmin to GeoPackage")
 
     def group(self):
-        return self.tr('')
+        return self.tr("")
 
     def groupId(self):
-        return ''
+        return ""
 
     def shortHelpString(self):
         return self.tr("Convert gridadmin.h5 to GeoPackage")
@@ -85,16 +85,13 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
                 self.INPUT,
                 self.tr("Input gridadmin.h5 file"),
                 behavior=QgsProcessingParameterFile.Folder,
-                defaultValue=last_input_dir
+                defaultValue=last_input_dir,
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr("Output GeoPackage file"),
-                fileFilter="*.gpkg",
-                defaultValue=last_output_gpkg
+                self.OUTPUT, self.tr("Output GeoPackage file"), fileFilter="*.gpkg", defaultValue=last_output_gpkg
             )
         )
 
@@ -123,14 +120,16 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         feedback.pushInfo("Export done!")
 
         # Unfortunately, temporaryLayerStore keeps layers to be added as a dictionary, so the order is lost
-        data_srcs = OrderedDict([
-            ("Obstacle", "obstacle"),
-            ("Cell", "cell"),
-            ("Pump (point)", "pump"),
-            ("Pump (line)", "pump_linestring"),
-            ("Node", "node"),
-            ("Flowline", "flowline")
-        ])
+        data_srcs = OrderedDict(
+            [
+                ("Obstacle", "obstacle"),
+                ("Cell", "cell"),
+                ("Pump (point)", "pump"),
+                ("Pump (line)", "pump_linestring"),
+                ("Node", "node"),
+                ("Flowline", "flowline"),
+            ]
+        )
 
         layers = dict()
         empty_layers = []
@@ -152,7 +151,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             context.temporaryLayerStore().addMapLayer(layers[layer_name])
             context.addLayerToLoadOnCompletion(
                 layers[layer_name].id(),
-                QgsProcessingContext.LayerDetails(layers[layer_name].id(), context.project(), layer_name)
+                QgsProcessingContext.LayerDetails(layers[layer_name].id(), context.project(), layer_name),
             )
 
         # Empty layers info
@@ -171,8 +170,9 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             else:
                 crs_info = "Skipping setting project CRS - does gridadmin file contains a valid EPSG code?"
         else:
-            crs_info = f"Skipping setting project CRS - the source file {input_gridadmin}"\
-                       " contained data with various CRS."
+            crs_info = (
+                f"Skipping setting project CRS - the source file {input_gridadmin}" " contained data with various CRS."
+            )
         feedback.pushInfo(crs_info)
         self.uc.log_info(crs_info)
 

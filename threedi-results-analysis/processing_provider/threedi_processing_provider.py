@@ -8,16 +8,15 @@ from ..utils import icon_path
 
 
 class ThreeDiResultsAnalysisProcessingProvider(QgsProcessingProvider):
-
     def loadAlgorithms(self, *args, **kwargs):
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
 
     def id(self, *args, **kwargs):
-        return 'threedi-results-analysis'
+        return "threedi-results-analysis"
 
     def name(self, *args, **kwargs):
-        return self.tr('3Di Results Analysis')
+        return self.tr("3Di Results Analysis")
 
     def icon(self):
         return QIcon(icon_path("threedi.svg"))

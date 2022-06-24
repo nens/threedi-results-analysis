@@ -1,7 +1,8 @@
 import os
 import shutil
+
 plugin = "threedi-results-analysis"
-qgis_profile_name = "python39"
+qgis_profile_name = "default"
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 home_dir = os.path.expanduser("~")

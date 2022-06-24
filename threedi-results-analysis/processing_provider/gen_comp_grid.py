@@ -27,7 +27,7 @@ from threedigrid_builder import make_gridadmin, SchematisationError
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
-    """ Generate a gridadmin.h5 file out of Spatialite database """
+    """Generate a gridadmin.h5 file out of Spatialite database"""
 
     INPUT_SPATIALITE = "INPUT_SPATIALITE"
     OUTPUT = "OUTPUT"
@@ -36,22 +36,22 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
 
     def tr(self, string):
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
         return ThreeDiGenerateCompGridAlgorithm()
 
     def name(self):
-        return 'threedi_generate_computational_grid'
+        return "threedi_generate_computational_grid"
 
     def displayName(self):
-        return self.tr('Generate computational grid')
+        return self.tr("Generate computational grid")
 
     def group(self):
-        return self.tr('')
+        return self.tr("")
 
     def groupId(self):
-        return ''
+        return ""
 
     def shortHelpString(self):
         return self.tr("Generate computational grid")
@@ -67,16 +67,13 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
                 self.INPUT_SPATIALITE,
                 self.tr("Input SpatiaLite file"),
                 behavior=QgsProcessingParameterFile.File,
-                defaultValue=last_input_sqlite
+                defaultValue=last_input_sqlite,
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr("Output computational grid file"),
-                fileFilter="*.h5",
-                defaultValue=last_output
+                self.OUTPUT, self.tr("Output computational grid file"), fileFilter="*.h5", defaultValue=last_output
             )
         )
 
@@ -90,14 +87,12 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         feedback.pushInfo(f"Reading DEM settings from: {uri}")
         settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
         if not settings_lyr.isValid():
-            err = f"Global Spatialite settings table could not be loaded from {uri}\n" \
-                    "Check your Spatialite file."
+            err = f"Global Spatialite settings table could not be loaded from {uri}\n" "Check your Spatialite file."
             raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
         try:
             set_feat = next(settings_lyr.getFeatures())
         except StopIteration:
-            err = f"No global settings entries in {uri}" \
-                  "Check your Spatialite file."
+            err = f"No global settings entries in {uri}" "Check your Spatialite file."
             raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
         set_dem_rel_path = set_feat["dem_file"]
         input_slite_dir = os.path.dirname(input_slite)

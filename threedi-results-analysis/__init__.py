@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from .dependencies import ensure_everything_installed, check_importability
 
@@ -20,6 +19,5 @@ ensure_everything_installed()
 def classFactory(iface):
     check_importability()
     from .plugin import ThreediResultsAnalysisPlugin
+
     return ThreediResultsAnalysisPlugin(iface)
-
-

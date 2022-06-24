@@ -14,11 +14,12 @@ if sys.platform == "win32" or os.name == "os2":
 
 def is_installed(executable):
     from distutils.spawn import find_executable
+
     return find_executable(executable) is not None
 
 
 def render_profile(profile_output, profile_format):
-    """ render diagram's source .dot file using the "dot" tool from graphviz """
+    """render diagram's source .dot file using the "dot" tool from graphviz"""
     cmd = "gprof2dot -f pstats {} | ".format(profile_output)
     cmd += DOT_EXE + " -T{} -o {}.{}".format(profile_format, profile_output, profile_format)
     if os.system(cmd) != 0:
