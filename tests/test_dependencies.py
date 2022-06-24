@@ -61,10 +61,10 @@ def test_uninstall_dependency(tmpdir, monkeypatch):
     monkeypatch.setenv("PYTHONPATH", new_python_path)
 
     small_dependencies = [
-        Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.5")
+        Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.27.1")
     ]
     dependencies._install_dependencies(
-        small_dependencies, target_dir=tmpdir, use_pypi=True
+        small_dependencies, target_dir=tmpdir
     )
     dependencies._uninstall_dependency(small_dependencies[0])
     for directory in os.listdir(tmpdir):
@@ -88,14 +88,11 @@ def test_dependencies_target_dir_smoke():
     assert "python" in str(dependencies._dependencies_target_dir())
 
 
-def test_dependencies_target_dir_somewhere_else(tmpdir):
-    # The tmpdir is not a regular your_profile/python/plugins/ThreeDiToolbox dir.
-    # So _dependencies_target_dir() will ask qgis for your profile's settings path.
-    # We mock that and check that it is used.
-    with mock.patch("qgis.core.QgsApplication.qgisSettingsDirPath") as patched:
-        patched.return_value = "/some/profile/dir"
-        result = str(dependencies._dependencies_target_dir(tmpdir))
-        assert "/some/profile/dir/python" == result
+def test_dependencies_target_dir_somewhere_else():
+    # The dependencies folder is a subdir 'deps' of tmpdir
+    plugin_folder = Path("/some/profile/dir")
+    result = str(dependencies._dependencies_target_dir(our_dir=plugin_folder))
+    assert str(plugin_folder) + '/deps' == result
 
 
 def test_get_python_interpreter_linux():

@@ -86,7 +86,7 @@ constraints.txt: dependencies.py
 
 test: compile transcompile
 	@echo "#### Python tests"
-	QT_QPA_PLATFORM=offscreen pytest --cov
+	QT_QPA_PLATFORM=offscreen pytest --cov --ignore ./deps
 
 docstrings:
 	@echo "#### Docstring coverage report"
@@ -109,6 +109,7 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/docker-compose.override.yml
 	rm -rf /tmp/$(PLUGINNAME)/external-dependencies/h5py
 	rm -rf /tmp/$(PLUGINNAME)/external-dependencies/scipy
+	rm -rf /tmp/$(PLUGINNAME)/deps
 	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
@@ -201,7 +202,7 @@ html:
 # Run pep8 + pyflakes checks
 flake8:
 	@echo "#### PEP8/pyflakes issues"
-	@flake8 .
+	@flake8 . --extend-exclude=deps
 	@echo "No issues found."
 
 

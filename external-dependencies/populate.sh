@@ -12,7 +12,7 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako packaging networkx
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic mako packaging python-editor colorama networkx
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
