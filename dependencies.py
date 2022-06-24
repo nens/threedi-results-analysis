@@ -121,21 +121,30 @@ def ensure_everything_installed():
         print('Missing dependencies:')
         for deps in missing:
             print(deps.name)
+
+        restart_required = False
         try:
             _install_dependencies(missing, target_dir=target_dir)
         except RuntimeError:
             # In case some libraries are already imported, we cannot uninstall
             # because QGIS acquires a lock on dll/pyd-files. Therefore
             # we need to restart Qgis.
-            from ThreeDiToolbox.utils.user_messages import pop_up_info
+            restart_required = True
+            pass
 
+        restart_marker = Path(target_dir / "restarted.marker")
+        
+        if restart_required or not restart_marker.exists():
+            # We always want to restart when deps are missing
+            from ThreeDiToolbox.utils.user_messages import pop_up_info
             pop_up_info(
                 "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
                 title="Restart required",
             )
-        finally:
-            # always update the import mechanism
-            _refresh_python_import_mechanism()
+            restart_marker.touch()
+
+        # Always update the import mechanism
+        _refresh_python_import_mechanism()
 
     else:
         print('Dependencies up to date')
