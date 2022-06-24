@@ -3,9 +3,9 @@ from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.datasource.base import BaseDataSource
 from ThreeDiToolbox.datasource.result_constants import LAYER_OBJECT_TYPE_MAPPING
 from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5Admin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5AggregateResultAdmin
-from ThreeDiToolbox.utils.patched_threedigrid import GridH5ResultAdmin
+from threedigrid.admin.gridadmin import GridH5Admin
+from threedigrid.admin.gridresultadmin import GridH5AggregateResultAdmin
+from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 
 import glob
 import h5py

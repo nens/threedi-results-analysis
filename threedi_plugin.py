@@ -16,6 +16,7 @@ from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultS
 from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
 from ThreeDiToolbox.tool_statistics import StatisticsTool
 from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
+from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
@@ -79,6 +80,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
         self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
+        self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.ts_datasources)
         self.logfile_tool = ShowLogfile(iface)
 
         self.tools = [
@@ -90,6 +92,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.sideview_tool,
             self.stats_tool,
             self.water_balance_tool,
+            self.watershed_tool,
             self.logfile_tool,
         ]
 
