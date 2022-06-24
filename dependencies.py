@@ -32,6 +32,8 @@ import platform
 import subprocess
 import sys
 import shutil
+from PyQt5.QtWidgets import QApplication, QProgressDialog, QProgressBar
+from PyQt5.QtCore import Qt
 
 
 Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
@@ -71,6 +73,24 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
+def prog_dialog(progress):
+    dialog = QProgressDialog()
+    dialog.setWindowTitle("3Di Toolbox install progress")
+    dialog.setLabelText("Installing external dependencies")
+    dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    bar = QProgressBar(dialog)
+    bar.setTextVisible(True)
+    bar.setValue(progress)
+    bar.setValue(0)
+    bar.setMaximum(100)
+    dialog.setBar(bar)
+    dialog.setMinimumWidth(300)
+    dialog.update()
+    dialog.setCancelButton(None)
+    dialog.show()
+    return dialog, bar
+
+
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
 
@@ -101,9 +121,22 @@ def ensure_everything_installed():
         print('Missing dependencies:')
         for deps in missing:
             print(deps.name)
-        _install_dependencies(missing, target_dir=target_dir)
+        try:
+            _install_dependencies(missing, target_dir=target_dir)
+        except RuntimeError:
+            # In case some libraries are already imported, we cannot uninstall
+            # because QGIS acquires a lock on dll/pyd-files. Therefore
+            # we need to restart Qgis.
+            from ThreeDiToolbox.utils.user_messages import pop_up_info
 
-        _refresh_python_import_mechanism()
+            pop_up_info(
+                "Please restart QGIS to complete the installation process of " "ThreediToolbox.",
+                title="Restart required",
+            )
+        finally: 
+            # always update the import mechanism
+            _refresh_python_import_mechanism() 
+        
     else:
         print('Dependencies up to date')
 
@@ -307,6 +340,10 @@ def check_importability():
 def _uninstall_dependency(dependency):
     print("Trying to uninstalling dependency %s" % dependency.name)
     python_interpreter = _get_python_interpreter()
+    startupinfo = None
+    if _is_windows():
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     process = subprocess.Popen(
         [
             python_interpreter,
@@ -320,6 +357,7 @@ def _uninstall_dependency(dependency):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        startupinfo=startupinfo
     )
     # The input/output/error stream handling is a bit involved, but it is
     # necessary because of a python bug on windows 7, see
@@ -351,16 +389,30 @@ def _install_dependencies(dependencies, target_dir):
         str(target_dir),
     ]
 
-    for dependency in dependencies:
+    dialog = None
+    bar = None
+    startupinfo = None
+    if _is_windows():
+        dialog, bar = prog_dialog(0)
+        QApplication.processEvents()
+
+    for count, dependency in enumerate(dependencies):
         _uninstall_dependency(dependency)
         print("Installing '%s' into %s" % (dependency.name, target_dir))
         command = base_command + [dependency.name + dependency.constraint]
+
+        if _is_windows():
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            dialog.setLabelText(f"Installing {dependency.name}")
+
         process = subprocess.Popen(
             command,
             universal_newlines=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            startupinfo=startupinfo
         )
         # The input/output/error stream handling is a bit involved, but it is
         # necessary because of a python bug on windows 7, see
@@ -373,7 +425,10 @@ def _install_dependencies(dependencies, target_dir):
         print(result)
         exit_code = process.wait()
         if exit_code:
-            raise RuntimeError("Installing %s failed" % dependency.name)
+            if dialog:
+                dialog.close()
+                QApplication.processEvents()
+            raise RuntimeError(f"Installing {dependency.name} failed ({exit_code}) ({result})")
         print("Installed %s into %s" % (dependency.name, target_dir))
         if dependency.package in sys.modules:
             print("Unloading old %s module" % dependency.package)
@@ -381,6 +436,27 @@ def _install_dependencies(dependencies, target_dir):
             # check_importability() will be called soon, which will import them again.
             # By removing them from sys.modules, we prevent older versions from
             # sticking around.
+
+        if bar:
+            bar.setValue((count / len(dependencies)) * 100)
+            bar.update()
+            QApplication.processEvents()
+
+    if dialog:
+        dialog.close()
+
+
+def _is_windows():
+    """Return whether we are starting from QGIS on Windows.
+    """
+    executable = sys.executable
+    _, filename = os.path.split(executable)
+    if "python3" in filename.lower():
+        return False
+    elif "qgis" in filename.lower():
+        return True
+    else:
+        raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
 
 
 def _get_python_interpreter():
@@ -392,13 +468,12 @@ def _get_python_interpreter():
     """
     interpreter = None
     executable = sys.executable
-    directory, filename = os.path.split(executable)
-    if "python3" in filename.lower():
-        interpreter = executable
-    elif "qgis" in filename.lower():
+    directory, _ = os.path.split(executable)
+    if _is_windows():
         interpreter = os.path.join(directory, "python3.exe")
     else:
-        raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
+        interpreter = executable
+        
     assert os.path.exists(interpreter)  # safety check
     return interpreter
 
