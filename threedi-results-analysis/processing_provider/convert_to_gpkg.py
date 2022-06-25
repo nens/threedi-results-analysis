@@ -83,7 +83,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT,
-                self.tr("Input gridadmin.h5 file"),
+                self.tr("Folder containing input gridadmin.h5"),
                 behavior=QgsProcessingParameterFile.Folder,
                 defaultValue=last_input_dir,
             )
