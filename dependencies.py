@@ -484,7 +484,10 @@ def _is_windows():
     if "python3" in filename.lower():
         return False
     elif "qgis" in filename.lower():
-        return True
+        if platform.system().lower() == "darwin":
+            return False
+        else:
+            return True
     else:
         raise EnvironmentError("Unexpected value for sys.executable: %s" % executable)
 
@@ -501,6 +504,8 @@ def _get_python_interpreter():
     directory, _ = os.path.split(executable)
     if _is_windows():
         interpreter = os.path.join(directory, "python3.exe")
+    elif platform.system().lower() == "darwin":
+         interpreter = os.path.join(directory, "bin", "python3")
     else:
         interpreter = executable
 
