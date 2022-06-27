@@ -505,7 +505,7 @@ def _get_python_interpreter():
     if _is_windows():
         interpreter = os.path.join(directory, "python3.exe")
     elif platform.system().lower() == "darwin":
-        interpreter = os.path.join(directory, "python3.exe")
+        interpreter = os.path.join(directory, "bin", "python3")
     else:
         interpreter = executable
 
