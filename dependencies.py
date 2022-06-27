@@ -99,7 +99,7 @@ def create_progress_dialog(progress):
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
 
-    _remove_old_distributions(DEPENDENCIES, _prev_dependencies_target_dir())
+    _remove_old_distributions(DEPENDENCIES + WINDOWS_PLATFORM_DEPENDENCIES + [H5PY_DEPENDENCY], _prev_dependencies_target_dir())
 
     # If required, create deps folder and prepend to the path
     target_dir = _dependencies_target_dir(create=True)
