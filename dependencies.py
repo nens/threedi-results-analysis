@@ -146,7 +146,7 @@ def ensure_everything_installed():
 
                 pop_up_info(
                     "Please restart QGIS to complete the installation process of "
-                    "ThreediToolbox.",
+                    "3Di Toolbox.",
                     title="Restart required",
                 )
                 restart_marker.touch()
@@ -225,7 +225,7 @@ def _install_h5py(hdf5_version: str):
 
         pop_up_info(
             "Please restart QGIS to complete the installation process of "
-            "ThreediToolbox.",
+            "3Di Toolbox.",
             title="Restart required",
         )
         return
