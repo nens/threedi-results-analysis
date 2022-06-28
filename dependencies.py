@@ -78,10 +78,10 @@ OUR_DIR = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def create_progress_dialog(progress):
+def create_progress_dialog(progress, text):
     dialog = QProgressDialog()
     dialog.setWindowTitle("3Di Toolbox install progress")
-    dialog.setLabelText("Installing external dependencies")
+    dialog.setLabelText(text)
     dialog.setWindowFlags(Qt.WindowStaysOnTopHint)
     bar = QProgressBar(dialog)
     bar.setTextVisible(True)
@@ -117,17 +117,19 @@ def ensure_everything_installed():
         print("  - %s" % directory)
 
     _ensure_prerequisite_is_installed()
+
     missing = _check_presence(DEPENDENCIES)
+    restart_required = False
     if platform.system() == "Windows":
         missing += _check_presence(WINDOWS_PLATFORM_DEPENDENCIES)
-        _ensure_h5py_installed()
+        if not _ensure_h5py_installed():
+            restart_required = True
 
     if missing:
         print("Missing dependencies:")
         for deps in missing:
             print(deps.name)
 
-        restart_required = False
         try:
             _install_dependencies(missing, target_dir=target_dir)
         except RuntimeError:
@@ -195,14 +197,16 @@ def _ensure_h5py_installed():
     h5py_missing = _check_presence([h5py_dependency])
     marker_version = H5pyMarker.version()
     if h5py_missing:
-        _install_h5py(hdf5_version)
+        return _install_h5py(hdf5_version)
 
     if hdf5_version == "1.10.7":
         if marker_version == "1.10.7":
             # Do nothing
             pass
         else:
-            _install_h5py(hdf5_version)
+            return _install_h5py(hdf5_version)
+
+    return True
 
 
 def _install_h5py(hdf5_version: str):
@@ -221,15 +225,9 @@ def _install_h5py(hdf5_version: str):
     try:
         _install_dependencies([H5PY_DEPENDENCY], target_dir=_dependencies_target_dir())
     except RuntimeError:
-        from ThreeDiToolbox.utils.user_messages import pop_up_info
-
-        pop_up_info(
-            "Please restart QGIS to complete the installation process of "
-            "3Di Toolbox.",
-            title="Restart required",
-        )
-        return
+        return False
     H5pyMarker.create(hdf5_version)
+    return True
 
 
 class H5pyMarker:
@@ -402,6 +400,9 @@ def _uninstall_dependency(dependency):
 
 
 def _install_dependencies(dependencies, target_dir):
+    if not dependencies:
+        return
+
     python_interpreter = _get_python_interpreter()
     base_command = [
         python_interpreter,
@@ -421,7 +422,7 @@ def _install_dependencies(dependencies, target_dir):
     bar = None
     startupinfo = None
     if _is_windows():
-        dialog, bar = create_progress_dialog(0)
+        dialog, bar = create_progress_dialog(0, f"Installing {dependencies[0].name}")
         QApplication.processEvents()
         startupinfo = subprocess.STARTUPINFO()
         # Prevents terminal screens from popping up
