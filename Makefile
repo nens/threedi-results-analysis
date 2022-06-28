@@ -53,20 +53,6 @@ HELP = help/build/html
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
-INSTALLER_BUILDDIR = installer-build
-INSTALLER_PLUGINDIR = 3Di-additions/ms-windows/profiles/default/python/plugins
-
-# Get your tag from https://github.com/qgis/QGIS
-QGIS_TAG = final-3_16_7
-# Should correspond with QGIS_TAG and in the form: major.minor.patch
-QGIS_VERSION = 3.16.7
-# Postfix after the version. Should be an integer. Set it back to 1
-# when using a new qgis version. Corresponds to the 'binary' option to
-# the qgis installer-builder-script.
-QGIS_BINARY = 2
-# https://github.com/nens/threedi-api-qgis-client plugin (different name, btw)
-THREEDI_MODELS_AND_SIMULATIONS_VERSION = 3.0.3
-
 default: compile
 
 compile: $(COMPILED_RESOURCE_FILES) external-dependencies/.generated.marker
@@ -113,43 +99,6 @@ zip: compile transcompile
 	rm -rf /tmp/$(PLUGINNAME)/__pycache__
 	find /tmp/$(PLUGINNAME) -iname "*.pyc" -delete
 	cd /tmp; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
-
-installer: zip
-	@echo
-	@echo "---------------------------"
-	@echo "Creating Windows Installer."
-	@echo "---------------------------"
-	mkdir ./$(INSTALLER_BUILDDIR)
-	git clone --branch master --depth 1 \
-		git@github.com:nens/3Di-modeller-interface-installer.git \
-		./$(INSTALLER_BUILDDIR)
-	unzip $(PLUGINNAME).zip -d ./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/
-	git clone --branch master --depth 1 \
-		git@github.com:nens/ThreeDiCustomizations.git \
-		./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/ThreeDiCustomizations
-	rm -rf /tmp/threedi-api-qgis-client
-	git clone --branch ${THREEDI_MODELS_AND_SIMULATIONS_VERSION} --depth 1 \
-		https://github.com/nens/threedi-api-qgis-client.git \
-		/tmp/threedi-api-qgis-client
-	mv /tmp/threedi-api-qgis-client/threedi_models_and_simulations \
-	./$(INSTALLER_BUILDDIR)/$(INSTALLER_PLUGINDIR)/threedi_models_and_simulations
-	git clone --branch $(QGIS_TAG) --depth 1 \
-		git@github.com:qgis/qgis.git ./$(INSTALLER_BUILDDIR)/QGIS
-	docker run \
-	    -v ${PWD}/$(INSTALLER_BUILDDIR)/QGIS:/installer/QGIS \
-	    -v ${PWD}/$(INSTALLER_BUILDDIR)/3Di-additions:/installer/3Di-additions \
-		-it -e PYTHONUNBUFFERED=0 harbor.lizard.net/threedi/3dimi-installer:latest ./create_qgis_3di_nsis.pl \
-		-version ${QGIS_VERSION} \
-		-binary ${QGIS_BINARY}
-	cp ./$(INSTALLER_BUILDDIR)/QGIS/ms-windows/*3Di*.exe $(CURDIR)/
-
-clean-installer:
-	@echo
-	@echo "-------------------------------------------"
-	@echo "Removing Installer build files and folders."
-	@echo "-------------------------------------------"
-	sudo rm -r $(INSTALLER_BUILDDIR)
-	sudo rm *.exe
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
