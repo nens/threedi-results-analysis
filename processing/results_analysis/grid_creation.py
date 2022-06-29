@@ -10,8 +10,6 @@ from qgis.core import (
     QgsVectorLayer,
 )
 
-from threedigrid_builder import make_gridadmin, SchematisationError
-
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
     """Generate a gridadmin.h5 file out of Spatialite database"""
@@ -65,6 +63,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
+        from threedigrid_builder import make_gridadmin, SchematisationError
 
         input_slite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
         if not input_slite:
