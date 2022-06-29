@@ -14,7 +14,6 @@
 import csv
 import os
 import shutil
-from uuid import uuid4
 
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
@@ -25,6 +24,7 @@ from threedi_modelchecker import errors
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
     RasterChecker,
 )
+from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
@@ -37,18 +37,6 @@ from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,
 )
-
-
-def backup_sqlite(filename):
-    """Make a backup of the sqlite database."""
-    backup_folder = os.path.join(os.path.dirname(os.path.dirname(filename)), "_backup")
-    os.makedirs(backup_folder, exist_ok=True)
-    prefix = str(uuid4())[:8]
-    backup_sqlite_path = os.path.join(
-        backup_folder, f"{prefix}_{os.path.basename(filename)}"
-    )
-    shutil.copyfile(filename, backup_sqlite_path)
-    return backup_sqlite_path
 
 
 def get_threedi_database(filename, feedback):
