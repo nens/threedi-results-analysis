@@ -1,7 +1,7 @@
 ThreeDiToolBox changelog
 ========================
 
-2.2 (unreleased)
+2.2 (2022-06-29)
 ----------------
 
 - Improved dependency management
