@@ -7,7 +7,8 @@ from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
-from ThreeDiToolbox.processing.provider import ThreediProvider
+from ThreeDiToolbox.processing.providers import ThreediProvider
+from ThreeDiToolbox.processing.providers import ThreeDiResultsAnalysisProcessingProvider
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -107,7 +108,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Processing Toolbox scripts
-        self.provider = None
+        self.main_provider = None
+        self.results_analysis_provider = None
 
         # Styling
         for color_ramp in color.COLOR_RAMPS:
@@ -188,9 +190,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def initProcessing(self):
         """Create the Qgis Processing Toolbox provider and its algorithms"""
-        self.provider = ThreediProvider()
+        self.main_provider = ThreediProvider()
+        self.results_analysis_provider = ThreeDiResultsAnalysisProcessingProvider()
         # Disabled until threedidepth is fixed
-        QgsApplication.processingRegistry().addProvider(self.provider)
+        QgsApplication.processingRegistry().addProvider(self.main_provider)
+        QgsApplication.processingRegistry().addProvider(self.results_analysis_provider)
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
@@ -287,7 +291,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
         self.unload_state_sync()
-        QgsApplication.processingRegistry().removeProvider(self.provider)
+        QgsApplication.processingRegistry().removeProvider(self.main_provider)
+        QgsApplication.processingRegistry().removeProvider(self.results_analysis_provider)
 
         for action in self.actions:
             self.iface.removePluginMenu("&3Di toolbox", action)

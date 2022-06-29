@@ -26,6 +26,14 @@ def backup_sqlite(filename):
     return backup_sqlite_path
 
 
+def safe_join(*path):
+    """
+    Join path parts and replace any backslashes with slash to make QGIS happy when accessing a Windows network location.
+    """
+    joined = os.path.join(*path)
+    return joined.replace("\\", "/")
+
+
 def pairwise(iterable):
     # from https://docs.python.org/2/library/
     # itertools.html#recipes

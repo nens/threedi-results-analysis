@@ -16,3 +16,6 @@ packaging
 python-editor>=0.3
 colorama
 networkx
+condenser>=0.1.1
+pygeos>=0.11.1
+threedigrid_builder>=1.3.6
