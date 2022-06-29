@@ -146,7 +146,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             crs = QgsCoordinateReferenceSystem.fromEpsgId(code_int)
             if crs.isValid():
                 context.project().setCrs(crs)
-                crs_info = f"Setting project CRS according to the source gridadmin file."
+                crs_info = "Setting project CRS according to the source gridadmin file."
             else:
                 crs_info = "Skipping setting project CRS - does gridadmin file contains a valid EPSG code?"
         else:

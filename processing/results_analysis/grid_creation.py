@@ -69,7 +69,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         if not input_slite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
 
-        uri = input_slite + f"|layername=v2_global_settings"
+        uri = input_slite + "|layername=v2_global_settings"
         feedback.pushInfo(f"Reading DEM settings from: {uri}")
         settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
         if not settings_lyr.isValid():
@@ -86,7 +86,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
         if not os.path.exists(set_dem_path):
             set_dem_path = None
-            info = f"The DEM referenced in the Spatialite settings doesn't exist - skipping."
+            info = "The DEM referenced in the Spatialite settings doesn't exist - skipping."
             feedback.pushInfo(info)
 
         output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
