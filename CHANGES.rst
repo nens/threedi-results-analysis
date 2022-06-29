@@ -4,7 +4,11 @@ ThreeDiToolBox changelog
 2.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Improved dependency management
+- Added some missing dependendies on Windows
+- Added plugin icon
+- Dependencies are now stored in plugins' deps folder.
+- Watershed tool.
 
 
 2.1 (2022-06-14)
