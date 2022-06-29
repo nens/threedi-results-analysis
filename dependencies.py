@@ -62,7 +62,7 @@ DEPENDENCIES = [
     ),  # dep of click and threedi-modelchecker (windows)
     Dependency("networkx", "networkx", ""),
     Dependency("condenser", "condenser", ">=0.1.1"),
-    Dependency("pygeos", "pygeos", ">=0.11.1"),
+    Dependency("pygeos", "pygeos", ">=0.12.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.3.6"),
 ]
 
