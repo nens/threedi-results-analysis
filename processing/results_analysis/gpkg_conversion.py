@@ -118,7 +118,8 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         epsg_codes = set()
         for layer_name, table_name in data_srcs.items():
             uri = gpkg_path + f"|layername={table_name}"
-            layers[layer_name] = QgsVectorLayer(uri, layer_name, "ogr")
+            layer = QgsVectorLayer(uri, layer_name, "ogr")
+            layers[layer_name] = layer
 
             # only load layers that contain some features
             if not layers[layer_name].featureCount():
@@ -128,12 +129,11 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             # apply the style and add for loading when alg is completed
             qml_path = safe_join(styles_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
-                layers[layer_name].loadNamedStyle(qml_path)
-            context.temporaryLayerStore().addMapLayer(layers[layer_name])
-            context.addLayerToLoadOnCompletion(
-                layers[layer_name].id(),
-                QgsProcessingContext.LayerDetails(layers[layer_name].id(), context.project(), layer_name),
-            )
+                layer.loadNamedStyle(qml_path)
+            context.temporaryLayerStore().addMapLayer(layer)
+            layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project())
+            layer_details.forceName = True
+            context.addLayerToLoadOnCompletion(layer.id(), layer_details,)
 
         # Empty layers info
         if empty_layers:
