@@ -9,6 +9,7 @@ from qgis.core import (
     QgsSettings,
     QgsVectorLayer,
 )
+from threedigrid_builder import make_gridadmin, SchematisationError
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
@@ -33,10 +34,10 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Generate computational grid")
 
     def group(self):
-        return self.tr("")
+        return self.tr("Computational Grid")
 
     def groupId(self):
-        return ""
+        return "computational_grid"
 
     def shortHelpString(self):
         return self.tr("Generate computational grid")
@@ -63,8 +64,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        from threedigrid_builder import make_gridadmin, SchematisationError
-
         input_slite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
         if not input_slite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))

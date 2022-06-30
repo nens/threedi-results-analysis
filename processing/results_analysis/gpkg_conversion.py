@@ -50,10 +50,10 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Convert gridadmin to GeoPackage")
 
     def group(self):
-        return self.tr("")
+        return self.tr("Computational Grid")
 
     def groupId(self):
-        return ""
+        return "computational_grid"
 
     def shortHelpString(self):
         return self.tr("Convert gridadmin.h5 to GeoPackage")

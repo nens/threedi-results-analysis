@@ -21,6 +21,8 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(CheckRastersAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
+        self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
+        self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.
@@ -42,21 +44,4 @@ class ThreediProvider(QgsProcessingProvider):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QIcon(":/plugins/ThreeDiToolbox/icons/icon.png")
-
-
-class ThreeDiResultsAnalysisProcessingProvider(QgsProcessingProvider):
-    """Loads the3Di Results Analysis algorithms for 3Di"""
-
-    def loadAlgorithms(self, *args, **kwargs):
-        self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
-        self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
-
-    def id(self, *args, **kwargs):
-        return "threedi-results-analysis"
-
-    def name(self, *args, **kwargs):
-        return self.tr("3Di Results Analysis")
-
-    def icon(self):
         return QIcon(":/plugins/ThreeDiToolbox/icons/icon.png")
