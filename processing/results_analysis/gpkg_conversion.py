@@ -93,7 +93,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         s = QgsSettings()
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
-        plugin_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        plugin_dir = os.path.dirname(os.path.realpath(__file__))
         styles_dir = os.path.join(plugin_dir, "styles")
 
         progress = Progress(feedback)
