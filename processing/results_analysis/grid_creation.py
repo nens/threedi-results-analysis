@@ -31,7 +31,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         return "threedi_generate_computational_grid"
 
     def displayName(self):
-        return self.tr("Generate computational grid")
+        return self.tr("Generate gridadmin")
 
     def group(self):
         return self.tr("Computational Grid")
@@ -40,7 +40,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         return "computational_grid"
 
     def shortHelpString(self):
-        return self.tr("Generate computational grid")
+        return self.tr("Generate gridadmin")
 
     def initAlgorithm(self, config=None):
 
