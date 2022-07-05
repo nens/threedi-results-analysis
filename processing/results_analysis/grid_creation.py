@@ -91,7 +91,8 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         output_file = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output_file is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-        if output_file.endswith(".file"):  # Case when user picks writing to the temporary file.
+        # If user is writing to the temporary file then QGIS adds '.file' extension, so we need to change it to '.h5'.
+        if output_file.endswith(".file"):
             output_file_without_extension = output_file.rsplit(".", 1)[0]
             output_file = f"{output_file_without_extension}.h5"
         s = QgsSettings()
