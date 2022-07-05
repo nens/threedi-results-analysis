@@ -64,47 +64,48 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        input_slite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
-        if not input_slite:
+        input_spatialite = self.parameterAsString(parameters, self.INPUT_SPATIALITE, context)
+        if not input_spatialite:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT_SPATIALITE))
 
-        uri = input_slite + "|layername=v2_global_settings"
+        uri = input_spatialite + "|layername=v2_global_settings"
         feedback.pushInfo(f"Reading DEM settings from: {uri}")
         settings_lyr = QgsVectorLayer(uri, "glob_settings", "ogr")
         if not settings_lyr.isValid():
             err = f"Global Spatialite settings table could not be loaded from {uri}\n" "Check your Spatialite file."
             raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
         try:
-            set_feat = next(settings_lyr.getFeatures())
+            settings_feat = next(settings_lyr.getFeatures())
         except StopIteration:
             err = f"No global settings entries in {uri}" "Check your Spatialite file."
             raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
-        set_dem_rel_path = set_feat["dem_file"]
-        input_slite_dir = os.path.dirname(input_slite)
-        set_dem_path = os.path.join(input_slite_dir, set_dem_rel_path)
+        set_dem_rel_path = settings_feat["dem_file"]
+        input_spatialite_dir = os.path.dirname(input_spatialite)
+        set_dem_path = os.path.join(input_spatialite_dir, set_dem_rel_path)
         feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
         if not os.path.exists(set_dem_path):
             set_dem_path = None
             info = "The DEM referenced in the Spatialite settings doesn't exist - skipping."
             feedback.pushInfo(info)
 
-        output = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
-        if output is None:
+        output_file = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
+        if output_file is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-        if output.endswith(".file"):
-            output = output.rsplit(".", 1)[0] + ".h5"
+        if output_file.endswith(".file"):  # Case when user picks writing to the temporary file.
+            output_file_without_extension = output_file.rsplit(".", 1)[0]
+            output_file = f"{output_file_without_extension}.h5"
         s = QgsSettings()
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_slite)
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output)
+        s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_spatialite)
+        s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output_file)
 
         def progress_rep(progress, info):
             feedback.setProgress(int(progress * 100))
             feedback.pushInfo(info)
 
         try:
-            make_gridadmin(input_slite, set_dem_path, output, progress_callback=progress_rep)
+            make_gridadmin(input_spatialite, set_dem_path, output_file, progress_callback=progress_rep)
         except SchematisationError as e:
             err = f"Creating grid file failed with the following error: {repr(e)}"
             raise QgsProcessingException(err)
 
-        return {self.OUTPUT: output}
+        return {self.OUTPUT: output_file}

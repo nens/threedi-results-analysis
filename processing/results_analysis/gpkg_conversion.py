@@ -5,10 +5,10 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
-    QgsProcessingParameterFileDestination,
-    QgsProcessingException,
     QgsProcessingContext,
+    QgsProcessingException,
     QgsProcessingParameterFile,
+    QgsProcessingParameterFileDestination,
     QgsSettings,
     QgsVectorLayer,
 )
@@ -28,7 +28,7 @@ class Progress(object):
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
-    """Convert gridadmin.h5 to GeoPackage with vector layers"""
+    """Convert gridadmin.h5 to GeoPackage with vector layers and add subset of those layers to the map canvas."""
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
@@ -133,7 +133,10 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             context.temporaryLayerStore().addMapLayer(layer)
             layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project())
             layer_details.forceName = True
-            context.addLayerToLoadOnCompletion(layer.id(), layer_details,)
+            context.addLayerToLoadOnCompletion(
+                layer.id(),
+                layer_details,
+            )
 
         # Empty layers info
         if empty_layers:
@@ -150,9 +153,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             else:
                 crs_info = "Skipping setting project CRS - does gridadmin file contains a valid EPSG code?"
         else:
-            crs_info = (
-                f"Skipping setting project CRS - the source file {input_gridadmin}" " contained data with various CRS."
-            )
+            crs_info = f"Skipping setting project CRS - the source file {input_gridadmin} EPSG codes are inconsistent."
         feedback.pushInfo(crs_info)
 
         return {}

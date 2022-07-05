@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 2.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added results analysis algorithms
 
 
 2.2 (2022-06-29)
