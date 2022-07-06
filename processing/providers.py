@@ -8,6 +8,8 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckRastersAlgorithm,
     MigrateAlgorithm,
 )
+from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import ThreeDiConvertToGpkgAlgorithm
+from ThreeDiToolbox.processing.results_analysis.grid_creation import ThreeDiGenerateCompGridAlgorithm
 
 
 class ThreediProvider(QgsProcessingProvider):
@@ -19,6 +21,8 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(CheckRastersAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
+        self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
+        self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.

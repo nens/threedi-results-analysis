@@ -7,7 +7,7 @@ from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
-from ThreeDiToolbox.processing.provider import ThreediProvider
+from ThreeDiToolbox.processing.providers import ThreediProvider
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -285,7 +285,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
