@@ -745,6 +745,17 @@ class WaterBalanceWidget(QDockWidget):
         ]
         return io_series_1d
 
+    @property
+    def time_units_divisor(self):
+        time_units = self.ts_units_combo_box.currentText()
+        if time_units == "hrs":
+            time_divisor = 3600
+        elif time_units == "mins":
+            time_divisor = 60
+        else:
+            time_divisor = 1
+        return time_divisor
+
     def show_barchart(self):
 
         # only possible to calculate bars when a polygon has been drawn
@@ -764,7 +775,9 @@ class WaterBalanceWidget(QDockWidget):
         viewbox_state = self.plot_widget.getPlotItem().getViewBox().getState()
         view_range = viewbox_state["viewRange"]
         t1, t2 = view_range[0]
-
+        # We have to convert plot time steps range into the seconds to match the time series data
+        t1 = t1 * self.time_units_divisor
+        t2 = t2 * self.time_units_divisor
         bm_net = BarManager(io_series_net)
         bm_2d = BarManager(io_series_2d)
         bm_2d_groundwater = BarManager(io_series_2d_groundwater)
@@ -1175,13 +1188,7 @@ class WaterBalanceWidget(QDockWidget):
 
         self.model.removeRows(0, len(self.model.rows))
         time_units = self.ts_units_combo_box.currentText()
-        if time_units == "hrs":
-            time_divisor = 3600
-        elif time_units == "mins":
-            time_divisor = 60
-        else:
-            time_divisor = 1
-        self.model.ts = ts / time_divisor
+        self.model.ts = ts / self.time_units_divisor
 
         # self.layers_in_table = self.get_modelpart_graph_layers(
         #     graph_series['items'])
