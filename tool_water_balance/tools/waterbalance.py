@@ -4,7 +4,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
-    WaterBalanceWidget,
+    WaterBalanceWidget, NotSynchronizedTimestampsError,
 )
 from threedigrid.admin.gridadmin import GridH5Admin
 
@@ -829,10 +829,11 @@ class WaterBalanceCalculation(object):
                     t_pref = t
                 else:
                     vol_ts_idx = ts_idx
-
                     ts_normal = threedi_result.get_timestamps(parameter="vol_current")
                     vol_ts_idx = np.nonzero(ts_normal == t)[0]
-
+                    if not vol_ts_idx:
+                        error_msg = "'q_cum' and 'vol_current' parameters timestamps are not matching."
+                        raise NotSynchronizedTimestampsError(error_msg, {"q_cum": ts, "vol_current": ts_normal})
                     vol_current = threedi_result.get_values_by_timestep_nr(
                         "vol_current", vol_ts_idx, np_node["id"]
                     )

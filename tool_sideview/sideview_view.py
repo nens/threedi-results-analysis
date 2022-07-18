@@ -1490,7 +1490,12 @@ class SideViewDockWidget(QDockWidget):
                 channel_profiles[channel["id"]].append(channel_part)
 
             for p in crs_points:
-                crs_def = profiles[p["definition_id"]]
+                def_id = p["definition_id"]
+                try:
+                    crs_def = profiles[def_id]
+                except KeyError:
+                    # Skip point if its `definitition_id` is not present in the profiles
+                    continue
                 level = p["reference_level"] + crs_def["rel_bottom_level"]
                 height = crs_def["height"]
                 bank_level = p["bank_level"]

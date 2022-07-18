@@ -28,6 +28,7 @@ from qgis.PyQt.QtWidgets import QWidget
 from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
+from ThreeDiToolbox.utils.user_messages import messagebar_message
 from threedigrid.admin.gridadmin import GridH5Admin
 
 import copy
@@ -83,7 +84,7 @@ INPUT_SERIES = [
 ]
 
 
-# some helper functions
+# some helper functions and classes
 #######################
 
 
@@ -99,6 +100,12 @@ def _get_feature_iterator(layer, request_filter):
     else:
         return []
 
+
+class NotSynchronizedTimestampsError(Exception):
+    def __init__(self, message, data):
+        self.message = message
+        self.data = data
+        super().__init__(self.message)
 
 #######################
 
@@ -1180,11 +1187,16 @@ class WaterBalanceWidget(QDockWidget):
         return modelpart_graph_series
 
     def update_wb(self):
-        ts, graph_series = self.calc_wb_graph(
-            self.modelpart_combo_box.currentText(),
-            self.agg_combo_box.currentText(),
-            serie_settings[self.sum_type_combo_box.currentText()],
-        )
+        try:
+            ts, graph_series = self.calc_wb_graph(
+                self.modelpart_combo_box.currentText(),
+                self.agg_combo_box.currentText(),
+                serie_settings[self.sum_type_combo_box.currentText()],
+            )
+        except NotSynchronizedTimestampsError as e:
+            messagebar_message("Couldn't draw series", e.message, 1, 5)
+            logger.warning(e.message, e.data)
+            return
 
         self.model.removeRows(0, len(self.model.rows))
         time_units = self.ts_units_combo_box.currentText()
