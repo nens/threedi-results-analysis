@@ -54,6 +54,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
                 self.tr("Input SpatiaLite file"),
                 behavior=QgsProcessingParameterFile.File,
                 defaultValue=last_input_sqlite,
+                extension="sqlite",
             )
         )
 
@@ -80,14 +81,18 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             err = f"No global settings entries in {uri}" "Check your Spatialite file."
             raise QgsProcessingException(f"Incorrect input Spatialite file:\n{err}")
         set_dem_rel_path = settings_feat["dem_file"]
-        input_spatialite_dir = os.path.dirname(input_spatialite)
-        set_dem_path = os.path.join(input_spatialite_dir, set_dem_rel_path)
-        feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
-        if not os.path.exists(set_dem_path):
+        if set_dem_rel_path:
+            input_spatialite_dir = os.path.dirname(input_spatialite)
+            set_dem_path = os.path.join(input_spatialite_dir, set_dem_rel_path)
+            feedback.pushInfo(f"DEM raster referenced in Spatialite settings:\n{set_dem_path}")
+            if not os.path.exists(set_dem_path):
+                set_dem_path = None
+                info = "The DEM referenced in the Spatialite settings doesn't exist - skipping."
+                feedback.pushInfo(info)
+        else:
             set_dem_path = None
-            info = "The DEM referenced in the Spatialite settings doesn't exist - skipping."
+            info = "There is no DEM file referenced in the Spatialite settings - skipping."
             feedback.pushInfo(info)
-
         output_file = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if output_file is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))

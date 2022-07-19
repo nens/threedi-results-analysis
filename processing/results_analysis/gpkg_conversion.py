@@ -5,7 +5,6 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
-    QgsProcessingContext,
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
@@ -33,6 +32,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
     GPKG_NAME = "GPKG_NAME"
+    LAYERS_TO_ADD = OrderedDict()
 
     def flags(self):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
@@ -130,13 +130,8 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             qml_path = safe_join(styles_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
                 layer.loadNamedStyle(qml_path)
-            context.temporaryLayerStore().addMapLayer(layer)
-            layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project())
-            layer_details.forceName = True
-            context.addLayerToLoadOnCompletion(
-                layer.id(),
-                layer_details,
-            )
+                layer.saveStyleToDatabase(table_name, "", True, "")
+            self.LAYERS_TO_ADD[layer_name] = layer
 
         # Empty layers info
         if empty_layers:
@@ -156,4 +151,14 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             crs_info = f"Skipping setting project CRS - the source file {input_gridadmin} EPSG codes are inconsistent."
         feedback.pushInfo(crs_info)
 
+        return {}
+
+    def postProcessAlgorithm(self, context, feedback):
+        project = context.project()
+        root = project.instance().layerTreeRoot()
+        group = root.addGroup("Computational grid")
+        for index, (layer_name, layer) in enumerate(self.LAYERS_TO_ADD.items()):
+            project.addMapLayer(layer, False)
+            group.insertLayer(int(index), layer)
+        self.LAYERS_TO_ADD.clear()
         return {}
