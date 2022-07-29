@@ -31,7 +31,6 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
-    GPKG_NAME = "GPKG_NAME"
     LAYERS_TO_ADD = OrderedDict()
 
     def flags(self):
@@ -47,7 +46,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return "threedi_convert_gridadmin_to_gpkg"
 
     def displayName(self):
-        return self.tr("Convert gridadmin to GeoPackage")
+        return self.tr("Computational grid from gridadmin.h5 file")
 
     def group(self):
         return self.tr("Computational Grid")
