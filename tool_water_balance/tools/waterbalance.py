@@ -353,14 +353,16 @@ class WaterBalanceCalculation(object):
 
         for pump in f_pumps:
             # test if lines are crossing boundary of polygon
-            if pump.geometry().crosses(wb_polygon):
-                geom = pump.geometry().asPolyline()
+            pump_geometry = pump.geometry()
+            if pump_geometry.intersects(wb_polygon):
+                pump_end_node_id = pump["node_idx2"]
+                linestring = pump.geometry().asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
+                outgoing = wb_polygon.contains(QgsPointXY(linestring[0]))
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
+                incoming = wb_polygon.contains(QgsPointXY(linestring[-1])) if not pump_end_node_id == -9999 else False
 
                 if incoming and outgoing:
                     # skip
