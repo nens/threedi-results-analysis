@@ -2,7 +2,6 @@ import os
 from collections import OrderedDict
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
-    QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingParameterFile,
@@ -11,13 +10,14 @@ from qgis.core import (
     QgsVectorLayer,
 )
 from threedigrid_builder import make_gridadmin, SchematisationError
-from threedigrid.admin.exporters.geopackage import GeopackageExporter
-from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import Progress
-from ThreeDiToolbox.utils.utils import safe_join
+from ThreeDiToolbox.processing.results_analysis.utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
-    """Generate a gridadmin.h5 file out of Spatialite database and convert it to GeoPackage."""
+    """
+    Generate a gridadmin.h5 file out of Spatialite database and convert it to GeoPackage.
+    Created layers will be added to the map canvas after successful conversion.
+    """
 
     INPUT_SPATIALITE = "INPUT_SPATIALITE"
     OUTPUT = "OUTPUT"
@@ -110,8 +110,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         s = QgsSettings()
         s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_spatialite)
         s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output_gpkg_file)
-        plugin_dir = os.path.dirname(os.path.realpath(__file__))
-        styles_dir = os.path.join(plugin_dir, "styles")
 
         def progress_rep(progress, info):
             feedback.setProgress(int(progress * 100))
@@ -124,69 +122,13 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
             raise QgsProcessingException(err)
 
         feedback.setProgress(0)
-        progress = Progress(feedback)
-        exporter = GeopackageExporter(gridadmin_file, output_gpkg_file)
-        exporter.export(progress.update)
-        feedback.pushInfo("Export done!")
-
-        # Unfortunately, temporaryLayerStore keeps layers to be added as a dictionary, so the order is lost
-        data_srcs = OrderedDict(
-            [
-                ("Obstacle", "obstacle"),
-                ("Cell", "cell"),
-                ("Pump (point)", "pump"),
-                ("Pump (line)", "pump_linestring"),
-                ("Node", "node"),
-                ("Flowline", "flowline"),
-            ]
-        )
-
-        layers = dict()
-        empty_layers = []
-        epsg_codes = set()
-        for layer_name, table_name in data_srcs.items():
-            uri = output_gpkg_file + f"|layername={table_name}"
-            layer = QgsVectorLayer(uri, layer_name, "ogr")
-            layers[layer_name] = layer
-
-            # only load layers that contain some features
-            if not layers[layer_name].featureCount():
-                empty_layers.append(layer_name)
-                continue
-
-            # apply the style and add for loading when alg is completed
-            qml_path = safe_join(styles_dir, f"{table_name}.qml")
-            if os.path.exists(qml_path):
-                layer.loadNamedStyle(qml_path)
-                layer.saveStyleToDatabase(table_name, "", True, "")
-            self.LAYERS_TO_ADD[layer_name] = layer
-
-        # Empty layers info
-        if empty_layers:
-            empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            feedback.pushInfo(empty_info)
-
-        # Set project CRS only if all source layers have the same CRS
-        if len(epsg_codes) == 1:
-            code_int = int(list(epsg_codes)[0])
-            crs = QgsCoordinateReferenceSystem.fromEpsgId(code_int)
-            if crs.isValid():
-                context.project().setCrs(crs)
-                crs_info = "Setting project CRS according to the source gridadmin file."
-            else:
-                crs_info = "Skipping setting project CRS - does gridadmin file contains a valid EPSG code?"
-        else:
-            crs_info = f"Skipping setting project CRS - the source file {gridadmin_file} EPSG codes are inconsistent."
-        feedback.pushInfo(crs_info)
+        gpkg_layers = gridadmin2geopackage(gridadmin_file, output_gpkg_file, context, feedback)
+        self.LAYERS_TO_ADD.update(gpkg_layers)
 
         return {self.OUTPUT: output_gpkg_file}
 
     def postProcessAlgorithm(self, context, feedback):
         project = context.project()
-        root = project.instance().layerTreeRoot()
-        group = root.addGroup("Computational grid")
-        for index, (layer_name, layer) in enumerate(self.LAYERS_TO_ADD.items()):
-            project.addMapLayer(layer, False)
-            group.insertLayer(int(index), layer)
+        load_computational_layers(self.LAYERS_TO_ADD, project)
         self.LAYERS_TO_ADD.clear()
         return {}
