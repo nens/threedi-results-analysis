@@ -12,6 +12,7 @@ import logging
 import numpy as np
 import numpy.ma as ma
 
+NO_ENDPOINT_ID = -9999
 
 logger = logging.getLogger(__name__)
 
@@ -356,13 +357,15 @@ class WaterBalanceCalculation(object):
             pump_geometry = pump.geometry()
             if pump_geometry.intersects(wb_polygon):
                 pump_end_node_id = pump["node_idx2"]
-                linestring = pump.geometry().asPolyline()
+                linestring = pump_geometry.asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPointXY(linestring[0]))
+                startpoint = QgsPointXY(linestring[0])
+                endpoint = QgsPointXY(linestring[-1])
+                outgoing = wb_polygon.contains(startpoint)
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPointXY(linestring[-1])) if not pump_end_node_id == -9999 else False
+                incoming = wb_polygon.contains(endpoint) if not pump_end_node_id == NO_ENDPOINT_ID else False
 
                 if incoming and outgoing:
                     # skip
