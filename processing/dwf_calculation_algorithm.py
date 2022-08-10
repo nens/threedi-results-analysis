@@ -93,9 +93,7 @@ def get_dwf_factors_from_file(file_path):
     return dwf_factors
 
 
-def start_time_and_duration_to_dwf_factors(
-    start_time: str, duration: int, dwf_factors: List[List]
-) -> List[List]:
+def start_time_and_duration_to_dwf_factors(start_time: str, duration: int, dwf_factors: List[List]) -> List[List]:
     """
     Get list of [timestep, dwf_factor] pairs for given timeframe
 
@@ -224,16 +222,10 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-            QgsProcessingParameterString(
-                "start_time", self.tr("Start time of day (HH:MM:SS)"), "00:00:00"
-            )
+            QgsProcessingParameterString("start_time", self.tr("Start time of day (HH:MM:SS)"), "00:00:00")
         )
 
-        self.addParameter(
-            QgsProcessingParameterString(
-                "duration", self.tr("Simulation duration (hours)")
-            )
-        )
+        self.addParameter(QgsProcessingParameterString("duration", self.tr("Simulation duration (hours)")))
 
         self.addParameter(
             QgsProcessingParameterFile(
@@ -245,11 +237,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(
-            QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output CSV"), "csv(*.csv)"
-            )
-        )
+        self.addParameter(QgsProcessingParameterFileDestination(self.OUTPUT, self.tr("Output CSV"), "csv(*.csv)"))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -258,13 +246,9 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
 
         start_time = self.parameterAsString(parameters, "start_time", context)
         duration = self.parameterAsInt(parameters, "duration", context)
-        connection_name = self.parameterAsConnectionName(
-            parameters, self.INPUT, context
-        )
+        connection_name = self.parameterAsConnectionName(parameters, self.INPUT, context)
         output_csv = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
-        dwf_factor_input = self.parameterAsFile(
-            parameters, "dwf_progress_file", context
-        )
+        dwf_factor_input = self.parameterAsFile(parameters, "dwf_progress_file", context)
 
         try:
             md = QgsProviderRegistry.instance().providerMetadata("spatialite")
@@ -272,9 +256,7 @@ class DWFCalculatorAlgorithm(QgsProcessingAlgorithm):
         except QgsProviderConnectionException:
             logging.exception("Error setting up connection to spatialite")
             raise QgsProcessingException(
-                self.tr("Could not retrieve connection details for {}").format(
-                    connection_name
-                )
+                self.tr("Could not retrieve connection details for {}").format(connection_name)
             )
 
         spatialite_filename = conn.uri()[8:-1]

@@ -11,7 +11,6 @@
 ***************************************************************************
 """
 from collections import namedtuple
-from processing.gui.NumberInputPanel import NumberInputPanel
 from processing.gui.wrappers import DIALOG_STANDARD
 from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsFeedback
@@ -28,6 +27,7 @@ from qgis.core import QgsMeshLayer
 from qgis.core import QgsRasterLayer
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtWidgets import QComboBox
 from threedidepth.calculate import calculate_waterdepth
 from threedidepth.calculate import MODE_CONSTANT
 from threedidepth.calculate import MODE_CONSTANT_S1
@@ -62,38 +62,25 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
             else:
                 self._widget = CheckboxTimeSliderWidget()
         else:
-            self._widget = NumberInputPanel(
-                QgsProcessingParameterNumber(
-                    self.parameterDefinition().name(),
-                    defaultValue=self.parameterDefinition().defaultValue(),
-                    minValue=-1,
-                    optional=self.parameterDefinition().optional,
-                )
-            )
+            self._widget = TimeStepsCombobox()
         return self._widget
 
     def value(self):
         return self._widget.getValue()
 
     def postInitialize(self, wrappers):
-        if self.dialogType != DIALOG_STANDARD:
-            return
-
-        # Connect the result-file parameter to the TimeSliderWidget
+        # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
         for wrapper in wrappers:
             if wrapper.parameterDefinition().name() == self.param.parentParameterName:
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
 
 
-WIDGET, BASE = uic.loadUiType(
-    os.path.join(pluginPath, "processing", "ui", "widgetTimeSlider.ui")
-)
+WIDGET, BASE = uic.loadUiType(os.path.join(pluginPath, "processing", "ui", "widgetTimeSlider.ui"))
 
 
 class TimeSliderWidget(BASE, WIDGET):
-    """Timeslider form widget
-
-    Provide a horizontal slider and an LCD display connected to the slider.
+    """
+    Timeslider form widget. Provide a horizontal slider and an LCD connected to the slider.
     """
 
     def __init__(self):
@@ -120,15 +107,8 @@ class TimeSliderWidget(BASE, WIDGET):
             value = self.timestamps[index]
         else:
             value = 0
-        lcd_value = self.format_lcd_value(value)
+        lcd_value = format_timestep_value(value)
         self.lcdNumber.display(lcd_value)
-
-    def format_lcd_value(self, value: float) -> str:
-        days, seconds = divmod(int(value), 24 * 60 * 60)
-        hours, seconds = divmod(seconds, 60 * 60)
-        minutes, seconds = divmod(seconds, 60)
-        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
-        return formatted_display
 
     def reset(self):
         self.setDisabled(True)
@@ -139,10 +119,7 @@ class TimeSliderWidget(BASE, WIDGET):
         self.horizontalSlider.setValue(0)
 
     def new_file_event(self, file_path):
-        """New file has been selected by the user
-
-        Try to read in the timestamps from the file
-        """
+        """New file has been selected by the user. Try to read in the timestamps from the file."""
         if file_path == "":
             self.reset()
             return
@@ -153,15 +130,11 @@ class TimeSliderWidget(BASE, WIDGET):
                 self.set_timestamps(timestamps)
         except Exception as e:
             logger.exception(e)
-            pop_up_info(
-                msg="Unable to read the file, see the logging for more information."
-            )
+            pop_up_info(msg="Unable to read the file, see the logging for more information.")
             self.reset()
 
 
-WIDGET, BASE = uic.loadUiType(
-    os.path.join(pluginPath, "processing", "ui", "widgetTimeSliderCheckbox.ui")
-)
+WIDGET, BASE = uic.loadUiType(os.path.join(pluginPath, "processing", "ui", "widgetTimeSliderCheckbox.ui"))
 
 
 class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
@@ -180,6 +153,36 @@ class CheckboxTimeSliderWidget(TimeSliderWidget, WIDGET, BASE):
 
     def new_check_box_event(self, state):
         self.horizontalSlider.setDisabled(not self.checkBox.isChecked())
+
+
+class TimeStepsCombobox(QComboBox):
+    """Combobox with populated timestep data."""
+
+    def getValue(self):
+        return self.currentIndex()
+
+    def populate_timestamps(self, timestamps):
+        for i, value in enumerate(timestamps):
+            human_readable_value = format_timestep_value(value)
+            if human_readable_value.startswith("0"):
+                human_readable_value = human_readable_value.split(" ", 1)[-1]
+            self.addItem(human_readable_value)
+        self.setCurrentIndex(0)
+
+    def new_file_event(self, file_path):
+        """New file has been selected by the user. Try to read in the timestamps from the file."""
+        if file_path == "":
+            self.clear()
+            return
+
+        try:
+            with h5py.File(file_path, "r") as results:
+                timestamps = results["time"].value
+                self.populate_timestamps(timestamps)
+        except Exception as e:
+            logger.exception(e)
+            pop_up_info(msg="Unable to read the file, see the logging for more information.")
+            self.clear()
 
 
 class ThreediDepth(QgsProcessingAlgorithm):
@@ -245,18 +248,12 @@ class ThreediDepth(QgsProcessingAlgorithm):
         """Here we define the inputs and output of the algorithm"""
         # Input parameters
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.GRIDADMIN_INPUT, self.tr("Gridadmin.h5 file"), extension="h5"
-            )
+            QgsProcessingParameterFile(self.GRIDADMIN_INPUT, self.tr("Gridadmin.h5 file"), extension="h5")
         )
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.RESULTS_3DI_INPUT, self.tr("Results_3di.nc file"), extension="nc"
-            )
+            QgsProcessingParameterFile(self.RESULTS_3DI_INPUT, self.tr("Results_3di.nc file"), extension="nc")
         )
-        self.addParameter(
-            QgsProcessingParameterRasterLayer(self.DEM_INPUT, self.tr("DEM"))
-        )
+        self.addParameter(QgsProcessingParameterRasterLayer(self.DEM_INPUT, self.tr("DEM")))
         self.addParameter(
             QgsProcessingParameterEnum(
                 name=self.MODE_INPUT,
@@ -268,9 +265,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         self.addParameter(
             ProcessingParameterNetcdfNumber(
                 name=self.CALCULATION_STEP_INPUT,
-                description=self.tr(
-                    "The timestep in the simulation for which you want to generate a raster"
-                ),
+                description=self.tr("The timestep in the simulation for which you want to generate a raster"),
                 defaultValue=-1,
                 parentParameterName=self.RESULTS_3DI_INPUT,
             )
@@ -309,34 +304,30 @@ class ThreediDepth(QgsProcessingAlgorithm):
         """
         Create the water depth raster with the provided user inputs
         """
-        dem_filename = self.parameterAsRasterLayer(
-            parameters, self.DEM_INPUT, context
-        ).source()
+        dem_filename = self.parameterAsRasterLayer(parameters, self.DEM_INPUT, context).source()
+        gridadmin_path = parameters[self.GRIDADMIN_INPUT]
+        results_3di_path = parameters[self.RESULTS_3DI_INPUT]
         mode_index = self.parameterAsEnum(parameters, self.MODE_INPUT, context)
-
+        step = parameters[self.CALCULATION_STEP_INPUT]
         endstep = parameters[self.CALCULATION_STEP_END_INPUT]
         if endstep:
-            if endstep <= parameters[self.CALCULATION_STEP_INPUT]:
+            if endstep <= step:
                 feedback.reportError(
                     "The last timestep should be larger than the first timestep.",
                     fatalError=True,
                 )
                 return {}
-            timesteps = list(range(parameters[self.CALCULATION_STEP_INPUT], endstep))
+            timesteps = list(range(step, endstep))
         else:
-            timesteps = [parameters[self.CALCULATION_STEP_INPUT]]
+            timesteps = [step]
 
         raster_filename = parameters[self.WATER_DEPTH_LEVEL_NAME]
         if not raster_filename:
-            raise QgsProcessingException(
-                self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME)
-            )
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.WATER_DEPTH_LEVEL_NAME))
 
         output_location = parameters[self.OUTPUT_DIRECTORY]
         if not output_location:
-            raise QgsProcessingException(
-                self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY)
-            )
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT_DIRECTORY))
 
         as_netcdf = parameters[self.AS_NETCDF_INPUT]
         raster_extension = "nc" if as_netcdf else "tif"
@@ -347,8 +338,8 @@ class ThreediDepth(QgsProcessingAlgorithm):
 
         try:
             calculate_waterdepth(
-                gridadmin_path=parameters[self.GRIDADMIN_INPUT],
-                results_3di_path=parameters[self.RESULTS_3DI_INPUT],
+                gridadmin_path=gridadmin_path,
+                results_3di_path=results_3di_path,
                 dem_path=dem_filename,
                 waterdepth_path=waterdepth_output_file,
                 calculation_steps=timesteps,
@@ -365,9 +356,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         else:
             layer = QgsRasterLayer(waterdepth_output_file, raster_filename)
         context.temporaryLayerStore().addMapLayer(layer)
-        layer_details = QgsProcessingContext.LayerDetails(
-            raster_filename, context.project(), self.WATER_DEPTH_OUTPUT
-        )
+        layer_details = QgsProcessingContext.LayerDetails(raster_filename, context.project(), self.WATER_DEPTH_OUTPUT)
         context.addLayerToLoadOnCompletion(layer.id(), layer_details)
         return {}
 
@@ -384,3 +373,11 @@ class Progress:
         self.feedback.setProgress(progress * 100)
         if self.feedback.isCanceled():
             raise CancelError()
+
+
+def format_timestep_value(value: float) -> str:
+    days, seconds = divmod(int(value), 24 * 60 * 60)
+    hours, seconds = divmod(seconds, 60 * 60)
+    minutes, seconds = divmod(seconds, 60)
+    formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
+    return formatted_display
