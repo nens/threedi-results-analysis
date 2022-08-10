@@ -60,11 +60,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config):
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
-            )
-        )
+        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
 
     def processAlgorithm(self, parameters, context, feedback):
         filename = self.parameterAsFile(parameters, self.INPUT, context)
@@ -138,28 +134,16 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
-            )
-        )
+        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
+
+        self.addParameter(QgsProcessingParameterFileDestination(self.OUTPUT, self.tr("Output"), fileFilter="csv"))
 
         self.addParameter(
-            QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output"), fileFilter="csv"
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
-            )
+            QgsProcessingParameterBoolean(self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True)
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(
-            parameters, self.ADD_TO_PROJECT, context
-        )
+        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -174,9 +158,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             )
             return {self.OUTPUT: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(
-            parameters, self.OUTPUT, context
-        )
+        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
         total_checks = len(model_checker.config.checks)
@@ -228,9 +210,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(
-                    self.output_file_path, "3Di schematisation errors"
-                )
+                result_layer = QgsVectorLayer(self.output_file_path, "3Di schematisation errors")
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT: self.output_file_path}
 
@@ -286,34 +266,22 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
+        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
+
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
-            )
+            QgsProcessingParameterFileDestination(self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv")
         )
 
         self.addParameter(
-            QgsProcessingParameterFileDestination(
-                self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv"
-            )
+            QgsProcessingParameterFeatureSink(self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels"))
         )
 
         self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels")
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
-            )
+            QgsProcessingParameterBoolean(self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True)
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(
-            parameters, self.ADD_TO_PROJECT, context
-        )
+        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -333,16 +301,12 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
             )
             return {self.OUTPUT_CSV: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(
-            parameters, self.OUTPUT_CSV, context
-        )
+        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT_CSV, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         try:
             with open(self.output_file_path, "w", newline="") as output_file:
                 writer = csv.writer(output_file)
-                writer.writerow(
-                    ["level", "global_settings_id", "error_code", "description"]
-                )
+                writer.writerow(["level", "global_settings_id", "error_code", "description"])
                 checker.results.sort_results()
                 for result_row in checker.results.result_per_check:
                     str_row = checker.results.result_per_check_to_msg(result_row)
@@ -385,9 +349,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(
-                    self.output_file_path, "3Di raster errors"
-                )
+                result_layer = QgsVectorLayer(self.output_file_path, "3Di raster errors")
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT_CSV: self.output_file_path}
 
