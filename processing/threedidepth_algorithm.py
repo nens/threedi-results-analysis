@@ -11,9 +11,7 @@
 ***************************************************************************
 """
 from collections import namedtuple
-from processing.gui.NumberInputPanel import NumberInputPanel
 from processing.gui.wrappers import DIALOG_STANDARD
-from processing.gui.wrappers import DIALOG_BATCH
 from processing.gui.wrappers import WidgetWrapper
 from qgis.core import QgsFeedback
 from qgis.core import QgsProcessingAlgorithm
@@ -63,27 +61,15 @@ class ThreediResultTimeSliderWidget(WidgetWrapper):
                 self._widget = TimeSliderWidget()
             else:
                 self._widget = CheckboxTimeSliderWidget()
-        elif self.dialogType == DIALOG_BATCH:
-            self._widget = TimeStepsCombobox()
         else:
-            self._widget = NumberInputPanel(
-                QgsProcessingParameterNumber(
-                    self.parameterDefinition().name(),
-                    defaultValue=self.parameterDefinition().defaultValue(),
-                    minValue=-1,
-                    optional=self.parameterDefinition().optional,
-                )
-            )
+            self._widget = TimeStepsCombobox()
         return self._widget
 
     def value(self):
         return self._widget.getValue()
 
     def postInitialize(self, wrappers):
-        if self.dialogType not in (DIALOG_STANDARD, DIALOG_BATCH):
-            return
-
-        # Connect the result-file parameter to the TimeSliderWidget
+        # Connect the result-file parameter to the TimeSliderWidget/TimeStepsCombobox
         for wrapper in wrappers:
             if wrapper.parameterDefinition().name() == self.param.parentParameterName:
                 wrapper.wrappedWidget().fileChanged.connect(self._widget.new_file_event)
