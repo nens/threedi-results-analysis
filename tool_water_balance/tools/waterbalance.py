@@ -4,7 +4,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
 from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
-    WaterBalanceWidget,
+    WaterBalanceWidget, NotSynchronizedTimestampsError,
 )
 from threedigrid.admin.gridadmin import GridH5Admin
 
@@ -12,6 +12,7 @@ import logging
 import numpy as np
 import numpy.ma as ma
 
+NO_ENDPOINT_ID = -9999
 
 logger = logging.getLogger(__name__)
 
@@ -353,14 +354,18 @@ class WaterBalanceCalculation(object):
 
         for pump in f_pumps:
             # test if lines are crossing boundary of polygon
-            if pump.geometry().crosses(wb_polygon):
-                geom = pump.geometry().asPolyline()
+            pump_geometry = pump.geometry()
+            if pump_geometry.intersects(wb_polygon):
+                pump_end_node_id = pump["node_idx2"]
+                linestring = pump_geometry.asPolyline()
                 # check if flow is in or out by testing if startpoint
                 # is inside polygon --> out
-                outgoing = wb_polygon.contains(QgsPointXY(geom[0]))
+                startpoint = QgsPointXY(linestring[0])
+                endpoint = QgsPointXY(linestring[-1])
+                outgoing = wb_polygon.contains(startpoint)
                 # check if flow is in or out by testing if endpoint
                 # is inside polygon --> in
-                incoming = wb_polygon.contains(QgsPointXY(geom[-1]))
+                incoming = wb_polygon.contains(endpoint) if not pump_end_node_id == NO_ENDPOINT_ID else False
 
                 if incoming and outgoing:
                     # skip
@@ -829,10 +834,11 @@ class WaterBalanceCalculation(object):
                     t_pref = t
                 else:
                     vol_ts_idx = ts_idx
-
                     ts_normal = threedi_result.get_timestamps(parameter="vol_current")
                     vol_ts_idx = np.nonzero(ts_normal == t)[0]
-
+                    if not vol_ts_idx:
+                        error_msg = "'q_cum' and 'vol_current' parameters timestamps are not matching."
+                        raise NotSynchronizedTimestampsError(error_msg, {"q_cum": ts, "vol_current": ts_normal})
                     vol_current = threedi_result.get_values_by_timestep_nr(
                         "vol_current", vol_ts_idx, np_node["id"]
                     )
