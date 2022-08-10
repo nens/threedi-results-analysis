@@ -3,28 +3,13 @@ from collections import OrderedDict
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
-    QgsCoordinateReferenceSystem,
     QgsProcessingAlgorithm,
-    QgsProcessingContext,
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
     QgsSettings,
-    QgsVectorLayer,
 )
-from ThreeDiToolbox.utils.utils import safe_join
-from threedigrid.admin.exporters.geopackage import GeopackageExporter
-
-
-class Progress(object):
-    def __init__(self, feedback):
-        self.percentage = 0
-        self.feedback = feedback
-
-    def update(self, count, total):
-        if (count * 100) // total > self.percentage:
-            self.percentage = (count * 100) // total
-            self.feedback.setProgress(int(self.percentage))
+from ThreeDiToolbox.processing.results_analysis.utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
@@ -32,7 +17,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
-    GPKG_NAME = "GPKG_NAME"
+    LAYERS_TO_ADD = OrderedDict()
 
     def flags(self):
         return super().flags() | QgsProcessingAlgorithm.FlagNoThreading
@@ -47,7 +32,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return "threedi_convert_gridadmin_to_gpkg"
 
     def displayName(self):
-        return self.tr("Convert gridadmin to GeoPackage")
+        return self.tr("Computational grid from gridadmin.h5 file")
 
     def group(self):
         return self.tr("Computational Grid")
@@ -56,7 +41,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return "computational_grid"
 
     def shortHelpString(self):
-        return self.tr("Convert gridadmin.h5 to GeoPackage")
+        return self.tr("Create computational grid from gridadmin.h5 file")
 
     def initAlgorithm(self, config=None):
         s = QgsSettings()
@@ -93,67 +78,14 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         s = QgsSettings()
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
-        plugin_dir = os.path.dirname(os.path.realpath(__file__))
-        styles_dir = os.path.join(plugin_dir, "styles")
 
-        progress = Progress(feedback)
-        exporter = GeopackageExporter(input_gridadmin, gpkg_path)
-        exporter.export(progress.update)
-        feedback.pushInfo("Export done!")
+        gpkg_layers = gridadmin2geopackage(input_gridadmin, gpkg_path, context, feedback)
+        self.LAYERS_TO_ADD.update(gpkg_layers)
 
-        # Unfortunately, temporaryLayerStore keeps layers to be added as a dictionary, so the order is lost
-        data_srcs = OrderedDict(
-            [
-                ("Obstacle", "obstacle"),
-                ("Cell", "cell"),
-                ("Pump (point)", "pump"),
-                ("Pump (line)", "pump_linestring"),
-                ("Node", "node"),
-                ("Flowline", "flowline"),
-            ]
-        )
+        return {}
 
-        layers = dict()
-        empty_layers = []
-        epsg_codes = set()
-        for layer_name, table_name in data_srcs.items():
-            uri = gpkg_path + f"|layername={table_name}"
-            layer = QgsVectorLayer(uri, layer_name, "ogr")
-            layers[layer_name] = layer
-
-            # only load layers that contain some features
-            if not layers[layer_name].featureCount():
-                empty_layers.append(layer_name)
-                continue
-
-            # apply the style and add for loading when alg is completed
-            qml_path = safe_join(styles_dir, f"{table_name}.qml")
-            if os.path.exists(qml_path):
-                layer.loadNamedStyle(qml_path)
-            context.temporaryLayerStore().addMapLayer(layer)
-            layer_details = QgsProcessingContext.LayerDetails(layer_name, context.project())
-            layer_details.forceName = True
-            context.addLayerToLoadOnCompletion(
-                layer.id(),
-                layer_details,
-            )
-
-        # Empty layers info
-        if empty_layers:
-            empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            feedback.pushInfo(empty_info)
-
-        # Set project CRS only if all source layers have the same CRS
-        if len(epsg_codes) == 1:
-            code_int = int(list(epsg_codes)[0])
-            crs = QgsCoordinateReferenceSystem.fromEpsgId(code_int)
-            if crs.isValid():
-                context.project().setCrs(crs)
-                crs_info = "Setting project CRS according to the source gridadmin file."
-            else:
-                crs_info = "Skipping setting project CRS - does gridadmin file contains a valid EPSG code?"
-        else:
-            crs_info = f"Skipping setting project CRS - the source file {input_gridadmin} EPSG codes are inconsistent."
-        feedback.pushInfo(crs_info)
-
+    def postProcessAlgorithm(self, context, feedback):
+        project = context.project()
+        load_computational_layers(self.LAYERS_TO_ADD, project)
+        self.LAYERS_TO_ADD.clear()
         return {}
