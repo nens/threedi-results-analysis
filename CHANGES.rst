@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.3 (unreleased)
+2.3 (2022-08-15)
 ----------------
 
 - Added results analysis algorithms
