@@ -38,7 +38,7 @@ class About(object):
         version = version_file.read_text().rstrip()
 
         pop_up_info(
-            "3Di Toolbox version %s" % version, "About", self.iface.mainWindow()
+            "3Di Toolbox version %s" % version, "About2", self.iface.mainWindow()
         )
 
     def on_unload(self):
