@@ -17,5 +17,5 @@ class TestThreeDiSideView(unittest.TestCase):
 
     def test_icon_path_is_set(self):
         self.assertEqual(
-            self.sideview.icon_path, ":/plugins/ThreeDiToolbox/icons/icon_route.png"
+            self.sideview.icon_path, "/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ThreeDiToolbox/icons/icon_route.png"
         )
