@@ -2,7 +2,7 @@ from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.tool_sideview.sideview_view import SideViewDockWidget
 
 import qgis
-
+import os
 
 class ThreeDiSideView(object):
     """QGIS Plugin Implementation."""
@@ -21,7 +21,7 @@ class ThreeDiSideView(object):
         self.iface = iface
         self.tdi_root_tool = tdi_root_tool
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_route.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
         self.menu_text = u"Show sideview of 3Di model with results"
 
         self.dock_widgets = []

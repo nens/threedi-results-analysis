@@ -2,7 +2,7 @@ from qgis.PyQt.QtCore import Qt
 from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
 
 import qgis
-
+import os
 
 class ThreeDiGraph(object):
     """QGIS Plugin Implementation."""
@@ -20,7 +20,7 @@ class ThreeDiGraph(object):
         self.ts_datasources = ts_datasources
         self.root_tool = root_tool
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_graph.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_graph.png")
         self.menu_text = u"Show 3Di results in Graph"
 
         self.dock_widgets = []

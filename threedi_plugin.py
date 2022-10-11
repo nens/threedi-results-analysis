@@ -3,7 +3,6 @@ from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QLCDNumber
-from ThreeDiToolbox import resources
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -27,11 +26,6 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-
-# Pycharm's refactor option "move" automatically deletes unused import statements,
-# If "from ThreeDiToolbox import resources" is deleted then tool-icons wont show up.
-# Lets call it.
-resources  # noqa
 
 
 class ThreeDiPlugin(QObject, ProjectStateMixin):

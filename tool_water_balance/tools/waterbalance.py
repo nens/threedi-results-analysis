@@ -8,6 +8,7 @@ from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
 )
 from threedigrid.admin.gridadmin import GridH5Admin
 
+import os
 import logging
 import numpy as np
 import numpy.ma as ma
@@ -877,7 +878,7 @@ class WaterBalanceTool(object):
         self.iface = iface
         self.ts_datasources = ts_datasources
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/weight-scale.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "icons", "weight-scale.png")
         self.menu_text = u"Water Balance Tool"
 
         self.plugin_is_active = False

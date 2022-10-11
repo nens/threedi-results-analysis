@@ -6,7 +6,7 @@ from ThreeDiToolbox.tool_commands.constants import COMMANDS_DIR
 
 import importlib
 import logging
-
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class CommandBox(object):
 
         self.ts_datasources = ts_datasources
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_command.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_command.png")
         self.menu_text = "Commands for working with 3Di models"
 
         self.pluginIsActive = False

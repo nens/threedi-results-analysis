@@ -28,7 +28,7 @@ class About(object):
 
     def __init__(self, iface):
         self.iface = iface
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon.png"
+        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon.png")
         self.menu_text = "3Di about"
 
     def run(self):
@@ -50,7 +50,7 @@ class ShowLogfile(object):
 
     def __init__(self, iface):
         self.iface = iface
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_logfile.png"
+        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_logfile.png")
         # ^^^ logo: LGPL, made by Oxygen Team, see
         # http://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/
         self.menu_text = "Show logfile"
@@ -84,7 +84,7 @@ class CacheClearer(object):
             ts_datasources: TimeseriesDatasourceModel instance
         """
         self.iface = iface
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_broom.png"
+        self.icon_path = os.path.join(os.path.dirname(__file__), "icons", "icon_broom.png")
         self.menu_text = "Clear cache"
         self.ts_datasources = ts_datasources
 

@@ -90,7 +90,7 @@ class StatisticsTool(object):
         self.iface = iface
         self.ts_datasources = ts_datasources
 
-        self.icon_path = ":/plugins/ThreeDiToolbox/icons/icon_statistical_analysis.png"
+        self.icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "icons", "icon_statistical_analysis.png")
         self.menu_text = u"Statistical Tool"
 
         self.plugin_is_active = False
