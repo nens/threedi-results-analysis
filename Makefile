@@ -117,3 +117,10 @@ beautiful:
 	isort .
 	black .
 	flake8 .
+
+clean:
+	@echo
+	@echo "------------------------------------"
+	@echo "Deleting dependencies"
+	@echo "------------------------------------"
+	rm -r deps
