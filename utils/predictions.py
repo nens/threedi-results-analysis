@@ -248,7 +248,7 @@ class Predictor(object):
                 calc_type = constants.CALC_TYPE_MAP.get(_calc_type)
                 if calc_type is None:
                     calc_type = _calc_type
-                logger.debug("calc_type is ", calc_type, "type ", type(calc_type))
+                logger.debug("calc_type is %r (type=%s)", calc_type, type(calc_type))
                 if calc_type is None:
                     logger.warning(
                         "WARNING: no calc_type for {name} {id}".format(

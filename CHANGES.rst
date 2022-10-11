@@ -2,6 +2,12 @@ ThreeDiToolBox changelog
 ========================
 
 
+2.4 (unreleased)
+----------------
+
+- Updating to the minimal schema version 208
+
+
 2.3 (2022-08-15)
 ----------------
 
