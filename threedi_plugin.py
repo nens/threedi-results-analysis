@@ -1,5 +1,5 @@
 from qgis.core import QgsApplication
-from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtWidgets import QLCDNumber
@@ -22,6 +22,9 @@ from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 
+# Import the code for the DockWidget
+from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+
 import logging
 
 
@@ -43,6 +46,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         QObject.__init__(self)
 
         self.iface = iface
+        self.dockwidget = None
 
         # Declare instance attributes
         self.actions = []
@@ -196,6 +200,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 callback=tool.run,
                 parent=self.iface.mainWindow(),
             )
+
+        if self.dockwidget == None:
+            self.dockwidget = ThreeDiPluginDockWidget(None, self.provider)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.dockwidget.show()
+
         # Processing Toolbox of Qgis will eventually replace our custom-toolbox
         self.initProcessing()
 
