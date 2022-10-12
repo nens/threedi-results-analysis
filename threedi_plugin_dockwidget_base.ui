@@ -65,7 +65,7 @@
          <x>0</x>
          <y>0</y>
          <width>446</width>
-         <height>241</height>
+         <height>239</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -119,6 +119,18 @@
              <property name="text">
               <string>Nieuw...</string>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTreeWidget" name="treeWidget">
+             <attribute name="headerVisible">
+              <bool>false</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string notr="true">1</string>
+              </property>
+             </column>
             </widget>
            </item>
           </layout>
