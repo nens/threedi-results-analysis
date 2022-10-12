@@ -202,7 +202,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             )
 
         if self.dockwidget == None:
-            self.dockwidget = ThreeDiPluginDockWidget(None, self.provider)
+            self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 

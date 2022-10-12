@@ -65,7 +65,7 @@
          <x>0</x>
          <y>0</y>
          <width>446</width>
-         <height>239</height>
+         <height>241</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -105,20 +105,39 @@
            </size>
           </property>
           <property name="title">
-           <string>Test3</string>
+           <string/>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
-            <widget class="QPushButton" name="pushButton_New">
-             <property name="toolTip">
-              <string/>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string>Nieuw...</string>
-             </property>
+            <widget class="QWidget" name="widget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="pushButton_AddGrid">
+                <property name="toolTip">
+                 <string/>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string>Add grid</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
