@@ -105,7 +105,7 @@
            </size>
           </property>
           <property name="title">
-           <string>Test</string>
+           <string>Test3</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
@@ -122,16 +122,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QTreeWidget" name="treeWidget">
-             <attribute name="headerVisible">
-              <bool>false</bool>
-             </attribute>
-             <column>
-              <property name="text">
-               <string notr="true">1</string>
-              </property>
-             </column>
-            </widget>
+            <widget class="QTreeView" name="treeView"/>
            </item>
           </layout>
          </widget>
