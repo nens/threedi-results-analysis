@@ -26,6 +26,7 @@ from qgis.utils import iface
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 import os
+from osgeo import ogr
 
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
@@ -97,7 +98,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.water_balance_tool,
             self.watershed_tool,
             self.logfile_tool,
-        ]
+        ]  
 
         self.active_ts_datasource = None
         # ^^^ TODO: this doesn't seem to be set in here!
@@ -323,6 +324,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def add_grid_file(self, input_gridadmin_h5: str) -> bool:
         # Convert h5 file to gpkg
+        # TODO: always?
         input_gridadmin_base, _ = os.path.splitext(input_gridadmin_h5)
         input_gridadmin_gpkg = input_gridadmin_base + '.gpkg'
         
@@ -331,3 +333,17 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         exporter.export(lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total))
         
         iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
+
+        # Add geopackage vector layers to project
+        ThreeDiPlugin.add_layers_from_gpkg(input_gridadmin_gpkg)
+
+        return True
+
+    # TODO: I think these methods need to be moved to some util module
+    @staticmethod
+    def add_layers_from_gpkg(gpkg_file) -> bool:
+        gpkg_layers = [l.GetName() for l in ogr.Open(gpkg_file )]
+        for layer in gpkg_layers:
+            iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
+
+        return True
