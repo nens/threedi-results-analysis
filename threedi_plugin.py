@@ -21,12 +21,13 @@ from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsVectorLayer, QgsProject
 from qgis.utils import iface
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
 import os
 from osgeo import ogr
+
 
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
@@ -323,27 +324,41 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             )
 
     def add_grid_file(self, input_gridadmin_h5: str) -> bool:
-        # Convert h5 file to gpkg
-        # TODO: always?
+        """Converts h5 grid file to gpkg and add the layers to the project"""
+
         input_gridadmin_base, _ = os.path.splitext(input_gridadmin_h5)
         input_gridadmin_gpkg = input_gridadmin_base + '.gpkg'
         
         progress_bar = StatusProgressBar(100, "Generating geopackage")
         exporter = GeopackageExporter(input_gridadmin_h5, input_gridadmin_gpkg)
         exporter.export(lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total))
-        
+        del progress_bar
+
         iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
 
-        # Add geopackage vector layers to project
-        ThreeDiPlugin.add_layers_from_gpkg(input_gridadmin_gpkg)
+        if not ThreeDiPlugin.add_layers_from_gpkg(input_gridadmin_gpkg):
+            pop_up_critical("Failed adding the layers to the project.")
+            return False
 
+        iface.messageBar().pushMessage("GeoPackage", "Added layers to the project", Qgis.Info)
+       
         return True
 
     # TODO: I think these methods need to be moved to some util module
     @staticmethod
     def add_layers_from_gpkg(gpkg_file) -> bool:
+        """Retrieves layers from gpk and add to project"""
+
         gpkg_layers = [l.GetName() for l in ogr.Open(gpkg_file )]
         for layer in gpkg_layers:
-            iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
+            
+            # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
+            # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
+
+            vector_layer = QgsVectorLayer(gpkg_file + "|layername=" + layer, layer, "ogr")
+            if not vector_layer.isValid():
+                return False
+            else:
+                QgsProject.instance().addMapLayer(vector_layer)
 
         return True

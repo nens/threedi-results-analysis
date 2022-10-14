@@ -13,10 +13,13 @@ from qgis.utils import iface
 # It isn't needed anymore: just use regular python logging instead.
 
 
-def pop_up_info(msg="", title="Information", parent=None):
+def pop_up_info(msg: str = "", title: str = "Information", parent=None):
     """Display an info message via Qt box"""
     QMessageBox.information(parent, title, "%s" % msg)
 
+def pop_up_critical(msg: str = "", title: str ="Critical", parent=None):
+    """Display an error message via Qt box"""
+    QMessageBox.critical(parent, title, msg)
 
 def statusbar_message(msg=""):
     """Display message in status bar"""
@@ -87,6 +90,7 @@ class StatusProgressBar(object):
         self.progress_bar.setValue(self.progress)
         if message:
             self.message_bar.setText(message)
+        QApplication.processEvents()
 
     def __del__(self):
         if iface is not None:
