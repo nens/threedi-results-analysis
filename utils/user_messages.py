@@ -70,21 +70,23 @@ class StatusProgressBar(object):
         if iface is not None:
             iface.messageBar().pushWidget(self.message_bar, Qgis.Info)
 
-        self.step_size = 1
         self.progress = 0
         iface.mainWindow().repaint()
 
-    def set_step_size(self, step_size):
-
-        self.step_size = step_size
-
     def increase_progress(self, steps=1, message=None):
 
-        self.progress += steps * self.step_size
+        self.progress += steps
         self.progress_bar.setValue(self.progress)
         if message:
             self.message_bar.setText(message)
         QApplication.processEvents()
+
+    def set_value(self, val, message=None):
+
+        self.progress = val
+        self.progress_bar.setValue(self.progress)
+        if message:
+            self.message_bar.setText(message)
 
     def __del__(self):
         if iface is not None:
