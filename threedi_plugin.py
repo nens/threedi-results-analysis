@@ -21,6 +21,11 @@ from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
+from qgis.core import Qgis
+from qgis.utils import iface
+from threedigrid.admin.exporters.geopackage import GeopackageExporter
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+import os
 
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
@@ -204,6 +209,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.dockwidget == None:
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.dockwidget.grid_file_selected.connect(self.add_grid_file)
             self.dockwidget.show()
 
         # Processing Toolbox of Qgis will eventually replace our custom-toolbox
@@ -314,3 +320,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             logger.exception(
                 "Error, toolbar animation already removed? Continuing anyway."
             )
+
+    def add_grid_file(self, input_gridadmin_h5: str) -> bool:
+        # Convert h5 file to gpkg
+        input_gridadmin_base, _ = os.path.splitext(input_gridadmin_h5)
+        input_gridadmin_gpkg = input_gridadmin_base + '.gpkg'
+        
+        progress_bar = StatusProgressBar(100, "Generating geopackage")
+        exporter = GeopackageExporter(input_gridadmin_h5, input_gridadmin_gpkg)
+        exporter.export(lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total))
+        
+        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
