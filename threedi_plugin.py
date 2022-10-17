@@ -21,6 +21,7 @@ from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
+from ThreeDiToolbox.tool_result_selection import models
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.utils import iface
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
@@ -212,6 +213,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.grid_file_selected.connect(self.add_grid_file)
+            self.dockwidget.result_file_selected.connect(self.add_result_file)
             self.dockwidget.show()
 
         # Processing Toolbox of Qgis will eventually replace our custom-toolbox
@@ -342,6 +344,20 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         iface.messageBar().pushMessage("GeoPackage", "Added layers to the project", Qgis.Info)
        
+        return True
+    
+    def add_result_file(self, input_gridadmin_h5: str) -> bool:
+        """ Load Result """
+
+        layer_helper = models.DatasourceLayerHelper(input_gridadmin_h5)
+        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
+        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
+        del progress_bar
+
+        iface.messageBar().pushMessage("GeoPackage", f"{line.featureCount()}, {node.featureCount()}, {pumpline.featureCount()}", Qgis.Info)
+
+        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
+
         return True
 
     # TODO: I think these methods need to be moved to some util module
