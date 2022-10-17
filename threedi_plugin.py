@@ -354,6 +354,25 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
         del progress_bar
 
+        # apply default styling on memory layers
+        line.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "layer_styles",
+                "tools",
+                "flowlines.qml",
+            )
+        )
+
+        node.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "layer_styles",
+                "tools",
+                "nodes.qml",
+            )
+        )
+
         iface.messageBar().pushMessage("GeoPackage", f"{line.featureCount()}, {node.featureCount()}, {pumpline.featureCount()}", Qgis.Info)
 
         QgsProject.instance().addMapLayers([line, node, cell, pumpline])
