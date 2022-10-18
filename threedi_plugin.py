@@ -232,6 +232,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.init_state_sync()
 
+        tc = iface.mapCanvas().temporalController()
+        tc.updateTemporalRange.connect(self.update_animation)
+
         self.check_status_model_and_results()
 
     def update_slider_enabled_state(self):
@@ -347,14 +350,16 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         return True
     
     def add_result_file(self, input_gridadmin_h5: str) -> bool:
-        """ Load Result """
+        """ Load Result file and apply default styling """
 
         layer_helper = models.DatasourceLayerHelper(input_gridadmin_h5)
         progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
+
+        # Note that get_result_layers generates an intermediate sqlite
         line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
         del progress_bar
 
-        # apply default styling on memory layers
+        # Apply default styling on memory layers
         line.loadNamedStyle(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
@@ -372,8 +377,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 "nodes.qml",
             )
         )
-
-        iface.messageBar().pushMessage("GeoPackage", f"{line.featureCount()}, {node.featureCount()}, {pumpline.featureCount()}", Qgis.Info)
 
         QgsProject.instance().addMapLayers([line, node, cell, pumpline])
 
@@ -419,3 +422,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             return False
 
         return True
+
+    def update_animation(self, x):
+        tc = iface.mapCanvas().temporalController()
+        tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
+        iface.messageBar().pushMessage("Time2", f"{tct}", Qgis.Warning)
