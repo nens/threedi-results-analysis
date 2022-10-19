@@ -72,7 +72,9 @@ constraints.txt: dependencies.py
 
 test: compile transcompile
 	@echo "#### Python tests"
-	QT_QPA_PLATFORM=offscreen pytest --cov --ignore ./deps
+	QT_QPA_PLATFORM=offscreen pytest
+	# Note: setup.cfg configures the generic options (like --cov) that are
+	# passed to pytest.
 
 docstrings:
 	@echo "#### Docstring coverage report"
