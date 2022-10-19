@@ -32,6 +32,7 @@ def main():
         if not (
             filename.startswith("external")
             or filename.startswith("help")
+            or filename.startswith("deps")
             or "/test" in filename
             or "resources.py" in filename
         )
