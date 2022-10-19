@@ -1,4 +1,8 @@
 # Dependencies for development and tests.
+#
+# So... this is for *development* dependencies, not for
+# installing our application's dependencies like numpy or pygeos!
+#
 black
 coverage > 5
 coveralls
@@ -6,12 +10,10 @@ docstr-coverage >= 1.0.4
 flake8
 isort
 mock
-pygeos
 pytest
 pytest-cov
 pytest-flake8
 pytest-qt
 sphinx
 sphinx_rtd_theme
-threedigrid_builder
 wheel
