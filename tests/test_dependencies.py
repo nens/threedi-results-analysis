@@ -19,7 +19,11 @@ def test_check_importability():
 
 def test_gridbuilder():
     # import threedigrid_builder as it should fail on linux???
+    import sys
+    import pprint
+    pprint.pprint(sys.path)
     import threedigrid_builder
+    assert "pietje" == threedigrid_builder
 
 
 def test_check_presence_1():
