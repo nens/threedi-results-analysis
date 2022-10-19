@@ -17,6 +17,11 @@ def test_check_importability():
     dependencies.check_importability()
 
 
+def test_gridbuilder():
+    # import threedigrid_builder as it should fail on linux???
+    import threedigrid_builder
+
+
 def test_check_presence_1():
     dependencys_that_are_present = [available_dependency]
     dependencies._check_presence(dependencys_that_are_present)
