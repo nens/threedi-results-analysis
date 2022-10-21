@@ -379,48 +379,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         return True
 
-    # TODO: I think these methods need to be moved to some util module
-    @staticmethod
-    def add_layers_from_gpkg(gpkg_file) -> bool:
-        """Retrieves layers from gpk and add to project.
-
-           Checks whether all layers contain the same CRS, if
-           so, sets this CRS on the project
-        """
-
-        gpkg_layers = [layer.GetName() for layer in ogr.Open(gpkg_file)]
-        srs_ids = set()
-        for layer in gpkg_layers:
-
-            # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
-            # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
-            vector_layer = QgsVectorLayer(gpkg_file + "|layername=" + layer, layer, "ogr")
-            if not vector_layer.isValid():
-                return False
-
-            # TODO: styling?
-
-            layer_srs_id = vector_layer.crs().srsid()
-            srs_ids.add(layer_srs_id)
-
-            QgsProject.instance().addMapLayer(vector_layer)
-
-        if len(srs_ids) == 1:
-            srs_id = srs_ids.pop()
-            crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
-            if crs.isValid():
-                QgsProject.instance().setCrs(crs)
-                iface.messageBar().pushMessage("GeoPackage", "Setting project CRS according to the source geopackage", Qgis.Info)
-            else:
-                iface.messageBar().pushMessage("GeoPackage", "Skipping setting project CRS - does gridadmin file contains a valid SRS?", Qgis.Warning)
-                return False
-        else:
-            iface.messageBar().pushMessage("GeoPackage", f"Skipping setting project CRS - the source file {gpkg_file} SRS codes are inconsistent.", Qgis.Warning)
-            return False
-
-        return True
-
->>>>>>> refactor
     def update_animation(self, x):
 
         if self.ts_datasources.rowCount() > 0:
