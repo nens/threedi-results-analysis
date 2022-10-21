@@ -6,19 +6,20 @@ from qgis.PyQt.QtCore import pyqtSignal
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'threedi_plugin_dockwidget_base.ui'))
 
+
 class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-    closingPlugin=pyqtSignal()
+    closingPlugin = pyqtSignal()
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal(str)
-    
+
     def __init__(self, parent):
-        super(ThreeDiPluginDockWidget,self).__init__(parent)
+        super(ThreeDiPluginDockWidget, self).__init__(parent)
         self.setupUi(self)
         self.pushButton_AddGrid.clicked.connect(self._add_grid_clicked)
         self.pushButton_AddResult.clicked.connect(self._add_result_clicked)
-        
+
     # TODO: check whether this is necessary
-    def closeEvent(self,event):
+    def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
 

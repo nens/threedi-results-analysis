@@ -8,8 +8,6 @@ from qgis.core import QgsLayerTreeGroup
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
-from qgis.core import Qgis
-from qgis.utils import iface
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
@@ -846,7 +844,7 @@ class MapAnimator(QWidget):
     def _update_results(self, update_nodes: bool, update_lines: bool):
         timestep_nr = self.root_tool.timeslider_widget.value()
         self.update_results(timestep_nr, update_nodes, update_lines)
-        
+
     def update_results(self, timestep_nr, update_nodes: bool, update_lines: bool):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 

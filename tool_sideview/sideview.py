@@ -4,6 +4,7 @@ from ThreeDiToolbox.tool_sideview.sideview_view import SideViewDockWidget
 import qgis
 import os
 
+
 class ThreeDiSideView(object):
     """QGIS Plugin Implementation."""
 

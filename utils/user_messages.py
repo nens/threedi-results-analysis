@@ -17,9 +17,11 @@ def pop_up_info(msg: str = "", title: str = "Information", parent=None):
     """Display an info message via Qt box"""
     QMessageBox.information(parent, title, "%s" % msg)
 
-def pop_up_critical(msg: str = "", title: str ="Critical", parent=None):
+
+def pop_up_critical(msg: str = "", title: str = "Critical", parent=None):
     """Display an error message via Qt box"""
     QMessageBox.critical(parent, title, msg)
+
 
 def statusbar_message(msg=""):
     """Display message in status bar"""
