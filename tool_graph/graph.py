@@ -4,6 +4,7 @@ from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
 import qgis
 import os
 
+
 class ThreeDiGraph(object):
     """QGIS Plugin Implementation."""
 

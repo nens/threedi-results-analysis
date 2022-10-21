@@ -102,7 +102,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.water_balance_tool,
             self.watershed_tool,
             self.logfile_tool,
-        ]  
+        ]
 
         self.active_ts_datasource = None
         # ^^^ TODO: this doesn't seem to be set in here!
@@ -211,7 +211,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 parent=self.iface.mainWindow(),
             )
 
-        if self.dockwidget == None:
+        if self.dockwidget is None:
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.grid_file_selected.connect(self.add_grid_file)
@@ -297,7 +297,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             iface.messageBar().pushMessage("stamps", f"{timestamps}", Qgis.Info)
             iface.messageBar().pushMessage("end", f"{end_time}", Qgis.Info)
 
-
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
@@ -348,7 +347,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         input_gridadmin_base, _ = os.path.splitext(input_gridadmin_h5)
         input_gridadmin_gpkg = input_gridadmin_base + '.gpkg'
-        
+
         progress_bar = StatusProgressBar(100, "Generating geopackage")
         exporter = GeopackageExporter(input_gridadmin_h5, input_gridadmin_gpkg)
         exporter.export(lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total))
@@ -361,9 +360,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             return False
 
         iface.messageBar().pushMessage("GeoPackage", "Added layers to the project", Qgis.Info)
-       
+
         return True
-    
+
     def add_result_file(self, input_gridadmin_h5: str) -> bool:
         """ Load Result file and apply default styling """
 
@@ -406,10 +405,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
            so, sets this CRS on the project
         """
 
-        gpkg_layers = [l.GetName() for l in ogr.Open(gpkg_file )]
+        gpkg_layers = [layer.GetName() for layer in ogr.Open(gpkg_file)]
         srs_ids = set()
         for layer in gpkg_layers:
-            
+
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
             vector_layer = QgsVectorLayer(gpkg_file + "|layername=" + layer, layer, "ogr")
@@ -420,9 +419,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
             layer_srs_id = vector_layer.crs().srsid()
             srs_ids.add(layer_srs_id)
-                    
+
             QgsProject.instance().addMapLayer(vector_layer)
-        
+
         if len(srs_ids) == 1:
             srs_id = srs_ids.pop()
             crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
@@ -443,7 +442,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.ts_datasources.rowCount() > 0:
             tc = iface.mapCanvas().temporalController()
             tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
-            
+
             # Convert the timekey to result index
             timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
 
@@ -456,4 +455,3 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # iface.messageBar().pushMessage("Time2", f"{tct}: {current}", Qgis.Warning)
             # iface.messageBar().pushMessage("count", f"{tc.totalFrameCount()}", Qgis.Info)
             self.map_animator_widget.update_results(index, True, True)
-
