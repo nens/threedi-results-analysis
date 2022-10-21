@@ -22,18 +22,18 @@ from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.views.timeslider import TimesliderWidget
 from ThreeDiToolbox.tool_result_selection import models
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import Qgis, QgsProject
 from qgis.utils import iface
-from threedigrid.admin.exporters.geopackage import GeopackageExporter
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critical
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+from ThreeDiToolbox.threedi_plugin_import import import_grid_item
 import os
-from osgeo import ogr
 import datetime
 from datetime import timedelta
 
 
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+from .threedi_plugin_model import ThreeDiPluginModel
 
 import logging
 
@@ -57,6 +57,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.iface = iface
         self.dockwidget = None
+        self.model = ThreeDiPluginModel()
 
         # Declare instance attributes
         self.actions = []
@@ -214,9 +215,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.dockwidget is None:
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            self.dockwidget.grid_file_selected.connect(self.add_grid_file)
+            self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
+            self.model.grid_item_added.connect(import_grid_item)
             self.dockwidget.result_file_selected.connect(self.add_result_file)
             self.dockwidget.show()
+
+        self.dockwidget.treeView.setModel(self.model)
 
         # Processing Toolbox of Qgis will eventually replace our custom-toolbox
         self.initProcessing()
@@ -342,27 +346,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 "Error, toolbar animation already removed? Continuing anyway."
             )
 
-    def add_grid_file(self, input_gridadmin_h5: str) -> bool:
-        """Converts h5 grid file to gpkg and add the layers to the project"""
-
-        input_gridadmin_base, _ = os.path.splitext(input_gridadmin_h5)
-        input_gridadmin_gpkg = input_gridadmin_base + '.gpkg'
-
-        progress_bar = StatusProgressBar(100, "Generating geopackage")
-        exporter = GeopackageExporter(input_gridadmin_h5, input_gridadmin_gpkg)
-        exporter.export(lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total))
-        del progress_bar
-
-        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
-
-        if not ThreeDiPlugin.add_layers_from_gpkg(input_gridadmin_gpkg):
-            pop_up_critical("Failed adding the layers to the project.")
-            return False
-
-        iface.messageBar().pushMessage("GeoPackage", "Added layers to the project", Qgis.Info)
-
-        return True
-
     def add_result_file(self, input_gridadmin_h5: str) -> bool:
         """ Load Result file and apply default styling """
 
@@ -393,47 +376,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         )
 
         QgsProject.instance().addMapLayers([line, node, cell, pumpline])
-
-        return True
-
-    # TODO: I think these methods need to be moved to some util module
-    @staticmethod
-    def add_layers_from_gpkg(gpkg_file) -> bool:
-        """Retrieves layers from gpk and add to project.
-
-           Checks whether all layers contain the same CRS, if
-           so, sets this CRS on the project
-        """
-
-        gpkg_layers = [layer.GetName() for layer in ogr.Open(gpkg_file)]
-        srs_ids = set()
-        for layer in gpkg_layers:
-
-            # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
-            # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
-            vector_layer = QgsVectorLayer(gpkg_file + "|layername=" + layer, layer, "ogr")
-            if not vector_layer.isValid():
-                return False
-
-            # TODO: styling?
-
-            layer_srs_id = vector_layer.crs().srsid()
-            srs_ids.add(layer_srs_id)
-
-            QgsProject.instance().addMapLayer(vector_layer)
-
-        if len(srs_ids) == 1:
-            srs_id = srs_ids.pop()
-            crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
-            if crs.isValid():
-                QgsProject.instance().setCrs(crs)
-                iface.messageBar().pushMessage("GeoPackage", "Setting project CRS according to the source geopackage", Qgis.Info)
-            else:
-                iface.messageBar().pushMessage("GeoPackage", "Skipping setting project CRS - does gridadmin file contains a valid SRS?", Qgis.Warning)
-                return False
-        else:
-            iface.messageBar().pushMessage("GeoPackage", f"Skipping setting project CRS - the source file {gpkg_file} SRS codes are inconsistent.", Qgis.Warning)
-            return False
 
         return True
 
