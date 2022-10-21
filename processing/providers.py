@@ -10,7 +10,7 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
 )
 from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import ThreeDiConvertToGpkgAlgorithm
 from ThreeDiToolbox.processing.results_analysis.grid_creation import ThreeDiGenerateCompGridAlgorithm
-
+import os
 
 class ThreediProvider(QgsProcessingProvider):
     """Loads the Processing Toolbox algorithms for 3Di"""
@@ -44,4 +44,5 @@ class ThreediProvider(QgsProcessingProvider):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QIcon(":/plugins/ThreeDiToolbox/icons/icon.png")
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon.png")
+        return QIcon(icon_path)
