@@ -1,4 +1,4 @@
-from qgis.core import QgsApplication
+from qgis.core import QgsApplication, QgsDateTimeRange
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -28,6 +28,8 @@ from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critical
 import os
 from osgeo import ogr
+import datetime
+from datetime import timedelta
 
 
 # Import the code for the DockWidget
@@ -234,6 +236,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         tc = iface.mapCanvas().temporalController()
         tc.updateTemporalRange.connect(self.update_animation)
+        tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
 
         self.check_status_model_and_results()
 
@@ -283,6 +286,18 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
             self.map_animator_widget.setEnabled(True)
+
+            # TEST: connect TemporalController
+            datasource = self.ts_datasources.rows[0]
+            timestamps = datasource.threedi_result().get_timestamps()
+            tc = iface.mapCanvas().temporalController()
+            start_time = datetime.datetime(2000, 1, 1)
+            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
+            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
+            iface.messageBar().pushMessage("stamps", f"{timestamps}", Qgis.Info)
+            iface.messageBar().pushMessage("end", f"{end_time}", Qgis.Info)
+
+
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
@@ -424,6 +439,21 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         return True
 
     def update_animation(self, x):
-        tc = iface.mapCanvas().temporalController()
-        tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
-        iface.messageBar().pushMessage("Time2", f"{tct}", Qgis.Warning)
+
+        if self.ts_datasources.rowCount() > 0:
+            tc = iface.mapCanvas().temporalController()
+            tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
+            
+            # Convert the timekey to result index
+            timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
+
+            datasource = self.ts_datasources.rows[0]
+            timestamps = datasource.threedi_result().timestamps
+            # TODO: are the timekeys always sorted?
+            index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
+
+            # iface.messageBar().pushMessage("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}", Qgis.Info)
+            # iface.messageBar().pushMessage("Time2", f"{tct}: {current}", Qgis.Warning)
+            # iface.messageBar().pushMessage("count", f"{tc.totalFrameCount()}", Qgis.Info)
+            self.map_animator_widget.update_results(index, True, True)
+

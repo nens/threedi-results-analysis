@@ -8,6 +8,8 @@ from qgis.core import QgsLayerTreeGroup
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
+from qgis.core import Qgis
+from qgis.utils import iface
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
@@ -391,7 +393,7 @@ class MapAnimator(QWidget):
         self.setEnabled(self.root_tool.ts_datasources.rowCount() > 0)
 
     def on_slider_released(self):
-        self.update_results(update_nodes=True, update_lines=True)
+        self._update_results(update_nodes=True, update_lines=True)
 
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter
@@ -404,7 +406,7 @@ class MapAnimator(QWidget):
 
         if old_parameter != self.current_line_parameter:
             self.update_class_bounds(update_nodes=False, update_lines=True)
-            self.update_results(update_nodes=False, update_lines=True)
+            self._update_results(update_nodes=False, update_lines=True)
             self.style_layers(style_nodes=False, style_lines=True)
 
     def on_node_parameter_change(self):
@@ -418,12 +420,12 @@ class MapAnimator(QWidget):
 
         if old_parameter != self.current_node_parameter:
             self.update_class_bounds(update_nodes=True, update_lines=False)
-            self.update_results(update_nodes=True, update_lines=False)
+            self._update_results(update_nodes=True, update_lines=False)
             self.style_layers(style_nodes=True, style_lines=False)
 
     def on_difference_checkbox_state_change(self):
         self.update_class_bounds(update_nodes=True, update_lines=False)
-        self.update_results(update_nodes=True, update_lines=False)
+        self._update_results(update_nodes=True, update_lines=False)
         self.style_layers(style_nodes=True, style_lines=False)
 
     def update_class_bounds(self, update_nodes: bool, update_lines: bool):
@@ -841,14 +843,19 @@ class MapAnimator(QWidget):
                 )
                 self.animation_group = None
 
-    def update_results(self, update_nodes: bool, update_lines: bool):
+    def _update_results(self, update_nodes: bool, update_lines: bool):
+        timestep_nr = self.root_tool.timeslider_widget.value()
+        self.update_results(timestep_nr, update_nodes, update_lines)
+        
+    def update_results(self, timestep_nr, update_nodes: bool, update_lines: bool):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
+
+        # iface.messageBar().pushMessage("Timestep in MapAnimator", f"{timestep_nr}", Qgis.Info)
 
         if not self.active:
             return
 
         result = self.root_tool.timeslider_widget.active_ts_datasource
-        timestep_nr = self.root_tool.timeslider_widget.value()
         threedi_result = result.threedi_result()
 
         layers_to_update = []
