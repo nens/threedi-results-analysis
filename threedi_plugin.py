@@ -20,7 +20,6 @@ from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from ThreeDiToolbox.views.timeslider import TimesliderWidget
 from ThreeDiToolbox.tool_result_selection import models
 from qgis.core import Qgis, QgsProject
 from qgis.utils import iface
@@ -70,9 +69,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar.setObjectName("ThreeDiToolbox")
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
-
-        self.timeslider_widget = TimesliderWidget(self.iface, self.ts_datasources)
-        self.timeslider_widget.valueChanged.connect(self.on_slider_change)
 
         self.lcd = QLCDNumber()
         self.lcd.setToolTip('Time format: "days hours:minutes"')
@@ -226,7 +222,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.initProcessing()
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
-        self.toolbar_animation.addWidget(self.timeslider_widget)
+
         # Let lcd display a maximum of 9 digits, this way it can display a maximum
         # simulation duration of 999 days, 23 hours and 59 minutes.
         self.lcd.setDigitCount(9)
@@ -246,21 +242,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def update_slider_enabled_state(self):
         timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
-        self.timeslider_widget.setEnabled(timeslider_needed)
+
         self.lcd.setEnabled(timeslider_needed)
-
-    def on_slider_change(self, time_index):
-        """Callback for slider valueChanged signal.
-
-        Displays the time after the start of the simulation in <DDD HH:MM> (days, hours,
-        minutes).
-
-        :param time_index: (int) value the timeslider widget is set to. This is the time
-            index of active netcdf result
-        """
-        days, hours, minutes = self.timeslider_widget.index_to_duration(time_index)
-        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
-        self.lcd.display(formatted_display)
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on
@@ -331,8 +314,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 tool.on_unload()
 
         self.layer_manager.on_unload()
-
-        self.timeslider_widget.valueChanged.disconnect(self.on_slider_change)
 
         try:
             del self.toolbar

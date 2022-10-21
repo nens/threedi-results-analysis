@@ -89,7 +89,6 @@ class ThreeDiSideView(object):
             window = qgis.core.QgsApplication.activeWindow()
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
 
-        # activate timeslider
         self.active = True
 
         new_widget.show()

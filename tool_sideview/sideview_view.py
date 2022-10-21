@@ -135,7 +135,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.node_dict = point_dict
         self.line_layer = line_layer
         self.channel_profiles = channel_profiles
-        self.time_slider = tdi_root_tool.timeslider_widget
 
         self.profile = []
         self.sideview_nodes = []
@@ -209,8 +208,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         # set listeners to signals
         self.profile_route_updated.connect(self.update_water_level_cache)
-        self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
-        self.time_slider.datasource_changed.connect(self.update_water_level_cache)
+        # self.time_slider.valueChanged.connect(self.draw_waterlevel_line)
+        # self.time_slider.datasource_changed.connect(self.update_water_level_cache)
 
         # set code for hovering
         self.vb = self.plotItem.vb
@@ -807,7 +806,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.time_slider.active_ts_datasource
+        ds_item = self.tdi_root_tool.ts_datasources.rows[0] # TODO: ACTIVE
         if ds_item:
             ds = ds_item.threedi_result()
             for node in self.sideview_nodes:
@@ -860,8 +859,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         """
         logger.info("close sideview graph")
         self.profile_route_updated.disconnect(self.update_water_level_cache)
-        self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
-        self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
+        # self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
+        # self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
 
     def closeEvent(self, event):
         """
@@ -1117,14 +1116,14 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        if self.tdi_root_tool.timeslider_widget.active_ts_datasource is not None:
+        if self.tdi_root_tool.ts_datasources.rows[0] is not None: # TODO: ACTIVE
             (
                 line,
                 node,
                 cell,
                 pump,
             ) = (
-                self.tdi_root_tool.timeslider_widget.active_ts_datasource.get_result_layers()
+                self.tdi_root_tool.ts_datasources.rows[0].get_result_layers() # TODO: ACTIVE
             )
         else:
             line = None

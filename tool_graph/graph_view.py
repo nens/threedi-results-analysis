@@ -768,9 +768,6 @@ class GraphDockWidget(QDockWidget):
         # init current layer state and add listener
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
-        self.root_tool.timeslider_widget.datasource_changed.connect(
-            self.on_active_ts_datasource_change
-        )
 
     def on_close(self):
         """
@@ -779,9 +776,7 @@ class GraphDockWidget(QDockWidget):
         """
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
-        self.root_tool.timeslider_widget.datasource_changed.disconnect(
-            self.on_active_ts_datasource_change
-        )
+
 
         # self.q_graph_widget.close()
         # self.h_graph_widget.close()
@@ -797,7 +792,7 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.root_tool.timeslider_widget.active_ts_datasource
+        active_ts_datasource = self.root_tool.ts_datasources.rows[0] # TODO: ACTIVE
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:

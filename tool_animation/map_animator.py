@@ -201,14 +201,7 @@ class MapAnimator(QWidget):
                 self.on_line_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
                 progress_bar.increase_progress(99, "Create node animation layer")
                 self.on_node_parameter_change()  # to fill 'result' field of animation layers w/ data for cur. timestep
-                self.root_tool.timeslider_widget.sliderReleased.connect(
-                    self.on_slider_released
-                )  # TODO: check if this doesn't result in multiple connections to same signal
-                self.root_tool.timeslider_widget.setValue(0)
 
-                # Fake setting the slider to start to fill layers
-                self.root_tool.timeslider_widget.sliderReleased.emit()
-                self.root_tool.timeslider_widget.valueChanged.emit(0)
                 progress_bar.increase_progress(100, "Ready")
                 self._active = True
 
@@ -224,7 +217,6 @@ class MapAnimator(QWidget):
         self.difference_checkbox.setEnabled(activate)
         self.difference_label.setEnabled(activate)
         self.root_tool.lcd.setEnabled(activate)
-        self.root_tool.timeslider_widget.setEnabled(activate)
 
         self.iface.mapCanvas().refresh()
 
@@ -312,7 +304,7 @@ class MapAnimator(QWidget):
         based value distribution in the results and difference vs. current choice
         """
         has_groundwater = (
-            self.root_tool.timeslider_widget.active_ts_datasource.threedi_result().result_admin.has_groundwater
+            self.root_tool.ts_datasources.rows[0].threedi_result().result_admin.has_groundwater # TODO: ACTIVE
         )
 
         if self.current_line_parameter is None:
@@ -390,9 +382,6 @@ class MapAnimator(QWidget):
     def on_datasource_change(self):
         self.setEnabled(self.root_tool.ts_datasources.rowCount() > 0)
 
-    def on_slider_released(self):
-        self._update_results(update_nodes=True, update_lines=True)
-
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter
         combobox_current_text = self.line_parameter_combo_box.currentText()
@@ -428,7 +417,8 @@ class MapAnimator(QWidget):
 
     def update_class_bounds(self, update_nodes: bool, update_lines: bool):
         gr = (
-            self.root_tool.timeslider_widget.active_ts_datasource.threedi_result().result_admin
+            
+            self.root_tool.ts_datasources.rows[0].threedi_result().result_admin # TODO: ACTIVE
         )
 
         if update_nodes:
@@ -559,7 +549,8 @@ class MapAnimator(QWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.root_tool.timeslider_widget.active_ts_datasource
+        active_ts_datasource = self.root_tool.ts_datasources.rows[0] # TODO: ACTIVE
+        
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
@@ -572,8 +563,7 @@ class MapAnimator(QWidget):
             # animation tool.
             if "q_pump" in available_subgrid_vars:
                 available_subgrid_vars.remove("q_pump")
-            # TimesliderWidget of the map_animator does not yet support variables of
-            # the aggregate netcdf, thus we do not display those variables.
+
             parameter_config = generate_parameter_config(
                 available_subgrid_vars, agg_vars=[]
             )
@@ -654,7 +644,7 @@ class MapAnimator(QWidget):
         return output_layer
 
     def prepare_animation_layers(self, progress_bar=None):
-        result = self.root_tool.timeslider_widget.active_ts_datasource
+        result = self.root_tool.ts_datasources.rows[0] # TODO: ACTIVE
 
         if result is None:
             # todo: logger warning
@@ -842,8 +832,8 @@ class MapAnimator(QWidget):
                 self.animation_group = None
 
     def _update_results(self, update_nodes: bool, update_lines: bool):
-        timestep_nr = self.root_tool.timeslider_widget.value()
-        self.update_results(timestep_nr, update_nodes, update_lines)
+        
+        self.update_results(0, update_nodes, update_lines) # TODO: last timestep_nr should be stored
 
     def update_results(self, timestep_nr, update_nodes: bool, update_lines: bool):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
@@ -853,7 +843,7 @@ class MapAnimator(QWidget):
         if not self.active:
             return
 
-        result = self.root_tool.timeslider_widget.active_ts_datasource
+        result = self.root_tool.ts_datasources.rows[0] # TODO: ACTIVE
         threedi_result = result.threedi_result()
 
         layers_to_update = []
@@ -995,6 +985,4 @@ class MapAnimator(QWidget):
         self.difference_checkbox.stateChanged.connect(
             self.on_difference_checkbox_state_change
         )
-        self.root_tool.timeslider_widget.datasource_changed.connect(
-            self.on_datasource_change
-        )
+
