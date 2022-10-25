@@ -2,6 +2,7 @@ import os
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QModelIndex
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'threedi_plugin_dockwidget_base.ui'))
@@ -11,6 +12,8 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal(str)
+    result_selected = pyqtSignal(QModelIndex)
+    result_deselected = pyqtSignal(QModelIndex)
 
     def __init__(self, parent):
         super(ThreeDiPluginDockWidget, self).__init__(parent)
@@ -36,3 +39,11 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return
 
         self.result_file_selected.emit(input_result_nc)
+
+    def _selection_changed(self, selected, deselected):
+        deselected_indexes = deselected.indexes()
+        if deselected_indexes:
+            self.result_deselected.emit(deselected_indexes[0])
+        selected_indexes = selected.indexes()
+        if selected_indexes:
+            self.result_selected.emit(selected_indexes[0])

@@ -56,3 +56,9 @@ class ThreeDiPluginModel(QStandardItemModel):
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_item_added.emit(result_item)
+
+    def select_result(self, index):
+        self.result_item_selected.emit(self.itemFromIndex(index))
+
+    def deselect_result(self, index):
+        self.result_item_deselected.emit(self.itemFromIndex(index))

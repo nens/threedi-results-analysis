@@ -55,6 +55,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()
+        self.model.grid_item_added.connect(import_grid_item)
+        self.model.result_item_added.connect(import_result_item)
+        self.model.result_item_checked.connect(lambda item: print(item))
+        self.model.result_item_unchecked.connect(lambda item: print(item))
+        self.model.result_item_selected.connect(lambda item: print(item))
+        self.model.result_item_deselected.connect(lambda item: print(item))
 
         # Declare instance attributes
         self.actions = []
@@ -209,15 +215,16 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.dockwidget is None:
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+
             self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
-            self.model.grid_item_added.connect(import_grid_item)
             self.dockwidget.result_file_selected.connect(self.model.add_result_file)
-            self.model.result_item_added.connect(import_result_item)
-            self.model.result_item_checked.connect(lambda item: print(item))
-            self.model.result_item_unchecked.connect(lambda item: print(item))
+            self.dockwidget.result_selected.connect(self.model.select_result)
+            self.dockwidget.result_deselected.connect(self.model.deselect_result)
+
             self.dockwidget.show()
 
         self.dockwidget.treeView.setModel(self.model)
+        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
 
         # Processing Toolbox of Qgis will eventually replace our custom-toolbox
         self.initProcessing()
