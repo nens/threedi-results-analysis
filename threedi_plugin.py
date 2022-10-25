@@ -20,12 +20,10 @@ from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from ThreeDiToolbox.tool_result_selection import models
-from qgis.core import Qgis, QgsProject
+from qgis.core import Qgis
 from qgis.utils import iface
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.threedi_plugin_import import import_grid_item
-import os
+from ThreeDiToolbox.threedi_plugin_import import import_result_item
 import datetime
 from datetime import timedelta
 
@@ -213,7 +211,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
             self.model.grid_item_added.connect(import_grid_item)
-            self.dockwidget.result_file_selected.connect(self.add_result_file)
+            self.dockwidget.result_file_selected.connect(self.model.add_result_file)
+            self.model.result_item_added.connect(import_result_item)
+            self.model.result_item_checked.connect(lambda item: print(item))
+            self.model.result_item_unchecked.connect(lambda item: print(item))
             self.dockwidget.show()
 
         self.dockwidget.treeView.setModel(self.model)
@@ -326,39 +327,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             logger.exception(
                 "Error, toolbar animation already removed? Continuing anyway."
             )
-
-    def add_result_file(self, input_gridadmin_h5: str) -> bool:
-        """ Load Result file and apply default styling """
-
-        layer_helper = models.DatasourceLayerHelper(input_gridadmin_h5)
-        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
-
-        # Note that get_result_layers generates an intermediate sqlite
-        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
-        del progress_bar
-
-        # Apply default styling on memory layers
-        line.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "tools",
-                "flowlines.qml",
-            )
-        )
-
-        node.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "tools",
-                "nodes.qml",
-            )
-        )
-
-        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
-
-        return True
 
     def update_animation(self, x):
 

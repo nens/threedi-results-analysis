@@ -31,8 +31,8 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.grid_file_selected.emit(input_gridadmin_h5)
 
     def _add_result_clicked(self):
-        input_gridadmin_netcdf, _ = QFileDialog.getOpenFileName(self, "Load NetCDF", "", "NetCDF (*.nc)")
-        if not input_gridadmin_netcdf:
+        input_result_nc, _ = QFileDialog.getOpenFileName(self, "Load NetCDF", "", "NetCDF (*.nc)")
+        if not input_result_nc:
             return
 
-        self.result_file_selected.emit(input_gridadmin_netcdf)
+        self.result_file_selected.emit(input_result_nc)
