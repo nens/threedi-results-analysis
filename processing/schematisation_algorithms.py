@@ -15,6 +15,7 @@ import csv
 import os
 import shutil
 
+from hydxlib.scripts import run_import_export
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
 from threedi_modelchecker.threedi_model.models import GlobalSetting
@@ -392,3 +393,75 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return CheckRastersAlgorithm()
+
+
+class ImportHydXAlgorithm(QgsProcessingAlgorithm):
+    """
+    Import data from GWSW HydX to a 3Di Spatialite
+    """
+
+    INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
+    TARGET_SQLITE = "TARGET_SQLITE"
+
+    def initAlgorithm(self, config):
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT_HYDX_DIRECTORY,
+                "Folder containing input HydX csv files",
+                behavior=QgsProcessingParameterFile.Folder
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.TARGET_SQLITE,
+                "Target 3Di Sqlite",
+                extension="sqlite"
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        hydx_path = self.parameterAsString(parameters, self.INPUT_HYDX_DIRECTORY, context)
+        out_path = self.parameterAsString(parameters, self.TARGET_SQLITE, context)
+        run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
+        return {}
+
+    def name(self):
+        """
+        Returns the algorithm name, used for identifying the algorithm. This
+        string should be fixed for the algorithm, and must not be localised.
+        The name should be unique within each provider. Names should contain
+        lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "import_hydx"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return self.tr("Import GWSW HydX")
+
+    def group(self):
+        """
+        Returns the name of the group this algorithm belongs to. This string
+        should be localised.
+        """
+        return self.tr(self.groupId())
+
+    def groupId(self):
+        """
+        Returns the unique ID of the group this algorithm belongs to. This
+        string should be fixed for the algorithm, and must not be localised.
+        The group id should be unique within each provider. Group id should
+        contain lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "Schematisation"
+
+    def tr(self, string):
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return ImportHydXAlgorithm()
