@@ -11,6 +11,7 @@ class ThreeDiGridItem(QStandardItem):
     def __init__(self, path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = Path(path)
+        self.setSelectable(False)
 
 
 class ThreeDiResultItem(QStandardItem):
