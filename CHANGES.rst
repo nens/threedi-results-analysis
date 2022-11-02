@@ -9,6 +9,8 @@ ThreeDiToolBox changelog
 
 - Fetch wheels for threedigrid-builder and pygeos on linux.
 
+- Updating to the minimal schema version 209
+
 
 2.3 (2022-08-15)
 ----------------
