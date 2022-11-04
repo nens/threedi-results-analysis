@@ -19,3 +19,4 @@ networkx
 condenser>=0.1.1
 pygeos>=0.12.0
 threedigrid_builder>=1.3.6
+hydxlib>=1.0
