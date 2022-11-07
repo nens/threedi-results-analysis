@@ -776,8 +776,6 @@ class GraphDockWidget(QDockWidget):
         """
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
-
-
         # self.q_graph_widget.close()
         # self.h_graph_widget.close()
 
@@ -792,7 +790,7 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.root_tool.ts_datasources.rows[0] # TODO: ACTIVE
+        active_ts_datasource = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
