@@ -53,7 +53,7 @@ external-dependencies/.generated.marker: constraints.txt external-dependencies/p
 constraints.txt: dependencies.py
 	python3 dependencies.py
 
-test: compile
+test: clean compile
 	@echo "#### Python tests"
 	QT_QPA_PLATFORM=offscreen pytest
 	# Note: setup.cfg configures the generic options (like --cov) that are

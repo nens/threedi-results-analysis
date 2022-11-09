@@ -31,6 +31,8 @@ from datetime import timedelta
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from .threedi_plugin_model import ThreeDiPluginModel
+from .threedi_plugin_model_validation import ThreeDiPluginModelValidator
+
 
 import logging
 
@@ -61,6 +63,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_item_unchecked.connect(lambda item: print(item))
         self.model.result_item_selected.connect(lambda item: print(item))
         self.model.result_item_deselected.connect(lambda item: print(item))
+
+        self.validator = ThreeDiPluginModelValidator()
+        self.model.result_item_added.connect(self.validator.grid_item_added)
 
         # Declare instance attributes
         self.actions = []
