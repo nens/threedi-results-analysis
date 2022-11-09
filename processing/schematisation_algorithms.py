@@ -151,8 +151,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
-        schema = ModelSchema(threedi_db)
-        schema.set_spatial_indexes()
         try:
             model_checker = ThreediModelChecker(threedi_db)
         except errors.MigrationMissingError:
@@ -161,7 +159,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "migrate your model to the latest version."
             )
             return {self.OUTPUT: None}
-
+        schema = ModelSchema(threedi_db)
+        schema.set_spatial_indexes()
         generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
