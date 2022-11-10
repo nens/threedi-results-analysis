@@ -106,12 +106,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         ]
 
         self.active_ts_datasource = None
-        self.group_layer_name = "3Di toolbox layers"
-        self.group_layer = None
-
-        self.line_layer = None
-        self.point_layer = None
-
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         self.provider = None
