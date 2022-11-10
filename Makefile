@@ -125,4 +125,4 @@ clean:
 	@echo "------------------------------------"
 	@echo "Deleting dependencies"
 	@echo "------------------------------------"
-	rm -r deps
+	rm -rf deps
