@@ -56,7 +56,8 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
+    Dependency("python-editor", "editor", ">=0.3"),  # deps of alembic
+    Dependency("importlib-resources", "importlib_resources", ""),
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
