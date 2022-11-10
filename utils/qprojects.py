@@ -233,17 +233,6 @@ class ProjectStateMixin(object):
         """
         return "threedi_toolbox" + tool_name
 
-    def save_settings_to_project(self, tool_name, settings):
-        """sets multiple settings to QgsProject
-
-        Args:
-            tool_name (str): within plugin unique tool name, used as
-                key for storage of state
-            settings (dict): dictionary of settings key and state values
-        """
-        name = self.get_tool_state_name(tool_name)
-        for key, value in settings:
-            QgsProject.instance().writeEntry(name, key, value)
 
     def save_setting_to_project(self, tool_name, key, value_list):
         """sets single setting to QgsProject
