@@ -3,7 +3,7 @@ from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 
 class ThreeDiPluginModelValidator(QObject):
     grid_item_validated = pyqtSignal(ThreeDiGridItem, bool)
-    result_item_validated = pyqtSignal(bool)
+    result_item_validated = pyqtSignal(ThreeDiResultItem, bool)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

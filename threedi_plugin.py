@@ -2,7 +2,6 @@ from qgis.core import QgsApplication, QgsDateTimeRange
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtWidgets import QLCDNumber
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -65,7 +64,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_item_deselected.connect(lambda item: print(item))
 
         self.validator = ThreeDiPluginModelValidator()
-        self.model.result_item_added.connect(self.validator.grid_item_added)
+        self.model.result_item_added.connect(self.validator.result_item_added)
 
         # Declare instance attributes
         self.actions = []
@@ -78,10 +77,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toolbar.setObjectName("ThreeDiToolbox")
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
         self.toolbar_animation.setObjectName("ThreeDiAnimation")
-
-        self.lcd = QLCDNumber()
-        self.lcd.setToolTip('Time format: "days hours:minutes"')
-        self.lcd.setSegmentStyle(QLCDNumber.Flat)
 
         self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
 
@@ -111,7 +106,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         ]
 
         self.active_ts_datasource = None
-        # ^^^ TODO: this doesn't seem to be set in here!
         self.group_layer_name = "3Di toolbox layers"
         self.group_layer = None
 
@@ -120,7 +114,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
-        # Processing Toolbox scripts
         self.provider = None
 
         # Styling
@@ -203,7 +196,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def initProcessing(self):
         """Create the Qgis Processing Toolbox provider and its algorithms"""
         self.provider = ThreediProvider()
-        # Disabled until threedidepth is fixed
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def initGui(self):
@@ -231,15 +223,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.treeView.setModel(self.model)
         self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
 
-        # Processing Toolbox of Qgis will eventually replace our custom-toolbox
         self.initProcessing()
 
         self.toolbar_animation.addWidget(self.map_animator_widget)
-
-        # Let lcd display a maximum of 9 digits, this way it can display a maximum
-        # simulation duration of 999 days, 23 hours and 59 minutes.
-        self.lcd.setDigitCount(9)
-        self.toolbar_animation.addWidget(self.lcd)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
@@ -254,9 +240,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.check_status_model_and_results()
 
     def update_slider_enabled_state(self):
-        timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
-
-        self.lcd.setEnabled(timeslider_needed)
+        pass
+        # timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
+        # self.lcd.setEnabled(timeslider_needed)
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on

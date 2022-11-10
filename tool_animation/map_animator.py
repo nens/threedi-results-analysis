@@ -12,6 +12,7 @@ from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QFrame
+from qgis.PyQt.QtWidgets import QLCDNumber
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
@@ -216,7 +217,7 @@ class MapAnimator(QWidget):
         self.node_parameter_combo_box.setEnabled(activate)
         self.difference_checkbox.setEnabled(activate)
         self.difference_label.setEnabled(activate)
-        self.root_tool.lcd.setEnabled(activate)
+        self.lcd.setEnabled(activate)
 
         self.iface.mapCanvas().refresh()
 
@@ -843,6 +844,11 @@ class MapAnimator(QWidget):
         result = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
         threedi_result = result.threedi_result()
 
+        # Update UI (LCD)
+        days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
+        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
+        self.lcd.display(formatted_display)
+        
         layers_to_update = []
         if update_nodes:
             layers_to_update.append((self.node_layer, self.current_node_parameter))
@@ -971,6 +977,15 @@ class MapAnimator(QWidget):
         hline2.setFrameShadow(QFrame.Sunken)
         self.HLayout.addWidget(hline2)
 
+        self.lcd = QLCDNumber()
+        self.lcd.setToolTip('Time format: "days hours:minutes"')
+        self.lcd.setSegmentStyle(QLCDNumber.Flat)
+
+        # Let lcd display a maximum of 9 digits, this way it can display a maximum
+        # simulation duration of 999 days, 23 hours and 59 minutes.
+        self.lcd.setDigitCount(9)
+        self.HLayout.addWidget(self.lcd)
+
         # connect to signals
         self.activateButton.clicked.connect(self.on_activate_button_clicked)
         self.line_parameter_combo_box.currentIndexChanged.connect(
@@ -982,3 +997,23 @@ class MapAnimator(QWidget):
         self.difference_checkbox.stateChanged.connect(
             self.on_difference_checkbox_state_change
         )
+
+    @staticmethod
+    def index_to_duration(index, timestamps):
+        """Return the duration between start of simulation and the selected time index
+
+        Duration is returned as a tuple (days, hours, minutes) of the current active
+        datasource, rounded down.
+
+        Args:
+            index (int): time index of the current selected datasource
+
+        Returns:
+            tuple days, hours, minutes
+
+        """
+        selected_timestamp = int(timestamps[index])
+        days = selected_timestamp // 86400
+        hours = (selected_timestamp // 3600) % 24
+        minutes = (selected_timestamp // 60) % 60
+        return days, hours, minutes
