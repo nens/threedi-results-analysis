@@ -65,15 +65,18 @@ def add_layers_from_gpkg(path) -> bool:
 
 
 def import_grid_item(threedi_grid_item) -> bool:
-    path_h5 = threedi_grid_item.path
-    path_gpkg = path_h5.with_suffix(".gpkg")
+    path = threedi_grid_item.path
+    base, suffix = path.parent / path.stem, path.suffix
+    path_gpkg = base.with_suffix(".gpkg")
 
-    progress_bar = StatusProgressBar(100, "Generating geopackage")
-    exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
-    exporter.export(
-        lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
-    )
-    del progress_bar
+    if suffix == ".h5":
+        progress_bar = StatusProgressBar(100, "Generating geopackage")
+        path_h5 = base.with_suffix(".h5")
+        exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
+        exporter.export(
+            lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
+        )
+        del progress_bar
 
     iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
 

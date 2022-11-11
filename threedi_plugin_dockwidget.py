@@ -27,11 +27,16 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         event.accept()
 
     def _add_grid_clicked(self):
-        input_gridadmin_h5, _ = QFileDialog.getOpenFileName(self, "Load HDF5", "", "HDF5 (*.h5)")
-        if not input_gridadmin_h5:
+        input_gridadmin_h5_or_gpkg, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load HDF5 or GeoPackage",
+            "",
+            "HDF5 or GeoPackage (*.h5 *.gpkg)",
+        )
+        if not input_gridadmin_h5_or_gpkg:
             return
 
-        self.grid_file_selected.emit(input_gridadmin_h5)
+        self.grid_file_selected.emit(input_gridadmin_h5_or_gpkg)
 
     def _add_result_clicked(self):
         input_result_nc, _ = QFileDialog.getOpenFileName(self, "Load NetCDF", "", "NetCDF (*.nc)")

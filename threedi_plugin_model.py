@@ -41,11 +41,11 @@ class ThreeDiPluginModel(QStandardItemModel):
             2: self.result_item_checked, 0: self.result_item_unchecked,
         }[item.checkState()].emit(item)
 
-    def add_grid_file(self, input_gridadmin_h5: str) -> bool:
+    def add_grid_file(self, input_gridadmin_h5_or_gpkg: str) -> bool:
         """Converts h5 grid file to gpkg and add the layers to the project"""
         parent_item = self.invisibleRootItem()
-        path_h5 = Path(input_gridadmin_h5)
-        grid_item = ThreeDiGridItem(path_h5, path_h5.stem)
+        path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
+        grid_item = ThreeDiGridItem(path_h5_or_gpkg, path_h5_or_gpkg.stem)
         parent_item.appendRow(grid_item)
         self.grid_item_added.emit(grid_item)
 
