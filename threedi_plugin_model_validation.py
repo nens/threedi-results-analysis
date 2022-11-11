@@ -1,6 +1,7 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 
+
 class ThreeDiPluginModelValidator(QObject):
     grid_item_validated = pyqtSignal(ThreeDiGridItem, bool)
     result_item_validated = pyqtSignal(ThreeDiResultItem, bool)

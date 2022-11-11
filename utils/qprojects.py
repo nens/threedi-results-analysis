@@ -233,7 +233,6 @@ class ProjectStateMixin(object):
         """
         return "threedi_toolbox" + tool_name
 
-
     def save_setting_to_project(self, tool_name, key, value_list):
         """sets single setting to QgsProject
 

@@ -848,7 +848,7 @@ class MapAnimator(QWidget):
         days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
         formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
         self.lcd.display(formatted_display)
-        
+
         layers_to_update = []
         if update_nodes:
             layers_to_update.append((self.node_layer, self.current_node_parameter))
