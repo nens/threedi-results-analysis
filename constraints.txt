@@ -15,6 +15,7 @@ cftime
 packaging
 python-editor>=0.3
 importlib-resources
+zipp
 colorama
 networkx
 condenser>=0.1.1
