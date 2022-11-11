@@ -48,7 +48,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Converts h5 grid file to gpkg and add the layers to the project"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
-        grid_item = ThreeDiGridItem(path_h5_or_gpkg, path_h5_or_gpkg.stem)
+        grid_item = ThreeDiGridItem(path_h5_or_gpkg, ThreeDiPluginModel._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_item_added.emit(grid_item)
 
@@ -66,3 +66,9 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def deselect_result(self, index):
         self.result_item_deselected.emit(self.itemFromIndex(index))
+
+    @staticmethod
+    def _resolve_grid_item_text(path: Path) -> str:
+        """The text of the grid item depends on its containing file structure"""
+        return path.parent.stem
+        
