@@ -43,7 +43,6 @@ class ThreeDiPluginModel(QStandardItemModel):
             }[item.checkState()].emit(item)
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
-        
 
     def add_grid_file(self, input_gridadmin_h5: str) -> bool:
         """Converts h5 grid file to gpkg and add the layers to the project"""

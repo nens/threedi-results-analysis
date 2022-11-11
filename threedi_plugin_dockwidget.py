@@ -9,7 +9,6 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-    closingPlugin = pyqtSignal()
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal(str)
     result_selected = pyqtSignal(QModelIndex)
@@ -20,11 +19,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.pushButton_AddGrid.clicked.connect(self._add_grid_clicked)
         self.pushButton_AddResult.clicked.connect(self._add_result_clicked)
-
-    # TODO: check whether this is necessary
-    def closeEvent(self, event):
-        self.closingPlugin.emit()
-        event.accept()
 
     def _add_grid_clicked(self):
         input_gridadmin_h5, _ = QFileDialog.getOpenFileName(self, "Load HDF5", "", "HDF5 (*.h5)")
