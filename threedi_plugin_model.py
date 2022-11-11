@@ -1,17 +1,19 @@
 from pathlib import Path
-
-
 from qgis.PyQt.QtCore import pyqtSignal
-
-# from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ThreeDiGridItem(QStandardItem):
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, path, text: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = Path(path)
         self.setSelectable(False)
+        self.setEditable(True)
+        self.setText(text)
 
 
 class ThreeDiResultItem(QStandardItem):
@@ -35,11 +37,12 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.itemChanged.connect(self.item_changed)
 
     def item_changed(self, item):
-        if not isinstance(item, ThreeDiResultItem):
-            return
-        {
-            2: self.result_item_checked, 0: self.result_item_unchecked,
-        }[item.checkState()].emit(item)
+        if isinstance(item, ThreeDiResultItem):
+            {
+                2: self.result_item_checked, 0: self.result_item_unchecked,
+            }[item.checkState()].emit(item)
+        elif isinstance(item, ThreeDiGridItem):
+            logger.info("Item data changed")
 
     def add_grid_file(self, input_gridadmin_h5_or_gpkg: str) -> bool:
         """Converts h5 grid file to gpkg and add the layers to the project"""

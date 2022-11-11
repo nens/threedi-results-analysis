@@ -308,6 +308,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.layer_manager.on_unload()
 
+        self.iface.removeDockWidget(self.dockwidget)
+        del self.dockwidget
+
         try:
             del self.toolbar
         except AttributeError:

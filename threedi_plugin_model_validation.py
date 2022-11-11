@@ -11,8 +11,6 @@ class ThreeDiPluginModelValidator(QObject):
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_item_added(self, item: ThreeDiGridItem):
-        import winsound
-        winsound.Beep(2500, 1000)
         self.grid_item_validated.emit(item, True)
 
     @pyqtSlot(ThreeDiResultItem)
