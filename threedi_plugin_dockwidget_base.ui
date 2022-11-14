@@ -125,6 +125,13 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="pushButton_RemoveGrid">
+                <property name="text">
+                 <string>Remove grid</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="pushButton_AddResult">
                 <property name="text">
                  <string>Add result</string>

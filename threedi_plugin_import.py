@@ -18,7 +18,8 @@ class ThreeDiPluginModelLoader(QObject):
     @staticmethod
     def _add_layer_to_group(layer, layer_name):
         """
-        Add a layer to the layer tree group
+        Add a layer to the layer tree group, returns
+        the corresponding group.
         """
         root = QgsProject.instance().layerTreeRoot()
         root_group = root.findGroup(TOOLBOX_GROUP_NAME)
@@ -32,6 +33,8 @@ class ThreeDiPluginModelLoader(QObject):
         project = QgsProject.instance()
         project.addMapLayer(layer, addToLegend=False)
         layer_group.insertLayer(0, layer)
+
+        return layer_group
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
@@ -53,10 +56,9 @@ class ThreeDiPluginModelLoader(QObject):
 
             # TODO: styling?
 
-            layer_srs_id = vector_layer.crs().srsid()
-            srs_ids.add(layer_srs_id)
+            srs_ids.add(vector_layer.crs().srsid())
 
-            ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
+            item.layer_group = ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
 
         if len(srs_ids) == 1:
             srs_id = srs_ids.pop()

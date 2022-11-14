@@ -10,8 +10,11 @@ logger = logging.getLogger(__name__)
 class ThreeDiGridItem(QStandardItem):
     def __init__(self, path, text: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.path = Path(path)
-        self.setSelectable(False)
+        self.layer_group = None
+
+        self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
 
@@ -31,6 +34,8 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_item_unchecked = pyqtSignal(ThreeDiResultItem)
     result_item_selected = pyqtSignal(ThreeDiResultItem)
     result_item_deselected = pyqtSignal(ThreeDiResultItem)
+    grid_item_selected = pyqtSignal(ThreeDiGridItem)
+    grid_item_deselected = pyqtSignal(ThreeDiGridItem)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,11 +66,19 @@ class ThreeDiPluginModel(QStandardItemModel):
         parent_item.appendRow(result_item)
         self.result_item_added.emit(result_item)
 
-    def select_result(self, index):
-        self.result_item_selected.emit(self.itemFromIndex(index))
+    def select_item(self, index):
+        item = self.itemFromIndex(index)
+        if isinstance(item, ThreeDiGridItem):
+            self.grid_item_selected.emit(item)
+        elif isinstance(item, ThreeDiResultItem):
+            self.result_item_selected.emit(item)
 
-    def deselect_result(self, index):
-        self.result_item_deselected.emit(self.itemFromIndex(index))
+    def deselect_item(self, index):
+        item = self.itemFromIndex(index)
+        if isinstance(item, ThreeDiGridItem):
+            self.grid_item_deselected.emit(item)
+        elif isinstance(item, ThreeDiResultItem):
+            self.result_item_selected.emit(item)
 
     @staticmethod
     def _resolve_grid_item_text(path: Path) -> str:

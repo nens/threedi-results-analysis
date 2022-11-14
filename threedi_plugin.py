@@ -208,12 +208,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
             self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
             self.dockwidget.result_file_selected.connect(self.model.add_result_file)
-            self.dockwidget.result_selected.connect(self.model.select_result)
-            self.dockwidget.result_deselected.connect(self.model.deselect_result)
+            self.dockwidget.item_selected.connect(self.model.select_item)
+            self.dockwidget.item_deselected.connect(self.model.deselect_item)
 
             self.dockwidget.show()
 
         self.dockwidget.treeView.setModel(self.model)
+        # TODO: should this logic be moved inside the treeWidget?
         self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
 
         self.initProcessing()
