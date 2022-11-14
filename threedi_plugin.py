@@ -21,8 +21,7 @@ from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from qgis.core import Qgis
 from qgis.utils import iface
-from ThreeDiToolbox.threedi_plugin_import import import_grid_item
-from ThreeDiToolbox.threedi_plugin_import import import_result_item
+from ThreeDiToolbox.threedi_plugin_import import ThreeDiPluginModelLoader
 import datetime
 from datetime import timedelta
 
@@ -56,8 +55,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()
-        self.model.grid_item_added.connect(import_grid_item)
-        self.model.result_item_added.connect(import_result_item)
+        self.model.grid_item_added.connect(ThreeDiPluginModelLoader.import_grid_item)
+        self.model.result_item_added.connect(ThreeDiPluginModelLoader.import_result_item)
         self.model.result_item_checked.connect(lambda item: print(item))
         self.model.result_item_unchecked.connect(lambda item: print(item))
         self.model.result_item_selected.connect(lambda item: print(item))

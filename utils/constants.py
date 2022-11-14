@@ -65,3 +65,5 @@ DICT_ACTION_TYPES = {
     "pumpstation": ["set_pump_capacity"],
     "weir": ["set_crest_level", "set_discharge_coefficients"],
 }
+
+TOOLBOX_GROUP_NAME = "Toolbox"
