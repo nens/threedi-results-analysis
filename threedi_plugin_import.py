@@ -12,6 +12,7 @@ from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critica
 from ThreeDiToolbox.utils.constants import TOOLBOX_GROUP_NAME
 from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 
+
 class ThreeDiPluginModelLoader(QObject):
 
     @staticmethod
@@ -27,7 +28,7 @@ class ThreeDiPluginModelLoader(QObject):
         layer_group = root_group.findGroup(layer_name)
         if not layer_group:
             layer_group = root_group.insertGroup(0, layer_name)
-        
+
         project = QgsProject.instance()
         project.addMapLayer(layer, addToLegend=False)
         layer_group.insertLayer(0, layer)

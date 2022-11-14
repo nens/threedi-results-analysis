@@ -71,4 +71,3 @@ class ThreeDiPluginModel(QStandardItemModel):
     def _resolve_grid_item_text(path: Path) -> str:
         """The text of the grid item depends on its containing file structure"""
         return path.parent.stem
-        
