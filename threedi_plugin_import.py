@@ -76,14 +76,12 @@ class ThreeDiPluginModelLoader(QObject):
                     "Skipping setting project CRS - does gridadmin file contains a valid SRS?",
                     Qgis.Warning,
                 )
-                return False
         else:
             iface.messageBar().pushMessage(
                 "GeoPackage",
                 f"Skipping setting project CRS - the source file {str(path)} SRS codes are inconsistent.",
                 Qgis.Warning,
             )
-            return False
 
         return True
 

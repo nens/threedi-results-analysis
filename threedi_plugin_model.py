@@ -3,6 +3,7 @@ from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,9 @@ class ThreeDiPluginModel(QStandardItemModel):
     grid_item_selected = pyqtSignal(ThreeDiGridItem)
     grid_item_deselected = pyqtSignal(ThreeDiGridItem)
 
+    # Counter for label
+    _grid_counter = 0
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.itemChanged.connect(self.item_changed)
@@ -53,7 +57,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Converts h5 grid file to gpkg and add the layers to the project"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
-        grid_item = ThreeDiGridItem(path_h5_or_gpkg, ThreeDiPluginModel._resolve_grid_item_text(path_h5_or_gpkg))
+        grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_item_added.emit(grid_item)
 
@@ -80,7 +84,32 @@ class ThreeDiPluginModel(QStandardItemModel):
         elif isinstance(item, ThreeDiResultItem):
             self.result_item_selected.emit(item)
 
+    def _resolve_grid_item_text(self, file: Path) -> str:
+        """The text of the grid item depends on its containing file structure
+        
+        In case the grid file is in the 3Di Models & Simulations local directory 
+        structure, the text should be schematisation name + revision nr. Otherwise just a number.
+        """
+        logger.info(str(file.parent.parent.parent))
+        if file.parent.parent is not None and file.parent.parent.parent is not None:
+            if ThreeDiPluginModel._is_revision_folder(str(file.parent.parent)):
+                return file.parent.parent.stem
+
+        text = str(self._grid_counter)
+        self._grid_counter += 1
+        return text
+
+
     @staticmethod
-    def _resolve_grid_item_text(path: Path) -> str:
-        """The text of the grid item depends on its containing file structure"""
-        return path.parent.stem
+    def _is_revision_folder(revision_dir: str) -> bool:
+        """Check if all revision subpaths are present."""
+        logger.info(str(revision_dir))
+        paths = [
+            os.path.join(revision_dir, "admin"),
+            os.path.join(revision_dir, "grid"),
+            os.path.join(revision_dir, "results"),
+            os.path.join(revision_dir, "schematisation"),
+            os.path.join(revision_dir, "schematisation", "rasters"),
+        ]
+
+        return all(os.path.exists(p) if p else False for p in paths)
