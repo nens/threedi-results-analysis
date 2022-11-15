@@ -93,7 +93,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         logger.info(str(file.parent.parent.parent))
         if file.parent.parent is not None and file.parent.parent.parent is not None:
             if ThreeDiPluginModel._is_revision_folder(str(file.parent.parent)):
-                return file.parent.parent.stem
+                return file.parent.parent.parent.stem
 
         text = str(self._grid_counter)
         self._grid_counter += 1
