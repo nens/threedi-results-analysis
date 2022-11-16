@@ -37,6 +37,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_item_deselected = pyqtSignal(ThreeDiResultItem)
     grid_item_selected = pyqtSignal(ThreeDiGridItem)
     grid_item_deselected = pyqtSignal(ThreeDiGridItem)
+    grid_item_removed = pyqtSignal(ThreeDiGridItem)
 
     # Counter for label (needs to be set when model is loaded)
     _grid_counter = 0
@@ -72,6 +73,7 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
         self.removeRows(self.indexFromItem(item).row(), 1)
+        self.grid_item_removed.emit(item)
 
     def select_item(self, index):
         item = self.itemFromIndex(index)

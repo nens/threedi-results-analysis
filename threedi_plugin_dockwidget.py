@@ -41,7 +41,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def _remove_grid_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
-        if index is None:
+        if index is None or index.model() is None:
             return
 
         item = index.model().itemFromIndex(index)

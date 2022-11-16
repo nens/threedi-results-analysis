@@ -55,12 +55,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()
-        self.model.grid_item_added.connect(ThreeDiPluginModelLoader.import_grid_item)
-        self.model.result_item_added.connect(ThreeDiPluginModelLoader.import_result_item)
+        self.model.grid_item_added.connect(ThreeDiPluginModelLoader.load_grid_item)
+        self.model.result_item_added.connect(ThreeDiPluginModelLoader.load_result_item)
         self.model.result_item_checked.connect(lambda item: print(item))
         self.model.result_item_unchecked.connect(lambda item: print(item))
         self.model.result_item_selected.connect(lambda item: print(item))
         self.model.result_item_deselected.connect(lambda item: print(item))
+        self.model.grid_item_removed.connect(ThreeDiPluginModelLoader.unload_grid_item)
 
         self.validator = ThreeDiPluginModelValidator()
         self.model.result_item_added.connect(self.validator.result_item_added)
