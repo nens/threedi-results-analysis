@@ -122,7 +122,6 @@ class ThreeDiPluginModelLoader(QObject):
         # Deletion of root node of a tree will delete all nodes of the tree
         item.layer_group.parent().removeChildNode(item.layer_group)
 
-
     @staticmethod
     @pyqtSlot(ThreeDiResultItem)
     def load_result_item(threedi_result_item: ThreeDiResultItem) -> bool:
