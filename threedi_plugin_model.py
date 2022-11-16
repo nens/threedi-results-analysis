@@ -54,7 +54,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             logger.info("Item data changed")
 
     def add_grid_file(self, input_gridadmin_h5_or_gpkg: str) -> bool:
-        """Converts h5 grid file to gpkg and add the layers to the project"""
+        """Adds a grid item to the model"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
@@ -86,8 +86,8 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def _resolve_grid_item_text(self, file: Path) -> str:
         """The text of the grid item depends on its containing file structure
-        
-        In case the grid file is in the 3Di Models & Simulations local directory 
+
+        In case the grid file is in the 3Di Models & Simulations local directory
         structure, the text should be schematisation name + revision nr. Otherwise just a number.
         """
         logger.info(str(file.parent.parent.parent))
@@ -98,7 +98,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         text = str(self._grid_counter)
         self._grid_counter += 1
         return text
-
 
     @staticmethod
     def _is_revision_folder(revision_dir: str) -> bool:
