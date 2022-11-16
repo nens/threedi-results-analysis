@@ -26,15 +26,12 @@ from ThreeDiToolbox.threedi_plugin_import import import_result_item
 import datetime
 from datetime import timedelta
 
-
 # Import the code for the DockWidget
 from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from .threedi_plugin_model import ThreeDiPluginModel
 from .threedi_plugin_model_validation import ThreeDiPluginModelValidator
 
-
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +47,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             application at run time.
         :type iface: QgsInterface
         """
-        # Save reference to the QGIS interface
         QObject.__init__(self)
 
+        # Save reference to the QGIS interface
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()

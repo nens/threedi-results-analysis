@@ -103,6 +103,7 @@ def create_progress_dialog(progress, text):
 
 def ensure_everything_installed():
     """Check if DEPENDENCIES are installed and install them if missing."""
+    logger.info('Ensuring dependencies are installed')
 
     _remove_old_distributions(DEPENDENCIES + WINDOWS_PLATFORM_DEPENDENCIES + [H5PY_DEPENDENCY], _prev_dependencies_target_dir())
 

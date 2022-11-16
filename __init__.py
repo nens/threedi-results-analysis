@@ -9,10 +9,11 @@ there.
 
 """
 from pathlib import Path
-from ThreeDiToolbox import dependencies
-
 import faulthandler
 import sys
+
+from . import dependencies
+from .utils.qlogging import setup_logging
 
 
 #: Handy constant for building relative paths.
@@ -23,9 +24,6 @@ PLUGIN_DIR = Path(__file__).parent
 # uses by default.
 if sys.stderr is not None and hasattr(sys.stderr, "fileno"):
     faulthandler.enable()
-
-print('Ensuring dependencies are installed')
-dependencies.ensure_everything_installed()
 
 
 def enable_high_dpi_scaling():
@@ -49,12 +47,11 @@ def classFactory(iface):
         iface (QgsInterface): A QGIS interface instance.
 
     """
-    from ThreeDiToolbox.utils.qlogging import setup_logging
-
-    enable_high_dpi_scaling()
-    setup_logging()
-    dependencies.check_importability()
-
     from .threedi_plugin import ThreeDiPlugin
-
     return ThreeDiPlugin(iface)
+
+
+setup_logging()
+dependencies.ensure_everything_installed()
+enable_high_dpi_scaling()
+dependencies.check_importability()
