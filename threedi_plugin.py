@@ -206,10 +206,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-            self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
-            self.dockwidget.result_file_selected.connect(self.model.add_result_file)
+            self.dockwidget.grid_file_selected.connect(self.model.add_grid)
+            self.dockwidget.result_file_selected.connect(self.model.add_result)
             self.dockwidget.item_selected.connect(self.model.select_item)
             self.dockwidget.item_deselected.connect(self.model.deselect_item)
+            self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
 
             self.dockwidget.show()
 

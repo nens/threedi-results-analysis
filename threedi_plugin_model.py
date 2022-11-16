@@ -38,7 +38,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     grid_item_selected = pyqtSignal(ThreeDiGridItem)
     grid_item_deselected = pyqtSignal(ThreeDiGridItem)
 
-    # Counter for label
+    # Counter for label (needs to be set when model is loaded)
     _grid_counter = 0
 
     def __init__(self, *args, **kwargs):
@@ -53,7 +53,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
 
-    def add_grid_file(self, input_gridadmin_h5_or_gpkg: str) -> bool:
+    def add_grid(self, input_gridadmin_h5_or_gpkg: str) -> bool:
         """Adds a grid item to the model"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
@@ -61,14 +61,17 @@ class ThreeDiPluginModel(QStandardItemModel):
         parent_item.appendRow(grid_item)
         self.grid_item_added.emit(grid_item)
 
-    def add_result_file(self, input_result_nc: str) -> bool:
-        """Converts h5 grid file to gpkg and add the layers to the project"""
+    def add_result(self, input_result_nc: str) -> bool:
+        """Adds a result file to the model"""
         # TODO add it under the right grid - inspect the paths?
         parent_item = self.invisibleRootItem().child(0)
         path_nc = Path(input_result_nc)
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_item_added.emit(result_item)
+
+    def remove_grid(self, item: ThreeDiGridItem) -> bool:
+        self.removeRows(self.indexFromItem(item).row(), 1)
 
     def select_item(self, index):
         item = self.itemFromIndex(index)
