@@ -4,7 +4,7 @@ Miscellaneous tools.
 """
 from qgis.core import QgsProject
 from ThreeDiToolbox import PLUGIN_DIR
-from ThreeDiToolbox.utils import qlogging
+from ThreeDiToolbox.utils.qlogging import FileHandler
 from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
 from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
@@ -65,7 +65,7 @@ class ShowLogfile(object):
 
         """
         title = "Show logfile"
-        location = qlogging.logfile_path()
+        location = FileHandler.get_filename()
         message = "Logfile location: <a href='file:///%s'>%s</a>" % (location, location)
         pop_up_info(message, title, self.iface.mainWindow())
 

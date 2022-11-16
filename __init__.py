@@ -47,11 +47,12 @@ def classFactory(iface):
         iface (QgsInterface): A QGIS interface instance.
 
     """
+    setup_logging()
+    enable_high_dpi_scaling()
+
     from .threedi_plugin import ThreeDiPlugin
     return ThreeDiPlugin(iface)
 
 
-setup_logging()
 dependencies.ensure_everything_installed()
-enable_high_dpi_scaling()
 dependencies.check_importability()

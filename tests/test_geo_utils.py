@@ -1,7 +1,6 @@
 """
 Test geo utils.
 """
-
 from qgis.core import QgsCoordinateTransform
 from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
 from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
