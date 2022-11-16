@@ -20,29 +20,22 @@ from hydxlib.scripts import write_logging_to_file
 from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
-from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
 from ThreeDiToolbox.processing.download_hydx import download_hydx
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
-    RasterChecker,
-)
 from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
-    QgsCoordinateReferenceSystem,
     QgsProject,
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingParameterBoolean,
-    QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
     QgsProcessingParameterFolderDestination,
     QgsProcessingParameterString,
     QgsVectorLayer,
-    QgsWkbTypes,
 )
 
 
@@ -283,164 +276,6 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return CheckSchematisationAlgorithm()
-
-
-class CheckRastersAlgorithm(QgsProcessingAlgorithm):
-    """
-    Run the raster checker
-    """
-
-    INPUT = "INPUT"
-    OUTPUT_CSV = "OUTPUT_CSV"
-    OUTPUT_POINTS = "OUTPUT_POINTS"
-    ADD_TO_PROJECT = "ADD_TO_PROJECT"
-
-    def initAlgorithm(self, config):
-        self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFileDestination(
-                self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv"
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFeatureSink(
-                self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels")
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterBoolean(
-                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
-            )
-        )
-
-    def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(
-            parameters, self.ADD_TO_PROJECT, context
-        )
-        self.output_file_path = None
-        input_filename = self.parameterAsFile(parameters, self.INPUT, context)
-        threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
-        if not threedi_db:
-            return {self.OUTPUT_CSV: None}
-        try:
-            schema = ModelSchema(threedi_db)
-            schema.validate_schema()
-            schema.set_spatial_indexes()
-            checker = RasterChecker(threedi_db)
-            checker.run_all_checks(feedback=feedback)
-            checker.close_session()
-
-        except errors.MigrationMissingError:
-            feedback.pushWarning(
-                "The selected 3Di model does not have the latest migration. Please "
-                "migrate your model to the latest version."
-            )
-            return {self.OUTPUT_CSV: None}
-
-        generated_output_file_path = self.parameterAsFileOutput(
-            parameters, self.OUTPUT_CSV, context
-        )
-        self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
-        try:
-            with open(self.output_file_path, "w", newline="") as output_file:
-                writer = csv.writer(output_file)
-                writer.writerow(
-                    ["level", "global_settings_id", "error_code", "description"]
-                )
-                checker.results.sort_results()
-                for result_row in checker.results.result_per_check:
-                    str_row = checker.results.result_per_check_to_msg(result_row)
-                    list_row = str_row.split(",")
-                    if list_row[0] in ["warning", "error"]:
-                        list_row[0] = list_row[0].upper()
-                        writer.writerow(list_row)
-
-        except PermissionError:
-            # PermissionError happens for example when a user has the file already open
-            # with Excel on Windows, which locks the file.
-            feedback.pushWarning(
-                f"Not enough permissions to write the file '{self.output_file_path}'.\n\n"
-                "The file may be used by another program. Please close all "
-                "other programs using the file or select another output "
-                "file."
-            )
-            return {self.OUTPUT_CSV: None}
-
-        wrong_pixels_fields, wrong_pixels = checker.wrong_pixels_as_features()
-        session = threedi_db.get_session()
-        epsg_code = session.query(GlobalSetting).first().epsg_code
-        session.close()
-        (point_sink, point_sink_dest_id) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT_POINTS,
-            context,
-            fields=wrong_pixels_fields,
-            geometryType=QgsWkbTypes.Point,
-            crs=QgsCoordinateReferenceSystem.fromEpsgId(epsg_code),
-        )
-        for feat in wrong_pixels:
-            point_sink.addFeature(feat)
-
-        return {
-            self.OUTPUT_CSV: self.output_file_path,
-            self.OUTPUT_POINTS: point_sink_dest_id,
-        }
-
-    def postProcessAlgorithm(self, context, feedback):
-        if self.add_to_project:
-            if self.output_file_path:
-                result_layer = QgsVectorLayer(
-                    self.output_file_path, "3Di raster errors"
-                )
-                QgsProject.instance().addMapLayer(result_layer)
-        return {self.OUTPUT_CSV: self.output_file_path}
-
-    def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
-        return "check_rasters"
-
-    def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
-        return self.tr("Check Rasters")
-
-    def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
-        return self.tr(self.groupId())
-
-    def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
-        return "Schematisation"
-
-    def tr(self, string):
-        return QCoreApplication.translate("Processing", string)
-
-    def createInstance(self):
-        return CheckRastersAlgorithm()
 
 
 class ImportHydXAlgorithm(QgsProcessingAlgorithm):

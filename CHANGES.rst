@@ -20,6 +20,7 @@ ThreeDiToolBox changelog
 
 2.4 (2022-11-28)
 ----------------
+- Removed separate raster checker tool
 
 - Updating to the minimal schema version 208
 
