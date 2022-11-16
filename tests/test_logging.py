@@ -1,4 +1,6 @@
-from ThreeDiToolbox.utils.qlogging import logfile_path
+from ThreeDiToolbox.utils.qlogging import ConsoleHandler
+from ThreeDiToolbox.utils.qlogging import FileHandler
+from ThreeDiToolbox.utils.qlogging import QgisHandler
 from ThreeDiToolbox.utils.qlogging import setup_logging
 
 import logging
@@ -12,7 +14,6 @@ def _cleanup_all_handlers():
 
     Note that we also zap the pytest log grabber, so don't count on that one
     to exist during these tests :-)
-
     """
     root_logger = logging.getLogger("")
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
@@ -23,41 +24,39 @@ def _cleanup_all_handlers():
 
 
 def test_logfile_path():
-    assert "threedi-qgis-log.txt" in logfile_path()
+    assert "threedi-qgis-log.txt" in FileHandler.get_filename()
 
 
 def test_loglevel():
     """Python's default log level is WARN. We want to see more."""
-    _cleanup_all_handlers()
+    # _cleanup_all_handlers()
     setup_logging()
     root_logger = logging.getLogger("")
     assert root_logger.getEffectiveLevel() == logging.DEBUG
 
 
 def test_root_logsetup():
-    _cleanup_all_handlers()
+    # _cleanup_all_handlers()
     setup_logging()
     root_logger = logging.getLogger("")
-    handler_names = [handler.__class__.__name__ for handler in root_logger.handlers]
-    assert "StreamHandler" in handler_names
-    assert "FileHandler" in handler_names
-    assert "QgisLogHandler" not in handler_names
+    handler_classes = [h.__class__ for h in root_logger.handlers]
+    assert ConsoleHandler in handler_classes
+    assert FileHandler in handler_classes
+    assert QgisHandler not in handler_classes
 
 
 def test_plugin_logsetup():
-    _cleanup_all_handlers()
+    # _cleanup_all_handlers()
     setup_logging()
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
-    handler_names = [
-        handler.__class__.__name__ for handler in our_plugin_logger.handlers
-    ]
-    assert "StreamHandler" not in handler_names
-    assert "FileHandler" not in handler_names
-    assert "QgisLogHandler" in handler_names
+    handler_classes = [h.__class__ for h in our_plugin_logger.handlers]
+    assert ConsoleHandler not in handler_classes
+    assert FileHandler not in handler_classes
+    assert QgisHandler in handler_classes
 
 
 def test_logging_doesnt_crash():
-    _cleanup_all_handlers()
+    # _cleanup_all_handlers()
     setup_logging()
     logger.critical("Just log something")
     logger.error("Just log something")
@@ -70,4 +69,4 @@ def test_write_to_file():
     setup_logging()
     text = "This ends up in the logfile"
     logger.error(text)
-    assert text in open(logfile_path()).read()
+    assert text in open(FileHandler.get_filename()).read()
