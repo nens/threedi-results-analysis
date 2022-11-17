@@ -1,7 +1,8 @@
-from qgis.core import QgsApplication, QgsDateTimeRange
+from qgis.core import QgsApplication, QgsDateTimeRange, Qgis
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from qgis.utils import iface
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -19,17 +20,13 @@ from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from qgis.core import Qgis
-from qgis.utils import iface
-from ThreeDiToolbox.threedi_plugin_import import ThreeDiPluginModelLoader
+from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
+from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
+from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
+
 import datetime
 from datetime import timedelta
-
-# Import the code for the DockWidget
-from .threedi_plugin_dockwidget import ThreeDiPluginDockWidget
-from .threedi_plugin_model import ThreeDiPluginModel
-from .threedi_plugin_model_validation import ThreeDiPluginModelValidator
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -52,17 +49,19 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()
-        self.model.grid_added.connect(ThreeDiPluginModelLoader.load_grid)
-        self.model.result_added.connect(ThreeDiPluginModelLoader.load_result)
         self.model.result_checked.connect(lambda item: print(item))
         self.model.result_unchecked.connect(lambda item: print(item))
         self.model.result_selected.connect(lambda item: print(item))
         self.model.result_deselected.connect(lambda item: print(item))
-
-        self.model.grid_removed.connect(ThreeDiPluginModelLoader.unload_grid)
+        
+        self.loader = ThreeDiPluginModelLoader()
+        self.model.grid_added.connect(self.loader.load_grid)
+        self.model.result_added.connect(self.loader.load_result)
+        self.model.grid_removed.connect(self.loader.unload_grid)
 
         self.validator = ThreeDiPluginModelValidator()
-        self.model.result_added.connect(self.validator.result_item_added)
+        self.loader.grid_loaded.connect(self.validator.validate_grid)
+        self.loader.result_loaded.connect(self.validator.validate_result)
 
         # Declare instance attributes
         self.actions = []

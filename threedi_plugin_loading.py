@@ -1,19 +1,95 @@
 import os
-
 from osgeo import ogr
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
-from qgis.PyQt.QtCore import QObject, pyqtSlot
+from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
 from qgis.utils import iface
 
 from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critical
 from ThreeDiToolbox.utils.constants import TOOLBOX_GROUP_NAME
-from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 
 
 class ThreeDiPluginModelLoader(QObject):
+    grid_loaded = pyqtSignal(ThreeDiGridItem)
+    result_loaded = pyqtSignal(ThreeDiResultItem)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+    @pyqtSlot(ThreeDiGridItem)
+    def load_grid(self, item: ThreeDiGridItem) -> bool:
+        path = item.path
+        base, suffix = path.parent / path.stem, path.suffix
+        path_gpkg = base.with_suffix(".gpkg")
+
+        if suffix == ".h5":
+            progress_bar = StatusProgressBar(100, "Generating geopackage")
+            path_h5 = base.with_suffix(".h5")
+            exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
+            exporter.export(
+                lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
+            )
+            del progress_bar
+
+        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
+
+        if not ThreeDiPluginModelLoader._add_layers_from_gpkg(path_gpkg, item):
+            pop_up_critical("Failed adding the layers to the project.")
+            return False
+
+        iface.messageBar().pushMessage(
+            "GeoPackage", "Added layers to the project", Qgis.Info
+        )
+        
+        self.grid_loaded.emit(item)
+        return True
+
+    @pyqtSlot(ThreeDiGridItem)
+    def unload_grid(self, item: ThreeDiGridItem) -> bool:
+        """Removes the corresponding layers from the group in the project"""
+
+        # TODO: does the layer also need to be removed from registry?
+        # Deletion of root node of a tree will delete all nodes of the tree
+        item.layer_group.parent().removeChildNode(item.layer_group)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
+        """ Load Result file and apply default styling """
+        path_nc = threedi_result_item.path
+
+        layer_helper = models.DatasourceLayerHelper(path_nc)
+        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
+
+        # Note that get_result_layers generates an intermediate sqlite
+        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
+        del progress_bar
+
+        # Apply default styling on memory layers
+        line.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "layer_styles",
+                "tools",
+                "flowlines.qml",
+            )
+        )
+
+        node.loadNamedStyle(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "layer_styles",
+                "tools",
+                "nodes.qml",
+            )
+        )
+
+        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
+
+        self.result_loaded.emit(threedi_result_item)
+        return True
 
     @staticmethod
     def _add_layer_to_group(layer, layer_name):
@@ -82,78 +158,5 @@ class ThreeDiPluginModelLoader(QObject):
                 f"Skipping setting project CRS - the source file {str(path)} SRS codes are inconsistent.",
                 Qgis.Warning,
             )
-
-        return True
-
-    @staticmethod
-    @pyqtSlot(ThreeDiGridItem)
-    def load_grid(item: ThreeDiGridItem) -> bool:
-        path = item.path
-        base, suffix = path.parent / path.stem, path.suffix
-        path_gpkg = base.with_suffix(".gpkg")
-
-        if suffix == ".h5":
-            progress_bar = StatusProgressBar(100, "Generating geopackage")
-            path_h5 = base.with_suffix(".h5")
-            exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
-            exporter.export(
-                lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
-            )
-            del progress_bar
-
-        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
-
-        if not ThreeDiPluginModelLoader._add_layers_from_gpkg(path_gpkg, item):
-            pop_up_critical("Failed adding the layers to the project.")
-            return False
-
-        iface.messageBar().pushMessage(
-            "GeoPackage", "Added layers to the project", Qgis.Info
-        )
-
-        return True
-
-    @staticmethod
-    @pyqtSlot(ThreeDiGridItem)
-    def unload_grid(item: ThreeDiGridItem) -> bool:
-        """Removes the corresponding layers from the group in the project"""
-
-        # TODO: does the layer also need to be removed from registry?
-        # Deletion of root node of a tree will delete all nodes of the tree
-        item.layer_group.parent().removeChildNode(item.layer_group)
-
-    @staticmethod
-    @pyqtSlot(ThreeDiResultItem)
-    def load_result(threedi_result_item: ThreeDiResultItem) -> bool:
-        """ Load Result file and apply default styling """
-        path_nc = threedi_result_item.path
-
-        layer_helper = models.DatasourceLayerHelper(path_nc)
-        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
-
-        # Note that get_result_layers generates an intermediate sqlite
-        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
-        del progress_bar
-
-        # Apply default styling on memory layers
-        line.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "tools",
-                "flowlines.qml",
-            )
-        )
-
-        node.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "tools",
-                "nodes.qml",
-            )
-        )
-
-        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
 
         return True

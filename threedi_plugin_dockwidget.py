@@ -3,7 +3,7 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QModelIndex
-from .threedi_plugin_model import ThreeDiGridItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem
 import logging
 
 logger = logging.getLogger(__name__)
