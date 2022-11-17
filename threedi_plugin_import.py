@@ -87,7 +87,7 @@ class ThreeDiPluginModelLoader(QObject):
 
     @staticmethod
     @pyqtSlot(ThreeDiGridItem)
-    def import_grid_item(item: ThreeDiGridItem) -> bool:
+    def load_grid_item(item: ThreeDiGridItem) -> bool:
         path = item.path
         base, suffix = path.parent / path.stem, path.suffix
         path_gpkg = base.with_suffix(".gpkg")
@@ -114,8 +114,17 @@ class ThreeDiPluginModelLoader(QObject):
         return True
 
     @staticmethod
+    @pyqtSlot(ThreeDiGridItem)
+    def unload_grid_item(item: ThreeDiGridItem) -> bool:
+        """Removes the corresponding layers from the group in the project"""
+
+        # TODO: does the layer also need to be removed from registry?
+        # Deletion of root node of a tree will delete all nodes of the tree
+        item.layer_group.parent().removeChildNode(item.layer_group)
+
+    @staticmethod
     @pyqtSlot(ThreeDiResultItem)
-    def import_result_item(threedi_result_item: ThreeDiResultItem) -> bool:
+    def load_result_item(threedi_result_item: ThreeDiResultItem) -> bool:
         """ Load Result file and apply default styling """
         path_nc = threedi_result_item.path
 

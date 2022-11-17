@@ -52,12 +52,13 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
         self.dockwidget = None
         self.model = ThreeDiPluginModel()
-        self.model.grid_item_added.connect(ThreeDiPluginModelLoader.import_grid_item)
-        self.model.result_item_added.connect(ThreeDiPluginModelLoader.import_result_item)
+        self.model.grid_item_added.connect(ThreeDiPluginModelLoader.load_grid_item)
+        self.model.result_item_added.connect(ThreeDiPluginModelLoader.load_result_item)
         self.model.result_item_checked.connect(lambda item: print(item))
         self.model.result_item_unchecked.connect(lambda item: print(item))
         self.model.result_item_selected.connect(lambda item: print(item))
         self.model.result_item_deselected.connect(lambda item: print(item))
+        self.model.grid_item_removed.connect(ThreeDiPluginModelLoader.unload_grid_item)
 
         self.validator = ThreeDiPluginModelValidator()
         self.model.result_item_added.connect(self.validator.result_item_added)
@@ -203,10 +204,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.dockwidget = ThreeDiPluginDockWidget(None)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-            self.dockwidget.grid_file_selected.connect(self.model.add_grid_file)
-            self.dockwidget.result_file_selected.connect(self.model.add_result_file)
+            self.dockwidget.grid_file_selected.connect(self.model.add_grid)
+            self.dockwidget.result_file_selected.connect(self.model.add_result)
             self.dockwidget.item_selected.connect(self.model.select_item)
             self.dockwidget.item_deselected.connect(self.model.deselect_item)
+            self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
 
             self.dockwidget.show()
 
