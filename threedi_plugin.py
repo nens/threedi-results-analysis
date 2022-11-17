@@ -36,30 +36,40 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     """Main Plugin Class which register toolbar ad menu and add tools"""
 
     def __init__(self, iface):
-        """Constructor.
-
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
         QObject.__init__(self)
 
         # Save reference to the QGIS interface
         self.iface = iface
-        self.dockwidget = None
+
+        self.provider = None
+ 
+    def initProcessing(self):
+        """Create the Qgis Processing Toolbox provider and its algorithms
+        
+        Called by QGIS to check for processing algorithms.
+        """
+        self.provider = ThreediProvider()
+        QgsApplication.processingRegistry().addProvider(self.provider)
+
+    def initGui(self):
+        """Create the menu entries and toolbar icons inside the QGIS GUI.
+        
+        Called when the plugin is loaded.
+        """
+
         self.model = ThreeDiPluginModel()
+        self.loader = ThreeDiPluginModelLoader()
+        self.validator = ThreeDiPluginModelValidator()
+
         self.model.result_checked.connect(lambda item: print(item))
         self.model.result_unchecked.connect(lambda item: print(item))
         self.model.result_selected.connect(lambda item: print(item))
         self.model.result_deselected.connect(lambda item: print(item))
-        
-        self.loader = ThreeDiPluginModelLoader()
+      
         self.model.grid_added.connect(self.loader.load_grid)
         self.model.result_added.connect(self.loader.load_result)
         self.model.grid_removed.connect(self.loader.unload_grid)
 
-        self.validator = ThreeDiPluginModelValidator()
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
 
@@ -105,13 +115,166 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.active_ts_datasource = None
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
-        self.provider = None
-
         # Styling
         for color_ramp in color.COLOR_RAMPS:
             styler.add_color_ramp(color_ramp)
+        
+        for tool in self.tools:
+            self._add_action(
+                tool,
+                tool.icon_path,
+                text=tool.menu_text,
+                callback=tool.run,
+                parent=self.iface.mainWindow(),
+            )
 
-    def add_action(
+        assert not hasattr(self, "dockwidget") # Should be destroyed on unload
+        self.dockwidget = ThreeDiPluginDockWidget(None)
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+
+        self.dockwidget.grid_file_selected.connect(self.model.add_grid)
+        self.dockwidget.result_file_selected.connect(self.model.add_result)
+        self.dockwidget.item_selected.connect(self.model.select_item)
+        self.dockwidget.item_deselected.connect(self.model.deselect_item)
+        self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
+
+        self.dockwidget.show()
+
+        self.dockwidget.treeView.setModel(self.model)
+        # TODO: should this logic be moved inside the treeWidget?
+        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
+
+        self.initProcessing()
+
+        self.toolbar_animation.addWidget(self.map_animator_widget)
+
+        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
+        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
+        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
+
+        self.init_state_sync()
+
+        tc = iface.mapCanvas().temporalController()
+        tc.updateTemporalRange.connect(self._update_animation)
+        tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
+
+        self.check_status_model_and_results()
+
+    def update_slider_enabled_state(self):
+        pass
+        # timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
+        # self.lcd.setEnabled(timeslider_needed)
+
+    def check_status_model_and_results(self, *args):
+        """Check if a (new and valid) model or result is selected and react on
+        this by pre-processing of things and activation/ deactivation of
+        tools. function is triggered by changes in the ts_datasources
+        args:
+            *args: (list) the arguments provided by the different signals
+        """
+        # First some logging.
+        logger.info(
+            "Timeseries datasource change. %s ts_datasources:",
+            self.ts_datasources.rowCount(),
+        )
+        for ts_datasource in self.ts_datasources.rows:
+            logger.info(
+                "    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value
+            )
+        logger.info(
+            "The selected 3di model spatialite: %s",
+            self.ts_datasources.model_spatialite_filepath,
+        )
+
+        # Enable/disable tools that depend on netCDF results.
+        # For side views also the spatialite needs to be imported or else it
+        # crashes with a segmentation fault
+        if self.ts_datasources.rowCount() > 0:
+            self.graph_tool.action_icon.setEnabled(True)
+            self.cache_clearer.action_icon.setEnabled(True)
+            self.map_animator_widget.setEnabled(True)
+
+            # TEST: connect TemporalController
+            datasource = self.ts_datasources.rows[0]
+            timestamps = datasource.threedi_result().get_timestamps()
+            tc = iface.mapCanvas().temporalController()
+            start_time = datetime.datetime(2000, 1, 1)
+            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
+            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
+            iface.messageBar().pushMessage("stamps", f"{timestamps}", Qgis.Info)
+            iface.messageBar().pushMessage("end", f"{end_time}", Qgis.Info)
+
+        else:
+            self.graph_tool.action_icon.setEnabled(False)
+            self.cache_clearer.action_icon.setEnabled(False)
+            self.map_animator_widget.active = False
+            self.map_animator_widget.setEnabled(False)
+        if (
+            self.ts_datasources.rowCount() > 0
+            and self.ts_datasources.model_spatialite_filepath is not None
+        ):
+            self.sideview_tool.action_icon.setEnabled(True)
+            self.stats_tool.action_icon.setEnabled(True)
+            self.water_balance_tool.action_icon.setEnabled(True)
+        else:
+            self.sideview_tool.action_icon.setEnabled(False)
+            self.stats_tool.action_icon.setEnabled(False)
+            self.water_balance_tool.action_icon.setEnabled(False)
+
+    def unload(self):
+        """Removes the plugin menu item and icon from QGIS GUI.
+        
+        Called then the plugin is unloaded.
+        """
+        self.unload_state_sync()
+        QgsApplication.processingRegistry().removeProvider(self.provider)
+
+        for action in self.actions:
+            self.iface.removePluginMenu("&3Di toolbox", action)
+            self.iface.removeToolBarIcon(action)
+
+        for tool in self.tools:
+            tool.on_unload()
+
+        self.layer_manager.on_unload()
+
+        # TODO: disconnect all signals?
+
+        self.iface.removeDockWidget(self.dockwidget)
+        del self.dockwidget
+
+        try:
+            del self.toolbar
+        except AttributeError:
+            logger.exception("Error, toolbar already removed? Continuing anyway.")
+
+        try:
+            del self.toolbar_animation
+        except AttributeError:
+            logger.exception(
+                "Error, toolbar animation already removed? Continuing anyway."
+            )
+
+    def _update_animation(self, x):
+
+        if self.ts_datasources.rowCount() > 0:
+            tc = iface.mapCanvas().temporalController()
+            tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
+
+            # Convert the timekey to result index
+            timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
+
+            datasource = self.ts_datasources.rows[0]
+            timestamps = datasource.threedi_result().timestamps
+            # TODO: are the timekeys always sorted?
+            index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
+
+            # iface.messageBar().pushMessage("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}", Qgis.Info)
+            # iface.messageBar().pushMessage("Time2", f"{tct}: {current}", Qgis.Warning)
+            # iface.messageBar().pushMessage("count", f"{tc.totalFrameCount()}", Qgis.Info)
+            self.map_animator_widget.update_results(index, True, True)
+
+    def _add_action(
         self,
         tool_instance,
         icon_path,
@@ -183,160 +346,3 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         setattr(tool_instance, "action_icon", action)
         self.actions.append(action)
         return action
-
-    def initProcessing(self):
-        """Create the Qgis Processing Toolbox provider and its algorithms"""
-        self.provider = ThreediProvider()
-        QgsApplication.processingRegistry().addProvider(self.provider)
-
-    def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        for tool in self.tools:
-            self.add_action(
-                tool,
-                tool.icon_path,
-                text=tool.menu_text,
-                callback=tool.run,
-                parent=self.iface.mainWindow(),
-            )
-
-        if self.dockwidget is None:
-            self.dockwidget = ThreeDiPluginDockWidget(None)
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-
-            self.dockwidget.grid_file_selected.connect(self.model.add_grid)
-            self.dockwidget.result_file_selected.connect(self.model.add_result)
-            self.dockwidget.item_selected.connect(self.model.select_item)
-            self.dockwidget.item_deselected.connect(self.model.deselect_item)
-            self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
-
-            self.dockwidget.show()
-
-        self.dockwidget.treeView.setModel(self.model)
-        # TODO: should this logic be moved inside the treeWidget?
-        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
-
-        self.initProcessing()
-
-        self.toolbar_animation.addWidget(self.map_animator_widget)
-
-        self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
-        self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
-        self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
-
-        self.init_state_sync()
-
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.connect(self.update_animation)
-        tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
-
-        self.check_status_model_and_results()
-
-    def update_slider_enabled_state(self):
-        pass
-        # timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
-        # self.lcd.setEnabled(timeslider_needed)
-
-    def check_status_model_and_results(self, *args):
-        """Check if a (new and valid) model or result is selected and react on
-        this by pre-processing of things and activation/ deactivation of
-        tools. function is triggered by changes in the ts_datasources
-        args:
-            *args: (list) the arguments provided by the different signals
-        """
-        # First some logging.
-        logger.info(
-            "Timeseries datasource change. %s ts_datasources:",
-            self.ts_datasources.rowCount(),
-        )
-        for ts_datasource in self.ts_datasources.rows:
-            logger.info(
-                "    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value
-            )
-        logger.info(
-            "The selected 3di model spatialite: %s",
-            self.ts_datasources.model_spatialite_filepath,
-        )
-
-        # Enable/disable tools that depend on netCDF results.
-        # For side views also the spatialite needs to be imported or else it
-        # crashes with a segmentation fault
-        if self.ts_datasources.rowCount() > 0:
-            self.graph_tool.action_icon.setEnabled(True)
-            self.cache_clearer.action_icon.setEnabled(True)
-            self.map_animator_widget.setEnabled(True)
-
-            # TEST: connect TemporalController
-            datasource = self.ts_datasources.rows[0]
-            timestamps = datasource.threedi_result().get_timestamps()
-            tc = iface.mapCanvas().temporalController()
-            start_time = datetime.datetime(2000, 1, 1)
-            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
-            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
-            iface.messageBar().pushMessage("stamps", f"{timestamps}", Qgis.Info)
-            iface.messageBar().pushMessage("end", f"{end_time}", Qgis.Info)
-
-        else:
-            self.graph_tool.action_icon.setEnabled(False)
-            self.cache_clearer.action_icon.setEnabled(False)
-            self.map_animator_widget.active = False
-            self.map_animator_widget.setEnabled(False)
-        if (
-            self.ts_datasources.rowCount() > 0
-            and self.ts_datasources.model_spatialite_filepath is not None
-        ):
-            self.sideview_tool.action_icon.setEnabled(True)
-            self.stats_tool.action_icon.setEnabled(True)
-            self.water_balance_tool.action_icon.setEnabled(True)
-        else:
-            self.sideview_tool.action_icon.setEnabled(False)
-            self.stats_tool.action_icon.setEnabled(False)
-            self.water_balance_tool.action_icon.setEnabled(False)
-
-    def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
-        self.unload_state_sync()
-        QgsApplication.processingRegistry().removeProvider(self.provider)
-
-        for action in self.actions:
-            self.iface.removePluginMenu("&3Di toolbox", action)
-            self.iface.removeToolBarIcon(action)
-
-            for tool in self.tools:
-                tool.on_unload()
-
-        self.layer_manager.on_unload()
-
-        self.iface.removeDockWidget(self.dockwidget)
-        del self.dockwidget
-
-        try:
-            del self.toolbar
-        except AttributeError:
-            logger.exception("Error, toolbar already removed? Continuing anyway.")
-
-        try:
-            del self.toolbar_animation
-        except AttributeError:
-            logger.exception(
-                "Error, toolbar animation already removed? Continuing anyway."
-            )
-
-    def update_animation(self, x):
-
-        if self.ts_datasources.rowCount() > 0:
-            tc = iface.mapCanvas().temporalController()
-            tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
-
-            # Convert the timekey to result index
-            timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
-
-            datasource = self.ts_datasources.rows[0]
-            timestamps = datasource.threedi_result().timestamps
-            # TODO: are the timekeys always sorted?
-            index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
-
-            # iface.messageBar().pushMessage("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}", Qgis.Info)
-            # iface.messageBar().pushMessage("Time2", f"{tct}: {current}", Qgis.Warning)
-            # iface.messageBar().pushMessage("count", f"{tc.totalFrameCount()}", Qgis.Info)
-            self.map_animator_widget.update_results(index, True, True)
