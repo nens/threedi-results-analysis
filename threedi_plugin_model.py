@@ -29,15 +29,15 @@ class ThreeDiResultItem(QStandardItem):
 
 
 class ThreeDiPluginModel(QStandardItemModel):
-    grid_item_added = pyqtSignal(ThreeDiGridItem)
-    result_item_added = pyqtSignal(ThreeDiResultItem)
-    result_item_checked = pyqtSignal(ThreeDiResultItem)
-    result_item_unchecked = pyqtSignal(ThreeDiResultItem)
-    result_item_selected = pyqtSignal(ThreeDiResultItem)
-    result_item_deselected = pyqtSignal(ThreeDiResultItem)
-    grid_item_selected = pyqtSignal(ThreeDiGridItem)
-    grid_item_deselected = pyqtSignal(ThreeDiGridItem)
-    grid_item_removed = pyqtSignal(ThreeDiGridItem)
+    grid_added = pyqtSignal(ThreeDiGridItem)
+    result_added = pyqtSignal(ThreeDiResultItem)
+    result_checked = pyqtSignal(ThreeDiResultItem)
+    result_unchecked = pyqtSignal(ThreeDiResultItem)
+    result_selected = pyqtSignal(ThreeDiResultItem)
+    result_deselected = pyqtSignal(ThreeDiResultItem)
+    grid_selected = pyqtSignal(ThreeDiGridItem)
+    grid_deselected = pyqtSignal(ThreeDiGridItem)
+    grid_removed = pyqtSignal(ThreeDiGridItem)
 
     # Counter for label (needs to be set when model is loaded)
     _grid_counter = 0
@@ -49,7 +49,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     def item_changed(self, item):
         if isinstance(item, ThreeDiResultItem):
             {
-                2: self.result_item_checked, 0: self.result_item_unchecked,
+                2: self.result_checked, 0: self.result_unchecked,
             }[item.checkState()].emit(item)
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
@@ -60,7 +60,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
-        self.grid_item_added.emit(grid_item)
+        self.grid_added.emit(grid_item)
 
     def add_result(self, input_result_nc: str) -> bool:
         """Adds a result file to the model"""
@@ -69,25 +69,25 @@ class ThreeDiPluginModel(QStandardItemModel):
         path_nc = Path(input_result_nc)
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
-        self.result_item_added.emit(result_item)
+        self.result_added.emit(result_item)
 
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
         self.removeRows(self.indexFromItem(item).row(), 1)
-        self.grid_item_removed.emit(item)
+        self.grid_removed.emit(item)
 
     def select_item(self, index):
         item = self.itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
-            self.grid_item_selected.emit(item)
+            self.grid_selected.emit(item)
         elif isinstance(item, ThreeDiResultItem):
-            self.result_item_selected.emit(item)
+            self.result_selected.emit(item)
 
     def deselect_item(self, index):
         item = self.itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
-            self.grid_item_deselected.emit(item)
+            self.grid_deselected.emit(item)
         elif isinstance(item, ThreeDiResultItem):
-            self.result_item_selected.emit(item)
+            self.result_selected.emit(item)
 
     def _resolve_grid_item_text(self, file: Path) -> str:
         """The text of the grid item depends on its containing file structure
