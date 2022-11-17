@@ -1,5 +1,5 @@
 from pathlib import Path
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 
 import logging
@@ -18,6 +18,7 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
+        self.setRowCount(1)
 
 
 class ThreeDiResultItem(QStandardItem):
@@ -26,6 +27,7 @@ class ThreeDiResultItem(QStandardItem):
         self.path = Path(path)
         self.setCheckable(True)
         self.setCheckState(2)
+        self.setRowCount(1)
 
 
 class ThreeDiPluginModel(QStandardItemModel):
@@ -38,6 +40,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     grid_selected = pyqtSignal(ThreeDiGridItem)
     grid_deselected = pyqtSignal(ThreeDiGridItem)
     grid_removed = pyqtSignal(ThreeDiGridItem)
+    result_removed = pyqtSignal(ThreeDiResultItem)
 
     # Counter for label (needs to be set when model is loaded)
     _grid_counter = 0
@@ -46,7 +49,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         super().__init__(*args, **kwargs)
         self.itemChanged.connect(self.item_changed)
 
-    def item_changed(self, item):
+    @pyqtSlot(QStandardItem)
+    def item_changed(self, item: QStandardItem):
         if isinstance(item, ThreeDiResultItem):
             {
                 2: self.result_checked, 0: self.result_unchecked,
@@ -54,26 +58,58 @@ class ThreeDiPluginModel(QStandardItemModel):
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
 
+    @pyqtSlot(str)
     def add_grid(self, input_gridadmin_h5_or_gpkg: str) -> bool:
-        """Adds a grid item to the model"""
+        """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
+        return True
 
+    @pyqtSlot(str)
     def add_result(self, input_result_nc: str) -> bool:
-        """Adds a result file to the model"""
+        """Adds a result item to the model, emits result_added"""
         # TODO add it under the right grid - inspect the paths?
+        # BVB: Better to let user select parent node and do validation, I think
         parent_item = self.invisibleRootItem().child(0)
         path_nc = Path(input_result_nc)
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
+        return True
 
+    @pyqtSlot(ThreeDiGridItem)
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
-        self.removeRows(self.indexFromItem(item).row(), 1)
+        """Removes a grid from the model, emits grid_removed"""
+        result = self.removeRows(self.indexFromItem(item).row(), 1)
         self.grid_removed.emit(item)
+        return result
+
+    @pyqtSlot()
+    def clear(self) -> None:
+        """Removes all items from the model.
+
+        Traverses through the three top-down, emits grid_removed and result_removed
+        for each subsequent item, the clears the tree.
+        """
+        # Traverse and emit
+        self._clear_recursive(self.invisibleRootItem())
+        # Clear the actual model
+        self.clear()
+
+    def _clear_recursive(self, item: QStandardItemModel):
+        if isinstance(item, ThreeDiGridItem):
+            self.grid_removed.emit(item)
+        elif isinstance(item, ThreeDiResultItem):
+            self.result_removed.emit(item)
+
+        # Traverse into the children
+        if item.hasChildren():
+            for i in range(item.rowCount()):
+                logger.info(item.child(i).text())
+                self._clear_recursive(item.child(i))
 
     def select_item(self, index):
         item = self.itemFromIndex(index)

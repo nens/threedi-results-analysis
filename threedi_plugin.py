@@ -238,6 +238,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.layer_manager.on_unload()
 
+        # Clears model and emits subsequent signals
+        # self.model.clear()
+
         # TODO: disconnect all signals?
 
         self.iface.removeDockWidget(self.dockwidget)
