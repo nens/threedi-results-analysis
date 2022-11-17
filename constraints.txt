@@ -5,7 +5,7 @@ lizard-connector==0.7.3
 pyqtgraph>=0.11.1,<0.12
 threedigrid>=1.2.3
 cached-property
-threedi-modelchecker>=0.28
+threedi-modelchecker==0.31
 threedidepth==0.4
 click>=8.0
 alembic==1.6.5
