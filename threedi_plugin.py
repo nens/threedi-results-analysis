@@ -42,10 +42,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface = iface
 
         self.provider = None
- 
+
     def initProcessing(self):
         """Create the Qgis Processing Toolbox provider and its algorithms
-        
+
         Called by QGIS to check for processing algorithms.
         """
         self.provider = ThreediProvider()
@@ -53,7 +53,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI.
-        
+
         Called when the plugin is loaded.
         """
 
@@ -65,7 +65,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_unchecked.connect(lambda item: print(item))
         self.model.result_selected.connect(lambda item: print(item))
         self.model.result_deselected.connect(lambda item: print(item))
-      
+
         self.model.grid_added.connect(self.loader.load_grid)
         self.model.result_added.connect(self.loader.load_result)
         self.model.grid_removed.connect(self.loader.unload_grid)
@@ -118,7 +118,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Styling
         for color_ramp in color.COLOR_RAMPS:
             styler.add_color_ramp(color_ramp)
-        
+
         for tool in self.tools:
             self._add_action(
                 tool,
@@ -128,7 +128,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
                 parent=self.iface.mainWindow(),
             )
 
-        assert not hasattr(self, "dockwidget") # Should be destroyed on unload
+        assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
         self.dockwidget = ThreeDiPluginDockWidget(None)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
@@ -223,7 +223,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI.
-        
+
         Called then the plugin is unloaded.
         """
         self.unload_state_sync()
@@ -243,6 +243,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
 
+        # TODO: check whether these try-clauses are necessary
         try:
             del self.toolbar
         except AttributeError:

@@ -18,7 +18,7 @@ class ThreeDiPluginModelLoader(QObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     @pyqtSlot(ThreeDiGridItem)
     def load_grid(self, item: ThreeDiGridItem) -> bool:
         path = item.path
@@ -43,7 +43,7 @@ class ThreeDiPluginModelLoader(QObject):
         iface.messageBar().pushMessage(
             "GeoPackage", "Added layers to the project", Qgis.Info
         )
-        
+
         self.grid_loaded.emit(item)
         return True
 
