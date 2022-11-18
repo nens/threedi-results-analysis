@@ -1,4 +1,4 @@
-from qgis.core import QgsApplication, QgsDateTimeRange, Qgis
+from qgis.core import QgsApplication, QgsDateTimeRange, Qgis, QgsProject
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -69,6 +69,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.grid_added.connect(self.loader.load_grid)
         self.model.result_added.connect(self.loader.load_result)
         self.model.grid_removed.connect(self.loader.unload_grid)
+
+        QgsProject.instance().writeProject.connect(self.model.write)
 
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)

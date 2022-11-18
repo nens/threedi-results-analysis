@@ -1,6 +1,7 @@
 from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
+from qgis.PyQt.QtXml import QDomDocument
 
 import logging
 import os
@@ -49,7 +50,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         super().__init__(*args, **kwargs)
         self.itemChanged.connect(self.item_changed)
 
-    @pyqtSlot(QStandardItem)
+    # @pyqtSlot(QStandardItem)
     def item_changed(self, item: QStandardItem):
         if isinstance(item, ThreeDiResultItem):
             {
@@ -98,6 +99,12 @@ class ThreeDiPluginModel(QStandardItemModel):
         self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
         super().clear()
+
+    # @pyqtSlot(QDomDocument)
+    def write(self, doc: QDomDocument) -> bool:
+        # todo: clear existing model from the doc
+        # todo: write current model to the doc
+        return True
 
     def _clear_recursive(self, item: QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
