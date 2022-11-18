@@ -17,7 +17,6 @@ from ThreeDiToolbox.tool_statistics import StatisticsTool
 from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
 from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
 from ThreeDiToolbox.utils import color
-from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
@@ -56,24 +55,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         Called when the plugin is loaded.
         """
-
         self.model = ThreeDiPluginModel()
         self.loader = ThreeDiPluginModelLoader()
         self.validator = ThreeDiPluginModelValidator()
 
-        self.model.result_checked.connect(lambda item: print(item))
-        self.model.result_unchecked.connect(lambda item: print(item))
-        self.model.result_selected.connect(lambda item: print(item))
-        self.model.result_deselected.connect(lambda item: print(item))
-
-        self.model.grid_added.connect(self.loader.load_grid)
-        self.model.result_added.connect(self.loader.load_result)
-        self.model.grid_removed.connect(self.loader.unload_grid)
-
         QgsProject.instance().writeProject.connect(self.model.write)
-
-        self.loader.grid_loaded.connect(self.validator.validate_grid)
-        self.loader.result_loaded.connect(self.validator.validate_result)
 
         # Declare instance attributes
         self.actions = []
@@ -119,7 +105,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Styling
         for color_ramp in color.COLOR_RAMPS:
-            styler.add_color_ramp(color_ramp)
+            color.add_color_ramp(color_ramp)
 
         for tool in self.tools:
             self._add_action(
@@ -134,30 +120,41 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget = ThreeDiPluginDockWidget(None)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
+        # Connect the signals
         self.dockwidget.grid_file_selected.connect(self.model.add_grid)
         self.dockwidget.result_file_selected.connect(self.model.add_result)
         self.dockwidget.item_selected.connect(self.model.select_item)
         self.dockwidget.item_deselected.connect(self.model.deselect_item)
         self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
 
-        self.dockwidget.show()
+        # self.model.result_checked.connect(lambda item: print(item))
+        # self.model.result_unchecked.connect(lambda item: print(item))
+        # self.model.result_selected.connect(lambda item: print(item))
+        # self.model.result_deselected.connect(lambda item: print(item))
 
-        self.dockwidget.treeView.setModel(self.model)
-        # TODO: should this logic be moved inside the treeWidget?
-        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
+        self.model.grid_added.connect(self.loader.load_grid)
+        self.model.result_added.connect(self.loader.load_result)
+        self.model.grid_removed.connect(self.loader.unload_grid)
 
-        self.initProcessing()
-
-        self.toolbar_animation.addWidget(self.map_animator_widget)
+        self.loader.grid_loaded.connect(self.validator.validate_grid)
+        self.loader.result_loaded.connect(self.validator.validate_result)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
-
-        self.init_state_sync()
-
         tc = iface.mapCanvas().temporalController()
         tc.updateTemporalRange.connect(self._update_animation)
+
+        self.dockwidget.show()
+        self.dockwidget.treeView.setModel(self.model)
+
+        # TODO: should this logic be moved inside the treeWidget?
+        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
+
+        self.initProcessing()
+        self.toolbar_animation.addWidget(self.map_animator_widget)
+
+        self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
 
         self.check_status_model_and_results()
@@ -232,6 +229,33 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Clears model and emits subsequent signals
         self.model.clear()
 
+        # Disconnect all signals
+        self.dockwidget.grid_file_selected.disconnect(self.model.add_grid)
+        self.dockwidget.result_file_selected.disconnect(self.model.add_result)
+        self.dockwidget.item_selected.disconnect(self.model.select_item)
+        self.dockwidget.item_deselected.disconnect(self.model.deselect_item)
+        self.dockwidget.grid_removal_selected.disconnect(self.model.remove_grid)
+
+        # self.model.result_checked.disconnect(lambda item: print(item))
+        # self.model.result_unchecked.disconnect(lambda item: print(item))
+        # self.model.result_selected.disconnect(lambda item: print(item))
+        # self.model.result_deselected.disconnect(lambda item: print(item))
+
+        self.model.grid_added.disconnect(self.loader.load_grid)
+        self.model.result_added.disconnect(self.loader.load_result)
+        self.model.grid_removed.disconnect(self.loader.unload_grid)
+
+        self.loader.grid_loaded.disconnect(self.validator.validate_grid)
+        self.loader.result_loaded.disconnect(self.validator.validate_result)
+
+        self.ts_datasources.rowsRemoved.disconnect(self.check_status_model_and_results)
+        self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
+        self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
+        tc = iface.mapCanvas().temporalController()
+        tc.updateTemporalRange.disconnect(self._update_animation)
+
+        # Clean up resources
+
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
@@ -244,23 +268,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.layer_manager.on_unload()
 
-        # TODO: disconnect all signals?
-
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
-
-        # TODO: check whether these try-clauses are necessary
-        try:
-            del self.toolbar
-        except AttributeError:
-            logger.exception("Error, toolbar already removed? Continuing anyway.")
-
-        try:
-            del self.toolbar_animation
-        except AttributeError:
-            logger.exception(
-                "Error, toolbar animation already removed? Continuing anyway."
-            )
+        del self.toolbar
+        del self.toolbar_animation
 
     def _update_animation(self, x):
 
