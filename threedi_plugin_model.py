@@ -97,7 +97,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Traverse and emit
         self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
-        self.clear()
+        super().clear()
 
     def _clear_recursive(self, item: QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
@@ -108,7 +108,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Traverse into the children
         if item.hasChildren():
             for i in range(item.rowCount()):
-                logger.info(item.child(i).text())
                 self._clear_recursive(item.child(i))
 
     def select_item(self, index):

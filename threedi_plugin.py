@@ -226,6 +226,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         Called then the plugin is unloaded.
         """
+
+        # Clears model and emits subsequent signals
+        self.model.clear()
+
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
@@ -237,9 +241,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             tool.on_unload()
 
         self.layer_manager.on_unload()
-
-        # Clears model and emits subsequent signals
-        # self.model.clear()
 
         # TODO: disconnect all signals?
 
