@@ -29,7 +29,15 @@ QGIS_FORMAT = "%(name)s\n%(message)s"  # Note: split over two lines.
 logger = logging.getLogger(__name__)
 
 
+def has_handler(logger, handler_class):
+    """ Somehow isinstance() does not do the trick. """
+    def path(cls):
+        return ".".join([cls.__module__, cls.__name__])
+    return path(handler_class) in (path(h.__class__) for h in logger.handlers)
+
+
 class ConsoleHandler(logging.StreamHandler):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setLevel(logging.DEBUG)
@@ -37,6 +45,7 @@ class ConsoleHandler(logging.StreamHandler):
 
 
 class FileHandler(logging.FileHandler):
+
     @staticmethod
     def get_filename():
         return join(QgsApplication.qgisSettingsDirPath(), LOGFILE_NAME)
@@ -50,7 +59,6 @@ class FileHandler(logging.FileHandler):
         super().__init__(filename, mode="w", encoding="utf-8")
         self.setLevel(logging.DEBUG)
         self.setFormatter(logging.Formatter(PYTHON_FORMAT))
-        logger.info("Started logfile: %s", filename)
 
 
 class QgisHandler(logging.Handler):
@@ -100,14 +108,15 @@ def setup_logging():
     # Python's default log level is WARN, but we also want to see DEBUG
     # messages.
     root_logger.setLevel(logging.DEBUG)
-    if not any(isinstance(h, ConsoleHandler) for h in root_logger.handlers):
+    if not has_handler(root_logger, ConsoleHandler):
         root_logger.addHandler(ConsoleHandler())
-    if not any(isinstance(h, FileHandler) for h in root_logger.handlers):
+    if not has_handler(root_logger, FileHandler):
         root_logger.addHandler(FileHandler())
+        logger.info("Started logfile: %s", FileHandler.get_filename())
 
     # QGIS handler for all "__name__" loggers in the ThreeDiToolbox package
     our_plugin_logger = logging.getLogger("ThreeDiToolbox")
-    if not any(isinstance(h, QgisHandler) for h in our_plugin_logger.handlers):  # noqa
+    if not has_handler(root_logger, QgisHandler):
         our_plugin_logger.addHandler(QgisHandler())
 
     # We don't want all the "PyQt5.uic.properties DEBUG setting property text"
