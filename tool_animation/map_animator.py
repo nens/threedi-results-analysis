@@ -24,14 +24,13 @@ from ThreeDiToolbox.datasource.result_constants import H_TYPES
 from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
-from ThreeDiToolbox.utils import styler
-from ThreeDiToolbox.utils.styler import ANIMATION_LAYERS_NR_LEGEND_CLASSES
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
 from typing import List
 from typing import Union
 
+import ThreeDiToolbox.tool_animation.animation_styler as styler
 import copy
 import logging
 import numpy as np
@@ -145,7 +144,7 @@ def threedi_result_percentiles(
 class MapAnimator(QWidget):
     """ """
 
-    EMPTY_CLASS_BOUNDS = [0] * (ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
+    EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
 
     def __init__(self, parent, iface, root_tool):
 
@@ -436,7 +435,7 @@ class MapAnimator(QWidget):
                     groundwater=False,
                     variable=self.current_node_parameter["parameters"],
                     percentile=list(
-                        range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))
+                        range(0, 100, int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES))
                     )
                     + [100],
                     absolute=False,
@@ -457,7 +456,7 @@ class MapAnimator(QWidget):
                                 range(
                                     0,
                                     100,
-                                    int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES),
+                                    int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES),
                                 )
                             )
                             + [100],
@@ -478,7 +477,7 @@ class MapAnimator(QWidget):
                     groundwater=False,
                     variable=self.current_line_parameter["parameters"],
                     percentile=list(
-                        range(0, 100, int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES))
+                        range(0, 100, int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES))
                     )
                     + [100],
                     absolute=True,
@@ -499,7 +498,7 @@ class MapAnimator(QWidget):
                                 range(
                                     0,
                                     100,
-                                    int(100 / ANIMATION_LAYERS_NR_LEGEND_CLASSES),
+                                    int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES),
                                 )
                             )
                             + [100],

@@ -17,7 +17,6 @@ from ThreeDiToolbox.tool_statistics import StatisticsTool
 from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
 from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
 from ThreeDiToolbox.utils import color
-from ThreeDiToolbox.utils import styler
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
@@ -105,7 +104,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Styling
         for color_ramp in color.COLOR_RAMPS:
-            styler.add_color_ramp(color_ramp)
+            color.add_color_ramp(color_ramp)
 
         for tool in self.tools:
             self._add_action(
