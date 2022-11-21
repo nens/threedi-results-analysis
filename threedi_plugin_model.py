@@ -1,7 +1,7 @@
 from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
-from qgis.PyQt.QtXml import QDomDocument
+from qgis.PyQt.QtXml import QDomDocument, QDomElement
 
 import logging
 import os
@@ -113,24 +113,48 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     # @pyqtSlot(QDomDocument)
     def write(self, doc: QDomDocument) -> bool:
-        # Find and remove the existing element corresponding to the model
-        results_node = doc.elementById("arjan")
-        if results_node is not None:
+        # Find and remove the existing element corresponding to the result model
+        results_nodes = doc.elementsByTagName("threedi_result")
+        if results_nodes.length() == 1:
+            results_node = results_nodes.at(0)
             assert results_node.parentNode() is not None
             results_node.parentNode().removeChild(results_node)
 
-        # Create new results node
-        # The 3Di node is under the <qgis> node
-        qgis_node = doc.elementById("qgis")
-        assert qgis_node is not None
-        results_node = doc.createElement("arjan2")
-        result_node = doc.appendChild(results_node)
-        assert result_node is not None
+        # Create new results node under main (qgis) node
+        qgis_nodes = doc.elementsByTagName("qgis")
+        assert qgis_nodes.length() == 1 and qgis_nodes.at(0) is not None
+        qgis_node = qgis_nodes.at(0)
+        results_node = doc.createElement("threedi_result")
+        results_node = qgis_node.appendChild(results_node)
+        assert results_node is not None
 
-        # QDomElement annotationLayerNode = doc->createElement( QStringLiteral( "main-annotation-layer" ) );
-        # mMainAnnotationLayer->writeLayerXml( annotationLayerNode, *doc, context );
-        # qgisNode.appendChild( annotationLayerNode );
         # Traverse through the model and save the nodes
+        return self._write_recursive(doc, results_node, self.invisibleRootItem())
+
+    def _write_recursive(self, doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
+        # Something is wrong when exactly one of them is None
+        assert not (bool(xml_parent is not None) ^ bool(model_parent is not None))
+
+        # Iterate over model child nodes and continue recursive traversion
+        if model_parent.hasChildren():
+            for i in range(model_parent.rowCount()):
+                model_node = model_parent.child(i)
+                xml_node = doc.createElement("temp")  # tag required
+
+                # Populate the new xml_node with the info from model_node
+                if isinstance(model_node, ThreeDiGridItem):
+                    xml_node.setTagName("grid")
+                elif isinstance(model_node, ThreeDiResultItem):
+                    xml_node.setTagName("result")
+                else:
+                    logger.error("Unknown node type for serialization")
+                    return False
+
+                logger.info("Appending node to parent")
+                xml_parent.appendChild(xml_node)
+                assert xml_node is not None
+
+                self._write_recursive(doc, xml_node, model_node)
 
         return True
 
