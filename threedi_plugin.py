@@ -103,7 +103,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.active_ts_datasource = None
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
-        # Styling
+        # Styling (TODO: can this be moved to where it is used?)
         for color_ramp in color.COLOR_RAMPS:
             color.add_color_ramp(color_ramp)
 

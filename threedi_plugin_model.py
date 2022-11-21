@@ -93,18 +93,12 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Removes all items from the model.
 
         Traverses through the three top-down, emits grid_removed and result_removed
-        for each subsequent item, the clears the tree.
+        for each subsequent item, then clears the tree.
         """
         # Traverse and emit
         self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
         super().clear()
-
-    # @pyqtSlot(QDomDocument)
-    def write(self, doc: QDomDocument) -> bool:
-        # todo: clear existing model from the doc
-        # todo: write current model to the doc
-        return True
 
     def _clear_recursive(self, item: QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
@@ -116,6 +110,29 @@ class ThreeDiPluginModel(QStandardItemModel):
         if item.hasChildren():
             for i in range(item.rowCount()):
                 self._clear_recursive(item.child(i))
+
+    # @pyqtSlot(QDomDocument)
+    def write(self, doc: QDomDocument) -> bool:
+        # Find and remove the existing element corresponding to the model
+        results_node = doc.elementById("arjan")
+        if results_node is not None:
+            assert results_node.parentNode() is not None
+            results_node.parentNode().removeChild(results_node)
+
+        # Create new results node
+        # The 3Di node is under the <qgis> node
+        qgis_node = doc.elementById("qgis")
+        assert qgis_node is not None
+        results_node = doc.createElement("arjan2")
+        result_node = doc.appendChild(results_node)
+        assert result_node is not None
+
+        # QDomElement annotationLayerNode = doc->createElement( QStringLiteral( "main-annotation-layer" ) );
+        # mMainAnnotationLayer->writeLayerXml( annotationLayerNode, *doc, context );
+        # qgisNode.appendChild( annotationLayerNode );
+        # Traverse through the model and save the nodes
+
+        return True
 
     def select_item(self, index):
         item = self.itemFromIndex(index)
