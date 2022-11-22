@@ -58,17 +58,17 @@ class ThreeDiPluginModel(QStandardItemModel):
             logger.info("Item data changed")
 
     @pyqtSlot(str)
-    def add_grid(self, input_gridadmin_h5_or_gpkg: str) -> bool:
+    def add_grid(self, input_gridadmin_h5_or_gpkg: str) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
-        return True
+        return grid_item
 
     @pyqtSlot(str)
-    def add_result(self, input_result_nc: str) -> bool:
+    def add_result(self, input_result_nc: str) -> ThreeDiResultItem:
         """Adds a result item to the model, emits result_added"""
         # TODO add it under the right grid - inspect the paths?
         # BVB: Better to let user select parent node and do validation, I think
@@ -77,7 +77,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
-        return True
+        return result_item
 
     @pyqtSlot(ThreeDiGridItem)
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
@@ -87,14 +87,15 @@ class ThreeDiPluginModel(QStandardItemModel):
         return result
 
     @pyqtSlot()
-    def clear(self) -> None:
+    def clear(self, emit: bool = True) -> None:
         """Removes all items from the model.
 
         Traverses through the three top-down, emits grid_removed and result_removed
-        for each subsequent item, then clears the tree.
+        for each subsequent item (if emit is True), then clears the tree.
         """
-        # Traverse and emit
-        self._clear_recursive(self.invisibleRootItem())
+        # Traverse and emit if desired
+        if emit:
+            self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
         super().clear()
 
@@ -133,11 +134,12 @@ class ThreeDiPluginModel(QStandardItemModel):
         for i in range(child_xml_nodes.count()):
             xml_node = child_xml_nodes.at(i)
 
-            # Create model item
             if xml_node.isElement():
                 tag_name = xml_node.toElement().tagName()
                 if tag_name == "grid":
-                    self.add_grid(xml_node.toElement().attribute("path"))
+                    # Create model item
+                    model_node = self.add_grid(xml_node.toElement().attribute("path"))
+                    self._read_recursive(xml_node, model_node)
             else:
                 logger.error("Unexpected XML item, aborting read")
                 self.clear()
