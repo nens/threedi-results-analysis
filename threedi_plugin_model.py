@@ -19,7 +19,6 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
-        self.setRowCount(1)
 
 
 class ThreeDiResultItem(QStandardItem):
@@ -28,7 +27,6 @@ class ThreeDiResultItem(QStandardItem):
         self.path = Path(path)
         self.setCheckable(True)
         self.setCheckState(2)
-        self.setRowCount(1)
 
 
 class ThreeDiPluginModel(QStandardItemModel):
@@ -111,6 +109,42 @@ class ThreeDiPluginModel(QStandardItemModel):
             for i in range(item.rowCount()):
                 self._clear_recursive(item.child(i))
 
+    def read(self, doc: QDomDocument) -> bool:
+        self.clear()
+
+        # Find existing element corresponding to the result model
+        results_nodes = doc.elementsByTagName("threedi_result")
+
+        if results_nodes.length() > 1:
+            logger.error("XML file contains multiple threedi_result elements, aborting load.")
+            return False
+        elif results_nodes.length() == 0:
+            return True  # Nothing to load
+
+        results_node = results_nodes.at(0)
+        assert results_node.parentNode() is not None
+
+        # Now traverse through the XML tree and add model items
+        return self._read_recursive(results_node, self.invisibleRootItem())
+
+    def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
+        child_xml_nodes = xml_parent.childNodes()
+
+        for i in range(child_xml_nodes.count()):
+            xml_node = child_xml_nodes.at(i)
+
+            # Create model item
+            if xml_node.isElement():
+                tag_name = xml_node.toElement().tagName()
+                if tag_name == "grid":
+                    self.add_grid("path")
+            else:
+                logger.error("Unexpected XML item, aborting read")
+                self.clear()
+                return False
+
+        return True
+
     # @pyqtSlot(QDomDocument)
     def write(self, doc: QDomDocument) -> bool:
         # Find and remove the existing element corresponding to the result model
@@ -150,8 +184,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                     logger.error("Unknown node type for serialization")
                     return False
 
-                logger.info("Appending node to parent")
-                xml_parent.appendChild(xml_node)
+                xml_node = xml_parent.appendChild(xml_node)
                 assert xml_node is not None
 
                 self._write_recursive(doc, xml_node, model_node)

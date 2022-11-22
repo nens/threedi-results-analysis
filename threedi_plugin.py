@@ -60,6 +60,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.validator = ThreeDiPluginModelValidator()
 
         QgsProject.instance().writeProject.connect(self.model.write)
+        QgsProject.instance().readProject.connect(self.model.read)
 
         # Declare instance attributes
         self.actions = []
