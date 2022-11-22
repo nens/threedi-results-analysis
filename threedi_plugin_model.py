@@ -137,7 +137,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             if xml_node.isElement():
                 tag_name = xml_node.toElement().tagName()
                 if tag_name == "grid":
-                    self.add_grid("path")
+                    self.add_grid(xml_node.toElement().attribute("path"))
             else:
                 logger.error("Unexpected XML item, aborting read")
                 self.clear()
@@ -178,6 +178,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 # Populate the new xml_node with the info from model_node
                 if isinstance(model_node, ThreeDiGridItem):
                     xml_node.setTagName("grid")
+                    xml_node.setAttribute("path", str(model_node.path))
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
                 else:
