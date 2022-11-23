@@ -95,27 +95,6 @@ class ThreeDiPluginModelLoader(QObject):
         return True
 
     @staticmethod
-    def _add_layer_to_group(layer, layer_name):
-        """
-        Add a layer to the layer tree group, returns
-        the corresponding group.
-        """
-        root = QgsProject.instance().layerTreeRoot()
-        root_group = root.findGroup(TOOLBOX_GROUP_NAME)
-        if not root_group:
-            root_group = root.insertGroup(0, TOOLBOX_GROUP_NAME)
-
-        layer_group = root_group.findGroup(layer_name)
-        if not layer_group:
-            layer_group = root_group.insertGroup(0, layer_name)
-
-        project = QgsProject.instance()
-        project.addMapLayer(layer, addToLegend=False)
-        layer_group.insertLayer(0, layer)
-
-        return layer_group
-
-    @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
         """Retrieves layers from gpk and add to project.
 
@@ -137,6 +116,7 @@ class ThreeDiPluginModelLoader(QObject):
 
             srs_ids.add(vector_layer.crs().srsid())
 
+            # Won't add if already exists
             item.layer_group = ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
 
         if len(srs_ids) == 1:
@@ -163,3 +143,32 @@ class ThreeDiPluginModelLoader(QObject):
             )
 
         return True
+
+    @staticmethod
+    def _add_layer_to_group(layer, group_name):
+        """
+        Add a layer to the layer tree group, returns
+        the corresponding group.
+        """
+        root = QgsProject.instance().layerTreeRoot()
+        root_group = root.findGroup(TOOLBOX_GROUP_NAME)
+        if not root_group:
+            root_group = root.insertGroup(0, TOOLBOX_GROUP_NAME)
+
+        layer_group = root_group.findGroup(group_name)
+        if not layer_group:
+            layer_group = root_group.insertGroup(0, group_name)
+
+        # In case the group already contains a layer with the same name, 
+        # don't add the layer (TODO: allow overwrite?)
+        existing_layers = layer_group.children()
+        for existing_layer in existing_layers:
+            if existing_layer.name() == layer.name():
+                return layer_group
+
+        project = QgsProject.instance()
+        project.addMapLayer(layer, addToLegend=False)
+        layer_group.insertLayer(0, layer)
+
+        return layer_group
+
