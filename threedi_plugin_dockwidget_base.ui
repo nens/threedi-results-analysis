@@ -140,18 +140,22 @@
                  <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>Add grid</string>
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>icons/add_grid.png</normaloff>icons/add_grid.png</iconset>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="pushButton_RemoveGrid">
                 <property name="text">
-                 <string>Remove grid</string>
+                 <string/>
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>icons/trash.png</normaloff>icons/trash.png</iconset>
+                  <normaloff>icons/remove_grid.png</normaloff>icons/remove_grid.png</iconset>
                 </property>
                </widget>
               </item>
