@@ -2,6 +2,7 @@ from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
+from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 
 import logging
 import os
@@ -114,7 +115,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.clear()
 
         # Find existing element corresponding to the result model
-        results_nodes = doc.elementsByTagName("threedi_result")
+        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
 
         if results_nodes.length() > 1:
             logger.error("XML file contains multiple threedi_result elements, aborting load.")
@@ -150,7 +151,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     # @pyqtSlot(QDomDocument)
     def write(self, doc: QDomDocument) -> bool:
         # Find and remove the existing element corresponding to the result model
-        results_nodes = doc.elementsByTagName("threedi_result")
+        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
         if results_nodes.length() == 1:
             results_node = results_nodes.at(0)
             assert results_node.parentNode() is not None
@@ -160,7 +161,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         qgis_nodes = doc.elementsByTagName("qgis")
         assert qgis_nodes.length() == 1 and qgis_nodes.at(0) is not None
         qgis_node = qgis_nodes.at(0)
-        results_node = doc.createElement("threedi_result")
+        results_node = doc.createElement(TOOLBOX_XML_ELEMENT_ROOT)
         results_node = qgis_node.appendChild(results_node)
         assert results_node is not None
 

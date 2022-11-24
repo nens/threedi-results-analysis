@@ -8,7 +8,7 @@ from qgis.utils import iface
 
 from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critical
-from ThreeDiToolbox.utils.constants import TOOLBOX_GROUP_NAME
+from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 
 
@@ -151,9 +151,9 @@ class ThreeDiPluginModelLoader(QObject):
         the corresponding group.
         """
         root = QgsProject.instance().layerTreeRoot()
-        root_group = root.findGroup(TOOLBOX_GROUP_NAME)
+        root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
         if not root_group:
-            root_group = root.insertGroup(0, TOOLBOX_GROUP_NAME)
+            root_group = root.insertGroup(0, TOOLBOX_QGIS_GROUP_NAME)
 
         layer_group = root_group.findGroup(group_name)
         if not layer_group:
