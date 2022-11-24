@@ -61,6 +61,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         QgsProject.instance().writeProject.connect(self.model.write)
         QgsProject.instance().readProject.connect(self.model.read)
+        QgsProject.instance().removeAll.connect(self.model.clear)
 
         # Declare instance attributes
         self.actions = []
