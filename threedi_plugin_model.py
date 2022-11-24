@@ -100,6 +100,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Clear the actual model
         super().clear()
 
+        self._grid_counter = 0
+
     def _clear_recursive(self, item: QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
@@ -112,13 +114,18 @@ class ThreeDiPluginModel(QStandardItemModel):
                 self._clear_recursive(item.child(i))
 
     def read(self, doc: QDomDocument) -> bool:
+        """Reads the model from the provided XML DomDocument
+
+        Recursively traverses down the XML tree. Returns True
+        on success.
+        """
         self.clear()
 
         # Find existing element corresponding to the result model
         results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
 
         if results_nodes.length() > 1:
-            logger.error("XML file contains multiple threedi_result elements, aborting load.")
+            logger.error("XML file contains multiple toolbox root elements, aborting load.")
             return False
         elif results_nodes.length() == 0:
             return True  # Nothing to load
@@ -127,7 +134,12 @@ class ThreeDiPluginModel(QStandardItemModel):
         assert results_node.parentNode() is not None
 
         # Now traverse through the XML tree and add model items
-        return self._read_recursive(results_node, self.invisibleRootItem())
+        if not self._read_recursive(results_node, self.invisibleRootItem()):
+            logger.error("Unexpected XML item, aborting read")
+            self.clear()
+            return False
+
+        return True
 
     def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
         child_xml_nodes = xml_parent.childNodes()
@@ -138,18 +150,23 @@ class ThreeDiPluginModel(QStandardItemModel):
             if xml_node.isElement():
                 tag_name = xml_node.toElement().tagName()
                 if tag_name == "grid":
-                    # Create model item
+                    # Add model item
                     model_node = self.add_grid(xml_node.toElement().attribute("path"))
-                    self._read_recursive(xml_node, model_node)
+
+                if not self._read_recursive(xml_node, model_node):
+                    return False
             else:
-                logger.error("Unexpected XML item, aborting read")
-                self.clear()
                 return False
 
         return True
 
-    # @pyqtSlot(QDomDocument)
     def write(self, doc: QDomDocument) -> bool:
+        """Add the model to the provided XML DomDocument
+
+        Recursively traverses down the model tree. Returns True
+        on success.
+        """
+
         # Find and remove the existing element corresponding to the result model
         results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
         if results_nodes.length() == 1:
@@ -166,7 +183,11 @@ class ThreeDiPluginModel(QStandardItemModel):
         assert results_node is not None
 
         # Traverse through the model and save the nodes
-        return self._write_recursive(doc, results_node, self.invisibleRootItem())
+        if not self._write_recursive(doc, results_node, self.invisibleRootItem()):
+            logger.error("Unable to write model")
+            return False
+
+        return True
 
     def _write_recursive(self, doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
         # Something is wrong when exactly one of them is None
@@ -191,7 +212,8 @@ class ThreeDiPluginModel(QStandardItemModel):
                 xml_node = xml_parent.appendChild(xml_node)
                 assert xml_node is not None
 
-                self._write_recursive(doc, xml_node, model_node)
+                if not self._write_recursive(doc, xml_node, model_node):
+                    return False
 
         return True
 
