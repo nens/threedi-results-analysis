@@ -159,7 +159,7 @@ class ThreeDiPluginModelLoader(QObject):
         if not layer_group:
             layer_group = root_group.insertGroup(0, group_name)
 
-        # In case the group already contains a layer with the same name, 
+        # In case the group already contains a layer with the same name,
         # don't add the layer (TODO: allow overwrite?)
         existing_layers = layer_group.children()
         for existing_layer in existing_layers:
@@ -171,4 +171,3 @@ class ThreeDiPluginModelLoader(QObject):
         layer_group.insertLayer(0, layer)
 
         return layer_group
-
