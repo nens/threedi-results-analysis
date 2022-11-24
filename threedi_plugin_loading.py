@@ -33,6 +33,8 @@ class ThreeDiPluginModelLoader(QObject):
                 lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
             )
             del progress_bar
+            # Store the path of the resulting .gpkg, not the original .h5
+            item.path = path_gpkg
 
         iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
 
