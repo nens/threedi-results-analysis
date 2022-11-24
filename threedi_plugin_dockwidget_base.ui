@@ -149,6 +149,10 @@
                 <property name="text">
                  <string>Remove grid</string>
                 </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>icons/trash.png</normaloff>icons/trash.png</iconset>
+                </property>
                </widget>
               </item>
               <item>
