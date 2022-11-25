@@ -55,10 +55,18 @@ class ThreeDiPluginModelLoader(QObject):
 
         # TODO: does the layer also need to be removed from registry?
 
-        assert item.layer_group is not None
+        assert item.layer_group
         # Deletion of root node of a tree will delete all nodes of the tree
         item.layer_group.parent().removeChildNode(item.layer_group)
         item.layer_group = None
+
+    @pyqtSlot(ThreeDiGridItem)
+    def update_grid(self, item: ThreeDiGridItem) -> bool:
+        """Updates the group name in the project"""
+
+        assert item.layer_group
+        item.layer_group.setName(item.text())
+        
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
