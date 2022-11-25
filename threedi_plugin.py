@@ -138,6 +138,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.grid_added.connect(self.loader.load_grid)
         self.model.result_added.connect(self.loader.load_result)
         self.model.grid_removed.connect(self.loader.unload_grid)
+        self.model.grid_changed.connect(self.loader.update_grid)
 
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)

@@ -39,6 +39,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_deselected = pyqtSignal(ThreeDiResultItem)
     grid_selected = pyqtSignal(ThreeDiGridItem)
     grid_deselected = pyqtSignal(ThreeDiGridItem)
+    grid_changed = pyqtSignal(ThreeDiGridItem)
     grid_removed = pyqtSignal(ThreeDiGridItem)
     result_removed = pyqtSignal(ThreeDiResultItem)
 
@@ -57,6 +58,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             }[item.checkState()].emit(item)
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
+            self.grid_changed.emit(item)
 
     @pyqtSlot(str)
     def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "") -> ThreeDiGridItem:
