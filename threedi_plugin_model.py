@@ -63,6 +63,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
+        if self.contains(path_h5_or_gpkg, ignore_suffix=True):
+            return
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
@@ -75,6 +77,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         # BVB: Better to let user select parent node and do validation, I think
         parent_item = self.invisibleRootItem().child(0)
         path_nc = Path(input_result_nc)
+        if self.contains(path_nc):
+            return
         result_item = ThreeDiResultItem(path_nc, path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
@@ -153,7 +157,11 @@ class ThreeDiPluginModel(QStandardItemModel):
                 tag_name = xml_element_node.tagName()
                 if tag_name == "grid":
                     # Add model item
-                    model_node = self.add_grid(resolver.readPath(xml_element_node.attribute("path")), xml_element_node.attribute("text"))
+                    model_node = self.add_grid(
+                        resolver.readPath(xml_element_node.attribute("path")),
+                        xml_element_node.attribute("text"),
+                    )
+                    assert model_node is not None
 
                 if not self._read_recursive(xml_node, model_node, resolver):
                     return False
@@ -219,6 +227,28 @@ class ThreeDiPluginModel(QStandardItemModel):
                     return False
 
         return True
+
+    def contains(self, path: Path, ignore_suffix: bool = False) -> bool:
+        """Return if any item has a path attribute equal to path."""
+        def _contains(item, path: Path, ignore_suffix: bool):
+            if hasattr(item, "path"):
+                p1, p2 = item.path, path
+                if ignore_suffix:
+                    p1, p2 = p1.with_suffix(""), p2.with_suffix("")
+                if p1 == p2:
+                    logger.warning(f"Item {path} was already added.")
+                    return True
+            return any(_contains(
+                item=item.child(i),
+                path=path,
+                ignore_suffix=ignore_suffix
+            ) for i in range(item.rowCount()))
+
+        return _contains(
+            item=self.invisibleRootItem(),
+            path=path,
+            ignore_suffix=ignore_suffix,
+        )
 
     def select_item(self, index):
         item = self.itemFromIndex(index)

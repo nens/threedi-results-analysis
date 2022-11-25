@@ -19,24 +19,27 @@ class ThreeDiPluginModelLoader(QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @staticmethod
+    def _generate_gpkg(path_h5, path_gpkg):
+        progress_bar = StatusProgressBar(100, "Generating geopackage")
+        exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
+        exporter.export(
+            lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
+        )
+        del progress_bar
+        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
+
     @pyqtSlot(ThreeDiGridItem)
     def load_grid(self, item: ThreeDiGridItem) -> bool:
-        path = item.path
-        base, suffix = path.parent / path.stem, path.suffix
-        path_gpkg = base.with_suffix(".gpkg")
-        path_h5 = base.with_suffix(".h5")
-
-        if suffix == ".h5" and not path_gpkg.exists():
-            progress_bar = StatusProgressBar(100, "Generating geopackage")
-            exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
-            exporter.export(
-                lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
-            )
-            del progress_bar
-            # Store the path of the resulting .gpkg, not the original .h5
+        # generate geopackage if needed and point item path to it
+        if item.path.suffix == ".h5":
+            path_h5 = item.path
+            path_gpkg = path_h5.with_suffix(".gpkg")
+            if not path_gpkg.exists():
+                self.__class__._generate_gpkg(path_h5=path_h5, path_gpkg=path_gpkg)
             item.path = path_gpkg
-
-        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
+        else:
+            path_gpkg = item.path
 
         if not ThreeDiPluginModelLoader._add_layers_from_gpkg(path_gpkg, item):
             pop_up_critical("Failed adding the layers to the project.")
