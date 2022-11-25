@@ -12,10 +12,10 @@ class ThreeDiPluginModelValidator(QObject):
 
     @pyqtSlot(ThreeDiGridItem)
     def validate_grid(self, item: ThreeDiGridItem):
-        item.setIcon(QIcon("icons/check_mark.png"))
+        item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
         self.grid_validated.emit(item, True)
 
     @pyqtSlot(ThreeDiResultItem)
     def validate_result(self, item: ThreeDiResultItem):
-        item.setIcon(QIcon("icons/check_mark.png"))
+        item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
         self.result_validated.emit(item, True)
