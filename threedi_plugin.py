@@ -1,8 +1,9 @@
-from qgis.core import QgsApplication, QgsDateTimeRange, Qgis, QgsProject
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.utils import iface
+from qgis.core import QgsApplication, QgsDateTimeRange, Qgis, QgsProject, QgsPathResolver
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -59,8 +60,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.loader = ThreeDiPluginModelLoader()
         self.validator = ThreeDiPluginModelValidator()
 
-        QgsProject.instance().writeProject.connect(self.model.write)
-        QgsProject.instance().readProject.connect(self.model.read)
+        QgsProject.instance().writeProject.connect(self.write)
+        QgsProject.instance().readProject.connect(self.read)
         QgsProject.instance().removeAll.connect(self.model.clear)
 
         # Declare instance attributes
@@ -165,6 +166,16 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         pass
         # timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
         # self.lcd.setEnabled(timeslider_needed)
+
+    def write(self, doc: QDomDocument) -> bool:
+        # Resolver convert relative to absolute paths and vice versa
+        resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
+        self.model.write(doc, resolver)
+
+    def read(self, doc: QDomDocument) -> bool:
+        # Resolver convert relative to absolute paths and vice versa
+        resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
+        self.model.read(doc, resolver)
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on

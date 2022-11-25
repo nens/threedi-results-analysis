@@ -113,11 +113,12 @@ class ThreeDiPluginModel(QStandardItemModel):
             for i in range(item.rowCount()):
                 self._clear_recursive(item.child(i))
 
-    def read(self, doc: QDomDocument) -> bool:
+    def read(self, doc: QDomDocument, resolver) -> bool:
         """Reads the model from the provided XML DomDocument
 
         Recursively traverses down the XML tree. Returns True
-        on success.
+        on success. Resolver is used to convert between relative
+        and absolute paths.
         """
         self.clear()
 
@@ -134,14 +135,14 @@ class ThreeDiPluginModel(QStandardItemModel):
         assert results_node.parentNode() is not None
 
         # Now traverse through the XML tree and add model items
-        if not self._read_recursive(results_node, self.invisibleRootItem()):
+        if not self._read_recursive(results_node, self.invisibleRootItem(), resolver):
             logger.error("Unexpected XML item, aborting read")
             self.clear()
             return False
 
         return True
 
-    def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
+    def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
         child_xml_nodes = xml_parent.childNodes()
 
         for i in range(child_xml_nodes.count()):
@@ -152,22 +153,22 @@ class ThreeDiPluginModel(QStandardItemModel):
                 tag_name = xml_element_node.tagName()
                 if tag_name == "grid":
                     # Add model item
-                    model_node = self.add_grid(xml_element_node.attribute("path"), xml_element_node.attribute("text"))
+                    model_node = self.add_grid(resolver.readPath(xml_element_node.attribute("path")), xml_element_node.attribute("text"))
 
-                if not self._read_recursive(xml_node, model_node):
+                if not self._read_recursive(xml_node, model_node, resolver):
                     return False
             else:
                 return False
 
         return True
 
-    def write(self, doc: QDomDocument) -> bool:
+    def write(self, doc: QDomDocument, resolver) -> bool:
         """Add the model to the provided XML DomDocument
 
         Recursively traverses down the model tree. Returns True
-        on success.
+        on success. Resolver is used to convert between relative
+        and absolute paths.
         """
-
         # Find and remove the existing element corresponding to the result model
         results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
         if results_nodes.length() == 1:
@@ -184,13 +185,13 @@ class ThreeDiPluginModel(QStandardItemModel):
         assert results_node is not None
 
         # Traverse through the model and save the nodes
-        if not self._write_recursive(doc, results_node, self.invisibleRootItem()):
+        if not self._write_recursive(doc, results_node, self.invisibleRootItem(), resolver):
             logger.error("Unable to write model")
             return False
 
         return True
 
-    def _write_recursive(self, doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem) -> bool:
+    def _write_recursive(self, doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
         # Something is wrong when exactly one of them is None
         assert not (bool(xml_parent is not None) ^ bool(model_parent is not None))
 
@@ -203,7 +204,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 # Populate the new xml_node with the info from model_node
                 if isinstance(model_node, ThreeDiGridItem):
                     xml_node.setTagName("grid")
-                    xml_node.setAttribute("path", str(model_node.path))
+                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
@@ -214,7 +215,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 xml_node = xml_parent.appendChild(xml_node)
                 assert xml_node is not None
 
-                if not self._write_recursive(doc, xml_node, model_node):
+                if not self._write_recursive(doc, xml_node, model_node, resolver):
                     return False
 
         return True
