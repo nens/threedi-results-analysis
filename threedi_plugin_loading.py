@@ -66,6 +66,7 @@ class ThreeDiPluginModelLoader(QObject):
 
         assert item.layer_group
         item.layer_group.setName(item.text())
+        QgsProject.instance().setDirty()
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
