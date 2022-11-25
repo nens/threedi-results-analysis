@@ -59,11 +59,11 @@ class ThreeDiPluginModel(QStandardItemModel):
             logger.info("Item data changed")
 
     @pyqtSlot(str)
-    def add_grid(self, input_gridadmin_h5_or_gpkg: str) -> ThreeDiGridItem:
+    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "") -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
-        grid_item = ThreeDiGridItem(path_h5_or_gpkg, self._resolve_grid_item_text(path_h5_or_gpkg))
+        grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
         return grid_item
@@ -148,10 +148,11 @@ class ThreeDiPluginModel(QStandardItemModel):
             xml_node = child_xml_nodes.at(i)
 
             if xml_node.isElement():
-                tag_name = xml_node.toElement().tagName()
+                xml_element_node = xml_node.toElement()
+                tag_name = xml_element_node.tagName()
                 if tag_name == "grid":
                     # Add model item
-                    model_node = self.add_grid(xml_node.toElement().attribute("path"))
+                    model_node = self.add_grid(xml_element_node.attribute("path"), xml_element_node.attribute("text"))
 
                 if not self._read_recursive(xml_node, model_node):
                     return False
@@ -203,6 +204,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 if isinstance(model_node, ThreeDiGridItem):
                     xml_node.setTagName("grid")
                     xml_node.setAttribute("path", str(model_node.path))
+                    xml_node.setAttribute("text", model_node.text())
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
                 else:
