@@ -24,10 +24,10 @@ class ThreeDiPluginModelLoader(QObject):
         path = item.path
         base, suffix = path.parent / path.stem, path.suffix
         path_gpkg = base.with_suffix(".gpkg")
+        path_h5 = base.with_suffix(".h5")
 
-        if suffix == ".h5":
+        if suffix == ".h5" and not path_gpkg.exists():
             progress_bar = StatusProgressBar(100, "Generating geopackage")
-            path_h5 = base.with_suffix(".h5")
             exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
             exporter.export(
                 lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
