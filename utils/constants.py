@@ -66,5 +66,5 @@ DICT_ACTION_TYPES = {
     "weir": ["set_crest_level", "set_discharge_coefficients"],
 }
 
-TOOLBOX_QGIS_GROUP_NAME = "Toolbox"
+TOOLBOX_QGIS_GROUP_NAME = "3Di Results"
 TOOLBOX_XML_ELEMENT_ROOT = "threediPluginModel"
