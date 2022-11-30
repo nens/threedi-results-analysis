@@ -835,7 +835,7 @@ class MapAnimator(QWidget):
     def update_results(self, timestep_nr, update_nodes: bool, update_lines: bool):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 
-        # iface.messageBar().pushMessage("Timestep in MapAnimator", f"{timestep_nr}", Qgis.Info)
+        # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
 
         if not self.active:
             return

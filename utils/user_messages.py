@@ -9,10 +9,6 @@ from qgis.PyQt.QtWidgets import QProgressBar
 from qgis.utils import iface
 
 
-# There used to be a ``def log(msg, level="INFO")`` here.
-# It isn't needed anymore: just use regular python logging instead.
-
-
 def pop_up_info(msg: str = "", title: str = "Information", parent=None):
     """Display an info message via Qt box"""
     QMessageBox.information(parent, title, "%s" % msg)

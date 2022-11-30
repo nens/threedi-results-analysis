@@ -4,18 +4,19 @@ from collections import OrderedDict
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
-from qgis.utils import iface
 
-from ThreeDiToolbox.tool_result_selection import models
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar, pop_up_critical
-from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
-from ThreeDiToolbox.utils.utils import safe_join
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from ThreeDiToolbox.tool_result_selection import models
+from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
+from ThreeDiToolbox.utils.utils import safe_join
 
 styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_styles", "grid")
 
 import logging
 logger = logging.getLogger(__name__)
+
+MSG_TITLE = "3Di Results Manager"
 
 
 class ThreeDiPluginModelLoader(QObject):
@@ -33,7 +34,7 @@ class ThreeDiPluginModelLoader(QObject):
             lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
         )
         del progress_bar
-        iface.messageBar().pushMessage("GeoPackage", "Generated geopackage", Qgis.Info)
+        messagebar_message(MSG_TITLE, "Generated geopackage")
 
     @pyqtSlot(ThreeDiGridItem)
     def load_grid(self, item: ThreeDiGridItem) -> bool:
@@ -51,9 +52,7 @@ class ThreeDiPluginModelLoader(QObject):
             pop_up_critical("Failed adding the layers to the project.")
             return False
 
-        iface.messageBar().pushMessage(
-            "GeoPackage", "Added layers to the project", Qgis.Info
-        )
+        messagebar_message(MSG_TITLE, "Added layers to the project")
 
         self.grid_loaded.emit(item)
         return True
@@ -168,40 +167,28 @@ class ThreeDiPluginModelLoader(QObject):
         # Invalid layers info
         if invalid_layers:
             invalid_info = "\n\nThe following layers are missing or invalid:\n * " + "\n * ".join(invalid_layers) + "\n\n"
-            iface.messageBar().pushMessage(
-                "GeoPackage",
-                invalid_info,
-                Qgis.Warning,
-            )
+            messagebar_message(MSG_TITLE, invalid_info, Qgis.Warning)
 
         # Empty layers info
         if empty_layers:
             empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            iface.messageBar().pushMessage(
-                "GeoPackage",
-                empty_info,
-                Qgis.Warning,
-            )
+            messagebar_message(MSG_TITLE, empty_info, Qgis.Warning,)
 
         if len(srs_ids) == 1:
             srs_id = srs_ids.pop()
             crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
             if crs.isValid():
                 QgsProject.instance().setCrs(crs)
-                iface.messageBar().pushMessage(
-                    "GeoPackage",
-                    "Setting project CRS according to the source geopackage",
-                    Qgis.Info,
-                )
+                messagebar_message(MSG_TITLE, "Setting project CRS according to the source geopackage")
             else:
-                iface.messageBar().pushMessage(
-                    "GeoPackage",
+                messagebar_message(
+                    MSG_TITLE,
                     "Skipping setting project CRS - does gridadmin file contains a valid SRS?",
                     Qgis.Warning,
                 )
         else:
-            iface.messageBar().pushMessage(
-                "GeoPackage",
+            messagebar_message(
+                MSG_TITLE,
                 f"Skipping setting project CRS - the source file {str(path)} SRS codes are inconsistent.",
                 Qgis.Warning,
             )

@@ -3,11 +3,15 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsDateTimeRange, Qgis, QgsProject, QgsPathResolver
+from qgis.core import QgsApplication, QgsDateTimeRange, QgsProject, QgsPathResolver
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
 from ThreeDiToolbox.processing.providers import ThreediProvider
+from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
+from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -20,10 +24,8 @@ from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAna
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
-from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
-from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+
 
 import datetime
 from datetime import timedelta
@@ -214,8 +216,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             start_time = datetime.datetime(2000, 1, 1)
             end_time = start_time + timedelta(seconds=round(timestamps[-1]))
             tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
-            iface.messageBar().pushMessage("stamps", f"{timestamps}", Qgis.Info)
-            iface.messageBar().pushMessage("end", f"{end_time}", Qgis.Info)
+            messagebar_message("stamps", f"{timestamps}")
+            messagebar_message("end", f"{end_time}")
 
         else:
             self.graph_tool.action_icon.setEnabled(False)
@@ -301,9 +303,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # TODO: are the timekeys always sorted?
             index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
 
-            # iface.messageBar().pushMessage("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}", Qgis.Info)
-            # iface.messageBar().pushMessage("Time2", f"{tct}: {current}", Qgis.Warning)
-            # iface.messageBar().pushMessage("count", f"{tc.totalFrameCount()}", Qgis.Info)
+            # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")
+            # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
+            # messagebar_message("count", f"{tc.totalFrameCount()}")
             self.map_animator_widget.update_results(index, True, True)
 
     def _add_action(
