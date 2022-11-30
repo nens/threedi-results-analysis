@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsCoordinateReferenceSystem
+from qgis.core import Qgis, QgsVectorLayer, QgsProject
 
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.tool_result_selection import models
@@ -132,7 +132,6 @@ class ThreeDiPluginModelLoader(QObject):
             ]
         )
 
-        srs_ids = set()
         invalid_layers = []
         empty_layers = []
         for layer_name, table_name in gpkg_layers.items():
@@ -159,8 +158,6 @@ class ThreeDiPluginModelLoader(QObject):
                 if table_name not in vector_layer.listStylesInDatabase()[2]:
                     vector_layer.saveStyleToDatabase(table_name, "", True, "")
 
-            srs_ids.add(vector_layer.crs().srsid())
-
             # Won't add if already exists
             item.layer_group = ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
 
@@ -173,25 +170,6 @@ class ThreeDiPluginModelLoader(QObject):
         if empty_layers:
             empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
             messagebar_message(MSG_TITLE, empty_info, Qgis.Warning,)
-
-        if len(srs_ids) == 1:
-            srs_id = srs_ids.pop()
-            crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
-            if crs.isValid():
-                QgsProject.instance().setCrs(crs)
-                messagebar_message(MSG_TITLE, "Setting project CRS according to the source geopackage")
-            else:
-                messagebar_message(
-                    MSG_TITLE,
-                    "Skipping setting project CRS - does gridadmin file contains a valid SRS?",
-                    Qgis.Warning,
-                )
-        else:
-            messagebar_message(
-                MSG_TITLE,
-                f"Skipping setting project CRS - the source file {str(path)} SRS codes are inconsistent.",
-                Qgis.Warning,
-            )
 
         return True
 
