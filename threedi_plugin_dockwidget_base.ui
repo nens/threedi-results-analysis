@@ -23,7 +23,7 @@
    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
   </property>
   <property name="windowTitle">
-   <string>ThreeDiPlugin</string>
+   <string>3Di Results Manager</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
@@ -134,7 +134,7 @@
               <item>
                <widget class="QPushButton" name="pushButton_AddGrid">
                 <property name="toolTip">
-                 <string/>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true"/>
@@ -150,6 +150,9 @@
               </item>
               <item>
                <widget class="QPushButton" name="pushButton_RemoveGrid">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected 3Di model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string/>
                 </property>
