@@ -93,7 +93,7 @@ class ThreeDiPluginModelLoader(QObject):
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 "layer_styles",
-                "tools",
+                "result",
                 "flowlines.qml",
             )
         )
@@ -102,7 +102,7 @@ class ThreeDiPluginModelLoader(QObject):
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 "layer_styles",
-                "tools",
+                "result",
                 "nodes.qml",
             )
         )
@@ -152,7 +152,7 @@ class ThreeDiPluginModelLoader(QObject):
             qml_path = safe_join(styles_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
                 vector_layer.loadNamedStyle(qml_path)
-                # prior to QGIS 3.24, this method would show a, (annoying) message box
+                # prior to QGIS 3.24, this method would show an (annoying) message box
                 # warning when a style with the same styleName already existed. Unfortunately,
                 # QgsProviderRegistry::styleExists is not available in Python
                 if table_name not in vector_layer.listStylesInDatabase()[2]:
