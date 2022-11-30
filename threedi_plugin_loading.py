@@ -133,7 +133,6 @@ class ThreeDiPluginModelLoader(QObject):
             ]
         )
 
-        srs_ids = set()
         invalid_layers = []
         empty_layers = []
         for layer_name, table_name in gpkg_layers.items():
@@ -160,8 +159,6 @@ class ThreeDiPluginModelLoader(QObject):
                 if table_name not in vector_layer.listStylesInDatabase()[2]:
                     vector_layer.saveStyleToDatabase(table_name, "", True, "")
 
-            srs_ids.add(vector_layer.crs().srsid())
-
             # Won't add if already exists
             item.layer_group = ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
 
@@ -180,29 +177,6 @@ class ThreeDiPluginModelLoader(QObject):
             iface.messageBar().pushMessage(
                 "GeoPackage",
                 empty_info,
-                Qgis.Warning,
-            )
-
-        if len(srs_ids) == 1:
-            srs_id = srs_ids.pop()
-            crs = QgsCoordinateReferenceSystem.fromSrsId(srs_id)
-            if crs.isValid():
-                QgsProject.instance().setCrs(crs)
-                iface.messageBar().pushMessage(
-                    "GeoPackage",
-                    "Setting project CRS according to the source geopackage",
-                    Qgis.Info,
-                )
-            else:
-                iface.messageBar().pushMessage(
-                    "GeoPackage",
-                    "Skipping setting project CRS - does gridadmin file contains a valid SRS?",
-                    Qgis.Warning,
-                )
-        else:
-            iface.messageBar().pushMessage(
-                "GeoPackage",
-                f"Skipping setting project CRS - the source file {str(path)} SRS codes are inconsistent.",
                 Qgis.Warning,
             )
 
