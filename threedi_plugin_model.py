@@ -5,7 +5,7 @@ from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 
 import logging
-import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -272,25 +272,34 @@ class ThreeDiPluginModel(QStandardItemModel):
         In case the grid file is in the 3Di Models & Simulations local directory
         structure, the text should be schematisation name + revision nr. Otherwise just a number.
         """
-        logger.info(str(file.parent.parent.parent))
         if file.parent.parent is not None and file.parent.parent.parent is not None:
-            if ThreeDiPluginModel._is_revision_folder(str(file.parent.parent)):
-                return file.parent.parent.parent.stem + ": " + file.parent.parent.stem
+            if ThreeDiPluginModel._is_in_revision_folder(file):
+                return file.parent.parent.parent.stem + ": " + ThreeDiPluginModel._retrieve_revision(file)
 
         text = str(self._grid_counter)
         self._grid_counter += 1
         return text
 
     @staticmethod
-    def _is_revision_folder(revision_dir: str) -> bool:
-        """Check if all revision subpaths are present."""
-        logger.info(str(revision_dir))
-        paths = [
-            os.path.join(revision_dir, "admin"),
-            os.path.join(revision_dir, "grid"),
-            os.path.join(revision_dir, "results"),
-            os.path.join(revision_dir, "schematisation"),
-            os.path.join(revision_dir, "schematisation", "rasters"),
-        ]
+    def _is_in_revision_folder(file: Path) -> bool:
+        """Check if the file is in a 3Di revision folder."""
+        logger.info(str(file))
+        folder = file.parent.stem
+        if folder not in ["results", "grid"]:
+            return False
 
-        return all(os.path.exists(p) if p else False for p in paths)
+        rev_folder = file.parent.parent.stem
+        logger.info(rev_folder)
+        if rev_folder.endswith("work in progress") or rev_folder.startswith("revision "):
+            return True
+
+        return True
+
+    @staticmethod
+    def _retrieve_revision(file: Path) -> str:
+        """Retrieves the revision number from the path."""
+        rev_folder = str(file.parent.parent.stem)
+        if rev_folder.endswith("work in progress") :
+            return "work in progress"
+
+        return re.match("^revision (\d+)$", rev_folder).group(1)
