@@ -15,10 +15,25 @@ class ThreeDiGridItem(QStandardItem):
         super().__init__(*args, **kwargs)
 
         self.path = Path(path)
-        self.layer_group = None
 
         self.setSelectable(True)
         self.setEditable(True)
+        self.setText(text)
+
+        self._layer_group = None
+
+    @property
+    def layer_group(self):
+        return self._layer_group
+
+    @layer_group.setter
+    def layer_group(self, value):
+        if self._layer_group is None and value is not None:
+            value.nameChanged.connect(self.update_text_from_layer_group)
+        self._layer_group = value
+
+    # @pyqtSlot(QgsLayerTreeGroup, str)
+    def update_text_from_layer_group(self, layer_group, text):
         self.setText(text)
 
 
