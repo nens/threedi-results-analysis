@@ -2,6 +2,8 @@
 """
 Miscellaneous tools.
 """
+from qgis.PyQt.QtCore import QObject
+from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsProject
 from ThreeDiToolbox import PLUGIN_DIR
 from ThreeDiToolbox.utils.qlogging import FileHandler
@@ -146,6 +148,24 @@ class CacheClearer(object):
             pop_up_info(
                 "Cache cleared. You may need to restart QGIS and reload your data."
             )
+
+    def on_unload(self):
+        pass
+
+
+class ToggleResultsManager(QObject):
+    """Add 3Di logo and about info."""
+    triggered = pyqtSignal()
+
+    def __init__(self, iface, plugin):
+        super().__init__()
+        self.iface = iface
+        self.icon_path = ":images/themes/default/mIconTreeView.svg"
+        self.menu_text = "Results Manager"
+
+    def run(self):
+        """Shows dialog with version information."""
+        self.triggered.emit()
 
     def on_unload(self):
         pass

@@ -4,7 +4,7 @@ from pathlib import Path
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.core import QgsSettings
 
@@ -90,3 +90,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             QgsSettings().setValue(self.QSETTING_KEY_DIR, str(dir_path))
         else:
             QgsSettings().remove(self.QSETTING_KEY_DIR)
+
+    @pyqtSlot()
+    def toggle_visible(self, *args, **kwargs):
+        self.setVisible(not self.isVisible())
