@@ -107,10 +107,22 @@ class ThreeDiPluginModelLoader(QObject):
             )
         )
 
+        # Now add the result group in the folder of the grid layers
         QgsProject.instance().addMapLayers([line, node, cell, pumpline])
 
         self.result_loaded.emit(threedi_result_item)
         return True
+
+    @pyqtSlot(ThreeDiResultItem)
+    def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
+        pass
+
+    @pyqtSlot(ThreeDiResultItem)
+    def update_grid(self, item: ThreeDiResultItem) -> bool:
+        """Updates the group name in the project"""
+        assert item.layer_group
+        item.layer_group.setName(item.text())
+        QgsProject.instance().setDirty()
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
@@ -195,8 +207,7 @@ class ThreeDiPluginModelLoader(QObject):
             if existing_layer.name() == layer.name():
                 return layer_group
 
-        project = QgsProject.instance()
-        project.addMapLayer(layer, addToLegend=False)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
         layer_group.addLayer(layer)
 
         return layer_group
