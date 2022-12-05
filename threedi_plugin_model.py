@@ -72,16 +72,14 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.grid_added.emit(grid_item)
         return grid_item
 
-    @pyqtSlot(str)
-    def add_result(self, input_result_nc: str) -> ThreeDiResultItem:
-        """Adds a result item to the model, emits result_added"""
-        # TODO add it under the right grid - inspect the paths?
-        # BVB: Better to let user select parent node and do validation, I think
-        parent_item = self.invisibleRootItem().child(0)
+    @pyqtSlot(str, ThreeDiGridItem)
+    def add_result(self, input_result_nc: str, parent_item: ThreeDiGridItem, text: str = "") -> ThreeDiResultItem:
+        """Adds a result item to the parent grid item, emits result_added"""
         path_nc = Path(input_result_nc)
         if self.contains(path_nc):
             return
-        result_item = ThreeDiResultItem(path_nc, path_nc.stem)
+        # TODO: resolve result name from parent folder
+        result_item = ThreeDiResultItem(path_nc, text if text else path_nc.stem)
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
         return result_item
@@ -157,14 +155,23 @@ class ThreeDiPluginModel(QStandardItemModel):
             if xml_node.isElement():
                 xml_element_node = xml_node.toElement()
                 tag_name = xml_element_node.tagName()
+                model_node = None
                 if tag_name == "grid":
-                    # Add model item
                     model_node = self.add_grid(
                         resolver.readPath(xml_element_node.attribute("path")),
                         xml_element_node.attribute("text"),
                     )
-                    assert model_node is not None
-
+                elif tag_name == "result":
+                    model_node = self.add_result(
+                        resolver.readPath(xml_element_node.attribute("path")),
+                        model_parent,
+                        xml_element_node.attribute("text"),
+                    )
+                else:
+                    logger.error("Unexpected XML item type, aborting read")
+                    return False
+                
+                assert model_node is not None
                 if not self._read_recursive(xml_node, model_node, resolver):
                     return False
             else:
@@ -218,6 +225,8 @@ class ThreeDiPluginModel(QStandardItemModel):
                     xml_node.setAttribute("text", model_node.text())
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
+                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
+                    xml_node.setAttribute("text", model_node.text())
                 else:
                     logger.error("Unknown node type for serialization")
                     return False

@@ -17,7 +17,7 @@ FORM_CLASS, _ = uic.loadUiType(
 
 class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
-    result_file_selected = pyqtSignal(str)
+    result_file_selected = pyqtSignal(str, ThreeDiGridItem)
     grid_removal_selected = pyqtSignal(ThreeDiGridItem)
 
     item_selected = pyqtSignal(QModelIndex)
@@ -55,6 +55,14 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.grid_removal_selected.emit(item)
 
     def _add_result_clicked(self):
+        index = self.treeView.selectionModel().currentIndex()
+        if index is None or index.model() is None:
+            return
+
+        item = index.model().itemFromIndex(index)
+        if not isinstance(item, ThreeDiGridItem):
+            return
+        
         dir_path = self._get_dir()
         input_result_nc, _ = QFileDialog.getOpenFileName(
             self,
@@ -65,7 +73,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if not input_result_nc:
             return
         self._set_dir(input_result_nc)
-        self.result_file_selected.emit(input_result_nc)
+        self.result_file_selected.emit(input_result_nc, item)
 
     def _selection_changed(self, selected, deselected):
         deselected_indexes = deselected.indexes()
