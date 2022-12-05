@@ -134,7 +134,7 @@
               <item>
                <widget class="QPushButton" name="pushButton_AddGrid">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true"/>
@@ -151,7 +151,7 @@
               <item>
                <widget class="QPushButton" name="pushButton_RemoveGrid">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected 3Di model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected 3Di grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string/>
@@ -166,6 +166,13 @@
                <widget class="QPushButton" name="pushButton_AddResult">
                 <property name="text">
                  <string>Add result</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_RemoveResult">
+                <property name="text">
+                 <string>Remove result</string>
                 </property>
                </widget>
               </item>

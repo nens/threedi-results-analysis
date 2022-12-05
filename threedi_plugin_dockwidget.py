@@ -1,7 +1,7 @@
 from logging import getLogger
 from pathlib import Path
 
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
@@ -19,6 +19,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal(str, ThreeDiGridItem)
     grid_removal_selected = pyqtSignal(ThreeDiGridItem)
+    result_removal_selected = pyqtSignal(ThreeDiResultItem)
 
     item_selected = pyqtSignal(QModelIndex)
     item_deselected = pyqtSignal(QModelIndex)
@@ -31,6 +32,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.pushButton_AddGrid.clicked.connect(self._add_grid_clicked)
         self.pushButton_AddResult.clicked.connect(self._add_result_clicked)
         self.pushButton_RemoveGrid.clicked.connect(self._remove_grid_clicked)
+        self.pushButton_RemoveResult.clicked.connect(self._remove_result_clicked)
 
     def _add_grid_clicked(self):
         dir_path = self._get_dir()
@@ -53,6 +55,15 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         item = index.model().itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
             self.grid_removal_selected.emit(item)
+    
+    def _remove_result_clicked(self):
+        index = self.treeView.selectionModel().currentIndex()
+        if index is None or index.model() is None:
+            return
+
+        item = index.model().itemFromIndex(index)
+        if isinstance(item, ThreeDiResultItem):
+            self.result_removal_selected.emit(item)
 
     def _add_result_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
