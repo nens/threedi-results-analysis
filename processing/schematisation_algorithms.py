@@ -70,9 +70,11 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         schema = ModelSchema(threedi_db)
         try:
             schema.validate_schema()
+            schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             backup_filepath = backup_sqlite(filename)
             schema.upgrade(backup=False, upgrade_spatialite_version=True)
+            schema.set_spatial_indexes()
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             feedback.pushWarning(
@@ -157,7 +159,8 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "migrate your model to the latest version."
             )
             return {self.OUTPUT: None}
-
+        schema = ModelSchema(threedi_db)
+        schema.set_spatial_indexes()
         generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
@@ -290,6 +293,7 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
         try:
             schema = ModelSchema(threedi_db)
             schema.validate_schema()
+            schema.set_spatial_indexes()
             checker = RasterChecker(threedi_db)
             checker.run_all_checks(feedback=feedback)
             checker.close_session()

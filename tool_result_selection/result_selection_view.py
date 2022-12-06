@@ -370,6 +370,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         schema = ModelSchema(model_checker_db)
         try:
             schema.validate_schema()
+            schema.set_spatial_indexes()
         except errors.MigrationMissingError:
             warn_and_ask_msg = (
                 "The selected spatialite cannot be used because its database schema version is out of date. "
@@ -380,6 +381,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 return False
             backup_filepath = backup_sqlite(filepath)
             schema.upgrade(backup=False, upgrade_spatialite_version=True)
+            schema.set_spatial_indexes()
             shutil.rmtree(os.path.dirname(backup_filepath))
         except errors.UpgradeFailedError:
             msg = (
