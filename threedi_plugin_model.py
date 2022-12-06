@@ -184,7 +184,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
-                
+
                 assert model_node is not None
                 if not self._read_recursive(xml_node, model_node, resolver):
                     return False

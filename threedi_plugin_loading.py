@@ -6,7 +6,6 @@ from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
 from qgis.core import Qgis, QgsVectorLayer, QgsProject
 
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
 from ThreeDiToolbox.utils.utils import safe_join
@@ -80,7 +79,7 @@ class ThreeDiPluginModelLoader(QObject):
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         """ Load Result file"""
         # As the result itself does not need to be preloaded (this data is accessed
-        # via the tools), we just consider it loaded (and leave validation to the 
+        # via the tools), we just consider it loaded (and leave validation to the
         # validator)
         self.result_loaded.emit(threedi_result_item)
         return True
@@ -93,7 +92,7 @@ class ThreeDiPluginModelLoader(QObject):
         pass
 
     @pyqtSlot(ThreeDiResultItem)
-    def update_grid(self, item: ThreeDiResultItem) -> bool:
+    def update_result(self, item: ThreeDiResultItem) -> bool:
         """Updates the group name in the project"""
         assert item.layer_group
         item.layer_group.setName(item.text())

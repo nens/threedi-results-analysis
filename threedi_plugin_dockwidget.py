@@ -55,7 +55,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         item = index.model().itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
             self.grid_removal_selected.emit(item)
-    
+
     def _remove_result_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
         if index is None or index.model() is None:
@@ -73,7 +73,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         item = index.model().itemFromIndex(index)
         if not isinstance(item, ThreeDiGridItem):
             return
-        
+
         dir_path = self._get_dir()
         input_result_nc, _ = QFileDialog.getOpenFileName(
             self,
