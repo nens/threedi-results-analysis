@@ -1,8 +1,10 @@
 from pathlib import Path
+from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 import logging
 import re
@@ -16,7 +18,6 @@ class ThreeDiGridItem(QStandardItem):
 
         self.path = Path(path)
         self.layer_group = None
-
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
@@ -28,6 +29,12 @@ class ThreeDiResultItem(QStandardItem):
         self.path = Path(path)
         self.setCheckable(True)
         self.setCheckState(2)
+
+    @cached_property
+    def threedi_result(self):
+        # ThreediResult is a wrapper around a theedigrid's
+        # netcdf support
+        return ThreediResult(self.path)
 
 
 class ThreeDiPluginModel(QStandardItemModel):

@@ -78,43 +78,18 @@ class ThreeDiPluginModelLoader(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        """ Load Result file and apply default styling """
-        path_nc = threedi_result_item.path
-
-        layer_helper = models.DatasourceLayerHelper(path_nc)
-        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
-
-        # Note that get_result_layers generates an intermediate sqlite
-        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
-        del progress_bar
-
-        # Apply default styling on memory layers
-        line.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "result",
-                "flowlines.qml",
-            )
-        )
-
-        node.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "result",
-                "nodes.qml",
-            )
-        )
-
-        # Now add the result group in the folder of the grid layers
-        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
-
+        """ Load Result file"""
+        # As the result itself does not need to be preloaded (this data is accessed
+        # via the tools), we just consider it loaded (and leave validation to the 
+        # validator)
         self.result_loaded.emit(threedi_result_item)
         return True
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
+        # As the result itself does not need to be preloaded (this data is accessed
+        # via the tools), we just consider it unloaded when the threedigrid wrapper
+        # is destroyed (in the model)
         pass
 
     @pyqtSlot(ThreeDiResultItem)
