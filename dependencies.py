@@ -52,6 +52,9 @@ DEPENDENCIES = [
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
     Dependency("alembic", "alembic", "==1.8.*"),
+    Dependency(
+        "importlib-resources", "importlib_resources", ""
+    ),  # backward compat. alembic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
