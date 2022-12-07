@@ -2,10 +2,16 @@
 
 from collections import OrderedDict
 from copy import copy
+import datetime
+import logging
+
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
 from sqlalchemy.orm import load_only
+
+from qgis.core import Qgis
+
 from ThreeDiToolbox.sql_models.constants import Constants
 from ThreeDiToolbox.sql_models.model_schematisation import BoundaryCondition1D
 from ThreeDiToolbox.sql_models.model_schematisation import ConnectionNode
@@ -19,10 +25,9 @@ from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.sql_models.model_schematisation import Weir
 from ThreeDiToolbox.tool_commands.import_sufhyd.sufhyd_importer import SufhydReader
 from ThreeDiToolbox.utils.user_messages import messagebar_message
-
-import datetime
-import logging
-
+from threedi_modelchecker import errors
+from threedi_modelchecker import ThreediDatabase as MCThreediDatabase
+from threedi_modelchecker.schema import ModelSchema
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +96,31 @@ class Importer(object):
         self.logging_tree = OrderedDict()
         self.log = DataImportLogger()
 
+    def is_db_valid(self):
+        db = MCThreediDatabase(self.db.settings['db_path'])
+        schema = ModelSchema(db)
+        try:
+            schema.validate_schema()
+        except errors.MigrationMissingError:
+            messagebar_message(
+                title="sufhyd import",
+                msg=(
+                    "The selected 3Di spatialite does not have the latest "
+                    "database schema version. Please migrate this spatialite and "
+                    "try again: Processing > Toolbox > 3Di > Schematisation > "
+                    "Migrate spatialite"
+                ),
+                level=Qgis.Warning
+            )
+            return False
+        return True
+
     def run_import(self):
         """
         main function for performing all import tasks
         """
+        if not self.is_db_valid():
+            return
 
         # self.db.create_and_check_fields()
 

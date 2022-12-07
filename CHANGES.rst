@@ -5,7 +5,7 @@ ThreeDiToolBox changelog
 2.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Check schema version before sufhyd import.
 
 
 2.4 (2022-11-28)
