@@ -577,7 +577,6 @@ class Importer(object):
             del pipe["end_node.code"]
             del pipe["crs_code"]
             del pipe["cross_section_details"]
-            del pipe["pipe_quality"]
 
             pipe_list.append(Pipe(**pipe))
 
