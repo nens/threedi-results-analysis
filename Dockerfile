@@ -1,4 +1,4 @@
-from qgis/qgis:release-3_22
+from qgis/qgis:final-3_22_11
 RUN apt-get update && apt-get install -y python3-pyqt5.qtwebsockets wget python3-netcdf4 python3-scipy python3-h5py zip && apt-get clean
 # RUN mkdir -p /tests_directory
 COPY requirements-dev.txt /root
