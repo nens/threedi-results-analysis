@@ -51,12 +51,11 @@ DEPENDENCIES = [
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.31"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", "==1.6.5"),
+    Dependency("alembic", "alembic", "==1.8.*"),
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
