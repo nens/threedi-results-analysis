@@ -101,9 +101,12 @@ class ThreeDiPluginModel(QStandardItemModel):
     @pyqtSlot(ThreeDiResultItem)
     def remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
-        result = self.removeRows(self.indexFromItem(item).row(), 1)
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        grid_item.removeRow(item.row())
+
         self.result_removed.emit(item)
-        return result
+        return True
 
     @pyqtSlot()
     def clear(self, emit: bool = True) -> None:
