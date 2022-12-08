@@ -77,7 +77,6 @@ class ThreeDiPluginModelLoader(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        """ Load Result file"""
         # As the result itself does not need to be preloaded (this data is accessed
         # via the tools), we just consider it loaded (and leave validation to the
         # validator)
@@ -93,9 +92,7 @@ class ThreeDiPluginModelLoader(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, item: ThreeDiResultItem) -> bool:
-        """Updates the group name in the project"""
-        assert item.layer_group
-        item.layer_group.setName(item.text())
+        # Just signal the project as dirty
         QgsProject.instance().setDirty()
 
     @staticmethod

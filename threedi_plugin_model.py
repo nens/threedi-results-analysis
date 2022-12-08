@@ -44,6 +44,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_unchecked = pyqtSignal(ThreeDiResultItem)
     result_selected = pyqtSignal(ThreeDiResultItem)
     result_deselected = pyqtSignal(ThreeDiResultItem)
+    result_changed = pyqtSignal(ThreeDiResultItem)
     grid_selected = pyqtSignal(ThreeDiGridItem)
     grid_deselected = pyqtSignal(ThreeDiGridItem)
     grid_changed = pyqtSignal(ThreeDiGridItem)
@@ -63,6 +64,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             {
                 2: self.result_checked, 0: self.result_unchecked,
             }[item.checkState()].emit(item)
+            self.result_changed.emit(item)
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
             self.grid_changed.emit(item)
@@ -85,8 +87,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         path_nc = Path(input_result_nc)
         if self.contains(path_nc):
             return
-        # TODO: resolve result name from parent folder
-        result_item = ThreeDiResultItem(path_nc, text if text else path_nc.stem)
+
+        result_item = ThreeDiResultItem(path_nc, text if text else self._resolve_result_item_text(path_nc))
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
         return result_item
@@ -305,6 +307,16 @@ class ThreeDiPluginModel(QStandardItemModel):
         text = str(self._grid_counter)
         self._grid_counter += 1
         return text
+
+    @staticmethod
+    def _resolve_result_item_text(file: Path) -> str:
+        """The text of the result item is its parent folder
+        """
+        if file.parent is not None:
+            return str(file.parent.stem)
+
+        # Fallback
+        return file.stem
 
     @staticmethod
     def _is_in_revision_folder(file: Path) -> bool:
