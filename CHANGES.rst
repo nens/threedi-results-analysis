@@ -5,7 +5,9 @@ ThreeDiToolBox changelog
 2.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Do not expect pipe_quality field in sufhyd import.
+
+- Check schema version before sufhyd import.
 
 
 2.4 (2022-11-28)
