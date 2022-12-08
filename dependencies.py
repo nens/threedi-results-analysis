@@ -55,6 +55,9 @@ DEPENDENCIES = [
     Dependency(
         "importlib-resources", "importlib_resources", ""
     ),  # backward compat. alembic
+    Dependency(
+        "zipp", "zipp", ""
+    ),  # backward compat. alemic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
