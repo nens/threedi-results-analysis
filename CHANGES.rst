@@ -2,8 +2,8 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5 (unreleased)
-----------------
+2.4.1 (2022-12-08)
+------------------
 
 - Do not expect pipe_quality field in sufhyd import. (#728)
 
