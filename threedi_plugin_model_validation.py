@@ -21,14 +21,28 @@ class ThreeDiPluginModelValidator(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def validate_result(self, item: ThreeDiResultItem):
-        # for validation, just load the file
+        item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
+
+        if not item.path.name == "results_3di.nc":
+            logger.error("Unexpected file name for results file")
+            self.result_validated.emit(item, False)
+            return
+
+        # For validation, just load the file
         try:
             h5py.File(item.path, "r")
         except Exception:
-            # TODO: a non-existing file raises an OSError, not an IOError!
-            item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
-            self.result_validated.emit(item, True)
+            logger.error("Unable to load file")
+            self.result_validated.emit(item, False)
+            return
+
+        # It is assumed that the aggregate_results_3di file is located in the same directory
+        try:
+            h5py.File(item.path.with_name("aggregate_results_3di.nc"), "r")
+        except Exception:
+            logger.error("Unable to load aggregate results file")
+            self.result_validated.emit(item, False)
             return
 
         item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
-        self.result_validated.emit(item, False)
+        self.result_validated.emit(item, True)
