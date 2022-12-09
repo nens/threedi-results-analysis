@@ -7,6 +7,7 @@ from qgis.core import QgsApplication, QgsDateTimeRange, QgsProject, QgsPathResol
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
+from ThreeDiToolbox.misc_tools import ToggleResultsManager
 from ThreeDiToolbox.processing.providers import ThreediProvider
 from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
@@ -82,6 +83,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Init the rest of the tools
         self.about_tool = About(iface)
+        self.toggle_results_manager = ToggleResultsManager(iface, self)
         self.cache_clearer = CacheClearer(iface, self.ts_datasources)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.toolbox_tool = CommandBox(iface, self.ts_datasources)
@@ -94,6 +96,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.tools = [
             self.about_tool,
+            self.toggle_results_manager,
             self.cache_clearer,
             self.result_selection_tool,
             self.toolbox_tool,
@@ -144,6 +147,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
+
+        self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
