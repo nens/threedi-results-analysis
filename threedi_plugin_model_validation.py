@@ -32,7 +32,7 @@ class ThreeDiPluginModelValidator(QObject):
         # For validation, just load the file
         try:
             result = h5py.File(item.path, "r")
-            
+
             # Check whether corresponding grid item belongs to same model
             result_model_slug = result.attrs['model_slug'].decode()
             grid_item = item.parent()
@@ -40,7 +40,7 @@ class ThreeDiPluginModelValidator(QObject):
             driver = ogr.GetDriverByName('GPKG')
             package = driver.Open(str(grid_item.path), True)
             grid_model_slug = package.GetMetadataItem('model_slug')
-            
+
             if grid_model_slug is None:
                 logger.warning("No model information in grid")
 
@@ -60,6 +60,6 @@ class ThreeDiPluginModelValidator(QObject):
             logger.error("Unable to load aggregate results file")
             self.result_validated.emit(item, False)
             return
-        
+
         item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
         self.result_validated.emit(item, True)
