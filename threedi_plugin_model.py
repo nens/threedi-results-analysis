@@ -304,6 +304,15 @@ class ThreeDiPluginModel(QStandardItemModel):
         elif isinstance(item, ThreeDiResultItem):
             self.result_selected.emit(item)
 
+    def _resolve_result_item_text(self, file: Path) -> str:
+        """The text of the result item depends on its containing file structure
+        """
+        if file.parent is not None:
+            return file.parent.stem
+
+        # Fallback
+        return file.stem
+
     def _resolve_grid_item_text(self, file: Path) -> str:
         """The text of the grid item depends on its containing file structure
 
