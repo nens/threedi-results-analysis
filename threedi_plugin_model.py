@@ -51,9 +51,6 @@ class ThreeDiPluginModel(QStandardItemModel):
     grid_removed = pyqtSignal(ThreeDiGridItem)
     result_removed = pyqtSignal(ThreeDiResultItem)
 
-    # Counter for label (needs to be set when model is loaded)
-    _grid_counter = 0
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.itemChanged.connect(self.item_changed)
@@ -122,8 +119,6 @@ class ThreeDiPluginModel(QStandardItemModel):
             self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
         super().clear()
-
-        self._grid_counter = 0
 
     def _clear_recursive(self, item: QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
@@ -301,43 +296,29 @@ class ThreeDiPluginModel(QStandardItemModel):
         structure, the text should be schematisation name + revision nr. Otherwise just a number.
         """
         if file.parent.parent is not None and file.parent.parent.parent is not None:
-            if ThreeDiPluginModel._is_in_revision_folder(file):
-                return file.parent.parent.parent.stem + ": " + ThreeDiPluginModel._retrieve_revision(file)
+            folder = file.parent
+            if folder.stem == "grid":
+                rev_folder = folder.parent
+                return rev_folder.parent.stem + " " + ThreeDiPluginModel._retrieve_revision_str(rev_folder)
 
-        text = str(self._grid_counter)
-        self._grid_counter += 1
-        return text
+            folder = file.parent.parent
+            if folder.stem == "results":
+                rev_folder = folder.parent
+                return rev_folder.parent.stem + " " + ThreeDiPluginModel._retrieve_revision_str(rev_folder)
+
+        # Fallback            
+        return file.parent.stem
 
     @staticmethod
-    def _resolve_result_item_text(file: Path) -> str:
-        """The text of the result item is its parent folder
-        """
-        if file.parent is not None:
-            return str(file.parent.stem)
+    def _retrieve_revision_str(path: Path) -> str:
+        """Retrieves the revision number from the path."""
+        rev_folder = str(path.stem)
+        if rev_folder.endswith("work in progress") :
+            return "(WIP)"
+
+        version = re.match("^revision (\d+)$", rev_folder)
+        if version is not None:
+            return "#" + version.group(1)
 
         # Fallback
-        return file.stem
-
-    @staticmethod
-    def _is_in_revision_folder(file: Path) -> bool:
-        """Check if the file is in a 3Di revision folder."""
-        logger.info(str(file))
-        folder = file.parent.stem
-        if folder not in ["results", "grid"]:
-            return False
-
-        rev_folder = file.parent.parent.stem
-        logger.info(rev_folder)
-        if rev_folder.endswith("work in progress") or rev_folder.startswith("revision "):
-            return True
-
-        return True
-
-    @staticmethod
-    def _retrieve_revision(file: Path) -> str:
-        """Retrieves the revision number from the path."""
-        rev_folder = str(file.parent.parent.stem)
-        if rev_folder.endswith("work in progress") :
-            return "work in progress"
-
-        return re.match("^revision (\d+)$", rev_folder).group(1)
+        return "(None)"
