@@ -321,7 +321,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                 rev_folder = folder.parent
                 return rev_folder.parent.stem + " " + ThreeDiPluginModel._retrieve_revision_str(rev_folder)
 
-        # Fallback            
+        # Fallback
         return file.parent.stem
 
     @staticmethod
