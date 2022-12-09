@@ -2,12 +2,32 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.4 (unreleased)
+2.5 (unreleased)
+----------------
+
+- Do not expect pipe_quality field in sufhyd import. (#728)
+
+- Nothing changed yet.
+
+
+2.4.1 (2022-12-08)
+------------------
+
+- Do not expect pipe_quality field in sufhyd import. (#728)
+
+- Check schema version before sufhyd import. (#726)
+
+- threedi-modelchecker dependency fix. (#729)
+
+
+2.4 (2022-11-28)
 ----------------
 
 - Updating to the minimal schema version 208
 
 - Fetch wheels for threedigrid-builder and pygeos on linux.
+
+- Updating to the minimal schema version 209
 
 
 2.3 (2022-08-15)

@@ -1,8 +1,10 @@
 from pathlib import Path
+from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 import logging
 import re
@@ -15,7 +17,6 @@ class ThreeDiGridItem(QStandardItem):
         super().__init__(*args, **kwargs)
 
         self.path = Path(path)
-
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
@@ -44,6 +45,12 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckable(True)
         self.setCheckState(2)
 
+    @cached_property
+    def threedi_result(self):
+        # ThreediResult is a wrapper around a theedigrid's
+        # netcdf support
+        return ThreediResult(self.path)
+
 
 class ThreeDiPluginModel(QStandardItemModel):
     grid_added = pyqtSignal(ThreeDiGridItem)
@@ -52,6 +59,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_unchecked = pyqtSignal(ThreeDiResultItem)
     result_selected = pyqtSignal(ThreeDiResultItem)
     result_deselected = pyqtSignal(ThreeDiResultItem)
+    result_changed = pyqtSignal(ThreeDiResultItem)
     grid_selected = pyqtSignal(ThreeDiGridItem)
     grid_deselected = pyqtSignal(ThreeDiGridItem)
     grid_changed = pyqtSignal(ThreeDiGridItem)
@@ -71,6 +79,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             {
                 2: self.result_checked, 0: self.result_unchecked,
             }[item.checkState()].emit(item)
+            self.result_changed.emit(item)
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
             self.grid_changed.emit(item)
@@ -87,16 +96,14 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.grid_added.emit(grid_item)
         return grid_item
 
-    @pyqtSlot(str)
-    def add_result(self, input_result_nc: str) -> ThreeDiResultItem:
-        """Adds a result item to the model, emits result_added"""
-        # TODO add it under the right grid - inspect the paths?
-        # BVB: Better to let user select parent node and do validation, I think
-        parent_item = self.invisibleRootItem().child(0)
+    @pyqtSlot(str, ThreeDiGridItem)
+    def add_result(self, input_result_nc: str, parent_item: ThreeDiGridItem, text: str = "") -> ThreeDiResultItem:
+        """Adds a result item to the parent grid item, emits result_added"""
         path_nc = Path(input_result_nc)
         if self.contains(path_nc):
             return
-        result_item = ThreeDiResultItem(path_nc, path_nc.stem)
+
+        result_item = ThreeDiResultItem(path_nc, text if text else self._resolve_result_item_text(path_nc))
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
         return result_item
@@ -107,6 +114,16 @@ class ThreeDiPluginModel(QStandardItemModel):
         result = self.removeRows(self.indexFromItem(item).row(), 1)
         self.grid_removed.emit(item)
         return result
+
+    @pyqtSlot(ThreeDiResultItem)
+    def remove_result(self, item: ThreeDiResultItem) -> bool:
+        """Removes a result from the model, emits result_removed"""
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        grid_item.removeRow(item.row())
+
+        self.result_removed.emit(item)
+        return True
 
     @pyqtSlot()
     def clear(self, emit: bool = True) -> None:
@@ -172,14 +189,23 @@ class ThreeDiPluginModel(QStandardItemModel):
             if xml_node.isElement():
                 xml_element_node = xml_node.toElement()
                 tag_name = xml_element_node.tagName()
+                model_node = None
                 if tag_name == "grid":
-                    # Add model item
                     model_node = self.add_grid(
                         resolver.readPath(xml_element_node.attribute("path")),
                         xml_element_node.attribute("text"),
                     )
-                    assert model_node is not None
+                elif tag_name == "result":
+                    model_node = self.add_result(
+                        resolver.readPath(xml_element_node.attribute("path")),
+                        model_parent,
+                        xml_element_node.attribute("text"),
+                    )
+                else:
+                    logger.error("Unexpected XML item type, aborting read")
+                    return False
 
+                assert model_node is not None
                 if not self._read_recursive(xml_node, model_node, resolver):
                     return False
             else:
@@ -233,6 +259,8 @@ class ThreeDiPluginModel(QStandardItemModel):
                     xml_node.setAttribute("text", model_node.text())
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
+                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
+                    xml_node.setAttribute("text", model_node.text())
                 else:
                     logger.error("Unknown node type for serialization")
                     return False
@@ -294,6 +322,16 @@ class ThreeDiPluginModel(QStandardItemModel):
         text = str(self._grid_counter)
         self._grid_counter += 1
         return text
+
+    @staticmethod
+    def _resolve_result_item_text(file: Path) -> str:
+        """The text of the result item is its parent folder
+        """
+        if file.parent is not None:
+            return str(file.parent.stem)
+
+        # Fallback
+        return file.stem
 
     @staticmethod
     def _is_in_revision_folder(file: Path) -> bool:

@@ -6,7 +6,6 @@ from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
 from qgis.core import Qgis, QgsVectorLayer, QgsProject
 
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from ThreeDiToolbox.tool_result_selection import models
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
 from ThreeDiToolbox.utils.utils import safe_join
@@ -78,39 +77,23 @@ class ThreeDiPluginModelLoader(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        """ Load Result file and apply default styling """
-        path_nc = threedi_result_item.path
-
-        layer_helper = models.DatasourceLayerHelper(path_nc)
-        progress_bar = StatusProgressBar(100, "Retrieving layers from NetCDF")
-
-        # Note that get_result_layers generates an intermediate sqlite
-        line, node, cell, pumpline = layer_helper.get_result_layers(progress_bar)
-        del progress_bar
-
-        # Apply default styling on memory layers
-        line.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "result",
-                "flowlines.qml",
-            )
-        )
-
-        node.loadNamedStyle(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "layer_styles",
-                "result",
-                "nodes.qml",
-            )
-        )
-
-        QgsProject.instance().addMapLayers([line, node, cell, pumpline])
-
+        # As the result itself does not need to be preloaded (this data is accessed
+        # via the tools), we just consider it loaded (and leave validation to the
+        # validator)
         self.result_loaded.emit(threedi_result_item)
         return True
+
+    @pyqtSlot(ThreeDiResultItem)
+    def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
+        # As the result itself does not need to be preloaded (this data is accessed
+        # via the tools), we just consider it unloaded when the threedigrid wrapper
+        # is destroyed (in the model)
+        pass
+
+    @pyqtSlot(ThreeDiResultItem)
+    def update_result(self, item: ThreeDiResultItem) -> bool:
+        # Just signal the project as dirty
+        QgsProject.instance().setDirty()
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
@@ -195,8 +178,7 @@ class ThreeDiPluginModelLoader(QObject):
             if existing_layer.name() == layer.name():
                 return layer_group
 
-        project = QgsProject.instance()
-        project.addMapLayer(layer, addToLegend=False)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
         layer_group.addLayer(layer)
 
         return layer_group

@@ -48,24 +48,27 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=1.2.3"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.28"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.31"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", ">=1.8"),
+    Dependency("alembic", "alembic", "==1.8.*"),
+    Dependency(
+        "importlib-resources", "importlib_resources", ""
+    ),  # backward compat. alembic
+    Dependency(
+        "zipp", "zipp", ""
+    ),  # backward compat. alemic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"),  # deps of alembic
-    Dependency("importlib-resources", "importlib_resources", ""),
-    Dependency("zipp", "zipp", ""),
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
     Dependency("networkx", "networkx", ""),
     Dependency("condenser", "condenser", ">=0.1.1"),
     Dependency("pygeos", "pygeos", ">=0.12.0"),
-    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.3.6"),
+    Dependency("threedigrid-builder", "threedigrid_builder", ">=1.3.6"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
