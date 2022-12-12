@@ -42,12 +42,12 @@ class ThreeDiPluginModelValidator(QObject):
             grid_model_slug = package.GetMetadataItem('model_slug')
 
             if grid_model_slug is None:
-                logger.warning("No model information in grid")
-
-            if result_model_slug != grid_model_slug:
+                logger.warning("No model meta information in grid layer, skipping model validation.")
+            elif result_model_slug != grid_model_slug:
                 logger.error("Result corresponds to different model than grid")
                 self.result_validated.emit(item, False)
                 return
+
         except Exception:
             logger.error("Unable to load file")
             self.result_validated.emit(item, False)
@@ -57,7 +57,7 @@ class ThreeDiPluginModelValidator(QObject):
         try:
             h5py.File(item.path.with_name("aggregate_results_3di.nc"), "r")
         except Exception:
-            logger.error("Unable to load aggregate results file")
+            logger.warning("Unable to load aggregate results file")
             self.result_validated.emit(item, False)
             return
 
