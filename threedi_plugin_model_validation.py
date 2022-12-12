@@ -35,6 +35,13 @@ class ThreeDiPluginModelValidator(QObject):
         try:
             result = h5py.File(item.path, "r")
 
+            # Check whether the netcdf is generated with a modern calculation core
+            # This netcdf includes an attribute 'threedicore_version'
+            if "threedicore_version" not in result.attrs:
+                logger.error("Result file is too old, please recalculate.")
+                self.result_validated.emit(item, False)
+                return
+
             # Check whether corresponding grid item belongs to same model
             result_model_slug = result.attrs['model_slug'].decode()
             grid_item = item.parent()
