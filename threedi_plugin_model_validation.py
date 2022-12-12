@@ -23,6 +23,8 @@ class ThreeDiPluginModelValidator(QObject):
     def validate_result(self, item: ThreeDiResultItem):
         item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
 
+        # Check right version (pre-groundwater is not supported, should be recomputed)
+
         # Check right file name
         if not item.path.name == "results_3di.nc":
             logger.error("Unexpected file name for results file")
