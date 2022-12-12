@@ -10,7 +10,7 @@ from ThreeDiToolbox.misc_tools import ShowLogfile
 from ThreeDiToolbox.misc_tools import ToggleResultsManager
 from ThreeDiToolbox.processing.providers import ThreediProvider
 from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
-from ThreeDiToolbox.threedi_plugin_loading import ThreeDiPluginModelLoader
+from ThreeDiToolbox.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
 from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
@@ -60,7 +60,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         Called when the plugin is loaded.
         """
         self.model = ThreeDiPluginModel()
-        self.loader = ThreeDiPluginModelLoader()
+        self.loader = ThreeDiPluginLayerManager()
         self.validator = ThreeDiPluginModelValidator()
 
         QgsProject.instance().writeProject.connect(self.write)

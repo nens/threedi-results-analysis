@@ -8,6 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class ThreeDiPluginModelValidator(QObject):
+    """
+    This class validates 3Di computation grid and result files. When
+    validation is completed, a signal with the validation result is emited
+    so listeners can handle accordingly.
+    """
     grid_validated = pyqtSignal(ThreeDiGridItem, bool)
     result_validated = pyqtSignal(ThreeDiResultItem, bool)
 
@@ -22,8 +27,6 @@ class ThreeDiPluginModelValidator(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def validate_result(self, item: ThreeDiResultItem):
         item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
-
-        # Check right version (pre-groundwater is not supported, should be recomputed)
 
         # Check right file name
         if not item.path.name == "results_3di.nc":

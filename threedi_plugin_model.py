@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class ThreeDiGridItem(QStandardItem):
+    """
+    A model item for computation grids
+    """
     def __init__(self, path, text: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -39,6 +42,9 @@ class ThreeDiGridItem(QStandardItem):
 
 
 class ThreeDiResultItem(QStandardItem):
+    """
+    A model item for 3Di results.
+    """
     def __init__(self, path, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.path = Path(path)
@@ -53,6 +59,16 @@ class ThreeDiResultItem(QStandardItem):
 
 
 class ThreeDiPluginModel(QStandardItemModel):
+    """
+    The datamodel of the Toolbox.
+
+    All grids and results are stored in this
+    hierarchical model as items. The model itself does not contain much
+    functionality, it merely keeps track of the grids and results and emits
+    signals when the model is modified.
+
+    Serialization of the model to XML can be done via read() and write()
+    """
     grid_added = pyqtSignal(ThreeDiGridItem)
     result_added = pyqtSignal(ThreeDiResultItem)
     result_checked = pyqtSignal(ThreeDiResultItem)

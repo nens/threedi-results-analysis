@@ -20,7 +20,15 @@ logger = logging.getLogger(__name__)
 MSG_TITLE = "3Di Results Manager"
 
 
-class ThreeDiPluginModelLoader(QObject):
+class ThreeDiPluginLayerManager(QObject):
+    """
+    The Layer manager creates layers from a geopackage and keeps track
+    of the connection between model items (grids) and layers.
+
+    In case a model item is deleted, the corresponding layers are also
+    deleted. In case all layers of a grid are deleted, the item in the model
+    should also be deleted.
+    """
     grid_loaded = pyqtSignal(ThreeDiGridItem)
     result_loaded = pyqtSignal(ThreeDiResultItem)
 
@@ -62,7 +70,7 @@ class ThreeDiPluginModelLoader(QObject):
         else:
             path_gpkg = item.path
 
-        if not ThreeDiPluginModelLoader._add_layers_from_gpkg(path_gpkg, item):
+        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, item):
             pop_up_critical("Failed adding the layers to the project.")
             return False
 
@@ -157,7 +165,7 @@ class ThreeDiPluginModelLoader(QObject):
                     vector_layer.saveStyleToDatabase(table_name, "", True, "")
 
             # Won't add if already exists
-            item.layer_group = ThreeDiPluginModelLoader._add_layer_to_group(vector_layer, item.text())
+            item.layer_group = ThreeDiPluginLayerManager._add_layer_to_group(vector_layer, item.text())
 
         # Invalid layers info
         if invalid_layers:
