@@ -5,7 +5,7 @@ from osgeo import ogr
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
-from qgis.core import Qgis, QgsVectorLayer, QgsProject
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer
 
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
@@ -163,6 +163,9 @@ class ThreeDiPluginLayerManager(QObject):
                 # QgsProviderRegistry::styleExists is not available in Python
                 if table_name not in vector_layer.listStylesInDatabase()[2]:
                     vector_layer.saveStyleToDatabase(table_name, "", True, "")
+
+            vector_layer.setReadOnly(True)
+            vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
 
             # Won't add if already exists
             item.layer_group = ThreeDiPluginLayerManager._add_layer_to_group(vector_layer, item.text())
