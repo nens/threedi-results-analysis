@@ -20,6 +20,17 @@ logger = logging.getLogger(__name__)
 MSG_TITLE = "3Di Results Manager"
 
 
+def dirty(func):
+    """
+    This decorator ensures the QGIS project is marked as dirty when
+    the function is done.
+    """
+    def wrapper(*args, **kwargs):
+        func(*args, **kwargs)
+        QgsProject.instance().setDirty()
+    return wrapper
+
+
 class ThreeDiPluginLayerManager(QObject):
     """
     The Layer manager creates layers from a geopackage and keeps track
@@ -34,29 +45,6 @@ class ThreeDiPluginLayerManager(QObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    @staticmethod
-    def _generate_gpkg(path_h5, path_gpkg):
-        progress_bar = StatusProgressBar(100, "Generating geopackage")
-        exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
-        exporter.export(
-            lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
-        )
-        del progress_bar
-
-        # Copy some info from h5 to geopackage for future validation
-        # TODO: should be added to threedigrid
-        try:
-            h5 = h5py.File(path_h5, "r")
-            model_slug = h5.attrs['model_slug'].decode()
-            logger.info(f"Model slug: {model_slug}")
-            driver = ogr.GetDriverByName('GPKG')
-            package = driver.Open(str(path_gpkg), True)
-            package.SetMetadataItem('model_slug', model_slug)
-        except Exception:
-            logger.error("Unable to extract meta information from h5 file")
-
-        messagebar_message(MSG_TITLE, "Generated geopackage")
 
     @pyqtSlot(ThreeDiGridItem)
     def load_grid(self, item: ThreeDiGridItem) -> bool:
@@ -90,13 +78,13 @@ class ThreeDiPluginLayerManager(QObject):
         item.layer_group.parent().removeChildNode(item.layer_group)
         item.layer_group = None
 
+    @dirty
     @pyqtSlot(ThreeDiGridItem)
     def update_grid(self, item: ThreeDiGridItem) -> bool:
         """Updates the group name in the project"""
-
         assert item.layer_group
         item.layer_group.setName(item.text())
-        QgsProject.instance().setDirty()
+        return True
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
@@ -111,12 +99,35 @@ class ThreeDiPluginLayerManager(QObject):
         # As the result itself does not need to be preloaded (this data is accessed
         # via the tools), we just consider it unloaded when the threedigrid wrapper
         # is destroyed (in the model)
-        pass
+        return True
 
+    @dirty
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, item: ThreeDiResultItem) -> bool:
-        # Just signal the project as dirty
-        QgsProject.instance().setDirty()
+        return True
+
+    @staticmethod
+    def _generate_gpkg(path_h5, path_gpkg) -> None:
+        progress_bar = StatusProgressBar(100, "Generating geopackage")
+        exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
+        exporter.export(
+            lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
+        )
+        del progress_bar
+
+        # Copy some info from h5 to geopackage for future validation
+        # TODO: should be added to threedigrid
+        try:
+            h5 = h5py.File(path_h5, "r")
+            model_slug = h5.attrs['model_slug'].decode()
+            logger.info(f"Model slug: {model_slug}")
+            driver = ogr.GetDriverByName('GPKG')
+            package = driver.Open(str(path_gpkg), True)
+            package.SetMetadataItem('model_slug', model_slug)
+        except Exception:
+            logger.error("Unable to extract meta information from h5 file")
+
+        messagebar_message(MSG_TITLE, "Generated geopackage")
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
