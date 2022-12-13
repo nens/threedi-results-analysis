@@ -23,7 +23,9 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
-
+        # A grid item refers to both a group, as well as the
+        # individual layers.
+        self.layer_ids = []
         self._layer_group = None
 
     @property
@@ -185,13 +187,17 @@ class ThreeDiPluginModel(QStandardItemModel):
 
         # Now traverse through the XML tree and add model items
         if not self._read_recursive(results_node, self.invisibleRootItem(), resolver):
-            logger.error("Unexpected XML item, aborting read")
+            logger.error("Unable to read XML, aborting read")
             self.clear()
             return False
 
         return True
 
     def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
+
+        if not xml_parent.hasChildNodes():
+            return True
+
         child_xml_nodes = xml_parent.childNodes()
 
         for i in range(child_xml_nodes.count()):
@@ -212,11 +218,13 @@ class ThreeDiPluginModel(QStandardItemModel):
                         model_parent,
                         xml_element_node.attribute("text"),
                     )
+                elif tag_name == "layer":  # Subelement of grid
+                    assert isinstance(model_parent, ThreeDiGridItem)
+                    model_parent.layer_ids.append(xml_element_node.attribute("id"))
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
 
-                assert model_node is not None
                 if not self._read_recursive(xml_node, model_node, resolver):
                     return False
             else:
@@ -228,7 +236,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Add the model to the provided XML DomDocument
 
         Recursively traverses down the model tree. Returns True
-        on success. Resolver is used to convert between relative
+        on success. QGIS' resolver is used to convert between relative
         and absolute paths.
         """
         # Find and remove the existing element corresponding to the result model
@@ -268,6 +276,13 @@ class ThreeDiPluginModel(QStandardItemModel):
                     xml_node.setTagName("grid")
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
+
+                    # Write corresponding layer id's
+                    for layer_id in model_node.layer_ids:
+                        layer_element = doc.createElement("layer")
+                        layer_element.setAttribute("id", layer_id)
+                        xml_node.appendChild(layer_element)
+
                 elif isinstance(model_node, ThreeDiResultItem):
                     xml_node.setTagName("result")
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))

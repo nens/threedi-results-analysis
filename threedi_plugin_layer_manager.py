@@ -73,8 +73,14 @@ class ThreeDiPluginLayerManager(QObject):
 
         # TODO: does the layer also need to be removed from registry?
 
-        assert item.layer_group
+        # It could be possible that some layers have been dragged outside the
+        # layer group. Delete the individual layers first
+        for layer_id in item.layer_ids:
+            QgsProject.instance().removeMapLayer(layer_id)
+        item.layer_ids.clear()
+
         # Deletion of root node of a tree will delete all nodes of the tree
+        assert item.layer_group
         item.layer_group.parent().removeChildNode(item.layer_group)
         item.layer_group = None
 
@@ -178,7 +184,10 @@ class ThreeDiPluginLayerManager(QObject):
             vector_layer.setReadOnly(True)
             vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
 
-            # Won't add if already exists
+            # Keep track of id for future reference (deletion of grid item)
+            item.layer_ids.append(vector_layer.id())
+
+            # Won't add if already exists in
             item.layer_group = ThreeDiPluginLayerManager._add_layer_to_group(vector_layer, item.text())
 
         # Invalid layers info
@@ -199,6 +208,7 @@ class ThreeDiPluginLayerManager(QObject):
         Add a layer to the layer tree group, returns
         the corresponding group.
         """
+
         root = QgsProject.instance().layerTreeRoot()
         root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
         if not root_group:
@@ -207,13 +217,6 @@ class ThreeDiPluginLayerManager(QObject):
         layer_group = root_group.findGroup(group_name)
         if not layer_group:
             layer_group = root_group.insertGroup(0, group_name)
-
-        # In case the group already contains a layer with the same name,
-        # don't add the layer (TODO: allow overwrite?)
-        existing_layers = layer_group.children()
-        for existing_layer in existing_layers:
-            if existing_layer.name() == layer.name():
-                return layer_group
 
         QgsProject.instance().addMapLayer(layer, addToLegend=False)
         layer_group.addLayer(layer)
