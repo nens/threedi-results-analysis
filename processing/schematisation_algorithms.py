@@ -422,7 +422,20 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         hydx_path = self.parameterAsString(parameters, self.INPUT_HYDX_DIRECTORY, context)
-        out_path = self.parameterAsString(parameters, self.TARGET_SQLITE, context)
+        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            return {}
+        try:
+            schema = ModelSchema(threedi_db)
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            feedback.pushWarning(
+                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
+            return {}
         run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
         return {}
 
