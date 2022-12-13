@@ -24,7 +24,6 @@ class ThreeDiGridItem(QStandardItem):
         self.setEditable(True)
         self.setText(text)
         self._layer_group = None
-
         # map from table name to layer id, required to check
         # whether a layer is already loaded
         self.layer_ids = {}
@@ -101,16 +100,18 @@ class ThreeDiPluginModel(QStandardItemModel):
             self.grid_changed.emit(item)
 
     @pyqtSlot(str)
-    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids = {}) -> ThreeDiGridItem:
+    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids=None) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         if self.contains(path_h5_or_gpkg, ignore_suffix=True):
             return
+
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
-        
-        grid_item.layer_ids = layer_ids
-        
+
+        if layer_ids:
+            grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
+
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
         return grid_item
@@ -232,7 +233,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                         xml_element_node.attribute("text"),
                     )
                 elif tag_name == "layer":  # Subelement of grid
-                    return True #  Leaf of XML tree, no processing
+                    return True  # Leaf of XML tree, no processing
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False

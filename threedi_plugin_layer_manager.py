@@ -166,7 +166,7 @@ class ThreeDiPluginLayerManager(QObject):
                 if QgsProject.instance().mapLayer(item.layer_ids[table_name]):
                     logger.info(f"Map layer corresponding to table {table_name} already exist in project")
                     continue
-            
+
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
             vector_layer = QgsVectorLayer(str(path) + "|layername=" + table_name, layer_name, "ogr")
@@ -222,4 +222,3 @@ class ThreeDiPluginLayerManager(QObject):
             layer_group = root_group.insertGroup(0, group_name)
 
         return layer_group
-
