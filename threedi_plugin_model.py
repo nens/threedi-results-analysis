@@ -23,10 +23,11 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
-        # A grid item refers to both a group, as well as the
-        # individual layers.
-        self.layer_ids = []
         self._layer_group = None
+
+        # map from table name to layer id, required to check
+        # whether a layer is already loaded
+        self.layer_ids = {}
 
     @property
     def layer_group(self):
@@ -100,13 +101,16 @@ class ThreeDiPluginModel(QStandardItemModel):
             self.grid_changed.emit(item)
 
     @pyqtSlot(str)
-    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "") -> ThreeDiGridItem:
+    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids = {}) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
         parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         if self.contains(path_h5_or_gpkg, ignore_suffix=True):
             return
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
+        
+        grid_item.layer_ids = layer_ids
+        
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
         return grid_item
@@ -208,9 +212,18 @@ class ThreeDiPluginModel(QStandardItemModel):
                 tag_name = xml_element_node.tagName()
                 model_node = None
                 if tag_name == "grid":
+                    # First read the grids layer ids
+                    layer_ids = {}
+                    assert xml_node.hasChildNodes()
+                    label_nodes = xml_node.childNodes()
+                    for i in range(label_nodes.count()):
+                        label_node = label_nodes.at(i).toElement()
+                        layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
+
                     model_node = self.add_grid(
                         resolver.readPath(xml_element_node.attribute("path")),
                         xml_element_node.attribute("text"),
+                        layer_ids
                     )
                 elif tag_name == "result":
                     model_node = self.add_result(
@@ -219,8 +232,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                         xml_element_node.attribute("text"),
                     )
                 elif tag_name == "layer":  # Subelement of grid
-                    assert isinstance(model_parent, ThreeDiGridItem)
-                    model_parent.layer_ids.append(xml_element_node.attribute("id"))
+                    return True #  Leaf of XML tree, no processing
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
@@ -278,9 +290,10 @@ class ThreeDiPluginModel(QStandardItemModel):
                     xml_node.setAttribute("text", model_node.text())
 
                     # Write corresponding layer id's
-                    for layer_id in model_node.layer_ids:
+                    for table_name, layer_id in model_node.layer_ids.items():
                         layer_element = doc.createElement("layer")
                         layer_element.setAttribute("id", layer_id)
+                        layer_element.setAttribute("table_name", table_name)
                         xml_node.appendChild(layer_element)
 
                 elif isinstance(model_node, ThreeDiResultItem):

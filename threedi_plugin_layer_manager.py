@@ -75,7 +75,8 @@ class ThreeDiPluginLayerManager(QObject):
 
         # It could be possible that some layers have been dragged outside the
         # layer group. Delete the individual layers first
-        for layer_id in item.layer_ids:
+        for layer_id in item.layer_ids.values():
+            assert QgsProject.instance().mapLayer(layer_id)
             QgsProject.instance().removeMapLayer(layer_id)
         item.layer_ids.clear()
 
@@ -137,10 +138,8 @@ class ThreeDiPluginLayerManager(QObject):
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
-        """Retrieves (a subset of the)  layers from gpk and add to project.
-
-        Checks whether all layers contain the same CRS, if
-        so, sets this CRS on the project.
+        """
+        Retrieves (a subset of the) layers from gpk and add to project.
         """
 
         # Layers need to be in specific order and naming:
@@ -157,8 +156,17 @@ class ThreeDiPluginLayerManager(QObject):
 
         invalid_layers = []
         empty_layers = []
+
+        item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
+
         for layer_name, table_name in gpkg_layers.items():
 
+            # Check whether the QgsProject already contains this layer
+            if table_name in item.layer_ids.keys():
+                if QgsProject.instance().mapLayer(item.layer_ids[table_name]):
+                    logger.info(f"Map layer corresponding to table {table_name} already exist in project")
+                    continue
+            
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
             vector_layer = QgsVectorLayer(str(path) + "|layername=" + table_name, layer_name, "ogr")
@@ -184,11 +192,11 @@ class ThreeDiPluginLayerManager(QObject):
             vector_layer.setReadOnly(True)
             vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
 
-            # Keep track of id for future reference (deletion of grid item)
-            item.layer_ids.append(vector_layer.id())
+            # Keep track of layer id for future reference (deletion of grid item)
+            item.layer_ids[table_name] = vector_layer.id()
 
-            # Won't add if already exists in
-            item.layer_group = ThreeDiPluginLayerManager._add_layer_to_group(vector_layer, item.text())
+            QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
+            item.layer_group.addLayer(vector_layer)
 
         # Invalid layers info
         if invalid_layers:
@@ -203,12 +211,7 @@ class ThreeDiPluginLayerManager(QObject):
         return True
 
     @staticmethod
-    def _add_layer_to_group(layer, group_name):
-        """
-        Add a layer to the layer tree group, returns
-        the corresponding group.
-        """
-
+    def _get_or_create_group(group_name: str):
         root = QgsProject.instance().layerTreeRoot()
         root_group = root.findGroup(TOOLBOX_QGIS_GROUP_NAME)
         if not root_group:
@@ -218,7 +221,5 @@ class ThreeDiPluginLayerManager(QObject):
         if not layer_group:
             layer_group = root_group.insertGroup(0, group_name)
 
-        QgsProject.instance().addMapLayer(layer, addToLegend=False)
-        layer_group.addLayer(layer)
-
         return layer_group
+
