@@ -16,6 +16,8 @@ import os
 import shutil
 
 from hydxlib.scripts import run_import_export
+from hydxlib.scripts import write_logging_to_file
+from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
 from threedi_modelchecker.threedi_model.models import GlobalSetting
@@ -427,6 +429,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         hydx_path = self.parameterAsString(parameters, self.INPUT_HYDX_DIRECTORY, context)
         out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        log_path = Path(out_path).parent / "import_hydx.log"
         threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
         if not threedi_db:
             return {}
@@ -440,6 +443,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
             )
             return {}
+        write_logging_to_file(log_path)
         run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
         return {}
 
