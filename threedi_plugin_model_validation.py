@@ -28,50 +28,44 @@ class ThreeDiPluginModelValidator(QObject):
     def validate_result(self, item: ThreeDiResultItem):
         item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
 
-        # Check right file name
-        if not item.path.name == "results_3di.nc":
-            logger.error("Unexpected file name for results file")
+        def fail(msg):
+            logger.error(msg)
             self.result_validated.emit(item, False)
-            return
 
-        # For validation, just load the file
+        # Check correct file name
+        if not item.path.name == "results_3di.nc":
+            return fail("Unexpected file name for results file")
+
+        # Check opening with h5py, detects a.o. incomplete downloads
         try:
             result = h5py.File(item.path, "r")
+        except OSError:
+            return fail("Results file cannot be opened.")
 
-            # Check whether the netcdf is generated with a modern calculation core
-            # This netcdf includes an attribute 'threedicore_version'
-            if "threedicore_version" not in result.attrs:
-                logger.error("Result file is too old, please recalculate.")
-                self.result_validated.emit(item, False)
-                return
+        # Any modern enough calc core adds a 'threedicore_version' atribute
+        if "threedicore_version" not in result.attrs:
+            return fail("Result file is too old, please recalculate.")
 
-            # Check whether corresponding grid item belongs to same model
-            result_model_slug = result.attrs['model_slug'].decode()
-            grid_item = item.parent()
-            assert isinstance(grid_item, ThreeDiGridItem)
-            driver = ogr.GetDriverByName('GPKG')
-            package = driver.Open(str(grid_item.path), True)
-            grid_model_slug = package.GetMetadataItem('model_slug')
+        # Check whether corresponding grid item belongs to same model
+        result_model_slug = result.attrs['model_slug'].decode()
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        driver = ogr.GetDriverByName('GPKG')
+        package = driver.Open(str(grid_item.path), True)
+        grid_model_slug = package.GetMetadataItem('model_slug')
 
-            if grid_model_slug is None:
-                logger.warning("No model meta information in grid layer, skipping model validation.")
-            elif result_model_slug != grid_model_slug:
-                logger.error("Result corresponds to different model than grid")
-                self.result_validated.emit(item, False)
-                return
+        if grid_model_slug is None:
+            logger.warning("No model meta information in grid layer, skipping model validation.")
+        elif result_model_slug != grid_model_slug:
+            return fail("Result corresponds to different model than grid")
 
-        except Exception:
-            logger.error("Unable to load file")
-            self.result_validated.emit(item, False)
-            return
-
-        # It is assumed that the aggregate_results_3di file is located in the same directory
-        try:
-            h5py.File(item.path.with_name("aggregate_results_3di.nc"), "r")
-        except Exception:
-            logger.warning("Unable to load aggregate results file")
-            self.result_validated.emit(item, False)
-            return
+        # Try to open accompanying aggregate results file
+        aggregate_results_path = item.path.with_name("aggregate_results_3di.nc")
+        if aggregate_results_path.exists():
+            try:
+                h5py.File(aggregate_results_path, "r")
+            except OSError:
+                return fail("Aggregate results file cannot be opened.")
 
         item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
         self.result_validated.emit(item, True)
