@@ -21,7 +21,7 @@ jobs:
         id: cache
         with:
           path: ~/docker-cache
-          key: ${{ hashFiles('docker-compose.yml', 'Dockerfile', 'requirements-dev.txt', 'dependencies.py') }}
+          key: ${{ hashFiles('docker-compose.yml', 'Dockerfile', 'requirements-dev.txt') }}
 
       - name: build
         run: |
