@@ -33,26 +33,28 @@ class ThreeDiPluginModelValidator(QObject):
             self.result_validated.emit(item, False)
 
         # Check correct file name
-        if not item.path.name == "results_3di.nc":
+        results_path = item.path
+
+        if not results_path.name == "results_3di.nc":
             return fail("Unexpected file name for results file")
 
         # Check opening with h5py, detects a.o. incomplete downloads
         try:
-            result = h5py.File(item.path, "r")
+            results_h5 = h5py.File(results_path, "r")
         except OSError as error:
             if "truncated file" in str(error):
                 return fail(
-                    "Results file is incomplete. If possible, "
-                    "try to copy or download it again."
+                    f"Results file {results_path} is incomplete. "
+                    "If possible, copy or download it again."
                 )
             return fail("Results file cannot be opened.")
 
         # Any modern enough calc core adds a 'threedicore_version' atribute
-        if "threedicore_version" not in result.attrs:
+        if "threedicore_version" not in results_h5.attrs:
             return fail("Result file is too old, please recalculate.")
 
         # Check whether corresponding grid item belongs to same model
-        result_model_slug = result.attrs['model_slug'].decode()
+        result_model_slug = results_h5.attrs['model_slug'].decode()
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
         driver = ogr.GetDriverByName('GPKG')
@@ -72,8 +74,9 @@ class ThreeDiPluginModelValidator(QObject):
             except OSError as error:
                 if "truncated file" in str(error):
                     return fail(
-                        "Aggregate results file is incomplete. If possible, "
-                        "try to copy or download it again."
+                        f"Aggregate results file {aggregate_results_path} "
+                        "is incomplete. If possible, copy or download it "
+                        "again."
                     )
                 return fail("Aggregate results file cannot be opened.")
 
