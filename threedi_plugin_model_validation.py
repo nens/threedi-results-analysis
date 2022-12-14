@@ -39,7 +39,12 @@ class ThreeDiPluginModelValidator(QObject):
         # Check opening with h5py, detects a.o. incomplete downloads
         try:
             result = h5py.File(item.path, "r")
-        except OSError:
+        except OSError as error:
+            if "truncated file" in str(error):
+                return fail(
+                    "Results file is incomplete. If possible, "
+                    "try to copy or download it again."
+                )
             return fail("Results file cannot be opened.")
 
         # Any modern enough calc core adds a 'threedicore_version' atribute
@@ -64,7 +69,12 @@ class ThreeDiPluginModelValidator(QObject):
         if aggregate_results_path.exists():
             try:
                 h5py.File(aggregate_results_path, "r")
-            except OSError:
+            except OSError as error:
+                if "truncated file" in str(error):
+                    return fail(
+                        "Aggregate results file is incomplete. If possible, "
+                        "try to copy or download it again."
+                    )
                 return fail("Aggregate results file cannot be opened.")
 
         item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
