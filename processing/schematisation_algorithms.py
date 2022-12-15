@@ -444,6 +444,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             )
             return {}
         write_logging_to_file(log_path)
+        feedback.pushInfo(f"Logging will be written to {log_path}")
         run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
         return {}
 
