@@ -24,6 +24,7 @@ from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
+from ThreeDiToolbox.processing.download_hydx import download_hydx
 from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
     RasterChecker,
 )
@@ -33,14 +34,16 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsProject,
     QgsProcessingAlgorithm,
+    QgsProcessingException,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterFeatureSink,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
+    QgsProcessingParameterFolderDestination,
+    QgsProcessingParameterString,
     QgsVectorLayer,
     QgsWkbTypes,
 )
-
 
 def get_threedi_database(filename, feedback):
     try:
@@ -405,16 +408,34 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     """
     Import data from GWSW HydX to a 3Di Spatialite
     """
-
+    INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
+    HYDX_DOWNLOAD_DIRECTORY = "HYDX_DOWNLOAD_DIRECTORY"
     INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
     TARGET_SQLITE = "TARGET_SQLITE"
 
     def initAlgorithm(self, config):
         self.addParameter(
+            QgsProcessingParameterString(
+                self.INPUT_DATASET_NAME,
+                "GWSW Dataset name (online)",
+                optional=True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFolderDestination(
+                self.HYDX_DOWNLOAD_DIRECTORY,
+                "Destination directory for HydX dataset download",
+                optional=True
+            )
+        )
+
+        self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT_HYDX_DIRECTORY,
-                "Folder containing input HydX csv files",
-                behavior=QgsProcessingParameterFile.Folder
+                "Directory containing input HydX dataset",
+                behavior=QgsProcessingParameterFile.Folder,
+                optional=True
             )
         )
 
@@ -427,22 +448,51 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
+        hydx_dataset_name = self.parameterAsString(parameters, self.INPUT_DATASET_NAME, context)
+        hydx_download_dir = self.parameterAsString(parameters, self.HYDX_DOWNLOAD_DIRECTORY, context)
         hydx_path = self.parameterAsString(parameters, self.INPUT_HYDX_DIRECTORY, context)
         out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
-        log_path = Path(out_path).parent / "import_hydx.log"
+        if not (hydx_dataset_name or hydx_path):
+            raise QgsProcessingException(
+                "Either 'GWSW Dataset name (online)' or 'Directory containing input HydX dataset' must be filled in!"
+            )
+        if hydx_dataset_name and hydx_path:
+            feedback.pushWarning(
+                "Both 'GWSW Dataset name (online)' and 'Directory containing input HydX dataset' are filled in. "
+                "'GWSW Dataset name (online)' will be ignored. This dataset will not be downloaded.")
+        elif hydx_dataset_name:
+            try:
+                hydx_download_path = Path(hydx_download_dir)
+                hydx_download_dir_is_valid = hydx_download_path.is_dir()
+            except TypeError:
+                hydx_download_dir_is_valid = False
+            if not hydx_download_dir_is_valid:
+                raise QgsProcessingException(
+                    f"'Destination directory for HydX dataset download' ({hydx_download_path}) is not a valid directory"
+                )
+            hydx_path = download_hydx(
+                dataset_name=hydx_dataset_name,
+                target_directory=hydx_download_path,
+                wait_times=[0.1, 1, 2, 3, 4, 5, 10],
+                feedback=feedback
+            )
+            # hydx_path will be None if user has canceled the process during download
+            if feedback.isCanceled():
+                raise QgsProcessingException(f"Process canceled")
         threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
         if not threedi_db:
-            return {}
+            raise QgsProcessingException(f"Unable to connect to 3Di spatialite '{out_path}'")
         try:
             schema = ModelSchema(threedi_db)
             schema.validate_schema()
 
         except errors.MigrationMissingError:
-            feedback.pushWarning(
+            raise QgsProcessingException(
                 "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
                 "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
             )
-            return {}
+        feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
+        log_path = Path(out_path).parent / "import_hydx.log"
         write_logging_to_file(log_path)
         feedback.pushInfo(f"Logging will be written to {log_path}")
         run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)

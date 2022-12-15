@@ -1,7 +1,7 @@
 from pathlib import Path
 import requests
 import time
-from typing import List
+from typing import List, Union
 import zipfile
 import io
 
@@ -14,7 +14,12 @@ class MockQgsProcessingFeedback:
         return False
 
 
-def download_hydx(dataset_name: str, target_directory: Path, wait_times: List = None, feedback=None):
+def download_hydx(
+        dataset_name: str,
+        target_directory: Path,
+        wait_times: List = None,
+        feedback=None
+) -> Union[Path, None]:
     """
     Download GWSW HydX dataset of given `dataset_name` to given `target_directory`. A request to prepare the dataset for
     download will be send to the GWSW server. Subsequently, status requests will be sent until the dataset is ready for
@@ -24,11 +29,7 @@ def download_hydx(dataset_name: str, target_directory: Path, wait_times: List = 
 
     `feedback` should have the methods .pushInfo() and .isCanceled(), e.g. a QgsProcessingFeedback
 
-    :param dataset_name:
-    :param target_directory:
-    :param wait_times:
-    :param feedback:
-    :return:
+    :return: path to the downloaded hydx dataset
     """
     wait_times = wait_times or [1]
     feedback = feedback or MockQgsProcessingFeedback()
@@ -44,23 +45,30 @@ def download_hydx(dataset_name: str, target_directory: Path, wait_times: List = 
     i = 0
     while not finished:
         if feedback.isCanceled():
-            return
+            return None
         if hydx_download.status_code == 202:
             status_url = hydx_download_json['lnk']
             hydx_status = requests.get(url=status_url, headers=hydx_headers)
             if hydx_status.status_code == 200:
                 hydx_status_json = hydx_status.json()
-                feedback.pushInfo(f"HydX dataset {dataset_name} is ready for download (status code {hydx_status.status_code})")
+                feedback.pushInfo(
+                    f"HydX dataset {dataset_name} is ready for download (status code {hydx_status.status_code})"
+                )
                 hydx_download_url = hydx_status_json['files'][0]['url']
                 finished = True
             elif hydx_status.status_code == 202:
-                feedback.pushInfo(f"HydX dataset is being prepared on the server (status code {hydx_status.status_code})")
+                feedback.pushInfo(
+                    f"HydX dataset is being prepared on the server (status code {hydx_status.status_code})"
+                )
             else:
-                feedback.pushInfo(f"Something went wrong while processing the request (status code {hydx_status.status_code})")
+                feedback.pushInfo(
+                    f"Something went wrong while processing the request (status code {hydx_status.status_code})"
+                )
                 finished = True
         elif hydx_download.status_code == 200:
-            dataset_name = hydx_download_json['files'][0]['name']
-            feedback.pushInfo(f"HydX dataset {dataset_name} is ready for download (status code {hydx_status.status_code})")
+            feedback.pushInfo(
+                f"HydX dataset {dataset_name} is ready for download (status code {hydx_download.status_code})"
+            )
             hydx_download_url = hydx_download_json['files'][0]['url']
             finished = True
         try:
@@ -68,8 +76,11 @@ def download_hydx(dataset_name: str, target_directory: Path, wait_times: List = 
         except IndexError:
             time.sleep(wait_times[-1])
         i += 1
-    hydx_folder = (target_directory / dataset_name).with_suffix('')
+    hydx_folder = target_directory / (dataset_name + '.hydx')
     r = requests.get(url=hydx_download_url, headers=hydx_headers)
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall(hydx_folder)
-    feedback.pushInfo(f'HydX dataset {dataset_name} has been downloaded and unzipped to {hydx_folder}')
+    feedback.pushInfo(
+        f'HydX dataset {dataset_name} has been downloaded and unzipped to {hydx_folder}'
+    )
+    return hydx_folder
