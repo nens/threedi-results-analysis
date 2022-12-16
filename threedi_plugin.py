@@ -75,11 +75,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
-        self.toolbar.setObjectName("ThreeDiToolbox")
-        self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
-        self.toolbar_animation.setObjectName("ThreeDiAnimation")
-
-        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
 
         # Init the rest of the tools
         self.about_tool = About(iface)
@@ -108,7 +103,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.logfile_tool,
         ]
 
-        self.active_ts_datasource = None
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
 
         # Styling (TODO: can this be moved to where it is used?)
@@ -157,23 +151,22 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
         tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.connect(self._update_animation)
+        tc.updateTemporalRange.connect(self._temporal_update)
 
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
 
         self.initProcessing()
+
+        # TODO: can be removed when refactor of anim tool is done
+        self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
+        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
         self.toolbar_animation.addWidget(self.map_animator_widget)
 
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
 
         self.check_status_model_and_results()
-
-    def update_slider_enabled_state(self):
-        pass
-        # timeslider_needed = self.map_animator_widget.active or self.sideview_tool.active
-        # self.lcd.setEnabled(timeslider_needed)
 
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
@@ -295,9 +288,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
         del self.toolbar
+
         del self.toolbar_animation
 
-    def _update_animation(self, x):
+    def _temporal_update(self, x):
 
         if self.ts_datasources.rowCount() > 0:
             tc = iface.mapCanvas().temporalController()

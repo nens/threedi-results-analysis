@@ -36,7 +36,6 @@ class ThreeDiSideView(object):
     @active.setter
     def active(self, activate):
         self._active = activate
-        self.tdi_root_tool.update_slider_enabled_state()
 
     def on_unload(self):
         """
