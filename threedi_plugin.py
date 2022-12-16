@@ -269,7 +269,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
         tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.disconnect(self._update_animation)
+        tc.updateTemporalRange.disconnect(self._temporal_update)
 
         # Clean up resources
 
