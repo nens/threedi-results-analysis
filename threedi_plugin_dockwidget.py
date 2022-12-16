@@ -34,6 +34,10 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.pushButton_RemoveGrid.clicked.connect(self._remove_grid_clicked)
         self.pushButton_RemoveResult.clicked.connect(self._remove_result_clicked)
 
+    def set_model(self, model):
+        self.treeView.setModel(model)
+        self.treeView.selectionModel().selectionChanged.connect(self._selection_changed)
+
     def _add_grid_clicked(self):
         dir_path = self._get_dir()
         input_gridadmin_h5_or_gpkg, _ = QFileDialog.getOpenFileName(
@@ -87,6 +91,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.result_file_selected.emit(input_result_nc, item)
 
     def _selection_changed(self, selected, deselected):
+        logger.info("selection changed")
         deselected_indexes = deselected.indexes()
         if deselected_indexes:
             self.item_deselected.emit(deselected_indexes[0])

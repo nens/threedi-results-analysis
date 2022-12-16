@@ -160,10 +160,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         tc.updateTemporalRange.connect(self._update_animation)
 
         self.dockwidget.show()
-        self.dockwidget.treeView.setModel(self.model)
-
-        # TODO: should this logic be moved inside the treeWidget?
-        self.dockwidget.treeView.selectionModel().selectionChanged.connect(self.dockwidget._selection_changed)
+        self.dockwidget.set_model(self.model)
 
         self.initProcessing()
         self.toolbar_animation.addWidget(self.map_animator_widget)
