@@ -51,7 +51,7 @@ class ThreeDiResultItem(QStandardItem):
         super().__init__(*args, **kwargs)
         self.path = Path(path)
         self.setCheckable(True)
-        self.setCheckState(2)
+        self.setCheckState(0)
 
     @cached_property
     def threedi_result(self):
@@ -216,9 +216,9 @@ class ThreeDiPluginModel(QStandardItemModel):
                     # First read the grids layer ids
                     layer_ids = {}
                     assert xml_node.hasChildNodes()
-                    label_nodes = xml_node.childNodes()
-                    for i in range(label_nodes.count()):
-                        label_node = label_nodes.at(i).toElement()
+                    layer_nodes = xml_element_node.elementsByTagName("layer")
+                    for i in range(layer_nodes.count()):
+                        label_node = layer_nodes.at(i).toElement()
                         layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
                     model_node = self.add_grid(
@@ -233,7 +233,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                         xml_element_node.attribute("text"),
                     )
                 elif tag_name == "layer":  # Subelement of grid
-                    return True  # Leaf of XML tree, no processing
+                    continue  # Leaf of XML tree, no processing
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
