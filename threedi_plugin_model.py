@@ -340,13 +340,19 @@ class ThreeDiPluginModel(QStandardItemModel):
             self.result_changed.emit(item)
 
             # Note that we not allow multiple results to be selected, deselect
-            # the others.
+            # the others in case an item is selected.
+            assert item.parent()
+            if item.checkState() == 2:
+                for i in range(item.parent().rowCount()):
+                    if item.parent().child(i) is not item:
+                        item.parent().child(i).setCheckState(0)
 
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
             self.grid_changed.emit(item)
 
     def select_item(self, index):
+        logger.info("selected")
         item = self.itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
             self.grid_selected.emit(item)
