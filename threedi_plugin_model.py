@@ -228,6 +228,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                         model_parent,
                         xml_element_node.attribute("text"),
                     )
+                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
                 elif tag_name == "layer":  # Subelement of grid
                     continue  # Leaf of XML tree, no processing
                 else:
@@ -297,6 +298,7 @@ class ThreeDiPluginModel(QStandardItemModel):
                     xml_node.setTagName("result")
                     xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
                     xml_node.setAttribute("text", model_node.text())
+                    xml_node.setAttribute("check_state", str(model_node.checkState()))
                 else:
                     logger.error("Unknown node type for serialization")
                     return False
