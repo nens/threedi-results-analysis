@@ -72,22 +72,7 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.itemChanged.connect(self.item_changed)
-
-    # @pyqtSlot(QStandardItem)
-    def item_changed(self, item: QStandardItem):
-        if isinstance(item, ThreeDiResultItem):
-            {
-                2: self.result_checked, 0: self.result_unchecked,
-            }[item.checkState()].emit(item)
-            self.result_changed.emit(item)
-
-            # Note that we not allow multiple results to be selected, deselect
-            # the others.
-
-        elif isinstance(item, ThreeDiGridItem):
-            logger.info("Item data changed")
-            self.grid_changed.emit(item)
+        self.itemChanged.connect(self._item_changed)
 
     @pyqtSlot(str)
     def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids=None) -> ThreeDiGridItem:
@@ -104,6 +89,8 @@ class ThreeDiPluginModel(QStandardItemModel):
 
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
+
+        logger.info(f"Number of grids: {self.number_of_grids()}")
         return grid_item
 
     @pyqtSlot(str, ThreeDiGridItem)
@@ -116,6 +103,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         result_item = ThreeDiResultItem(path_nc, text if text else self._resolve_result_item_text(path_nc))
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
+
+        logger.info(f"Number of results: {self.number_of_results()}")
         return result_item
 
     @pyqtSlot(ThreeDiGridItem)
@@ -134,6 +123,23 @@ class ThreeDiPluginModel(QStandardItemModel):
 
         self.result_removed.emit(item)
         return True
+
+    def number_of_grids(self) -> int:
+        """Return the number of grid items by doing a full traversal."""
+        return self._number_of_type(self.invisibleRootItem(), ThreeDiGridItem)
+
+    def number_of_results(self) -> int:
+        """Return the number of result items by doing a full traversal."""
+        return self._number_of_type(self.invisibleRootItem(), ThreeDiResultItem)
+
+    def _number_of_type(self, item, type) -> int:
+        count = 0
+        if isinstance(item, type):
+            count += 1
+
+        for i in range(item.rowCount()):
+            count += self._number_of_type(item.child(i), type)
+        return count
 
     @pyqtSlot()
     def clear(self, emit: bool = True) -> None:
@@ -324,6 +330,21 @@ class ThreeDiPluginModel(QStandardItemModel):
             path=path,
             ignore_suffix=ignore_suffix,
         )
+
+    # @pyqtSlot(QStandardItem)
+    def _item_changed(self, item: QStandardItem):
+        if isinstance(item, ThreeDiResultItem):
+            {
+                2: self.result_checked, 0: self.result_unchecked,
+            }[item.checkState()].emit(item)
+            self.result_changed.emit(item)
+
+            # Note that we not allow multiple results to be selected, deselect
+            # the others.
+
+        elif isinstance(item, ThreeDiGridItem):
+            logger.info("Item data changed")
+            self.grid_changed.emit(item)
 
     def select_item(self, index):
         item = self.itemFromIndex(index)
