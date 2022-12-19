@@ -28,6 +28,7 @@ class ThreeDiGridItem(QStandardItem):
         # whether a layer is already loaded
         self.layer_ids = {}
 
+
 class ThreeDiResultItem(QStandardItem):
     """
     A model item for 3Di results.
