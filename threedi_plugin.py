@@ -160,8 +160,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # TODO: can be removed when refactor of anim tool is done
         self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
-        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.iface, self)
+        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.model)
         self.toolbar_animation.addWidget(self.map_animator_widget)
+
+        self.model.result_added.connect(self.map_animator_widget.results_changed)
+        self.model.result_removed.connect(self.map_animator_widget.results_changed)
 
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
@@ -205,7 +208,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.ts_datasources.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
-            self.map_animator_widget.setEnabled(True)
+            #self.map_animator_widget.setEnabled(True)
 
             # TEST: connect TemporalController
             datasource = self.ts_datasources.rows[0]
@@ -220,8 +223,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
-            self.map_animator_widget.active = False
-            self.map_animator_widget.setEnabled(False)
+            #self.map_animator_widget.active = False
+            #self.map_animator_widget.setEnabled(False)
         if (
             self.ts_datasources.rowCount() > 0
             and self.ts_datasources.model_spatialite_filepath is not None

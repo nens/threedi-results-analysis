@@ -8,6 +8,8 @@ from qgis.core import QgsLayerTreeGroup
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
+from qgis.utils import iface
+from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
@@ -24,6 +26,7 @@ from ThreeDiToolbox.datasource.result_constants import H_TYPES
 from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
@@ -146,11 +149,10 @@ class MapAnimator(QWidget):
 
     EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
 
-    def __init__(self, parent, iface, root_tool):
+    def __init__(self, parent, model):
 
         super().__init__(parent)
-        self.iface = iface
-        self.root_tool = root_tool
+        self.model = model
         self.node_parameters = {}
         self.line_parameters = {}
         self.current_node_parameter = None
@@ -176,6 +178,15 @@ class MapAnimator(QWidget):
         self.active = False
         self.setEnabled(False)
 
+    @pyqtSlot(ThreeDiResultItem)
+    def results_changed(self, item: ThreeDiResultItem):
+        if self.model.number_of_results() > 0:
+            self.setEnabled(True)
+        else:
+            self.active = False
+            self.setEnabled(False)
+
+    # TODO: Move to util module
     @staticmethod
     def id_from_layer(layer: QgsVectorLayer):
         if layer is None:
@@ -218,7 +229,7 @@ class MapAnimator(QWidget):
         self.difference_label.setEnabled(activate)
         self.lcd.setEnabled(activate)
 
-        self.iface.mapCanvas().refresh()
+        iface.mapCanvas().refresh()
 
     @property
     def node_layer(self):
