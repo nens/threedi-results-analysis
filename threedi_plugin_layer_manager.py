@@ -158,6 +158,9 @@ class ThreeDiPluginLayerManager(QObject):
         empty_layers = []
 
         item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
+        
+        # Use to modify grid name when LayerGroup is renamed
+        item.layer_group.nameChanged.connect(lambda _, text: item.setText(text))
 
         for layer_name, table_name in gpkg_layers.items():
 

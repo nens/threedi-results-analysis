@@ -23,25 +23,10 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
-        self._layer_group = None
+        self.layer_group = None
         # map from table name to layer id, required to check
         # whether a layer is already loaded
         self.layer_ids = {}
-
-    @property
-    def layer_group(self):
-        return self._layer_group
-
-    @layer_group.setter
-    def layer_group(self, value):
-        if self._layer_group is None and value is not None:
-            value.nameChanged.connect(self.update_text_from_layer_group)
-        self._layer_group = value
-
-    # @pyqtSlot(QgsLayerTreeGroup, str)
-    def update_text_from_layer_group(self, layer_group, text):
-        self.setText(text)
-
 
 class ThreeDiResultItem(QStandardItem):
     """
@@ -95,6 +80,10 @@ class ThreeDiPluginModel(QStandardItemModel):
                 2: self.result_checked, 0: self.result_unchecked,
             }[item.checkState()].emit(item)
             self.result_changed.emit(item)
+
+            # Note that we not allow multiple results to be selected, deselect
+            # the others.
+
         elif isinstance(item, ThreeDiGridItem):
             logger.info("Item data changed")
             self.grid_changed.emit(item)
