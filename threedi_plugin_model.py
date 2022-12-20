@@ -1,5 +1,6 @@
 from pathlib import Path
 from cached_property import cached_property
+from typing import List
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
@@ -37,7 +38,6 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckable(True)
         self.setCheckState(0)
 
-    @cached_property
     def threedi_result(self):
         # ThreediResult is a wrapper around a theedigrid's
         # netcdf support
@@ -122,6 +122,20 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.result_removed.emit(item)
         logger.info(f"Number of results: {self.number_of_results()}")
         return True
+
+    def get_selected_results(self) -> List[ThreeDiResultItem]:
+        """Returns the list of selected results (traversal)"""
+        def _get_selected_results(results: List[ThreeDiResultItem], item: QStandardItemModel):
+            if isinstance(item, ThreeDiResultItem):
+                if item.checkState() == 2:
+                    results.append(item)
+            
+            for i in range(item.rowCount()):
+                return _get_selected_results(results, item.child(i))
+
+        results = []
+        _get_selected_results(results, self.invisibleRootItem())
+        return results
 
     def number_of_grids(self) -> int:
         """Return the number of grid items by doing a full traversal."""
