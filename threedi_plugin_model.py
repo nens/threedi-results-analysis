@@ -1,5 +1,4 @@
 from pathlib import Path
-from cached_property import cached_property
 from typing import List
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
@@ -129,7 +128,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             if isinstance(item, ThreeDiResultItem):
                 if item.checkState() == 2:
                     results.append(item)
-            
+
             for i in range(item.rowCount()):
                 return _get_selected_results(results, item.child(i))
 
