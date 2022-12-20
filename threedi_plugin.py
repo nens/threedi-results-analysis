@@ -13,6 +13,7 @@ from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from ThreeDiToolbox.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
 from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
+from ThreeDiToolbox.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
 from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
@@ -174,12 +175,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
     def write(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        self.model.write(doc, resolver)
+        return ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
 
     def read(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        self.model.read(doc, resolver)
+        return ThreeDiPluginModelSerializer.read(self.model, doc, resolver)
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on

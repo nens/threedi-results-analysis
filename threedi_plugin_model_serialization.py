@@ -1,0 +1,161 @@
+from qgis.PyQt.QtXml import QDomDocument, QDomElement
+from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
+from qgis.PyQt.QtGui import QStandardItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class ThreeDiPluginModelSerializer:
+
+    @staticmethod
+    def read(model: ThreeDiPluginModel, doc: QDomDocument, resolver) -> bool:
+        """Reads the model from the provided XML DomDocument
+
+        Recursively traverses down the XML tree. Returns True
+        on success. Resolver is used to convert between relative
+        and absolute paths.
+        """
+        model.clear()
+
+        # Find existing element corresponding to the result model
+        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
+
+        if results_nodes.length() > 1:
+            logger.error("XML file contains multiple toolbox root elements, aborting load.")
+            return False
+        elif results_nodes.length() == 0:
+            return True  # Nothing to load
+
+        results_node = results_nodes.at(0)
+        assert results_node.parentNode() is not None
+
+        # Now traverse through the XML tree and add model items
+        if not ThreeDiPluginModelSerializer._read_recursive(model, results_node, model.invisibleRootItem(), resolver):
+            logger.error("Unable to read XML, aborting read")
+            model.clear()
+            return False
+
+        return True
+
+    @staticmethod
+    def _read_recursive(model: ThreeDiPluginModel, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
+
+        if not xml_parent.hasChildNodes():
+            return True
+
+        child_xml_nodes = xml_parent.childNodes()
+
+        for i in range(child_xml_nodes.count()):
+            xml_node = child_xml_nodes.at(i)
+
+            if xml_node.isElement():
+                xml_element_node = xml_node.toElement()
+                tag_name = xml_element_node.tagName()
+                model_node = None
+                if tag_name == "grid":
+                    # First read the grids layer ids
+                    layer_ids = {}
+                    assert xml_node.hasChildNodes()
+                    layer_nodes = xml_element_node.elementsByTagName("layer")
+                    for i in range(layer_nodes.count()):
+                        label_node = layer_nodes.at(i).toElement()
+                        layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
+
+                    model_node = model.add_grid(
+                        resolver.readPath(xml_element_node.attribute("path")),
+                        xml_element_node.attribute("text"),
+                        layer_ids
+                    )
+                elif tag_name == "result":
+                    model_node = model.add_result(
+                        resolver.readPath(xml_element_node.attribute("path")),
+                        model_parent,
+                        xml_element_node.attribute("text"),
+                    )
+                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
+                elif tag_name == "layer":  # Subelement of grid
+                    continue  # Leaf of XML tree, no processing
+                else:
+                    logger.error("Unexpected XML item type, aborting read")
+                    return False
+
+                if not ThreeDiPluginModelSerializer._read_recursive(model, xml_node, model_node, resolver):
+                    return False
+            else:
+                return False
+
+        return True
+
+    @staticmethod
+    def write(model: ThreeDiPluginModel, doc: QDomDocument, resolver) -> bool:
+        """Add the model to the provided XML DomDocument
+
+        Recursively traverses down the model tree. Returns True
+        on success. QGIS' resolver is used to convert between relative
+        and absolute paths.
+        """
+        # Find and remove the existing element corresponding to the result model
+        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
+        if results_nodes.length() == 1:
+            results_node = results_nodes.at(0)
+            assert results_node.parentNode() is not None
+            results_node.parentNode().removeChild(results_node)
+
+        # Create new results node under main (qgis) node
+        qgis_nodes = doc.elementsByTagName("qgis")
+        assert qgis_nodes.length() == 1 and qgis_nodes.at(0) is not None
+        qgis_node = qgis_nodes.at(0)
+        results_node = doc.createElement(TOOLBOX_XML_ELEMENT_ROOT)
+        results_node = qgis_node.appendChild(results_node)
+        assert results_node is not None
+
+        # Traverse through the model and save the nodes
+        if not ThreeDiPluginModelSerializer._write_recursive(doc, results_node, model.invisibleRootItem(), resolver):
+            logger.error("Unable to write model")
+            return False
+
+        return True
+
+    @staticmethod
+    def _write_recursive(doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
+        # Something is wrong when exactly one of them is None
+        assert not (bool(xml_parent is not None) ^ bool(model_parent is not None))
+
+        # Iterate over model child nodes and continue recursive traversion
+        if model_parent.hasChildren():
+            for i in range(model_parent.rowCount()):
+                model_node = model_parent.child(i)
+                xml_node = doc.createElement("temp")  # tag required
+
+                # Populate the new xml_node with the info from model_node
+                if isinstance(model_node, ThreeDiGridItem):
+                    xml_node.setTagName("grid")
+                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
+                    xml_node.setAttribute("text", model_node.text())
+
+                    # Write corresponding layer id's
+                    for table_name, layer_id in model_node.layer_ids.items():
+                        layer_element = doc.createElement("layer")
+                        layer_element.setAttribute("id", layer_id)
+                        layer_element.setAttribute("table_name", table_name)
+                        xml_node.appendChild(layer_element)
+
+                elif isinstance(model_node, ThreeDiResultItem):
+                    xml_node.setTagName("result")
+                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
+                    xml_node.setAttribute("text", model_node.text())
+                    xml_node.setAttribute("check_state", str(model_node.checkState()))
+                else:
+                    logger.error("Unknown node type for serialization")
+                    return False
+
+                xml_node = xml_parent.appendChild(xml_node)
+                assert xml_node is not None
+
+                if not ThreeDiPluginModelSerializer._write_recursive(doc, xml_node, model_node, resolver):
+                    return False
+
+        return True

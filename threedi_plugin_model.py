@@ -2,8 +2,6 @@ from pathlib import Path
 from cached_property import cached_property
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
-from qgis.PyQt.QtXml import QDomDocument, QDomElement
-from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 
 import logging
@@ -122,6 +120,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         grid_item.removeRow(item.row())
 
         self.result_removed.emit(item)
+        logger.info(f"Number of results: {self.number_of_results()}")
         return True
 
     def number_of_grids(self) -> int:
@@ -164,152 +163,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         if item.hasChildren():
             for i in range(item.rowCount()):
                 self._clear_recursive(item.child(i))
-
-    def read(self, doc: QDomDocument, resolver) -> bool:
-        """Reads the model from the provided XML DomDocument
-
-        Recursively traverses down the XML tree. Returns True
-        on success. Resolver is used to convert between relative
-        and absolute paths.
-        """
-        self.clear()
-
-        # Find existing element corresponding to the result model
-        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
-
-        if results_nodes.length() > 1:
-            logger.error("XML file contains multiple toolbox root elements, aborting load.")
-            return False
-        elif results_nodes.length() == 0:
-            return True  # Nothing to load
-
-        results_node = results_nodes.at(0)
-        assert results_node.parentNode() is not None
-
-        # Now traverse through the XML tree and add model items
-        if not self._read_recursive(results_node, self.invisibleRootItem(), resolver):
-            logger.error("Unable to read XML, aborting read")
-            self.clear()
-            return False
-
-        return True
-
-    def _read_recursive(self,  xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
-
-        if not xml_parent.hasChildNodes():
-            return True
-
-        child_xml_nodes = xml_parent.childNodes()
-
-        for i in range(child_xml_nodes.count()):
-            xml_node = child_xml_nodes.at(i)
-
-            if xml_node.isElement():
-                xml_element_node = xml_node.toElement()
-                tag_name = xml_element_node.tagName()
-                model_node = None
-                if tag_name == "grid":
-                    # First read the grids layer ids
-                    layer_ids = {}
-                    assert xml_node.hasChildNodes()
-                    layer_nodes = xml_element_node.elementsByTagName("layer")
-                    for i in range(layer_nodes.count()):
-                        label_node = layer_nodes.at(i).toElement()
-                        layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
-
-                    model_node = self.add_grid(
-                        resolver.readPath(xml_element_node.attribute("path")),
-                        xml_element_node.attribute("text"),
-                        layer_ids
-                    )
-                elif tag_name == "result":
-                    model_node = self.add_result(
-                        resolver.readPath(xml_element_node.attribute("path")),
-                        model_parent,
-                        xml_element_node.attribute("text"),
-                    )
-                    model_node.setCheckState(int(xml_element_node.attribute("check_state")))
-                elif tag_name == "layer":  # Subelement of grid
-                    continue  # Leaf of XML tree, no processing
-                else:
-                    logger.error("Unexpected XML item type, aborting read")
-                    return False
-
-                if not self._read_recursive(xml_node, model_node, resolver):
-                    return False
-            else:
-                return False
-
-        return True
-
-    def write(self, doc: QDomDocument, resolver) -> bool:
-        """Add the model to the provided XML DomDocument
-
-        Recursively traverses down the model tree. Returns True
-        on success. QGIS' resolver is used to convert between relative
-        and absolute paths.
-        """
-        # Find and remove the existing element corresponding to the result model
-        results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
-        if results_nodes.length() == 1:
-            results_node = results_nodes.at(0)
-            assert results_node.parentNode() is not None
-            results_node.parentNode().removeChild(results_node)
-
-        # Create new results node under main (qgis) node
-        qgis_nodes = doc.elementsByTagName("qgis")
-        assert qgis_nodes.length() == 1 and qgis_nodes.at(0) is not None
-        qgis_node = qgis_nodes.at(0)
-        results_node = doc.createElement(TOOLBOX_XML_ELEMENT_ROOT)
-        results_node = qgis_node.appendChild(results_node)
-        assert results_node is not None
-
-        # Traverse through the model and save the nodes
-        if not self._write_recursive(doc, results_node, self.invisibleRootItem(), resolver):
-            logger.error("Unable to write model")
-            return False
-
-        return True
-
-    def _write_recursive(self, doc: QDomDocument, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
-        # Something is wrong when exactly one of them is None
-        assert not (bool(xml_parent is not None) ^ bool(model_parent is not None))
-
-        # Iterate over model child nodes and continue recursive traversion
-        if model_parent.hasChildren():
-            for i in range(model_parent.rowCount()):
-                model_node = model_parent.child(i)
-                xml_node = doc.createElement("temp")  # tag required
-
-                # Populate the new xml_node with the info from model_node
-                if isinstance(model_node, ThreeDiGridItem):
-                    xml_node.setTagName("grid")
-                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
-                    xml_node.setAttribute("text", model_node.text())
-
-                    # Write corresponding layer id's
-                    for table_name, layer_id in model_node.layer_ids.items():
-                        layer_element = doc.createElement("layer")
-                        layer_element.setAttribute("id", layer_id)
-                        layer_element.setAttribute("table_name", table_name)
-                        xml_node.appendChild(layer_element)
-
-                elif isinstance(model_node, ThreeDiResultItem):
-                    xml_node.setTagName("result")
-                    xml_node.setAttribute("path", resolver.writePath(str(model_node.path)))
-                    xml_node.setAttribute("text", model_node.text())
-                    xml_node.setAttribute("check_state", str(model_node.checkState()))
-                else:
-                    logger.error("Unknown node type for serialization")
-                    return False
-
-                xml_node = xml_parent.appendChild(xml_node)
-                assert xml_node is not None
-
-                if not self._write_recursive(doc, xml_node, model_node, resolver):
-                    return False
-
-        return True
 
     def contains(self, path: Path, ignore_suffix: bool = False) -> bool:
         """Return if any item has a path attribute equal to path."""
