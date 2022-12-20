@@ -3,6 +3,11 @@ from typing import List
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
+from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 import re
@@ -37,10 +42,48 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckable(True)
         self.setCheckState(0)
 
+        # The following four are caches for self.get_result_layers()
+        self._line_layer = None
+        self._node_layer = None
+        self._cell_layer = None
+        self._pumpline_layer = None
+
     def threedi_result(self):
         # ThreediResult is a wrapper around a theedigrid's
         # netcdf support
         return ThreediResult(self.path)
+
+    def get_result_layers(self, progress_bar=None):
+        """Return QgsVectorLayers for line, node, and pumpline layers.
+
+        Use cached versions (``self._line_layer`` and so) if present.
+
+        """
+        if progress_bar is None:
+            progress_bar = StatusProgressBar(100, "3Di Toolbox")
+        progress_bar.increase_progress(0, "Create flowline layer")
+        self._line_layer = self._line_layer or get_or_create_flowline_layer(
+            self.threedi_result, self.sqlite_gridadmin_filepath
+        )
+        progress_bar.increase_progress(25, "Create node layer")
+        self._node_layer = self._node_layer or get_or_create_node_layer(
+            self.threedi_result, self.sqlite_gridadmin_filepath
+        )
+        progress_bar.increase_progress(25, "Create cell layer")
+        self._cell_layer = self._cell_layer or get_or_create_cell_layer(
+            self.threedi_result, self.sqlite_gridadmin_filepath
+        )
+        progress_bar.increase_progress(25, "Create pumpline layer")
+        self._pumpline_layer = self._pumpline_layer or get_or_create_pumpline_layer(
+            self.threedi_result, self.sqlite_gridadmin_filepath
+        )
+        progress_bar.increase_progress(25, "Processing...")
+        return [
+            self._line_layer,
+            self._node_layer,
+            self._cell_layer,
+            self._pumpline_layer,
+        ]
 
 
 class ThreeDiPluginModel(QStandardItemModel):
