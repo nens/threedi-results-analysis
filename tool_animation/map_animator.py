@@ -315,7 +315,7 @@ class MapAnimator(QWidget):
         based value distribution in the results and difference vs. current choice
         """
         has_groundwater = (
-            self.root_tool.ts_datasources.rows[0].threedi_result().result_admin.has_groundwater  # TODO: ACTIVE
+            self.model.get_selected_results()[0].threedi_result().result_admin.has_groundwater  # TODO: ACTIVE
         )
 
         if self.current_line_parameter is None:
@@ -428,7 +428,7 @@ class MapAnimator(QWidget):
 
     def update_class_bounds(self, update_nodes: bool, update_lines: bool):
         gr = (
-            self.root_tool.ts_datasources.rows[0].threedi_result().result_admin  # TODO: ACTIVE
+            self.model.get_selected_results()[0].threedi_result().result_admin  # TODO: ACTIVE
         )
 
         if update_nodes:
@@ -559,7 +559,7 @@ class MapAnimator(QWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
+        active_ts_datasource = self.model.get_selected_results()[0]  # TODO: ACTIVE
 
         if active_ts_datasource is not None:
             # TODO: just taking the first datasource, not sure if correct:
@@ -582,7 +582,7 @@ class MapAnimator(QWidget):
         return parameter_config
 
     def on_activate_button_clicked(self, checked: bool):
-        activate = checked and self.root_tool.ts_datasources.rowCount() > 0
+        activate = checked and len(self.model.get_selected_results()) > 0
         self.active = activate
 
     @staticmethod
@@ -653,7 +653,7 @@ class MapAnimator(QWidget):
         return output_layer
 
     def prepare_animation_layers(self, progress_bar=None):
-        result = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
+        result = self.model.get_selected_results()[0]  # TODO: ACTIVE
 
         if result is None:
             # todo: logger warning
@@ -851,7 +851,7 @@ class MapAnimator(QWidget):
         if not self.active:
             return
 
-        result = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
+        result = self.model.get_selected_results()[0]  # TODO: ACTIVE
         threedi_result = result.threedi_result()
 
         # Update UI (LCD)

@@ -75,6 +75,8 @@ class ThreeDiPluginModelSerializer:
                         model_parent,
                         xml_element_node.attribute("text"),
                     )
+                    # TODO: this should also be passed before the add_result.
+                    # Otherwise the signal is emitted with a possible unchecked item
                     model_node.setCheckState(int(xml_element_node.attribute("check_state")))
                 elif tag_name == "layer":  # Subelement of grid
                     continue  # Leaf of XML tree, no processing
