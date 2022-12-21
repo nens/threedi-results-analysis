@@ -26,7 +26,6 @@ from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAna
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from ThreeDiToolbox.utils.user_messages import messagebar_message
 
 
 import datetime
@@ -146,6 +145,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
 
+        self.loader.result_loaded.connect(self._update_temporal_controler)
+        self.model.grid_removed.connect(self._update_temporal_controler)
+        self.model.result_removed.connect(self._update_temporal_controler)
+        self.model.result_checked.connect(self._update_temporal_controler)
+        self.model.result_unchecked.connect(self._update_temporal_controler)
+
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
@@ -189,19 +194,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         args:
             *args: (list) the arguments provided by the different signals
         """
-        # First some logging.
-        logger.info(
-            "Timeseries datasource change. %s ts_datasources:",
-            self.ts_datasources.rowCount(),
-        )
-        for ts_datasource in self.ts_datasources.rows:
-            logger.info(
-                "    - %s (%s)", ts_datasource.name.value, ts_datasource.file_path.value
-            )
-        logger.info(
-            "The selected 3di model spatialite: %s",
-            self.ts_datasources.model_spatialite_filepath,
-        )
 
         # Enable/disable tools that depend on netCDF results.
         # For side views also the spatialite needs to be imported or else it
@@ -210,16 +202,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
             # self.map_animator_widget.setEnabled(True)
-
-            # TEST: connect TemporalController
-            datasource = self.ts_datasources.rows[0]
-            timestamps = datasource.threedi_result().get_timestamps()
-            tc = iface.mapCanvas().temporalController()
-            start_time = datetime.datetime(2000, 1, 1)
-            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
-            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
-            messagebar_message("stamps", f"{timestamps}")
-            messagebar_message("end", f"{end_time}")
 
         else:
             self.graph_tool.action_icon.setEnabled(False)
@@ -292,19 +274,34 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
         del self.toolbar
-
         del self.toolbar_animation
 
-    def _temporal_update(self, x):
+    def _update_temporal_controler(self, *args):
 
-        if self.ts_datasources.rowCount() > 0:
+        if len(self.model.get_selected_results()) > 0:
+            logger.info("Updating temporal controller")
+            datasource = self.model.get_selected_results()[0]
+            timestamps = datasource.threedi_result().get_timestamps()
+            tc = iface.mapCanvas().temporalController()
+            start_time = datetime.datetime(2000, 1, 1)
+            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
+            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
+            logger.info(f"stamps {timestamps}")
+            logger.info(f"end {end_time}")
+        else:
+            tc = iface.mapCanvas().temporalController()
+            tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
+
+    def _temporal_update(self, _):
+
+        if len(self.model.get_selected_results()) > 0:
             tc = iface.mapCanvas().temporalController()
             tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
 
             # Convert the timekey to result index
             timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
 
-            datasource = self.ts_datasources.rows[0]
+            datasource = self.model.get_selected_results()[0]
             timestamps = datasource.threedi_result().timestamps
             # TODO: are the timekeys always sorted?
             index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
@@ -312,6 +309,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")
             # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
             # messagebar_message("count", f"{tc.totalFrameCount()}")
+            logger.info(f"index = {index}")
             self.map_animator_widget.update_results(index, True, True)
 
     def _add_action(
