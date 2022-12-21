@@ -198,6 +198,28 @@
             </widget>
            </item>
            <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="toolGroupBox">
+             <property name="title">
+              <string>Tools</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2"/>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QTreeView" name="treeView">
              <property name="headerHidden">
               <bool>true</bool>

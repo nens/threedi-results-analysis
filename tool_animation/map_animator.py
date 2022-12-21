@@ -174,9 +174,7 @@ class MapAnimator(QWidget):
         self._line_layer_groundwater = None
         self._node_layer_groundwater = None
         self._cell_layer_groundwater = None
-        self.setup_ui()
-        self.active = False
-        self.setEnabled(False)
+        self.setup_ui(parent)
 
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
@@ -947,7 +945,7 @@ class MapAnimator(QWidget):
                 layer.setName(layer_name)
                 layer.triggerRepaint()
 
-    def setup_ui(self):
+    def setup_ui(self, parent_widget: QWidget):
         self.HLayout = QHBoxLayout(self)
         self.setLayout(self.HLayout)
         self.activateButton = QPushButton(self)
@@ -1007,6 +1005,8 @@ class MapAnimator(QWidget):
         self.difference_checkbox.stateChanged.connect(
             self.on_difference_checkbox_state_change
         )
+        self.active = False
+        self.setEnabled(False)
 
     @staticmethod
     def index_to_duration(index, timestamps):

@@ -164,13 +164,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.initProcessing()
 
-        # TODO: can be removed when refactor of anim tool is done
-        self.toolbar_animation = self.iface.addToolBar("ThreeDiAnimation")
-        self.map_animator_widget = MapAnimator(self.toolbar_animation, self.model)
-        self.toolbar_animation.addWidget(self.map_animator_widget)
+        self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
 
-        self.model.result_added.connect(self.map_animator_widget.results_changed)
-        self.model.result_removed.connect(self.map_animator_widget.results_changed)
+        self.model.result_added.connect(self.map_animator.results_changed)
+        self.model.result_removed.connect(self.map_animator.results_changed)
 
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
@@ -201,13 +198,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         if self.ts_datasources.rowCount() > 0:
             self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
-            # self.map_animator_widget.setEnabled(True)
 
         else:
             self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
-            # self.map_animator_widget.active = False
-            # self.map_animator_widget.setEnabled(False)
+
         if (
             self.ts_datasources.rowCount() > 0
             and self.ts_datasources.model_spatialite_filepath is not None
@@ -274,7 +269,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
         del self.toolbar
-        del self.toolbar_animation
 
     def _update_temporal_controler(self, *args):
 
@@ -310,7 +304,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
             # messagebar_message("count", f"{tc.totalFrameCount()}")
             logger.info(f"index = {index}")
-            self.map_animator_widget.update_results(index, True, True)
+            self.map_animator.update_results(index, True, True)
 
     def _add_action(
         self,

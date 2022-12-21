@@ -38,6 +38,9 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.treeView.setModel(model)
         self.treeView.selectionModel().selectionChanged.connect(self._selection_changed)
 
+    def get_tools_widget(self):
+        return self.toolGroupBox
+
     def _add_grid_clicked(self):
         dir_path = self._get_dir()
         input_gridadmin_h5_or_gpkg, _ = QFileDialog.getOpenFileName(
