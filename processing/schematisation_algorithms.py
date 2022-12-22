@@ -45,6 +45,7 @@ from qgis.core import (
     QgsWkbTypes,
 )
 
+
 def get_threedi_database(filename, feedback):
     try:
         db_type = "spatialite"
@@ -66,7 +67,11 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+            )
+        )
 
     def processAlgorithm(self, parameters, context, feedback):
         filename = self.parameterAsFile(parameters, self.INPUT, context)
@@ -142,16 +147,28 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
-
-        self.addParameter(QgsProcessingParameterFileDestination(self.OUTPUT, self.tr("Output"), fileFilter="csv"))
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+            )
+        )
 
         self.addParameter(
-            QgsProcessingParameterBoolean(self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True)
+            QgsProcessingParameterFileDestination(
+                self.OUTPUT, self.tr("Output"), fileFilter="csv"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
+            )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -167,7 +184,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
             return {self.OUTPUT: None}
         schema = ModelSchema(threedi_db)
         schema.set_spatial_indexes()
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT, context
+        )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
         total_checks = len(model_checker.config.checks)
@@ -219,7 +238,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, "3Di schematisation errors")
+                result_layer = QgsVectorLayer(
+                    self.output_file_path, "3Di schematisation errors"
+                )
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT: self.output_file_path}
 
@@ -275,22 +296,34 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
-
         self.addParameter(
-            QgsProcessingParameterFileDestination(self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv")
+            QgsProcessingParameterFile(
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+            )
         )
 
         self.addParameter(
-            QgsProcessingParameterFeatureSink(self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels"))
+            QgsProcessingParameterFileDestination(
+                self.OUTPUT_CSV, self.tr("CSV Output"), fileFilter="csv"
+            )
         )
 
         self.addParameter(
-            QgsProcessingParameterBoolean(self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True)
+            QgsProcessingParameterFeatureSink(
+                self.OUTPUT_POINTS, self.tr("3Di raster errors - wrong pixels")
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
+            )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -311,12 +344,16 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
             )
             return {self.OUTPUT_CSV: None}
 
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT_CSV, context)
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT_CSV, context
+        )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         try:
             with open(self.output_file_path, "w", newline="") as output_file:
                 writer = csv.writer(output_file)
-                writer.writerow(["level", "global_settings_id", "error_code", "description"])
+                writer.writerow(
+                    ["level", "global_settings_id", "error_code", "description"]
+                )
                 checker.results.sort_results()
                 for result_row in checker.results.result_per_check:
                     str_row = checker.results.result_per_check_to_msg(result_row)
@@ -359,7 +396,9 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, "3Di raster errors")
+                result_layer = QgsVectorLayer(
+                    self.output_file_path, "3Di raster errors"
+                )
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT_CSV: self.output_file_path}
 
@@ -408,6 +447,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     """
     Import data from GWSW HydX to a 3Di Spatialite
     """
+
     INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
     HYDX_DOWNLOAD_DIRECTORY = "HYDX_DOWNLOAD_DIRECTORY"
     INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
@@ -416,9 +456,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
         self.addParameter(
             QgsProcessingParameterString(
-                self.INPUT_DATASET_NAME,
-                "GWSW Dataset name (online)",
-                optional=True
+                self.INPUT_DATASET_NAME, "GWSW Dataset name (online)", optional=True
             )
         )
 
@@ -426,7 +464,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFolderDestination(
                 self.HYDX_DOWNLOAD_DIRECTORY,
                 "Destination directory for HydX dataset download",
-                optional=True
+                optional=True,
             )
         )
 
@@ -435,22 +473,26 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 self.INPUT_HYDX_DIRECTORY,
                 "Directory containing input HydX dataset",
                 behavior=QgsProcessingParameterFile.Folder,
-                optional=True
+                optional=True,
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFile(
-                self.TARGET_SQLITE,
-                "Target 3Di Sqlite",
-                extension="sqlite"
+                self.TARGET_SQLITE, "Target 3Di Sqlite", extension="sqlite"
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        hydx_dataset_name = self.parameterAsString(parameters, self.INPUT_DATASET_NAME, context)
-        hydx_download_dir = self.parameterAsString(parameters, self.HYDX_DOWNLOAD_DIRECTORY, context)
-        hydx_path = self.parameterAsString(parameters, self.INPUT_HYDX_DIRECTORY, context)
+        hydx_dataset_name = self.parameterAsString(
+            parameters, self.INPUT_DATASET_NAME, context
+        )
+        hydx_download_dir = self.parameterAsString(
+            parameters, self.HYDX_DOWNLOAD_DIRECTORY, context
+        )
+        hydx_path = self.parameterAsString(
+            parameters, self.INPUT_HYDX_DIRECTORY, context
+        )
         out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
@@ -459,7 +501,8 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         if hydx_dataset_name and hydx_path:
             feedback.pushWarning(
                 "Both 'GWSW Dataset name (online)' and 'Directory containing input HydX dataset' are filled in. "
-                "'GWSW Dataset name (online)' will be ignored. This dataset will not be downloaded.")
+                "'GWSW Dataset name (online)' will be ignored. This dataset will not be downloaded."
+            )
         elif hydx_dataset_name:
             try:
                 hydx_download_path = Path(hydx_download_dir)
@@ -474,14 +517,16 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 dataset_name=hydx_dataset_name,
                 target_directory=hydx_download_path,
                 wait_times=[0.1, 1, 2, 3, 4, 5, 10],
-                feedback=feedback
+                feedback=feedback,
             )
             # hydx_path will be None if user has canceled the process during download
             if feedback.isCanceled():
-                raise QgsProcessingException(f"Process canceled")
+                raise QgsProcessingException("Process canceled")
         threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
         if not threedi_db:
-            raise QgsProcessingException(f"Unable to connect to 3Di spatialite '{out_path}'")
+            raise QgsProcessingException(
+                f"Unable to connect to 3Di spatialite '{out_path}'"
+            )
         try:
             schema = ModelSchema(threedi_db)
             schema.validate_schema()
