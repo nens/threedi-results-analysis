@@ -19,6 +19,7 @@ from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QGroupBox
 from threedigrid.admin.constants import NO_DATA_VALUE
 from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from ThreeDiToolbox.datasource.result_constants import DISCHARGE
@@ -144,14 +145,14 @@ def threedi_result_percentiles(
     return result
 
 
-class MapAnimator(QWidget):
+class MapAnimator(QGroupBox):
     """ """
 
     EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
 
     def __init__(self, parent, model):
 
-        super().__init__(parent)
+        super().__init__("Animation", parent)
         self.model = model
         self.node_parameters = {}
         self.line_parameters = {}
@@ -946,6 +947,8 @@ class MapAnimator(QWidget):
                 layer.triggerRepaint()
 
     def setup_ui(self, parent_widget: QWidget):
+        parent_widget.layout().addWidget(self)
+
         self.HLayout = QHBoxLayout(self)
         self.setLayout(self.HLayout)
         self.activateButton = QPushButton(self)

@@ -7,6 +7,8 @@ from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.core import QgsSettings
+from qgis.PyQt.QtGui import QPixmap
+from ThreeDiToolbox import PLUGIN_DIR
 
 logger = getLogger(__name__)
 
@@ -34,12 +36,18 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.pushButton_RemoveGrid.clicked.connect(self._remove_grid_clicked)
         self.pushButton_RemoveResult.clicked.connect(self._remove_result_clicked)
 
+        # Set logo
+        path_3di_logo = str(PLUGIN_DIR / "icons" / "icon.png")
+        logo_3di = QPixmap(path_3di_logo)
+        logo_3di = logo_3di.scaledToHeight(30)
+        self.logo.setPixmap(logo_3di)
+
     def set_model(self, model):
         self.treeView.setModel(model)
         self.treeView.selectionModel().selectionChanged.connect(self._selection_changed)
 
     def get_tools_widget(self):
-        return self.toolGroupBox
+        return self.toolWidget
 
     def _add_grid_clicked(self):
         dir_path = self._get_dir()
