@@ -212,7 +212,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         super().clear()
 
     def _clear_recursive(self, item: QStandardItemModel):
-        """Traverses through the subthree top-down, emits grid_removed and 
+        """Traverses through the subthree top-down, emits grid_removed and
         result_removed for each subsequent item"""
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
