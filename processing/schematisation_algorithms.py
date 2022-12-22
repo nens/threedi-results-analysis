@@ -455,35 +455,39 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config):
         self.addParameter(
-            QgsProcessingParameterString(
-                self.INPUT_DATASET_NAME, "GWSW Dataset name (online)", optional=True
-            )
-        )
-
-        self.addParameter(
-            QgsProcessingParameterFolderDestination(
-                self.HYDX_DOWNLOAD_DIRECTORY,
-                "Destination directory for HydX dataset download",
-                optional=True,
+            QgsProcessingParameterFile(
+                self.TARGET_SQLITE, "Target 3Di Spatialite", extension="sqlite"
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT_HYDX_DIRECTORY,
-                "Directory containing input HydX dataset",
+                "GWSW HydX directory (local)",
                 behavior=QgsProcessingParameterFile.Folder,
                 optional=True,
             )
         )
 
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.TARGET_SQLITE, "Target 3Di Sqlite", extension="sqlite"
+            QgsProcessingParameterString(
+                self.INPUT_DATASET_NAME, "GWSW dataset name (online)", optional=True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFolderDestination(
+                self.HYDX_DOWNLOAD_DIRECTORY,
+                "Destination directory for GWSW HydX dataset download",
+                optional=True,
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
+        feedback.pushInfo(f"self.INPUT_DATASET_NAME: {parameters[self.INPUT_DATASET_NAME]}")
+        feedback.pushInfo(f"self.HYDX_DOWNLOAD_DIRECTORY: {parameters[self.HYDX_DOWNLOAD_DIRECTORY]}")
+        feedback.pushInfo(f"self.INPUT_HYDX_DIRECTORY: {parameters[self.INPUT_HYDX_DIRECTORY]}")
+        feedback.pushInfo(f"self.TARGET_SQLITE: {parameters[self.TARGET_SQLITE]}")
         hydx_dataset_name = self.parameterAsString(
             parameters, self.INPUT_DATASET_NAME, context
         )
@@ -496,12 +500,12 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
-                "Either 'GWSW Dataset name (online)' or 'Directory containing input HydX dataset' must be filled in!"
+                "Either 'GWSW HydX directory (local)' or 'GWSW dataset name (online)' must be filled in!"
             )
         if hydx_dataset_name and hydx_path:
             feedback.pushWarning(
-                "Both 'GWSW Dataset name (online)' and 'Directory containing input HydX dataset' are filled in. "
-                "'GWSW Dataset name (online)' will be ignored. This dataset will not be downloaded."
+                "Both 'GWSW dataset name (online)' and 'GWSW HydX directory (local)' are filled in. "
+                "'GWSW dataset name (online)' will be ignored. This dataset will not be downloaded."
             )
         elif hydx_dataset_name:
             try:
@@ -509,6 +513,8 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 hydx_download_dir_is_valid = hydx_download_path.is_dir()
             except TypeError:
                 hydx_download_dir_is_valid = False
+            if parameters[self.HYDX_DOWNLOAD_DIRECTORY] == "TEMPORARY_OUTPUT":
+                hydx_download_dir_is_valid = True
             if not hydx_download_dir_is_valid:
                 raise QgsProcessingException(
                     f"'Destination directory for HydX dataset download' ({hydx_download_path}) is not a valid directory"
