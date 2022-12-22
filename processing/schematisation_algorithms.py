@@ -566,6 +566,22 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         """
         return self.tr("Import GWSW HydX")
 
+    def shortHelpString(self):
+        return """
+        <h3>Introduction</h3>
+        <p>Use this processing algorithm to import data in the format of the Dutch "Gegevenswoordenboek Stedelijk Water (GWSW)". Either select a previously downloaded local dataset, or download a dataset directly from the server.</p>
+        <p>A log file will be created in the same directory as the Target 3Di Spatialite. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
+        <h3>Parameters</h3>
+        <h4>Target 3Di Spatialite</h4>
+        <p>Spatialite (.sqlite) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di Spatialite.</p>
+        <h4>GWSW HydX directory (local)</h4>
+        <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
+        <h4>GWSW dataset name (online)</h4>
+        <p>Use this option if you want to download a GWSW HydX dataset.</p>
+        <h4>Destination directory for GWSW HydX dataset download</h4>
+        <p>If you have chosen to download a GWSW HydX dataset, this is the directory it will be downloaded to.</p>
+        """
+
     def group(self):
         """
         Returns the name of the group this algorithm belongs to. This string
