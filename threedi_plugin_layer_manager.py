@@ -106,6 +106,7 @@ class ThreeDiPluginLayerManager(QObject):
         # As the result itself does not need to be preloaded (this data is accessed
         # via the tools), we just consider it unloaded when the threedigrid wrapper
         # is destroyed (in the model)
+        logger.info("Result unloaded")
         return True
 
     @dirty

@@ -95,8 +95,6 @@ class ThreeDiPluginModel(QStandardItemModel):
     hierarchical model as items. The model itself does not contain much
     functionality, it merely keeps track of the grids and results and emits
     signals when the model is modified.
-
-    Serialization of the model to XML can be done via read() and write()
     """
     grid_added = pyqtSignal(ThreeDiGridItem)
     result_added = pyqtSignal(ThreeDiResultItem)
@@ -151,8 +149,11 @@ class ThreeDiPluginModel(QStandardItemModel):
     @pyqtSlot(ThreeDiGridItem)
     def remove_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes a grid from the model, emits grid_removed"""
+        # Emit the removed signals for the node and its children
+        self._clear_recursive(item)
+
+        # Remove the actual grid
         result = self.removeRows(self.indexFromItem(item).row(), 1)
-        self.grid_removed.emit(item)
         return result
 
     @pyqtSlot(ThreeDiResultItem)
@@ -211,6 +212,8 @@ class ThreeDiPluginModel(QStandardItemModel):
         super().clear()
 
     def _clear_recursive(self, item: QStandardItemModel):
+        """Traverses through the subthree top-down, emits grid_removed and 
+        result_removed for each subsequent item"""
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
         elif isinstance(item, ThreeDiResultItem):
