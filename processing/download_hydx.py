@@ -6,6 +6,9 @@ import zipfile
 import io
 
 
+KEY = "Bearer requestN&S"
+
+
 class MockQgsProcessingFeedback:
     def pushInfo(self, info: str):
         pass
@@ -34,7 +37,7 @@ def download_hydx(
     wait_times = wait_times or [1]
     feedback = feedback or MockQgsProcessingFeedback()
     request_hydx_url = f"https://apps.gwsw.nl/hyd/makehydx?filter={dataset_name}&delim=pk"
-    hydx_headers = {"Authorization": "Bearer requestN&S"}
+    hydx_headers = {"Authorization": KEY}
     hydx_download = requests.get(url=request_hydx_url, headers=hydx_headers)
     hydx_download_json = hydx_download.json()
     if hydx_download.status_code in (200, 202):
