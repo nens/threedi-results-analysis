@@ -102,7 +102,10 @@ class ThreeDiPluginLayerManager(QObject):
 
             layer.startEditing()
             field = QgsField(threedi_result_item.text(), QVariant.Double)
-            layer.addExpressionField('0', field)
+
+            # Store the added field idx so we can remove the field when the result is removed
+            threedi_result_item._field_idx[layer_id] = layer.addExpressionField('0', field)
+
             layer.commitChanges()
 
         self.result_loaded.emit(threedi_result_item)
@@ -110,10 +113,14 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # As the result itself does not need to be preloaded (this data is accessed
-        # via the tools), we just consider it unloaded when the threedigrid wrapper
-        # is destroyed (in the model)
-        logger.info("Result unloaded")
+        # Remove the corresponding virtual fields from the grid layers
+        for layer_id, idx in threedi_result_item._field_idx.items():
+            layer = QgsProject.instance().mapLayer(layer_id)
+            layer.removeExpressionField(idx)
+
+        threedi_result_item._field_idx.clear()
+
+        logger.info("Fields removed")
         return True
 
     @dirty

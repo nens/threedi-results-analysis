@@ -26,10 +26,13 @@ class ThreeDiGridItem(QStandardItem):
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
-        self.layer_group = None
+
         # map from table name to layer id, required to check
         # whether a layer is already loaded
         self.layer_ids = {}
+
+        # layer info
+        self.layer_group = None
 
 
 class ThreeDiResultItem(QStandardItem):
@@ -42,6 +45,11 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckable(True)
         self.setCheckState(0)
 
+        # layer info
+        # list of added field indices (value) to grid layers (key)
+        self._field_idx = {}
+
+        # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
         self._line_layer = None
         self._node_layer = None
@@ -53,6 +61,7 @@ class ThreeDiResultItem(QStandardItem):
         # netcdf support
         return ThreediResult(self.path)
 
+    # TODO: temporary until anim tool has been refactored
     def get_result_layers(self, progress_bar=None):
         """Return QgsVectorLayers for line, node, and pumpline layers.
 
