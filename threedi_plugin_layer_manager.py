@@ -4,9 +4,8 @@ import h5py
 from osgeo import ogr
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
-from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer
-
+from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
@@ -95,9 +94,17 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # As the result itself does not need to be preloaded (this data is accessed
-        # via the tools), we just consider it loaded (and leave validation to the
-        # validator)
+        # Add this result as a virtual field to the grid layers
+        grid_item = threedi_result_item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        for layer_id in grid_item.layer_ids.values():
+            layer = QgsProject.instance().mapLayer(layer_id)
+
+            layer.startEditing()
+            field = QgsField(threedi_result_item.text(), QVariant.Double)
+            layer.addExpressionField('0', field)
+            layer.commitChanges()
+
         self.result_loaded.emit(threedi_result_item)
         return True
 

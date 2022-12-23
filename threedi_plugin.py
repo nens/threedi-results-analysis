@@ -231,11 +231,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.item_deselected.disconnect(self.model.deselect_item)
         self.dockwidget.grid_removal_selected.disconnect(self.model.remove_grid)
 
-        # self.model.result_checked.disconnect(lambda item: print(item))
-        # self.model.result_unchecked.disconnect(lambda item: print(item))
-        # self.model.result_selected.disconnect(lambda item: print(item))
-        # self.model.result_deselected.disconnect(lambda item: print(item))
-
         self.model.grid_added.disconnect(self.loader.load_grid)
         self.model.result_added.disconnect(self.loader.load_result)
         self.model.grid_removed.disconnect(self.loader.unload_grid)
