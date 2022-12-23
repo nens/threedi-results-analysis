@@ -57,7 +57,7 @@ Inside qgis, add https://plugins.lizard.net/plugins.xml as a package
 index. Now you can install ThreeDiToolbox.
 
 The extra dependencies that we need (apart from ``h5py``) are bundled with the
-plugins and automatically installed into the ``python\`` directory of your
+plugins and automatically installed into the ``python\\`` directory of your
 qgis profile.
 
 
@@ -106,6 +106,11 @@ To run black (standard pep8-compatible code formatting), isort (import
 sorting) and flake8 (reporting missing imports and so), run::
 
   $ docker-compose run --rm qgis-desktop make beautiful
+
+To run the QGIS application itself in the docker::
+
+  $ xhost +  # you may need this
+  $ docker-compose run --rm qgis-desktop qgis
 
 
 Release

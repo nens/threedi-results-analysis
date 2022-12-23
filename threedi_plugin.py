@@ -130,12 +130,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
         self.dockwidget.result_removal_selected.connect(self.model.remove_result)
 
-        # self.model.result_checked.connect(lambda item: print(item))
-        # self.model.result_unchecked.connect(lambda item: print(item))
-        # self.model.result_selected.connect(lambda item: print(item))
-        # self.model.result_deselected.connect(lambda item: print(item))
-
         self.model.grid_added.connect(self.loader.load_grid)
+        self.model.grid_added.connect(self.dockwidget.expand_grid)
         self.model.result_added.connect(self.loader.load_result)
         self.model.grid_removed.connect(self.loader.unload_grid)
         self.model.result_removed.connect(self.loader.unload_result)
@@ -232,6 +228,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.grid_removal_selected.disconnect(self.model.remove_grid)
 
         self.model.grid_added.disconnect(self.loader.load_grid)
+        self.model.grid_added.disconnect(self.dockwidget.expand_grid)
         self.model.result_added.disconnect(self.loader.load_result)
         self.model.grid_removed.disconnect(self.loader.unload_grid)
         self.model.result_removed.disconnect(self.loader.unload_result)

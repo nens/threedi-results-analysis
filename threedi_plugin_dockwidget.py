@@ -82,10 +82,12 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def _add_result_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
-        if index is None or index.model() is None:
+        if index is None:
             return
 
-        item = index.model().itemFromIndex(index)
+        model = self.treeView.model()
+
+        item = model.itemFromIndex(index)
         if not isinstance(item, ThreeDiGridItem):
             return
 
@@ -129,3 +131,10 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     @pyqtSlot()
     def toggle_visible(self, *args, **kwargs):
         self.setVisible(not self.isVisible())
+
+    @pyqtSlot(ThreeDiGridItem)
+    def expand_grid(self, item: ThreeDiGridItem):
+        index = self.treeView.model().indexFromItem(item)
+        self.treeView.expand(index)
+        selection_model = self.treeView.selectionModel()
+        selection_model.setCurrentIndex(index, selection_model.Select)

@@ -1,10 +1,14 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
+from qgis.core import Qgis
 from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from .utils.user_messages import messagebar_message
 import h5py
 from osgeo import ogr
 import logging
 logger = logging.getLogger(__name__)
+
+MSG_TITLE = "3Di Model Validator"
 
 
 class ThreeDiPluginModelValidator(QObject):
@@ -29,7 +33,8 @@ class ThreeDiPluginModelValidator(QObject):
         item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
 
         def fail(msg):
-            logger.error(msg)
+            # logger.error(msg)
+            messagebar_message(MSG_TITLE, msg, Qgis.Warning)
             self.result_validated.emit(item, False)
 
         # Check correct file name
