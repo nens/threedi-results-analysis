@@ -105,6 +105,7 @@ class ThreeDiPluginLayerManager(QObject):
 
             # Store the added field idx so we can remove the field when the result is removed
             threedi_result_item._field_idx[layer_id] = layer.addExpressionField('0', field)
+            logger.info(f"Added field at idx = {threedi_result_item._field_idx[layer_id]}")
 
             layer.commitChanges()
 
@@ -115,8 +116,12 @@ class ThreeDiPluginLayerManager(QObject):
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Remove the corresponding virtual fields from the grid layers
         for layer_id, idx in threedi_result_item._field_idx.items():
-            layer = QgsProject.instance().mapLayer(layer_id)
-            layer.removeExpressionField(idx)
+            # It could be that the map layer is removed by QGIS
+            if QgsProject.instance().mapLayer(layer_id) is not None:
+                layer = QgsProject.instance().mapLayer(layer_id)
+                layer.removeExpressionField(idx)
+
+        # TODO: It could be that the idx of the remaining virtual fields are now invalidated
 
         threedi_result_item._field_idx.clear()
 

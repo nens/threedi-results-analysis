@@ -4,7 +4,6 @@ set -u
 
 VERSION=$(grep "^version" metadata.txt| cut -d= -f2)
 
-# TODO: THREEDITOOLBOX_ARTIFACTS_KEY should be set as env variable.
 ARTIFACT=ThreeDiToolbox.${VERSION}.zip
 PROJECT=ThreeDiToolbox
 
