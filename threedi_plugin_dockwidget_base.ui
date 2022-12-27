@@ -162,7 +162,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>icons/add_grid.png</normaloff>icons/add_grid.png</iconset>
+                  <normaloff>:images/themes/default/mActionAdd.svg</normaloff>:images/themes/default/mActionAdd.svg</iconset>
                 </property>
                </widget>
               </item>
@@ -186,7 +186,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>icons/remove_item.png</normaloff>icons/remove_item.png</iconset>
+                  <normaloff>:images/themes/default/mActionRemoveLayer.svg</normaloff>:images/themes/default/mActionRemoveLayer.svg</iconset>
                 </property>
                </widget>
               </item>
