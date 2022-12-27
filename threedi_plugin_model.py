@@ -46,8 +46,9 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckState(0)
 
         # layer info
-        # list of added field indices (value) to grid layers (key)
-        self._field_idx = {}
+        # map of added virtual field name (value) to grid layers (key),
+        # used for cleaning up virtual fields when result is removed
+        self._virtual_field_name = {}
 
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
@@ -138,7 +139,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         parent_item.appendRow(grid_item)
         self.grid_added.emit(grid_item)
 
-        logger.info(f"Number of grids: {self.number_of_grids()}")
         return grid_item
 
     @pyqtSlot(str, ThreeDiGridItem)
@@ -152,7 +152,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
 
-        logger.info(f"Number of results: {self.number_of_results()}")
         return result_item
 
     def _remove_grid(self, item: ThreeDiGridItem) -> bool:
@@ -161,8 +160,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         self._clear_recursive(item)
 
         # Remove the actual grid
-        result = self.removeRows(self.indexFromItem(item).row(), 1)
-        return result
+        return self.removeRows(self.indexFromItem(item).row(), 1)
 
     def _remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
@@ -171,7 +169,6 @@ class ThreeDiPluginModel(QStandardItemModel):
         grid_item.removeRow(item.row())
 
         self.result_removed.emit(item)
-        logger.info(f"Number of results: {self.number_of_results()}")
         return True
 
     @pyqtSlot(QModelIndex)
@@ -279,11 +276,9 @@ class ThreeDiPluginModel(QStandardItemModel):
                         item.parent().child(i).setCheckState(0)
 
         elif isinstance(item, ThreeDiGridItem):
-            logger.info("Item data changed")
             self.grid_changed.emit(item)
 
     def select_item(self, index):
-        logger.info("selected")
         item = self.itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
             self.grid_selected.emit(item)
