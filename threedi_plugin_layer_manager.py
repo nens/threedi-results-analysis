@@ -107,7 +107,9 @@ class ThreeDiPluginLayerManager(QObject):
             field = QgsField(virtual_field_name, QVariant.Double)
             field.setAlias(threedi_result_item.text())
 
-            # Check for duplicate field names
+            # Check for duplicate field names (even though QGIS does not allow
+            # addition of QgsFields (both attribute or expression) with already
+            # existing names)
             if layer.fields().indexFromName(virtual_field_name) != -1:
                 logger.error("Field already exist, aborting addition.")
                 return False
