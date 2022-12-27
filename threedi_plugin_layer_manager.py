@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 import h5py
 from osgeo import ogr
+import uuid
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
@@ -100,14 +101,22 @@ class ThreeDiPluginLayerManager(QObject):
         for layer_id in grid_item.layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
 
-            layer.startEditing()
-            field = QgsField(threedi_result_item.text(), QVariant.Double)
+            # Generate a random field name, with the result text
+            # as alias (display) name.
+            virtual_field_name = "virtual_field_" + str(uuid.uuid4())
+            field = QgsField(virtual_field_name, QVariant.Double)
+            field.setAlias(threedi_result_item.text())
 
-            # Store the added field idx so we can remove the field when the result is removed
-            threedi_result_item._field_idx[layer_id] = layer.addExpressionField('0', field)
-            logger.info(f"Added field at idx = {threedi_result_item._field_idx[layer_id]}")
+            # Check for duplicate field names
+            if layer.fields().indexFromName(virtual_field_name) != -1:
+                logger.error("Field already exist, aborting addition.")
+                return False
 
-            layer.commitChanges()
+            layer.addExpressionField(str(0.0), field)
+            logger.info(f"Added virtual attribute with alias {threedi_result_item.text()} to layer.")
+
+            # Store the added field name so we can remove the field when the result is removed
+            threedi_result_item._virtual_field_name[layer_id] = virtual_field_name
 
         self.result_loaded.emit(threedi_result_item)
         return True
@@ -115,22 +124,29 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Remove the corresponding virtual fields from the grid layers
-        for layer_id, idx in threedi_result_item._field_idx.items():
+        for layer_id, virtual_field_name in threedi_result_item._virtual_field_name.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
                 layer = QgsProject.instance().mapLayer(layer_id)
+                idx = layer.fields().indexFromName(virtual_field_name)
+                assert idx != -1
                 layer.removeExpressionField(idx)
 
-        # TODO: It could be that the idx of the remaining virtual fields are now invalidated
+        threedi_result_item._virtual_field_name.clear()
 
-        threedi_result_item._field_idx.clear()
-
-        logger.info("Fields removed")
         return True
 
     @dirty
     @pyqtSlot(ThreeDiResultItem)
-    def update_result(self, item: ThreeDiResultItem) -> bool:
+    def update_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
+        # Update the display name of the virtual fields
+        for layer_id, virtual_field_name in threedi_result_item._virtual_field_name.items():
+            layer = QgsProject.instance().mapLayer(layer_id)
+            idx = layer.fields().indexFromName(virtual_field_name)
+            assert idx != -1
+            logger.info(f"Setting field {idx} alias to {threedi_result_item.text()}")
+            layer.setFieldAlias(idx, threedi_result_item.text())
+
         return True
 
     @staticmethod
