@@ -389,9 +389,6 @@ class MapAnimator(QGroupBox):
                         cells=True,
                     )
 
-    def on_datasource_change(self):
-        self.setEnabled(self.root_tool.ts_datasources.rowCount() > 0)
-
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter
         combobox_current_text = self.line_parameter_combo_box.currentText()
@@ -524,8 +521,6 @@ class MapAnimator(QGroupBox):
 
     def fill_parameter_combobox_items(self):
         """
-        Callback for datasource_changed signal
-
         Also sets self.line_parameters and self.node_parameters
         """
 
