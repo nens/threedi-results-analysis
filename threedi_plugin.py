@@ -127,8 +127,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.result_file_selected.connect(self.model.add_result)
         self.dockwidget.item_selected.connect(self.model.select_item)
         self.dockwidget.item_deselected.connect(self.model.deselect_item)
-        self.dockwidget.grid_removal_selected.connect(self.model.remove_grid)
-        self.dockwidget.result_removal_selected.connect(self.model.remove_result)
+        self.dockwidget.remove_current_index_clicked.connect(self.model.remove_index)
 
         self.model.grid_added.connect(self.loader.load_grid)
         self.model.grid_added.connect(self.dockwidget.expand_grid)
@@ -225,7 +224,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.dockwidget.result_file_selected.disconnect(self.model.add_result)
         self.dockwidget.item_selected.disconnect(self.model.select_item)
         self.dockwidget.item_deselected.disconnect(self.model.deselect_item)
-        self.dockwidget.grid_removal_selected.disconnect(self.model.remove_grid)
+        self.dockwidget.remove_current_index_clicked.disconnect(self.model.remove_index)
 
         self.model.grid_added.disconnect(self.loader.load_grid)
         self.model.grid_added.disconnect(self.dockwidget.expand_grid)

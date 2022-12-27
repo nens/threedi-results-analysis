@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QModelIndex, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
@@ -155,8 +155,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         logger.info(f"Number of results: {self.number_of_results()}")
         return result_item
 
-    @pyqtSlot(ThreeDiGridItem)
-    def remove_grid(self, item: ThreeDiGridItem) -> bool:
+    def _remove_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes a grid from the model, emits grid_removed"""
         # Emit the removed signals for the node and its children
         self._clear_recursive(item)
@@ -165,8 +164,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         result = self.removeRows(self.indexFromItem(item).row(), 1)
         return result
 
-    @pyqtSlot(ThreeDiResultItem)
-    def remove_result(self, item: ThreeDiResultItem) -> bool:
+    def _remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -175,6 +173,15 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.result_removed.emit(item)
         logger.info(f"Number of results: {self.number_of_results()}")
         return True
+
+    @pyqtSlot(QModelIndex)
+    def remove_index(self, index: QModelIndex) -> bool:
+        """Removes a result from the model, emits result_removed"""
+        item = self.itemFromIndex(index)
+        if isinstance(item, ThreeDiGridItem):
+            return self._remove_grid(item)
+        if isinstance(item, ThreeDiResultItem):
+            return self._remove_result(item)
 
     def get_selected_results(self) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""
