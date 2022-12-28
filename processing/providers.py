@@ -8,8 +8,8 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckRastersAlgorithm,
     MigrateAlgorithm,
 )
-from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import ThreeDiConvertToGpkgAlgorithm
-from ThreeDiToolbox.processing.results_analysis.grid_creation import ThreeDiGenerateCompGridAlgorithm
+from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 import os
 
 
