@@ -269,7 +269,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             timestamps = datasource.threedi_result().get_timestamps()
             tc = iface.mapCanvas().temporalController()
             start_time = datetime.datetime(2000, 1, 1)
-            end_time = start_time + timedelta(seconds=round(timestamps[-1]))
+            end_time = start_time + timedelta(seconds=int(round(timestamps[-1])))
             tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
             logger.info(f"stamps {timestamps}")
             logger.info(f"end {end_time}")
