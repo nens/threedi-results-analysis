@@ -5,9 +5,13 @@ ThreeDiToolBox changelog
 2.5 (unreleased)
 ----------------
 
-- Do not expect pipe_quality field in sufhyd import. (#728)
+- Improved NetCDF validation (detect partial downloads). (#471)
 
-- Nothing changed yet.
+- Initial version of Results Manager. (#662)
+
+- Restructured folder structure in processing algorithm folder. (#724)
+
+- Default inputs for "Computational grid from schematisation" processing algorithm no longer set. (#723)
 
 
 2.4.1 (2022-12-08)

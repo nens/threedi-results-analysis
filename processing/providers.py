@@ -10,6 +10,8 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     MigrateAlgorithm,
 )
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
+from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 import os
 
 

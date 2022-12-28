@@ -1,5 +1,4 @@
 from collections import OrderedDict
-
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -8,7 +7,7 @@ from qgis.core import (
     QgsProcessingParameterFileDestination,
     QgsSettings,
 )
-from ThreeDiToolbox.processing.utils import gridadmin2geopackage, load_computational_layers
+from ThreeDiToolbox.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
@@ -44,13 +43,13 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         s = QgsSettings()
-        last_input_dir = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input", None)
+        last_input_h5 = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input_h5", None)
         last_output_gpkg = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", None)
 
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT, self.tr("Gridadmin.h5 file"), extension="h5",
-                defaultValue=last_input_dir,
+                defaultValue=last_input_h5,
             )
         )
 
@@ -72,7 +71,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             gpkg_path = gpkg_path.rsplit(".", 1)[0] + ".gpkg"
 
         s = QgsSettings()
-        # s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
+        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input_h5", input_gridadmin)
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
 
         gpkg_layers = gridadmin2geopackage(input_gridadmin, gpkg_path, context, feedback)
