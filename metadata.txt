@@ -25,7 +25,7 @@ tags=analysis, dem, hydraulics, network analysis, postgis
 
 homepage=https://github.com/nens/ThreeDiToolbox
 category=Plugins
-icon=icon.png
+icon=icons/icon.png
 experimental=False
 hasProcessingProvider=yes
 
