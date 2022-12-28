@@ -50,9 +50,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT,
-                self.tr("Folder containing input gridadmin.h5"),
-                behavior=QgsProcessingParameterFile.Folder,
+                self.INPUT, self.tr("Gridadmin.h5 file"), extension="h5",
                 defaultValue=last_input_dir,
             )
         )
@@ -64,10 +62,9 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        gridadmin_folder = self.parameterAsString(parameters, self.INPUT, context)
-        if gridadmin_folder is None:
+        input_gridadmin = self.parameterAsString(parameters, self.INPUT, context)
+        if input_gridadmin is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
-        input_gridadmin = os.path.join(gridadmin_folder, "gridadmin.h5")
 
         gpkg_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if gpkg_path is None:
@@ -76,7 +73,7 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             gpkg_path = gpkg_path.rsplit(".", 1)[0] + ".gpkg"
 
         s = QgsSettings()
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
+        # s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
         s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
 
         gpkg_layers = gridadmin2geopackage(input_gridadmin, gpkg_path, context, feedback)
