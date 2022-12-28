@@ -8,7 +8,7 @@ from qgis.core import (
     QgsProcessingParameterFileDestination,
     QgsSettings,
 )
-from ThreeDiToolbox.processing.results_analysis.utils import gridadmin2geopackage, load_computational_layers
+from ThreeDiToolbox.processing.utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):

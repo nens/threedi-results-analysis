@@ -2,14 +2,14 @@
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
-from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
+from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     CheckRastersAlgorithm,
     MigrateAlgorithm,
 )
-from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import ThreeDiConvertToGpkgAlgorithm
-from ThreeDiToolbox.processing.results_analysis.grid_creation import ThreeDiGenerateCompGridAlgorithm
+from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
 import os
 
 
@@ -17,7 +17,7 @@ class ThreediProvider(QgsProcessingProvider):
     """Loads the Processing Toolbox algorithms for 3Di"""
 
     def loadAlgorithms(self, *args, **kwargs):
-        self.addAlgorithm(ThreediDepth())
+        self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(CheckRastersAlgorithm())
