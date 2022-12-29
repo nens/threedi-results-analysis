@@ -12,8 +12,6 @@ STEP_MODULENAME_MAPPING = {
     "Step 3 - Modify schematisation": [
         "control structures",
         "guess indicators",
-        "add connected points",
-        "predict calc points",
     ],
     "Step 4 - Convert schematisation": [],
     "Step 5 - Post-process results": [],
