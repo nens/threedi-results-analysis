@@ -10,7 +10,7 @@ remote_debugger_settings.py
 docker-compose.override.yml
 .coveralls.yml
 .coverage.*
-deps
+/deps
 .pytest_cache
 
 # external python dependencies

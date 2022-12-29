@@ -13,6 +13,8 @@ ThreeDiToolBox changelog
 
 - Default inputs for "Computational grid from schematisation" processing algorithm no longer set. (#723)
 
+- Several Commands have been converted to Processing Algorithm and/or removed. (#715)
+
 
 2.4.1 (2022-12-08)
 ------------------

@@ -21,7 +21,7 @@ from threedi_modelchecker.threedi_model.models import GlobalSetting
 from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
+from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_main import (
     RasterChecker,
 )
 from ThreeDiToolbox.utils.utils import backup_sqlite
