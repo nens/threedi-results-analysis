@@ -25,6 +25,7 @@ from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_main import (
     RasterChecker,
 )
 from ThreeDiToolbox.processing.deps.sufhyd.import_sufhyd_main import Importer
+from ThreeDiToolbox.processing.deps.guess_indicator import guess_indicators_utils
 from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
@@ -436,42 +437,21 @@ class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
             )
             return {}
 
-        # TODO: do validation from schema
         importer = Importer(sufhyd_file, threedi_db)
         importer.run_import()
 
-        # run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
         return {}
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        """
         return "import_sufhyd"
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
         return self.tr("Import Sufhyd")
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return "Schematisation"
 
     def tr(self, string):
@@ -479,3 +459,110 @@ class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return ImportSufHydAlgorithm()
+
+
+class GuessIndicatorAlgorithm(QgsProcessingAlgorithm):
+    """
+    Guess manhole indicator, pipe friction and manhole storage
+    area.
+    """
+
+    TARGET_SQLITE = "TARGET_SQLITE"
+    PIPE_FRICTION = "PIPE_FRICTION"
+    MANHOLE_INDICATOR = "MANHOLE_INDICATOR"
+    MANHOLE_AREA = "MANHOLE_AREA"
+    ONLY_NULL_FIELDS = "ONLY_NULL_FIELDS"
+
+    def initAlgorithm(self, config):
+
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.TARGET_SQLITE,
+                "Target 3Di Sqlite",
+                extension="sqlite"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.PIPE_FRICTION,
+                description="Pipe friction",
+                defaultValue=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.MANHOLE_INDICATOR,
+                description="Manhole indicator",
+                defaultValue=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.MANHOLE_AREA,
+                description="Manhole area (only fills NULL fields)",
+                defaultValue=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.ONLY_NULL_FIELDS,
+                description="Only fill NULL fields",
+                defaultValue=True,
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            return {}
+        try:
+            schema = ModelSchema(threedi_db)
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            feedback.pushWarning(
+                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
+            return {}
+
+        checks = []
+
+        if parameters[self.MANHOLE_INDICATOR]:
+            checks.append("manhole_indicator")
+
+        if parameters[self.PIPE_FRICTION]:
+            checks.append("pipe_friction")
+
+        if parameters[self.MANHOLE_AREA]:
+            checks.append("manhole_area")
+
+        guesser = guess_indicators_utils.Guesser(threedi_db)
+        msg = guesser.run(checks, parameters[self.ONLY_NULL_FIELDS])
+
+        feedback.pushInfo(f"Guess indicators ready: {msg}")
+
+        return {}
+
+    def name(self):
+        return "guess_indicators"
+
+    def displayName(self):
+        return self.tr("Guess Indicators")
+
+    def group(self):
+        return self.tr(self.groupId())
+
+    def groupId(self):
+        return "Schematisation"
+
+    def tr(self, string):
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return GuessIndicatorAlgorithm()

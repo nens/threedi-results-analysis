@@ -11,7 +11,6 @@ STEP_MODULENAME_MAPPING = {
     "Step 2 - Convert and import data": [],
     "Step 3 - Modify schematisation": [
         "control structures",
-        "guess indicators",
     ],
     "Step 4 - Convert schematisation": [],
     "Step 5 - Post-process results": [],
