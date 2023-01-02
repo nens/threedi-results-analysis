@@ -8,7 +8,7 @@ COMMANDS_DIR = Path(__file__).parent
 # with space replaced by underscore are also packages (e.g. 'ThreeDiToolbox.tool_commands.raster_checker')
 STEP_MODULENAME_MAPPING = {
     "Step 1 - Check data": [],
-    "Step 2 - Convert and import data": ["import sufhyd"],
+    "Step 2 - Convert and import data": [],
     "Step 3 - Modify schematisation": [
         "control structures",
         "guess indicators",
