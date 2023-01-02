@@ -5,7 +5,6 @@ from qgis.core import (
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
-    QgsSettings,
 )
 from ThreeDiToolbox.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 
@@ -42,20 +41,16 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Create computational grid from gridadmin.h5 file")
 
     def initAlgorithm(self, config=None):
-        s = QgsSettings()
-        last_input_h5 = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input_h5", None)
-        last_output_gpkg = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", None)
 
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT, self.tr("Gridadmin.h5 file"), extension="h5",
-                defaultValue=last_input_h5,
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output GeoPackage file"), fileFilter="*.gpkg", defaultValue=last_output_gpkg
+                self.OUTPUT, self.tr("Output GeoPackage file"), fileFilter="*.gpkg",
             )
         )
 
@@ -69,10 +64,6 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
         if gpkg_path.endswith(".file"):
             gpkg_path = gpkg_path.rsplit(".", 1)[0] + ".gpkg"
-
-        s = QgsSettings()
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input_h5", input_gridadmin)
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
 
         gpkg_layers = gridadmin2geopackage(input_gridadmin, gpkg_path, context, feedback)
         self.LAYERS_TO_ADD.update(gpkg_layers)

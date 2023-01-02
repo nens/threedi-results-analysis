@@ -6,7 +6,6 @@ from qgis.core import (
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
-    QgsSettings,
     QgsVectorLayer,
 )
 from threedigrid_builder import make_gridadmin, SchematisationError
@@ -49,9 +48,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
 
-        s = QgsSettings()
-        last_output = s.value("threedi-results-analysis/generate_computational_grid/last_output", None)
-
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT_SPATIALITE,
@@ -63,7 +59,7 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output computational grid file"), fileFilter="*.gpkg", defaultValue=last_output
+                self.OUTPUT, self.tr("Output computational grid file"), fileFilter="*.gpkg",
             )
         )
 
@@ -104,9 +100,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         gridadmin_file = f"{output_file_without_extension}.h5"
         if output_gpkg_file.endswith(".file"):
             output_gpkg_file = f"{output_file_without_extension}.gpkg"
-
-        s = QgsSettings()
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output_gpkg_file)
 
         def progress_rep(progress, info):
             feedback.setProgress(int(progress * 100))
