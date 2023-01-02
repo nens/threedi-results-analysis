@@ -8,7 +8,7 @@ from osgeo import ogr
 import logging
 logger = logging.getLogger(__name__)
 
-MSG_TITLE = "3Di Model Validator"
+MSG_TITLE = "3Di Results Manager"
 
 
 class ThreeDiPluginModelValidator(QObject):
