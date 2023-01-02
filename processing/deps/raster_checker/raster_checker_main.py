@@ -17,13 +17,13 @@ from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtWidgets import QApplication, QProgressBar
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
-from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_log
-from ThreeDiToolbox.tool_commands.raster_checker import raster_checker_prework
-from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.tool_commands.raster_checker.constants import (
+from ThreeDiToolbox.processing.deps.raster_checker import raster_checker_log
+from ThreeDiToolbox.processing.deps.raster_checker import raster_checker_prework
+from ThreeDiToolbox.processing.deps.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.processing.deps.raster_checker.constants import (
     RASTERTYPE_PIXELRANGE_MAPPING,
 )
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_log import (
+from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_log import (
     RasterCheckerProgressBar,
 )
 from ThreeDiToolbox.utils.user_messages import pop_up_info

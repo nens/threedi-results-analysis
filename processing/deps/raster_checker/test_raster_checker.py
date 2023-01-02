@@ -2,14 +2,14 @@ from gdal import GA_ReadOnly
 from osgeo import gdal
 from sqlalchemy import MetaData
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tool_commands.raster_checker.constants import RASTER_CHECKER_MAPPER
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main import (
+from ThreeDiToolbox.processing.deps.raster_checker.constants import RASTER_CHECKER_MAPPER
+from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_main import (
     RasterChecker,
 )
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
+from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_prework import (
     DataModelSource,
 )
-from ThreeDiToolbox.tool_commands.raster_checker.raster_checker_prework import (
+from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_prework import (
     RasterCheckerEntries,
 )
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
@@ -359,7 +359,7 @@ class TestRasterChecker(unittest.TestCase):
         self.assertTrue(self.get_result())
 
     @mock.patch(
-        "ThreeDiToolbox.tool_commands.raster_checker.raster_checker_main.RasterChecker.get_rast_type"
+        "ThreeDiToolbox.processing.deps.raster_checker.raster_checker_main.RasterChecker.get_rast_type"
     )  # noqa
     def test_check_extreme_value(self, get_rast_type):
         get_rast_type.return_value = "dem_file"
