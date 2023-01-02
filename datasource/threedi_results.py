@@ -244,7 +244,7 @@ class ThreediResult(BaseDataSource):
     #         return result[time_index_filter]
 
     def get_values_by_timestep_nr(
-        self, variable, timestamp_idx, node_ids=None, use_cache=True
+        self, variable, timestamp_idx, node_ids=None,
     ):
         """Return an array of values of the given variable on the specified timestamp(s)
 
@@ -258,7 +258,6 @@ class ThreediResult(BaseDataSource):
         :param timestamp_idx: int or 1d numpy.array of indexes of timestamps
         :param node_ids: 1d numpy.array of node_ids or None in which case all
             nodes are returned.
-        :param use_cache: (bool)
         :return: 1d/2d numpy.array
         """
         values = self._nc_from_mem(variable)
@@ -293,7 +292,6 @@ class ThreediResult(BaseDataSource):
         https://docs.python.org/3/library/functools.html#functools.lru_cache
 
         :param variable: (str) variable name, e.g. 's1', 'q_pump'
-        :param use_cache: bool
         :return: 2d numpy array
         """
         if variable in self._cache:
