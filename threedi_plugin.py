@@ -15,7 +15,6 @@ from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
 from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
 from ThreeDiToolbox.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
 from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
-from ThreeDiToolbox.tool_commands.command_box import CommandBox
 from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
 from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
 from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
@@ -81,7 +80,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toggle_results_manager = ToggleResultsManager(iface, self)
         self.cache_clearer = CacheClearer(iface, self.ts_datasources)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
-        self.toolbox_tool = CommandBox(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.ts_datasources, self)
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
@@ -94,7 +92,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.toggle_results_manager,
             self.cache_clearer,
             self.result_selection_tool,
-            self.toolbox_tool,
             self.graph_tool,
             self.sideview_tool,
             self.stats_tool,
