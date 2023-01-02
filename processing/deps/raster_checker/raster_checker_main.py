@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
 from typing import Union, List, Tuple
 
-from cached_property import cached_property
+from functools import cached_property
 from osgeo import gdal
 from osgeo import osr
 from qgis.core import QgsCoordinateReferenceSystem

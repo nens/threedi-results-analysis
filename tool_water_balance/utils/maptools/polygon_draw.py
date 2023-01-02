@@ -1,4 +1,4 @@
-from cached_property import cached_property
+from functools import cached_property
 from qgis.core import QgsGeometry
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsMapTool

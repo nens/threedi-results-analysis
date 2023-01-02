@@ -7,7 +7,7 @@ from ..sql_models.statistics import PumplineStats
 from ..sql_models.statistics import StatSource
 from ..sql_models.statistics import WeirStats
 from ..utils.statistics_database import StaticsticsDatabase
-from cached_property import cached_property
+from functools import cached_property
 from collections import OrderedDict
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsProject

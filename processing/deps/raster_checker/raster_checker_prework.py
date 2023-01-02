@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-from cached_property import cached_property
+from functools import cached_property
 from sqlalchemy import select
 from sqlalchemy import Table
 from ThreeDiToolbox.processing.deps.raster_checker.constants import (

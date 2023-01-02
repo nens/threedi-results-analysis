@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List
-from cached_property import cached_property
+from functools import cached_property
 from qgis.PyQt.QtCore import QModelIndex, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult

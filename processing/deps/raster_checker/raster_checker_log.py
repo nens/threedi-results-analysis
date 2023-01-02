@@ -1,5 +1,5 @@
 # (c) Nelen & Schuurmans, see LICENSE.rst.
-from cached_property import cached_property
+from functools import cached_property
 from jinja2 import Template
 from ThreeDiToolbox.processing.deps.raster_checker.constants import RASTER_CHECKER_MAPPER
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
