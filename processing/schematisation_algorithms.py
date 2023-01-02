@@ -24,6 +24,7 @@ from threedi_modelchecker import errors
 from ThreeDiToolbox.processing.deps.raster_checker.raster_checker_main import (
     RasterChecker,
 )
+from ThreeDiToolbox.processing.deps.sufhyd.import_sufhyd_main import Importer
 from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
@@ -396,3 +397,85 @@ class CheckRastersAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return CheckRastersAlgorithm()
+
+
+class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
+    """
+    Import data from SufHyd to a 3Di Spatialite
+    """
+
+    INPUT_SUFHYD_FILE = "INPUT_SUFHYD_FILE"
+    TARGET_SQLITE = "TARGET_SQLITE"
+
+    def initAlgorithm(self, config):
+        self.addParameter(
+                QgsProcessingParameterFile(self.INPUT_SUFHYD_FILE, self.tr("Sufhyd file"), extension="hyd"))
+
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.TARGET_SQLITE,
+                "Target 3Di Sqlite",
+                extension="sqlite"
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        sufhyd_file = self.parameterAsString(parameters, self.INPUT_SUFHYD_FILE, context)
+        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            return {}
+        try:
+            schema = ModelSchema(threedi_db)
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            feedback.pushWarning(
+                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
+            return {}
+
+        # TODO: do validation from schema
+        importer = Importer(sufhyd_file, threedi_db)
+        importer.run_import()
+
+        # run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
+        return {}
+
+    def name(self):
+        """
+        Returns the algorithm name, used for identifying the algorithm. This
+        string should be fixed for the algorithm, and must not be localised.
+        """
+        return "import_sufhyd"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return self.tr("Import Sufhyd")
+
+    def group(self):
+        """
+        Returns the name of the group this algorithm belongs to. This string
+        should be localised.
+        """
+        return self.tr(self.groupId())
+
+    def groupId(self):
+        """
+        Returns the unique ID of the group this algorithm belongs to. This
+        string should be fixed for the algorithm, and must not be localised.
+        The group id should be unique within each provider. Group id should
+        contain lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "Schematisation"
+
+    def tr(self, string):
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return ImportSufHydAlgorithm()

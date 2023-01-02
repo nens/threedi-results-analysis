@@ -8,6 +8,7 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     CheckRastersAlgorithm,
     MigrateAlgorithm,
+    ImportSufHydAlgorithm,
 )
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
 import os
@@ -24,6 +25,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
+        self.addAlgorithm(ImportSufHydAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.
