@@ -1,7 +1,6 @@
 # TODO: calculate seperate class_bounds for groundwater
 # TODO: add listeners to result selection switch (ask if ok)
 
-from math import isnan
 from qgis.core import NULL
 from qgis.core import QgsField
 from qgis.core import QgsLayerTreeGroup
@@ -33,6 +32,7 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
 from typing import List
 from typing import Union
+from math import nan as NaN
 
 import ThreeDiToolbox.tool_animation.animation_styler as styler
 import copy
@@ -314,7 +314,7 @@ class MapAnimator(QGroupBox):
         based value distribution in the results and difference vs. current choice
         """
         has_groundwater = (
-            self.model.get_selected_results()[0].threedi_result().result_admin.has_groundwater  # TODO: ACTIVE
+            self.model.get_selected_results()[0].threedi_result.result_admin.has_groundwater  # TODO: ACTIVE
         )
 
         if self.current_line_parameter is None:
@@ -424,7 +424,7 @@ class MapAnimator(QGroupBox):
 
     def update_class_bounds(self, update_nodes: bool, update_lines: bool):
         gr = (
-            self.model.get_selected_results()[0].threedi_result().result_admin  # TODO: ACTIVE
+            self.model.get_selected_results()[0].threedi_result.result_admin  # TODO: ACTIVE
         )
 
         if update_nodes:
@@ -553,11 +553,11 @@ class MapAnimator(QGroupBox):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.model.get_selected_results()[0]  # TODO: ACTIVE
+        active_result = self.model.get_selected_results()[0]  # TODO: ACTIVE
 
-        if active_ts_datasource is not None:
+        if active_result is not None:
             # TODO: just taking the first datasource, not sure if correct:
-            threedi_result = active_ts_datasource.threedi_result()
+            threedi_result = active_result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             # Make a deepcopy because we don't want to change the cached variables
             # in threedi_result.available_subgrid_map_vars
@@ -657,7 +657,7 @@ class MapAnimator(QGroupBox):
             # todo: react on datasource change
             return
 
-        result_admin = result.threedi_result().result_admin
+        result_admin = result.threedi_result.result_admin
 
         line, node, cell, pump = result.get_result_layers(progress_bar=progress_bar)
         node_attributes = [
@@ -842,38 +842,49 @@ class MapAnimator(QGroupBox):
 
         # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
 
-        if not self.active:
-            return
+        if self.active:
 
-        result = self.model.get_selected_results()[0]  # TODO: ACTIVE
-        threedi_result = result.threedi_result()
+            result = self.model.get_selected_results()[0]  # TODO: ACTIVE
+            threedi_result = result.threedi_result
 
-        # Update UI (LCD)
-        days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
-        formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
-        self.lcd.display(formatted_display)
+            # Update UI (LCD)
+            days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
+            formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
+            self.lcd.display(formatted_display)
 
-        layers_to_update = []
-        if update_nodes:
-            layers_to_update.append((self.node_layer, self.current_node_parameter))
-            layers_to_update.append((self.cell_layer, self.current_node_parameter))
-            if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append(
-                    (self.node_layer_groundwater, self.current_node_parameter)
-                )
-                layers_to_update.append(
-                    (self.cell_layer_groundwater, self.current_node_parameter)
-                )
-        if update_lines:
-            layers_to_update.append((self.line_layer_1d, self.current_line_parameter))
-            layers_to_update.append((self.line_layer_2d, self.current_line_parameter))
-            if threedi_result.result_admin.has_groundwater:
-                layers_to_update.append(
-                    (self.line_layer_groundwater, self.current_line_parameter)
-                )
+            layers_to_update = []
+            if update_nodes:
+                layers_to_update.append((self.node_layer, self.current_node_parameter))
+                layers_to_update.append((self.cell_layer, self.current_node_parameter))
+                if threedi_result.result_admin.has_groundwater:
+                    layers_to_update.append(
+                        (self.node_layer_groundwater, self.current_node_parameter)
+                    )
+                    layers_to_update.append(
+                        (self.cell_layer_groundwater, self.current_node_parameter)
+                    )
+            if update_lines:
+                layers_to_update.append((self.line_layer_1d, self.current_line_parameter))
+                layers_to_update.append((self.line_layer_2d, self.current_line_parameter))
+                if threedi_result.result_admin.has_groundwater:
+                    layers_to_update.append(
+                        (self.line_layer_groundwater, self.current_line_parameter)
+                    )
 
-        for layer, parameter_config in layers_to_update:
-            if layer is not None:
+            # TODO relocate this
+            ids_by_layer_attr = "_ids_by_layer"
+            if not hasattr(self, ids_by_layer_attr):
+                ids_by_layer = {}
+                setattr(self, ids_by_layer_attr, ids_by_layer)
+            else:
+                ids_by_layer = getattr(self, ids_by_layer_attr)
+
+            for layer, parameter_config in layers_to_update:
+
+                if layer is None:
+                    continue
+
+                layer_id = layer.id()
                 provider = layer.dataProvider()
                 parameter = parameter_config["parameters"]
                 parameter_long_name = parameter_config["name"]
@@ -895,34 +906,38 @@ class MapAnimator(QGroupBox):
                     values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
                     values_ti[values_ti == NO_DATA_VALUE] = np.NaN
 
-                update_dict = {}
                 t0_field_index = layer.fields().lookupField("initial_value")
                 ti_field_index = layer.fields().lookupField("result")
 
-                for feature in layer.getFeatures():
-                    ids = int(feature.id())
-                    # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
-                    # groundwater because those indexes start from 1 (something to
-                    # do with a trash element), but for the non-groundwater version
-                    # it is not. HOWEVER, due to some magic hackery in how the
-                    # *_result layers are created/copied from the regular result
-                    # layers, the resulting feature ids also start from 1, which
-                    # why we need to subtract it in both cases, which btw is
-                    # purely coincidental.
-                    # TODO: to avoid all this BS this part should be refactored
-                    # by passing the index to get_values_by_timestep_nr, which
-                    # should take this into account
-                    value_t0 = float(values_t0[ids - 1])
-                    if isnan(value_t0):
-                        value_t0 = NULL
-                    value_ti = float(values_ti[ids - 1])
-                    if isnan(value_ti):
-                        value_ti = NULL
-                    update_dict[ids] = {
-                        t0_field_index: value_t0,
-                        ti_field_index: value_ti,
-                    }
+                try:
+                    ids = ids_by_layer[layer_id]
+                except KeyError:
+                    ids = np.array([f.id() for f in layer.getFeatures()])
+                    ids_by_layer[layer_id] = ids
 
+                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+                # groundwater because those indexes start from 1 (something to
+                # do with a trash element), but for the non-groundwater version
+                # it is not. HOWEVER, due to some magic hackery in how the
+                # *_result layers are created/copied from the regular result
+                # layers, the resulting feature ids also start from 1, which
+                # why we need to subtract it in both cases, which btw is
+                # purely coincidental.
+                # TODO: to avoid all this BS this part should be refactored
+                # by passing the index to get_values_by_timestep_nr, which
+                # should take this into account
+                dvalues_t0 = values_t0[ids - 1]
+                dvalues_ti = values_ti[ids - 1]
+                update_dict = {
+                    k: {
+                        t0_field_index: NULL if v0 is NaN else v0,
+                        ti_field_index: NULL if vi is NaN else vi,
+                    } for k, v0, vi in zip(
+                        ids.tolist(),
+                        dvalues_t0.tolist(),
+                        dvalues_ti.tolist(),
+                    )
+                }
                 provider.changeAttributeValues(update_dict)
 
                 if self.difference_checkbox.isChecked() and layer in (
