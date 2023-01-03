@@ -103,22 +103,30 @@ class ThreeDiPluginLayerManager(QObject):
 
             # Generate a random field name, with the result text
             # as alias (display) name.
-            virtual_field_name = "virtual_field_" + str(uuid.uuid4())
-            field = QgsField(virtual_field_name, QVariant.Double)
-            field.setAlias(threedi_result_item.text())
+            unique_identifier = str(uuid.uuid4())
+
+            virtual_result_field_name = "result_" + unique_identifier
+            result_field = QgsField(virtual_result_field_name, QVariant.Double)
+            result_field.setAlias(threedi_result_item.text())
+
+            virtual_initial_value_field_name = "initial_value_" + unique_identifier
+            initial_value_field = QgsField(virtual_initial_value_field_name, QVariant.Double)
+            initial_value_field.setAlias(threedi_result_item.text() + "_initial_value")
 
             # Check for duplicate field names (even though QGIS does not allow
             # addition of QgsFields (both attribute or expression) with already
-            # existing names)
-            if layer.fields().indexFromName(virtual_field_name) != -1:
+            # existing names AND the generated layers are marked READONLY)
+            if (layer.fields().indexFromName(virtual_result_field_name) != -1 or
+                    layer.fields().indexFromName(virtual_initial_value_field_name) != -1):
                 logger.error("Field already exist, aborting addition.")
                 return False
 
-            layer.addExpressionField(str(0.0), field)
-            logger.info(f"Added virtual attribute with alias {threedi_result_item.text()} to layer.")
+            layer.addExpressionField(str(0.0), result_field)
+            layer.addExpressionField(str(0.0), initial_value_field)
+            logger.info(f"Added virtual attributes with alias {threedi_result_item.text()} to layer.")
 
-            # Store the added field name so we can remove the field when the result is removed
-            threedi_result_item._virtual_field_name[layer_id] = virtual_field_name
+            # Store the added field names so we can remove the field when the result is removed
+            threedi_result_item._virtual_field_names[layer_id] = (virtual_result_field_name, virtual_initial_value_field_name)
 
         self.result_loaded.emit(threedi_result_item)
         return True
@@ -126,15 +134,21 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Remove the corresponding virtual fields from the grid layers
-        for layer_id, virtual_field_name in threedi_result_item._virtual_field_name.items():
+        for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
                 layer = QgsProject.instance().mapLayer(layer_id)
-                idx = layer.fields().indexFromName(virtual_field_name)
+
+                assert(len(virtual_field_names) == 2)
+                idx = layer.fields().indexFromName(virtual_field_names[0])
                 assert idx != -1
                 layer.removeExpressionField(idx)
 
-        threedi_result_item._virtual_field_name.clear()
+                idx = layer.fields().indexFromName(virtual_field_names[1])
+                assert idx != -1
+                layer.removeExpressionField(idx)
+
+        threedi_result_item._virtual_field_names.clear()
 
         return True
 
@@ -142,12 +156,19 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Update the display name of the virtual fields
-        for layer_id, virtual_field_name in threedi_result_item._virtual_field_name.items():
+        for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
             layer = QgsProject.instance().mapLayer(layer_id)
-            idx = layer.fields().indexFromName(virtual_field_name)
+
+            assert(len(virtual_field_names) == 2)
+            idx = layer.fields().indexFromName(virtual_field_names[0])
             assert idx != -1
             logger.info(f"Setting field {idx} alias to {threedi_result_item.text()}")
             layer.setFieldAlias(idx, threedi_result_item.text())
+
+            idx = layer.fields().indexFromName(virtual_field_names[1])
+            assert idx != -1
+            logger.info(f"Setting field {idx} alias to {threedi_result_item.text() + '_initial_value'}")
+            layer.setFieldAlias(idx, threedi_result_item.text() + '_initial_value')
 
         return True
 

@@ -47,9 +47,10 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckState(0)
 
         # layer info
-        # map of added virtual field name (value) to grid layers (key),
-        # used for cleaning up virtual fields when result is removed
-        self._virtual_field_name = {}
+        # map of grid layers id to added virtual field names (tuple of ids)
+        # (Two virtual fields, initial_value and result, are required)
+        # Used for cleaning up virtual fields when result is removed
+        self._virtual_field_names = {}
 
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
