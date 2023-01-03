@@ -187,9 +187,6 @@ class MapAnimator(QGroupBox):
 
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, item: ThreeDiResultItem):
-        if item.checkState() != 2:
-            logger.error("huh")
-            return
         # Set the right styling on the layers, or revert back to original
 
         # Precompute class bounds
