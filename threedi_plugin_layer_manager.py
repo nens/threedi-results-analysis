@@ -37,8 +37,7 @@ class ThreeDiPluginLayerManager(QObject):
     of the connection between model items (grids) and layers.
 
     In case a model item is deleted, the corresponding layers are also
-    deleted. In case all layers of a grid are deleted, the item in the model
-    should also be deleted.
+    deleted.
     """
     grid_loaded = pyqtSignal(ThreeDiGridItem)
     result_loaded = pyqtSignal(ThreeDiResultItem)
