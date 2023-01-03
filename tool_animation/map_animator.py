@@ -26,7 +26,7 @@ from ThreeDiToolbox.datasource.result_constants import H_TYPES
 from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
@@ -184,6 +184,28 @@ class MapAnimator(QGroupBox):
         else:
             self.active = False
             self.setEnabled(False)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def update_result(self, item: ThreeDiResultItem):
+        if item.checkState() != 2:
+            logger.error("huh")
+            return
+        # Set the right styling on the layers, or revert back to original
+
+        # Precompute class bounds
+        self.update_class_bounds(update_nodes=True, update_lines=True)
+
+        # Adjust the styling of the grid layer based on the bounds and result field name
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        layer_id = grid_item.layer_ids["flowline"]
+        layer = QgsProject.instance().mapLayer(layer_id)
+
+        styler.style_animation_flowline_current(
+            layer,
+            self.line_parameter_class_bounds,
+            self.current_line_parameter["parameters"],
+        )
 
     # TODO: Move to util module
     @staticmethod
