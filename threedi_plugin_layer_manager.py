@@ -138,7 +138,7 @@ class ThreeDiPluginLayerManager(QObject):
             if QgsProject.instance().mapLayer(layer_id) is not None:
                 layer = QgsProject.instance().mapLayer(layer_id)
 
-                assert(len(virtual_field_names) == 2)
+                assert len(virtual_field_names) == 2
                 idx = layer.fields().indexFromName(virtual_field_names[0])
                 assert idx != -1
                 layer.removeExpressionField(idx)
@@ -158,7 +158,7 @@ class ThreeDiPluginLayerManager(QObject):
         for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
             layer = QgsProject.instance().mapLayer(layer_id)
 
-            assert(len(virtual_field_names) == 2)
+            assert len(virtual_field_names) == 2
             idx = layer.fields().indexFromName(virtual_field_names[0])
             assert idx != -1
             logger.info(f"Setting field {idx} alias to {threedi_result_item.text()}")
