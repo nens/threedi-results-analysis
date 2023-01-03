@@ -350,6 +350,7 @@ class MapAnimator(QGroupBox):
                     self.node_layer,
                     self.node_parameter_class_bounds,
                     self.current_node_parameter["parameters"],
+                    cells=False,
                 )
                 # cells
                 styler.style_animation_node_difference(
@@ -372,6 +373,7 @@ class MapAnimator(QGroupBox):
                     self.node_layer,
                     self.node_parameter_class_bounds,
                     self.current_node_parameter["parameters"],
+                    cells=False,
                 )
                 # cells
                 styler.style_animation_node_current(

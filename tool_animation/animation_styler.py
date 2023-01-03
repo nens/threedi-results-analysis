@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def style_animation_flowline_current(
-    lyr: QgsVectorLayer, class_bounds: List[float], variable
+    lyr: QgsVectorLayer, class_bounds: List[float], variable, field_postfix=""
 ):
     """Applies styling to Animation Toolbar flowline layer in 'current' mode"""
 
@@ -43,6 +43,9 @@ def style_animation_flowline_current(
 
     # Set classes and colors
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_DEEP)
+
+    class_attribute_str = f"abs(result{field_postfix})"
+    lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(class_bounds) - 1
     for i in range(nr_classes):
@@ -79,12 +82,16 @@ def style_animation_flowline_current(
             logger.info(message)
         style_manager.setCurrentStyle(default_style_name)
 
+        # TODO: Not sure whether this is required, as it is also set above.
+        class_attribute_str = f"abs(result{field_postfix})"
+        lyr.renderer().setClassAttribute(class_attribute_str)
+
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
 
 
 def style_animation_node_current(
-    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool = False
+    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool, field_postfix=""
 ):
     """Applies styling to Animation Toolbar node layer in 'current' mode"""
 
@@ -98,9 +105,9 @@ def style_animation_node_current(
 
     # Set classes
     if variable == "s1":
-        class_attribute_str = "coalesce(result, z_coordinate)"
+        class_attribute_str = f"coalesce(result{field_postfix}, z_coordinate)"
     else:
-        class_attribute_str = "result"
+        class_attribute_str = f"result{field_postfix}"
     lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1
@@ -117,7 +124,7 @@ def style_animation_node_current(
 
 
 def style_animation_node_difference(
-    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool = False
+    lyr: QgsVectorLayer, percentiles: List[float], variable: str, cells: bool, field_postfix=""
 ):
     """Applies styling to Animation Toolbar node layer in 'difference' mode"""
 
@@ -152,10 +159,10 @@ def style_animation_node_difference(
 
         if variable == "s1":
             class_attribute_str = str(
-                "coalesce(result, z_coordinate) - coalesce(initial_value, z_coordinate)"
+                f"coalesce(result{field_postfix}, z_coordinate) - coalesce(initial_value{field_postfix}, z_coordinate)"
             )
         else:
-            class_attribute_str = str("result - initial_value")
+            class_attribute_str = str(f"result{field_postfix} - initial_value{field_postfix}")
         lyr.renderer().setClassAttribute(class_attribute_str)
         lyr.renderer().deleteAllClasses()
         for i in range(len(class_bounds) - 1):
