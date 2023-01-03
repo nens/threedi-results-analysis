@@ -6,7 +6,6 @@ from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertTo
 from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
-    CheckRastersAlgorithm,
     MigrateAlgorithm,
     ImportSufHydAlgorithm,
     GuessIndicatorAlgorithm,
@@ -22,7 +21,6 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
-        self.addAlgorithm(CheckRastersAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
