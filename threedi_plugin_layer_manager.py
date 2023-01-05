@@ -97,6 +97,8 @@ class ThreeDiPluginLayerManager(QObject):
         # Add this result as a virtual field to the grid layers
         grid_item = threedi_result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
+
+        logger.info("Adding virtual fields to layers")
         for layer_id in grid_item.layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
 
@@ -122,7 +124,6 @@ class ThreeDiPluginLayerManager(QObject):
 
             layer.addExpressionField(str(56.0), result_field)
             layer.addExpressionField(str(56.0), initial_value_field)
-            logger.info(f"Added virtual attributes with alias {threedi_result_item.text()} to layer.")
 
             # Store the added field names so we can remove the field when the result is removed
             threedi_result_item._virtual_field_names[layer_id] = (virtual_result_field_name, virtual_initial_value_field_name)
@@ -155,18 +156,17 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Update the display name of the virtual fields
+        logger.info("Updating virtual fields")
         for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
             layer = QgsProject.instance().mapLayer(layer_id)
 
             assert len(virtual_field_names) == 2
             idx = layer.fields().indexFromName(virtual_field_names[0])
             assert idx != -1
-            logger.info(f"Setting field {idx} alias to {threedi_result_item.text()}")
             layer.setFieldAlias(idx, threedi_result_item.text())
 
             idx = layer.fields().indexFromName(virtual_field_names[1])
             assert idx != -1
-            logger.info(f"Setting field {idx} alias to {threedi_result_item.text() + '_initial_value'}")
             layer.setFieldAlias(idx, threedi_result_item.text() + '_initial_value')
 
         return True

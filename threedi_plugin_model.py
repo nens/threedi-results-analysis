@@ -52,6 +52,9 @@ class ThreeDiResultItem(QStandardItem):
         # Used for cleaning up virtual fields when result is removed
         self._virtual_field_names = {}
 
+        # Used to distinguish item changed and item checked
+        self._old_text = ""
+
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
         self._line_layer = None
@@ -265,10 +268,15 @@ class ThreeDiPluginModel(QStandardItemModel):
     # @pyqtSlot(QStandardItem)
     def _item_changed(self, item: QStandardItem):
         if isinstance(item, ThreeDiResultItem):
+            # Distinguish changed and checked
+            if item._old_text != item.text():
+                item._old_text = item.text()
+                self.result_changed.emit(item)
+                return
+
             {
                 2: self.result_checked, 0: self.result_unchecked,
             }[item.checkState()].emit(item)
-            self.result_changed.emit(item)
 
             # Note that we not allow multiple results to be selected, deselect
             # the others in case an item is selected.
