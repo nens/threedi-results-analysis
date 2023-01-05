@@ -189,7 +189,22 @@ class MapAnimator(QGroupBox):
     def update_result(self, item: ThreeDiResultItem):
         # Set the right styling on the layers, or revert back to original
 
-        # Precompute class bounds
+        # For testing, ensure some stuff is precomputed
+        self.fill_parameter_combobox_items()
+
+        combobox_current_text = self.line_parameter_combo_box.currentText()
+        if combobox_current_text in self.line_parameters.keys():
+            self.current_line_parameter = self.line_parameters[combobox_current_text]
+        else:
+            self.current_line_parameter = None
+
+        combobox_current_text = self.node_parameter_combo_box.currentText()
+        if combobox_current_text in self.node_parameters.keys():
+            self.current_node_parameter = self.node_parameters[combobox_current_text]
+        else:
+            self.current_node_parameter = None
+
+        logger.info("Updating class bounds")
         self.update_class_bounds(update_nodes=True, update_lines=True)
 
         # Adjust the styling of the grid layer based on the bounds and result field name
@@ -197,11 +212,15 @@ class MapAnimator(QGroupBox):
         assert isinstance(grid_item, ThreeDiGridItem)
         layer_id = grid_item.layer_ids["flowline"]
         layer = QgsProject.instance().mapLayer(layer_id)
+        virtual_field_name = item._virtual_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
 
+        logger.info("Styling flowline layer")
         styler.style_animation_flowline_current(
             layer,
             self.line_parameter_class_bounds,
             self.current_line_parameter["parameters"],
+            postfix,
         )
 
     # TODO: Move to util module
@@ -597,7 +616,7 @@ class MapAnimator(QGroupBox):
         return parameter_config
 
     def on_activate_button_clicked(self, checked: bool):
-        activate = checked and len(self.model.get_selected_results()) > 0
+        activate = checked
         self.active = activate
 
     @staticmethod
@@ -1030,10 +1049,10 @@ class MapAnimator(QGroupBox):
 
         # connect to signals
         self.activateButton.clicked.connect(self.on_activate_button_clicked)
-        self.line_parameter_combo_box.currentIndexChanged.connect(
+        self.line_parameter_combo_box.activated.connect(
             self.on_line_parameter_change
         )
-        self.node_parameter_combo_box.currentIndexChanged.connect(
+        self.node_parameter_combo_box.activated.connect(
             self.on_node_parameter_change
         )
         self.difference_checkbox.stateChanged.connect(

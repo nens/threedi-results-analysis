@@ -1,6 +1,7 @@
 from pathlib import Path
 from qgis.core import QgsMapLayerStyle
 from qgis.core import QgsVectorLayer
+from qgis.core import QgsMapLayer
 from qgis.utils import iface
 from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
 from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_CURL
@@ -28,7 +29,8 @@ def style_animation_flowline_current(
 
     # Load basic style settings from qml file
     qml_path = STYLES_ROOT / "flowline_current.qml"
-    lyr.loadNamedStyle(str(qml_path))
+    # loadNamedStyle deletes the expression: disable Field reading
+    lyr.loadNamedStyle(str(qml_path), True, QgsMapLayer.StyleCategory(QgsMapLayer.AllStyleCategories & ~QgsMapLayer.Fields))
     renderer = lyr.renderer()
 
     # Set correct legend symbol rotation
@@ -44,7 +46,8 @@ def style_animation_flowline_current(
     # Set classes and colors
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_DEEP)
 
-    class_attribute_str = f"abs(result{field_postfix})"
+    # Quotes are required to indicate that field name needs to be used
+    class_attribute_str = f'abs("result{field_postfix}")'
     lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(class_bounds) - 1

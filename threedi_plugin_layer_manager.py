@@ -122,8 +122,8 @@ class ThreeDiPluginLayerManager(QObject):
                 logger.error("Field already exist, aborting addition.")
                 return False
 
-            layer.addExpressionField(str(56.0), result_field)
-            layer.addExpressionField(str(56.0), initial_value_field)
+            layer.addExpressionField(str(18.0), result_field)
+            layer.addExpressionField(str(18.0), initial_value_field)
 
             # Store the added field names so we can remove the field when the result is removed
             threedi_result_item._virtual_field_names[layer_id] = (virtual_result_field_name, virtual_initial_value_field_name)
