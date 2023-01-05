@@ -47,10 +47,10 @@ class ThreeDiResultItem(QStandardItem):
         self.setCheckState(0)
 
         # layer info
-        # map of grid layers id to added virtual field names (tuple of ids)
+        # map of grid layers id to added result field names (tuple of ids)
         # (Two virtual fields, initial_value and result, are required)
-        # Used for cleaning up virtual fields when result is removed
-        self._virtual_field_names = {}
+        # Used for cleaning up result fields when result is removed
+        self._result_field_names = {}
 
         # Used to distinguish item changed and item checked
         self._old_text = ""

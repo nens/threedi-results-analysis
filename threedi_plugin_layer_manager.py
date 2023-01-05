@@ -6,7 +6,7 @@ import uuid
 
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
@@ -29,6 +29,26 @@ def dirty(func):
         func(*args, **kwargs)
         QgsProject.instance().setDirty()
     return wrapper
+
+
+def copy_layer_into_memory_layer(source_layer, layer_name):
+    source_provider = source_layer.dataProvider()
+
+    uri = "{0}?crs=EPSG:{1}".format(
+        QgsWkbTypes.displayString(source_provider.wkbType()).lstrip("WKB"),
+        str(source_provider.crs().postgisSrid()),
+    )
+
+    dest_layer = QgsVectorLayer(uri, layer_name, "memory")
+    dest_provider = dest_layer.dataProvider()
+
+    dest_provider.addAttributes(source_provider.fields())
+    dest_layer.updateFields()
+
+    dest_provider.addFeatures(source_provider.getFeatures())
+    dest_layer.updateExtents()
+
+    return dest_layer
 
 
 class ThreeDiPluginLayerManager(QObject):
@@ -94,78 +114,82 @@ class ThreeDiPluginLayerManager(QObject):
 
     @pyqtSlot(ThreeDiResultItem)
     def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Add this result as a virtual field to the grid layers
+        # Add result fields for this result to the grid layers
         grid_item = threedi_result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
-        logger.info("Adding virtual fields to layers")
+        logger.info("Adding result fields to grid layers")
         for layer_id in grid_item.layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
+            provider = layer.dataProvider()
 
             # Generate a random field name, with the result text
             # as alias (display) name.
             unique_identifier = str(uuid.uuid4())
 
-            virtual_result_field_name = "result_" + unique_identifier
-            result_field = QgsField(virtual_result_field_name, QVariant.Double)
+            result_field_name = "result_" + unique_identifier
+            result_field = QgsField(result_field_name, QVariant.Double)
             result_field.setAlias(threedi_result_item.text())
 
-            virtual_initial_value_field_name = "initial_value_" + unique_identifier
-            initial_value_field = QgsField(virtual_initial_value_field_name, QVariant.Double)
+            initial_value_field_name = "initial_value_" + unique_identifier
+            initial_value_field = QgsField(initial_value_field_name, QVariant.Double)
             initial_value_field.setAlias(threedi_result_item.text() + "_initial_value")
 
             # Check for duplicate field names (even though QGIS does not allow
             # addition of QgsFields (both attribute or expression) with already
             # existing names AND the generated layers are marked READONLY)
-            if (layer.fields().indexFromName(virtual_result_field_name) != -1 or
-                    layer.fields().indexFromName(virtual_initial_value_field_name) != -1):
+            if (layer.fields().indexFromName(result_field_name) != -1 or
+                    layer.fields().indexFromName(initial_value_field_name) != -1):
                 logger.error("Field already exist, aborting addition.")
                 return False
 
-            layer.addExpressionField(str(18.0), result_field)
-            layer.addExpressionField(str(18.0), initial_value_field)
+            provider.addAttributes([result_field, initial_value_field])
+            layer.updateFields()
 
             # Store the added field names so we can remove the field when the result is removed
-            threedi_result_item._virtual_field_names[layer_id] = (virtual_result_field_name, virtual_initial_value_field_name)
+            threedi_result_item._result_field_names[layer_id] = (result_field_name, initial_value_field_name)
 
         self.result_loaded.emit(threedi_result_item)
         return True
 
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Remove the corresponding virtual fields from the grid layers
-        for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
+        # Remove the corresponding result fields from the grid layers
+        for layer_id, result_field_names in threedi_result_item._field_names.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
                 layer = QgsProject.instance().mapLayer(layer_id)
+                provider = layer.dataProvider()
 
-                assert len(virtual_field_names) == 2
-                idx = layer.fields().indexFromName(virtual_field_names[0])
+                assert len(result_field_names) == 2
+                idx = layer.fields().indexFromName(result_field_names[0])
                 assert idx != -1
-                layer.removeExpressionField(idx)
+                provider.deleteAttributes([idx])
+                layer.updateFields()
 
-                idx = layer.fields().indexFromName(virtual_field_names[1])
+                idx = layer.fields().indexFromName(result_field_names[1])
                 assert idx != -1
-                layer.removeExpressionField(idx)
+                provider.deleteAttributes([idx])
+                layer.updateFields()
 
-        threedi_result_item._virtual_field_names.clear()
+        threedi_result_item._result_field_names.clear()
 
         return True
 
     @dirty
     @pyqtSlot(ThreeDiResultItem)
     def update_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Update the display name of the virtual fields
-        logger.info("Updating virtual fields")
-        for layer_id, virtual_field_names in threedi_result_item._virtual_field_names.items():
+        # Update the display name of the result fields
+        logger.info("Updating result fields")
+        for layer_id, result_field_names in threedi_result_item._result_field_names.items():
             layer = QgsProject.instance().mapLayer(layer_id)
 
-            assert len(virtual_field_names) == 2
-            idx = layer.fields().indexFromName(virtual_field_names[0])
+            assert len(result_field_names) == 2
+            idx = layer.fields().indexFromName(result_field_names[0])
             assert idx != -1
             layer.setFieldAlias(idx, threedi_result_item.text())
 
-            idx = layer.fields().indexFromName(virtual_field_names[1])
+            idx = layer.fields().indexFromName(result_field_names[1])
             assert idx != -1
             layer.setFieldAlias(idx, threedi_result_item.text() + '_initial_value')
 
@@ -239,6 +263,10 @@ class ThreeDiPluginLayerManager(QObject):
             if not vector_layer.featureCount():
                 empty_layers.append(layer_name)
                 continue
+
+            vector_layer = copy_layer_into_memory_layer(
+                vector_layer, layer_name,
+            )
 
             # apply the style
             qml_path = safe_join(styles_dir, f"{table_name}.qml")
