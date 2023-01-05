@@ -1049,10 +1049,10 @@ class MapAnimator(QGroupBox):
 
         # connect to signals
         self.activateButton.clicked.connect(self.on_activate_button_clicked)
-        self.line_parameter_combo_box.activated.connect(
+        self.line_parameter_combo_box.currentIndexChanged.connect(
             self.on_line_parameter_change
         )
-        self.node_parameter_combo_box.activated.connect(
+        self.node_parameter_combo_box.currentIndexChanged.connect(
             self.on_node_parameter_change
         )
         self.difference_checkbox.stateChanged.connect(
