@@ -246,11 +246,13 @@ class ThreeDiPluginLayerManager(QObject):
 
         for layer_name, table_name in gpkg_layers.items():
 
-            # Check whether the QgsProject already contains this layer
+            # QGIS does save memory layers to the project file (but without the data)
+            # Check whether the QgsProject already contains this layer, if so, remove it
             if table_name in item.layer_ids.keys():
-                if QgsProject.instance().mapLayer(item.layer_ids[table_name]):
-                    logger.info(f"Map layer corresponding to table {table_name} already exist in project")
-                    continue
+                scratch_layer = QgsProject.instance().mapLayer(item.layer_ids[table_name])
+                if scratch_layer:
+                    logger.info(f"Map layer corresponding to table {item.layer_ids[table_name]} already exist in project, overwriting...")
+                    QgsProject.instance().removeMapLayer(scratch_layer)
 
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
