@@ -155,7 +155,7 @@ class ThreeDiPluginLayerManager(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def unload_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
         # Remove the corresponding result fields from the grid layers
-        for layer_id, result_field_names in threedi_result_item._field_names.items():
+        for layer_id, result_field_names in threedi_result_item._result_field_names.items():
             # It could be that the map layer is removed by QGIS
             if QgsProject.instance().mapLayer(layer_id) is not None:
                 layer = QgsProject.instance().mapLayer(layer_id)

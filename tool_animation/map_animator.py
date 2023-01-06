@@ -212,7 +212,7 @@ class MapAnimator(QGroupBox):
         assert isinstance(grid_item, ThreeDiGridItem)
         layer_id = grid_item.layer_ids["flowline"]
         layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._virtual_field_names[layer_id][0]
+        virtual_field_name = item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
 
         logger.info("Styling flowline layer")
