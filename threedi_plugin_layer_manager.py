@@ -3,7 +3,6 @@ from collections import OrderedDict
 import h5py
 from osgeo import ogr
 import uuid
-
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes
@@ -31,7 +30,8 @@ def dirty(func):
     return wrapper
 
 
-def copy_layer_into_memory_layer(source_layer, layer_name):
+def copy_layer_into_memory_layer(source_layer, layer_name, dest_layer):
+
     source_provider = source_layer.dataProvider()
 
     uri = "{0}?crs=EPSG:{1}".format(
@@ -39,7 +39,11 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
         str(source_provider.crs().postgisSrid()),
     )
 
-    dest_layer = QgsVectorLayer(uri, layer_name, "memory")
+    if dest_layer is None:
+        dest_layer = QgsVectorLayer(uri, layer_name, "memory")
+    else:
+        logger.info("Reusing memory layer instance")
+
     dest_provider = dest_layer.dataProvider()
 
     dest_provider.addAttributes(source_provider.fields())
@@ -247,12 +251,13 @@ class ThreeDiPluginLayerManager(QObject):
         for layer_name, table_name in gpkg_layers.items():
 
             # QGIS does save memory layers to the project file (but without the data)
-            # Check whether the QgsProject already contains this layer, if so, remove it
+            # Removing the scratch layer and resaving the project causes QGIS to crash,
+            # therefore we reuse the layer instance
+            scratch_layer = None
             if table_name in item.layer_ids.keys():
                 scratch_layer = QgsProject.instance().mapLayer(item.layer_ids[table_name])
                 if scratch_layer:
-                    logger.info(f"Map layer corresponding to table {item.layer_ids[table_name]} already exist in project, overwriting...")
-                    QgsProject.instance().removeMapLayer(scratch_layer)
+                    logger.info(f"Map layer corresponding to table {item.layer_ids[table_name]} already exist in project, reusing...")
 
             # Using the QgsInterface function addVectorLayer shows (annoying) confirmation dialogs
             # iface.addVectorLayer(gpkg_file + "|layername=" + layer, layer, 'ogr')
@@ -267,7 +272,7 @@ class ThreeDiPluginLayerManager(QObject):
                 continue
 
             vector_layer = copy_layer_into_memory_layer(
-                vector_layer, layer_name,
+                vector_layer, layer_name, scratch_layer
             )
 
             # apply the style
@@ -283,11 +288,12 @@ class ThreeDiPluginLayerManager(QObject):
             vector_layer.setReadOnly(True)
             vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
 
-            # Keep track of layer id for future reference (deletion of grid item)
-            item.layer_ids[table_name] = vector_layer.id()
+            if scratch_layer is None:
+                # Keep track of layer id for future reference (deletion of grid item)
+                item.layer_ids[table_name] = vector_layer.id()
 
-            QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
-            item.layer_group.addLayer(vector_layer)
+                QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
+                item.layer_group.addLayer(vector_layer)
 
         # Invalid layers info
         if invalid_layers:
