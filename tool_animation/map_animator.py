@@ -212,7 +212,7 @@ class MapAnimator(QGroupBox):
         assert isinstance(grid_item, ThreeDiGridItem)
         layer_id = grid_item.layer_ids["flowline"]
         layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._virtual_field_names[layer_id][0]
+        virtual_field_name = item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
 
         logger.info("Styling flowline layer")
@@ -911,6 +911,17 @@ class MapAnimator(QGroupBox):
                         (self.line_layer_groundwater, self.current_line_parameter)
                     )
 
+            # add the grid layers too
+            qgs_instance = QgsProject.instance()
+            grid = result.parent()
+            line, node, cell = (
+                qgs_instance.mapLayer(grid.layer_ids[k])
+                for k in ("flowline", "node", "cell")
+            )
+            layers_to_update.append((line, self.current_line_parameter))
+            layers_to_update.append((node, self.current_node_parameter))
+            layers_to_update.append((cell, self.current_node_parameter))
+
             # TODO relocate this
             ids_by_layer_attr = "_ids_by_layer"
             if not hasattr(self, ids_by_layer_attr):
@@ -946,8 +957,16 @@ class MapAnimator(QGroupBox):
                     values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
                     values_ti[values_ti == NO_DATA_VALUE] = np.NaN
 
-                t0_field_index = layer.fields().lookupField("initial_value")
-                ti_field_index = layer.fields().lookupField("result")
+                if layer_id in result._result_field_names:
+                    ti_field_index, t0_field_index = (
+                        layer.fields().indexOf(n)
+                        for n in result._result_field_names[layer_id]
+                    )
+                    assert ti_field_index != -1
+                    assert t0_field_index != -1
+                else:
+                    t0_field_index = layer.fields().lookupField("initial_value")
+                    ti_field_index = layer.fields().lookupField("result")
 
                 try:
                     ids = ids_by_layer[layer_id]
