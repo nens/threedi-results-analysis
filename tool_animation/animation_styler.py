@@ -115,7 +115,7 @@ def style_animation_flowline_current(
         style_manager.setCurrentStyle(default_style_name)
 
         # TODO: Not sure whether this is required, as it is also set above.
-        class_attribute_str = f"abs(result{field_postfix})"
+        class_attribute_str = f'abs("result{field_postfix}")'
         lyr.renderer().setClassAttribute(class_attribute_str)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
@@ -132,14 +132,16 @@ def style_animation_node_current(
         qml_path = STYLES_ROOT / "cell_current.qml"
     else:
         qml_path = STYLES_ROOT / "node_current.qml"
-    lyr.loadNamedStyle(str(qml_path))
+
+    # lyr.loadNamedStyle(str(qml_path))
+    lyr.loadNamedStyle(str(qml_path), True, QgsMapLayer.StyleCategory(QgsMapLayer.AllStyleCategories & ~QgsMapLayer.Fields))
     renderer = lyr.renderer()
 
     # Set classes
     if variable == "s1":
-        class_attribute_str = f"coalesce(result{field_postfix}, z_coordinate)"
+        class_attribute_str = f'coalesce("result{field_postfix}", z_coordinate)'
     else:
-        class_attribute_str = f"result{field_postfix}"
+        class_attribute_str = f'"result{field_postfix}"'
     lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1

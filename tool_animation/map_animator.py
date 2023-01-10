@@ -210,16 +210,46 @@ class MapAnimator(QGroupBox):
         # Adjust the styling of the grid layer based on the bounds and result field name
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
+
         layer_id = grid_item.layer_ids["flowline"]
-        layer = QgsProject.instance().mapLayer(layer_id)
         virtual_field_name = item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
+
+        layer = QgsProject.instance().mapLayer(layer_id)
 
         logger.info("Styling flowline layer")
         styler.style_animation_flowline_current(
             layer,
             self.line_parameter_class_bounds,
             self.current_line_parameter["parameters"],
+            postfix,
+        )
+
+        layer_id = grid_item.layer_ids["node"]
+        layer = QgsProject.instance().mapLayer(layer_id)
+        virtual_field_name = item._result_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
+
+        logger.info("Styling node layer")
+        styler.style_animation_node_current(
+            layer,
+            self.node_parameter_class_bounds,
+            self.current_node_parameter["parameters"],
+            False,
+            postfix,
+        )
+
+        layer_id = grid_item.layer_ids["cell"]
+        layer = QgsProject.instance().mapLayer(layer_id)
+        virtual_field_name = item._result_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
+
+        logger.info("Styling cell layer")
+        styler.style_animation_node_current(
+            layer,
+            self.node_parameter_class_bounds,
+            self.current_node_parameter["parameters"],
+            True,
             postfix,
         )
 
