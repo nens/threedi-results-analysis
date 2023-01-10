@@ -186,7 +186,7 @@ class MapAnimator(QGroupBox):
             self.setEnabled(False)
 
     @pyqtSlot(ThreeDiResultItem)
-    def update_result(self, item: ThreeDiResultItem):
+    def result_activated(self, item: ThreeDiResultItem):
         # Set the right styling on the layers, or revert back to original
 
         # For testing, ensure some stuff is precomputed
@@ -589,10 +589,13 @@ class MapAnimator(QGroupBox):
                 else:
                     idx = 99999
                 combo_box.insertItem(idx, param_name)
+            # directly emits a signal
             combo_box.setCurrentIndex(0)
 
     def _get_active_parameter_config(self):
-
+        """
+        Generates a parameter dict based on results file.
+        """
         active_result = self.model.get_selected_results()[0]  # TODO: ACTIVE
 
         if active_result is not None:

@@ -2,6 +2,7 @@ from pathlib import Path
 from qgis.core import QgsMapLayerStyle
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsMapLayer
+from qgis.core import QgsMarkerSymbol
 from qgis.utils import iface
 from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
 from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_CURL
@@ -42,6 +43,34 @@ def style_animation_flowline_current(
         symbol.symbolLayers()[1].setSymbolAngle(90)
         max_symbol_size = 2.5
     renderer.updateSymbols(symbol)
+
+    if field_postfix:
+        rotation_expression = f"""(
+    CASE WHEN "result{field_postfix}" < 0 THEN 180 ELSE 0 END
+    +
+    CASE WHEN ("line_type" >= 51 AND "line_type" <= 58) THEN 180 ELSE 0 END
+    + degrees(
+        azimuth(
+            start_point(
+                transform(
+                    $geometry,
+                    layer_property(  @layer , 'crs' ),
+                    @project_crs
+                )
+            ),
+            end_point(
+                transform(
+                    $geometry,
+                    layer_property(  @layer , 'crs' ),
+                    @project_crs
+                )
+            )
+        )
+    )
+) % 360"""
+
+        data_defined_angle = QgsMarkerSymbol().dataDefinedAngle().fromExpression(rotation_expression)
+        lyr.renderer().sourceSymbol()[1].subSymbol().setDataDefinedAngle(data_defined_angle)
 
     # Set classes and colors
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_DEEP)
