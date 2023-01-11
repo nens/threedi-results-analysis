@@ -990,7 +990,10 @@ class MapAnimator(QGroupBox):
                 try:
                     ids = ids_by_layer[layer_id]
                 except KeyError:
-                    ids = np.array([f.id() for f in layer.getFeatures()])
+                    ids = np.array([
+                        f.id()
+                        for f in layer.getFeatures()
+                    ], dtype="i8")
                     ids_by_layer[layer_id] = ids
 
                 # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
