@@ -188,70 +188,7 @@ class MapAnimator(QGroupBox):
     @pyqtSlot(ThreeDiResultItem)
     def result_activated(self, item: ThreeDiResultItem):
         # Set the right styling on the layers, or revert back to original
-
-        # For testing, ensure some stuff is precomputed
-        self.fill_parameter_combobox_items()
-
-        combobox_current_text = self.line_parameter_combo_box.currentText()
-        if combobox_current_text in self.line_parameters.keys():
-            self.current_line_parameter = self.line_parameters[combobox_current_text]
-        else:
-            self.current_line_parameter = None
-
-        combobox_current_text = self.node_parameter_combo_box.currentText()
-        if combobox_current_text in self.node_parameters.keys():
-            self.current_node_parameter = self.node_parameters[combobox_current_text]
-        else:
-            self.current_node_parameter = None
-
-        logger.info("Updating class bounds")
-        self.update_class_bounds(update_nodes=True, update_lines=True)
-
-        # Adjust the styling of the grid layer based on the bounds and result field name
-        grid_item = item.parent()
-        assert isinstance(grid_item, ThreeDiGridItem)
-
-        layer_id = grid_item.layer_ids["flowline"]
-        virtual_field_name = item._result_field_names[layer_id][0]
-        postfix = virtual_field_name[6:]  # remove "result" prefix
-
-        layer = QgsProject.instance().mapLayer(layer_id)
-
-        logger.info("Styling flowline layer")
-        styler.style_animation_flowline_current(
-            layer,
-            self.line_parameter_class_bounds,
-            self.current_line_parameter["parameters"],
-            postfix,
-        )
-
-        layer_id = grid_item.layer_ids["node"]
-        layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._result_field_names[layer_id][0]
-        postfix = virtual_field_name[6:]  # remove "result" prefix
-
-        logger.info("Styling node layer")
-        styler.style_animation_node_current(
-            layer,
-            self.node_parameter_class_bounds,
-            self.current_node_parameter["parameters"],
-            False,
-            postfix,
-        )
-
-        layer_id = grid_item.layer_ids["cell"]
-        layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._result_field_names[layer_id][0]
-        postfix = virtual_field_name[6:]  # remove "result" prefix
-
-        logger.info("Styling cell layer")
-        styler.style_animation_node_current(
-            layer,
-            self.node_parameter_class_bounds,
-            self.current_node_parameter["parameters"],
-            True,
-            postfix,
-        )
+        pass
 
     # TODO: Move to util module
     @staticmethod
@@ -458,6 +395,55 @@ class MapAnimator(QGroupBox):
                         self.current_node_parameter["parameters"],
                         cells=True,
                     )
+
+        # Adjust the styling of the grid layer based on the bounds and result field name
+        item = self.model.get_selected_results()[0]
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+
+        layer_id = grid_item.layer_ids["flowline"]
+        virtual_field_name = item._result_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
+
+        layer = QgsProject.instance().mapLayer(layer_id)
+
+        if style_lines:
+            logger.info("Styling flowline layer")
+            styler.style_animation_flowline_current(
+                layer,
+                self.line_parameter_class_bounds,
+                self.current_line_parameter["parameters"],
+                postfix,
+            )
+
+        if style_nodes:
+            layer_id = grid_item.layer_ids["node"]
+            layer = QgsProject.instance().mapLayer(layer_id)
+            virtual_field_name = item._result_field_names[layer_id][0]
+            postfix = virtual_field_name[6:]  # remove "result" prefix
+
+            logger.info("Styling node layer")
+            styler.style_animation_node_current(
+                layer,
+                self.node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                False,
+                postfix,
+            )
+
+            layer_id = grid_item.layer_ids["cell"]
+            layer = QgsProject.instance().mapLayer(layer_id)
+            virtual_field_name = item._result_field_names[layer_id][0]
+            postfix = virtual_field_name[6:]  # remove "result" prefix
+
+            logger.info("Styling cell layer")
+            styler.style_animation_node_current(
+                layer,
+                self.node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                True,
+                postfix,
+            )
 
     def on_line_parameter_change(self):
         old_parameter = self.current_line_parameter

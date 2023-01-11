@@ -1,7 +1,6 @@
 from pathlib import Path
 from qgis.core import QgsMapLayerStyle
 from qgis.core import QgsVectorLayer
-from qgis.core import QgsMapLayer
 from qgis.core import QgsMarkerSymbol
 from qgis.utils import iface
 from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
@@ -30,8 +29,7 @@ def style_animation_flowline_current(
 
     # Load basic style settings from qml file
     qml_path = STYLES_ROOT / "flowline_current.qml"
-    # loadNamedStyle deletes the expression: disable Field reading
-    lyr.loadNamedStyle(str(qml_path), True, QgsMapLayer.StyleCategory(QgsMapLayer.AllStyleCategories & ~QgsMapLayer.Fields))
+    lyr.loadNamedStyle(str(qml_path), True)
     renderer = lyr.renderer()
 
     # Set correct legend symbol rotation
@@ -107,7 +105,7 @@ def style_animation_flowline_current(
         style.readFromLayer(lyr)
         style_manager.addStyle(style_name, style)
         style_manager.setCurrentStyle(style_name)
-        (message, success) = lyr.loadNamedStyle(os.path.join(qml_path, qml_path))
+        (message, success) = lyr.loadNamedStyle(os.path.join(qml_path, qml_path), True)
         if not success:  # if style not loaded remove it
             style_manager.removeStyle(style_name)
             logger.info("Styling file not succesfully loaded: {fn}".format(fn=qml_path))
@@ -133,8 +131,7 @@ def style_animation_node_current(
     else:
         qml_path = STYLES_ROOT / "node_current.qml"
 
-    # lyr.loadNamedStyle(str(qml_path))
-    lyr.loadNamedStyle(str(qml_path), True, QgsMapLayer.StyleCategory(QgsMapLayer.AllStyleCategories & ~QgsMapLayer.Fields))
+    lyr.loadNamedStyle(str(qml_path), True)
     renderer = lyr.renderer()
 
     # Set classes
@@ -167,7 +164,7 @@ def style_animation_node_difference(
         qml_path = STYLES_ROOT / "cell_current.qml"
     else:
         qml_path = STYLES_ROOT / "node_difference.qml"
-    lyr.loadNamedStyle(str(qml_path))
+    lyr.loadNamedStyle(str(qml_path), True)
 
     # disregard the absolute maximum values when defining class bounds for a prettier result
     # instead, base the class bounds on the second highest percentile value (abs_high)
@@ -193,10 +190,10 @@ def style_animation_node_difference(
 
         if variable == "s1":
             class_attribute_str = str(
-                f"coalesce(result{field_postfix}, z_coordinate) - coalesce(initial_value{field_postfix}, z_coordinate)"
+                f'coalesce("result{field_postfix}", z_coordinate) - coalesce("initial_value{field_postfix}", z_coordinate)'
             )
         else:
-            class_attribute_str = str(f"result{field_postfix} - initial_value{field_postfix}")
+            class_attribute_str = str(f'"result{field_postfix}" - "initial_value{field_postfix}"')
         lyr.renderer().setClassAttribute(class_attribute_str)
         lyr.renderer().deleteAllClasses()
         for i in range(len(class_bounds) - 1):
