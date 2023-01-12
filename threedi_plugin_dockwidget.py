@@ -2,6 +2,7 @@ from logging import getLogger
 from pathlib import Path
 
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem
+from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
@@ -24,8 +25,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     item_selected = pyqtSignal(QModelIndex)
     item_deselected = pyqtSignal(QModelIndex)
-
-    QSETTING_KEY_DIR = "ThreeDiPluginDockWidget.path"
 
     def __init__(self, parent):
         super(ThreeDiPluginDockWidget, self).__init__(parent)
@@ -99,7 +98,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.item_selected.emit(selected_indexes[0])
 
     def _get_dir(self) -> str:
-        value = QgsSettings().value(self.QSETTING_KEY_DIR)
+        value = QgsSettings().value(TOOLBOX_QGIS_SETTINGS_GROUP + "/lastOpenDir")
         if value is None:
             return ""
         dir_path = Path(value)
@@ -110,9 +109,9 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def _set_dir(self, path: str):
         dir_path = Path(path).parent
         if dir_path.is_dir():
-            QgsSettings().setValue(self.QSETTING_KEY_DIR, str(dir_path))
+            QgsSettings().setValue(TOOLBOX_QGIS_SETTINGS_GROUP + "/lastOpenDir", str(dir_path))
         else:
-            QgsSettings().remove(self.QSETTING_KEY_DIR)
+            QgsSettings().remove(TOOLBOX_QGIS_SETTINGS_GROUP + "/lastOpenDir")
 
     @pyqtSlot()
     def toggle_visible(self, *args, **kwargs):
