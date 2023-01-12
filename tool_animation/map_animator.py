@@ -188,7 +188,16 @@ class MapAnimator(QGroupBox):
     @pyqtSlot(ThreeDiResultItem)
     def result_activated(self, item: ThreeDiResultItem):
         # Set the right styling on the layers, or revert back to original
-        pass
+
+        # Fill comboboxes based on result file
+        self.fill_parameter_combobox_items()
+
+        self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
+        self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
+
+        self.update_class_bounds(update_nodes=True, update_lines=True)
+        self._update_results(update_nodes=True, update_lines=True)
+        self.style_layers(style_nodes=True, style_lines=True)
 
     # TODO: Move to util module
     @staticmethod
@@ -328,73 +337,74 @@ class MapAnimator(QGroupBox):
         if self.current_node_parameter is None:
             style_nodes = False
 
-        if style_lines:
-            # 1d
-            styler.style_animation_flowline_current(
-                self.line_layer_1d,
-                self.line_parameter_class_bounds,
-                self.current_line_parameter["parameters"],
-            )
-            # 2d
-            styler.style_animation_flowline_current(
-                self.line_layer_2d,
-                self.line_parameter_class_bounds,
-                self.current_line_parameter["parameters"],
-            )
-            if has_groundwater:
+        if self.line_layer_1d:
+            if style_lines:
+                # 1d
                 styler.style_animation_flowline_current(
-                    self.line_layer_groundwater,
-                    self.groundwater_line_parameter_class_bounds,
+                    self.line_layer_1d,
+                    self.line_parameter_class_bounds,
                     self.current_line_parameter["parameters"],
                 )
-
-        if style_nodes:
-            if self.difference_checkbox.isChecked():
-                # nodes
-                styler.style_animation_node_difference(
-                    self.node_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    cells=False,
-                )
-                # cells
-                styler.style_animation_node_difference(
-                    self.cell_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    cells=True,
+                # 2d
+                styler.style_animation_flowline_current(
+                    self.line_layer_2d,
+                    self.line_parameter_class_bounds,
+                    self.current_line_parameter["parameters"],
                 )
                 if has_groundwater:
+                    styler.style_animation_flowline_current(
+                        self.line_layer_groundwater,
+                        self.groundwater_line_parameter_class_bounds,
+                        self.current_line_parameter["parameters"],
+                    )
+
+            if style_nodes:
+                if self.difference_checkbox.isChecked():
+                    # nodes
+                    styler.style_animation_node_difference(
+                        self.node_layer,
+                        self.node_parameter_class_bounds,
+                        self.current_node_parameter["parameters"],
+                        cells=False,
+                    )
                     # cells
                     styler.style_animation_node_difference(
-                        self.cell_layer_groundwater,
-                        self.groundwater_node_parameter_class_bounds,
+                        self.cell_layer,
+                        self.node_parameter_class_bounds,
                         self.current_node_parameter["parameters"],
                         cells=True,
                     )
-            else:
-                # nodes
-                styler.style_animation_node_current(
-                    self.node_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    cells=False,
-                )
-                # cells
-                styler.style_animation_node_current(
-                    self.cell_layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    cells=True,
-                )
-                if has_groundwater:
+                    if has_groundwater:
+                        # cells
+                        styler.style_animation_node_difference(
+                            self.cell_layer_groundwater,
+                            self.groundwater_node_parameter_class_bounds,
+                            self.current_node_parameter["parameters"],
+                            cells=True,
+                        )
+                else:
+                    # nodes
+                    styler.style_animation_node_current(
+                        self.node_layer,
+                        self.node_parameter_class_bounds,
+                        self.current_node_parameter["parameters"],
+                        cells=False,
+                    )
                     # cells
                     styler.style_animation_node_current(
-                        self.cell_layer_groundwater,
-                        self.groundwater_node_parameter_class_bounds,
+                        self.cell_layer,
+                        self.node_parameter_class_bounds,
                         self.current_node_parameter["parameters"],
                         cells=True,
                     )
+                    if has_groundwater:
+                        # cells
+                        styler.style_animation_node_current(
+                            self.cell_layer_groundwater,
+                            self.groundwater_node_parameter_class_bounds,
+                            self.current_node_parameter["parameters"],
+                            cells=True,
+                        )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
         item = self.model.get_selected_results()[0]
@@ -901,7 +911,10 @@ class MapAnimator(QGroupBox):
 
         # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
 
-        if self.active:
+        if self.active or True:
+
+            if not self.current_line_parameter or not self.current_node_parameter:
+                return
 
             result = self.model.get_selected_results()[0]  # TODO: ACTIVE
             threedi_result = result.threedi_result
@@ -912,23 +925,24 @@ class MapAnimator(QGroupBox):
             self.lcd.display(formatted_display)
 
             layers_to_update = []
-            if update_nodes:
-                layers_to_update.append((self.node_layer, self.current_node_parameter))
-                layers_to_update.append((self.cell_layer, self.current_node_parameter))
-                if threedi_result.result_admin.has_groundwater:
-                    layers_to_update.append(
-                        (self.node_layer_groundwater, self.current_node_parameter)
-                    )
-                    layers_to_update.append(
-                        (self.cell_layer_groundwater, self.current_node_parameter)
-                    )
-            if update_lines:
-                layers_to_update.append((self.line_layer_1d, self.current_line_parameter))
-                layers_to_update.append((self.line_layer_2d, self.current_line_parameter))
-                if threedi_result.result_admin.has_groundwater:
-                    layers_to_update.append(
-                        (self.line_layer_groundwater, self.current_line_parameter)
-                    )
+            if self.node_layer:
+                if update_nodes:
+                    layers_to_update.append((self.node_layer, self.current_node_parameter))
+                    layers_to_update.append((self.cell_layer, self.current_node_parameter))
+                    if threedi_result.result_admin.has_groundwater:
+                        layers_to_update.append(
+                            (self.node_layer_groundwater, self.current_node_parameter)
+                        )
+                        layers_to_update.append(
+                            (self.cell_layer_groundwater, self.current_node_parameter)
+                        )
+                if update_lines:
+                    layers_to_update.append((self.line_layer_1d, self.current_line_parameter))
+                    layers_to_update.append((self.line_layer_2d, self.current_line_parameter))
+                    if threedi_result.result_admin.has_groundwater:
+                        layers_to_update.append(
+                            (self.line_layer_groundwater, self.current_line_parameter)
+                        )
 
             # add the grid layers too
             qgs_instance = QgsProject.instance()
