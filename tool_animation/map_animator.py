@@ -197,7 +197,14 @@ class MapAnimator(QGroupBox):
 
         self.update_class_bounds(update_nodes=True, update_lines=True)
         self._update_results(update_nodes=True, update_lines=True)
-        self.style_layers(style_nodes=True, style_lines=True)
+
+        self.line_parameter_combo_box.setEnabled(True)
+        self.node_parameter_combo_box.setEnabled(True)
+        self.difference_checkbox.setEnabled(True)
+        self.difference_label.setEnabled(True)
+        self.lcd.setEnabled(True)
+
+        iface.mapCanvas().refresh()
 
     # TODO: Move to util module
     @staticmethod

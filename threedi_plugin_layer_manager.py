@@ -11,6 +11,7 @@ from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultIt
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
 from ThreeDiToolbox.utils.utils import safe_join
+from qgis.utils import iface
 
 styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_styles", "grid")
 
@@ -219,7 +220,7 @@ class ThreeDiPluginLayerManager(QObject):
                     logger.error(f"Unable to load style: {msg}")
 
             scratch_layer.setName(layer_name)
-            # iface.layerTreeView().refreshLayerSymbology(lyr.id())
+            iface.layerTreeView().refreshLayerSymbology(scratch_layer.id())
             scratch_layer.triggerRepaint()
 
     @dirty
