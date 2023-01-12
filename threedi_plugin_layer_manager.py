@@ -3,6 +3,7 @@ from collections import OrderedDict
 import h5py
 from osgeo import ogr
 import uuid
+from PyQt5.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes
@@ -53,6 +54,19 @@ def copy_layer_into_memory_layer(source_layer, layer_name, dest_layer):
     dest_layer.updateExtents()
 
     return dest_layer
+
+
+# Layers need to be in specific order and naming:
+gpkg_layers = OrderedDict(
+    [
+        ("Pump (point)", "pump"),
+        ("Node", "node"),
+        ("Pump (line)", "pump_linestring"),
+        ("Flowline", "flowline"),
+        ("Cell", "cell"),
+        ("Obstacle", "obstacle"),
+    ]
+)
 
 
 class ThreeDiPluginLayerManager(QObject):
@@ -177,8 +191,36 @@ class ThreeDiPluginLayerManager(QObject):
                 layer.updateFields()
 
         threedi_result_item._result_field_names.clear()
-
         return True
+
+    @dirty
+    @pyqtSlot(ThreeDiResultItem)
+    def result_unchecked(self, item: ThreeDiResultItem):
+        # In case all results are unchecked, revert back to default styling (and naming)
+        grid_item = item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
+        if grid_item.hasChildren():
+            for i in range(grid_item.rowCount()):
+                result_item = grid_item.child(i)
+                if result_item.checkState == Qt.Checked:
+                    return
+
+        for layer_name, table_name in gpkg_layers.items():
+            scratch_layer = None
+            assert table_name in grid_item.layer_ids.keys()
+            scratch_layer = QgsProject.instance().mapLayer(grid_item.layer_ids[table_name])
+            assert scratch_layer
+
+            # (Re)apply the style and naming
+            qml_path = safe_join(styles_dir, f"{table_name}.qml")
+            if os.path.exists(qml_path):
+                msg, res = scratch_layer.loadNamedStyle(qml_path)
+                if not res:
+                    logger.error(f"Unable to load style: {msg}")
+
+            scratch_layer.setName(layer_name)
+            # iface.layerTreeView().refreshLayerSymbology(lyr.id())
+            scratch_layer.triggerRepaint()
 
     @dirty
     @pyqtSlot(ThreeDiResultItem)
@@ -228,18 +270,6 @@ class ThreeDiPluginLayerManager(QObject):
         Retrieves (a subset of the) layers from gpk and add to project.
         """
 
-        # Layers need to be in specific order and naming:
-        gpkg_layers = OrderedDict(
-            [
-                ("Pump (point)", "pump"),
-                ("Node", "node"),
-                ("Pump (line)", "pump_linestring"),
-                ("Flowline", "flowline"),
-                ("Cell", "cell"),
-                ("Obstacle", "obstacle"),
-            ]
-        )
-
         invalid_layers = []
         empty_layers = []
 
@@ -252,7 +282,7 @@ class ThreeDiPluginLayerManager(QObject):
 
             # QGIS does save memory layers to the project file (but without the data)
             # Removing the scratch layer and resaving the project causes QGIS to crash,
-            # therefore we reuse the layer instance
+            # therefore we reuse the layer instance.
             scratch_layer = None
             if table_name in item.layer_ids.keys():
                 scratch_layer = QgsProject.instance().mapLayer(item.layer_ids[table_name])
@@ -266,7 +296,7 @@ class ThreeDiPluginLayerManager(QObject):
                 invalid_layers.append(layer_name)
                 continue
 
-            # only load layers that contain some features
+            # Only load layers that contain some features
             if not vector_layer.featureCount():
                 empty_layers.append(layer_name)
                 continue
@@ -275,15 +305,20 @@ class ThreeDiPluginLayerManager(QObject):
                 vector_layer, layer_name, scratch_layer
             )
 
-            # apply the style
+            # Apply the style
             qml_path = safe_join(styles_dir, f"{table_name}.qml")
             if os.path.exists(qml_path):
-                vector_layer.loadNamedStyle(qml_path)
-                # prior to QGIS 3.24, this method would show an (annoying) message box
+                msg, res = vector_layer.loadNamedStyle(qml_path)
+                if not res:
+                    logger.error(f"Unable to load style: {msg}")
+                # prior to QGIS 3.24, saveStyleToDatabase would show an (annoying) message box
                 # warning when a style with the same styleName already existed. Unfortunately,
                 # QgsProviderRegistry::styleExists is not available in Python
-                if table_name not in vector_layer.listStylesInDatabase()[2]:
-                    vector_layer.saveStyleToDatabase(table_name, "", True, "")
+                # if table_name not in vector_layer.listStylesInDatabase()[2]:
+                    # Memory providers do not support saving of styles, commented
+                    # msg = vector_layer.saveStyleToDatabase(table_name, "", True, "")
+                    # if msg:
+                    #    logger.error(f"Unable to save style to DB: {msg}")
 
             vector_layer.setReadOnly(True)
             vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)

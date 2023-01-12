@@ -3,7 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsDateTimeRange, QgsProject, QgsPathResolver
+from qgis.core import QgsApplication, QgsDateTimeRange, QgsProject, QgsPathResolver, QgsSettings
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -133,6 +133,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_removed.connect(self.loader.unload_result)
         self.model.grid_changed.connect(self.loader.update_grid)
         self.model.result_changed.connect(self.loader.update_result)
+        self.model.result_unchecked.connect(self.loader.result_unchecked)
 
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
@@ -161,10 +162,12 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_added.connect(self.map_animator.results_changed)
         self.model.result_removed.connect(self.map_animator.results_changed)
         self.model.result_checked.connect(self.map_animator.result_activated)
-        # self.model.result_unchecked.connect(self.map_animator.result_deactivated)
 
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
+
+        # Disable warning that scratch layer data will be lost
+        QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
 
         self.check_status_model_and_results()
 
