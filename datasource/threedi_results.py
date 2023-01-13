@@ -1,3 +1,4 @@
+from cftime import num2date
 from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.datasource.base import BaseDataSource
@@ -113,6 +114,18 @@ class ThreediResult(BaseDataSource):
         :return 1d np.array containing the timestamps in seconds.
         """
         return self.get_timestamps()
+
+    @cached_property
+    def dt_timestamps(self):
+        """Return the datetime timestamps of the 'results_3di.nc'
+
+        :return 1d np.array containing the timestamps in seconds.
+        """
+        # TODO return self.result_admin.nodes.dt_timestamps()  # after bug fix
+        nodes = self.result_admin.nodes
+        units = nodes._datasource["time"].attrs["units"].decode("utf-8")
+        datetime_gregorian = num2date(self.timestamps, units)
+        return list(map(str, datetime_gregorian))
 
     def get_timestamps(self, parameter=None):
         """Return an array of timestamps for the given parameter
