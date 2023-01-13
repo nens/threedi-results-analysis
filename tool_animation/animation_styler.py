@@ -162,7 +162,7 @@ def style_animation_node_difference(
 
     # Load basic style settings from qml file
     if cells:
-        qml_path = STYLES_ROOT / "cell_current.qml"
+        qml_path = STYLES_ROOT / "cell_difference.qml"
     else:
         qml_path = STYLES_ROOT / "node_difference.qml"
     lyr.loadNamedStyle(str(qml_path), True)
