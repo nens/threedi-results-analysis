@@ -187,7 +187,6 @@ class MapAnimator(QGroupBox):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_activated(self, item: ThreeDiResultItem):
-        # Set the right styling on the layers, or revert back to original
 
         # Fill comboboxes based on result file
         self.fill_parameter_combobox_items()
@@ -195,8 +194,13 @@ class MapAnimator(QGroupBox):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
+        logger.info("Updating class bounds")
         self.update_class_bounds(update_nodes=True, update_lines=True)
+        logger.info("Resetting time line")
         self._update_results(update_nodes=True, update_lines=True)
+
+        # Set the right styling on the layers
+        self.style_layers(style_nodes=True, style_lines=True)
 
         self.line_parameter_combo_box.setEnabled(True)
         self.node_parameter_combo_box.setEnabled(True)
@@ -622,7 +626,6 @@ class MapAnimator(QGroupBox):
                 else:
                     idx = 99999
                 combo_box.insertItem(idx, param_name)
-            # directly emits a signal
             combo_box.setCurrentIndex(0)
 
     def _get_active_parameter_config(self):
@@ -1111,10 +1114,10 @@ class MapAnimator(QGroupBox):
 
         # connect to signals
         self.activateButton.clicked.connect(self.on_activate_button_clicked)
-        self.line_parameter_combo_box.currentIndexChanged.connect(
+        self.line_parameter_combo_box.activated.connect(
             self.on_line_parameter_change
         )
-        self.node_parameter_combo_box.currentIndexChanged.connect(
+        self.node_parameter_combo_box.activated.connect(
             self.on_node_parameter_change
         )
         self.difference_checkbox.stateChanged.connect(

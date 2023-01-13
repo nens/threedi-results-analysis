@@ -35,14 +35,16 @@ def style_animation_flowline_current(
     # Set correct legend symbol rotation
     symbol = renderer.sourceSymbol().clone()
     if variable == WET_CROSS_SECTION_AREA.name:
+        logger.error(f"Deleting symbol for {WET_CROSS_SECTION_AREA.name}")
         symbol.deleteSymbolLayer(1)
         max_symbol_size = 1.5
     else:
+        logger.error("Setting symbol angle")
         symbol.symbolLayers()[1].setSymbolAngle(90)
         max_symbol_size = 2.5
     renderer.updateSymbols(symbol)
 
-    if field_postfix:
+    if field_postfix and variable != WET_CROSS_SECTION_AREA.name:
         rotation_expression = f"""(
     CASE WHEN "result{field_postfix}" < 0 THEN 180 ELSE 0 END
     +
@@ -68,7 +70,8 @@ def style_animation_flowline_current(
 ) % 360"""
 
         data_defined_angle = QgsMarkerSymbol().dataDefinedAngle().fromExpression(rotation_expression)
-        lyr.renderer().sourceSymbol()[1].subSymbol().setDataDefinedAngle(data_defined_angle)
+        symbol.symbolLayers()[1].subSymbol().setDataDefinedAngle(data_defined_angle)
+        renderer.updateSymbols(symbol)
 
     # Set classes and colors
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_DEEP)
