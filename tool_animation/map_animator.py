@@ -24,11 +24,11 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
 from typing import List
 from typing import Union
-from math import nan as NaN
 
 import ThreeDiToolbox.tool_animation.animation_styler as styler
 import copy
 import logging
+import math
 import numpy as np
 
 
@@ -424,9 +424,10 @@ class MapAnimator(QGroupBox):
             # animation tool.
             if "q_pump" in available_subgrid_vars:
                 available_subgrid_vars.remove("q_pump")
+            agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
 
             parameter_config = generate_parameter_config(
-                available_subgrid_vars, agg_vars=[]
+                available_subgrid_vars, agg_vars=agg_vars
             )
         else:
             parameter_config = {"q": {}, "h": {}}
@@ -532,8 +533,8 @@ class MapAnimator(QGroupBox):
                 dvalues_ti = values_ti[ids - 1]
                 update_dict = {
                     k: {
-                        t0_field_index: NULL if v0 is NaN else v0,
-                        ti_field_index: NULL if vi is NaN else vi,
+                        t0_field_index: NULL if math.isnan(v0) else v0,
+                        ti_field_index: NULL if math.isnan(vi) else vi,
                     } for k, v0, vi in zip(
                         ids.tolist(),
                         dvalues_t0.tolist(),
