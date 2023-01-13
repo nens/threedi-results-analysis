@@ -59,7 +59,7 @@ DEPENDENCIES = [
     ),  # backward compat. alemic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
-    Dependency("cftime", "cftime", ""),
+    Dependency("cftime", "cftime", ">=1.5.0"),
     Dependency("packaging", "packaging", ""),
     Dependency(
         "colorama", "colorama", ""

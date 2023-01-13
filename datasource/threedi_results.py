@@ -121,11 +121,7 @@ class ThreediResult(BaseDataSource):
 
         :return 1d np.array containing the timestamps in seconds.
         """
-        # TODO return self.result_admin.nodes.dt_timestamps()  # after bug fix
-        nodes = self.result_admin.nodes
-        units = nodes._datasource["time"].attrs["units"].decode("utf-8")
-        datetime_gregorian = num2date(self.timestamps, units)
-        return list(map(str, datetime_gregorian))
+        return self.result_admin.nodes.dt_timestamps  # after bug fix
 
     def get_timestamps(self, parameter=None):
         """Return an array of timestamps for the given parameter

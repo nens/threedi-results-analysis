@@ -45,6 +45,7 @@ wget https://files.pythonhosted.org/packages/83/83/664c4e0c286d2dbf8294147493263
 
 # Download linux wheels (both cp38 and cp310)
 wget https://files.pythonhosted.org/packages/d8/4b/ba9f72ae150d0a887e53b476ee29609c0ae1d28cd914bb66685a03ddfad2/cftime-1.5.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
+wget https://files.pythonhosted.org/packages/44/51/bc9d47beee47afda1d335f05efa848dc403bd183344f03d431281518e8ab/cftime-1.5.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl#sha256=7a820e16357dbdc9723b2059f7178451de626a8b2e5f80b9d91a77e3dac42133
 wget https://files.pythonhosted.org/packages/90/0b/6f149c71dc7e035bb872c7f819127749d0a3c4388473f28be59ddb0b61fc/pygeos-0.12.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=962df97f937d6656ce9293e7072318e99860b0d41f61df9017551855a8bc188e
 wget https://files.pythonhosted.org/packages/b4/64/01e6c648e6d0b305e0d1cdbe4fd96bc8d0fbae7cb14a929e5645cbe71524/pygeos-0.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=26fae3eabb83a15348c2c3f78892114aca9bc4efaa342ab2fa3fa39a85e05dc5
 
