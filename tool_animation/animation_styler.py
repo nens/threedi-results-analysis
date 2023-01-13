@@ -191,8 +191,7 @@ def style_animation_node_difference(
 
         if variable == "s1":
             class_attribute_str = str(
-                f'coalesce("result{field_postfix}", bottom_level) -
-                coalesce("initial_value{field_postfix}", bottom_level)'
+                f'coalesce("result{field_postfix}", bottom_level) - coalesce("initial_value{field_postfix}", bottom_level)'
             )
         else:
             class_attribute_str = str(f'"result{field_postfix}" - "initial_value{field_postfix}"')
