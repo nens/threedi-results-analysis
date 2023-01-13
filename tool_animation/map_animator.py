@@ -19,6 +19,7 @@ from ThreeDiToolbox.datasource.result_constants import H_TYPES
 from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
+from ThreeDiToolbox.datasource.result_constants import AGGREGATION_OPTIONS
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
@@ -59,6 +60,14 @@ def copy_layer_into_memory_layer(source_layer, layer_name):
     dest_layer.updateExtents()
 
     return dest_layer
+
+
+def strip_agg_options(param: str) -> str:
+    for opt in AGGREGATION_OPTIONS:
+        if param.endswith("_" + opt):
+            return param.rstrip("_" + opt)
+
+    return param
 
 
 def threedi_result_percentiles(
@@ -108,7 +117,7 @@ def threedi_result_percentiles(
                     .z_coordinate
                 )
     else:
-        raise ValueError("unknown variable")
+        raise ValueError(f"unknown variable: {variable}")
 
     last_timestamp = nodes_or_lines.timestamps[-1]
     ts = nodes_or_lines.timeseries(0, last_timestamp)
@@ -154,15 +163,6 @@ class MapAnimator(QGroupBox):
         self.node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         self.groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         self.groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-
-        # layers: store only layer id str to avoid keeping reference to deleted C++ object
-        self._node_layer = None
-        self._cell_layer = None
-        self._line_layer_1d = None
-        self._line_layer_2d = None
-        self._line_layer_groundwater = None
-        self._node_layer_groundwater = None
-        self._cell_layer_groundwater = None
         self.setup_ui(parent)
 
     @pyqtSlot(ThreeDiResultItem)
@@ -174,9 +174,6 @@ class MapAnimator(QGroupBox):
 
         # Fill comboboxes based on result file
         self.fill_parameter_combobox_items()
-
-        self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
-        self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
         self.restyle()
 
@@ -276,6 +273,9 @@ class MapAnimator(QGroupBox):
                 )
 
     def restyle(self):
+        self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
+        self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
+
         self.update_class_bounds(update_nodes=True, update_lines=True)
         self._update_results(update_nodes=True, update_lines=True)
         self.style_layers(style_nodes=True, style_lines=True)
@@ -286,9 +286,10 @@ class MapAnimator(QGroupBox):
         )
 
         if update_nodes:
+            base_nc_name = strip_agg_options(self.current_node_parameter["parameters"])
+            logger.info(base_nc_name)
             if (
-                NEGATIVE_POSSIBLE[self.current_node_parameter["parameters"]]
-                or self.difference_checkbox.isChecked()
+                NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
             ):
                 lower_threshold = float("-Inf")
             else:
