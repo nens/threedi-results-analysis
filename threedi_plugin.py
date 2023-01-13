@@ -3,7 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsDateTimeRange, QgsProject, QgsPathResolver, QgsSettings
+from qgis.core import QgsApplication, QgsDateTimeRange, QgsInterval, QgsProject, QgsPathResolver, QgsSettings
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -271,6 +271,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             tc = iface.mapCanvas().temporalController()
             start_time = datetime.datetime(2000, 1, 1)
             end_time = start_time + timedelta(seconds=int(round(timestamps[-1])))
+            frame_duration_seconds = ((timestamps[1] - timestamps[0]).item())
+            tc.setFrameDuration(QgsInterval(frame_duration_seconds))
             tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
             logger.info(f"stamps {timestamps}")
             logger.info(f"end {end_time}")
