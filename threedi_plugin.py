@@ -291,17 +291,17 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
 
             # Convert the timekey to result index
-            timekey = (tct-Datetime(2000, 1, 1)).total_seconds()
+            timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
 
             datasource = self.model.get_selected_results()[0]
             timestamps = datasource.threedi_result.timestamps
             # TODO: are the timekeys always sorted?
-            index = int(timestamps.searchsorted(timekey+0.1, "right")-1)
+            index = int(timestamps.searchsorted(timekey+0.01, "right")-1)
 
             # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")
             # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
             # messagebar_message("count", f"{tc.totalFrameCount()}")
-            logger.info(f"index = {index}")
+            logger.info(f"index = {index}, current frame: {tc.currentFrameNumber()}, #timesteps: {len(timestamps)}")
             self.map_animator.update_results(index, True, True)
 
     def _add_action(

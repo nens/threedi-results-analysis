@@ -1,4 +1,3 @@
-from cftime import num2date
 from functools import cached_property
 from threedigrid.admin.constants import NO_DATA_VALUE
 from ThreeDiToolbox.datasource.base import BaseDataSource
