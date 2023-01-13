@@ -1059,7 +1059,12 @@ class MapAnimator(QGroupBox):
                 )
 
                 layer.setName(layer_name)
-                layer.triggerRepaint()
+
+                # Don't update invisible layers TODO: why not?
+                layer_tree_root = QgsProject.instance().layerTreeRoot()
+                layer_tree_layer = layer_tree_root.findLayer(layer)
+                if layer_tree_layer.isVisible():
+                    layer.triggerRepaint()
 
     def setup_ui(self, parent_widget: QWidget):
         parent_widget.layout().addWidget(self)
