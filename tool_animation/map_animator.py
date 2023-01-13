@@ -8,10 +8,8 @@ from qgis.utils import iface
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QFrame
 from qgis.PyQt.QtWidgets import QLCDNumber
-from qgis.PyQt.QtWidgets import QHBoxLayout
-from qgis.PyQt.QtWidgets import QLabel
+from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
 from threedigrid.admin.constants import NO_DATA_VALUE
@@ -191,7 +189,6 @@ class MapAnimator(QGroupBox):
         self.line_parameter_combo_box.setEnabled(True)
         self.node_parameter_combo_box.setEnabled(True)
         self.difference_checkbox.setEnabled(True)
-        self.difference_label.setEnabled(True)
         self.lcd.setEnabled(True)
 
         iface.mapCanvas().refresh()
@@ -570,42 +567,37 @@ class MapAnimator(QGroupBox):
         self.HLayout = QHBoxLayout(self)
         self.setLayout(self.HLayout)
 
-        self.line_parameter_combo_box = QComboBox(self)
+        line_group = QGroupBox("Flowline variable", self)
+        line_group.setLayout(QGridLayout(self))
+
+        self.line_parameter_combo_box = QComboBox(line_group)
         self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.line_parameter_combo_box.setToolTip("Choose flowline variable to display")
-        self.HLayout.addWidget(self.line_parameter_combo_box)
+        line_group.layout().addWidget(self.line_parameter_combo_box)
 
-        hline1 = QFrame()
-        hline1.setFrameShape(QFrame.VLine)
-        hline1.setFrameShadow(QFrame.Sunken)
-        self.HLayout.addWidget(hline1)
+        self.HLayout.addWidget(line_group)
 
-        self.node_parameter_combo_box = QComboBox(self)
+        node_group = QGroupBox("Node variable", self)
+        node_group.setLayout(QGridLayout(self))
+        self.node_parameter_combo_box = QComboBox(node_group)
         self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.node_parameter_combo_box.setToolTip("Choose node variable to display")
-        self.HLayout.addWidget(self.node_parameter_combo_box)
+        node_group.layout().addWidget(self.node_parameter_combo_box)
 
-        self.difference_checkbox = QCheckBox(self)
+        self.difference_checkbox = QCheckBox("Relative", self)
         self.difference_checkbox.setToolTip(
             "Display difference relative to simulation start (nodes only)"
         )
-        self.difference_label = QLabel(self)
-        self.difference_label.setText("Relative")
-        self.difference_label.setToolTip(
-            "Display difference relative to simulation start (nodes only)"
-        )
-        self.HLayout.addWidget(self.difference_checkbox)
-        self.HLayout.addWidget(self.difference_label)
 
-        hline2 = QFrame()
-        hline2.setFrameShape(QFrame.VLine)
-        hline2.setFrameShadow(QFrame.Sunken)
-        self.HLayout.addWidget(hline2)
+        node_group.layout().addWidget(self.difference_checkbox, 0, 1)
+
+        self.HLayout.addWidget(node_group)
+
+        self.HLayout.addStretch()
 
         self.lcd = QLCDNumber()
         self.lcd.setToolTip('Time format: "days hours:minutes"')
         self.lcd.setSegmentStyle(QLCDNumber.Flat)
-
         # Let lcd display a maximum of 9 digits, this way it can display a maximum
         # simulation duration of 999 days, 23 hours and 59 minutes.
         self.lcd.setDigitCount(9)
