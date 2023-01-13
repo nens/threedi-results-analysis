@@ -593,10 +593,11 @@ class MapAnimator(QGroupBox):
 
         self.HLayout.addWidget(node_group)
 
+        self.HLayout.addStretch()
+
         self.lcd = QLCDNumber()
         self.lcd.setToolTip('Time format: "days hours:minutes"')
         self.lcd.setSegmentStyle(QLCDNumber.Flat)
-
         # Let lcd display a maximum of 9 digits, this way it can display a maximum
         # simulation duration of 999 days, 23 hours and 59 minutes.
         self.lcd.setDigitCount(9)
