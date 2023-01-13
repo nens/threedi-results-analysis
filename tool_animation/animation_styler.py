@@ -35,11 +35,9 @@ def style_animation_flowline_current(
     # Set correct legend symbol rotation
     symbol = renderer.sourceSymbol().clone()
     if variable == WET_CROSS_SECTION_AREA.name:
-        logger.error(f"Deleting symbol for {WET_CROSS_SECTION_AREA.name}")
         symbol.deleteSymbolLayer(1)
         max_symbol_size = 1.5
     else:
-        logger.error("Setting symbol angle")
         symbol.symbolLayers()[1].setSymbolAngle(90)
         max_symbol_size = 2.5
     renderer.updateSymbols(symbol)

@@ -100,7 +100,7 @@ class ThreeDiPluginLayerManager(QObject):
             pop_up_critical("Failed adding the layers to the project.")
             return False
 
-        messagebar_message(MSG_TITLE, "Added layers to the project")
+        messagebar_message(MSG_TITLE, "Added layers to the project", duration=2)
 
         self.grid_loaded.emit(item)
         return True
