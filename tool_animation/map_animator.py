@@ -921,7 +921,7 @@ class MapAnimator(QGroupBox):
 
         # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
 
-        if self.active or True:
+        if self.isEnabled():
 
             if not self.current_line_parameter or not self.current_node_parameter:
                 return

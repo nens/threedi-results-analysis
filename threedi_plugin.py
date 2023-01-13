@@ -138,9 +138,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
 
-        self.loader.result_loaded.connect(self._update_temporal_controler)
-        self.model.grid_removed.connect(self._update_temporal_controler)
-        self.model.result_removed.connect(self._update_temporal_controler)
         self.model.result_checked.connect(self._update_temporal_controler)
         self.model.result_unchecked.connect(self._update_temporal_controler)
 
@@ -218,6 +215,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         Called then the plugin is unloaded.
         """
 
+        # Stop animating
+        tc = iface.mapCanvas().temporalController()
+        tc.updateTemporalRange.disconnect(self._temporal_update)
+
         # Clears model and emits subsequent signals
         self.model.clear()
 
@@ -242,8 +243,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.ts_datasources.rowsRemoved.disconnect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.disconnect(self._temporal_update)
 
         # Clean up resources
 
