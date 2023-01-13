@@ -137,7 +137,7 @@ def style_animation_node_current(
 
     # Set classes
     if variable == "s1":
-        class_attribute_str = f'coalesce("result{field_postfix}", z_coordinate)'
+        class_attribute_str = f'coalesce("result{field_postfix}", bottom_level)'
     else:
         class_attribute_str = f'"result{field_postfix}"'
     lyr.renderer().setClassAttribute(class_attribute_str)
@@ -145,7 +145,7 @@ def style_animation_node_current(
     nr_classes = len(percentiles) - 1
     percentiles[0] = float(
         -9999
-    )  # to make nodes / cells also visible when dry and z_coordinate < percentile[0]
+    )  # to make nodes / cells also visible when dry and bottom_level < percentile[0]
     for i in range(nr_classes):
         renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
@@ -191,7 +191,7 @@ def style_animation_node_difference(
 
         if variable == "s1":
             class_attribute_str = str(
-                f'coalesce("result{field_postfix}", z_coordinate) - coalesce("initial_value{field_postfix}", z_coordinate)'
+                f'coalesce("result{field_postfix}", bottom_level) - coalesce("initial_value{field_postfix}", bottom_level)'
             )
         else:
             class_attribute_str = str(f'"result{field_postfix}" - "initial_value{field_postfix}"')

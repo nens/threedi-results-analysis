@@ -157,9 +157,6 @@
                 <property name="styleSheet">
                  <string notr="true"/>
                 </property>
-                <property name="text">
-                 <string/>
-                </property>
                 <property name="icon">
                  <iconset>
                   <normaloff>:images/themes/default/mActionAdd.svg</normaloff>:images/themes/default/mActionAdd.svg</iconset>
@@ -171,8 +168,9 @@
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di result&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
-                <property name="text">
-                 <string>Add result</string>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>:images/themes/default/mActionAddLayer.svg</normaloff>:images/themes/default/mActionAdd.svg</iconset>
                 </property>
                </widget>
               </item>
