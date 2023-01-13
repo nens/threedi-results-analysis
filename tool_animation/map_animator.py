@@ -178,13 +178,7 @@ class MapAnimator(QGroupBox):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-        logger.info("Updating class bounds")
-        self.update_class_bounds(update_nodes=True, update_lines=True)
-        logger.info("Resetting time line")
-        self._update_results(update_nodes=True, update_lines=True)
-
-        # Set the right styling on the layers
-        self.style_layers(style_nodes=True, style_lines=True)
+        self.restyle()
 
         self.line_parameter_combo_box.setEnabled(True)
         self.node_parameter_combo_box.setEnabled(True)
@@ -241,13 +235,22 @@ class MapAnimator(QGroupBox):
             postfix = virtual_field_name[6:]  # remove "result" prefix
 
             logger.info("Styling node layer")
-            styler.style_animation_node_current(
-                layer,
-                self.node_parameter_class_bounds,
-                self.current_node_parameter["parameters"],
-                False,
-                postfix,
-            )
+            if self.difference_checkbox.isChecked():
+                styler.style_animation_node_difference(
+                    layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    False,
+                    postfix,
+                )
+            else:
+                styler.style_animation_node_current(
+                    layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    False,
+                    postfix,
+                )
 
             layer_id = grid_item.layer_ids["cell"]
             layer = QgsProject.instance().mapLayer(layer_id)
@@ -255,24 +258,27 @@ class MapAnimator(QGroupBox):
             postfix = virtual_field_name[6:]  # remove "result" prefix
 
             logger.info("Styling cell layer")
-            styler.style_animation_node_current(
-                layer,
-                self.node_parameter_class_bounds,
-                self.current_node_parameter["parameters"],
-                True,
-                postfix,
-            )
+            if self.difference_checkbox.isChecked():
+                styler.style_animation_node_difference(
+                    layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    True,
+                    postfix,
+                )
+            else:
+                styler.style_animation_node_current(
+                    layer,
+                    self.node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    True,
+                    postfix,
+                )
 
-    def on_line_parameter_change(self):
-        pass
-
-    def on_node_parameter_change(self):
-        pass
-
-    def on_difference_checkbox_state_change(self):
-        self.update_class_bounds(update_nodes=True, update_lines=False)
-        self._update_results(update_nodes=True, update_lines=False)
-        self.style_layers(style_nodes=True, style_lines=False)
+    def restyle(self):
+        self.update_class_bounds(update_nodes=True, update_lines=True)
+        self._update_results(update_nodes=True, update_lines=True)
+        self.style_layers(style_nodes=True, style_lines=True)
 
     def update_class_bounds(self, update_nodes: bool, update_lines: bool):
         gr = (
@@ -496,16 +502,12 @@ class MapAnimator(QGroupBox):
                     values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
                     values_ti[values_ti == NO_DATA_VALUE] = np.NaN
 
-                if layer_id in result._result_field_names:
-                    ti_field_index, t0_field_index = (
-                        layer.fields().indexOf(n)
-                        for n in result._result_field_names[layer_id]
-                    )
-                    assert ti_field_index != -1
-                    assert t0_field_index != -1
-                else:
-                    t0_field_index = layer.fields().lookupField("initial_value")
-                    ti_field_index = layer.fields().lookupField("result")
+                ti_field_index, t0_field_index = (
+                    layer.fields().indexOf(n)
+                    for n in result._result_field_names[layer_id]
+                )
+                assert ti_field_index != -1
+                assert t0_field_index != -1
 
                 try:
                     ids = ids_by_layer[layer_id]
@@ -541,12 +543,7 @@ class MapAnimator(QGroupBox):
                 }
                 provider.changeAttributeValues(update_dict)
 
-                if self.difference_checkbox.isChecked() and layer in (
-                    self.node_layer,
-                    self.node_layer_groundwater,
-                    self.cell_layer,
-                    self.cell_layer_groundwater,
-                ):
+                if self.difference_checkbox.isChecked() and layer in (node, cell):
                     layer_name_postfix = "relative to t0"
                 else:
                     layer_name_postfix = "current timestep"
@@ -604,16 +601,10 @@ class MapAnimator(QGroupBox):
         self.lcd.setDigitCount(9)
         self.HLayout.addWidget(self.lcd)
 
-        self.line_parameter_combo_box.activated.connect(
-            self.on_line_parameter_change
-        )
-        self.node_parameter_combo_box.activated.connect(
-            self.on_node_parameter_change
-        )
-        self.difference_checkbox.stateChanged.connect(
-            self.on_difference_checkbox_state_change
-        )
-        self.active = False
+        self.line_parameter_combo_box.activated.connect(self.restyle)
+        self.node_parameter_combo_box.activated.connect(self.restyle)
+        self.difference_checkbox.stateChanged.connect(self.restyle)
+
         self.setEnabled(False)
 
     @staticmethod

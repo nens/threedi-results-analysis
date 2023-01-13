@@ -48,7 +48,7 @@ class ThreeDiResultItem(QStandardItem):
 
         # layer info
         # map of grid layers id to added result field names (tuple of ids)
-        # (Two virtual fields, initial_value and result, are required)
+        # (Two fields, initial_value and result, are required)
         # Used for cleaning up result fields when result is removed
         self._result_field_names = {}
 
