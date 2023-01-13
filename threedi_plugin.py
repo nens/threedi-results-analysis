@@ -27,8 +27,8 @@ from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 
 
-import datetime
-from datetime import timedelta
+from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -138,8 +138,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
 
-        self.model.result_checked.connect(self._update_temporal_controler)
-        self.model.result_unchecked.connect(self._update_temporal_controler)
+        self.model.result_checked.connect(self._update_temporal_controller)
+        self.model.result_unchecked.connect(self._update_temporal_controller)
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
@@ -161,7 +161,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_checked.connect(self.map_animator.result_activated)
 
         self.init_state_sync()
-        tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
+        tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
@@ -262,23 +262,27 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         del self.dockwidget
         del self.toolbar
 
-    def _update_temporal_controler(self, *args):
+    def _update_temporal_controller(self, *args):
 
         if len(self.model.get_selected_results()) > 0:
             logger.info("Updating temporal controller")
-            datasource = self.model.get_selected_results()[0]
-            timestamps = datasource.threedi_result.get_timestamps()
+            threedi_result = self.model.get_selected_results()[0].threedi_result
             tc = iface.mapCanvas().temporalController()
-            start_time = datetime.datetime(2000, 1, 1)
-            end_time = start_time + timedelta(seconds=int(round(timestamps[-1])))
+
+            timestamps = threedi_result.get_timestamps()
             frame_duration_seconds = ((timestamps[1] - timestamps[0]).item())
             tc.setFrameDuration(QgsInterval(frame_duration_seconds))
+
+            start_time_isoformat = threedi_result.dt_timestamps[0]
+            start_time = Datetime.fromisoformat(start_time_isoformat)
+            end_time = start_time + Timedelta(seconds=int(round(timestamps[-1])))
             tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
             logger.info(f"stamps {timestamps}")
+            logger.info(f"start {start_time}")
             logger.info(f"end {end_time}")
         else:
             tc = iface.mapCanvas().temporalController()
-            tc.setTemporalExtents(QgsDateTimeRange(datetime.datetime(2020, 5, 17), datetime.datetime.now()))
+            tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
     def _temporal_update(self, _):
 
@@ -287,7 +291,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
 
             # Convert the timekey to result index
-            timekey = (tct-datetime.datetime(2000, 1, 1)).total_seconds()
+            timekey = (tct-Datetime(2000, 1, 1)).total_seconds()
 
             datasource = self.model.get_selected_results()[0]
             timestamps = datasource.threedi_result.timestamps
