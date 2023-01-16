@@ -36,12 +36,6 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class PercentileError(ValueError):
-    """Raised when calculation of percentiles resulted in NaN"""
-
-    pass
-
-
 def copy_layer_into_memory_layer(source_layer, layer_name):
     source_provider = source_layer.dataProvider()
 
@@ -137,7 +131,7 @@ def threedi_result_percentiles(
         values -= values_t0
     values_above_threshold = values[values > lower_threshold]
     if np.isnan(values_above_threshold).all():
-        raise PercentileError
+        return MapAnimator.EMPTY_CLASS_BOUNDS
     np_percentiles = np.nanpercentile(values_above_threshold, percentile)
     if isinstance(np_percentiles, np.ndarray):
         result = list(map(float, np_percentiles))
@@ -276,107 +270,83 @@ class MapAnimator(QGroupBox):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-        self.update_class_bounds(update_nodes=True, update_lines=True)
+        self.update_class_bounds()
         self._update_results(update_nodes=True, update_lines=True)
         self.style_layers(style_nodes=True, style_lines=True)
 
-    def update_class_bounds(self, update_nodes: bool, update_lines: bool):
-        gr = (
-            self.model.get_selected_results()[0].threedi_result.result_admin  # TODO: ACTIVE
+    def update_class_bounds(self):
+        threedi_result = self.model.get_selected_results()[0].threedi_result  # TODO: ACTIVE
+        percentile = np.linspace(
+            0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
+        ).tolist()
+
+        # nodes
+        node_variable = self.current_node_parameter["parameters"]
+        if self.current_node_parameter["aggregated"]:
+            gr = threedi_result.aggregate_result_admin
+        else:
+            gr = threedi_result.result_admin
+
+        # deftermine lower threshold
+        base_nc_name = strip_agg_options(node_variable)
+        logger.info(base_nc_name)
+        if (
+            NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
+        ):
+            lower_threshold = float("-Inf")
+        else:
+            lower_threshold = 0
+
+        self.node_parameter_class_bounds = threedi_result_percentiles(
+            gr=gr,
+            groundwater=False,
+            variable=node_variable,
+            percentile=percentile,
+            absolute=False,
+            lower_threshold=lower_threshold,
+            relative_to_t0=self.difference_checkbox.isChecked(),
         )
-
-        if update_nodes:
-            base_nc_name = strip_agg_options(self.current_node_parameter["parameters"])
-            logger.info(base_nc_name)
-            if (
-                NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
-            ):
-                lower_threshold = float("-Inf")
-            else:
-                lower_threshold = 0
-
-            try:
-                self.node_parameter_class_bounds = threedi_result_percentiles(
+        if gr.has_groundwater:
+            self.groundwater_node_parameter_class_bounds = (
+                threedi_result_percentiles(
                     gr=gr,
-                    groundwater=False,
-                    variable=self.current_node_parameter["parameters"],
-                    percentile=list(
-                        range(0, 100, int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES))
-                    )
-                    + [100],
+                    groundwater=True,
+                    variable=node_variable,
+                    percentile=percentile,
                     absolute=False,
                     lower_threshold=lower_threshold,
                     relative_to_t0=self.difference_checkbox.isChecked(),
                 )
-            except PercentileError:
-                self.node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+            )
 
-            if gr.has_groundwater:
-                try:
-                    self.groundwater_node_parameter_class_bounds = (
-                        threedi_result_percentiles(
-                            gr=gr,
-                            groundwater=True,
-                            variable=self.current_node_parameter["parameters"],
-                            percentile=list(
-                                range(
-                                    0,
-                                    100,
-                                    int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES),
-                                )
-                            )
-                            + [100],
-                            absolute=False,
-                            lower_threshold=lower_threshold,
-                            relative_to_t0=self.difference_checkbox.isChecked(),
-                        )
-                    )
-                except PercentileError:
-                    self.groundwater_node_parameter_class_bounds = (
-                        self.EMPTY_CLASS_BOUNDS
-                    )
+        # update lines
+        line_variable = self.current_line_parameter["parameters"]
+        if self.current_line_parameter["aggregated"]:
+            gr = threedi_result.aggregate_result_admin
+        else:
+            gr = threedi_result.result_admin
+        self.line_parameter_class_bounds = threedi_result_percentiles(
+            gr=gr,
+            groundwater=False,
+            variable=line_variable,
+            percentile=percentile,
+            absolute=True,
+            lower_threshold=float(0),
+            relative_to_t0=self.difference_checkbox.isChecked(),
+        )
 
-        if update_lines:
-            try:
-                self.line_parameter_class_bounds = threedi_result_percentiles(
+        if gr.has_groundwater:
+            self.groundwater_line_parameter_class_bounds = (
+                threedi_result_percentiles(
                     gr=gr,
-                    groundwater=False,
-                    variable=self.current_line_parameter["parameters"],
-                    percentile=list(
-                        range(0, 100, int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES))
-                    )
-                    + [100],
+                    groundwater=True,
+                    variable=line_variable,
+                    percentile=percentile,
                     absolute=True,
                     lower_threshold=float(0),
                     relative_to_t0=self.difference_checkbox.isChecked(),
                 )
-            except PercentileError:
-                self.line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-
-            if gr.has_groundwater:
-                try:
-                    self.groundwater_line_parameter_class_bounds = (
-                        threedi_result_percentiles(
-                            gr=gr,
-                            groundwater=True,
-                            variable=self.current_line_parameter["parameters"],
-                            percentile=list(
-                                range(
-                                    0,
-                                    100,
-                                    int(100 / styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES),
-                                )
-                            )
-                            + [100],
-                            absolute=True,
-                            lower_threshold=float(0),
-                            relative_to_t0=self.difference_checkbox.isChecked(),
-                        )
-                    )
-                except PercentileError:
-                    self.groundwater_line_parameter_class_bounds = (
-                        self.EMPTY_CLASS_BOUNDS
-                    )
+            )
 
     def fill_parameter_combobox_items(self):
         """
