@@ -32,6 +32,9 @@ class ThreeDiGridItem(QStandardItem):
         # whether a layer is already loaded
         self.layer_ids = {}
 
+        # We only want signals when the text has been changed
+        self._old_text = ""
+
         # layer info
         self.layer_group = None
 
@@ -138,7 +141,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             return
 
         grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
-
+        grid_item._old_text = grid_item.text()
         if layer_ids:
             grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
 
@@ -155,6 +158,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             return
 
         result_item = ThreeDiResultItem(path_nc, text if text else self._resolve_result_item_text(path_nc))
+        result_item._old_text = result_item.text()
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
 
@@ -287,7 +291,11 @@ class ThreeDiPluginModel(QStandardItemModel):
                         item.parent().child(i).setCheckState(0)
 
         elif isinstance(item, ThreeDiGridItem):
-            self.grid_changed.emit(item)
+            assert item is not self.invisibleRootItem()
+            if item._old_text != item.text():
+                item._old_text = item.text()
+                self.grid_changed.emit(item)
+                return
 
     def select_item(self, index):
         item = self.itemFromIndex(index)

@@ -6,7 +6,7 @@ import uuid
 from PyQt5.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes
+from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
@@ -277,7 +277,7 @@ class ThreeDiPluginLayerManager(QObject):
         item.layer_group = ThreeDiPluginLayerManager._get_or_create_group(item.text())
 
         # Use to modify grid name when LayerGroup is renamed
-        item.layer_group.nameChanged.connect(lambda _, text: item.setText(text))
+        item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
 
         for layer_name, table_name in gpkg_layers.items():
 
@@ -355,3 +355,8 @@ class ThreeDiPluginLayerManager(QObject):
             layer_group = root_group.insertGroup(0, group_name)
 
         return layer_group
+
+    @staticmethod
+    def _layer_node_renamed(node: QgsLayerTreeNode, text: str, item: ThreeDiGridItem):
+        if node is item.layer_group:
+            item.setText(text)
