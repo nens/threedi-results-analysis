@@ -92,12 +92,14 @@ def threedi_result_percentiles(
     :param relative_to_t0: calculate percentiles on difference w/ initial values (applied before absolute)
     :param nodatavalue: ignore these values
     """
-    if variable in Q_TYPES:
+    stripped_variable = strip_agg_options(variable)
+
+    if stripped_variable in Q_TYPES:
         if groundwater:
             nodes_or_lines = gr.lines.filter(kcu__in=[-150, 150])
         else:
             nodes_or_lines = gr.lines.filter(kcu__ne=-150).filter(kcu__ne=150)
-    elif variable in H_TYPES:
+    elif stripped_variable in H_TYPES:
         if groundwater:
             nodes_or_lines = gr.nodes.filter(node_type__in=[2, 6])
             if variable == WATERLEVEL.name and relative_to_t0:
@@ -113,8 +115,7 @@ def threedi_result_percentiles(
     else:
         raise ValueError(f"unknown variable: {variable}")
 
-    last_timestamp = nodes_or_lines.timestamps[-1]
-    ts = nodes_or_lines.timeseries(0, last_timestamp)
+    ts = nodes_or_lines.timeseries(indexes=slice(None))
     values = getattr(ts, variable)
     values_t0 = values[0]
     if absolute:
