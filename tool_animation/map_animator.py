@@ -261,7 +261,7 @@ class MapAnimator(QGroupBox):
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
         self.update_class_bounds()
-        self._update_results(update_nodes=True, update_lines=True)
+        self.update_results(0)
         self.style_layers(style_nodes=True, style_lines=True)
 
     def update_class_bounds(self):
@@ -394,10 +394,8 @@ class MapAnimator(QGroupBox):
 
         return parameter_config
 
-    def _update_results(self, update_nodes: bool, update_lines: bool):
-        self.update_results(0, update_nodes, update_lines)  # TODO: last timestep_nr should be stored
 
-    def update_results(self, timestep_nr, update_nodes: bool, update_lines: bool):
+    def update_results(self, timestep_nr):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 
         # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
