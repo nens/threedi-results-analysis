@@ -169,7 +169,7 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
         if _agg_method in verbose_agg_method:
             agg_method_display_name = verbose_agg_method[_agg_method]
         else:
-            logger.critical("Unknown agg method: %s", _agg_method)
+            logger.info("Unknown agg method: %s", _agg_method)
             agg_method_display_name = _agg_method
 
         # Adjust the unit for cumulative method
