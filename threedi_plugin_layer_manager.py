@@ -207,8 +207,11 @@ class ThreeDiPluginLayerManager(QObject):
                     return
 
         for layer_name, table_name in gpkg_layers.items():
-            scratch_layer = None
-            assert table_name in grid_item.layer_ids.keys()
+            
+            # Some models do not contain pump or obstacle layers.
+            if table_name not in grid_item.layer_ids.keys():
+                continue
+
             scratch_layer = QgsProject.instance().mapLayer(grid_item.layer_ids[table_name])
             assert scratch_layer
 
@@ -334,12 +337,12 @@ class ThreeDiPluginLayerManager(QObject):
         # Invalid layers info
         if invalid_layers:
             invalid_info = "\n\nThe following layers are missing or invalid:\n * " + "\n * ".join(invalid_layers) + "\n\n"
-            messagebar_message(MSG_TITLE, invalid_info, Qgis.Warning)
+            messagebar_message(MSG_TITLE, invalid_info, Qgis.Warning, 5)
 
         # Empty layers info
         if empty_layers:
             empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            messagebar_message(MSG_TITLE, empty_info, Qgis.Warning,)
+            messagebar_message(MSG_TITLE, empty_info, Qgis.Warning, 5)
 
         return True
 
