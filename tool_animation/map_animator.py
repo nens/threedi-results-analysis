@@ -154,10 +154,6 @@ class MapAnimator(QGroupBox):
         self.line_parameters = {}
         self.current_node_parameter = None
         self.current_line_parameter = None
-        self.line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        self.node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        self.groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        self.groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         self.setup_ui(parent)
 
     @pyqtSlot(ThreeDiResultItem)
@@ -179,7 +175,7 @@ class MapAnimator(QGroupBox):
 
         iface.mapCanvas().refresh()
 
-    def style_layers(self, style_lines: bool, style_nodes: bool):
+    def style_layers(self, line_parameter_class_bounds, node_parameter_class_bounds):
         """
         Apply styling to surface water and groundwater flowline layers,
         based value distribution in the results and difference vs. current choice
@@ -200,71 +196,75 @@ class MapAnimator(QGroupBox):
 
         layer = QgsProject.instance().mapLayer(layer_id)
 
-        if style_lines:
-            logger.info("Styling flowline layer")
-            styler.style_animation_flowline_current(
+        logger.info("Styling flowline layer")
+        styler.style_animation_flowline_current(
+            layer,
+            line_parameter_class_bounds,
+            self.current_line_parameter["parameters"],
+            postfix,
+        )
+
+        layer_id = grid_item.layer_ids["node"]
+        layer = QgsProject.instance().mapLayer(layer_id)
+        virtual_field_name = item._result_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
+
+        logger.info("Styling node layer")
+        if self.difference_checkbox.isChecked():
+            styler.style_animation_node_difference(
                 layer,
-                self.line_parameter_class_bounds,
-                self.current_line_parameter["parameters"],
+                node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                False,
+                postfix,
+            )
+        else:
+            styler.style_animation_node_current(
+                layer,
+                node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                False,
                 postfix,
             )
 
-        if style_nodes:
-            layer_id = grid_item.layer_ids["node"]
-            layer = QgsProject.instance().mapLayer(layer_id)
-            virtual_field_name = item._result_field_names[layer_id][0]
-            postfix = virtual_field_name[6:]  # remove "result" prefix
+        layer_id = grid_item.layer_ids["cell"]
+        layer = QgsProject.instance().mapLayer(layer_id)
+        virtual_field_name = item._result_field_names[layer_id][0]
+        postfix = virtual_field_name[6:]  # remove "result" prefix
 
-            logger.info("Styling node layer")
-            if self.difference_checkbox.isChecked():
-                styler.style_animation_node_difference(
-                    layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    False,
-                    postfix,
-                )
-            else:
-                styler.style_animation_node_current(
-                    layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    False,
-                    postfix,
-                )
-
-            layer_id = grid_item.layer_ids["cell"]
-            layer = QgsProject.instance().mapLayer(layer_id)
-            virtual_field_name = item._result_field_names[layer_id][0]
-            postfix = virtual_field_name[6:]  # remove "result" prefix
-
-            logger.info("Styling cell layer")
-            if self.difference_checkbox.isChecked():
-                styler.style_animation_node_difference(
-                    layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    True,
-                    postfix,
-                )
-            else:
-                styler.style_animation_node_current(
-                    layer,
-                    self.node_parameter_class_bounds,
-                    self.current_node_parameter["parameters"],
-                    True,
-                    postfix,
-                )
+        logger.info("Styling cell layer")
+        if self.difference_checkbox.isChecked():
+            styler.style_animation_node_difference(
+                layer,
+                node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                True,
+                postfix,
+            )
+        else:
+            styler.style_animation_node_current(
+                layer,
+                node_parameter_class_bounds,
+                self.current_node_parameter["parameters"],
+                True,
+                postfix,
+            )
 
     def restyle(self):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-        self.update_class_bounds()
+        line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds()
         self.update_results(0)
-        self.style_layers(style_nodes=True, style_lines=True)
+        self.style_layers(line_parameter_class_bounds, node_parameter_class_bounds)
 
     def update_class_bounds(self):
+
+        line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+        groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
+
         threedi_result = self.model.get_selected_results()[0].threedi_result  # TODO: ACTIVE
         percentile = np.linspace(
             0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
@@ -287,7 +287,7 @@ class MapAnimator(QGroupBox):
         else:
             lower_threshold = 0
 
-        self.node_parameter_class_bounds = threedi_result_percentiles(
+        node_parameter_class_bounds = threedi_result_percentiles(
             gr=gr,
             groundwater=False,
             variable=node_variable,
@@ -297,7 +297,7 @@ class MapAnimator(QGroupBox):
             relative_to_t0=self.difference_checkbox.isChecked(),
         )
         if gr.has_groundwater:
-            self.groundwater_node_parameter_class_bounds = (
+            groundwater_node_parameter_class_bounds = (
                 threedi_result_percentiles(
                     gr=gr,
                     groundwater=True,
@@ -315,7 +315,7 @@ class MapAnimator(QGroupBox):
             gr = threedi_result.aggregate_result_admin
         else:
             gr = threedi_result.result_admin
-        self.line_parameter_class_bounds = threedi_result_percentiles(
+        line_parameter_class_bounds = threedi_result_percentiles(
             gr=gr,
             groundwater=False,
             variable=line_variable,
@@ -326,7 +326,7 @@ class MapAnimator(QGroupBox):
         )
 
         if gr.has_groundwater:
-            self.groundwater_line_parameter_class_bounds = (
+            groundwater_line_parameter_class_bounds = (
                 threedi_result_percentiles(
                     gr=gr,
                     groundwater=True,
@@ -337,6 +337,8 @@ class MapAnimator(QGroupBox):
                     relative_to_t0=self.difference_checkbox.isChecked(),
                 )
             )
+
+        return (line_parameter_class_bounds, node_parameter_class_bounds, groundwater_line_parameter_class_bounds, groundwater_node_parameter_class_bounds)
 
     def fill_parameter_attributes(self):
         config = self._get_active_parameter_config()
