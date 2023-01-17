@@ -207,7 +207,7 @@ class ThreeDiPluginLayerManager(QObject):
                     return
 
         for layer_name, table_name in gpkg_layers.items():
-            
+
             # Some models do not contain pump or obstacle layers.
             if table_name not in grid_item.layer_ids.keys():
                 continue
