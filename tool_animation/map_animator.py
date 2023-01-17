@@ -1,5 +1,3 @@
-# TODO: calculate seperate class_bounds for groundwater
-
 from qgis.core import NULL
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
@@ -175,18 +173,18 @@ class MapAnimator(QGroupBox):
 
         iface.mapCanvas().refresh()
 
-    def style_layers(self, line_parameter_class_bounds, node_parameter_class_bounds):
+    def style_layers(self, result_idx: int, line_parameter_class_bounds, node_parameter_class_bounds):
         """
         Apply styling to surface water and groundwater flowline layers,
         based value distribution in the results and difference vs. current choice
         """
 
         # has_groundwater = (
-        #    self.model.get_selected_results()[0].threedi_result.result_admin.has_groundwater  # TODO: ACTIVE
+        #    self.model.get_selected_results()[result_idx].threedi_result.result_admin.has_groundwater
         # )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
-        item = self.model.get_selected_results()[0]
+        item = self.model.get_selected_results()[result_idx]
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
@@ -254,18 +252,19 @@ class MapAnimator(QGroupBox):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-        line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds()
-        self.update_results(0)
-        self.style_layers(line_parameter_class_bounds, node_parameter_class_bounds)
+        for result_idx in range(len(self.model.get_selected_results())):
+            line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds(result_idx)
+            self.update_results(result_idx, 0)
+            self.style_layers(result_idx, line_parameter_class_bounds, node_parameter_class_bounds)
 
-    def update_class_bounds(self):
+    def update_class_bounds(self, result_idx: int):
 
         line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
 
-        threedi_result = self.model.get_selected_results()[0].threedi_result  # TODO: ACTIVE
+        threedi_result = self.model.get_selected_results()[result_idx].threedi_result
         percentile = np.linspace(
             0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
         ).tolist()
@@ -373,10 +372,10 @@ class MapAnimator(QGroupBox):
         """
         Generates a parameter dict based on results file.
         """
-        active_result = self.model.get_selected_results()[0]  # TODO: ACTIVE
+        active_result = self.model.get_selected_results()[0]
 
         if active_result is not None:
-            # TODO: just taking the first datasource, not sure if correct:
+            # TODO: just taking the first datasource, not sure if correct (NEEDS TO BE COMBINED):
             threedi_result = active_result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             # Make a deepcopy because we don't want to change the cached variables
@@ -396,17 +395,15 @@ class MapAnimator(QGroupBox):
 
         return parameter_config
 
-    def update_results(self, timestep_nr):
+    def update_results(self, result_idx: int, timestep_nr):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
-
-        # messagebar_message("Timestep in MapAnimator", f"{timestep_nr}")
 
         if self.isEnabled():
 
             if not self.current_line_parameter or not self.current_node_parameter:
                 return
 
-            result = self.model.get_selected_results()[0]  # TODO: ACTIVE
+            result = self.model.get_selected_results()[result_idx]
             threedi_result = result.threedi_result
 
             # Update UI (LCD)
