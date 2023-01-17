@@ -189,17 +189,6 @@ class MapAnimator(QGroupBox):
         #    self.model.get_selected_results()[0].threedi_result.result_admin.has_groundwater  # TODO: ACTIVE
         # )
 
-        # TODO: difference checkbox
-        # if style_nodes:
-        #     if self.difference_checkbox.isChecked():
-        #         # nodes
-        #         styler.style_animation_node_difference(
-        #             self.node_layer,
-        #             self.node_parameter_class_bounds,
-        #             self.current_node_parameter["parameters"],
-        #             cells=False,
-        #         )
-
         # Adjust the styling of the grid layer based on the bounds and result field name
         item = self.model.get_selected_results()[0]
         grid_item = item.parent()

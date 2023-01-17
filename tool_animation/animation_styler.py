@@ -1,5 +1,4 @@
 from pathlib import Path
-from qgis.core import QgsMapLayerStyle
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsMarkerSymbol
 from qgis.utils import iface
@@ -12,7 +11,6 @@ from typing import List
 
 import logging
 import numpy as np
-import os
 
 
 STYLES_ROOT = Path(__file__).parent / "layer_styles"
@@ -90,32 +88,6 @@ def style_animation_flowline_current(
 
     # Symbol size
     renderer.setSymbolSizes(0.1, max_symbol_size)
-
-    # Add velocity thresholds style
-    style_manager = lyr.styleManager()
-    lyr.styleManager().removeStyle("Thresholds")
-    if variable == "u1":
-        default_style_name = (
-            style_manager.currentStyle()
-        )  # default style name depends on language settings
-        style_name = "Thresholds"
-        qml_path = (
-            STYLES_ROOT / "velocity_thresholds.qml"
-        )
-        style = QgsMapLayerStyle()
-        style.readFromLayer(lyr)
-        style_manager.addStyle(style_name, style)
-        style_manager.setCurrentStyle(style_name)
-        (message, success) = lyr.loadNamedStyle(os.path.join(qml_path, qml_path), True)
-        if not success:  # if style not loaded remove it
-            style_manager.removeStyle(style_name)
-            logger.info("Styling file not succesfully loaded: {fn}".format(fn=qml_path))
-            logger.info(message)
-        style_manager.setCurrentStyle(default_style_name)
-
-        # TODO: Not sure whether this is required, as it is also set above.
-        class_attribute_str = f'abs("result{field_postfix}")'
-        lyr.renderer().setClassAttribute(class_attribute_str)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
