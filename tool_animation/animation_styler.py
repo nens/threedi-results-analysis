@@ -110,14 +110,14 @@ def style_animation_node_current(
     # Set classes
     if variable == "s1":
         class_attribute_str = f'coalesce("result{field_postfix}", bottom_level)'
+        percentiles[0] = float(
+            -9999
+        )  # to make nodes / cells also visible when dry and bottom_level < percentile[0]
     else:
         class_attribute_str = f'"result{field_postfix}"'
     lyr.renderer().setClassAttribute(class_attribute_str)
     renderer.deleteAllClasses()
     nr_classes = len(percentiles) - 1
-    percentiles[0] = float(
-        -9999
-    )  # to make nodes / cells also visible when dry and bottom_level < percentile[0]
     for i in range(nr_classes):
         renderer.addClassLowerUpper(lower=percentiles[i], upper=percentiles[i + 1])
     color_ramp = color_ramp_from_data(COLOR_RAMP_OCEAN_HALINE)
