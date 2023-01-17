@@ -286,16 +286,15 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def _temporal_update(self, _):
 
-        if len(self.model.get_selected_results()) > 0:
-            tc = iface.mapCanvas().temporalController()
-            tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
+        tc = iface.mapCanvas().temporalController()
+        tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
+        # Convert the timekey to result index
+        timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
 
-            # Convert the timekey to result index
-            timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
-
-            datasource = self.model.get_selected_results()[0]
+        for i in range(len(self.model.get_selected_results())):
+            datasource = self.model.get_selected_results()[i]
             timestamps = datasource.threedi_result.timestamps
-            # TODO: are the timekeys always sorted?
+            # TODO: are the timekeys always sorted? Are they cached?
             index = int(timestamps.searchsorted(timekey+0.01, "right")-1)
 
             # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")

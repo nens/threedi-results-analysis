@@ -394,7 +394,6 @@ class MapAnimator(QGroupBox):
 
         return parameter_config
 
-
     def update_results(self, timestep_nr):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 
