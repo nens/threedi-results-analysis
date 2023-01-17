@@ -144,7 +144,7 @@ def threedi_result_percentiles(
 class MapAnimator(QGroupBox):
     """ """
 
-    EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES + 1)
+    EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
 
     def __init__(self, parent, model):
 
@@ -349,30 +349,29 @@ class MapAnimator(QGroupBox):
                 )
             )
 
+    def fill_parameter_attributes(self):
+        config = self._get_active_parameter_config()
+        self.line_parameters = {r["name"]: r for r in config["q"]}
+        self.node_parameters = {r["name"]: r for r in config["h"]}
+
     def fill_parameter_combobox_items(self):
         """
-        Fills comboboxes with parameters based on selected result
+        Fills parameter and comboboxes based on selected result
         """
-        parameter_config = self._get_active_parameter_config()
+        self.fill_parameter_attributes()
 
-        for combo_box, parameters, pc in (
-            (
-                self.line_parameter_combo_box,
-                self.line_parameters,
-                parameter_config["q"],
-            ),
-            (
-                self.node_parameter_combo_box,
-                self.node_parameters,
-                parameter_config["h"],
-            ),
+        Q_CUM = 'q_cum'
+        active = {WATERLEVEL.name, Q_CUM}
+        if Q_CUM not in (v['parameters'] for v in self.line_parameters.values()):
+            active.add(DISCHARGE.name)
+
+        for combo_box, parameters in (
+            (self.line_parameter_combo_box, self.line_parameters),
+            (self.node_parameter_combo_box, self.node_parameters),
         ):
-
             combo_box.clear()
-
-            parameters.update(dict([(p["name"], p) for p in pc]))
             for param_name, param in parameters.items():
-                if param["parameters"] in (DISCHARGE.name, WATERLEVEL.name):
+                if param["parameters"] in active:
                     idx = 0
                 else:
                     idx = 99999
