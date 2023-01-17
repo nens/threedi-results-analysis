@@ -197,8 +197,11 @@ class ThreeDiPluginModel(QStandardItemModel):
                 if item.checkState() == 2:
                     results.append(item)
 
-            for i in range(item.rowCount()):
-                return _get_selected_results(results, item.child(i))
+            if item.hasChildren():
+                for i in range(item.rowCount()):
+                    _get_selected_results(results, item.child(i))
+
+            return results
 
         results = []
         _get_selected_results(results, self.invisibleRootItem())
