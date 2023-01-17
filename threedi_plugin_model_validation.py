@@ -34,7 +34,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         def fail(msg):
             # logger.error(msg)
-            messagebar_message(MSG_TITLE, msg, Qgis.Warning)
+            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 5.0)
             self.result_validated.emit(item, False)
 
         # Check correct file name
