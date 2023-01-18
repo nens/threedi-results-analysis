@@ -25,10 +25,8 @@ from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAna
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-
-
 from datetime import datetime as Datetime
-from datetime import timedelta as Timedelta
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -264,26 +262,36 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         del self.toolbar
 
     def _update_temporal_controller(self, *args):
-
-        if len(self.model.get_selected_results()) > 0:
-            logger.info("Updating temporal controller")
-            threedi_result = self.model.get_selected_results()[0].threedi_result
-            tc = iface.mapCanvas().temporalController()
-
-            timestamps = threedi_result.get_timestamps()
-            frame_duration_seconds = ((timestamps[1] - timestamps[0]).item())
-            tc.setFrameDuration(QgsInterval(frame_duration_seconds))
-
-            start_time_isoformat = threedi_result.dt_timestamps[0]
-            start_time = Datetime.fromisoformat(start_time_isoformat)
-            end_time = start_time + Timedelta(seconds=int(round(timestamps[-1])))
-            tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
-            logger.info(f"stamps {timestamps}")
-            logger.info(f"start {start_time}")
-            logger.info(f"end {end_time}")
-        else:
-            tc = iface.mapCanvas().temporalController()
+        results = self.model.get_selected_results()
+        tc = iface.mapCanvas().temporalController()
+        if not results:
             tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
+            return
+
+        logger.info("Updating temporal controller")
+        # gather info
+        threedi_results = [r.threedi_result for r in results]
+        datetimes = [
+            np.array(tr.dt_timestamps, dtype='datetime64[s]')
+            for tr in threedi_results
+        ]
+
+        # frame duration
+        intervals = [
+            round((d[1:] - d[:-1]).min().item().total_seconds())
+            for d in datetimes
+            if d.size >= 2
+        ]
+        frame_duration = max(1, min(intervals)) if intervals else 1
+        tc.setFrameDuration(QgsInterval(frame_duration))
+        logger.info(f"frame_duration {frame_duration}")
+
+        # extent
+        start_time = min(d[0].item() for d in datetimes)
+        end_time = max(d[-1].item() for d in datetimes)
+        tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
+        logger.info(f"start_time {start_time}")
+        logger.info(f"end_time {end_time}")
 
     def _temporal_update(self, _):
 
