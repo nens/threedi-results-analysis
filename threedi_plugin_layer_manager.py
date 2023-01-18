@@ -203,7 +203,7 @@ class ThreeDiPluginLayerManager(QObject):
         if grid_item.hasChildren():
             for i in range(grid_item.rowCount()):
                 result_item = grid_item.child(i)
-                if result_item.checkState == Qt.Checked:
+                if result_item.checkState() == Qt.Checked:
                     return
 
         for layer_name, table_name in gpkg_layers.items():
