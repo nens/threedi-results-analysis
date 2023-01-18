@@ -265,7 +265,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         results = self.model.get_selected_results()
         tc = iface.mapCanvas().temporalController()
         if not results:
-            tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
             return
 
         logger.info("Updating temporal controller")
@@ -292,6 +291,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
         logger.info(f"start_time {start_time}")
         logger.info(f"end_time {end_time}")
+
+        tc.setCurrentFrameNumber(tc.findBestFrameNumberForFrameStart(end_time))
 
     def _temporal_update(self, _):
 
