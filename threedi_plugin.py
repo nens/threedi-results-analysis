@@ -292,8 +292,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
 
         for result_idx in range(len(self.model.get_selected_results())):
-            datasource = self.model.get_selected_results()[result_idx]
-            timestamps = datasource.threedi_result.timestamps
+            result_item = self.model.get_selected_results()[result_idx]
+            timestamps = result_item.threedi_result.timestamps
             # TODO: are the timekeys always sorted? Are they cached?
             index = int(timestamps.searchsorted(timekey+0.01, "right")-1)
 
@@ -301,7 +301,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
             # messagebar_message("count", f"{tc.totalFrameCount()}")
             logger.info(f"result_idx = {result_idx}, index = {index}, current frame: {tc.currentFrameNumber()}, #timesteps: {len(timestamps)}")
-            self.map_animator.update_results(result_idx, index)
+            self.map_animator.update_results(result_item, index)
 
     def _add_action(
         self,

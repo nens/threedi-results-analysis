@@ -173,7 +173,7 @@ class MapAnimator(QGroupBox):
 
         iface.mapCanvas().refresh()
 
-    def style_layers(self, result_idx: int, line_parameter_class_bounds, node_parameter_class_bounds):
+    def style_layers(self, result_item: ThreeDiResultItem, line_parameter_class_bounds, node_parameter_class_bounds):
         """
         Apply styling to surface water and groundwater flowline layers,
         based value distribution in the results and difference vs. current choice
@@ -184,12 +184,11 @@ class MapAnimator(QGroupBox):
         # )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
-        item = self.model.get_selected_results()[result_idx]
-        grid_item = item.parent()
+        grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
         layer_id = grid_item.layer_ids["flowline"]
-        virtual_field_name = item._result_field_names[layer_id][0]
+        virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
 
         layer = QgsProject.instance().mapLayer(layer_id)
@@ -204,7 +203,7 @@ class MapAnimator(QGroupBox):
 
         layer_id = grid_item.layer_ids["node"]
         layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._result_field_names[layer_id][0]
+        virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
 
         logger.info("Styling node layer")
@@ -227,7 +226,7 @@ class MapAnimator(QGroupBox):
 
         layer_id = grid_item.layer_ids["cell"]
         layer = QgsProject.instance().mapLayer(layer_id)
-        virtual_field_name = item._result_field_names[layer_id][0]
+        virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
 
         logger.info("Styling cell layer")
@@ -253,18 +252,20 @@ class MapAnimator(QGroupBox):
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
         for result_idx in range(len(self.model.get_selected_results())):
-            line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds(result_idx)
-            self.update_results(result_idx, 0)
-            self.style_layers(result_idx, line_parameter_class_bounds, node_parameter_class_bounds)
+            result_item = self.model.get_selected_results()[result_idx]
 
-    def update_class_bounds(self, result_idx: int):
+            line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds(result_item)
+            self.update_results(result_item, 0)
+            self.style_layers(result_item, line_parameter_class_bounds, node_parameter_class_bounds)
+
+    def update_class_bounds(self, result_item: ThreeDiResultItem):
 
         line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
 
-        threedi_result = self.model.get_selected_results()[result_idx].threedi_result
+        threedi_result = result_item.threedi_result
         percentile = np.linspace(
             0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
         ).tolist()
@@ -370,7 +371,7 @@ class MapAnimator(QGroupBox):
 
     def _get_active_parameter_config(self):
         """
-        Generates a parameter dict based on results file.
+        Generates a parameter dict based on result files.
         """
         active_result = self.model.get_selected_results()[0]
 
@@ -395,7 +396,7 @@ class MapAnimator(QGroupBox):
 
         return parameter_config
 
-    def update_results(self, result_idx: int, timestep_nr):
+    def update_results(self, result_item: ThreeDiResultItem, timestep_nr):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
 
         if self.isEnabled():
@@ -403,8 +404,7 @@ class MapAnimator(QGroupBox):
             if not self.current_line_parameter or not self.current_node_parameter:
                 return
 
-            result = self.model.get_selected_results()[result_idx]
-            threedi_result = result.threedi_result
+            threedi_result = result_item.threedi_result
 
             # Update UI (LCD)
             days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
@@ -414,7 +414,7 @@ class MapAnimator(QGroupBox):
             layers_to_update = []
 
             qgs_instance = QgsProject.instance()
-            grid = result.parent()
+            grid = result_item.parent()
             line, node, cell = (
                 qgs_instance.mapLayer(grid.layer_ids[k])
                 for k in ("flowline", "node", "cell")
@@ -460,7 +460,7 @@ class MapAnimator(QGroupBox):
 
                 ti_field_index, t0_field_index = (
                     layer.fields().indexOf(n)
-                    for n in result._result_field_names[layer_id]
+                    for n in result_item._result_field_names[layer_id]
                 )
                 assert ti_field_index != -1
                 assert t0_field_index != -1
