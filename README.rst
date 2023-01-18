@@ -109,7 +109,7 @@ sorting) and flake8 (reporting missing imports and so), run::
 
 To run the QGIS application itself in the docker::
 
-  $ xhost +  # you may need this
+  $ xhost +local:docker  # you may need this to run the gui
   $ docker-compose run --rm qgis-desktop qgis
 
 
