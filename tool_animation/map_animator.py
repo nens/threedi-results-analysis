@@ -173,6 +173,16 @@ class MapAnimator(QGroupBox):
 
         iface.mapCanvas().refresh()
 
+    @pyqtSlot(ThreeDiResultItem)
+    def result_deactivated(self, item: ThreeDiResultItem):
+        active = (len(self.model.get_selected_results()) > 0)
+        self.line_parameter_combo_box.setEnabled(active)
+        self.node_parameter_combo_box.setEnabled(active)
+        self.difference_checkbox.setEnabled(active)
+        self.lcd.setEnabled(active)
+
+        iface.mapCanvas().refresh()
+
     def style_layers(self, result_item: ThreeDiResultItem, line_parameter_class_bounds, node_parameter_class_bounds):
         """
         Apply styling to surface water and groundwater flowline layers,
