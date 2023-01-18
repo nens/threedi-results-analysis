@@ -157,11 +157,13 @@ class MapAnimator(QGroupBox):
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
         self.setEnabled(self.model.number_of_results() > 0)
+        # Fill comboboxes based on result files
+        self.fill_parameter_combobox_items()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_activated(self, item: ThreeDiResultItem):
 
-        # Fill comboboxes based on result file
+        # Fill comboboxes based on result files
         self.fill_parameter_combobox_items()
 
         self.restyle()
@@ -175,6 +177,9 @@ class MapAnimator(QGroupBox):
 
     @pyqtSlot(ThreeDiResultItem)
     def result_deactivated(self, item: ThreeDiResultItem):
+        # Fill comboboxes based on result files
+        self.fill_parameter_combobox_items()
+
         active = (len(self.model.get_selected_results()) > 0)
         self.line_parameter_combo_box.setEnabled(active)
         self.node_parameter_combo_box.setEnabled(active)
@@ -381,14 +386,15 @@ class MapAnimator(QGroupBox):
 
     def _get_active_parameter_config(self):
         """
-        Generates a parameter dict based on result files.
+        Generates a parameter dict based on selected results.
         """
-        active_result = self.model.get_selected_results()[0]
+        q_vars = []
+        h_vars = []
 
-        if active_result is not None:
-            # TODO: just taking the first datasource, not sure if correct (NEEDS TO BE COMBINED):
-            threedi_result = active_result.threedi_result
+        for result_idx in range(len(self.model.get_selected_results())):
+            threedi_result = self.model.get_selected_results()[result_idx].threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
+
             # Make a deepcopy because we don't want to change the cached variables
             # in threedi_result.available_subgrid_map_vars
             available_subgrid_vars = copy.deepcopy(available_subgrid_vars)
@@ -401,10 +407,19 @@ class MapAnimator(QGroupBox):
             parameter_config = generate_parameter_config(
                 available_subgrid_vars, agg_vars=agg_vars
             )
-        else:
-            parameter_config = {"q": {}, "h": {}}
 
-        return parameter_config
+            def _intersection(a: List, b: List):
+                if not a:
+                    return b
+
+                return [x for x in a if x in b]
+
+            q_vars = _intersection(q_vars, parameter_config["q"])
+            h_vars = _intersection(h_vars, parameter_config["h"])
+
+        result = {"q": q_vars, "h": h_vars}
+        logger.info(result)
+        return result
 
     def update_results(self, result_item: ThreeDiResultItem, timestep_nr):
         """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
