@@ -49,11 +49,6 @@ class GraphPlot(pg.PlotWidget):
     """Graph element"""
 
     def __init__(self, parent=None):
-        """
-
-        :param parent: Qt parent widget
-        """
-
         super().__init__(parent)
         self.showGrid(True, True, 0.5)
         self.current_parameter = None
@@ -378,7 +373,7 @@ class GraphWidget(QWidget):
     def __init__(
         self,
         parent=None,
-        ts_datasources=None,
+        model=None,
         parameter_config=[],
         name="",
         geometry_type=QgsWkbTypes.Point,
@@ -386,16 +381,16 @@ class GraphWidget(QWidget):
         super().__init__(parent)
 
         self.name = name
-        self.ts_datasources = ts_datasources
+        self.model = model
         self.parent = parent
         self.geometry_type = geometry_type
 
         self.setup_ui()
 
-        self.model = LocationTimeseriesModel(ts_datasources=self.ts_datasources)
-        self.graph_plot.set_location_model(self.model)
-        self.graph_plot.set_ds_model(self.ts_datasources)
-        self.location_timeseries_table.setModel(self.model)
+        self.time_model = LocationTimeseriesModel(self.model)
+        self.graph_plot.set_location_model(self.time_model)
+        self.graph_plot.set_ds_model(self.model)
+        self.location_timeseries_table.setModel(self.time_model)
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
@@ -555,13 +550,6 @@ class GraphWidget(QWidget):
         self.hLayoutButtons.addItem(
             QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         )
-
-        self.retranslateUi()
-
-    def retranslateUi(self):
-        """
-        set translated widget text
-        """
         self.remove_timeseries_button.setText("Delete")
 
     def parameter_change(self, nr):
@@ -726,38 +714,33 @@ class GraphDockWidget(QDockWidget):
     def __init__(
         self,
         iface,
-        parent_widget=None,
-        parent_class=None,
-        nr=0,
-        ts_datasources=None,
-        root_tool=None,
+        nr,
+        model,
     ):
         """Constructor"""
-        super().__init__(parent_widget)
+        super().__init__()
 
         self.iface = iface
-        self.parent_class = parent_class
         self.nr = nr
-        self.ts_datasources = ts_datasources
-        self.root_tool = root_tool
+        self.model = model
 
-        self.setup_ui(self)
+        self.setup_ui()
 
         parameter_config = self._get_active_parameter_config()
 
         # add graph widgets
         self.q_graph_widget = GraphWidget(
             self,
-            self.ts_datasources,
+            self.model,
             parameter_config["q"],
-            "Q graph",
+            "Flowlines && pumps",
             QgsWkbTypes.LineString,
         )
         self.h_graph_widget = GraphWidget(
             self,
-            self.ts_datasources,
+            self.model,
             parameter_config["h"],
-            "H graph",
+            "Nodes",
             QgsWkbTypes.Point,
         )
         self.graphTabWidget.addTab(self.q_graph_widget, self.q_graph_widget.name)
@@ -790,11 +773,10 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        active_ts_datasource = self.root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
+        results = self.model.get_selected_results()
 
-        if active_ts_datasource is not None:
-            # TODO: just taking the first datasource, not sure if correct:
-            threedi_result = active_ts_datasource.threedi_result()
+        if results:
+            threedi_result = self.model.get_selected_results()[0].threedi_result  # TODO: ACTIVE
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
@@ -805,7 +787,7 @@ class GraphDockWidget(QDockWidget):
                 available_subgrid_vars, available_agg_vars
             )
         else:
-            parameter_config = {"q": {}, "h": {}}
+            parameter_config = {"q": [], "h": []}
 
         return parameter_config
 
@@ -881,21 +863,17 @@ class GraphDockWidget(QDockWidget):
             )
             self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
-    def on_btnstate(self, state):
+    def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots"""
         checked = state == Qt.Checked
         self.q_graph_widget.graph_plot.absolute = (
             self.h_graph_widget.graph_plot.absolute
         ) = checked
 
-    def setup_ui(self, dock_widget):
-        """
-        initiate main Qt building blocks of interface
-        :param dock_widget: QDockWidget instance
-        """
+    def setup_ui(self):
 
-        dock_widget.setObjectName("dock_widget")
-        dock_widget.setAttribute(Qt.WA_DeleteOnClose)
+        self.setObjectName("dock_widget")
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.dockWidgetContent = QWidget(self)
         self.dockWidgetContent.setObjectName("dockWidgetContent")
@@ -907,11 +885,11 @@ class GraphDockWidget(QDockWidget):
         self.buttonBarHLayout = QHBoxLayout(self)
         self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
-        self.checkbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
-        self.checkbox.setChecked(False)
-        self.checkbox.stateChanged.connect(self.on_btnstate)
+        self.absoluteCheckbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
+        self.absoluteCheckbox.setChecked(False)
+        self.absoluteCheckbox.stateChanged.connect(self.on_btnAbsoluteState)
         self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)
-        self.buttonBarHLayout.addWidget(self.checkbox)
+        self.buttonBarHLayout.addWidget(self.absoluteCheckbox)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
         self.mainVLayout.addItem(self.buttonBarHLayout)
@@ -929,10 +907,7 @@ class GraphDockWidget(QDockWidget):
         self.mainVLayout.addWidget(self.graphTabWidget)
 
         # add dockwidget
-        dock_widget.setWidget(self.dockWidgetContent)
-        self.retranslate_ui(dock_widget)
-        QMetaObject.connectSlotsByName(dock_widget)
-
-    def retranslate_ui(self, DockWidget):
-        DockWidget.setWindowTitle("3Di result plots %i" % self.nr)
+        self.setWidget(self.dockWidgetContent)
+        self.setWindowTitle("3Di Result Plots %i" % self.nr)
         self.addSelectedObjectButton.setText("Add")
+        QMetaObject.connectSlotsByName(self)

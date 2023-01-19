@@ -1,28 +1,22 @@
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import QObject
 from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
-
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem
+from qgis.PyQt.QtCore import pyqtSlot
 import qgis
 import os
 
 
-class ThreeDiGraph(object):
-    """QGIS Plugin Implementation."""
+class ThreeDiGraph(QObject):
 
-    def __init__(self, iface, ts_datasources, root_tool):
-        """Constructor.
+    def __init__(self, iface, model):
+        QObject.__init__(self)
 
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
-        # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasources = ts_datasources
-        self.root_tool = root_tool
+        self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_graph.png")
-        self.menu_text = u"Show 3Di results in Graph"
+        self.menu_text = "Show 3Di results in Graph"
 
         self.dock_widgets = []
         self.widget_nr = 0
@@ -32,7 +26,7 @@ class ThreeDiGraph(object):
         on close of graph plugin
         """
         for widget in self.dock_widgets:
-            widget.close()
+            widget.close()  # TODO: delete as well?
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -51,6 +45,24 @@ class ThreeDiGraph(object):
 
             del self.dock_widgets[nr]
 
+    @pyqtSlot(ThreeDiResultItem)
+    def result_added(self, _: ThreeDiResultItem):
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, _: ThreeDiResultItem):
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_activated(self, _: ThreeDiResultItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.on_active_ts_datasource_change()
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_deactivated(self, _: ThreeDiResultItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.on_active_ts_datasource_change()
+
     def run(self):
         """
         Run method that loads and starts the plugin (docked graph widget)
@@ -58,11 +70,9 @@ class ThreeDiGraph(object):
         # create the dockwidget
         self.widget_nr += 1
         new_widget = GraphDockWidget(
-            self.iface,
-            parent_class=self,
+            iface=self.iface,
             nr=self.widget_nr,
-            ts_datasources=self.ts_datasources,
-            root_tool=self.root_tool,
+            model=self.model,
         )
         self.dock_widgets.append(new_widget)
 

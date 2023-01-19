@@ -78,24 +78,24 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.toggle_results_manager = ToggleResultsManager(iface, self)
         self.cache_clearer = CacheClearer(iface, self.ts_datasources)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
-        self.graph_tool = ThreeDiGraph(iface, self.ts_datasources, self)
+        self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
         self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.ts_datasources)
         self.logfile_tool = ShowLogfile(iface)
 
-        self.tools = [
-            self.about_tool,
-            self.toggle_results_manager,
-            self.cache_clearer,
-            self.result_selection_tool,
-            self.graph_tool,
-            self.sideview_tool,
-            self.stats_tool,
-            self.water_balance_tool,
-            self.watershed_tool,
-            self.logfile_tool,
+        self.tools = [  # second item indicates enabled on startup
+            (self.about_tool, True),
+            (self.toggle_results_manager, True),
+            (self.cache_clearer, True),
+            (self.result_selection_tool, True),
+            (self.graph_tool, False),
+            (self.sideview_tool, True),
+            (self.stats_tool, True),
+            (self.water_balance_tool, True),
+            (self.watershed_tool, True),
+            (self.logfile_tool, True),
         ]
 
         self.layer_manager = LayerTreeManager(self.iface, self.ts_datasources)
@@ -104,13 +104,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         for color_ramp in color.COLOR_RAMPS:
             color.add_color_ramp(color_ramp)
 
-        for tool in self.tools:
+        for tool, enabled in self.tools:
             self._add_action(
                 tool,
                 tool.icon_path,
                 text=tool.menu_text,
                 callback=tool.run,
                 parent=self.iface.mainWindow(),
+                enabled_flag=enabled
             )
 
         assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
@@ -159,6 +160,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_checked.connect(self.map_animator.result_activated)
         self.model.result_unchecked.connect(self.map_animator.result_deactivated)
 
+        self.model.result_added.connect(self.graph_tool.result_added)
+        self.model.result_removed.connect(self.graph_tool.result_removed)
+        self.model.result_checked.connect(self.graph_tool.result_activated)
+        self.model.result_unchecked.connect(self.graph_tool.result_deactivated)
+
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
@@ -189,11 +195,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # For side views also the spatialite needs to be imported or else it
         # crashes with a segmentation fault
         if self.ts_datasources.rowCount() > 0:
-            self.graph_tool.action_icon.setEnabled(True)
             self.cache_clearer.action_icon.setEnabled(True)
 
         else:
-            self.graph_tool.action_icon.setEnabled(False)
             self.cache_clearer.action_icon.setEnabled(False)
 
         if (
@@ -252,7 +256,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.iface.removePluginMenu("&3Di toolbox", action)
             self.iface.removeToolBarIcon(action)
 
-        for tool in self.tools:
+        for tool, _ in self.tools:
             tool.on_unload()
 
         self.layer_manager.on_unload()
