@@ -22,8 +22,6 @@ def normalized_object_type(current_layer_name):
     if current_layer_name in LAYER_OBJECT_TYPE_MAPPING:
         return LAYER_OBJECT_TYPE_MAPPING[current_layer_name]
     else:
-        msg = "Unsupported layer: %s." % current_layer_name
-        logger.warning(msg)
         return None
 
 

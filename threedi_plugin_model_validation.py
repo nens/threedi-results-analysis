@@ -1,8 +1,9 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import Qgis
-from .threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from .utils.user_messages import messagebar_message
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from ThreeDiToolbox.utils.user_messages import messagebar_message
+from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 import h5py
 from osgeo import ogr
 import logging
@@ -34,7 +35,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         def fail(msg):
             # logger.error(msg)
-            messagebar_message(MSG_TITLE, msg, Qgis.Warning, 5.0)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             self.result_validated.emit(item, False)
 
         # Check correct file name

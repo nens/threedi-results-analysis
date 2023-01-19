@@ -3,6 +3,7 @@ from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
+from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
 from qgis.gui import QgsRubberBand
 from qgis.gui import QgsVertexMarker
@@ -29,6 +30,7 @@ from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import statusbar_message
 from ThreeDiToolbox.utils.utils import generate_parameter_config
+from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 
 import logging
 import pyqtgraph as pg
@@ -144,14 +146,15 @@ class GraphPlot(pg.PlotWidget):
         data change trigger
         :param index: index of changed field
         """
-        if self.ds_model.columns[index.column()].name == "active":
+        # TODO: implement with our model
+        # if self.ds_model.columns[index.column()].name == "active":
 
-            for i in range(0, len(self.location_model.rows)):
-                if self.location_model.rows[i].active.value:
-                    if self.ds_model.rows[index.row()].active.value:
-                        self.show_timeseries(i, index.row())
-                    else:
-                        self.hide_timeseries(i, index.row())
+        #     for i in range(0, len(self.location_model.rows)):
+        #         if self.location_model.rows[i].active.value:
+        #             if self.ds_model.rows[index.row()].active.value:
+        #                 self.show_timeseries(i, index.row())
+        #             else:
+        #                 self.hide_timeseries(i, index.row())
 
     def on_insert_locations(self, parent, start, end):
         """
@@ -645,26 +648,28 @@ class GraphWidget(QWidget):
         :return: boolean: new objects are added
         """
 
-        # Get the active database as URI, conn_info is something like:
-        # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
-        # DS_152_1D_totaal_bergingsbak/results/
-        # DS_152_1D_totaal_bergingsbak_result.sqlite'"
-
-        if layer.name() not in ("flowlines", "nodes", "pumplines"):
+        # TODO: this check happens in various places, refactor
+        if not ((layer.name() in ("flowlines", "nodes", "pumplines")) or (layer.objectName() in ("flowline", "node"))):
             msg = """Please select results from either the 'flowlines', 'nodes' or
             'pumplines' layer."""
-            messagebar_message("Info", msg, level=0, duration=5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             return
 
-        conn_info = QgsDataSourceUri(
-            layer.dataProvider().dataSourceUri()
-        ).connectionInfo()
-        try:
-            filename = conn_info.split("'")[1]
-        except IndexError:
-            raise RuntimeError(
-                "Active database (%s) doesn't look like an sqlite filename" % conn_info
-            )
+        # TODO: since we are no longer using an sqlite, this check can be removed
+        if layer.dataProvider().name() != "memory":
+            # Get the active database as URI, conn_info is something like:
+            # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
+            # DS_152_1D_totaal_bergingsbak/results/
+            # DS_152_1D_totaal_bergingsbak_result.sqlite'"
+            conn_info = QgsDataSourceUri(
+                layer.dataProvider().dataSourceUri()
+            ).connectionInfo()
+            try:
+                filename = conn_info.split("'")[1]
+            except IndexError:
+                raise RuntimeError(
+                    "Active database (%s) doesn't look like an sqlite filename" % conn_info
+                )
 
         # get attribute information from selected layers
         existing_items = [
@@ -798,51 +803,56 @@ class GraphDockWidget(QDockWidget):
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
     def selected_layer_changed(self, active_layer):
+        threedi_layer_selected = False
 
-        tdi_layer = False
-
+        # TODO: is this still required?
         # get active layer from canvas, otherwise .dataProvider doesn't work
-        canvas = self.iface.mapCanvas()
-        current_layer = canvas.currentLayer()
+        current_layer = self.iface.mapCanvas().currentLayer()
 
         if current_layer:
-            provider = current_layer.dataProvider()
-            valid_object_type = normalized_object_type(current_layer.name())
 
+            provider = current_layer.dataProvider()
+            # TODO: Do we still need this extensive check or only support our layers?
+            # TODO: We already use a simpler test in add_object
+            valid_object_type = normalized_object_type(current_layer.name())
             if provider.name() in VALID_PROVIDERS and valid_object_type:
-                tdi_layer = True
-            elif current_layer.name() in ("flowlines", "nodes"):
-                tdi_layer = True
+                threedi_layer_selected = True
+            elif current_layer.name().lower() in ("flowlines", "nodes", "flowline", "node"):
+                threedi_layer_selected = True
+            elif current_layer.objectName() in ("flowline", "node"):
+                threedi_layer_selected = True
 
         # activate button if 3Di layers found
-        self.addSelectedObjectButton.setEnabled(tdi_layer)
+        self.addSelectedObjectButton.setEnabled(threedi_layer_selected)
 
     def add_objects(self):
         canvas = self.iface.mapCanvas()
         current_layer = canvas.currentLayer()
         if not current_layer:
-            # todo: feedback select layer first
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Please select a 3Di layer before adding a plot", Qgis.Warning, 5.0)
             return
 
         provider = current_layer.dataProvider()
         if provider.name() not in VALID_PROVIDERS:
+            logger.error("Unsupported provider for adding graph plot")
             return
 
         if current_layer.name() not in list(LAYER_QH_TYPE_MAPPING.keys()):
-            if current_layer.name() not in ("flowlines", "nodes"):
-                # todo: feedback layer not supported
+            # TODO: this check happens in various places, refactor
+            if not ((current_layer.name() in ("flowlines", "nodes")) or (current_layer.objectName() in ("flowline", "node"))):
+                messagebar_message(TOOLBOX_MESSAGE_TITLE, "Please select a 3Di layer before adding a plot", Qgis.Warning, 5.0)
                 return
 
         selected_features = current_layer.selectedFeatures()
 
-        if current_layer.name() == "flowlines":
+        if current_layer.name() == "flowlines" or current_layer.objectName() == "flowline":
             self.q_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.q_graph_widget)
             )
             self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
             return
-        elif current_layer.name() == "nodes":
+        elif current_layer.name() == "nodes" or current_layer.objectName() == "node":
             self.h_graph_widget.add_objects(current_layer, selected_features)
             self.graphTabWidget.setCurrentIndex(
                 self.graphTabWidget.indexOf(self.h_graph_widget)

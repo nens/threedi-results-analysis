@@ -8,7 +8,7 @@ from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
 from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME
+from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME, TOOLBOX_MESSAGE_TITLE
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
 from ThreeDiToolbox.utils.utils import safe_join
 from qgis.utils import iface
@@ -17,8 +17,6 @@ styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_st
 
 import logging
 logger = logging.getLogger(__name__)
-
-MSG_TITLE = "3Di Results Manager"
 
 
 def dirty(func):
@@ -100,7 +98,7 @@ class ThreeDiPluginLayerManager(QObject):
             pop_up_critical("Failed adding the layers to the project.")
             return False
 
-        messagebar_message(MSG_TITLE, "Added layers to the project", duration=2)
+        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
 
         self.grid_loaded.emit(item)
         return True
@@ -266,7 +264,7 @@ class ThreeDiPluginLayerManager(QObject):
         except Exception:
             logger.error("Unable to extract meta information from h5 file")
 
-        messagebar_message(MSG_TITLE, "Generated geopackage")
+        messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated geopackage")
 
     @staticmethod
     def _add_layers_from_gpkg(path, item: ThreeDiGridItem) -> bool:
@@ -326,6 +324,8 @@ class ThreeDiPluginLayerManager(QObject):
 
             vector_layer.setReadOnly(True)
             vector_layer.setFlags(QgsMapLayer.Searchable | QgsMapLayer.Identifiable)
+            # Require to keep track of the purpose of the layer (node, pump, flowline etc)
+            vector_layer.setObjectName(table_name)
 
             if scratch_layer is None:
                 # Keep track of layer id for future reference (deletion of grid item)
@@ -337,12 +337,12 @@ class ThreeDiPluginLayerManager(QObject):
         # Invalid layers info
         if invalid_layers:
             invalid_info = "\n\nThe following layers are missing or invalid:\n * " + "\n * ".join(invalid_layers) + "\n\n"
-            messagebar_message(MSG_TITLE, invalid_info, Qgis.Warning, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, invalid_info, Qgis.Warning, 5)
 
         # Empty layers info
         if empty_layers:
             empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            messagebar_message(MSG_TITLE, empty_info, Qgis.Warning, 5)
+            messagebar_message(TOOLBOX_MESSAGE_TITLE, empty_info, Qgis.Warning, 5)
 
         return True
 
