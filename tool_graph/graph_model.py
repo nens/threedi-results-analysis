@@ -84,29 +84,29 @@ class LocationTimeseriesModel(BaseModel):
 
         _plots = {}
 
-        def plots(self, parameters=None, result_ds_nr=0, absolute=False, time_units="s"):
+        def plots(self, parameters, result_item, absolute, time_units):
             """
             get pyqtgraph plot of selected object and timeseries
             :param parameters: string, parameter identification
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            result_key = (str(self.model.ts_datasources.rows[result_ds_nr]), time_units)
+            result_key = (result_item.text(), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(
-                    parameters=parameters, result_ds_nr=result_ds_nr, absolute=absolute, time_units=time_units,
+                    parameters=parameters, result_item=result_item, absolute=absolute, time_units=time_units,
                 )
-                pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
-                pen = pg.mkPen(color=self.color.qvalue, width=2, style=pattern)
+                # pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
+                pen = pg.mkPen(color=self.color.qvalue, width=2)  # , style=pattern)
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(
                     ts_table, pen=pen
                 )
 
             return self._plots[str(parameters)][result_key]
 
-        def timeseries_table(self, parameters=None, result_ds_nr=0, absolute=False, time_units="s"):
+        def timeseries_table(self, parameters, result_item, absolute, time_units):
             """
             get list of timestamp values for object and parameters
             from result ts_datasources
@@ -114,9 +114,7 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            threedi_result = self.model.ts_datasources.rows[
-                result_ds_nr
-            ].threedi_result()
+            threedi_result = result_item.threedi_result
 
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:

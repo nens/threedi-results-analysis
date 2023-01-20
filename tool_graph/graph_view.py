@@ -163,15 +163,16 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
+        logger.error(f"on_insert_locations: {start} {end}")
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            for ds in self.ds_model.rows:
-                if ds.active.value:
-                    index = self.ds_model.rows.index(ds)
+            for i in range(len(self.ds_model.get_selected_results())):  # iterate rows
+                if True:  # ds.active.value:
+                    result_item = self.ds_model.get_selected_results()[i]
                     self.addItem(
                         item.plots(
                             self.current_parameter["parameters"],
-                            index,
+                            result_item,
                             absolute=self.absolute,
                             time_units=self.current_time_units,
                         )
@@ -185,14 +186,15 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
+        logger.error(f"remove location: {index} {start} {end}")
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            if item.active.value:
-                for ds in self.ds_model.rows:
-                    if ds.active.value:
-                        index = self.ds_model.rows.index(ds)
+            if True:  # item.active.value:
+                for r in range(len(self.ds_model.get_selected_results())):  # rows:
+                    if True:  # ds.active.value:
+                        result_item = self.ds_model.get_selected_results()[r]
                         self.removeItem(
-                            item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units,)
+                            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
                         )
 
     def location_data_changed(self, index):
@@ -264,14 +266,16 @@ class GraphPlot(pg.PlotWidget):
         self.current_time_units = time_units
 
         for item in self.location_model.rows:
-            if item.active.value:
-                for ds in self.ds_model.rows:
-                    if ds.active.value:
-                        index = self.ds_model.rows.index(ds)
+            if True:  # item.active.value:
+                for i in range(len(self.ds_model.get_selected_results())):  # rows:
+                    if True:  # ds.active.value:
+                        result_item = self.ds_model.get_selected_results()[i]
 
-                        self.removeItem(item.plots(old_parameter["parameters"], index, time_units=old_time_units,))
+                        self.removeItem(
+                            item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
+                        )
                         self.addItem(
-                            item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units)
+                            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
                         )
 
         self.setLabel(
@@ -656,6 +660,7 @@ class GraphWidget(QWidget):
             return
 
         # TODO: since we are no longer using an sqlite, this check can be removed
+        filename = None
         if layer.dataProvider().name() != "memory":
             # Get the active database as URI, conn_info is something like:
             # u"dbname='/home/jackieleng/git/threedi-turtle/var/models/
@@ -674,7 +679,7 @@ class GraphWidget(QWidget):
         # get attribute information from selected layers
         existing_items = [
             "%s_%s" % (item.object_type.value, str(item.object_id.value))
-            for item in self.model.rows
+            for item in self.time_model.rows
         ]
         items = self.get_new_items(layer, features, filename, existing_items)
 
@@ -690,7 +695,7 @@ class GraphWidget(QWidget):
             if reply == QMessageBox.No:
                 return False
 
-        self.model.insertRows(items)
+        self.time_model.insertRows(items)
         msg = "%i new objects added to plot " % len(items)
         skipped_items = len(features) - len(items)
         if skipped_items > 0:
@@ -708,7 +713,7 @@ class GraphWidget(QWidget):
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.model.removeRows(row, 1)
+            self.time_model.removeRows(row, 1)
 
 
 class GraphDockWidget(QDockWidget):
