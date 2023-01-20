@@ -4,6 +4,7 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
 from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
+from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.gui import QgsVertexMarker
 from qgis.PyQt.QtCore import pyqtSignal
@@ -11,6 +12,7 @@ from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
+# from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
@@ -723,13 +725,7 @@ class GraphDockWidget(QDockWidget):
 
     closingWidget = pyqtSignal(int)
 
-    def __init__(
-        self,
-        iface,
-        nr,
-        model,
-    ):
-        """Constructor"""
+    def __init__(self, iface, nr, model):
         super().__init__()
 
         self.iface = iface
@@ -760,9 +756,20 @@ class GraphDockWidget(QDockWidget):
 
         # add listeners
         self.addSelectedObjectButton.clicked.connect(self.add_objects)
+        self.addFlowlinePumpButton.clicked.connect(self.add_flow_line_pump_button_clicked)
+        self.addNodeButton.clicked.connect(self.add_node_button_clicked)
+
         # init current layer state and add listener
         self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
+
+        # add map tools
+        self.add_flow_line_pump_button_map_tool = AddFlowlinePumpMapTool(canvas=self.iface.mapCanvas())
+        self.add_flow_line_pump_button_map_tool.setButton(self.addFlowlinePumpButton)
+        self.add_flow_line_pump_button_map_tool.setCursor(Qt.CrossCursor)
+        self.add_node_button_map_tool = AddNodeMapTool(canvas=self.iface.mapCanvas())
+        self.add_node_button_map_tool.setButton(self.addNodeButton)
+        self.add_node_button_map_tool.setCursor(Qt.CrossCursor)
 
     def on_close(self):
         """
@@ -882,8 +889,9 @@ class GraphDockWidget(QDockWidget):
         self.mainVLayout = QVBoxLayout(self.dockWidgetContent)
         self.dockWidgetContent.setLayout(self.mainVLayout)
 
-        # add button to add objects to graphs
         self.buttonBarHLayout = QHBoxLayout(self)
+
+        # add button to add objects to graphs
         self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
         self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
         self.absoluteCheckbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
@@ -894,6 +902,16 @@ class GraphDockWidget(QDockWidget):
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
         self.mainVLayout.addItem(self.buttonBarHLayout)
+
+        # add buttons for maptools to select objects for graphs
+        self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
+        # self.addFlowlinePumpButton.setObjectName("addFlowlinePumpButton")
+        self.addFlowlinePumpButton.setCheckable(True)
+        self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
+        self.addNodeButton = QPushButton(text="Add nodes", parent=self.dockWidgetContent)
+        # self.addNodeButton.setObjectName("addNodeButton")
+        self.addNodeButton.setCheckable(True)
+        self.buttonBarHLayout.addWidget(self.addNodeButton)
 
         # add tabWidget for graphWidgets
         self.graphTabWidget = QTabWidget(self.dockWidgetContent)
@@ -912,3 +930,30 @@ class GraphDockWidget(QDockWidget):
         self.setWindowTitle("3Di Result Plots %i" % self.nr)
         self.addSelectedObjectButton.setText("Add")
         QMetaObject.connectSlotsByName(self)
+
+    def add_flow_line_pump_button_clicked(self):
+        self.iface.mapCanvas().setMapTool(
+            self.add_flow_line_pump_button_map_tool,
+        )
+
+    def add_node_button_clicked(self):
+        self.iface.mapCanvas().setMapTool(
+            self.add_node_button_map_tool,
+        )
+
+
+class BaseAddMapTool(QgsMapToolIdentify):
+
+    def canvasReleaseEvent(self, event):
+        x = event.pos().x()
+        y = event.pos().y()
+        feature_id = self.identify(x=int(x), y=int(y))[0].mFeature.id()
+        print(self, feature_id)
+
+
+class AddFlowlinePumpMapTool(BaseAddMapTool):
+    pass
+
+
+class AddNodeMapTool(BaseAddMapTool):
+    pass
