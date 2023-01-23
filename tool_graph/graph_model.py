@@ -91,6 +91,7 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
+            # TODO: the result_item.text() can change
             result_key = (result_item.text(), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}

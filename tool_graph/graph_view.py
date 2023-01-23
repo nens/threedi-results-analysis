@@ -222,12 +222,13 @@ class GraphPlot(pg.PlotWidget):
         """
         if self.location_model.columns[index.column()].name == "active":
 
-            for i in range(0, len(self.ds_model.rows)):
-                if self.ds_model.rows[i].active.value:
+            for i in range(len(self.ds_model.get_selected_results())):  # rows:
+                if True:  # self.ds_model.rows[i].active.value:
+                    result_item = self.ds_model.get_selected_results()[i]
                     if self.location_model.rows[index.row()].active.value:
-                        self.show_timeseries(index.row(), i)
+                        self.show_timeseries(index.row(), result_item)
                     else:
-                        self.hide_timeseries(index.row(), i)
+                        self.hide_timeseries(index.row(), result_item)
 
         elif self.location_model.columns[index.column()].name == "hover":
             item = self.location_model.rows[index.row()]
@@ -240,25 +241,25 @@ class GraphPlot(pg.PlotWidget):
                     item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
                         color=item.color.qvalue, width=width)  # style=ds.pattern.value
 
-    def hide_timeseries(self, location_nr, ds_nr):
+    def hide_timeseries(self, location_nr, result_item):
         """
         hide timeseries of location in graph
         :param row_nr: integer, row number of location
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], ds_nr, time_units=self.current_time_units,
+            self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute
         )
         self.removeItem(plot)
 
-    def show_timeseries(self, location_nr, ds_nr):
+    def show_timeseries(self, location_nr, result_item):
         """
         show timeseries of location in graph
         :param row_nr: integer, row number of location
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], ds_nr, time_units=self.current_time_units,
+            self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute
         )
         self.addItem(plot)
 
