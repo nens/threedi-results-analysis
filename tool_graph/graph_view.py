@@ -4,6 +4,7 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsProject
 from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
+from qgis.core import QgsValueMapFieldFormatter
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.gui import QgsVertexMarker
@@ -620,27 +621,35 @@ class GraphWidget(QWidget):
         :param feature: selected Qgis feature to be added
         :return: object_name (string)
         To get a object_name we use the following logic:
-        - get the '*display_name*' column if available;
+        - get the 'display_name' column if available;
         - if not: get the 'type' column if available;
+        - if not: get the 'line_type' column if available;
+        - if not: get the 'node_type' column if available;
         - if not: object_name = 'N/A'
         """
-        object_name = None
         for column_nr, field in enumerate(layer.fields()):
             if "display_name" in field.name():
-                object_name = feature[column_nr]
-        if object_name is None:
-            for column_nr, field in enumerate(layer.fields()):
-                if field.name() == "type":
-                    object_name = feature[column_nr]
-                    break
-                else:
-                    object_name = "N/A"
-                    logger.warning(
-                        "Layer has no 'display_name', it's probably a result "
-                        "layer, but putting a placeholder object name just "
-                        "for safety."
-                    )
-        return object_name
+                return feature[column_nr]
+        for column_nr, field in enumerate(layer.fields()):
+            if field.name() == "type":
+                return feature[column_nr]
+
+        # Apply ValueMap field formatter
+        for column_nr, field in enumerate(layer.fields()):
+            if field.name() == "line_type":
+                config = layer.editorWidgetSetup(column_nr).config()
+                return QgsValueMapFieldFormatter().representValue(layer, column_nr, config, None, feature[column_nr])
+        for column_nr, field in enumerate(layer.fields()):
+            if field.name() == "node_type":
+                config = layer.editorWidgetSetup(column_nr).config()
+                return QgsValueMapFieldFormatter().representValue(layer, column_nr, config, None, feature[column_nr])
+
+        logger.warning("Layer has no 'display_name', it's probably a result "
+                       "layer, but putting a placeholder object name just "
+                       "for safety."
+                       )
+
+        return "N/A"
 
     def get_new_items(self, layer, features, filename, existing_items):
         """
