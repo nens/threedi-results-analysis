@@ -60,12 +60,12 @@ class ThreeDiGraph(QObject):
     @pyqtSlot(ThreeDiResultItem)
     def result_activated(self, _: ThreeDiResultItem):
         for dock_widget in self.dock_widgets:
-            dock_widget.on_active_ts_datasource_change()
+            dock_widget.on_result_selection_change()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_deactivated(self, _: ThreeDiResultItem):
         for dock_widget in self.dock_widgets:
-            dock_widget.on_active_ts_datasource_change()
+            dock_widget.on_result_selection_change()
 
     def run(self):
         """

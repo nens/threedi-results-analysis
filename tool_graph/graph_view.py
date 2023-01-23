@@ -2,6 +2,8 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
 from qgis.core import QgsValueMapFieldFormatter
+from qgis.core import QgsMapLayer
+from qgis.core import QgsFeature
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import pyqtSignal
@@ -30,6 +32,8 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
+
+from typing import List
 
 import logging
 import pyqtgraph as pg
@@ -617,13 +621,12 @@ class GraphWidget(QWidget):
 
         return "N/A"
 
-    def get_new_items(self, layer, features, filename, existing_items):
+    def get_new_items(self, layer: QgsVectorLayer, features, existing_items):
         """
-        get a list of new items (that have been selected by user) to be added
+        Returns a list of new items (that have been selected by user) to be added
         to graph (if they do not already exist in the graph items
         :param layer: selected Qgis layer to be added
         :param features: selected Qgis features to be added
-        :param filename: selected Qgis features to be added
         :param existing_items: selected Qgis features to be added
         :return: new_items (list)
         """
@@ -636,13 +639,12 @@ class GraphWidget(QWidget):
                 item = {
                     "object_type": layer.name(),
                     "object_id": new_idx,
-                    "object_name": new_object_name,
-                    "file_path": filename,
+                    "object_name": new_object_name
                 }
                 new_items.append(item)
         return new_items
 
-    def add_objects(self, layer, features):
+    def add_objects(self, layer: QgsVectorLayer, features: List[QgsFeature]) -> bool:
         """
         :param layer: layer of features
         :param features: Qgis layer features to be added
@@ -655,12 +657,12 @@ class GraphWidget(QWidget):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             return
 
-        # get attribute information from selected layers
+        # Retrieve existing items
         existing_items = [
             "%s_%s" % (item.object_type.value, str(item.object_id.value))
             for item in self.time_model.rows
         ]
-        items = self.get_new_items(layer, features, None, existing_items)
+        items = self.get_new_items(layer, features, existing_items)
 
         if len(items) > 20:
             msg = (
@@ -785,18 +787,18 @@ class GraphDockWidget(QDockWidget):
 
         return parameter_config
 
-    def on_active_ts_datasource_change(self):
+    def on_result_selection_change(self):
 
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
-    def selected_layer_changed(self, active_layer):
+    def selected_layer_changed(self, active_layer: QgsMapLayer):
         # get active layer from canvas, instead of using active_layer.
         # Otherwise .dataProvider doesn't work
         current_layer = self.iface.mapCanvas().currentLayer()
 
-        # activate button if 3Di layers found
+        # Activate button if 3Di layers found
         self.addSelectedObjectButton.setEnabled(is_threedi_layer(current_layer))
 
     def add_objects(self):

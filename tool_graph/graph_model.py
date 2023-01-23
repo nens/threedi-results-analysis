@@ -68,19 +68,21 @@ class LocationTimeseriesModel(BaseModel):
         """Fields and functions of ModelItem"""
 
         active = CheckboxField(
-            show=True, default_value=True, column_width=20, column_name=""
+            show=True, default_value=True, column_width=20, column_name="active"
         )
         color = ColorField(
             show=True,
             column_width=30,
-            column_name="",
+            column_name="color",
             default_value=select_default_color,
         )
+
+        grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
+        result_name = ValueField(show=True, column_width=100, column_name="result", default_value="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
         object_name = ValueField(show=True, column_width=140, column_name="name")
         object_type = ValueField(show=False)
         hover = ValueField(show=False, default_value=False)
-        file_path = ValueField(show=False)
 
         _plots = {}
 
