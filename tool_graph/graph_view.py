@@ -307,7 +307,7 @@ class LocationTimeseriesTable(QTableView):
         super().__init__(parent)
         self.setStyleSheet("QTreeView::item:hover{background-color:#FFFF00;}")
         self.setMouseTracking(True)
-        self.setVerticalHeader(None)
+        self.verticalHeader().hide()
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.model = None
 
