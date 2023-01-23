@@ -98,6 +98,7 @@ class LocationTimeseriesModel(BaseModel):
                 ts_table = self.timeseries_table(
                     parameters=parameters, result_item=result_item, absolute=absolute, time_units=time_units,
                 )
+                # TODO: where does this pattern come from?
                 # pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
                 pen = pg.mkPen(color=self.color.qvalue, width=2)  # , style=pattern)
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(

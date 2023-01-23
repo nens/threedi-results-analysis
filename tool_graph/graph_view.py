@@ -1,19 +1,14 @@
-from qgis.core import QgsCoordinateReferenceSystem
-from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsProject
 from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
 from qgis.core import QgsValueMapFieldFormatter
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
-from qgis.gui import QgsVertexMarker
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QSize
 from qgis.PyQt.QtCore import Qt
-# from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QDockWidget
@@ -236,20 +231,14 @@ class GraphPlot(pg.PlotWidget):
 
         elif self.location_model.columns[index.column()].name == "hover":
             item = self.location_model.rows[index.row()]
-            if item.hover.value:
-                for ds in self.ds_model.rows:
-                    if ds.active.value:
-                        index = self.ds_model.rows.index(ds)
-                        item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units).setPen(
-                            color=item.color.qvalue, width=5, style=ds.pattern.value
-                        )
-            else:
-                for ds in self.ds_model.rows:
-                    if ds.active.value:
-                        index = self.ds_model.rows.index(ds)
-                        item.plots(self.current_parameter["parameters"], index, time_units=self.current_time_units).setPen(
-                            color=item.color.qvalue, width=2, style=ds.pattern.value
-                        )
+            for i in range(len(self.ds_model.get_selected_results())):  # rows:
+                if True:  # ds.active.value:
+                    result_item = self.ds_model.get_selected_results()[i]
+                    width = 2
+                    if item.hover.value:
+                        width = 5
+                    item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
+                        color=item.color.qvalue, width=width)  # style=ds.pattern.value
 
     def hide_timeseries(self, location_nr, ds_nr):
         """
@@ -430,12 +419,9 @@ class GraphWidget(QWidget):
         # init parameter selection
         self.set_parameter_list(parameter_config)
 
-        if self.geometry_type == QgsWkbTypes.Point:
-            self.marker = QgsVertexMarker(self.parent.iface.mapCanvas())
-        else:
-            self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
-            self.marker.setColor(Qt.red)
-            self.marker.setWidth(2)
+        self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
+        self.marker.setColor(Qt.red)
+        self.marker.setWidth(2)
 
     def set_parameter_list(self, parameter_config):
 
@@ -476,15 +462,6 @@ class GraphWidget(QWidget):
 
     def highlight_feature(self, obj_id, obj_type):
 
-        pass
-        # todo: selection generated errors and crash of Qgis. Implement method
-        # with QgsRubberband and/ or QgsVertexMarker
-        transform = QgsCoordinateTransform(
-            QgsCoordinateReferenceSystem(4326),
-            QgsProject.instance().crs(),
-            QgsProject.instance(),
-        )
-
         layers = self.parent.iface.mapCanvas().layers()
         for lyr in layers:
             # Clear other layers
@@ -495,24 +472,11 @@ class GraphWidget(QWidget):
                 request = QgsFeatureRequest().setFilterExpression(filt)
                 features = lyr.getFeatures(request)
                 for feature in features:
-                    if self.geometry_type == QgsWkbTypes.Point:
-                        geom = feature.geometry()
-                        geom.transform(transform)
-                        self.marker.setCenter(geom.asPoint())
-                        self.marker.setVisible(True)
-                    else:
-                        self.marker.setToGeometry(feature.geometry(), lyr)
+                    self.marker.setToGeometry(feature.geometry(), lyr)
 
     def unhighlight_all_features(self):
         """Remove the highlights from all layers"""
-
-        if self.geometry_type == QgsWkbTypes.Point:
-            self.marker.setVisible(False)
-        else:
-            self.marker.reset()
-        pass
-        # todo: selection generated errors and crash of Qgis. Implement method
-        # with QgsRubberband and/ or QgsVertexMarker
+        self.marker.reset()
 
     def setup_ui(self):
         """
@@ -520,7 +484,6 @@ class GraphWidget(QWidget):
         """
 
         self.setObjectName(self.name)
-
         self.hLayout = QHBoxLayout(self)
         self.hLayout.setObjectName("hLayout")
 
