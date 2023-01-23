@@ -46,7 +46,11 @@ class ThreeDiGraph(QObject):
             del self.dock_widgets[nr]
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_added(self, _: ThreeDiResultItem):
+    def result_added(self, result_item: ThreeDiResultItem):
+        # Assign a line pattern to this result (TODO: consider keeping track of the patterns
+        # in this plugin instead of storing in model?)
+        result_item.pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
+
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
 
     @pyqtSlot(ThreeDiResultItem)
@@ -88,3 +92,35 @@ class ThreeDiGraph(QObject):
             window.tabifyDockWidget(self.dock_widgets[0], new_widget)
 
         new_widget.show()
+
+    @staticmethod
+    def get_line_pattern(result_item: ThreeDiResultItem) -> Qt.PenStyle:
+        """Determine (default) line pattern for this result plot
+
+        Look at the already-used styles os sibblings and try to pick an unused one.
+
+        :param item_field:
+        """
+        available_styles = [
+            Qt.SolidLine,
+            Qt.DashLine,
+            Qt.DotLine,
+            Qt.DashDotLine,
+            Qt.DashDotDotLine,
+        ]
+
+        already_used_patterns = []
+        grid_item = result_item.parent()
+        for i in range(grid_item.rowCount()):
+            if grid_item.child(i) is not result_item:
+                sibling_pattern = grid_item.child(i).pattern
+                assert sibling_pattern
+                already_used_patterns.append(sibling_pattern)
+
+        for style in available_styles:
+            if style not in already_used_patterns:
+                # Hurray, an unused style.
+                return style
+
+        # No unused styles. Use the solid line style as a default.
+        return Qt.SolidLine

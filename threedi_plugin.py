@@ -266,7 +266,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         del self.toolbar
 
     def _update_temporal_controller(self, *args):
-        results = self.model.get_selected_results()
+        results = self.model.get_results(selected=True)
         tc = iface.mapCanvas().temporalController()
         if not results:
             return
@@ -305,8 +305,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Convert the timekey to result index
         timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
 
-        for result_idx in range(len(self.model.get_selected_results())):
-            result_item = self.model.get_selected_results()[result_idx]
+        for result_idx in range(len(self.model.get_results(selected=True))):
+            result_item = self.model.get_results(selected=True)[result_idx]
             timestamps = result_item.threedi_result.timestamps
             # TODO: are the timekeys always sorted? Are they cached?
             index = int(timestamps.searchsorted(timekey+0.01, "right")-1)

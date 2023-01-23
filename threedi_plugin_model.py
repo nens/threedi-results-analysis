@@ -58,6 +58,9 @@ class ThreeDiResultItem(QStandardItem):
         # Used to distinguish item changed and item checked
         self._old_text = ""
 
+        # Used by Graph tool
+        pattern = None # NOQA
+
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
         self._line_layer = None
@@ -135,7 +138,6 @@ class ThreeDiPluginModel(QStandardItemModel):
     @pyqtSlot(str)
     def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids=None) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
-        parent_item = self.invisibleRootItem()
         path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
         if self.contains(path_h5_or_gpkg, ignore_suffix=True):
             return
@@ -145,7 +147,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         if layer_ids:
             grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
 
-        parent_item.appendRow(grid_item)
+        self.invisibleRootItem().appendRow(grid_item)
         self.grid_added.emit(grid_item)
 
         return grid_item
@@ -190,21 +192,24 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiResultItem):
             return self._remove_result(item)
 
-    def get_selected_results(self) -> List[ThreeDiResultItem]:
+    def get_results(self, selected: bool) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""
-        def _get_selected_results(results: List[ThreeDiResultItem], item: QStandardItemModel):
+        def _get_results(results: List[ThreeDiResultItem], item: QStandardItemModel, selected: bool):
             if isinstance(item, ThreeDiResultItem):
-                if item.checkState() == 2:
+                if selected:
+                    if item.checkState() == 2:
+                        results.append(item)
+                else:
                     results.append(item)
 
             if item.hasChildren():
                 for i in range(item.rowCount()):
-                    _get_selected_results(results, item.child(i))
+                    _get_results(results, item.child(i), selected)
 
             return results
 
         results = []
-        _get_selected_results(results, self.invisibleRootItem())
+        _get_results(results, self.invisibleRootItem(), selected)
         return results
 
     def number_of_grids(self) -> int:

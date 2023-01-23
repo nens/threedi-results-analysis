@@ -86,7 +86,7 @@ class LocationTimeseriesModel(BaseModel):
 
         def plots(self, parameters, result_item, absolute, time_units):
             """
-            get pyqtgraph plot of selected object and timeseries
+            Get pyqtgraph plot of selected object and timeseries. Performs some caching.
             :param parameters: string, parameter identification
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
@@ -99,9 +99,8 @@ class LocationTimeseriesModel(BaseModel):
                 ts_table = self.timeseries_table(
                     parameters=parameters, result_item=result_item, absolute=absolute, time_units=time_units,
                 )
-                # TODO: where does this pattern come from?
-                # pattern = self.model.ts_datasources.rows[result_ds_nr].pattern.value
-                pen = pg.mkPen(color=self.color.qvalue, width=2)  # , style=pattern)
+
+                pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item.pattern)
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(
                     ts_table, pen=pen
                 )

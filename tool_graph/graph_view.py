@@ -182,12 +182,11 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        logger.error(f"on_insert_locations: {start} {end}")
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            for i in range(len(self.ds_model.get_selected_results())):  # iterate rows
+            for i in range(len(self.ds_model.get_results(selected=True))):  # iterate rows
                 if True:  # ds.active.value:
-                    result_item = self.ds_model.get_selected_results()[i]
+                    result_item = self.ds_model.get_results(selected=True)[i]
                     self.addItem(
                         item.plots(
                             self.current_parameter["parameters"],
@@ -209,9 +208,9 @@ class GraphPlot(pg.PlotWidget):
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
             if True:  # item.active.value:
-                for r in range(len(self.ds_model.get_selected_results())):  # rows:
+                for r in range(len(self.ds_model.get_results(selected=True))):  # rows:
                     if True:  # ds.active.value:
-                        result_item = self.ds_model.get_selected_results()[r]
+                        result_item = self.ds_model.get_results(selected=True)[r]
                         self.removeItem(
                             item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
                         )
@@ -223,9 +222,9 @@ class GraphPlot(pg.PlotWidget):
         """
         if self.location_model.columns[index.column()].name == "active":
 
-            for i in range(len(self.ds_model.get_selected_results())):  # rows:
+            for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
                 if True:  # self.ds_model.rows[i].active.value:
-                    result_item = self.ds_model.get_selected_results()[i]
+                    result_item = self.ds_model.get_results(selected=True)[i]
                     if self.location_model.rows[index.row()].active.value:
                         self.show_timeseries(index.row(), result_item)
                     else:
@@ -233,14 +232,14 @@ class GraphPlot(pg.PlotWidget):
 
         elif self.location_model.columns[index.column()].name == "hover":
             item = self.location_model.rows[index.row()]
-            for i in range(len(self.ds_model.get_selected_results())):  # rows:
+            for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
                 if True:  # ds.active.value:
-                    result_item = self.ds_model.get_selected_results()[i]
+                    result_item = self.ds_model.get_results(selected=True)[i]
                     width = 2
                     if item.hover.value:
                         width = 5
                     item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
-                        color=item.color.qvalue, width=width)  # style=ds.pattern.value
+                        color=item.color.qvalue, width=width, style=result_item.pattern)
 
     def hide_timeseries(self, location_nr, result_item):
         """
@@ -281,9 +280,9 @@ class GraphPlot(pg.PlotWidget):
 
         for item in self.location_model.rows:
             if True:  # item.active.value:
-                for i in range(len(self.ds_model.get_selected_results())):  # rows:
+                for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
                     if True:  # ds.active.value:
-                        result_item = self.ds_model.get_selected_results()[i]
+                        result_item = self.ds_model.get_results(selected=True)[i]
 
                         self.removeItem(
                             item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
@@ -768,10 +767,10 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        results = self.model.get_selected_results()
+        results = self.model.get_results(selected=True)
 
         if results:
-            threedi_result = self.model.get_selected_results()[0].threedi_result  # TODO: ACTIVE
+            threedi_result = self.model.get_results(selected=True)[0].threedi_result  # TODO: ACTIVE
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
@@ -801,6 +800,10 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton.setEnabled(is_threedi_layer(current_layer))
 
     def add_objects(self):
+        """
+        Adds the currently selected layer to the node or flowline graph (checks names
+        to determine which plot)
+        """
         canvas = self.iface.mapCanvas()
         current_layer = canvas.currentLayer()
         if not current_layer:
@@ -848,7 +851,7 @@ class GraphDockWidget(QDockWidget):
             self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
     def on_btnAbsoluteState(self, state):
-        """Toggle ``absolute`` state of the GraphPlots"""
+        """Toggle ``absolute`` state of the GraphPlots."""
         checked = state == Qt.Checked
         self.q_graph_widget.graph_plot.absolute = (
             self.h_graph_widget.graph_plot.absolute

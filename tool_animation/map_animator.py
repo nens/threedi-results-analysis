@@ -180,7 +180,7 @@ class MapAnimator(QGroupBox):
         # Fill comboboxes based on result files
         self.fill_parameter_combobox_items()
 
-        active = (len(self.model.get_selected_results()) > 0)
+        active = (len(self.model.get_results(selected=True)) > 0)
         self.line_parameter_combo_box.setEnabled(active)
         self.node_parameter_combo_box.setEnabled(active)
         self.difference_checkbox.setEnabled(active)
@@ -195,7 +195,7 @@ class MapAnimator(QGroupBox):
         """
 
         # has_groundwater = (
-        #    self.model.get_selected_results()[result_idx].threedi_result.result_admin.has_groundwater
+        #    self.model.get_results(selected=True)[result_idx].threedi_result.result_admin.has_groundwater
         # )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
@@ -266,8 +266,8 @@ class MapAnimator(QGroupBox):
         self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
         self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-        for result_idx in range(len(self.model.get_selected_results())):
-            result_item = self.model.get_selected_results()[result_idx]
+        for result_idx in range(len(self.model.get_results(selected=True))):
+            result_item = self.model.get_results(selected=True)[result_idx]
 
             line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds(result_item)
             self.update_results(result_item, 0)
@@ -391,8 +391,8 @@ class MapAnimator(QGroupBox):
         q_vars = []
         h_vars = []
 
-        for result_idx in range(len(self.model.get_selected_results())):
-            threedi_result = self.model.get_selected_results()[result_idx].threedi_result
+        for result_idx in range(len(self.model.get_results(selected=True))):
+            threedi_result = self.model.get_results(selected=True)[result_idx].threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
 
             # Make a deepcopy because we don't want to change the cached variables
