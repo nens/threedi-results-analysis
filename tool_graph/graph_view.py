@@ -7,6 +7,7 @@ from qgis.core import QgsFeature
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
 from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import QSize
@@ -32,6 +33,7 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem
 
 from typing import List
 
@@ -78,7 +80,7 @@ class GraphPlot(pg.PlotWidget):
         self.showGrid(True, True, 0.5)
         self.current_parameter = None
         self.location_model = None
-        self.datasource_model = None
+        self.result_model = None
         self.parent = parent
         self.absolute = False
         self.current_time_units = "hrs"
@@ -99,12 +101,6 @@ class GraphPlot(pg.PlotWidget):
             )
             self.location_model = None
 
-        if self.ds_model:
-            self.ds_model.dataChanged.disconnect(self.ds_data_changed)
-            self.ds_model.rowsInserted.disconnect(self.on_insert_ds)
-            self.ds_model.rowsAboutToBeRemoved.disconnect(self.on_remove_ds)
-            self.ds_model = None
-
     def closeEvent(self, event):
         """
         overwrite of QDockWidget class to emit signal
@@ -119,65 +115,8 @@ class GraphPlot(pg.PlotWidget):
         self.location_model.rowsInserted.connect(self.on_insert_locations)
         self.location_model.rowsAboutToBeRemoved.connect(self.on_remove_locations)
 
-    def set_ds_model(self, model):
-        self.ds_model = model
-        self.ds_model.dataChanged.connect(self.ds_data_changed)
-        self.ds_model.rowsInserted.connect(self.on_insert_ds)
-        self.ds_model.rowsAboutToBeRemoved.connect(self.on_remove_ds)
-
-    def on_insert_ds(self, parent, start, end):
-        """
-        add list of items to graph. based on Qt addRows model trigger
-        :param parent: parent of event (Qt parameter)
-        :param start: first row nr
-        :param end: last row nr
-        """
-        for i in range(start, end + 1):
-            ds = self.ds_model.rows[i]
-            if ds.active.value:
-                for item in self.location_model.rows:
-                    if item.active.value:
-                        self.addItem(
-                            item.plots(
-                                self.current_parameter["parameters"],
-                                i,
-                                absolute=self.absolute,
-                                time_units=self.current_time_units,
-                            )
-                        )
-
-    def on_remove_ds(self, index, start, end):
-        """
-        remove items from graph. based on Qt model removeRows
-        trigger
-        :param index: Qt Index (not used)
-        :param start: first row nr
-        :param end: last row nr
-        """
-        for i in range(start, end + 1):
-            ds = self.ds_model.rows[i]
-            if ds.active.value:
-                for item in self.location_model.rows:
-                    if item.active.value:
-                        self.removeItem(
-                            item.plots(self.current_parameter["parameters"], i, time_units=self.current_time_units,)
-                        )
-
-    def ds_data_changed(self, index):
-        """
-        change graphs based on changes in locations. based on Qt
-        data change trigger
-        :param index: index of changed field
-        """
-        # TODO: implement with our model
-        # if self.ds_model.columns[index.column()].name == "active":
-
-        #     for i in range(0, len(self.location_model.rows)):
-        #         if self.location_model.rows[i].active.value:
-        #             if self.ds_model.rows[index.row()].active.value:
-        #                 self.show_timeseries(i, index.row())
-        #             else:
-        #                 self.hide_timeseries(i, index.row())
+    def set_result_model(self, model: ThreeDiPluginModel):
+        self.result_model = model
 
     def on_insert_locations(self, parent, start, end):
         """
@@ -188,9 +127,9 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            for i in range(len(self.ds_model.get_results(selected=True))):  # iterate rows
+            for i in range(len(self.result_model.get_results(selected=True))):  # iterate rows
                 if True:  # ds.active.value:
-                    result_item = self.ds_model.get_results(selected=True)[i]
+                    result_item = self.result_model.get_results(selected=True)[i]
                     self.addItem(
                         item.plots(
                             self.current_parameter["parameters"],
@@ -212,9 +151,9 @@ class GraphPlot(pg.PlotWidget):
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
             if True:  # item.active.value:
-                for r in range(len(self.ds_model.get_results(selected=True))):  # rows:
+                for r in range(len(self.result_model.get_results(selected=True))):  # rows:
                     if True:  # ds.active.value:
-                        result_item = self.ds_model.get_results(selected=True)[r]
+                        result_item = self.result_model.get_results(selected=True)[r]
                         self.removeItem(
                             item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
                         )
@@ -226,9 +165,9 @@ class GraphPlot(pg.PlotWidget):
         """
         if self.location_model.columns[index.column()].name == "active":
 
-            for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
-                if True:  # self.ds_model.rows[i].active.value:
-                    result_item = self.ds_model.get_results(selected=True)[i]
+            for i in range(len(self.result_model.get_results(selected=True))):  # rows:
+                if True:  # self.result_model.rows[i].active.value:
+                    result_item = self.result_model.get_results(selected=True)[i]
                     if self.location_model.rows[index.row()].active.value:
                         self.show_timeseries(index.row(), result_item)
                     else:
@@ -236,9 +175,9 @@ class GraphPlot(pg.PlotWidget):
 
         elif self.location_model.columns[index.column()].name == "hover":
             item = self.location_model.rows[index.row()]
-            for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
+            for i in range(len(self.result_model.get_results(selected=True))):  # rows:
                 if True:  # ds.active.value:
-                    result_item = self.ds_model.get_results(selected=True)[i]
+                    result_item = self.result_model.get_results(selected=True)[i]
                     width = 2
                     if item.hover.value:
                         width = 5
@@ -284,9 +223,9 @@ class GraphPlot(pg.PlotWidget):
 
         for item in self.location_model.rows:
             if True:  # item.active.value:
-                for i in range(len(self.ds_model.get_results(selected=True))):  # rows:
+                for i in range(len(self.result_model.get_results(selected=True))):  # rows:
                     if True:  # ds.active.value:
-                        result_item = self.ds_model.get_results(selected=True)[i]
+                        result_item = self.result_model.get_results(selected=True)[i]
 
                         self.removeItem(
                             item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
@@ -399,7 +338,7 @@ class GraphWidget(QWidget):
     def __init__(
         self,
         parent=None,
-        model=None,
+        model: ThreeDiPluginModel = None,
         parameter_config=[],
         name="",
         geometry_type=QgsWkbTypes.Point,
@@ -413,15 +352,16 @@ class GraphWidget(QWidget):
 
         self.setup_ui()
 
-        self.time_model = LocationTimeseriesModel(self.model)
-        self.graph_plot.set_location_model(self.time_model)
-        self.graph_plot.set_ds_model(self.model)
-        self.location_timeseries_table.setModel(self.time_model)
+        self.location_model = LocationTimeseriesModel(self.model)
+        self.graph_plot.set_location_model(self.location_model)
+        self.graph_plot.set_result_model(self.model)
+        self.location_timeseries_table.setModel(self.location_model)
 
         # set listeners
         self.parameter_combo_box.currentIndexChanged.connect(self.parameter_change)
         self.ts_units_combo_box.currentIndexChanged.connect(self.time_units_change)
         self.remove_timeseries_button.clicked.connect(self.remove_objects_table)
+        self.model.result_removed.connect(self.result_removed)
 
         # init parameter selection
         self.set_parameter_list(parameter_config)
@@ -429,6 +369,17 @@ class GraphWidget(QWidget):
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_removed(self, result_item: ThreeDiResultItem):
+        # Remove corresponding plots that refer to this item
+        item_idx_to_remove = []
+        for count, item in enumerate(self.location_model.rows):
+            if item.result.value is result_item:
+                item_idx_to_remove.append(count)
+
+        for item_idx in item_idx_to_remove:
+            self.location_model.removeRows(item_idx, 1)      
 
     def set_parameter_list(self, parameter_config):
 
@@ -637,7 +588,7 @@ class GraphWidget(QWidget):
         # Retrieve existing items
         existing_items = [
             "%s_%s" % (item.object_type.value, str(item.object_id.value))
-            for item in self.time_model.rows
+            for item in self.location_model.rows
         ]
 
         # Determine new items
@@ -669,7 +620,7 @@ class GraphWidget(QWidget):
             if reply == QMessageBox.No:
                 return False
 
-        self.time_model.insertRows(new_items)
+        self.location_model.insertRows(new_items)
         msg = "%i new objects added to plot " % len(new_items)
         skipped_items = len(features) - len(new_items)
         if skipped_items > 0:
@@ -687,7 +638,7 @@ class GraphWidget(QWidget):
         # get unique rows in selected fields
         rows = set([index.row() for index in selection_model.selectedIndexes()])
         for row in reversed(sorted(rows)):
-            self.time_model.removeRows(row, 1)
+            self.location_model.removeRows(row, 1)
 
 
 class GraphDockWidget(QDockWidget):
@@ -695,7 +646,7 @@ class GraphDockWidget(QDockWidget):
 
     closingWidget = pyqtSignal(int)
 
-    def __init__(self, iface, nr, model):
+    def __init__(self, iface, nr, model: ThreeDiPluginModel):
         super().__init__()
 
         self.iface = iface
