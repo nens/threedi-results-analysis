@@ -379,7 +379,7 @@ class GraphWidget(QWidget):
                 item_idx_to_remove.append(count)
 
         for item_idx in item_idx_to_remove:
-            self.location_model.removeRows(item_idx, 1)      
+            self.location_model.removeRows(item_idx, 1)
 
     def set_parameter_list(self, parameter_config):
 
