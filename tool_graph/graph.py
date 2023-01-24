@@ -49,7 +49,8 @@ class ThreeDiGraph(QObject):
     def result_added(self, result_item: ThreeDiResultItem):
         # Assign a line pattern to this result (TODO: consider keeping track of the patterns
         # in this plugin instead of storing in model?)
-        result_item.pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
+        if not result_item.pattern:
+            result_item.pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
 
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
 
