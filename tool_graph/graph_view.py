@@ -243,7 +243,7 @@ class GraphPlot(pg.PlotWidget):
                     if item.hover.value:
                         width = 5
                     item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
-                        color=item.color.qvalue, width=width, style=result_item.pattern)
+                        color=item.color.qvalue, width=width, style=result_item._pattern)
 
     def hide_timeseries(self, location_nr, result_item):
         """

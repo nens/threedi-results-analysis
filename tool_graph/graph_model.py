@@ -102,7 +102,7 @@ class LocationTimeseriesModel(BaseModel):
                     parameters=parameters, result_item=result_item, absolute=absolute, time_units=time_units,
                 )
 
-                pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item.pattern)
+                pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item._pattern)
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(
                     ts_table, pen=pen
                 )

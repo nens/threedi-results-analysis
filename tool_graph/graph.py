@@ -49,8 +49,8 @@ class ThreeDiGraph(QObject):
     def result_added(self, result_item: ThreeDiResultItem):
         # Assign a line pattern to this result (TODO: consider keeping track of the patterns
         # in this plugin instead of storing in model?)
-        if not result_item.pattern:
-            result_item.pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
+        if not result_item._pattern:
+            result_item._pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
 
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
 
@@ -114,7 +114,7 @@ class ThreeDiGraph(QObject):
         grid_item = result_item.parent()
         for i in range(grid_item.rowCount()):
             if grid_item.child(i) is not result_item:
-                sibling_pattern = grid_item.child(i).pattern
+                sibling_pattern = grid_item.child(i)._pattern
                 assert sibling_pattern
                 already_used_patterns.append(sibling_pattern)
 

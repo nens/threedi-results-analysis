@@ -59,7 +59,7 @@ class ThreeDiResultItem(QStandardItem):
         self._old_text = ""
 
         # Used by Graph tool
-        pattern = None # NOQA
+        self._pattern = None # NOQA
 
         # TODO: temporary until anim tool has been refactored
         # The following four are caches for self.get_result_layers()
