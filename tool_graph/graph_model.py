@@ -8,6 +8,7 @@ from ThreeDiToolbox.models.base_fields import ValueField
 import logging
 import numpy as np
 import pyqtgraph as pg
+from qgis.PyQt.QtCore import Qt
 
 
 logger = logging.getLogger(__name__)
@@ -64,6 +65,20 @@ def select_default_color(item_field):
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
+    def data(self, index, role=Qt.DisplayRole):
+        """Qt function to get data from items for the visible columns"""
+
+        if not index.isValid():
+            return None
+
+        if role == Qt.DisplayRole:
+            if index.column() == 2:  # grid: take name from result parent
+                return self.rows[index.row()][index.column()+1].value.parent().text()
+            elif index.column() == 3:  # result
+                return self.rows[index.row()][index.column()].value.text()
+
+        return super().data(index, role)
+
     class Fields(object):
         """Fields and functions of ModelItem"""
 
@@ -78,7 +93,7 @@ class LocationTimeseriesModel(BaseModel):
         )
 
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
-        result_name = ValueField(show=True, column_width=100, column_name="result", default_value="result")
+        result = ValueField(show=True, column_width=100, column_name="result", default_value="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
         object_name = ValueField(show=True, column_width=140, column_name="name")
         object_type = ValueField(show=False)

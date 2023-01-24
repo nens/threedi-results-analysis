@@ -473,7 +473,7 @@ class GraphWidget(QWidget):
         for lyr in layers:
             # Clear other layers
             # lyr.removeSelection()
-            if lyr.name() == obj_type:
+            if lyr.objectName() == obj_type:
                 # query layer for object
                 filt = u'"id" = {0}'.format(obj_id)
                 request = QgsFeatureRequest().setFilterExpression(filt)
@@ -621,29 +621,6 @@ class GraphWidget(QWidget):
 
         return "N/A"
 
-    def get_new_items(self, layer: QgsVectorLayer, features, existing_items):
-        """
-        Returns a list of new items (that have been selected by user) to be added
-        to graph (if they do not already exist in the graph items
-        :param layer: selected Qgis layer to be added
-        :param features: selected Qgis features to be added
-        :param existing_items: selected Qgis features to be added
-        :return: new_items (list)
-        """
-        new_items = []
-        for feature in features:
-            new_idx = self.get_feature_index(layer, feature)
-            new_object_name = self.get_object_name(layer, feature)
-            # check if object not already exist
-            if (layer.name() + "_" + str(new_idx)) not in existing_items:
-                item = {
-                    "object_type": layer.name(),
-                    "object_id": new_idx,
-                    "object_name": new_object_name
-                }
-                new_items.append(item)
-        return new_items
-
     def add_objects(self, layer: QgsVectorLayer, features: List[QgsFeature]) -> bool:
         """
         :param layer: layer of features
@@ -662,12 +639,28 @@ class GraphWidget(QWidget):
             "%s_%s" % (item.object_type.value, str(item.object_id.value))
             for item in self.time_model.rows
         ]
-        items = self.get_new_items(layer, features, existing_items)
 
-        if len(items) > 20:
+        # Determine new items
+        new_items = []
+        for feature in features:
+            new_idx = self.get_feature_index(layer, feature)
+            new_object_name = self.get_object_name(layer, feature)
+
+            result_items = self.model.get_results(selected=False)
+            for result_item in result_items:
+                if (layer.objectName() + "_" + str(new_idx)) not in existing_items:
+                    item = {
+                        "object_type": layer.objectName(),
+                        "object_id": new_idx,
+                        "object_name": new_object_name,
+                        "result": result_item,
+                    }
+                    new_items.append(item)
+
+        if len(new_items) > 20:
             msg = (
                 "%i new objects selected. Adding those to the plot can "
-                "take a while. Do you want to continue?" % len(items)
+                "take a while. Do you want to continue?" % len(new_items)
             )
             reply = QMessageBox.question(
                 self, "Add objects", msg, QMessageBox.Yes, QMessageBox.No
@@ -676,9 +669,9 @@ class GraphWidget(QWidget):
             if reply == QMessageBox.No:
                 return False
 
-        self.time_model.insertRows(items)
-        msg = "%i new objects added to plot " % len(items)
-        skipped_items = len(features) - len(items)
+        self.time_model.insertRows(new_items)
+        msg = "%i new objects added to plot " % len(new_items)
+        skipped_items = len(features) - len(new_items)
         if skipped_items > 0:
             msg += "(skipped %s already present objects)" % skipped_items
 
