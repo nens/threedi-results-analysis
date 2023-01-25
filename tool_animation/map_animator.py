@@ -294,7 +294,6 @@ class MapAnimator(QGroupBox):
 
         # deftermine lower threshold
         base_nc_name = strip_agg_options(node_variable)
-        logger.info(base_nc_name)
         if (
             NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
         ):
@@ -418,7 +417,6 @@ class MapAnimator(QGroupBox):
             h_vars = _intersection(h_vars, parameter_config["h"])
 
         result = {"q": q_vars, "h": h_vars}
-        logger.info(result)
         return result
 
     def update_results(self, result_item: ThreeDiResultItem, timestep_nr):

@@ -118,6 +118,7 @@ class LocationTimeseriesModel(BaseModel):
                 )
 
                 pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item._pattern)
+                logger.error(f"Creating plot item for {result_key}{parameters}")
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(
                     ts_table, pen=pen
                 )

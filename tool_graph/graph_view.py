@@ -127,17 +127,14 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            for i in range(len(self.result_model.get_results(selected=True))):  # iterate rows
-                if True:  # ds.active.value:
-                    result_item = self.result_model.get_results(selected=True)[i]
-                    self.addItem(
-                        item.plots(
-                            self.current_parameter["parameters"],
-                            result_item,
-                            absolute=self.absolute,
-                            time_units=self.current_time_units,
-                        )
-                    )
+            self.addItem(
+                item.plots(
+                    self.current_parameter["parameters"],
+                    item.result.value,
+                    absolute=self.absolute,
+                    time_units=self.current_time_units,
+                )
+            )
 
     def on_remove_locations(self, index, start, end):
         """
@@ -150,6 +147,7 @@ class GraphPlot(pg.PlotWidget):
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
             result_item = item.result.value
+            logger.error(f"removing item {i}: ")
             self.removeItem(
                         item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
                     )
@@ -159,26 +157,21 @@ class GraphPlot(pg.PlotWidget):
         change graphs based on changes in locations
         :param index: index of changed field
         """
-        if self.location_model.columns[index.column()].name == "active":
+        item = self.location_model.rows[index.row()]
+        result_item = item.result.value
 
-            for i in range(len(self.result_model.get_results(selected=True))):  # rows:
-                if True:  # self.result_model.rows[i].active.value:
-                    result_item = self.result_model.get_results(selected=True)[i]
-                    if self.location_model.rows[index.row()].active.value:
-                        self.show_timeseries(index.row(), result_item)
-                    else:
-                        self.hide_timeseries(index.row(), result_item)
+        if self.location_model.columns[index.column()].name == "active":
+            if item.active.value:
+                self.show_timeseries(index.row(), result_item)
+            else:
+                self.hide_timeseries(index.row(), result_item)
 
         elif self.location_model.columns[index.column()].name == "hover":
-            item = self.location_model.rows[index.row()]
-            for i in range(len(self.result_model.get_results(selected=True))):  # rows:
-                if True:  # ds.active.value:
-                    result_item = self.result_model.get_results(selected=True)[i]
-                    width = 2
-                    if item.hover.value:
-                        width = 5
-                    item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
-                        color=item.color.qvalue, width=width, style=result_item._pattern)
+            width = 2
+            if item.hover.value:
+                width = 5
+            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
+                color=item.color.qvalue, width=width, style=result_item._pattern)
 
     def hide_timeseries(self, location_nr, result_item):
         """
@@ -218,17 +211,14 @@ class GraphPlot(pg.PlotWidget):
         self.current_time_units = time_units
 
         for item in self.location_model.rows:
-            if True:  # item.active.value:
-                for i in range(len(self.result_model.get_results(selected=True))):  # rows:
-                    if True:  # ds.active.value:
-                        result_item = self.result_model.get_results(selected=True)[i]
+            result_item = item.result.value
 
-                        self.removeItem(
-                            item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
-                        )
-                        self.addItem(
-                            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
-                        )
+            self.removeItem(
+                item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
+            )
+            self.addItem(
+                item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
+            )
 
         self.setLabel(
             "left", self.current_parameter["name"], self.current_parameter["unit"]

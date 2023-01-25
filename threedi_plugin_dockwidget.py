@@ -89,7 +89,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.remove_current_index_clicked.emit(index)
 
     def _selection_changed(self, selected, deselected):
-        logger.info("selection changed")
         deselected_indexes = deselected.indexes()
         if deselected_indexes:
             self.item_deselected.emit(deselected_indexes[0])
