@@ -147,16 +147,12 @@ class GraphPlot(pg.PlotWidget):
         :param start: first row nr
         :param end: last row nr
         """
-        logger.error(f"remove location: {index} {start} {end}")
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            if True:  # item.active.value:
-                for r in range(len(self.result_model.get_results(selected=True))):  # rows:
-                    if True:  # ds.active.value:
-                        result_item = self.result_model.get_results(selected=True)[r]
-                        self.removeItem(
-                            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
-                        )
+            result_item = item.result.value
+            self.removeItem(
+                        item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
+                    )
 
     def location_data_changed(self, index):
         """
@@ -378,7 +374,8 @@ class GraphWidget(QWidget):
             if item.result.value is result_item:
                 item_idx_to_remove.append(count)
 
-        for item_idx in item_idx_to_remove:
+        # We delete them descending to keep the row idx consistent
+        for item_idx in reversed(item_idx_to_remove):
             self.location_model.removeRows(item_idx, 1)
 
     def set_parameter_list(self, parameter_config):

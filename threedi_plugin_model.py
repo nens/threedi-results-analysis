@@ -176,11 +176,12 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def _remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
+        self.result_removed.emit(item)
+
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
         grid_item.removeRow(item.row())
 
-        self.result_removed.emit(item)
         return True
 
     @pyqtSlot(QModelIndex)

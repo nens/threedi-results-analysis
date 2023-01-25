@@ -109,7 +109,7 @@ class LocationTimeseriesModel(BaseModel):
             :return: pyqtgraph PlotDataItem
             """
             # TODO: the result_item.text() can change
-            result_key = (result_item.text(), time_units)
+            result_key = (result_item.text(), str(self.object_id.value), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
