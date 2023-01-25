@@ -51,6 +51,9 @@ VALID_PROVIDERS = ["spatialite", "memory", "ogr"]
 # providers which don't have a primary key
 PROVIDERS_WITHOUT_PRIMARY_KEY = ["memory", "ogr"]
 
+FLOWLINE_OR_PUMP = 'flowline_or_pump'
+NODE = 'node'
+
 
 def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
     """
@@ -672,10 +675,14 @@ class GraphDockWidget(QDockWidget):
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
 
         # add map tools
-        self.add_flow_line_pump_button_map_tool = AddFlowlinePumpMapTool(canvas=self.iface.mapCanvas())
+        self.add_flow_line_pump_button_map_tool = AddFlowlinePumpMapTool(
+            widget=self, canvas=self.iface.mapCanvas(),
+        )
         self.add_flow_line_pump_button_map_tool.setButton(self.addFlowlinePumpButton)
         self.add_flow_line_pump_button_map_tool.setCursor(Qt.CrossCursor)
-        self.add_node_button_map_tool = AddNodeMapTool(canvas=self.iface.mapCanvas())
+        self.add_node_button_map_tool = AddNodeMapTool(
+            widget=self, canvas=self.iface.mapCanvas(),
+        )
         self.add_node_button_map_tool.setButton(self.addNodeButton)
         self.add_node_button_map_tool.setCursor(Qt.CrossCursor)
 
@@ -853,19 +860,54 @@ class GraphDockWidget(QDockWidget):
             self.add_node_button_map_tool,
         )
 
+    def add_results(self, results, feature_type):
+        """
+        Add results for one grid feature of a certain type.
+        """
+        if feature_type == FLOWLINE_OR_PUMP:
+            layer_key = 'flowline'
+            graph_widget = self.q_graph_widget
+        elif feature_type == NODE:
+            layer_key = 'node'
+            graph_widget = self.h_graph_widget
+        item = self.model.invisibleRootItem()
+
+        grids = {
+            item.child(i).layer_ids[layer_key]
+            for i in range(item.rowCount())
+        }
+
+        for result in results:
+            layer_id = result.mLayer.id()
+            if layer_id not in grids:
+                continue
+            graph_widget.add_objects(result.mLayer, [result.mFeature])
+            break
+        else:  # there was no break
+            return
+
+        tab_index = self.graphTabWidget.indexOf(graph_widget)
+        self.graphTabWidget.setCurrentIndex(tab_index)
+        graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
+
 
 class BaseAddMapTool(QgsMapToolIdentify):
+    def __init__(self, widget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.widget = widget
 
     def canvasReleaseEvent(self, event):
         x = event.pos().x()
         y = event.pos().y()
-        feature_id = self.identify(x=int(x), y=int(y))[0].mFeature.id()
-        print(self, feature_id)
+        results = self.identify(x=int(x), y=int(y))
+        self.widget.add_results(
+            results=results, feature_type=self.feature_type,
+        )
 
 
 class AddFlowlinePumpMapTool(BaseAddMapTool):
-    pass
+    feature_type = FLOWLINE_OR_PUMP
 
 
 class AddNodeMapTool(BaseAddMapTool):
-    pass
+    feature_type = NODE
