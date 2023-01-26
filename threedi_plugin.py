@@ -314,7 +314,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")
             # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
             # messagebar_message("count", f"{tc.totalFrameCount()}")
-            logger.info(f"result_idx = {result_idx}, index = {index}, current frame: {tc.currentFrameNumber()}, #timesteps: {len(timestamps)}")
+            logger.info(f"result = {result_item.text()}, index = {index}, current frame: {tc.currentFrameNumber()}, #timesteps: {len(timestamps)}")
             self.map_animator.update_results(result_item, index)
 
     def _add_action(
