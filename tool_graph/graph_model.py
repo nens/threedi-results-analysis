@@ -103,13 +103,15 @@ class LocationTimeseriesModel(BaseModel):
 
         def plots(self, parameters, result_item, absolute, time_units):
             """
-            Get pyqtgraph plot of selected object and timeseries. Performs some caching.
+            Get pyqtgraph plot of selected object and timeseries.
+
+            Performs some caching on key: "id(result_item) feature_id time_unit"
             :param parameters: string, parameter identification
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            # TODO: the result_item.text() can change
-            result_key = (result_item.text(), str(self.object_id.value), time_units)
+            # TODO: is this key collision safe? or do we also need to add object_type (pumps/embedded/breaches)?
+            result_key = (id(result_item), str(self.object_id.value), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
@@ -118,10 +120,9 @@ class LocationTimeseriesModel(BaseModel):
                 )
 
                 pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item._pattern)
-                logger.error(f"Creating plot item for {result_key}{parameters}")
-                self._plots[str(parameters)][result_key] = pg.PlotDataItem(
-                    ts_table, pen=pen
-                )
+
+                logger.info(f"Creating plot item for {result_key}: {parameters}")
+                self._plots[str(parameters)][result_key] = pg.PlotDataItem(ts_table, pen=pen)
 
             return self._plots[str(parameters)][result_key]
 
