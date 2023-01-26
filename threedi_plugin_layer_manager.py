@@ -121,6 +121,8 @@ class ThreeDiPluginLayerManager(QObject):
         item.layer_group.parent().removeChildNode(item.layer_group)
         item.layer_group = None
 
+        iface.mapCanvas().refresh()
+
     @dirty
     @pyqtSlot(ThreeDiGridItem)
     def update_grid(self, item: ThreeDiGridItem) -> bool:
