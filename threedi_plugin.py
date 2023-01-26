@@ -162,8 +162,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.model.result_added.connect(self.graph_tool.result_added)
         self.model.result_removed.connect(self.graph_tool.result_removed)
-        self.model.result_checked.connect(self.graph_tool.result_activated)
-        self.model.result_unchecked.connect(self.graph_tool.result_deactivated)
 
         self.init_state_sync()
         tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))

@@ -53,18 +53,12 @@ class ThreeDiGraph(QObject):
             result_item._pattern = ThreeDiGraph.get_line_pattern(result_item=result_item)
 
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
-
-    @pyqtSlot(ThreeDiResultItem)
-    def result_removed(self, _: ThreeDiResultItem):
-        self.action_icon.setEnabled(self.model.number_of_results() > 0)
-
-    @pyqtSlot(ThreeDiResultItem)
-    def result_activated(self, _: ThreeDiResultItem):
         for dock_widget in self.dock_widgets:
             dock_widget.on_result_selection_change()
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_deactivated(self, _: ThreeDiResultItem):
+    def result_removed(self, _: ThreeDiResultItem):
+        self.action_icon.setEnabled(self.model.number_of_results() > 0)
         for dock_widget in self.dock_widgets:
             dock_widget.on_result_selection_change()
 

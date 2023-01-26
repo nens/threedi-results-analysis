@@ -371,6 +371,10 @@ class GraphWidget(QWidget):
         for item_idx in reversed(item_idx_to_remove):
             self.location_model.removeRows(item_idx, 1)
 
+        # In case there are no more other results in results model, we clean up the parameter combobox
+        if len(self.model.get_results(selected=False)) == 1:
+            self.parameter_combo_box.clear()
+
     def set_parameter_list(self, parameter_config):
 
         # reset
@@ -499,6 +503,9 @@ class GraphWidget(QWidget):
         :param nr: nr of selected option of combobox
         :return:
         """
+        if nr == -1:
+            return  # Combobox cleared
+
         self.current_parameter = self.parameters[self.parameter_combo_box.currentText()]
         time_units = self.ts_units_combo_box.currentText()
         self.graph_plot.setLabel("bottom", "Time", time_units)
@@ -707,10 +714,10 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        results = self.model.get_results(selected=True)
+        results = self.model.get_results(selected=False)
 
         if results:
-            threedi_result = self.model.get_results(selected=True)[0].threedi_result  # TODO: ACTIVE
+            threedi_result = self.model.get_results(selected=False)[0].threedi_result  # TODO: COMBINE?
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
