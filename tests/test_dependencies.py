@@ -61,7 +61,7 @@ def test_uninstall_dependency(tmpdir, monkeypatch):
     monkeypatch.setenv("PYTHONPATH", new_python_path)
 
     small_dependencies = [
-        Dependency("threedi-modelchecker", "threedi_modelchecker", ">=0.32.0")
+        Dependency("threedi-modelchecker", "threedi_modelchecker", ">=1.0.0")
     ]
     dependencies._install_dependencies(
         small_dependencies, target_dir=tmpdir

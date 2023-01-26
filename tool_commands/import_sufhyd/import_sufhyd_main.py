@@ -27,7 +27,6 @@ from ThreeDiToolbox.tool_commands.import_sufhyd.sufhyd_importer import SufhydRea
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from threedi_modelchecker import errors
 from threedi_modelchecker import ThreediDatabase as MCThreediDatabase
-from threedi_modelchecker.schema import ModelSchema
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +97,7 @@ class Importer(object):
 
     def is_db_valid(self):
         db = MCThreediDatabase(self.db.settings['db_path'])
-        schema = ModelSchema(db)
+        schema = db.schema()
         try:
             schema.validate_schema()
         except errors.MigrationMissingError:

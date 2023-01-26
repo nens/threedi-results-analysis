@@ -11,7 +11,6 @@ from qgis.PyQt.QtCore import QThread
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_modelchecker.threedi_database import ThreediDatabase
-from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
@@ -367,7 +366,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         db_settings = {"db_path": filepath}
         model_checker_db = ThreediDatabase(db_settings)
-        schema = ModelSchema(model_checker_db)
+        schema = model_checker_db.schema()
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()

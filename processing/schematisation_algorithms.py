@@ -21,7 +21,6 @@ from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_modelchecker.threedi_database import ThreediDatabase
 from threedi_modelchecker.model_checks import ThreediModelChecker
-from threedi_modelchecker.schema import ModelSchema
 from threedi_modelchecker import errors
 from ThreeDiToolbox.processing.download_hydx import download_hydx
 from ThreeDiToolbox.utils.utils import backup_sqlite
@@ -71,7 +70,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         threedi_db = get_threedi_database(filename=filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
-        schema = ModelSchema(threedi_db)
+        schema = threedi_db.schema()
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
@@ -175,7 +174,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "migrate your model to the latest version."
             )
             return {self.OUTPUT: None}
-        schema = ModelSchema(threedi_db)
+        schema = threedi_db.schema()
         schema.set_spatial_indexes()
         generated_output_file_path = self.parameterAsFileOutput(
             parameters, self.OUTPUT, context
@@ -369,7 +368,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 f"Unable to connect to 3Di spatialite '{out_path}'"
             )
         try:
-            schema = ModelSchema(threedi_db)
+            schema = threedi_db.schema()
             schema.validate_schema()
 
         except errors.MigrationMissingError:
