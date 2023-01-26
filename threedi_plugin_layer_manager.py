@@ -200,9 +200,8 @@ class ThreeDiPluginLayerManager(QObject):
         if grid_item.hasChildren():
             for i in range(grid_item.rowCount()):
                 result_item = grid_item.child(i)
-                if (result_item.checkState() == Qt.Checked and 
-                    threedi_result_item is not result_item):
-                        return True
+                if (result_item.checkState() == Qt.Checked and threedi_result_item is not result_item):
+                    return True
 
         self.reset_styling(grid_item)
 
