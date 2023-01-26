@@ -133,7 +133,6 @@ class GraphPlot(pg.PlotWidget):
             self.addItem(
                 item.plots(
                     self.current_parameter["parameters"],
-                    item.result.value,
                     absolute=self.absolute,
                     time_units=self.current_time_units,
                 )
@@ -149,10 +148,9 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            result_item = item.result.value
             logger.error(f"removing item {i}: ")
             self.removeItem(
-                        item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
+                        item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
                     )
 
     def location_data_changed(self, index):
@@ -161,40 +159,39 @@ class GraphPlot(pg.PlotWidget):
         :param index: index of changed field
         """
         item = self.location_model.rows[index.row()]
-        result_item = item.result.value
 
         if self.location_model.columns[index.column()].name == "active":
             if item.active.value:
-                self.show_timeseries(index.row(), result_item)
+                self.show_timeseries(index.row())
             else:
-                self.hide_timeseries(index.row(), result_item)
+                self.hide_timeseries(index.row())
 
         elif self.location_model.columns[index.column()].name == "hover":
             width = 2
             if item.hover.value:
                 width = 5
-            item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute).setPen(
-                color=item.color.qvalue, width=width, style=result_item._pattern)
+            item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute).setPen(
+                color=item.color.qvalue, width=width, style=item.result.value._pattern)
 
-    def hide_timeseries(self, location_nr, result_item):
+    def hide_timeseries(self, location_nr):
         """
         hide timeseries of location in graph
         :param row_nr: integer, row number of location
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute
+            self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute
         )
         self.removeItem(plot)
 
-    def show_timeseries(self, location_nr, result_item):
+    def show_timeseries(self, location_nr):
         """
         show timeseries of location in graph
         :param row_nr: integer, row number of location
         """
 
         plot = self.location_model.rows[location_nr].plots(
-            self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute
+            self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute
         )
         self.addItem(plot)
 
@@ -214,13 +211,11 @@ class GraphPlot(pg.PlotWidget):
         self.current_time_units = time_units
 
         for item in self.location_model.rows:
-            result_item = item.result.value
-
             self.removeItem(
-                item.plots(old_parameter["parameters"], result_item=result_item, time_units=old_time_units, absolute=self.absolute)
+                item.plots(old_parameter["parameters"], time_units=old_time_units, absolute=self.absolute)
             )
             self.addItem(
-                item.plots(self.current_parameter["parameters"], result_item=result_item, time_units=self.current_time_units, absolute=self.absolute)
+                item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
             )
 
         self.setLabel(
@@ -731,7 +726,7 @@ class GraphDockWidget(QDockWidget):
 
         return parameter_config
 
-    def on_result_selection_change(self):
+    def on_result_set_change(self):
 
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])

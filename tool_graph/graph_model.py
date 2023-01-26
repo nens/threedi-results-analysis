@@ -101,7 +101,7 @@ class LocationTimeseriesModel(BaseModel):
 
         _plots = {}
 
-        def plots(self, parameters, result_item, absolute, time_units):
+        def plots(self, parameters, absolute, time_units):
             """
             Get pyqtgraph plot of selected object and timeseries.
 
@@ -111,22 +111,23 @@ class LocationTimeseriesModel(BaseModel):
             :return: pyqtgraph PlotDataItem
             """
             # TODO: is this key collision safe? or do we also need to add object_type (pumps/embedded/breaches)?
-            result_key = (id(result_item), str(self.object_id.value), time_units)
+            # TODO: can we use the result_item of the Fields?
+            result_key = (str(id(self.result.value)), str(self.object_id.value), time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
                 ts_table = self.timeseries_table(
-                    parameters=parameters, result_item=result_item, absolute=absolute, time_units=time_units,
+                    parameters=parameters, absolute=absolute, time_units=time_units,
                 )
 
-                pen = pg.mkPen(color=self.color.qvalue, width=2, style=result_item._pattern)
+                pen = pg.mkPen(color=self.color.qvalue, width=2, style=self.result.value._pattern)
 
                 logger.info(f"Creating plot item for {result_key}: {parameters}")
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(ts_table, pen=pen)
 
             return self._plots[str(parameters)][result_key]
 
-        def timeseries_table(self, parameters, result_item, absolute, time_units):
+        def timeseries_table(self, parameters, absolute, time_units):
             """
             get list of timestamp values for object and parameters
             from result ts_datasources
@@ -134,7 +135,7 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr:
             :return: numpy array with timestamp, values
             """
-            threedi_result = result_item.threedi_result
+            threedi_result = self.result.value.threedi_result
 
             ga = threedi_result.get_gridadmin(parameters)
             if ga.has_pumpstations:
