@@ -1,7 +1,7 @@
 # Dependencies for development and tests.
 #
 # So... this is for *development* dependencies, not for
-# installing our application's dependencies like numpy or pygeos!
+# installing our application's dependencies like numpy or Shapely!
 #
 black
 coverage > 5
