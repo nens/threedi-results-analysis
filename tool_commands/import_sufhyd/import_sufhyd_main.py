@@ -97,7 +97,7 @@ class Importer(object):
 
     def is_db_valid(self):
         db = MCThreediDatabase(self.db.settings['db_path'])
-        schema = db.schema()
+        schema = db.schema
         try:
             schema.validate_schema()
         except errors.MigrationMissingError:

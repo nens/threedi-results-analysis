@@ -70,7 +70,7 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
         threedi_db = get_threedi_database(filename=filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
-        schema = threedi_db.schema()
+        schema = threedi_db.schema
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
@@ -174,7 +174,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "migrate your model to the latest version."
             )
             return {self.OUTPUT: None}
-        schema = threedi_db.schema()
+        schema = threedi_db.schema
         schema.set_spatial_indexes()
         generated_output_file_path = self.parameterAsFileOutput(
             parameters, self.OUTPUT, context
@@ -368,7 +368,7 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
                 f"Unable to connect to 3Di spatialite '{out_path}'"
             )
         try:
-            schema = threedi_db.schema()
+            schema = threedi_db.schema
             schema.validate_schema()
 
         except errors.MigrationMissingError:

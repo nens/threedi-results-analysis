@@ -366,7 +366,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
 
         db_settings = {"db_path": filepath}
         model_checker_db = ThreediDatabase(db_settings)
-        schema = model_checker_db.schema()
+        schema = model_checker_db.schema
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
