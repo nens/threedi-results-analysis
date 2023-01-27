@@ -299,6 +299,7 @@ class ThreeDiPluginLayerManager(QObject):
         # Use to modify grid name when LayerGroup is renamed
         item.layer_group.nameChanged.connect(lambda node, txt, grid_item=item: ThreeDiPluginLayerManager._layer_node_renamed(node, txt, grid_item))
 
+        progress_bar = StatusProgressBar(len(gpkg_layers) - 1, "Adding layers")
         for layer_name, table_name in gpkg_layers.items():
 
             # QGIS does save memory layers to the project file (but without the data)
@@ -353,6 +354,10 @@ class ThreeDiPluginLayerManager(QObject):
 
                 QgsProject.instance().addMapLayer(vector_layer, addToLegend=False)
                 item.layer_group.addLayer(vector_layer)
+
+            progress_bar.increase_progress()
+
+        del progress_bar
 
         # Invalid layers info
         if invalid_layers:
