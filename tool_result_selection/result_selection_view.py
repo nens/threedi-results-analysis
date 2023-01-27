@@ -364,8 +364,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
         if filepath == "":
             return False
 
-        db_settings = {"db_path": filepath}
-        model_checker_db = ThreediDatabase(db_settings)
+        model_checker_db = ThreediDatabase(filepath)
         schema = model_checker_db.schema
         try:
             schema.validate_schema()

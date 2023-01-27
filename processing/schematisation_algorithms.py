@@ -40,9 +40,7 @@ from qgis.core import (
 
 def get_threedi_database(filename, feedback):
     try:
-        db_type = "spatialite"
-        db_settings = {"db_path": filename}
-        threedi_db = ThreediDatabase(db_settings, db_type=db_type)
+        threedi_db = ThreediDatabase(filename)
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
