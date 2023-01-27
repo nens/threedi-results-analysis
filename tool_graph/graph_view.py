@@ -674,7 +674,7 @@ class GraphDockWidget(QDockWidget):
 
         # add listeners
         self.addSelectedObjectButton.clicked.connect(self.add_objects)
-        self.addFlowlinePumpButton.clicked.connect(self.add_flow_line_pump_button_clicked)
+        self.addFlowlinePumpButton.clicked.connect(self.add_flowline_pump_button_clicked)
         self.addNodeButton.clicked.connect(self.add_node_button_clicked)
 
         # init current layer state and add listener
@@ -682,16 +682,16 @@ class GraphDockWidget(QDockWidget):
         self.iface.currentLayerChanged.connect(self.selected_layer_changed)
 
         # add map tools
-        self.add_flow_line_pump_button_map_tool = AddFlowlinePumpMapTool(
+        self.map_tool_add_flowline_pump = AddFlowlinePumpMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
-        self.add_flow_line_pump_button_map_tool.setButton(self.addFlowlinePumpButton)
-        self.add_flow_line_pump_button_map_tool.setCursor(Qt.CrossCursor)
-        self.add_node_button_map_tool = AddNodeMapTool(
+        self.map_tool_add_flowline_pump.setButton(self.addFlowlinePumpButton)
+        self.map_tool_add_flowline_pump.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node = AddNodeMapTool(
             widget=self, canvas=self.iface.mapCanvas(),
         )
-        self.add_node_button_map_tool.setButton(self.addNodeButton)
-        self.add_node_button_map_tool.setCursor(Qt.CrossCursor)
+        self.map_tool_add_node.setButton(self.addNodeButton)
+        self.map_tool_add_node.setCursor(Qt.CrossCursor)
 
     def on_close(self):
         """
@@ -700,6 +700,10 @@ class GraphDockWidget(QDockWidget):
         """
         self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
         self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
+
+        self.map_tool_add_flowline_pump = None
+        self.map_tool_add_node = None
+
         # self.q_graph_widget.close()
         # self.h_graph_widget.close()
 
@@ -857,14 +861,14 @@ class GraphDockWidget(QDockWidget):
         self.addSelectedObjectButton.setText("Add")
         QMetaObject.connectSlotsByName(self)
 
-    def add_flow_line_pump_button_clicked(self):
+    def add_flowline_pump_button_clicked(self):
         self.iface.mapCanvas().setMapTool(
-            self.add_flow_line_pump_button_map_tool,
+            self.map_tool_add_flowline_pump,
         )
 
     def add_node_button_clicked(self):
         self.iface.mapCanvas().setMapTool(
-            self.add_node_button_map_tool,
+            self.map_tool_add_node,
         )
 
     def add_results(self, results, feature_type):
