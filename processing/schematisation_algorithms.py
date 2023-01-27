@@ -21,7 +21,7 @@ from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
 from threedi_schema import ThreediDatabase
 from threedi_modelchecker import ThreediModelChecker
-from threedi_modelchecker import errors
+from threedi_schema import errors
 from ThreeDiToolbox.processing.download_hydx import download_hydx
 from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
