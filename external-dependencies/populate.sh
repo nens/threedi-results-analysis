@@ -50,4 +50,7 @@ wget https://files.pythonhosted.org/packages/b4/64/01e6c648e6d0b305e0d1cdbe4fd96
 
 wget https://files.pythonhosted.org/packages/fa/fc/c012ec111ec8753369cbef9cc1e749bf3c9323106703909d36a9864e47e7/threedigrid_builder-1.3.6-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=f4b4feb237e7dead3adf4c6993d2411689c444d25783f26c7526a95a117f5472
 wget https://files.pythonhosted.org/packages/1e/a4/cbb2e7c4565cfd63de2da6332a2ba2f7674637cf33b2643581afc5e11f82/threedigrid_builder-1.3.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=e33938002b5db6b1d2dba729d1673a932fc37f6d11e14dd607f7a77523ea2190
+wget https://files.pythonhosted.org/packages/f1/52/c82afa01f9e8a62c68824ca18c4c2360fbcfb78d775c3705149dea4b3665/threedigrid_builder-1.8.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=8dee081e3a5f8f7df18538c7ab33678bc0291c752e482a868eef819cadcfe5b0
+wget https://files.pythonhosted.org/packages/f5/ac/ff78d3ffaa2ef5bfaadaa0dab1798487a22ade0551f435b109b2a808b98a/threedigrid_builder-1.8.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=0c22a64709f01c10d38a2164c37791d2939f790c1d1a2bc8dbe9e8b639f756e2
+
 touch .generated.marker
