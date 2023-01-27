@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
-from threedi_modelchecker.threedi_database import ThreediDatabase
+from threedi_schema import ThreediDatabase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
 import os

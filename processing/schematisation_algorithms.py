@@ -19,8 +19,8 @@ from hydxlib.scripts import run_import_export
 from hydxlib.scripts import write_logging_to_file
 from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
-from threedi_modelchecker.threedi_database import ThreediDatabase
-from threedi_modelchecker.model_checks import ThreediModelChecker
+from threedi_schema import ThreediDatabase
+from threedi_modelchecker import ThreediModelChecker
 from threedi_modelchecker import errors
 from ThreeDiToolbox.processing.download_hydx import download_hydx
 from ThreeDiToolbox.utils.utils import backup_sqlite

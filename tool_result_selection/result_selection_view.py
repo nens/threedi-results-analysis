@@ -10,7 +10,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QThread
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
-from threedi_modelchecker.threedi_database import ThreediDatabase
+from threedi_schema import ThreediDatabase
 from threedi_modelchecker import errors
 from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.datasource.threedi_results import find_h5_file
