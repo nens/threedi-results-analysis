@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtWidgets import QFileDialog
-from threedi_modelchecker.threedi_database import ThreediDatabase
+from threedi_schema import ThreediDatabase
 from ThreeDiToolbox.utils.threedi_database import get_databases
 
 import os
@@ -39,11 +39,11 @@ class SchemaCheckerDialogWidget(QDialog, FORM_CLASS):
         results to the selected outputfile."""
         selected_database_key = self.database_combobox.currentText()
         selected_db = self.available_databases.get(selected_database_key)
-        db_type = selected_db.get("db_type")
         connection_settings = selected_db.get("db_settings")
+        selected_db_filepath = connection_settings["db_path"]
         output_file_path = self.save_file_location_display.text()
 
-        threedi_db = ThreediDatabase(connection_settings, db_type=db_type)
+        threedi_db = ThreediDatabase(selected_db_filepath)
         success = self.command.run_it(threedi_db, output_file_path)
         if success:
             self.open_result_button.setEnabled(True)

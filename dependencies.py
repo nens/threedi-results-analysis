@@ -48,7 +48,8 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=1.2.3"),
     Dependency("cached-property", "cached_property", ""),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==0.34"),
+    Dependency("threedi-schema", "threedi_schema", "==0.214.3"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.0"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
     Dependency("alembic", "alembic", "==1.6.5"),
@@ -62,9 +63,9 @@ DEPENDENCIES = [
     ),  # dep of click and threedi-modelchecker (windows)
     Dependency("networkx", "networkx", ""),
     Dependency("condenser", "condenser", ">=0.1.1"),
-    Dependency("pygeos", "pygeos", ">=0.12.0"),
-    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.3.6"),
-    Dependency("hydxlib", "hydxlib", ">=1.3"),
+    Dependency("Shapely", "shapely", ">=2.0.0"),
+    Dependency("threedigrid_builder", "threedigrid_builder", ">=1.8.0"),
+    Dependency("hydxlib", "hydxlib", ">=1.4"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
