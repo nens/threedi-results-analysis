@@ -319,10 +319,6 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        feedback.pushInfo(f"self.INPUT_DATASET_NAME: {parameters[self.INPUT_DATASET_NAME]}")
-        feedback.pushInfo(f"self.HYDX_DOWNLOAD_DIRECTORY: {parameters[self.HYDX_DOWNLOAD_DIRECTORY]}")
-        feedback.pushInfo(f"self.INPUT_HYDX_DIRECTORY: {parameters[self.INPUT_HYDX_DIRECTORY]}")
-        feedback.pushInfo(f"self.TARGET_SQLITE: {parameters[self.TARGET_SQLITE]}")
         hydx_dataset_name = self.parameterAsString(
             parameters, self.INPUT_DATASET_NAME, context
         )
@@ -333,6 +329,20 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             parameters, self.INPUT_HYDX_DIRECTORY, context
         )
         out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            raise QgsProcessingException(
+                f"Unable to connect to 3Di spatialite '{out_path}'"
+            )
+        try:
+            schema = ModelSchema(threedi_db)
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            raise QgsProcessingException(
+                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
         if not (hydx_dataset_name or hydx_path):
             raise QgsProcessingException(
                 "Either 'GWSW HydX directory (local)' or 'GWSW dataset name (online)' must be filled in!"
@@ -363,20 +373,6 @@ class ImportHydXAlgorithm(QgsProcessingAlgorithm):
             # hydx_path will be None if user has canceled the process during download
             if feedback.isCanceled():
                 raise QgsProcessingException("Process canceled")
-        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
-        if not threedi_db:
-            raise QgsProcessingException(
-                f"Unable to connect to 3Di spatialite '{out_path}'"
-            )
-        try:
-            schema = ModelSchema(threedi_db)
-            schema.validate_schema()
-
-        except errors.MigrationMissingError:
-            raise QgsProcessingException(
-                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
-                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
-            )
         feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
         log_path = Path(out_path).parent / "import_hydx.log"
         write_logging_to_file(log_path)
