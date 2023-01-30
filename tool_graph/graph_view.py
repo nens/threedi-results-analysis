@@ -2,7 +2,6 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import Qgis
 from qgis.core import QgsWkbTypes
 from qgis.core import QgsValueMapFieldFormatter
-from qgis.core import QgsMapLayer
 from qgis.core import QgsFeature
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
@@ -25,7 +24,6 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
 from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import statusbar_message
@@ -671,13 +669,8 @@ class GraphDockWidget(QDockWidget):
         self.graphTabWidget.addTab(self.h_graph_widget, self.h_graph_widget.name)
 
         # add listeners
-        self.addSelectedObjectButton.clicked.connect(self.add_objects)
         self.addFlowlinePumpButton.clicked.connect(self.add_flowline_pump_button_clicked)
         self.addNodeButton.clicked.connect(self.add_node_button_clicked)
-
-        # init current layer state and add listener
-        self.selected_layer_changed(self.iface.mapCanvas().currentLayer)
-        self.iface.currentLayerChanged.connect(self.selected_layer_changed)
 
         # add map tools
         self.map_tool_add_flowline_pump = AddFlowlinePumpMapTool(
@@ -696,8 +689,8 @@ class GraphDockWidget(QDockWidget):
         unloading widget and remove all required stuff
         :return:
         """
-        self.addSelectedObjectButton.clicked.disconnect(self.add_objects)
-        self.iface.currentLayerChanged.disconnect(self.selected_layer_changed)
+        self.addFlowlinePumpButton.clicked.disconnect(self.add_flowline_pump_button_clicked)
+        self.addNodeButton.clicked.disconnect(self.add_node_button_clicked)
 
         self.map_tool_add_flowline_pump = None
         self.map_tool_add_node = None
@@ -740,65 +733,6 @@ class GraphDockWidget(QDockWidget):
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
-    def selected_layer_changed(self, active_layer: QgsMapLayer):
-        # get active layer from canvas, instead of using active_layer.
-        # Otherwise .dataProvider doesn't work
-        current_layer = self.iface.mapCanvas().currentLayer()
-
-        # Activate button if 3Di layers found
-        self.addSelectedObjectButton.setEnabled(is_threedi_layer(current_layer))
-
-    def add_objects(self):
-        """
-        Adds the currently selected layer to the node or flowline graph (checks names
-        to determine which plot)
-        """
-        canvas = self.iface.mapCanvas()
-        current_layer = canvas.currentLayer()
-        if not current_layer:
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, "Please select a 3Di layer before adding a plot", Qgis.Warning, 5.0)
-            return
-
-        provider = current_layer.dataProvider()
-        if provider.name() not in VALID_PROVIDERS:
-            logger.error("Unsupported provider for adding graph plot")
-            return
-
-        if current_layer.name() not in list(LAYER_QH_TYPE_MAPPING.keys()):
-            if not is_threedi_layer(current_layer):
-                messagebar_message(TOOLBOX_MESSAGE_TITLE, "Please select a 3Di layer before adding a plot", Qgis.Warning, 5.0)
-                return
-
-        selected_features = current_layer.selectedFeatures()
-
-        if current_layer.name() == "flowlines" or current_layer.objectName() == "flowline":
-            self.q_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(
-                self.graphTabWidget.indexOf(self.q_graph_widget)
-            )
-            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
-            return
-        elif current_layer.name() == "nodes" or current_layer.objectName() == "node":
-            self.h_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(
-                self.graphTabWidget.indexOf(self.h_graph_widget)
-            )
-            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
-            return
-
-        if LAYER_QH_TYPE_MAPPING[current_layer.name()] == "q":
-            self.q_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(
-                self.graphTabWidget.indexOf(self.q_graph_widget)
-            )
-            self.q_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
-        else:
-            self.h_graph_widget.add_objects(current_layer, selected_features)
-            self.graphTabWidget.setCurrentIndex(
-                self.graphTabWidget.indexOf(self.h_graph_widget)
-            )
-            self.h_graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
-
     def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots."""
         checked = state == Qt.Checked
@@ -819,27 +753,25 @@ class GraphDockWidget(QDockWidget):
 
         self.buttonBarHLayout = QHBoxLayout(self)
 
-        # add button to add objects to graphs
-        self.addSelectedObjectButton = QPushButton(self.dockWidgetContent)
-        self.addSelectedObjectButton.setObjectName("addSelectedObjectButton")
+        self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
+        self.addFlowlinePumpButton.setObjectName("addFlowlinePumpButton")
+        self.addFlowlinePumpButton.setCheckable(True)
+        self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
+
+        self.addNodeButton = QPushButton(text="Add nodes", parent=self.dockWidgetContent)
+        self.addNodeButton.setObjectName("addNodeButton")
+        self.addNodeButton.setCheckable(True)
+        self.buttonBarHLayout.addWidget(self.addNodeButton)
+
         self.absoluteCheckbox = QCheckBox("Absolute", parent=self.dockWidgetContent)
         self.absoluteCheckbox.setChecked(False)
         self.absoluteCheckbox.stateChanged.connect(self.on_btnAbsoluteState)
-        self.buttonBarHLayout.addWidget(self.addSelectedObjectButton)
         self.buttonBarHLayout.addWidget(self.absoluteCheckbox)
+
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonBarHLayout.addItem(spacerItem)
-        self.mainVLayout.addItem(self.buttonBarHLayout)
 
-        # add buttons for maptools to select objects for graphs
-        self.addFlowlinePumpButton = QPushButton(text="Add flowlines/pumps", parent=self.dockWidgetContent)
-        # self.addFlowlinePumpButton.setObjectName("addFlowlinePumpButton")
-        self.addFlowlinePumpButton.setCheckable(True)
-        self.buttonBarHLayout.addWidget(self.addFlowlinePumpButton)
-        self.addNodeButton = QPushButton(text="Add nodes", parent=self.dockWidgetContent)
-        # self.addNodeButton.setObjectName("addNodeButton")
-        self.addNodeButton.setCheckable(True)
-        self.buttonBarHLayout.addWidget(self.addNodeButton)
+        self.mainVLayout.addItem(self.buttonBarHLayout)
 
         # add tabWidget for graphWidgets
         self.graphTabWidget = QTabWidget(self.dockWidgetContent)
@@ -856,7 +788,6 @@ class GraphDockWidget(QDockWidget):
         # add dockwidget
         self.setWidget(self.dockWidgetContent)
         self.setWindowTitle("3Di Result Plots %i" % self.nr)
-        self.addSelectedObjectButton.setText("Add")
         QMetaObject.connectSlotsByName(self)
 
     def add_flowline_pump_button_clicked(self):
