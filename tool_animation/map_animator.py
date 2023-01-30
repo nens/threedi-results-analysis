@@ -1,4 +1,6 @@
 from qgis.core import NULL
+from qgis.core import QgsDateTimeRange
+from qgis.core import QgsInterval
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
@@ -6,7 +8,6 @@ from qgis.utils import iface
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
-from qgis.PyQt.QtWidgets import QLCDNumber
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
@@ -29,6 +30,8 @@ import copy
 import logging
 import math
 import numpy as np
+from bisect import bisect
+from datetime import datetime as Datetime
 
 
 logger = logging.getLogger(__name__)
@@ -148,45 +151,66 @@ class MapAnimator(QGroupBox):
 
         super().__init__("Animation", parent)
         self.model = model
-        self.node_parameters = {}
-        self.line_parameters = {}
-        self.current_node_parameter = None
-        self.current_line_parameter = None
+        self.node_parameters = None
+        self.line_parameters = None
+        self.current_datetime = None
         self.setup_ui(parent)
+
+    def _update_temporal_controller(self, results):
+        logger.info("Updating temporal controller")
+
+        # gather info
+        threedi_results = [r.threedi_result for r in results]
+        datetimes = [
+            np.array(tr.dt_timestamps, dtype='datetime64[s]')
+            for tr in threedi_results
+        ]
+
+        # frame duration
+        intervals = [
+            round((d[1:] - d[:-1]).min().item().total_seconds())
+            for d in datetimes
+            if d.size >= 2
+        ]
+        frame_duration = max(1, min(intervals)) if intervals else 1
+        logger.info(f"frame_duration {frame_duration}")
+
+        # extent
+        start_time = min(d[0].item() for d in datetimes)
+        end_time = max(d[-1].item() for d in datetimes)
+        temporal_extents = QgsDateTimeRange(start_time, end_time, True, True)
+        logger.info(f"start_time {start_time}")
+        logger.info(f"end_time {end_time}")
+
+        temporal_controller = iface.mapCanvas().temporalController()
+        temporal_controller.setTemporalExtents(temporal_extents)
+        temporal_controller.setFrameDuration(QgsInterval(frame_duration))
+        temporal_controller.skipToEnd()
 
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
-        self.setEnabled(self.model.number_of_results() > 0)
-        # Fill comboboxes based on result files
-        self.fill_parameter_combobox_items()
+        results = self.model.get_results(checked_only=True)
+        active = bool(results)
 
-    @pyqtSlot(ThreeDiResultItem)
-    def result_activated(self, item: ThreeDiResultItem):
-
-        # Fill comboboxes based on result files
-        self.fill_parameter_combobox_items()
-
-        self.restyle()
-
-        self.line_parameter_combo_box.setEnabled(True)
-        self.node_parameter_combo_box.setEnabled(True)
-        self.difference_checkbox.setEnabled(True)
-        self.lcd.setEnabled(True)
-
-        iface.mapCanvas().refresh()
-
-    @pyqtSlot(ThreeDiResultItem)
-    def result_deactivated(self, item: ThreeDiResultItem):
-        # Fill comboboxes based on result files
-        self.fill_parameter_combobox_items()
-
-        active = (len(self.model.get_results(selected=True)) > 0)
         self.line_parameter_combo_box.setEnabled(active)
         self.node_parameter_combo_box.setEnabled(active)
         self.difference_checkbox.setEnabled(active)
-        self.lcd.setEnabled(active)
+        self.setEnabled(active)
 
-        iface.mapCanvas().refresh()
+        if not active:
+            return
+
+        self._update_parameter_attributes()
+        self._update_parameter_combo_boxes()
+
+        self._restyle()
+        self._update_temporal_controller(results)
+        # iface.mapCanvas().refresh()
+
+    def _update_parameter_attributes(self):
+        config = self._get_active_parameter_config()
+        self.line_parameters = {r["name"]: r for r in config["q"]}
+        self.node_parameters = {r["name"]: r for r in config["h"]}
 
     def style_layers(self, result_item: ThreeDiResultItem, line_parameter_class_bounds, node_parameter_class_bounds):
         """
@@ -195,7 +219,7 @@ class MapAnimator(QGroupBox):
         """
 
         # has_groundwater = (
-        #    self.model.get_results(selected=True)[result_idx].threedi_result.result_admin.has_groundwater
+        #    self.model.get_results(checked_only=True)[result_idx].threedi_result.result_admin.has_groundwater
         # )
 
         # Adjust the styling of the grid layer based on the bounds and result field name
@@ -262,18 +286,27 @@ class MapAnimator(QGroupBox):
                 postfix,
             )
 
-    def restyle(self):
-        self.current_line_parameter = self.line_parameters[self.line_parameter_combo_box.currentText()]
-        self.current_node_parameter = self.node_parameters[self.node_parameter_combo_box.currentText()]
+    @property
+    def current_line_parameter(self):
+        return self.line_parameters[self.line_parameter_combo_box.currentText()]
 
-        for result_idx in range(len(self.model.get_results(selected=True))):
-            result_item = self.model.get_results(selected=True)[result_idx]
+    @property
+    def current_node_parameter(self):
+        return self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-            line_parameter_class_bounds, node_parameter_class_bounds, _, _ = self.update_class_bounds(result_item)
-            self.update_results(result_item, 0)
-            self.style_layers(result_item, line_parameter_class_bounds, node_parameter_class_bounds)
+    def _restyle(self):
+        for result_item in self.model.get_results(checked_only=True):
+            line_class_bounds, node_class_bounds, _, _ = self.get_class_bounds(result_item)
+            self.style_layers(result_item, line_class_bounds, node_class_bounds)
 
-    def update_class_bounds(self, result_item: ThreeDiResultItem):
+    def _restyle_and_update(self):
+        """
+        To be used when a parameter or relative checkbox changes
+        """
+        self._restyle()
+        self.update_results()
+
+    def get_class_bounds(self, result_item: ThreeDiResultItem):
 
         line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
         node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
@@ -352,18 +385,18 @@ class MapAnimator(QGroupBox):
                 )
             )
 
-        return (line_parameter_class_bounds, node_parameter_class_bounds, groundwater_line_parameter_class_bounds, groundwater_node_parameter_class_bounds)
+        return (
+            line_parameter_class_bounds,
+            node_parameter_class_bounds,
+            groundwater_line_parameter_class_bounds,
+            groundwater_node_parameter_class_bounds,
+        )
 
-    def fill_parameter_attributes(self):
-        config = self._get_active_parameter_config()
-        self.line_parameters = {r["name"]: r for r in config["q"]}
-        self.node_parameters = {r["name"]: r for r in config["h"]}
-
-    def fill_parameter_combobox_items(self):
+    def _update_parameter_combo_boxes(self):
         """
-        Fills parameter and comboboxes based on selected result
+        Fills parameter and combo boxes based on selected result
         """
-        self.fill_parameter_attributes()
+        self._update_parameter_attributes()
 
         Q_CUM = 'q_cum'
         active = {WATERLEVEL.name, Q_CUM}
@@ -390,8 +423,8 @@ class MapAnimator(QGroupBox):
         q_vars = []
         h_vars = []
 
-        for result_idx in range(len(self.model.get_results(selected=True))):
-            threedi_result = self.model.get_results(selected=True)[result_idx].threedi_result
+        for result in self.model.get_results(checked_only=True):
+            threedi_result = result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
 
             # Make a deepcopy because we don't want to change the cached variables
@@ -416,127 +449,139 @@ class MapAnimator(QGroupBox):
             q_vars = _intersection(q_vars, parameter_config["q"])
             h_vars = _intersection(h_vars, parameter_config["h"])
 
-        result = {"q": q_vars, "h": h_vars}
-        return result
+        config = {"q": q_vars, "h": h_vars}
+        return config
 
-    def update_results(self, result_item: ThreeDiResultItem, timestep_nr):
-        """Fill the initial_value and result fields of the animation layers, depending on active result parameter"""
+    def update_results(self, qgs_dt_range=None):
+        """ Update results for all selected result items. """
+        if not self.isEnabled():
+            return
 
-        if self.isEnabled():
+        if qgs_dt_range is not None:
+            self.current_datetime = qgs_dt_range.begin().toPyDateTime()
+        else:
+            self.current_datetime = Datetime.now()
 
-            if not self.current_line_parameter or not self.current_node_parameter:
-                return
+        logger.info('updating results to %s', self.current_datetime)
 
-            threedi_result = result_item.threedi_result
+        for result_item in self.model.get_results(checked_only=True):
+            self._update_result_item_results(result_item)
 
-            # Update UI (LCD)
-            days, hours, minutes = MapAnimator.index_to_duration(timestep_nr, threedi_result.get_timestamps())
-            formatted_display = "{:d} {:02d}:{:02d}".format(days, hours, minutes)
-            self.lcd.display(formatted_display)
+    def _update_result_item_results(self, result_item):
+        """Fill initial value and result fields of the animation layers, based
+        on currently set animation datetime and parameters."""
+        threedi_result = result_item.threedi_result
 
-            layers_to_update = []
+        layers_to_update = []
 
-            qgs_instance = QgsProject.instance()
-            grid = result_item.parent()
-            line, node, cell = (
-                qgs_instance.mapLayer(grid.layer_ids[k])
-                for k in ("flowline", "node", "cell")
+        qgs_instance = QgsProject.instance()
+        grid = result_item.parent()
+        line, node, cell = (
+            qgs_instance.mapLayer(grid.layer_ids[k])
+            for k in ("flowline", "node", "cell")
+        )
+        layers_to_update.append((line, self.current_line_parameter))
+        layers_to_update.append((node, self.current_node_parameter))
+        layers_to_update.append((cell, self.current_node_parameter))
+
+        # TODO relocate this
+        ids_by_layer_attr = "_ids_by_layer"
+        if not hasattr(self, ids_by_layer_attr):
+            ids_by_layer = {}
+            setattr(self, ids_by_layer_attr, ids_by_layer)
+        else:
+            ids_by_layer = getattr(self, ids_by_layer_attr)
+
+        for layer, parameter_config in layers_to_update:
+
+            if layer is None:
+                continue
+
+            layer_id = layer.id()
+            provider = layer.dataProvider()
+            parameter = parameter_config["parameters"]
+            parameter_long_name = parameter_config["name"]
+            parameter_units = parameter_config["unit"]
+
+            # determine timestep number for current parameter
+            begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+            current_seconds = (self.current_datetime - begin_datetime).total_seconds()
+            parameter_timestamps = threedi_result.get_timestamps(parameter)
+            timestep_nr = bisect(parameter_timestamps, current_seconds)
+            timestep_nr = min(timestep_nr, parameter_timestamps.size - 1)
+
+            values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
+            values_ti = threedi_result.get_values_by_timestep_nr(
+                parameter, timestep_nr
             )
-            layers_to_update.append((line, self.current_line_parameter))
-            layers_to_update.append((node, self.current_node_parameter))
-            layers_to_update.append((cell, self.current_node_parameter))
 
-            # TODO relocate this
-            ids_by_layer_attr = "_ids_by_layer"
-            if not hasattr(self, ids_by_layer_attr):
-                ids_by_layer = {}
-                setattr(self, ids_by_layer_attr, ids_by_layer)
+            # theedigrid may have returned masked arrays in the past
+            if isinstance(values_t0, np.ma.MaskedArray):
+                values_t0 = values_t0.filled(np.NaN)
+            if isinstance(values_ti, np.ma.MaskedArray):
+                values_ti = values_ti.filled(np.NaN)
+
+            if parameter == WATERLEVEL.name:
+                # dry cells have a NO_DATA_VALUE water level
+                values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
+                values_ti[values_ti == NO_DATA_VALUE] = np.NaN
+
+            ti_field_index, t0_field_index = (
+                layer.fields().indexOf(n)
+                for n in result_item._result_field_names[layer_id]
+            )
+            assert ti_field_index != -1
+            assert t0_field_index != -1
+
+            try:
+                ids = ids_by_layer[layer_id]
+            except KeyError:
+                ids = np.array([
+                    f.id()
+                    for f in layer.getFeatures()
+                ], dtype="i8")
+                ids_by_layer[layer_id] = ids
+
+            # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
+            # groundwater because those indexes start from 1 (something to
+            # do with a trash element), but for the non-groundwater version
+            # it is not. HOWEVER, due to some magic hackery in how the
+            # *_result layers are created/copied from the regular result
+            # layers, the resulting feature ids also start from 1, which
+            # why we need to subtract it in both cases, which btw is
+            # purely coincidental.
+            # TODO: to avoid all this BS this part should be refactored
+            # by passing the index to get_values_by_timestep_nr, which
+            # should take this into account
+            dvalues_t0 = values_t0[ids - 1]
+            dvalues_ti = values_ti[ids - 1]
+            update_dict = {
+                k: {
+                    t0_field_index: NULL if math.isnan(v0) else v0,
+                    ti_field_index: NULL if math.isnan(vi) else vi,
+                } for k, v0, vi in zip(
+                    ids.tolist(),
+                    dvalues_t0.tolist(),
+                    dvalues_ti.tolist(),
+                )
+            }
+            provider.changeAttributeValues(update_dict)
+
+            if self.difference_checkbox.isChecked() and layer in (node, cell):
+                layer_name_postfix = "relative to t0"
             else:
-                ids_by_layer = getattr(self, ids_by_layer_attr)
+                layer_name_postfix = "current timestep"
+            layer_name = (
+                f"{parameter_long_name} [{parameter_units}] ({layer_name_postfix})"
+            )
 
-            for layer, parameter_config in layers_to_update:
+            layer.setName(layer_name)
 
-                if layer is None:
-                    continue
-
-                layer_id = layer.id()
-                provider = layer.dataProvider()
-                parameter = parameter_config["parameters"]
-                parameter_long_name = parameter_config["name"]
-                parameter_units = parameter_config["unit"]
-                values_t0 = threedi_result.get_values_by_timestep_nr(parameter, 0)
-                values_ti = threedi_result.get_values_by_timestep_nr(
-                    parameter, timestep_nr
-                )
-
-                if isinstance(values_t0, np.ma.MaskedArray):
-                    values_t0 = values_t0.filled(np.NaN)
-                if isinstance(values_ti, np.ma.MaskedArray):
-                    values_ti = values_ti.filled(np.NaN)
-
-                # I suspect the two lines above intend to do the same as the two (new) lines below, but the lines above
-                # don't work. Perhaps issue should be solved in threedigrid? [LvW]
-                if parameter == WATERLEVEL.name:
-                    # dry cells have a NO_DATA_VALUE water level
-                    values_t0[values_t0 == NO_DATA_VALUE] = np.NaN
-                    values_ti[values_ti == NO_DATA_VALUE] = np.NaN
-
-                ti_field_index, t0_field_index = (
-                    layer.fields().indexOf(n)
-                    for n in result_item._result_field_names[layer_id]
-                )
-                assert ti_field_index != -1
-                assert t0_field_index != -1
-
-                try:
-                    ids = ids_by_layer[layer_id]
-                except KeyError:
-                    ids = np.array([
-                        f.id()
-                        for f in layer.getFeatures()
-                    ], dtype="i8")
-                    ids_by_layer[layer_id] = ids
-
-                # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
-                # groundwater because those indexes start from 1 (something to
-                # do with a trash element), but for the non-groundwater version
-                # it is not. HOWEVER, due to some magic hackery in how the
-                # *_result layers are created/copied from the regular result
-                # layers, the resulting feature ids also start from 1, which
-                # why we need to subtract it in both cases, which btw is
-                # purely coincidental.
-                # TODO: to avoid all this BS this part should be refactored
-                # by passing the index to get_values_by_timestep_nr, which
-                # should take this into account
-                dvalues_t0 = values_t0[ids - 1]
-                dvalues_ti = values_ti[ids - 1]
-                update_dict = {
-                    k: {
-                        t0_field_index: NULL if math.isnan(v0) else v0,
-                        ti_field_index: NULL if math.isnan(vi) else vi,
-                    } for k, v0, vi in zip(
-                        ids.tolist(),
-                        dvalues_t0.tolist(),
-                        dvalues_ti.tolist(),
-                    )
-                }
-                provider.changeAttributeValues(update_dict)
-
-                if self.difference_checkbox.isChecked() and layer in (node, cell):
-                    layer_name_postfix = "relative to t0"
-                else:
-                    layer_name_postfix = "current timestep"
-                layer_name = (
-                    f"{parameter_long_name} [{parameter_units}] ({layer_name_postfix})"
-                )
-
-                layer.setName(layer_name)
-
-                # Don't update invisible layers
-                layer_tree_root = QgsProject.instance().layerTreeRoot()
-                layer_tree_layer = layer_tree_root.findLayer(layer)
-                if layer_tree_layer.isVisible():
-                    layer.triggerRepaint()
+            # Don't update invisible layers
+            layer_tree_root = QgsProject.instance().layerTreeRoot()
+            layer_tree_layer = layer_tree_root.findLayer(layer)
+            if layer_tree_layer.isVisible():
+                layer.triggerRepaint()
 
     def setup_ui(self, parent_widget: QWidget):
         parent_widget.layout().addWidget(self)
@@ -572,17 +617,9 @@ class MapAnimator(QGroupBox):
 
         self.HLayout.addStretch()
 
-        self.lcd = QLCDNumber()
-        self.lcd.setToolTip('Time format: "days hours:minutes"')
-        self.lcd.setSegmentStyle(QLCDNumber.Flat)
-        # Let lcd display a maximum of 9 digits, this way it can display a maximum
-        # simulation duration of 999 days, 23 hours and 59 minutes.
-        self.lcd.setDigitCount(9)
-        self.HLayout.addWidget(self.lcd)
-
-        self.line_parameter_combo_box.activated.connect(self.restyle)
-        self.node_parameter_combo_box.activated.connect(self.restyle)
-        self.difference_checkbox.stateChanged.connect(self.restyle)
+        self.line_parameter_combo_box.activated.connect(self._restyle_and_update)
+        self.node_parameter_combo_box.activated.connect(self._restyle_and_update)
+        self.difference_checkbox.stateChanged.connect(self._restyle_and_update)
 
         self.setEnabled(False)
 

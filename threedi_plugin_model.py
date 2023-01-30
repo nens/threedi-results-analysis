@@ -193,11 +193,15 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiResultItem):
             return self._remove_result(item)
 
-    def get_results(self, selected: bool) -> List[ThreeDiResultItem]:
+    def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""
-        def _get_results(results: List[ThreeDiResultItem], item: QStandardItemModel, selected: bool):
+        def _get_results(
+            results: List[ThreeDiResultItem],
+            item: QStandardItemModel,
+            checked_only: bool
+        ):
             if isinstance(item, ThreeDiResultItem):
-                if selected:
+                if checked_only:
                     if item.checkState() == 2:
                         results.append(item)
                 else:
@@ -205,12 +209,12 @@ class ThreeDiPluginModel(QStandardItemModel):
 
             if item.hasChildren():
                 for i in range(item.rowCount()):
-                    _get_results(results, item.child(i), selected)
+                    _get_results(results, item.child(i), checked_only)
 
             return results
 
         results = []
-        _get_results(results, self.invisibleRootItem(), selected)
+        _get_results(results, self.invisibleRootItem(), checked_only)
         return results
 
     def number_of_grids(self) -> int:
