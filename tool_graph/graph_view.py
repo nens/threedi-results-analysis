@@ -407,8 +407,7 @@ class GraphWidget(QWidget):
     def highlight_feature(self, obj_id, obj_type, result_item: ThreeDiResultItem):
 
         for table_name, layer_id in result_item.parent().layer_ids.items():
-            # Clear other layers
-            # lyr.removeSelection()
+
             if obj_type == table_name:
                 # query layer for object
                 filt = u'"id" = {0}'.format(obj_id)
@@ -582,6 +581,8 @@ class GraphWidget(QWidget):
         for existing_item in existing_items:
             logger.error("existing: " + existing_item)
 
+        layer.removeSelection()
+
         # Determine new items
         new_items = []
         for feature in features:
@@ -593,6 +594,8 @@ class GraphWidget(QWidget):
                 # Check whether this result belongs to the selected grid
                 if layer.id() not in result_item.parent().layer_ids.values():
                     continue
+
+                layer.select(feature.id())
 
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
