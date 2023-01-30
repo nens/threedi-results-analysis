@@ -599,6 +599,7 @@ class GraphWidget(QWidget):
                         "object_id": new_idx,
                         "object_name": new_object_name,
                         "result": result_item,
+                        "color": self.location_model.get_color(new_idx),
                     }
                     new_items.append(item)
 

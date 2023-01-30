@@ -4,11 +4,13 @@ from ThreeDiToolbox.models.base import BaseModel
 from ThreeDiToolbox.models.base_fields import CheckboxField
 from ThreeDiToolbox.models.base_fields import ColorField
 from ThreeDiToolbox.models.base_fields import ValueField
+from typing import Dict
 
 import logging
 import numpy as np
 import pyqtgraph as pg
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 
 
 logger = logging.getLogger(__name__)
@@ -65,6 +67,17 @@ def select_default_color(item_field):
 class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
+    feature_color_map: Dict[int, int] = {}
+
+    def get_color(self, idx: int) -> QColor:
+        if not self.feature_color_map:
+            self.feature_color_map[idx] = 0
+        elif idx not in self.feature_color_map:
+            # pick next color from COLOR_LIST
+            self.feature_color_map[idx] = ((max(self.feature_color_map.values())+1) % len(COLOR_LIST))
+
+        return COLOR_LIST[self.feature_color_map[idx]]
+
     def data(self, index, role=Qt.DisplayRole):
         """Qt function to get data from items for the visible columns"""
 
@@ -88,8 +101,7 @@ class LocationTimeseriesModel(BaseModel):
         color = ColorField(
             show=True,
             column_width=30,
-            column_name="color",
-            default_value=select_default_color,
+            column_name="color"
         )
 
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
@@ -119,7 +131,7 @@ class LocationTimeseriesModel(BaseModel):
                     parameters=parameters, absolute=absolute, time_units=time_units,
                 )
 
-                pen = pg.mkPen(color=self.color.qvalue, width=2, style=self.result.value._pattern)
+                pen = pg.mkPen(color=self.color.value, width=2, style=self.result.value._pattern)
 
                 logger.info(f"Creating plot item for {result_key}: {parameters}")
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(ts_table, pen=pen)
