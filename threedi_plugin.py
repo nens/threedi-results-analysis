@@ -148,8 +148,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
 
-        # self.model.result_added.connect(self.map_animator.results_changed)
-        self.model.result_removed.connect(self.map_animator.results_changed)
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
 

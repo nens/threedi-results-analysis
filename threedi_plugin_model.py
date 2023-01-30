@@ -198,10 +198,11 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def _remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
-        self.result_removed.emit(item)
-
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
+
+        item.setCheckState(0)
+        self.result_removed.emit(item)
         grid_item.removeRow(item.row())
 
         return True
@@ -275,6 +276,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
         elif isinstance(item, ThreeDiResultItem):
+            item.setCheckState(0)
             self.result_removed.emit(item)
 
         # Traverse into the children
