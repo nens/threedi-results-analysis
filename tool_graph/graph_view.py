@@ -579,8 +579,11 @@ class GraphWidget(QWidget):
 
         # Retrieve summary of existing items
         existing_items = [
-            f"{item.object_type.value}_{str(item.object_id.value)}_{id(item.result.value)}" for item in self.location_model.rows
+            f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.location_model.rows
         ]
+
+        for existing_item in existing_items:
+            logger.error("existing: " + existing_item)
 
         # Determine new items
         new_items = []
@@ -590,7 +593,7 @@ class GraphWidget(QWidget):
 
             result_items = self.model.get_results(selected=False)
             for result_item in result_items:
-                if (layer.objectName() + "_" + str(new_idx) + "_" + str(id(result_item))) not in existing_items:
+                if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
                         "object_type": layer.objectName(),
                         "object_id": new_idx,

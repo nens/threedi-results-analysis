@@ -110,9 +110,8 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            # TODO: is this key collision safe? or do we also need to add object_type (pumps/embedded/breaches)?
-            # TODO: can we use the result_item of the Fields?
-            result_key = (str(id(self.result.value)), str(self.object_id.value), time_units)
+            # Key is result uuid, feature id, layer name (pump, flowlines), time-unit
+            result_key = (self.result.value.id, str(self.object_id.value), self.object_type.value, time_units)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:

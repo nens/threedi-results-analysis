@@ -11,18 +11,40 @@ from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
+import uuid
 import re
 
 logger = logging.getLogger(__name__)
 
+already_used_ids = []
 
-class ThreeDiGridItem(QStandardItem):
+
+def _generate_identifier() -> str:
+    global already_used_ids
+    while(True):
+        id = str(uuid.uuid4())
+        if id not in already_used_ids:
+            already_used_ids.append(id)
+            return id
+
+
+class ThreeDiModelItem(QStandardItem):
+    """
+    Base class for all model items
+    """
+    id: str  # uuid
+
+    def __init__(self, *args, **kwargs):
+        self.id = _generate_identifier()
+        super().__init__(*args, **kwargs)
+
+
+class ThreeDiGridItem(ThreeDiModelItem):
     """
     A model item for computation grids
     """
     def __init__(self, path, text: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.path = Path(path)
         self.setSelectable(True)
         self.setEditable(True)
@@ -39,7 +61,7 @@ class ThreeDiGridItem(QStandardItem):
         self.layer_group = None
 
 
-class ThreeDiResultItem(QStandardItem):
+class ThreeDiResultItem(ThreeDiModelItem):
     """
     A model item for 3Di results.
     """
