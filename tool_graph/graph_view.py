@@ -25,6 +25,7 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
+from qgis.utils import iface
 from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from ThreeDiToolbox.utils.user_messages import statusbar_message
@@ -578,10 +579,9 @@ class GraphWidget(QWidget):
             f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.location_model.rows
         ]
 
-        for existing_item in existing_items:
-            logger.error("existing: " + existing_item)
-
-        layer.removeSelection()
+        for lyr in iface.mapCanvas().layers():
+            if lyr.type() == lyr.VectorLayer:
+                lyr.removeSelection()
 
         # Determine new items
         new_items = []
