@@ -12,7 +12,7 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-modelchecker click threedidepth alembic zipp importlib-resources mako packaging colorama networkx condenser hydxlib python-editor
+pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-schema threedi-modelchecker click threedidepth alembic zipp importlib-resources mako packaging colorama networkx condenser hydxlib python-editor
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
@@ -40,14 +40,14 @@ wget https://files.pythonhosted.org/packages/a1/f1/cbded664cf2b68224ff1915e6fdc7
 # Download windows wheels (cp39, win, amd64)
 wget https://files.pythonhosted.org/packages/43/10/ead321694ef6adf0717ca4b3a7d4cf5b52e8456cc35c2b82abbd3777fd06/cftime-1.5.0-cp39-none-win_amd64.whl
 wget https://files.pythonhosted.org/packages/92/2e/8a85d66cd4646a81027f3efbc17278beaa86fd351b5f1339a7a5b0d79c14/netCDF4-1.5.4-cp39-cp39-win_amd64.whl#sha256=223b84f8d2a148e889b1933944109bdecbefc097200ab42e8a66c967b1398e1b
-wget https://files.pythonhosted.org/packages/6f/4c/1cdac6e8036f68d0a546118c78b35855b6e7ed8a7010d23ac48f1984051d/pygeos-0.12.0-cp39-cp39-win_amd64.whl
-wget https://files.pythonhosted.org/packages/83/83/664c4e0c286d2dbf8294147493263e0991b37538e594b591504ddedf6881/threedigrid_builder-1.3.6-cp39-cp39-win_amd64.whl
+wget https://files.pythonhosted.org/packages/b2/8e/83d9e3bff5c0ff7a0ec7e850c785916e616ab20d8793943f9e1d2a987fab/shapely-2.0.0-cp39-cp39-win_amd64.whl
+wget https://files.pythonhosted.org/packages/72/e4/05217659d428f2772a6f78018587da68d5f23b73515075f57b29f87fa8f8/threedigrid_builder-1.8.0-cp39-cp39-win_amd64.whl
 
 # Download linux wheels (both cp38 and cp310)
 wget https://files.pythonhosted.org/packages/d8/4b/ba9f72ae150d0a887e53b476ee29609c0ae1d28cd914bb66685a03ddfad2/cftime-1.5.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl
-wget https://files.pythonhosted.org/packages/90/0b/6f149c71dc7e035bb872c7f819127749d0a3c4388473f28be59ddb0b61fc/pygeos-0.12.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=962df97f937d6656ce9293e7072318e99860b0d41f61df9017551855a8bc188e
-wget https://files.pythonhosted.org/packages/b4/64/01e6c648e6d0b305e0d1cdbe4fd96bc8d0fbae7cb14a929e5645cbe71524/pygeos-0.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=26fae3eabb83a15348c2c3f78892114aca9bc4efaa342ab2fa3fa39a85e05dc5
+wget https://files.pythonhosted.org/packages/06/07/0700e5e33c44bc87e19953244c29f73669cfb6f19868899170f9c7e34554/shapely-2.0.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+wget https://files.pythonhosted.org/packages/4e/03/f3bcb7d96aef6d56b62e2f25996f161c05f92a45d452165be2007b756e0f/shapely-2.0.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+wget https://files.pythonhosted.org/packages/f1/52/c82afa01f9e8a62c68824ca18c4c2360fbcfb78d775c3705149dea4b3665/threedigrid_builder-1.8.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=8dee081e3a5f8f7df18538c7ab33678bc0291c752e482a868eef819cadcfe5b0
+wget https://files.pythonhosted.org/packages/f5/ac/ff78d3ffaa2ef5bfaadaa0dab1798487a22ade0551f435b109b2a808b98a/threedigrid_builder-1.8.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=0c22a64709f01c10d38a2164c37791d2939f790c1d1a2bc8dbe9e8b639f756e2
 
-wget https://files.pythonhosted.org/packages/fa/fc/c012ec111ec8753369cbef9cc1e749bf3c9323106703909d36a9864e47e7/threedigrid_builder-1.3.6-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=f4b4feb237e7dead3adf4c6993d2411689c444d25783f26c7526a95a117f5472
-wget https://files.pythonhosted.org/packages/1e/a4/cbb2e7c4565cfd63de2da6332a2ba2f7674637cf33b2643581afc5e11f82/threedigrid_builder-1.3.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=e33938002b5db6b1d2dba729d1673a932fc37f6d11e14dd607f7a77523ea2190
 touch .generated.marker

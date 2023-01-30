@@ -5,7 +5,8 @@ ThreeDiToolBox changelog
 2.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added usage of threedi_schema package
+- Replaced pygeos dependency with a Shapely
 
 
 2.4.1 (2022-12-08)
