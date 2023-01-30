@@ -5,6 +5,7 @@ from qgis.core import QgsValueMapFieldFormatter
 from qgis.core import QgsFeature
 from qgis.gui import QgsMapToolIdentify
 from qgis.gui import QgsRubberBand
+from qgis.core import QgsProject
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtCore import QEvent
@@ -67,7 +68,7 @@ def is_threedi_layer(vector_layer: QgsVectorLayer) -> bool:
 
     if provider.name() in ["spatialite", "memory", "ogr"] and valid_object_type:
         return True
-    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring"):
+    elif vector_layer.objectName() in ("flowline", "node", "pump_linestring", "pump"):
         return True
 
     return False
@@ -225,7 +226,7 @@ class LocationTimeseriesTable(QTableView):
 
     hoverExitRow = pyqtSignal(int)
     hoverExitAllRows = pyqtSignal()  # exit the whole widget
-    hoverEnterRow = pyqtSignal(int, str)
+    hoverEnterRow = pyqtSignal(int, str, ThreeDiResultItem)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -295,9 +296,7 @@ class LocationTimeseriesTable(QTableView):
     def hover_enter(self, row_nr):
         if row_nr >= 0:
             item = self.model.rows[row_nr]
-            obj_id = item.object_id.value
-            obj_type = item.object_type.value
-            self.hoverEnterRow.emit(obj_id, obj_type)
+            self.hoverEnterRow.emit(item.object_id.value, item.object_type.value, item.result.value)
             item.hover.value = True
 
     def setModel(self, model):
@@ -405,16 +404,16 @@ class GraphWidget(QWidget):
         self.on_close()
         event.accept()
 
-    def highlight_feature(self, obj_id, obj_type):
+    def highlight_feature(self, obj_id, obj_type, result_item: ThreeDiResultItem):
 
-        layers = self.parent.iface.mapCanvas().layers()
-        for lyr in layers:
+        for table_name, layer_id in result_item.parent().layer_ids.items():
             # Clear other layers
             # lyr.removeSelection()
-            if lyr.objectName() == obj_type:
+            if obj_type == table_name:
                 # query layer for object
                 filt = u'"id" = {0}'.format(obj_id)
                 request = QgsFeatureRequest().setFilterExpression(filt)
+                lyr = QgsProject.instance().mapLayer(layer_id)
                 features = lyr.getFeatures(request)
                 for feature in features:
                     self.marker.setToGeometry(feature.geometry(), lyr)
@@ -591,6 +590,10 @@ class GraphWidget(QWidget):
 
             result_items = self.model.get_results(checked_only=False)
             for result_item in result_items:
+                # Check whether this result belongs to the selected grid
+                if layer.id() not in result_item.parent().layer_ids.values():
+                    continue
+
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
                         "object_type": layer.objectName(),
@@ -802,24 +805,25 @@ class GraphDockWidget(QDockWidget):
 
     def add_results(self, results, feature_type):
         """
-        Add results for one grid feature of a certain type.
+        Add results for features of specific types.
         """
         if feature_type == FLOWLINE_OR_PUMP:
-            layer_key = 'flowline'
+            layer_keys = ['flowline', 'pump_linestring', 'pump']
             graph_widget = self.q_graph_widget
         elif feature_type == NODE:
-            layer_key = 'node'
+            layer_keys = ['node']
             graph_widget = self.h_graph_widget
         item = self.model.invisibleRootItem()
 
-        grids = {
-            item.child(i).layer_ids[layer_key]
-            for i in range(item.rowCount())
-        }
+        relevant_grid_layer_ids = []
+        for layer_key in layer_keys:
+            for i in range(item.rowCount()):
+                if layer_key in item.child(i).layer_ids:
+                    relevant_grid_layer_ids.append(item.child(i).layer_ids[layer_key])
 
         for result in results:
             layer_id = result.mLayer.id()
-            if layer_id not in grids:
+            if layer_id not in relevant_grid_layer_ids:
                 continue
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             break
