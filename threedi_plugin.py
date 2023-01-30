@@ -3,7 +3,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsDateTimeRange, QgsInterval, QgsProject, QgsPathResolver, QgsSettings
+from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -25,8 +25,6 @@ from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAna
 from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
-from datetime import datetime as Datetime
-import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -137,16 +135,11 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.loader.grid_loaded.connect(self.validator.validate_grid)
         self.loader.result_loaded.connect(self.validator.validate_result)
 
-        self.model.result_checked.connect(self._update_temporal_controller)
-        self.model.result_unchecked.connect(self._update_temporal_controller)
-
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
         self.ts_datasources.rowsRemoved.connect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.connect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.connect(self.check_status_model_and_results)
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.connect(self._temporal_update)
 
         self.dockwidget.show()
         self.dockwidget.set_model(self.model)
@@ -155,16 +148,20 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
 
-        self.model.result_added.connect(self.map_animator.results_changed)
+        # self.model.result_added.connect(self.map_animator.results_changed)
         self.model.result_removed.connect(self.map_animator.results_changed)
-        self.model.result_checked.connect(self.map_animator.result_activated)
-        self.model.result_unchecked.connect(self.map_animator.result_deactivated)
+        self.model.result_checked.connect(self.map_animator.results_changed)
+        self.model.result_unchecked.connect(self.map_animator.results_changed)
+
+        # start animating
+        tc = iface.mapCanvas().temporalController()
+        tc.updateTemporalRange.connect(self.map_animator.update_results)
 
         self.model.result_added.connect(self.graph_tool.result_added)
         self.model.result_removed.connect(self.graph_tool.result_removed)
 
         self.init_state_sync()
-        tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
+        # tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
@@ -218,7 +215,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Stop animating
         tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.disconnect(self._temporal_update)
+        tc.updateTemporalRange.disconnect(self.map_animator.update_results)
 
         # Clears model and emits subsequent signals
         self.model.clear()
@@ -262,58 +259,6 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.removeDockWidget(self.dockwidget)
         del self.dockwidget
         del self.toolbar
-
-    def _update_temporal_controller(self, *args):
-        results = self.model.get_results(selected=True)
-        tc = iface.mapCanvas().temporalController()
-        if not results:
-            return
-
-        logger.info("Updating temporal controller")
-        # gather info
-        threedi_results = [r.threedi_result for r in results]
-        datetimes = [
-            np.array(tr.dt_timestamps, dtype='datetime64[s]')
-            for tr in threedi_results
-        ]
-
-        # frame duration
-        intervals = [
-            round((d[1:] - d[:-1]).min().item().total_seconds())
-            for d in datetimes
-            if d.size >= 2
-        ]
-        frame_duration = max(1, min(intervals)) if intervals else 1
-        tc.setFrameDuration(QgsInterval(frame_duration))
-        logger.info(f"frame_duration {frame_duration}")
-
-        # extent
-        start_time = min(d[0].item() for d in datetimes)
-        end_time = max(d[-1].item() for d in datetimes)
-        tc.setTemporalExtents(QgsDateTimeRange(start_time, end_time, True, True))
-        logger.info(f"start_time {start_time}")
-        logger.info(f"end_time {end_time}")
-
-        tc.setCurrentFrameNumber(tc.findBestFrameNumberForFrameStart(end_time))
-
-    def _temporal_update(self, _):
-
-        tc = iface.mapCanvas().temporalController()
-        tct = tc.dateTimeRangeForFrameNumber(tc.currentFrameNumber()).begin().toPyDateTime()
-        # Convert the timekey to result index
-        timekey = (tct-tc.temporalExtents().begin().toPyDateTime()).total_seconds()
-
-        for result_idx in range(len(self.model.get_results(selected=True))):
-            result_item = self.model.get_results(selected=True)[result_idx]
-            timestamps = result_item.threedi_result.timestamps
-            # TODO: are the timekeys always sorted? Are they cached?
-            index = int(timestamps.searchsorted(timekey+0.01, "right")-1)
-
-            # messagebar_message("timekey", f"time: {timekey} current: {tc.currentFrameNumber()} current: {index}")
-            # messagebar_message("Time2", f"{tct}: {current}", Qgis.Warning)
-            # messagebar_message("count", f"{tc.totalFrameCount()}")
-            logger.info(f"result = {result_item.text()}, index = {index}, current frame: {tc.currentFrameNumber()}, #timesteps: {len(timestamps)}")
-            self.map_animator.update_results(result_item, index)
 
     def _add_action(
         self,

@@ -367,7 +367,7 @@ class GraphWidget(QWidget):
             self.location_model.removeRows(item_idx, 1)
 
         # In case there are no more other results in results model, we clean up the parameter combobox
-        if len(self.model.get_results(selected=False)) == 1:
+        if len(self.model.get_results(checked_only=False)) == 1:
             self.parameter_combo_box.clear()
 
     def set_parameter_list(self, parameter_config):
@@ -591,7 +591,7 @@ class GraphWidget(QWidget):
             new_idx = self.get_feature_index(layer, feature)
             new_object_name = self.get_object_name(layer, feature)
 
-            result_items = self.model.get_results(selected=False)
+            result_items = self.model.get_results(checked_only=False)
             for result_item in result_items:
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
@@ -715,10 +715,10 @@ class GraphDockWidget(QDockWidget):
 
     def _get_active_parameter_config(self):
 
-        results = self.model.get_results(selected=False)
+        results = self.model.get_results(checked_only=False)
 
         if results:
-            threedi_result = self.model.get_results(selected=False)[0].threedi_result  # TODO: COMBINE?
+            threedi_result = self.model.get_results(checked_only=False)[0].threedi_result  # TODO: COMBINE?
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars
             if not available_agg_vars:
