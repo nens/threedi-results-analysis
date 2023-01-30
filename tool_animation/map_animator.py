@@ -31,6 +31,7 @@ import logging
 import math
 import numpy as np
 from bisect import bisect
+from functools import lru_cache
 from datetime import datetime as Datetime
 
 
@@ -457,15 +458,20 @@ class MapAnimator(QGroupBox):
         if not self.isEnabled():
             return
 
-        if qgs_dt_range is not None:
+        try:
             self.current_datetime = qgs_dt_range.begin().toPyDateTime()
-        else:
-            self.current_datetime = Datetime.now()
+        except ValueError:
+            logger.info('Could not get current animation datetime')
+            return
 
         logger.info('updating results to %s', self.current_datetime)
 
         for result_item in self.model.get_results(checked_only=True):
             self._update_result_item_results(result_item)
+
+    @lru_cache(maxsize=None)
+    def _get_feature_ids(self, layer):
+        return np.array([f.id() for f in layer.getFeatures()], dtype="i8")
 
     def _update_result_item_results(self, result_item):
         """Fill initial value and result fields of the animation layers, based
@@ -484,16 +490,7 @@ class MapAnimator(QGroupBox):
         layers_to_update.append((node, self.current_node_parameter))
         layers_to_update.append((cell, self.current_node_parameter))
 
-        # TODO relocate this
-        ids_by_layer_attr = "_ids_by_layer"
-        if not hasattr(self, ids_by_layer_attr):
-            ids_by_layer = {}
-            setattr(self, ids_by_layer_attr, ids_by_layer)
-        else:
-            ids_by_layer = getattr(self, ids_by_layer_attr)
-
         for layer, parameter_config in layers_to_update:
-
             if layer is None:
                 continue
 
@@ -533,14 +530,7 @@ class MapAnimator(QGroupBox):
             assert ti_field_index != -1
             assert t0_field_index != -1
 
-            try:
-                ids = ids_by_layer[layer_id]
-            except KeyError:
-                ids = np.array([
-                    f.id()
-                    for f in layer.getFeatures()
-                ], dtype="i8")
-                ids_by_layer[layer_id] = ids
+            ids = self._get_feature_ids(layer)
 
             # NOTE OF CAUTION: subtracting 1 from id  is mandatory for
             # groundwater because those indexes start from 1 (something to
