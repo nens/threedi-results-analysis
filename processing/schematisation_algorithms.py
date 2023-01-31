@@ -19,7 +19,6 @@ from hydxlib.scripts import run_import_export
 from hydxlib.scripts import write_logging_to_file
 from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
-from threedi_modelchecker.schema import ModelSchema
 from ThreeDiToolbox.processing.deps.sufhyd.import_sufhyd_main import Importer
 from ThreeDiToolbox.processing.deps.guess_indicator import guess_indicators_utils
 
@@ -446,6 +445,7 @@ class GuessIndicatorAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return GuessIndicatorAlgorithm()
+
 
 class ImportHydXAlgorithm(QgsProcessingAlgorithm):
     """
