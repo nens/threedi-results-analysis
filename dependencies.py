@@ -52,12 +52,17 @@ DEPENDENCIES = [
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.0"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", "==1.6.5"),
+    Dependency("alembic", "alembic", "==1.8.*"),
+    Dependency(
+        "importlib-resources", "importlib_resources", ""
+    ),  # backward compat. alembic
+    Dependency(
+        "zipp", "zipp", ""
+    ),  # backward compat. alemic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ""),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
