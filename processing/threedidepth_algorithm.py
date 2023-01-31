@@ -185,7 +185,7 @@ class TimeStepsCombobox(QComboBox):
             self.clear()
 
 
-class ThreediDepth(QgsProcessingAlgorithm):
+class ThreediDepthAlgorithm(QgsProcessingAlgorithm):
     """
     Calculates water depth or water level rasters from 3Di result NetCDF
     """
@@ -219,7 +219,7 @@ class ThreediDepth(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Processing", string)
 
     def createInstance(self):
-        return ThreediDepth()
+        return ThreediDepthAlgorithm()
 
     def name(self):
         """Returns the algorithm name, used for identifying the algorithm"""

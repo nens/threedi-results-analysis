@@ -30,30 +30,30 @@
 # * initial date       :  2008-07-28
 # **********************************************************************
 
-from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak
-from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak_Knoop
-from tool_commands.import_sufhyd.turtleurbanclasses import AfvoerendOppervlak_Tak
-from tool_commands.import_sufhyd.turtleurbanclasses import AlgemeneInformatie
-from tool_commands.import_sufhyd.turtleurbanclasses import BergendOppervlakKnoop
-from tool_commands.import_sufhyd.turtleurbanclasses import Doorlaat
-from tool_commands.import_sufhyd.turtleurbanclasses import DWALozingMetDagcyclus
-from tool_commands.import_sufhyd.turtleurbanclasses import DWAVerloopPerInwoner
-from tool_commands.import_sufhyd.turtleurbanclasses import End
-from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal
-from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal_Knoop
-from tool_commands.import_sufhyd.turtleurbanclasses import Gemaal_Tak
-from tool_commands.import_sufhyd.turtleurbanclasses import GeslotenLeiding
-from tool_commands.import_sufhyd.turtleurbanclasses import GmlElement
-from tool_commands.import_sufhyd.turtleurbanclasses import HydroObjectFactory
-from tool_commands.import_sufhyd.turtleurbanclasses import InitieleLeidingWaarden
-from tool_commands.import_sufhyd.turtleurbanclasses import isSufHydKey
-from tool_commands.import_sufhyd.turtleurbanclasses import Knoop
-from tool_commands.import_sufhyd.turtleurbanclasses import Overstort
-from tool_commands.import_sufhyd.turtleurbanclasses import Overstort_Knoop
-from tool_commands.import_sufhyd.turtleurbanclasses import Overstort_Tak
-from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep
-from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Knoop
-from tool_commands.import_sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Tak
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import AfvoerendOppervlak
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import AfvoerendOppervlak_Knoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import AfvoerendOppervlak_Tak
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import AlgemeneInformatie
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import BergendOppervlakKnoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Doorlaat
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import DWALozingMetDagcyclus
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import DWAVerloopPerInwoner
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import End
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Gemaal
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Gemaal_Knoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Gemaal_Tak
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import GeslotenLeiding
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import GmlElement
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import HydroObjectFactory
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import InitieleLeidingWaarden
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import isSufHydKey
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Knoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Overstort
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Overstort_Knoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import Overstort_Tak
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import UitlaatMetKeerklep
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Knoop
+from ThreeDiToolbox.processing.deps.sufhyd.turtleurbanclasses import UitlaatMetKeerklep_Tak
 
 import logging
 import mock

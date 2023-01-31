@@ -1,5 +1,5 @@
-from ThreeDiToolbox.tool_commands.import_sufhyd.import_sufhyd_main import Importer
-from ThreeDiToolbox.tool_commands.import_sufhyd.sufhyd_importer import SufhydReader
+from ThreeDiToolbox.processing.deps.sufhyd.import_sufhyd_main import Importer
+from ThreeDiToolbox.processing.deps.sufhyd.sufhyd_importer import SufhydReader
 
 import unittest
 

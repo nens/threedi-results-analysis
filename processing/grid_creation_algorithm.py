@@ -6,11 +6,10 @@ from qgis.core import (
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
-    QgsSettings,
     QgsVectorLayer,
 )
 from threedigrid_builder import make_gridadmin, SchematisationError
-from ThreeDiToolbox.processing.results_analysis.utils import gridadmin2geopackage, load_computational_layers
+from ThreeDiToolbox.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
@@ -49,23 +48,18 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
 
-        s = QgsSettings()
-        last_input_sqlite = s.value("threedi-results-analysis/generate_computational_grid/last_input_sqlite", None)
-        last_output = s.value("threedi-results-analysis/generate_computational_grid/last_output", None)
-
         self.addParameter(
             QgsProcessingParameterFile(
                 self.INPUT_SPATIALITE,
                 self.tr("Input SpatiaLite file"),
                 behavior=QgsProcessingParameterFile.File,
-                defaultValue=last_input_sqlite,
                 extension="sqlite",
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output computational grid file"), fileFilter="*.gpkg", defaultValue=last_output
+                self.OUTPUT, self.tr("Output computational grid file"), fileFilter="*.gpkg",
             )
         )
 
@@ -106,10 +100,6 @@ class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):
         gridadmin_file = f"{output_file_without_extension}.h5"
         if output_gpkg_file.endswith(".file"):
             output_gpkg_file = f"{output_file_without_extension}.gpkg"
-
-        s = QgsSettings()
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_input_sqlite", input_spatialite)
-        s.setValue("threedi-results-analysis/generate_computational_grid/last_output", output_gpkg_file)
 
         def progress_rep(progress, info):
             feedback.setProgress(int(progress * 100))

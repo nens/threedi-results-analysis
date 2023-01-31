@@ -7,7 +7,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import Manhole
 from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tool_commands.guess_indicators import guess_indicators_utils
+from ThreeDiToolbox.processing.deps.guess_indicator import guess_indicators_utils
 from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
 
 import pytest

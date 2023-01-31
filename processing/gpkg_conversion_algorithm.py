@@ -1,15 +1,12 @@
-import os
 from collections import OrderedDict
-
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProcessingAlgorithm,
     QgsProcessingException,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
-    QgsSettings,
 )
-from ThreeDiToolbox.processing.results_analysis.utils import gridadmin2geopackage, load_computational_layers
+from ThreeDiToolbox.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
@@ -44,40 +41,29 @@ class ThreeDiConvertToGpkgAlgorithm(QgsProcessingAlgorithm):
         return self.tr("Create computational grid from gridadmin.h5 file")
 
     def initAlgorithm(self, config=None):
-        s = QgsSettings()
-        last_input_dir = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_input", None)
-        last_output_gpkg = s.value("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", None)
 
         self.addParameter(
             QgsProcessingParameterFile(
-                self.INPUT,
-                self.tr("Folder containing input gridadmin.h5"),
-                behavior=QgsProcessingParameterFile.Folder,
-                defaultValue=last_input_dir,
+                self.INPUT, self.tr("Gridadmin.h5 file"), extension="h5",
             )
         )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
-                self.OUTPUT, self.tr("Output GeoPackage file"), fileFilter="*.gpkg", defaultValue=last_output_gpkg
+                self.OUTPUT, self.tr("Output GeoPackage file"), fileFilter="*.gpkg",
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        gridadmin_folder = self.parameterAsString(parameters, self.INPUT, context)
-        if gridadmin_folder is None:
+        input_gridadmin = self.parameterAsString(parameters, self.INPUT, context)
+        if input_gridadmin is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
-        input_gridadmin = os.path.join(gridadmin_folder, "gridadmin.h5")
 
         gpkg_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
         if gpkg_path is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
         if gpkg_path.endswith(".file"):
             gpkg_path = gpkg_path.rsplit(".", 1)[0] + ".gpkg"
-
-        s = QgsSettings()
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_input", gridadmin_folder)
-        s.setValue("threedi-results-analysis/gridadmin_to_gpkg/last_output_gpkg", gpkg_path)
 
         gpkg_layers = gridadmin2geopackage(input_gridadmin, gpkg_path, context, feedback)
         self.LAYERS_TO_ADD.update(gpkg_layers)
