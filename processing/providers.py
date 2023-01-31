@@ -9,6 +9,7 @@ from ThreeDiToolbox.processing.schematisation_algorithms import (
     MigrateAlgorithm,
     ImportSufHydAlgorithm,
     GuessIndicatorAlgorithm,
+    ImportHydXAlgorithm,
 )
 from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
 import os
@@ -22,6 +23,7 @@ class ThreediProvider(QgsProcessingProvider):
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
+        self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
         self.addAlgorithm(ImportSufHydAlgorithm())

@@ -14,6 +14,8 @@ ThreeDiToolBox changelog
 - Default inputs for "Computational grid from schematisation" processing algorithm no longer set. (#723)
 
 - Several Commands have been converted to Processing Algorithm and/or removed. (#715)
+- Added usage of threedi_schema package
+- Replaced pygeos dependency with a Shapely
 
 
 2.4.1 (2022-12-08)
@@ -28,6 +30,7 @@ ThreeDiToolBox changelog
 
 2.4 (2022-11-28)
 ----------------
+- Removed separate raster checker tool
 
 - Updating to the minimal schema version 208
 

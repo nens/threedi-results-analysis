@@ -15,30 +15,37 @@ import csv
 import os
 import shutil
 
+from hydxlib.scripts import run_import_export
+from hydxlib.scripts import write_logging_to_file
+from pathlib import Path
 from sqlalchemy.exc import OperationalError, DatabaseError
-from threedi_modelchecker.threedi_database import ThreediDatabase
-from threedi_modelchecker.model_checks import ThreediModelChecker
 from threedi_modelchecker.schema import ModelSchema
-from threedi_modelchecker import errors
 from ThreeDiToolbox.processing.deps.sufhyd.import_sufhyd_main import Importer
 from ThreeDiToolbox.processing.deps.guess_indicator import guess_indicators_utils
+
+from threedi_schema import ThreediDatabase
+from threedi_modelchecker import ThreediModelChecker
+from threedi_schema import errors
+from ThreeDiToolbox.processing.download_hydx import download_hydx
+
 from ThreeDiToolbox.utils.utils import backup_sqlite
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (
     QgsProject,
     QgsProcessingAlgorithm,
+    QgsProcessingException,
     QgsProcessingParameterBoolean,
     QgsProcessingParameterFile,
     QgsProcessingParameterFileDestination,
+    QgsProcessingParameterFolderDestination,
+    QgsProcessingParameterString,
     QgsVectorLayer,
 )
 
 
 def get_threedi_database(filename, feedback):
     try:
-        db_type = "spatialite"
-        db_settings = {"db_path": filename}
-        threedi_db = ThreediDatabase(db_settings, db_type=db_type)
+        threedi_db = ThreediDatabase(filename)
         threedi_db.check_connection()
         return threedi_db
     except (OperationalError, DatabaseError):
@@ -55,14 +62,18 @@ class MigrateAlgorithm(QgsProcessingAlgorithm):
     OUTPUT = "OUTPUT"
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+            )
+        )
 
     def processAlgorithm(self, parameters, context, feedback):
         filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=filename, feedback=feedback)
         if not threedi_db:
             return {self.OUTPUT: None}
-        schema = ModelSchema(threedi_db)
+        schema = threedi_db.schema
         try:
             schema.validate_schema()
             schema.set_spatial_indexes()
@@ -131,16 +142,28 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     ADD_TO_PROJECT = "ADD_TO_PROJECT"
 
     def initAlgorithm(self, config):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"))
-
-        self.addParameter(QgsProcessingParameterFileDestination(self.OUTPUT, self.tr("Output"), fileFilter="csv"))
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT, self.tr("3Di Spatialite"), extension="sqlite"
+            )
+        )
 
         self.addParameter(
-            QgsProcessingParameterBoolean(self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True)
+            QgsProcessingParameterFileDestination(
+                self.OUTPUT, self.tr("Output"), fileFilter="csv"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ADD_TO_PROJECT, self.tr("Add result to project"), defaultValue=True
+            )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        self.add_to_project = self.parameterAsBoolean(parameters, self.ADD_TO_PROJECT, context)
+        self.add_to_project = self.parameterAsBoolean(
+            parameters, self.ADD_TO_PROJECT, context
+        )
         self.output_file_path = None
         input_filename = self.parameterAsFile(parameters, self.INPUT, context)
         threedi_db = get_threedi_database(filename=input_filename, feedback=feedback)
@@ -154,9 +177,11 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
                 "migrate your model to the latest version."
             )
             return {self.OUTPUT: None}
-        schema = ModelSchema(threedi_db)
+        schema = threedi_db.schema
         schema.set_spatial_indexes()
-        generated_output_file_path = self.parameterAsFileOutput(parameters, self.OUTPUT, context)
+        generated_output_file_path = self.parameterAsFileOutput(
+            parameters, self.OUTPUT, context
+        )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
         total_checks = len(model_checker.config.checks)
@@ -208,7 +233,9 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         if self.add_to_project:
             if self.output_file_path:
-                result_layer = QgsVectorLayer(self.output_file_path, "3Di schematisation errors")
+                result_layer = QgsVectorLayer(
+                    self.output_file_path, "3Di schematisation errors"
+                )
                 QgsProject.instance().addMapLayer(result_layer)
         return {self.OUTPUT: self.output_file_path}
 
@@ -280,7 +307,7 @@ class ImportSufHydAlgorithm(QgsProcessingAlgorithm):
         if not threedi_db:
             return {}
         try:
-            schema = ModelSchema(threedi_db)
+            schema = threedi_db.schema
             schema.validate_schema()
 
         except errors.MigrationMissingError:
@@ -374,7 +401,7 @@ class GuessIndicatorAlgorithm(QgsProcessingAlgorithm):
         if not threedi_db:
             return {}
         try:
-            schema = ModelSchema(threedi_db)
+            schema = threedi_db.schema
             schema.validate_schema()
 
         except errors.MigrationMissingError:
@@ -419,3 +446,161 @@ class GuessIndicatorAlgorithm(QgsProcessingAlgorithm):
 
     def createInstance(self):
         return GuessIndicatorAlgorithm()
+
+class ImportHydXAlgorithm(QgsProcessingAlgorithm):
+    """
+    Import data from GWSW HydX to a 3Di Spatialite
+    """
+
+    INPUT_DATASET_NAME = "INPUT_DATASET_NAME"
+    HYDX_DOWNLOAD_DIRECTORY = "HYDX_DOWNLOAD_DIRECTORY"
+    INPUT_HYDX_DIRECTORY = "INPUT_HYDX_DIRECTORY"
+    TARGET_SQLITE = "TARGET_SQLITE"
+
+    def initAlgorithm(self, config):
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.TARGET_SQLITE, "Target 3Di Spatialite", extension="sqlite"
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFile(
+                self.INPUT_HYDX_DIRECTORY,
+                "GWSW HydX directory (local)",
+                behavior=QgsProcessingParameterFile.Folder,
+                optional=True,
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterString(
+                self.INPUT_DATASET_NAME, "GWSW dataset name (online)", optional=True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFolderDestination(
+                self.HYDX_DOWNLOAD_DIRECTORY,
+                "Destination directory for GWSW HydX dataset download",
+                optional=True,
+            )
+        )
+
+    def processAlgorithm(self, parameters, context, feedback):
+        hydx_dataset_name = self.parameterAsString(
+            parameters, self.INPUT_DATASET_NAME, context
+        )
+        hydx_download_dir = self.parameterAsString(
+            parameters, self.HYDX_DOWNLOAD_DIRECTORY, context
+        )
+        hydx_path = self.parameterAsString(
+            parameters, self.INPUT_HYDX_DIRECTORY, context
+        )
+        out_path = self.parameterAsFile(parameters, self.TARGET_SQLITE, context)
+        threedi_db = get_threedi_database(filename=out_path, feedback=feedback)
+        if not threedi_db:
+            raise QgsProcessingException(
+                f"Unable to connect to 3Di spatialite '{out_path}'"
+            )
+        try:
+            schema = threedi_db.schema
+            schema.validate_schema()
+
+        except errors.MigrationMissingError:
+            raise QgsProcessingException(
+                "The selected 3Di spatialite does not have the latest database schema version. Please migrate this "
+                "spatialite and try again: Processing > Toolbox > 3Di > Schematisation > Migrate spatialite"
+            )
+        if not (hydx_dataset_name or hydx_path):
+            raise QgsProcessingException(
+                "Either 'GWSW HydX directory (local)' or 'GWSW dataset name (online)' must be filled in!"
+            )
+        if hydx_dataset_name and hydx_path:
+            feedback.pushWarning(
+                "Both 'GWSW dataset name (online)' and 'GWSW HydX directory (local)' are filled in. "
+                "'GWSW dataset name (online)' will be ignored. This dataset will not be downloaded."
+            )
+        elif hydx_dataset_name:
+            try:
+                hydx_download_path = Path(hydx_download_dir)
+                hydx_download_dir_is_valid = hydx_download_path.is_dir()
+            except TypeError:
+                hydx_download_dir_is_valid = False
+            if parameters[self.HYDX_DOWNLOAD_DIRECTORY] == "TEMPORARY_OUTPUT":
+                hydx_download_dir_is_valid = True
+            if not hydx_download_dir_is_valid:
+                raise QgsProcessingException(
+                    f"'Destination directory for HydX dataset download' ({hydx_download_path}) is not a valid directory"
+                )
+            hydx_path = download_hydx(
+                dataset_name=hydx_dataset_name,
+                target_directory=hydx_download_path,
+                wait_times=[0.1, 1, 2, 3, 4, 5, 10],
+                feedback=feedback,
+            )
+            # hydx_path will be None if user has canceled the process during download
+            if feedback.isCanceled():
+                raise QgsProcessingException("Process canceled")
+        feedback.pushInfo(f"Starting import of {hydx_path} to {out_path}")
+        log_path = Path(out_path).parent / "import_hydx.log"
+        write_logging_to_file(log_path)
+        feedback.pushInfo(f"Logging will be written to {log_path}")
+        run_import_export(export_type="threedi", hydx_path=hydx_path, out_path=out_path)
+        return {}
+
+    def name(self):
+        """
+        Returns the algorithm name, used for identifying the algorithm. This
+        string should be fixed for the algorithm, and must not be localised.
+        The name should be unique within each provider. Names should contain
+        lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "import_hydx"
+
+    def displayName(self):
+        """
+        Returns the translated algorithm name, which should be used for any
+        user-visible display of the algorithm name.
+        """
+        return self.tr("Import GWSW HydX")
+
+    def shortHelpString(self):
+        return """
+        <h3>Introduction</h3>
+        <p>Use this processing algorithm to import data in the format of the Dutch "Gegevenswoordenboek Stedelijk Water (GWSW)". Either select a previously downloaded local dataset, or download a dataset directly from the server.</p>
+        <p>A log file will be created in the same directory as the Target 3Di Spatialite. Please check this log file after the import has completed.&nbsp;&nbsp;</p>
+        <h3>Parameters</h3>
+        <h4>Target 3Di Spatialite</h4>
+        <p>Spatialite (.sqlite) file that contains the layers required by 3Di. Imported data will be added to any data already contained in the 3Di Spatialite.</p>
+        <h4>GWSW HydX directory (local)</h4>
+        <p>Use this option if you have already downloaded a GWSW HydX dataset to a local directory.</p>
+        <h4>GWSW dataset name (online)</h4>
+        <p>Use this option if you want to download a GWSW HydX dataset.</p>
+        <h4>Destination directory for GWSW HydX dataset download</h4>
+        <p>If you have chosen to download a GWSW HydX dataset, this is the directory it will be downloaded to.</p>
+        """
+
+    def group(self):
+        """
+        Returns the name of the group this algorithm belongs to. This string
+        should be localised.
+        """
+        return self.tr(self.groupId())
+
+    def groupId(self):
+        """
+        Returns the unique ID of the group this algorithm belongs to. This
+        string should be fixed for the algorithm, and must not be localised.
+        The group id should be unique within each provider. Group id should
+        contain lowercase alphanumeric characters only and no spaces or other
+        formatting characters.
+        """
+        return "Schematisation"
+
+    def tr(self, string):
+        return QCoreApplication.translate("Processing", string)
+
+    def createInstance(self):
+        return ImportHydXAlgorithm()
