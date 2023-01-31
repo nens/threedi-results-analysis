@@ -1,5 +1,4 @@
-from ThreeDiToolbox.threedi_plugin import CommandBox
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
+from ThreeDiToolbox.threedi_plugin import About
 
 import mock
 
@@ -12,9 +11,8 @@ def test_smoke():
     toolbar_animation is a mock, so calling that has no use.
 
     """
-    ts_datasources = TimeseriesDatasourceModel()
     iface = mock.Mock()
-    tdi_root_tool = CommandBox(iface, ts_datasources)
+    tdi_root_tool = About(iface)
     toolbar_animation = iface.addToolBar("ThreeDiAnimation")
     toolbar_animation.setObjectName("ThreeDiAnimation")
     assert tdi_root_tool
