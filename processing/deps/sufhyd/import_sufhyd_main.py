@@ -26,7 +26,7 @@ from ThreeDiToolbox.sql_models.model_schematisation import Weir
 from ThreeDiToolbox.processing.deps.sufhyd.sufhyd_importer import SufhydReader
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from threedi_schema import errors
-from threedi_modelchecker import ThreediDatabase as MCThreediDatabase
+from threedi_schema import ThreediDatabase as MCThreediDatabase
 
 logger = logging.getLogger(__name__)
 
