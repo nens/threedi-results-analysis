@@ -828,6 +828,7 @@ class GraphDockWidget(QDockWidget):
             layer_id = result.mLayer.id()
             if layer_id not in relevant_grid_layer_ids:
                 continue
+            result.mLayer.select(result.mFeature.id())
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             break
         else:  # there was no break
@@ -844,9 +845,11 @@ class BaseAddMapTool(QgsMapToolIdentify):
         self.widget = widget
 
     def canvasReleaseEvent(self, event):
-        x = event.pos().x()
-        y = event.pos().y()
-        results = self.identify(x=int(x), y=int(y))
+        results = self.identify(
+            x=int(event.pos().x()),
+            y=int(event.pos().y()),
+            layerList=self.parent().layers(),
+        )
         self.widget.add_results(
             results=results, feature_type=self.feature_type,
         )
