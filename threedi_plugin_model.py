@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List
 from functools import cached_property
 from qgis.PyQt.QtCore import QModelIndex, pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
@@ -21,7 +22,7 @@ already_used_ids = []
 
 def _generate_identifier() -> str:
     global already_used_ids
-    while(True):
+    while True:
         id = str(uuid.uuid4())
         if id not in already_used_ids:
             already_used_ids.append(id)
@@ -225,7 +226,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         ):
             if isinstance(item, ThreeDiResultItem):
                 if checked_only:
-                    if item.checkState() == 2:
+                    if item.checkState() == Qt.CheckState.Checked:
                         results.append(item)
                 else:
                     results.append(item)
@@ -308,31 +309,27 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     # @pyqtSlot(QStandardItem)
     def _item_changed(self, item: QStandardItem):
-        if isinstance(item, ThreeDiResultItem):
-            # Distinguish changed and checked
-            if item._old_text != item.text():
-                item._old_text = item.text()
+        # Distinguish changed and checked
+        if item._old_text != item.text():
+            item._old_text = item.text()
+            if isinstance(item, ThreeDiResultItem):
                 self.result_changed.emit(item)
                 return
+            self.grid_changed.emit(item)
+            return
 
-            {
-                2: self.result_checked, 0: self.result_unchecked,
-            }[item.checkState()].emit(item)
-
-            # Note that we not allow multiple results to be selected, deselect
-            # the others in case an item is selected.
-            assert item.parent()
-            if item.checkState() == 2:
-                for i in range(item.parent().rowCount()):
-                    if item.parent().child(i) is not item:
-                        item.parent().child(i).setCheckState(0)
-
-        elif isinstance(item, ThreeDiGridItem):
-            assert item is not self.invisibleRootItem()
-            if item._old_text != item.text():
-                item._old_text = item.text()
-                self.grid_changed.emit(item)
-                return
+        # Item must be a result item with a modified checkstate
+        if item.checkState() == Qt.CheckState.Checked:
+            # Note that we not allow multiple results to be checked,
+            # first deselect the others in case an item is checked.
+            for i in range(item.parent().rowCount()):
+                other_item = item.parent().child(i)
+                if other_item is item:
+                    continue
+                other_item.setCheckState(Qt.CheckState.Unchecked)
+            self.result_checked.emit(item)
+            return
+        self.result_unchecked.emit(item)
 
     def select_item(self, index):
         item = self.itemFromIndex(index)
