@@ -70,7 +70,7 @@ DEPENDENCIES = [
     Dependency("condenser", "condenser", ">=0.1.1"),
     Dependency("Shapely", "shapely", ">=2.0.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.8.0"),
-    Dependency("hydxlib", "hydxlib", "==1.4.1"),
+    Dependency("hydxlib", "hydxlib", "==1.4.*"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -543,6 +543,12 @@ def _check_presence(dependencies):
             print(
                 "Dependency '%s' (%s) has the wrong version"
                 % (dependency.name, dependency.constraint)
+            )
+            missing.append(dependency)
+        except Exception as e:
+            print(
+                "Installing dependency '%s' (%s) went wrong (%s)"
+                % (dependency.name, dependency.constraint, str(e))
             )
             missing.append(dependency)
     return missing
