@@ -7,7 +7,6 @@ from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.utils import iface
 from qgis.PyQt.QtCore import pyqtSlot
-from qgis.PyQt.QtCore import QSignalBlocker
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
@@ -186,11 +185,11 @@ class MapAnimator(QGroupBox):
         logger.info(f"end_time {end_time}")
 
         temporal_controller = iface.mapCanvas().temporalController()
-        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
-        with QSignalBlocker(temporal_controller):
-            temporal_controller.setTemporalExtents(temporal_extents)
-            temporal_controller.setFrameDuration(QgsInterval(frame_duration))
+        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.NavigationOff)
+        temporal_controller.setFrameDuration(QgsInterval(frame_duration))
+        temporal_controller.setTemporalExtents(temporal_extents)
         temporal_controller.skipToEnd()
+        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
 
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
@@ -460,6 +459,10 @@ class MapAnimator(QGroupBox):
     def update_results(self, qgs_dt_range=None):
         """ Update results for all selected result items. """
         if not self.isEnabled():
+            return
+
+        navigation_mode = iface.mapCanvas().temporalController().navigationMode()
+        if navigation_mode == QgsTemporalNavigationObject.NavigationMode.NavigationOff:
             return
 
         try:
