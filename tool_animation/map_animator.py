@@ -2,10 +2,12 @@ from qgis.core import NULL
 from qgis.core import QgsDateTimeRange
 from qgis.core import QgsInterval
 from qgis.core import QgsProject
+from qgis.core import QgsTemporalNavigationObject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.utils import iface
 from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import QSignalBlocker
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
@@ -184,8 +186,10 @@ class MapAnimator(QGroupBox):
         logger.info(f"end_time {end_time}")
 
         temporal_controller = iface.mapCanvas().temporalController()
-        temporal_controller.setTemporalExtents(temporal_extents)
-        temporal_controller.setFrameDuration(QgsInterval(frame_duration))
+        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
+        with QSignalBlocker(temporal_controller):
+            temporal_controller.setTemporalExtents(temporal_extents)
+            temporal_controller.setFrameDuration(QgsInterval(frame_duration))
         temporal_controller.skipToEnd()
 
     @pyqtSlot(ThreeDiResultItem)
