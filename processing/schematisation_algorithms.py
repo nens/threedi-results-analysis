@@ -183,6 +183,7 @@ class CheckSchematisationAlgorithm(QgsProcessingAlgorithm):
         )
         self.output_file_path = f"{os.path.splitext(generated_output_file_path)[0]}.csv"
         session = model_checker.db.get_session()
+        session.model_checker_context = model_checker.context
         total_checks = len(model_checker.config.checks)
         progress_per_check = 100.0 / total_checks
         checks_passed = 0

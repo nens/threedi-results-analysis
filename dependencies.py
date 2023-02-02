@@ -48,7 +48,7 @@ DEPENDENCIES = [
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=2.0.0"),
     Dependency("threedi-schema", "threedi_schema", "==0.214.*"),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.0"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.*"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
     Dependency("alembic", "alembic", "==1.8.*"),
