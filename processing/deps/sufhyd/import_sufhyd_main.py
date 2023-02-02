@@ -26,7 +26,6 @@ from ThreeDiToolbox.sql_models.model_schematisation import Weir
 from ThreeDiToolbox.processing.deps.sufhyd.sufhyd_importer import SufhydReader
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from threedi_schema import errors
-from threedi_schema import ThreediDatabase as MCThreediDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +95,7 @@ class Importer(object):
         self.log = DataImportLogger()
 
     def is_db_valid(self):
-        db = MCThreediDatabase(self.db.settings['db_path'])
-        schema = db.schema
+        schema = self.db.schema
         try:
             schema.validate_schema()
         except errors.MigrationMissingError:
@@ -144,15 +142,9 @@ class Importer(object):
                 )
             )
 
-            db_set = copy(self.db.settings)
-            if "password" in db_set:
-                del db_set["password"]
-            if "username" in db_set:
-                del db_set["username"]
-
             log_file.write(
-                "Added to the {0} database with connection settings {1} :\n".format(
-                    self.db.db_type, str(db_set)
+                "Added to spatialite at {0} :\n".format(
+                    self.db.path
                 )
             )
             log_file.write(
