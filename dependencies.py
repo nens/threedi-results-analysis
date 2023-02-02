@@ -47,16 +47,21 @@ DEPENDENCIES = [
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=2.0.0"),
-    Dependency("threedi-schema", "threedi_schema", "==0.214.3"),
+    Dependency("threedi-schema", "threedi_schema", "==0.214.*"),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.0"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
-    Dependency("alembic", "alembic", "==1.6.5"),
+    Dependency("alembic", "alembic", "==1.8.*"),
+    Dependency(
+        "importlib-resources", "importlib_resources", ""
+    ),  # backward compat. alembic
+    Dependency(
+        "zipp", "zipp", ""
+    ),  # backward compat. alemic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ">=1.5.0"),
     Dependency("packaging", "packaging", ""),
-    Dependency("python-editor", "editor", ">=0.3"),  # dep of alembic
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
@@ -64,7 +69,7 @@ DEPENDENCIES = [
     Dependency("condenser", "condenser", ">=0.1.1"),
     Dependency("Shapely", "shapely", ">=2.0.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.8.0"),
-    Dependency("hydxlib", "hydxlib", ">=1.4.1"),
+    Dependency("hydxlib", "hydxlib", "==1.4.*"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform
@@ -538,6 +543,12 @@ def _check_presence(dependencies):
             print(
                 "Dependency '%s' (%s) has the wrong version"
                 % (dependency.name, dependency.constraint)
+            )
+            missing.append(dependency)
+        except Exception as e:
+            print(
+                "Installing dependency '%s' (%s) went wrong (%s)"
+                % (dependency.name, dependency.constraint, str(e))
             )
             missing.append(dependency)
     return missing
