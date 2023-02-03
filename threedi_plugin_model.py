@@ -70,7 +70,7 @@ class ThreeDiResultItem(ThreeDiModelItem):
         super().__init__(*args, **kwargs)
         self.path = Path(path)
         self.setCheckable(True)
-        self.setCheckState(0)
+        self.setCheckState(Qt.CheckState.Unchecked)
 
         # layer info
         # map of grid layers id to added result field names (tuple of ids)
@@ -202,7 +202,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
-        item.setCheckState(0)
+        item.setCheckState(Qt.CheckState.Unchecked)
         self.result_removed.emit(item)
         grid_item.removeRow(item.row())
 
@@ -277,7 +277,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
             self.grid_removed.emit(item)
         elif isinstance(item, ThreeDiResultItem):
-            item.setCheckState(0)
+            item.setCheckState(Qt.CheckState.Unchecked)
             self.result_removed.emit(item)
 
         # Traverse into the children
@@ -318,7 +318,10 @@ class ThreeDiPluginModel(QStandardItemModel):
             self.grid_changed.emit(item)
             return
 
-        # Item must be a result item with a modified checkstate
+        if isinstance(item, ThreeDiGridItem):
+            return
+
+        # Item is a result item with a (possibly?) modified checkstate
         if item.checkState() == Qt.CheckState.Checked:
             # Note that we not allow multiple results to be checked,
             # first deselect the others in case an item is checked.
