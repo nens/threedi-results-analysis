@@ -27,7 +27,11 @@ def style_animation_flowline_current(
 
     # Load basic style settings from qml file
     qml_path = STYLES_ROOT / "flowline_current.qml"
-    lyr.loadNamedStyle(str(qml_path), True)
+
+    feedback, success = lyr.loadNamedStyle(str(qml_path), True)
+    if not success:
+        logger.error(feedback)
+
     renderer = lyr.renderer()
 
     # Set correct legend symbol rotation

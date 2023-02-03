@@ -1,8 +1,7 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis maxScale="0" labelsEnabled="0" simplifyDrawingTol="1" version="3.10.14-A Coruña" readOnly="0" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyDrawingHints="1" styleCategories="AllStyleCategories" minScale="1e+08" simplifyAlgorithm="0">
+<qgis maxScale="0" labelsEnabled="0" simplifyDrawingTol="1" version="3.10.14-A Coruña" readOnly="1" simplifyMaxScale="1" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" simplifyDrawingHints="1" styleCategories="AllStyleCategories" minScale="1e+08" simplifyAlgorithm="0">
   <flags>
     <Identifiable>1</Identifiable>
-    <Removable>1</Removable>
     <Searchable>1</Searchable>
   </flags>
   <renderer-v2 forceraster="0" symbollevels="0" type="graduatedSymbol" attr="abs(result)" graduatedMethod="GraduatedSize" enableorderby="1">

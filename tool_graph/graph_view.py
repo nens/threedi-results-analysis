@@ -714,24 +714,34 @@ class GraphDockWidget(QDockWidget):
         event.accept()
 
     def _get_active_parameter_config(self):
+        """
+        Generates a parameter dict based on results.
+        """
+        q_vars = []
+        h_vars = []
 
-        results = self.model.get_results(checked_only=False)
-
-        if results:
-            threedi_result = self.model.get_results(checked_only=False)[0].threedi_result  # TODO: COMBINE?
+        for result in self.model.get_results(checked_only=False):
+            threedi_result = result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
-            available_agg_vars = threedi_result.available_aggregation_vars
+            available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
             if not available_agg_vars:
-                messagebar_message(
-                    "Warning", "No aggregation netCDF was found.", level=1, duration=5
-                )
-            parameter_config = generate_parameter_config(
-                available_subgrid_vars, available_agg_vars
-            )
-        else:
-            parameter_config = {"q": [], "h": []}
+                messagebar_message("Warning", "No aggregation netCDF was found.", level=1, duration=5)
 
-        return parameter_config
+            parameter_config = generate_parameter_config(
+                available_subgrid_vars, agg_vars=available_agg_vars
+            )
+
+            def _intersection(a: List, b: List):
+                if not a:
+                    return b
+
+                return [x for x in a if x in b]
+
+            q_vars = _intersection(q_vars, parameter_config["q"])
+            h_vars = _intersection(h_vars, parameter_config["h"])
+
+        config = {"q": q_vars, "h": h_vars}
+        return config
 
     def on_result_set_change(self):
 
