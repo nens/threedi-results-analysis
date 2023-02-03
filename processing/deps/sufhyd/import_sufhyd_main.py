@@ -23,10 +23,9 @@ from ThreeDiToolbox.sql_models.model_schematisation import Orifice
 from ThreeDiToolbox.sql_models.model_schematisation import Pipe
 from ThreeDiToolbox.sql_models.model_schematisation import Pumpstation
 from ThreeDiToolbox.sql_models.model_schematisation import Weir
-from ThreeDiToolbox.tool_commands.import_sufhyd.sufhyd_importer import SufhydReader
+from ThreeDiToolbox.processing.deps.sufhyd.sufhyd_importer import SufhydReader
 from ThreeDiToolbox.utils.user_messages import messagebar_message
 from threedi_schema import errors
-from threedi_modelchecker import ThreediDatabase as MCThreediDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +95,7 @@ class Importer(object):
         self.log = DataImportLogger()
 
     def is_db_valid(self):
-        db = MCThreediDatabase(self.db.settings['db_path'])
-        schema = db.schema
+        schema = self.db.schema
         try:
             schema.validate_schema()
         except errors.MigrationMissingError:
@@ -124,9 +122,13 @@ class Importer(object):
         # self.db.create_and_check_fields()
 
         if self.file_type == "sufhyd":
+            logger.info("load sufhyd data")
             data = self.load_sufhyd_data()
+            logger.info("check import data")
             self.check_import_data(data)
+            logger.info("transform import data")
             self.transform_import_data(data)
+            logger.info("write data to db")
             commit_counts = self.write_data_to_db(data)
 
             logger.warning("Summary of import:\n" + self.log.get_summary())
@@ -140,15 +142,9 @@ class Importer(object):
                 )
             )
 
-            db_set = copy(self.db.settings)
-            if "password" in db_set:
-                del db_set["password"]
-            if "username" in db_set:
-                del db_set["username"]
-
             log_file.write(
-                "Added to the {0} database with connection settings {1} :\n".format(
-                    self.db.db_type, str(db_set)
+                "Added to spatialite at {0} :\n".format(
+                    self.db.path
                 )
             )
             log_file.write(
@@ -172,8 +168,6 @@ class Importer(object):
                     log_file=log_file,
                 )
             )
-
-            messagebar_message("sufhyd import ready", msg, duration=20)
 
             logger.info("sufhyd import ready = " + msg)
 
@@ -435,27 +429,6 @@ class Importer(object):
 
         session = self.db.get_session()
 
-        # set all autoincrement counters to max ids
-        if self.db.db_type == "postgres":
-            for table in (
-                ConnectionNode,
-                Manhole,
-                BoundaryCondition1D,
-                Pipe,
-                CrossSectionDefinition,
-                Orifice,
-                Weir,
-                Pumpstation,
-                ImperviousSurface,
-                ImperviousSurfaceMap,
-            ):
-
-                session.execute(
-                    "SELECT setval('{table}_id_seq', max(id)) "
-                    "FROM {table}".format(table=table.__tablename__)
-                )
-
-            session.commit()
         crs_list = []
         for crs in list(data["profiles"].values()):
             crs_list.append(CrossSectionDefinition(**crs))
@@ -475,13 +448,6 @@ class Importer(object):
 
         con_list = []
         srid = 4326
-        if self.db.db_type == "postgres":
-            geom_col = session.execute(
-                "SELECT srid FROM geometry_columns "
-                "WHERE f_table_name = 'v2_connection_nodes' AND "
-                "f_geometry_column = 'the_geom'"
-            )
-            srid = geom_col.fetchone()[0]
 
         for manhole in data["manholes"]:
             wkt = transform(

@@ -2,27 +2,32 @@
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
 from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
-from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepth
+from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
 from ThreeDiToolbox.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     MigrateAlgorithm,
+    ImportSufHydAlgorithm,
+    GuessIndicatorAlgorithm,
     ImportHydXAlgorithm,
 )
-from ThreeDiToolbox.processing.results_analysis.gpkg_conversion import ThreeDiConvertToGpkgAlgorithm
-from ThreeDiToolbox.processing.results_analysis.grid_creation import ThreeDiGenerateCompGridAlgorithm
+from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
+import os
 
 
 class ThreediProvider(QgsProcessingProvider):
     """Loads the Processing Toolbox algorithms for 3Di"""
 
     def loadAlgorithms(self, *args, **kwargs):
-        self.addAlgorithm(ThreediDepth())
+        self.addAlgorithm(ThreediDepthAlgorithm())
         self.addAlgorithm(DWFCalculatorAlgorithm())
         self.addAlgorithm(CheckSchematisationAlgorithm())
         self.addAlgorithm(MigrateAlgorithm())
         self.addAlgorithm(ImportHydXAlgorithm())
         self.addAlgorithm(ThreeDiConvertToGpkgAlgorithm())
         self.addAlgorithm(ThreeDiGenerateCompGridAlgorithm())
+        self.addAlgorithm(ImportSufHydAlgorithm())
+        self.addAlgorithm(GuessIndicatorAlgorithm())
 
     def id(self, *args, **kwargs):
         """The ID of your plugin, used for identifying the provider.
@@ -44,4 +49,5 @@ class ThreediProvider(QgsProcessingProvider):
         """Should return a QIcon which is used for your provider inside
         the Processing toolbox.
         """
-        return QIcon(":/plugins/ThreeDiToolbox/icons/icon.png")
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon.png")
+        return QIcon(icon_path)
