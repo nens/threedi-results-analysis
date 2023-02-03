@@ -54,13 +54,13 @@ class ThreeDiGraph(QObject):
 
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
         for dock_widget in self.dock_widgets:
-            dock_widget.on_result_set_change()
+            dock_widget.result_added(result_item)
 
     @pyqtSlot(ThreeDiResultItem)
-    def result_removed(self, _: ThreeDiResultItem):
+    def result_removed(self, result_item: ThreeDiResultItem):
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
         for dock_widget in self.dock_widgets:
-            dock_widget.on_result_set_change()
+            dock_widget.result_removed(result_item)
 
     def run(self):
         """

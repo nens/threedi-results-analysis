@@ -713,7 +713,7 @@ class GraphDockWidget(QDockWidget):
         self.closingWidget.emit(self.nr)
         event.accept()
 
-    def _get_active_parameter_config(self):
+    def _get_active_parameter_config(self, result_item_ignored: ThreeDiResultItem = None):
         """
         Generates a parameter dict based on results.
         """
@@ -721,6 +721,9 @@ class GraphDockWidget(QDockWidget):
         h_vars = []
 
         for result in self.model.get_results(checked_only=False):
+            if result is result_item_ignored:  # about to be deleted
+                continue
+
             threedi_result = result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
@@ -743,9 +746,17 @@ class GraphDockWidget(QDockWidget):
         config = {"q": q_vars, "h": h_vars}
         return config
 
-    def on_result_set_change(self):
+    def result_added(self, _: ThreeDiResultItem):
 
+        logger.info("Reconfiguring the comboboxes")
         parameter_config = self._get_active_parameter_config()
+        self.q_graph_widget.set_parameter_list(parameter_config["q"])
+        self.h_graph_widget.set_parameter_list(parameter_config["h"])
+
+    def result_removed(self, result_item: ThreeDiResultItem):
+
+        logger.info("Reconfiguring the comboboxes")
+        parameter_config = self._get_active_parameter_config(result_item)
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
