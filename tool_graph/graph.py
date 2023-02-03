@@ -1,7 +1,7 @@
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QObject
 from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtCore import pyqtSlot
 import qgis
 import os
@@ -61,6 +61,16 @@ class ThreeDiGraph(QObject):
         self.action_icon.setEnabled(self.model.number_of_results() > 0)
         for dock_widget in self.dock_widgets:
             dock_widget.result_removed(result_item)
+
+    @pyqtSlot(ThreeDiResultItem)
+    def result_changed(self, result_item: ThreeDiResultItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.result_changed(result_item)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_changed(self, grid_item: ThreeDiGridItem):
+        for dock_widget in self.dock_widgets:
+            dock_widget.grid_changed(grid_item)
 
     def run(self):
         """

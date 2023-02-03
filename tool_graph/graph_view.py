@@ -33,7 +33,7 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem, ThreeDiGridItem
 
 from typing import List
 
@@ -148,7 +148,6 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            logger.error(f"removing item {i}: ")
             self.removeItem(
                         item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
                     )
@@ -351,6 +350,11 @@ class GraphWidget(QWidget):
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
+
+    def refresh_table(self):
+        # trigger all listeners by emiting dataChanged signal
+        self.location_model.beginResetModel()
+        self.location_model.endResetModel()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
@@ -747,18 +751,22 @@ class GraphDockWidget(QDockWidget):
         return config
 
     def result_added(self, _: ThreeDiResultItem):
-
-        logger.info("Reconfiguring the comboboxes")
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
 
     def result_removed(self, result_item: ThreeDiResultItem):
-
-        logger.info("Reconfiguring the comboboxes")
         parameter_config = self._get_active_parameter_config(result_item)
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
+
+    def result_changed(self, _: ThreeDiResultItem):
+        self.q_graph_widget.refresh_table()
+        self.h_graph_widget.refresh_table()
+
+    def grid_changed(self, result_item: ThreeDiGridItem):
+        self.q_graph_widget.refresh_table()
+        self.h_graph_widget.refresh_table()
 
     def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots."""
