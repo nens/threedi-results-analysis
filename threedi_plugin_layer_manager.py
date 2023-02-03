@@ -116,11 +116,17 @@ class ThreeDiPluginLayerManager(QObject):
             QgsProject.instance().removeMapLayer(layer_id)
         item.layer_ids.clear()
 
-        # Deletion of root node of a tree will delete all nodes of the tree
+        # Deletion of root node of a tree will delete all nodes of the tree.
+        # In case the user dragged another layer in the group, remove the reference
+        # from this grid to the group, but don't delete it from QGIS.
         assert item.layer_group
-        item.layer_group.parent().removeChildNode(item.layer_group)
-        item.layer_group = None
 
+        if len(item.layer_group.children()) == 0:
+            item.layer_group.parent().removeChildNode(item.layer_group)
+        else:
+            logger.info(f"Item group of grid {item.text()} contains external layers: not removing.")
+
+        item.layer_group = None
         iface.mapCanvas().refresh()
 
     @dirty
