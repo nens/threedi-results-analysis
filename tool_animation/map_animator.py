@@ -157,6 +157,7 @@ class MapAnimator(QGroupBox):
         self.line_parameters = None
         self.current_datetime = None
         self.setup_ui(parent)
+        self._updating_temporal_controller = False
 
     def _update_temporal_controller(self, results):
         logger.info("Updating temporal controller")
@@ -185,11 +186,13 @@ class MapAnimator(QGroupBox):
         logger.info(f"end_time {end_time}")
 
         temporal_controller = iface.mapCanvas().temporalController()
-        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.NavigationOff)
+        self._updating_temporal_controller = True
+        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
         temporal_controller.setFrameDuration(QgsInterval(frame_duration))
         temporal_controller.setTemporalExtents(temporal_extents)
+        temporal_controller.rewindToStart()
+        self._updating_temporal_controller = False
         temporal_controller.skipToEnd()
-        temporal_controller.setNavigationMode(QgsTemporalNavigationObject.NavigationMode.Animated)
 
     @pyqtSlot(ThreeDiResultItem)
     def results_changed(self, item: ThreeDiResultItem):
@@ -308,7 +311,7 @@ class MapAnimator(QGroupBox):
         To be used when a parameter or relative checkbox changes
         """
         self._restyle()
-        self.update_results()
+        self._update_results()
 
     def get_class_bounds(self, result_item: ThreeDiResultItem):
 
@@ -456,23 +459,24 @@ class MapAnimator(QGroupBox):
         config = {"q": q_vars, "h": h_vars}
         return config
 
-    def update_results(self, qgs_dt_range=None):
-        """ Update results for all selected result items. """
+    def update_results(self, qgs_dt_range):
+        """ Slot for the updateTemporalRange signal. """
         if not self.isEnabled():
             return
 
-        navigation_mode = iface.mapCanvas().temporalController().navigationMode()
-        if navigation_mode == QgsTemporalNavigationObject.NavigationMode.NavigationOff:
-            return
+        if self._updating_temporal_controller:
+            return  # it emits a number of signals during the process
 
         try:
             self.current_datetime = qgs_dt_range.begin().toPyDateTime()
         except ValueError:
-            logger.info('Could not get current animation datetime')
+            logger.info('Could not convert animation datetime to python.')
             return
 
-        logger.info('updating results to %s', self.current_datetime)
+        self._update_results()
 
+    def _update_results(self):
+        logger.info('updating results to %s', self.current_datetime)
         for result_item in self.model.get_results(checked_only=True):
             self._update_result_item_results(result_item)
 
