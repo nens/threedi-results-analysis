@@ -25,6 +25,7 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QColorDialog
 from qgis.utils import iface
 from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -172,6 +173,10 @@ class GraphPlot(pg.PlotWidget):
             item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute).setPen(
                 color=item.color.qvalue, width=width, style=item.result.value._pattern)
 
+        elif self.location_model.columns[index.column()].name == "color":
+            item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute).setPen(
+                color=item.color.qvalue, width=2, style=item.result.value._pattern)
+
     def hide_timeseries(self, location_nr):
         """
         hide timeseries of location in graph
@@ -257,8 +262,21 @@ class LocationTimeseriesTable(QTableView):
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
+            if event.type() == QEvent.MouseButtonDblClick:
+                # map mouse position to index
+                column = self.indexAt(event.pos()).column()
+                if self.model.columns[column].name == "color":
+                    row = self.indexAt(event.pos()).row()
+                    item = self.model.rows[row]
+                    selected_color = QColorDialog.getColor()
+                    if not selected_color.isValid():  # User pressed cancel
+                        return True
 
-            if event.type() == QEvent.MouseMove:
+                    item.color.value = (selected_color.red(), selected_color.green(), selected_color.blue())
+
+                return QTableView.eventFilter(self, widget, event)
+
+            elif event.type() == QEvent.MouseMove:
                 row = self.indexAt(event.pos()).row()
                 if row == 0 and self.model and row > self.model.rowCount():
                     row = None
@@ -311,8 +329,6 @@ class LocationTimeseriesTable(QTableView):
         # first two columns (checkbox, color) can be set small always
         self.setColumnWidth(0, 20)  # checkbox
         self.setColumnWidth(1, 20)  # color field
-        # 3rd column (id) can be wide (in case of high id)
-        # 4th column (name) can be wide (e.g. '2d_groundwater')
 
 
 class GraphWidget(QWidget):
