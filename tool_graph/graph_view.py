@@ -25,6 +25,7 @@ from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
+from qgis.PyQt.QtWidgets import QColorDialog
 from qgis.utils import iface
 from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -33,7 +34,7 @@ from ThreeDiToolbox.utils.utils import generate_parameter_config
 from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
 from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem
+from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem, ThreeDiGridItem
 
 from typing import List
 
@@ -148,7 +149,6 @@ class GraphPlot(pg.PlotWidget):
         """
         for i in range(start, end + 1):
             item = self.location_model.rows[i]
-            logger.error(f"removing item {i}: ")
             self.removeItem(
                         item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
                     )
@@ -172,6 +172,10 @@ class GraphPlot(pg.PlotWidget):
                 width = 5
             item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute).setPen(
                 color=item.color.qvalue, width=width, style=item.result.value._pattern)
+
+        elif self.location_model.columns[index.column()].name == "color":
+            item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute).setPen(
+                color=item.color.qvalue, width=2, style=item.result.value._pattern)
 
     def hide_timeseries(self, location_nr):
         """
@@ -258,8 +262,21 @@ class LocationTimeseriesTable(QTableView):
 
     def eventFilter(self, widget, event):
         if widget is self.viewport():
+            if event.type() == QEvent.MouseButtonDblClick:
+                # map mouse position to index
+                column = self.indexAt(event.pos()).column()
+                if self.model.columns[column].name == "color":
+                    row = self.indexAt(event.pos()).row()
+                    item = self.model.rows[row]
+                    selected_color = QColorDialog.getColor()
+                    if not selected_color.isValid():  # User pressed cancel
+                        return True
 
-            if event.type() == QEvent.MouseMove:
+                    item.color.value = (selected_color.red(), selected_color.green(), selected_color.blue())
+
+                return QTableView.eventFilter(self, widget, event)
+
+            elif event.type() == QEvent.MouseMove:
                 row = self.indexAt(event.pos()).row()
                 if row == 0 and self.model and row > self.model.rowCount():
                     row = None
@@ -312,8 +329,6 @@ class LocationTimeseriesTable(QTableView):
         # first two columns (checkbox, color) can be set small always
         self.setColumnWidth(0, 20)  # checkbox
         self.setColumnWidth(1, 20)  # color field
-        # 3rd column (id) can be wide (in case of high id)
-        # 4th column (name) can be wide (e.g. '2d_groundwater')
 
 
 class GraphWidget(QWidget):
@@ -351,6 +366,11 @@ class GraphWidget(QWidget):
         self.marker = QgsRubberBand(self.parent.iface.mapCanvas())
         self.marker.setColor(Qt.red)
         self.marker.setWidth(2)
+
+    def refresh_table(self):
+        # trigger all listeners by emiting dataChanged signal
+        self.location_model.beginResetModel()
+        self.location_model.endResetModel()
 
     @pyqtSlot(ThreeDiResultItem)
     def result_removed(self, result_item: ThreeDiResultItem):
@@ -713,7 +733,7 @@ class GraphDockWidget(QDockWidget):
         self.closingWidget.emit(self.nr)
         event.accept()
 
-    def _get_active_parameter_config(self):
+    def _get_active_parameter_config(self, result_item_ignored: ThreeDiResultItem = None):
         """
         Generates a parameter dict based on results.
         """
@@ -721,6 +741,9 @@ class GraphDockWidget(QDockWidget):
         h_vars = []
 
         for result in self.model.get_results(checked_only=False):
+            if result is result_item_ignored:  # about to be deleted
+                continue
+
             threedi_result = result.threedi_result
             available_subgrid_vars = threedi_result.available_subgrid_map_vars
             available_agg_vars = threedi_result.available_aggregation_vars[:]  # a copy
@@ -743,11 +766,23 @@ class GraphDockWidget(QDockWidget):
         config = {"q": q_vars, "h": h_vars}
         return config
 
-    def on_result_set_change(self):
-
+    def result_added(self, _: ThreeDiResultItem):
         parameter_config = self._get_active_parameter_config()
         self.q_graph_widget.set_parameter_list(parameter_config["q"])
         self.h_graph_widget.set_parameter_list(parameter_config["h"])
+
+    def result_removed(self, result_item: ThreeDiResultItem):
+        parameter_config = self._get_active_parameter_config(result_item)
+        self.q_graph_widget.set_parameter_list(parameter_config["q"])
+        self.h_graph_widget.set_parameter_list(parameter_config["h"])
+
+    def result_changed(self, _: ThreeDiResultItem):
+        self.q_graph_widget.refresh_table()
+        self.h_graph_widget.refresh_table()
+
+    def grid_changed(self, result_item: ThreeDiGridItem):
+        self.q_graph_widget.refresh_table()
+        self.h_graph_widget.refresh_table()
 
     def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots."""
