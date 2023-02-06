@@ -68,7 +68,7 @@ class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
     feature_color_map: Dict[int, int] = {}
-    
+
     def __init__(self, *args):
         super().__init__(*args)
         self.dataChanged.connect(self.update_labels)
