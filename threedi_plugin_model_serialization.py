@@ -4,6 +4,7 @@ from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
 from qgis.PyQt.QtGui import QStandardItem
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -161,3 +162,36 @@ class ThreeDiPluginModelSerializer:
                     return False
 
         return True
+
+    @staticmethod
+    def remove_result_field_references(elem, field_names):
+        """
+        Remove references to result fields from the map layer element.
+
+        They cannot be reused because new result ids will be generated when
+        the project is reloaded and the result model is repopulated.
+        """
+        # modify datasource
+        datasource = elem.firstChildElement('datasource').text()
+        for field_name in field_names:
+            datasource = re.sub(
+                pattern=r'&field=' + field_name + r'[^&]*',
+                repl='',
+                string=datasource,
+            )
+        elem.firstChildElement('datasource').firstChild().setNodeValue(datasource)
+
+        # remove elements
+        elements_to_be_removed = (
+            ('fieldConfiguration', 'name'),
+            ('aliases', 'field'),
+            ('defaults', 'field'),
+            ('constraints', 'field'),
+            ('constraintExpressions', 'field'),
+        )
+        for tag, attr in elements_to_be_removed:
+            parent = elem.firstChildElement(tag)
+            children = parent.childNodes()
+            for child in [children.item(i) for i in range(children.count())]:
+                if child.toElement().attribute(attr) in field_names:
+                    parent.removeChild(child)
