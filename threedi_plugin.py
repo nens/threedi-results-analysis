@@ -26,7 +26,6 @@ from ThreeDiToolbox.utils import color
 from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
 from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
 
-from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -177,31 +176,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         return ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
 
     def write_map_layer(self, layer, elem, doc):
-        field_names = defaultdict(list)
-        for result_item in self.model.get_results(checked_only=False):
-            for l_id, f_names in result_item._result_field_names.items():
-                field_names[l_id].extend(f_names)
-
-        elements_to_be_removed = (
-            ('fieldConfiguration', 'name'),
-            ('aliases', 'field'),
-            ('defaults', 'field'),
-            ('constraints', 'field'),
-            ('constraintExpressions', 'field'),
+        result_field_names = self.model.get_result_field_names(layer.id())
+        ThreeDiPluginModelSerializer.remove_result_field_references(
+            elem, result_field_names,
         )
-
-        for field_name in field_names[layer.id()]:
-            # TODO datasource using regex
-            # old = elem.firstChildElement('datasource').text()
-            # elem.firstChildElement('datasource').firstChild().setNodeValue(new)
-            for tag, attr in elements_to_be_removed:
-                parent = elem.firstChildElement(tag)
-                children = parent.childNodes()
-                for i in range(children.count()):
-                    child = children.item(i)
-                    if child.toElement().attribute(attr) == field_name:
-                        parent.removeChild(child)
-                        logger.info("removed %s %s %s", tag, attr, field_name)
 
     def read(self, doc: QDomDocument) -> bool:
         # Resolver convert relative to absolute paths and vice versa

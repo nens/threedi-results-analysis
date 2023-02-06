@@ -241,6 +241,16 @@ class ThreeDiPluginModel(QStandardItemModel):
         _get_results(results, self.invisibleRootItem(), checked_only)
         return results
 
+    def get_result_field_names(self, layer_id):
+        names = {
+            f_name
+            for result_item in self.get_results(checked_only=False)
+            for l_id, f_names in result_item._result_field_names.items()
+            for f_name in f_names
+            if l_id == layer_id
+        }
+        return names
+
     def number_of_grids(self) -> int:
         """Return the number of grid items by doing a full traversal."""
         return self._number_of_type(self.invisibleRootItem(), ThreeDiGridItem)
