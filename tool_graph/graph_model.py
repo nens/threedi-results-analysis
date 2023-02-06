@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from random import randint
 from ThreeDiToolbox.models.base import BaseModel
-from ThreeDiToolbox.models.base_fields import CheckboxField
+from ThreeDiToolbox.models.base_fields import CheckboxField, CHECKBOX_FIELD
 from ThreeDiToolbox.models.base_fields import ColorField
 from ThreeDiToolbox.models.base_fields import ValueField
 from typing import Dict
@@ -78,6 +78,16 @@ class LocationTimeseriesModel(BaseModel):
 
         return COLOR_LIST[self.feature_color_map[idx]]
 
+    def flags(self, index):
+
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        if self.columns[index.column()].field_type == CHECKBOX_FIELD:
+            flags |= Qt.ItemIsUserCheckable | Qt.ItemIsEditable
+        elif index.column() == 5:  # user-defined label
+            flags |= Qt.ItemIsEditable
+
+        return flags
+
     def data(self, index, role=Qt.DisplayRole):
         """Qt function to get data from items for the visible columns"""
 
@@ -107,8 +117,9 @@ class LocationTimeseriesModel(BaseModel):
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
         result = ValueField(show=True, column_width=100, column_name="result", default_value="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
-        object_name = ValueField(show=True, column_width=140, column_name="name")
-        object_type = ValueField(show=False)
+        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label
+        object_name = ValueField(show=True, column_width=50, column_name="type")  # e.g. 2D-1D
+        object_type = ValueField(show=False)  # e.g. flowline
         hover = ValueField(show=False, default_value=False)
 
         _plots = {}
@@ -153,9 +164,9 @@ class LocationTimeseriesModel(BaseModel):
                 pump_fields = set(list(ga.pumps.Meta.composite_fields.keys()))
             else:
                 pump_fields = {}
-            if self.object_type.value == "pumplines" and parameters not in pump_fields:
+            if self.object_type.value == "pump_linestring" and parameters not in pump_fields:
                 return EMPTY_TIMESERIES
-            if self.object_type.value == "flowlines" and parameters in pump_fields:
+            if self.object_type.value == "flowline" and parameters in pump_fields:
                 return EMPTY_TIMESERIES
 
             timeseries = threedi_result.get_timeseries(
