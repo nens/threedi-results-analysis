@@ -68,6 +68,22 @@ class LocationTimeseriesModel(BaseModel):
     """Model implementation for (selected objects) for display in graph"""
 
     feature_color_map: Dict[int, int] = {}
+    
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.dataChanged.connect(self.update_labels)
+
+    def update_labels(self, index):
+        if self.columns[index.column()].name == "object_label":
+            # Update user-editable label of other plots for same feature
+            updated_item = self.rows[index.row()]
+            updated_feature_id = updated_item.object_id.value
+            new_label = updated_item.object_label.value
+            for item in self.rows:
+                if item.object_id.value == updated_feature_id:
+                    self.blockSignals(True)
+                    item.object_label.value = new_label
+                    self.blockSignals(False)
 
     def get_color(self, idx: int) -> QColor:
         if not self.feature_color_map:
@@ -117,7 +133,7 @@ class LocationTimeseriesModel(BaseModel):
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
         result = ValueField(show=True, column_width=100, column_name="result", default_value="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
-        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label
+        object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
         object_name = ValueField(show=True, column_width=50, column_name="type")  # e.g. 2D-1D
         object_type = ValueField(show=False)  # e.g. flowline
         hover = ValueField(show=False, default_value=False)
