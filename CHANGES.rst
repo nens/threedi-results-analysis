@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5 (unreleased)
+2.5 (2023-02-06)
 ----------------
 
 - Added usage of threedi_schema package
