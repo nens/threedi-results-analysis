@@ -21,6 +21,7 @@ from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
 from ThreeDiToolbox.datasource.result_constants import AGGREGATION_OPTIONS
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.utils import generate_parameter_config
 from typing import Iterable
 from typing import List
@@ -219,7 +220,13 @@ class MapAnimator(QGroupBox):
         self.line_parameters = {r["name"]: r for r in config["q"]}
         self.node_parameters = {r["name"]: r for r in config["h"]}
 
-    def style_layers(self, result_item: ThreeDiResultItem, line_parameter_class_bounds, node_parameter_class_bounds):
+    def style_layers(
+        self,
+        result_item: ThreeDiResultItem,
+        line_parameter_class_bounds,
+        node_parameter_class_bounds,
+        progress_bar,
+    ):
         """
         Apply styling to surface water and groundwater flowline layers,
         based value distribution in the results and difference vs. current choice
@@ -233,26 +240,24 @@ class MapAnimator(QGroupBox):
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
 
+        logger.info("Styling flowline layer")
         layer_id = grid_item.layer_ids["flowline"]
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
-
         layer = QgsProject.instance().mapLayer(layer_id)
-
-        logger.info("Styling flowline layer")
         styler.style_animation_flowline_current(
             layer,
             line_parameter_class_bounds,
             self.current_line_parameter["parameters"],
             postfix,
         )
+        progress_bar.increase_progress()
 
+        logger.info("Styling node layer")
         layer_id = grid_item.layer_ids["node"]
         layer = QgsProject.instance().mapLayer(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
-
-        logger.info("Styling node layer")
         if self.difference_checkbox.isChecked():
             styler.style_animation_node_difference(
                 layer,
@@ -269,13 +274,13 @@ class MapAnimator(QGroupBox):
                 False,
                 postfix,
             )
+        progress_bar.increase_progress()
 
+        logger.info("Styling cell layer")
         layer_id = grid_item.layer_ids["cell"]
         layer = QgsProject.instance().mapLayer(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
-
-        logger.info("Styling cell layer")
         if self.difference_checkbox.isChecked():
             styler.style_animation_node_difference(
                 layer,
@@ -292,6 +297,7 @@ class MapAnimator(QGroupBox):
                 True,
                 postfix,
             )
+        progress_bar.increase_progress()
 
     @property
     def current_line_parameter(self):
@@ -302,9 +308,15 @@ class MapAnimator(QGroupBox):
         return self.node_parameters[self.node_parameter_combo_box.currentText()]
 
     def _restyle(self):
-        for result_item in self.model.get_results(checked_only=True):
+        result_items = self.model.get_results(checked_only=True)
+        progress_bar = StatusProgressBar(3 * len(result_items) - 1, "Styling layers")
+
+        for result_item in result_items:
             line_class_bounds, node_class_bounds, _, _ = self.get_class_bounds(result_item)
-            self.style_layers(result_item, line_class_bounds, node_class_bounds)
+            self.style_layers(
+                result_item, line_class_bounds, node_class_bounds, progress_bar,
+            )
+        del progress_bar
 
     def _restyle_and_update(self):
         """
