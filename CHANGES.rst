@@ -8,7 +8,8 @@ ThreeDiToolBox changelog
 - Added usage of threedi_schema package
 - Replaced pygeos dependency with a Shapely
 - Fixed raster checks
-- Fixed database interface in sufyd importer
+- Fixed database interface in sufhyd importer
+- Removed Command Tool and converted commands to processing algorithms (#715)
 
 
 2.4.1 (2022-12-08)
