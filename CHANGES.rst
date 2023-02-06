@@ -10,7 +10,10 @@ ThreeDiToolBox changelog
 - Fixed raster checks
 - Fixed database interface in sufhyd importer
 - Removed Command Tool and converted commands to processing algorithms (#715)
-
+- Bumped several dependencies (Alembic)
+- Add processing algorithm Import Hydx (#730)
+- Do not set default inputs for "Computational grid from schematisation" processing algorithm (#723)
+- Computational grid from h5 file: use file as input instead of containing folder (#722)
 
 2.4.1 (2022-12-08)
 ------------------
