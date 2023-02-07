@@ -368,13 +368,11 @@ class ThreeDiPluginLayerManager(QObject):
 
         # Invalid layers info
         if invalid_layers:
-            invalid_info = "\n\nThe following layers are missing or invalid:\n * " + "\n * ".join(invalid_layers) + "\n\n"
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, invalid_info, Qgis.Warning, 5)
+            logger.warning("The following layers are missing or invalid:\n * " + "\n * ".join(invalid_layers) + "\n\n")
 
         # Empty layers info
         if empty_layers:
-            empty_info = "\n\nThe following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n"
-            messagebar_message(TOOLBOX_MESSAGE_TITLE, empty_info, Qgis.Warning, 5)
+            logger.warning("The following layers contained no feature:\n * " + "\n * ".join(empty_layers) + "\n\n")
 
         return True
 
