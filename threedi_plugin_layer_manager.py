@@ -6,7 +6,7 @@ import uuid
 from PyQt5.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
-from qgis.core import Qgis, QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
+from qgis.core import QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME, TOOLBOX_MESSAGE_TITLE
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
