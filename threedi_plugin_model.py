@@ -197,7 +197,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Remove the actual grid
         return self.removeRows(self.indexFromItem(item).row(), 1)
 
-    def _remove_result(self, item: ThreeDiResultItem) -> bool:
+    def remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -215,7 +215,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         if isinstance(item, ThreeDiGridItem):
             return self._remove_grid(item)
         if isinstance(item, ThreeDiResultItem):
-            return self._remove_result(item)
+            return self.remove_result(item)
 
     def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""

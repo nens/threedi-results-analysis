@@ -148,16 +148,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.initProcessing()
 
+        # mapping anim tool
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
-
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
+        iface.mapCanvas().temporalController().updateTemporalRange.connect(self.map_animator.update_results)
 
-        # start animating
-        tc = iface.mapCanvas().temporalController()
-        tc.updateTemporalRange.connect(self.map_animator.update_results)
-
-        self.model.result_added.connect(self.graph_tool.result_added)
+        # mapping graph tool
+        self.validator.result_validated.connect(self.graph_tool.result_added)
         self.model.result_removed.connect(self.graph_tool.result_removed)
         self.model.result_changed.connect(self.graph_tool.result_changed)
         self.model.grid_changed.connect(self.graph_tool.grid_changed)
