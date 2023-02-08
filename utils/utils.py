@@ -155,7 +155,6 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
             "name": varinfo[0].capitalize(),
             "unit": varinfo[1],
             "parameters": varname,
-            "aggregated": False,
         }
         if varname in Q_TYPES:
             config["q"].append(d)
@@ -182,7 +181,6 @@ def generate_parameter_config(subgrid_map_vars, agg_vars):
             "name": "%s %s" % (agg_method_display_name.capitalize(), varinfo[0]),
             "unit": unit,
             "parameters": aggvarname,
-            "aggregated": True,
         }
         if _varname in Q_TYPES:
             config["q"].append(d)

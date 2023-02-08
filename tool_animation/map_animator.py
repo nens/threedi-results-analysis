@@ -13,19 +13,18 @@ from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
 from threedigrid.admin.constants import NO_DATA_VALUE
-from threedigrid.admin.gridresultadmin import GridH5ResultAdmin
 from ThreeDiToolbox.datasource.result_constants import DISCHARGE
 from ThreeDiToolbox.datasource.result_constants import H_TYPES
 from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
 from ThreeDiToolbox.datasource.result_constants import Q_TYPES
 from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
 from ThreeDiToolbox.datasource.result_constants import AGGREGATION_OPTIONS
+from ThreeDiToolbox.datasource.threedi_results import ThreediResult
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 from ThreeDiToolbox.utils.utils import generate_parameter_config
-from typing import Iterable
+from ThreeDiToolbox.utils.timing import timing
 from typing import List
-from typing import Union
 
 import ThreeDiToolbox.tool_animation.animation_styler as styler
 import copy
@@ -68,18 +67,18 @@ def strip_agg_options(param: str) -> str:
     return param
 
 
+@lru_cache(maxsize=None)
 def threedi_result_percentiles(
-    gr: GridH5ResultAdmin,
+    threedi_result: ThreediResult,
     groundwater: bool,
     variable: str,
-    percentile: Union[float, Iterable],
     absolute: bool,
     lower_threshold: float,
     relative_to_t0: bool,
-    nodatavalue=NO_DATA_VALUE,
-) -> Union[float, List[float]]:
+    simple=False,
+) -> List[float]:
     """
-    Calculate given percentile given variable in a 3Di results netcdf
+    Calculate percentile values given variable in a 3Di results netcdf
 
     If variable is water level and relative_to_t0 = True,
     nodatavalues in the water level timeseries (i.e., dry nodes)
@@ -96,8 +95,11 @@ def threedi_result_percentiles(
     :param relative_to_t0: calculate percentiles on difference w/ initial values (applied before absolute)
     :param nodatavalue: ignore these values
     """
-    stripped_variable = strip_agg_options(variable)
+    if groundwater and not threedi_result.result_admin.has_groundwater:
+        return MapAnimator.CLASS_BOUNDS_EMPTY
 
+    stripped_variable = strip_agg_options(variable)
+    gr = threedi_result.get_gridadmin(variable)
     if stripped_variable in Q_TYPES:
         if groundwater:
             nodes_or_lines = gr.lines.filter(kcu__in=[-150, 150])
@@ -119,36 +121,46 @@ def threedi_result_percentiles(
     else:
         raise ValueError(f"unknown variable: {variable}")
 
-    ts = nodes_or_lines.timeseries(indexes=slice(None))
+    if simple:
+        # only read the first and the last steps
+        timestamps = threedi_result.get_timestamps(variable)
+        indexes = slice(None, None, timestamps.size - 1)
+        ts = nodes_or_lines.timeseries(indexes=indexes)
+    else:
+        ts = nodes_or_lines.timeseries(indexes=slice(None))
+
     values = getattr(ts, variable)
     values_t0 = values[0]
     if absolute:
         values = np.absolute(values)
         values_t0 = np.absolute(values_t0)
-    values[values == nodatavalue] = np.nan
-    values_t0[values_t0 == nodatavalue] = np.nan
+    values[values == NO_DATA_VALUE] = np.nan
+    values_t0[values_t0 == NO_DATA_VALUE] = np.nan
 
     if relative_to_t0:
         if variable == WATERLEVEL.name:
-            values_t0[np.isnan(values_t0)] = z_coordinates[np.isnan(values_t0)]
+            mask_t0 = np.isnan(values_t0)
+            values_t0[mask_t0] = z_coordinates[mask_t0]
             z_coordinates_tiled = np.tile(z_coordinates, (values.shape[0], 1))
-            values[np.isnan(values)] = z_coordinates_tiled[np.isnan(values)]
+            mask = np.isnan(values)
+            values[mask] = z_coordinates_tiled[mask]
         values -= values_t0
     values_above_threshold = values[values > lower_threshold]
     if np.isnan(values_above_threshold).all():
-        return MapAnimator.EMPTY_CLASS_BOUNDS
-    np_percentiles = np.nanpercentile(values_above_threshold, percentile)
-    if isinstance(np_percentiles, np.ndarray):
-        result = list(map(float, np_percentiles))
-    else:
-        result = float(np_percentiles)
+        return MapAnimator.CLASS_BOUNDS_EMPTY
+    result = np.nanpercentile(
+        values_above_threshold, MapAnimator.CLASS_BOUNDS_PERCENTILES
+    ).tolist()
     return result
 
 
 class MapAnimator(QGroupBox):
     """ """
 
-    EMPTY_CLASS_BOUNDS = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
+    CLASS_BOUNDS_EMPTY = [0] * (styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES)
+    CLASS_BOUNDS_PERCENTILES = np.linspace(
+        0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
+    ).tolist()
 
     def __init__(self, parent, model):
 
@@ -211,7 +223,7 @@ class MapAnimator(QGroupBox):
         self._update_parameter_attributes()
         self._update_parameter_combo_boxes()
 
-        self._restyle()
+        self._restyle(lines=True, nodes=True)
         self._update_temporal_controller(results)
         # iface.mapCanvas().refresh()
 
@@ -220,26 +232,12 @@ class MapAnimator(QGroupBox):
         self.line_parameters = {r["name"]: r for r in config["q"]}
         self.node_parameters = {r["name"]: r for r in config["h"]}
 
-    def style_layers(
-        self,
-        result_item: ThreeDiResultItem,
-        line_parameter_class_bounds,
-        node_parameter_class_bounds,
-        progress_bar,
-    ):
-        """
-        Apply styling to surface water and groundwater flowline layers,
-        based value distribution in the results and difference vs. current choice
-        """
-
-        # has_groundwater = (
-        #    self.model.get_results(checked_only=True)[result_idx].threedi_result.result_admin.has_groundwater
-        # )
-
-        # Adjust the styling of the grid layer based on the bounds and result field name
+    def _style_line_layers(self, result_item: ThreeDiResultItem, progress_bar):
+        threedi_result = result_item.threedi_result
+        line_variable = self.current_line_parameter["parameters"]
+        line_parameter_class_bounds, _ = self._get_class_bounds_line(threedi_result, line_variable)
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
-
         logger.info("Styling flowline layer")
         layer_id = grid_item.layer_ids["flowline"]
         virtual_field_name = result_item._result_field_names[layer_id][0]
@@ -252,6 +250,16 @@ class MapAnimator(QGroupBox):
             postfix,
         )
         progress_bar.increase_progress()
+
+    def _style_node_layers(self, result_item: ThreeDiResultItem, progress_bar):
+        """ Compute class bounds and apply style to node and cell layers. """
+        threedi_result = result_item.threedi_result
+        node_variable = self.current_node_parameter["parameters"]
+        node_parameter_class_bounds, _ = self._get_class_bounds_node(threedi_result, node_variable)
+
+        # Adjust the styling of the grid layer based on the bounds and result field name
+        grid_item = result_item.parent()
+        assert isinstance(grid_item, ThreeDiGridItem)
 
         logger.info("Styling node layer")
         layer_id = grid_item.layer_ids["node"]
@@ -307,44 +315,29 @@ class MapAnimator(QGroupBox):
     def current_node_parameter(self):
         return self.node_parameters[self.node_parameter_combo_box.currentText()]
 
-    def _restyle(self):
+    def _restyle(self, lines, nodes):
         result_items = self.model.get_results(checked_only=True)
-        progress_bar = StatusProgressBar(3 * len(result_items) - 1, "Styling layers")
+        total = (int(lines) + 2 * int(nodes)) * len(result_items)
+        progress_bar = StatusProgressBar(total - 1, "Styling layers")
 
         for result_item in result_items:
-            line_class_bounds, node_class_bounds, _, _ = self.get_class_bounds(result_item)
-            self.style_layers(
-                result_item, line_class_bounds, node_class_bounds, progress_bar,
-            )
+            if lines:
+                self._style_line_layers(result_item, progress_bar)
+            if nodes:
+                self._style_node_layers(result_item, progress_bar)
         del progress_bar
 
-    def _restyle_and_update(self):
-        """
-        To be used when a parameter or relative checkbox changes
-        """
-        self._restyle()
+    def _restyle_and_update_lines(self):
+        """To be used when line parameter changes."""
+        self._restyle(lines=True, nodes=False)
         self._update_results()
 
-    def get_class_bounds(self, result_item: ThreeDiResultItem):
+    def _restyle_and_update_nodes(self):
+        """To be used when node parameter or relative checkbox changes."""
+        self._restyle(lines=False, nodes=True)
+        self._update_results()
 
-        line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        groundwater_line_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-        groundwater_node_parameter_class_bounds = self.EMPTY_CLASS_BOUNDS
-
-        threedi_result = result_item.threedi_result
-        percentile = np.linspace(
-            0, 100, styler.ANIMATION_LAYERS_NR_LEGEND_CLASSES, dtype=int
-        ).tolist()
-
-        # nodes
-        node_variable = self.current_node_parameter["parameters"]
-        if self.current_node_parameter["aggregated"]:
-            gr = threedi_result.aggregate_result_admin
-        else:
-            gr = threedi_result.result_admin
-
-        # deftermine lower threshold
+    def _get_class_bounds_node(self, threedi_result, node_variable):
         base_nc_name = strip_agg_options(node_variable)
         if (
             NEGATIVE_POSSIBLE[base_nc_name] or self.difference_checkbox.isChecked()
@@ -353,63 +346,40 @@ class MapAnimator(QGroupBox):
         else:
             lower_threshold = 0
 
-        node_parameter_class_bounds = threedi_result_percentiles(
-            gr=gr,
-            groundwater=False,
+        kwargs = dict(
+            threedi_result=threedi_result,
             variable=node_variable,
-            percentile=percentile,
             absolute=False,
             lower_threshold=lower_threshold,
             relative_to_t0=self.difference_checkbox.isChecked(),
         )
-        if gr.has_groundwater:
-            groundwater_node_parameter_class_bounds = (
-                threedi_result_percentiles(
-                    gr=gr,
-                    groundwater=True,
-                    variable=node_variable,
-                    percentile=percentile,
-                    absolute=False,
-                    lower_threshold=lower_threshold,
-                    relative_to_t0=self.difference_checkbox.isChecked(),
-                )
+        with timing('percentiles1'):
+            surfacewater_bounds = threedi_result_percentiles(
+                groundwater=False, **kwargs,
             )
+        with timing('percentiles2'):
+            groundwater_bounds = threedi_result_percentiles(
+                groundwater=True, **kwargs,
+            )
+        return surfacewater_bounds, groundwater_bounds
 
-        # update lines
-        line_variable = self.current_line_parameter["parameters"]
-        if self.current_line_parameter["aggregated"]:
-            gr = threedi_result.aggregate_result_admin
-        else:
-            gr = threedi_result.result_admin
-        line_parameter_class_bounds = threedi_result_percentiles(
-            gr=gr,
-            groundwater=False,
+    def _get_class_bounds_line(self, threedi_result, line_variable):
+        kwargs = dict(
+            threedi_result=threedi_result,
             variable=line_variable,
-            percentile=percentile,
             absolute=True,
             lower_threshold=float(0),
             relative_to_t0=self.difference_checkbox.isChecked(),
         )
-
-        if gr.has_groundwater:
-            groundwater_line_parameter_class_bounds = (
-                threedi_result_percentiles(
-                    gr=gr,
-                    groundwater=True,
-                    variable=line_variable,
-                    percentile=percentile,
-                    absolute=True,
-                    lower_threshold=float(0),
-                    relative_to_t0=self.difference_checkbox.isChecked(),
-                )
+        with timing('percentiles3'):
+            surfacewater_bounds = threedi_result_percentiles(
+                groundwater=False, **kwargs,
             )
-
-        return (
-            line_parameter_class_bounds,
-            node_parameter_class_bounds,
-            groundwater_line_parameter_class_bounds,
-            groundwater_node_parameter_class_bounds,
-        )
+        with timing('percentiles4'):
+            groundwater_bounds = threedi_result_percentiles(
+                groundwater=True, **kwargs,
+            )
+        return surfacewater_bounds, groundwater_bounds
 
     def _update_parameter_combo_boxes(self):
         """
@@ -630,9 +600,9 @@ class MapAnimator(QGroupBox):
 
         self.HLayout.addStretch()
 
-        self.line_parameter_combo_box.activated.connect(self._restyle_and_update)
-        self.node_parameter_combo_box.activated.connect(self._restyle_and_update)
-        self.difference_checkbox.stateChanged.connect(self._restyle_and_update)
+        self.line_parameter_combo_box.activated.connect(self._restyle_and_update_lines)
+        self.node_parameter_combo_box.activated.connect(self._restyle_and_update_nodes)
+        self.difference_checkbox.stateChanged.connect(self._restyle_and_update_nodes)
 
         self.setEnabled(False)
 
