@@ -121,4 +121,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         index = self.treeView.model().indexFromItem(item)
         self.treeView.expand(index)
         selection_model = self.treeView.selectionModel()
+        # Deselect other grids
+        selection_model.clearSelection()
+
         selection_model.setCurrentIndex(index, selection_model.Select)
