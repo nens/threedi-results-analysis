@@ -69,8 +69,8 @@ class LocationTimeseriesModel(BaseModel):
 
     feature_color_map: Dict[int, int] = {}
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.dataChanged.connect(self.update_labels)
 
     def update_labels(self, index):

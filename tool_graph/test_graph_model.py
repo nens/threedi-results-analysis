@@ -97,14 +97,14 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         collection = LocationTimeseriesModel(ts_datasources=self.ts_datasources)
 
         self.assertEqual(collection.rowCount(), 0)
-        self.assertEqual(collection.columnCount(), 8)
+        self.assertEqual(collection.columnCount(), 9)
 
         headers = [collection.headerData(i) for i in range(0, collection.columnCount())]
 
         self.assertListEqual(
             headers,
             # display column names
-            ["active", "color", "grid", "result", "id", "name", "object_type", "hover"],
+            ["active", "color", "grid", "result", "id", "label", "type", "object_type", "hover"],
         )
 
     def test_init_with_initial_data(self):
@@ -114,7 +114,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         )
 
         self.assertEqual(collection.rowCount(), 4)
-        self.assertEqual(collection.columnCount(), 8)
+        self.assertEqual(collection.columnCount(), 9)
         self.assertEqual(
             collection.data(collection.createIndex(0, 0, None), role=Qt.DisplayRole),
             None,
@@ -130,7 +130,7 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         # )
 
         self.assertEqual(
-            collection.data(collection.createIndex(0, 5, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(0, 6, None), role=Qt.DisplayRole),
             "object_1",
         )
 
@@ -144,10 +144,10 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         collection.insertRows(self.additional_data)
 
         self.assertEqual(collection.rowCount(), 8)
-        self.assertEqual(collection.columnCount(), 8)
+        self.assertEqual(collection.columnCount(), 9)
 
         self.assertEqual(
-            collection.data(collection.createIndex(7, 5, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(7, 6, None), role=Qt.DisplayRole),
             "object_8",
         )
 
@@ -156,12 +156,12 @@ class TestLocationTimeseriesModel(unittest.TestCase):
         self.assertEqual(collection.rowCount(), 4)
 
         self.assertEqual(
-            collection.data(collection.createIndex(1, 5, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(1, 6, None), role=Qt.DisplayRole),
             "object_2",
         )
 
         self.assertEqual(
-            collection.data(collection.createIndex(2, 5, None), role=Qt.DisplayRole),
+            collection.data(collection.createIndex(2, 6, None), role=Qt.DisplayRole),
             "object_7",
         )
 
