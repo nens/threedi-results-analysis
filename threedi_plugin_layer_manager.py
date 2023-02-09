@@ -1,6 +1,8 @@
 import os
 from collections import OrderedDict
 import h5py
+from pathlib import Path
+import re
 from osgeo import ogr
 import uuid
 from PyQt5.QtCore import Qt
@@ -77,30 +79,34 @@ class ThreeDiPluginLayerManager(QObject):
     deleted.
     """
     grid_loaded = pyqtSignal(ThreeDiGridItem)
-    result_loaded = pyqtSignal(ThreeDiResultItem)
+    result_loaded = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(ThreeDiGridItem)
-    def load_grid(self, item: ThreeDiGridItem) -> bool:
+    def load_grid(self, grid_item: ThreeDiGridItem) -> bool:
         # generate geopackage if needed and point item path to it
-        if item.path.suffix == ".h5":
-            path_h5 = item.path
+        if grid_item.path.suffix == ".h5":
+            path_h5 = grid_item.path
             path_gpkg = path_h5.with_suffix(".gpkg")
             if not path_gpkg.exists():
                 self.__class__._generate_gpkg(path_h5=path_h5, path_gpkg=path_gpkg)
-            item.path = path_gpkg
+            grid_item.path = path_gpkg
         else:
-            path_gpkg = item.path
+            path_gpkg = grid_item.path
 
-        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, item):
+        # Text of item is determined by folder structure
+        if not grid_item.text():
+            grid_item.setText(ThreeDiPluginLayerManager._resolve_grid_item_text(grid_item.path))
+
+        if not ThreeDiPluginLayerManager._add_layers_from_gpkg(path_gpkg, grid_item):
             pop_up_critical("Failed adding the layers to the project.")
             return False
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Added layers to the project", duration=2)
 
-        self.grid_loaded.emit(item)
+        self.grid_loaded.emit(grid_item)
         return True
 
     @pyqtSlot(ThreeDiGridItem)
@@ -137,12 +143,14 @@ class ThreeDiPluginLayerManager(QObject):
         item.layer_group.setName(item.text())
         return True
 
-    @pyqtSlot(ThreeDiResultItem)
-    def load_result(self, threedi_result_item: ThreeDiResultItem) -> bool:
-        # Add result fields for this result to the grid layers
-        grid_item = threedi_result_item.parent()
-        assert isinstance(grid_item, ThreeDiGridItem)
+    @pyqtSlot(ThreeDiResultItem, ThreeDiGridItem)
+    def load_result(self, threedi_result_item: ThreeDiResultItem, grid_item: ThreeDiGridItem) -> bool:
 
+        # Text of item is determined by folder structure
+        if not threedi_result_item.text():
+            threedi_result_item.setText(ThreeDiPluginLayerManager._resolve_result_item_text(threedi_result_item.path))
+
+        # Add result fields for this result to the grid layers
         logger.info("Adding result fields to grid layers")
         for layer_id in grid_item.layer_ids.values():
             layer = QgsProject.instance().mapLayer(layer_id)
@@ -174,7 +182,7 @@ class ThreeDiPluginLayerManager(QObject):
             # Store the added field names so we can remove the field when the result is removed
             threedi_result_item._result_field_names[layer_id] = (result_field_name, initial_value_field_name)
 
-        self.result_loaded.emit(threedi_result_item)
+        self.result_loaded.emit(threedi_result_item, grid_item)
         return True
 
     @pyqtSlot(ThreeDiResultItem)
@@ -393,3 +401,48 @@ class ThreeDiPluginLayerManager(QObject):
     def _layer_node_renamed(node: QgsLayerTreeNode, text: str, item: ThreeDiGridItem):
         if node is item.layer_group:
             item.setText(text)
+
+    @staticmethod
+    def _resolve_result_item_text(file: Path) -> str:
+        """The text of the result item depends on its containing file structure
+        """
+        if file.parent is not None:
+            return file.parent.stem
+
+        # Fallback
+        return file.stem
+
+    @staticmethod
+    def _resolve_grid_item_text(file: Path) -> str:
+        """The text of the grid item depends on its containing file structure
+
+        In case the grid file is in the 3Di Models & Simulations local directory
+        structure, the text should be schematisation name + revision nr. Otherwise just a number.
+        """
+        if file.parent.parent is not None and file.parent.parent.parent is not None:
+            folder = file.parent
+            if folder.stem == "grid":
+                rev_folder = folder.parent
+                return rev_folder.parent.stem + " " + ThreeDiPluginLayerManager._retrieve_revision_str(rev_folder)
+
+            folder = file.parent.parent
+            if folder.stem == "results":
+                rev_folder = folder.parent
+                return rev_folder.parent.stem + " " + ThreeDiPluginLayerManager._retrieve_revision_str(rev_folder)
+
+        # Fallback
+        return file.parent.stem
+
+    @staticmethod
+    def _retrieve_revision_str(path: Path) -> str:
+        """Retrieves the revision number from the path."""
+        rev_folder = str(path.stem)
+        if rev_folder.endswith("work in progress") :
+            return "(WIP)"
+
+        version = re.match("^revision (\d+)$", rev_folder)
+        if version is not None:
+            return "#" + version.group(1)
+
+        # Fallback
+        return "(None)"

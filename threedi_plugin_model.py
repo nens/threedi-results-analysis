@@ -13,7 +13,6 @@ from ThreeDiToolbox.utils.user_messages import StatusProgressBar
 
 import logging
 import uuid
-import re
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +43,9 @@ class ThreeDiGridItem(ThreeDiModelItem):
     """
     A model item for computation grids
     """
-    def __init__(self, path, text: str, *args, **kwargs):
+    def __init__(self, path: Path, text: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.path = Path(path)
+        self.path = path
         self.setSelectable(True)
         self.setEditable(True)
         self.setText(text)
@@ -66,9 +65,9 @@ class ThreeDiResultItem(ThreeDiModelItem):
     """
     A model item for 3Di results.
     """
-    def __init__(self, path, *args, **kwargs):
+    def __init__(self, path: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.path = Path(path)
+        self.path = path
         self.setCheckable(True)
         self.setCheckState(Qt.CheckState.Unchecked)
 
@@ -145,11 +144,7 @@ class ThreeDiPluginModel(QStandardItemModel):
     result_added = pyqtSignal(ThreeDiResultItem)
     result_checked = pyqtSignal(ThreeDiResultItem)
     result_unchecked = pyqtSignal(ThreeDiResultItem)
-    result_selected = pyqtSignal(ThreeDiResultItem)
-    result_deselected = pyqtSignal(ThreeDiResultItem)
     result_changed = pyqtSignal(ThreeDiResultItem)
-    grid_selected = pyqtSignal(ThreeDiGridItem)
-    grid_deselected = pyqtSignal(ThreeDiGridItem)
     grid_changed = pyqtSignal(ThreeDiGridItem)
     grid_removed = pyqtSignal(ThreeDiGridItem)
     result_removed = pyqtSignal(ThreeDiResultItem)
@@ -158,31 +153,28 @@ class ThreeDiPluginModel(QStandardItemModel):
         super().__init__(*args, **kwargs)
         self.itemChanged.connect(self._item_changed)
 
-    @pyqtSlot(str)
-    def add_grid(self, input_gridadmin_h5_or_gpkg: str, text: str = "", layer_ids=None) -> ThreeDiGridItem:
+    @pyqtSlot(ThreeDiGridItem)
+    def add_grid(self, grid_item: ThreeDiGridItem) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
-        path_h5_or_gpkg = Path(input_gridadmin_h5_or_gpkg)
-        if self.contains(path_h5_or_gpkg, ignore_suffix=True):
-            return
 
-        grid_item = ThreeDiGridItem(path_h5_or_gpkg, text if text else self._resolve_grid_item_text(path_h5_or_gpkg))
+        if self.contains(grid_item.path, ignore_suffix=True):
+            return None
+
         grid_item._old_text = grid_item.text()
-        if layer_ids:
-            grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
+        # if layer_ids:
+        #    grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
 
         self.invisibleRootItem().appendRow(grid_item)
         self.grid_added.emit(grid_item)
 
         return grid_item
 
-    @pyqtSlot(str, ThreeDiGridItem)
-    def add_result(self, input_result_nc: str, parent_item: ThreeDiGridItem, text: str = "") -> ThreeDiResultItem:
+    @pyqtSlot(ThreeDiResultItem, ThreeDiGridItem)
+    def add_result(self, result_item: ThreeDiResultItem, parent_item: ThreeDiGridItem) -> ThreeDiResultItem:
         """Adds a result item to the parent grid item, emits result_added"""
-        path_nc = Path(input_result_nc)
-        if self.contains(path_nc):
+        if self.contains(result_item.path):
             return
 
-        result_item = ThreeDiResultItem(path_nc, text if text else self._resolve_result_item_text(path_nc))
         result_item._old_text = result_item.text()
         parent_item.appendRow(result_item)
         self.result_added.emit(result_item)
@@ -343,60 +335,3 @@ class ThreeDiPluginModel(QStandardItemModel):
             self.result_checked.emit(item)
             return
         self.result_unchecked.emit(item)
-
-    def select_item(self, index):
-        item = self.itemFromIndex(index)
-        if isinstance(item, ThreeDiGridItem):
-            self.grid_selected.emit(item)
-        elif isinstance(item, ThreeDiResultItem):
-            self.result_selected.emit(item)
-
-    def deselect_item(self, index):
-        item = self.itemFromIndex(index)
-        if isinstance(item, ThreeDiGridItem):
-            self.grid_deselected.emit(item)
-        elif isinstance(item, ThreeDiResultItem):
-            self.result_selected.emit(item)
-
-    def _resolve_result_item_text(self, file: Path) -> str:
-        """The text of the result item depends on its containing file structure
-        """
-        if file.parent is not None:
-            return file.parent.stem
-
-        # Fallback
-        return file.stem
-
-    def _resolve_grid_item_text(self, file: Path) -> str:
-        """The text of the grid item depends on its containing file structure
-
-        In case the grid file is in the 3Di Models & Simulations local directory
-        structure, the text should be schematisation name + revision nr. Otherwise just a number.
-        """
-        if file.parent.parent is not None and file.parent.parent.parent is not None:
-            folder = file.parent
-            if folder.stem == "grid":
-                rev_folder = folder.parent
-                return rev_folder.parent.stem + " " + ThreeDiPluginModel._retrieve_revision_str(rev_folder)
-
-            folder = file.parent.parent
-            if folder.stem == "results":
-                rev_folder = folder.parent
-                return rev_folder.parent.stem + " " + ThreeDiPluginModel._retrieve_revision_str(rev_folder)
-
-        # Fallback
-        return file.parent.stem
-
-    @staticmethod
-    def _retrieve_revision_str(path: Path) -> str:
-        """Retrieves the revision number from the path."""
-        rev_folder = str(path.stem)
-        if rev_folder.endswith("work in progress") :
-            return "(WIP)"
-
-        version = re.match("^revision (\d+)$", rev_folder)
-        if version is not None:
-            return "#" + version.group(1)
-
-        # Fallback
-        return "(None)"

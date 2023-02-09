@@ -1,5 +1,6 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
+from pathlib import Path
 from qgis.core import Qgis
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from ThreeDiToolbox.utils.user_messages import messagebar_message
@@ -15,42 +16,43 @@ MSG_TITLE = "3Di Results Manager"
 class ThreeDiPluginModelValidator(QObject):
     """
     This class validates 3Di computation grid and result files. When
-    validation is completed, a signal with the validation result is emited
+    a grid or result is valid, a signal is emited
     so listeners can handle accordingly.
     """
-    grid_validated = pyqtSignal(ThreeDiGridItem, bool)
-    result_validated = pyqtSignal(ThreeDiResultItem, bool)
+    grid_valid = pyqtSignal(ThreeDiGridItem)
+    result_valid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
+    grid_unvalid = pyqtSignal(ThreeDiGridItem)
+    result_unvalid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @pyqtSlot(ThreeDiGridItem)
-    def validate_grid(self, item: ThreeDiGridItem):
-        item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
-        self.grid_validated.emit(item, True)
+    @pyqtSlot(str)
+    def validate_grid(self, grid_file: str):
+        new_item = ThreeDiGridItem(Path(grid_file), "")
+        new_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
+        self.grid_valid.emit(new_item)
 
-    @pyqtSlot(ThreeDiResultItem)
-    def validate_result(self, item: ThreeDiResultItem):
-        item.setIcon(QIcon(":images/themes/default/mIndicatorBadLayer.svg"))
+    @pyqtSlot(str, ThreeDiGridItem)
+    def validate_result(self, results_path: str, grid_item: ThreeDiGridItem):
 
         def fail(msg):
-            # logger.error(msg)
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
-            self.result_validated.emit(item, False)
+            self.result_unvalid.emit(result_item, grid_item)
+
+        result_item = ThreeDiResultItem(Path(results_path))
 
         # Check correct file name
-        results_path = item.path
-
-        if not results_path.name == "results_3di.nc":
+        if not result_item.path.name == "results_3di.nc":
             return fail("Unexpected file name for results file")
 
         # Check opening with h5py, detects a.o. incomplete downloads
         try:
-            results_h5 = h5py.File(results_path, "r")
+            results_h5 = h5py.File(result_item.path, "r")
         except OSError as error:
             if "truncated file" in str(error):
                 return fail(
-                    f"Results file {results_path} is incomplete. "
+                    f"Results file {result_item.path} is incomplete. "
                     "If possible, copy or download it again."
                 )
             return fail("Results file cannot be opened.")
@@ -61,8 +63,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         # Check whether corresponding grid item belongs to same model
         result_model_slug = results_h5.attrs['model_slug'].decode()
-        grid_item = item.parent()
-        assert isinstance(grid_item, ThreeDiGridItem)
+
         driver = ogr.GetDriverByName('GPKG')
         package = driver.Open(str(grid_item.path), True)
         grid_model_slug = package.GetMetadataItem('model_slug')
@@ -73,7 +74,7 @@ class ThreeDiPluginModelValidator(QObject):
             return fail("Result corresponds to different model than grid")
 
         # Try to open accompanying aggregate results file
-        aggregate_results_path = item.path.with_name("aggregate_results_3di.nc")
+        aggregate_results_path = result_item.path.with_name("aggregate_results_3di.nc")
         if aggregate_results_path.exists():
             try:
                 h5py.File(aggregate_results_path, "r")
@@ -86,5 +87,5 @@ class ThreeDiPluginModelValidator(QObject):
                     )
                 return fail("Aggregate results file cannot be opened.")
 
-        item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
-        self.result_validated.emit(item, True)
+        result_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
+        self.result_valid.emit(result_item, grid_item)
