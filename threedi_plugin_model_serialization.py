@@ -73,6 +73,7 @@ class ThreeDiPluginModelSerializer:
 
                     model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))))
                     model_node.setCheckState(int(xml_element_node.attribute("check_state")))
+                    model_node.setText(xml_element_node.attribute("text"))
 
                     assert isinstance(model_parent, ThreeDiGridItem)
                     if not loader.load_result(model_node, model_parent):

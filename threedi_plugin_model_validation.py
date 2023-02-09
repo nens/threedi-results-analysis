@@ -87,7 +87,7 @@ class ThreeDiPluginModelValidator(QObject):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
         elif result_model_slug != grid_model_slug:
             # Really wrong grid, find a grid with the right slug, if not available, abort with pop-up
-            root_node = result_item.model().invisibleRootItem()
+            root_node = grid_item.model().invisibleRootItem()
             for i in range(root_node.rowCount()):
                 other_grid_item = root_node.child(i)
 
@@ -95,15 +95,13 @@ class ThreeDiPluginModelValidator(QObject):
                 other_grid_model_slug = package.GetMetadataItem('model_slug')
 
                 if result_model_slug == other_grid_model_slug:
-                    logger.info("Found other corresponding grid with slug {other_grid_model_slug}, moving result to that grid.")
+                    logger.info(f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.")
 
-                    # Remove the result from the model and start the processing sequence all over
-                    new_results_args = {"input_result_nc": result_item.path, "parent_item": other_grid_item, "text": result_item.text()}
-                    result_item.model().remove_result(result_item)
-                    return other_grid_item.model().add_result(**new_results_args)
+                    # Propagate the result with the new parent grid
+                    result_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
+                    return self.result_valid.emit(result_item, other_grid_item)
 
             msg = "Result corresponds to different model than loaded grids, removed from Results Manager"
-            result_item.model().remove_result(result_item)
             pop_up_critical(msg)
             return fail(msg)
 
