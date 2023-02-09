@@ -151,21 +151,21 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.initProcessing()
 
+        # animation signals
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
-
-        # start animating
+        self.model.result_added.connect(self.map_animator.results_changed)
         tc = iface.mapCanvas().temporalController()
         tc.updateTemporalRange.connect(self.map_animator.update_results)
 
+        # graph signals
         self.model.result_added.connect(self.graph_tool.result_added)
         self.model.result_removed.connect(self.graph_tool.result_removed)
         self.model.result_changed.connect(self.graph_tool.result_changed)
         self.model.grid_changed.connect(self.graph_tool.grid_changed)
 
         self.init_state_sync()
-        # tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
