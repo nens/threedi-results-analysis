@@ -185,9 +185,14 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         )
 
     def read(self, doc: QDomDocument) -> bool:
+        self.model.clear()
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        return ThreeDiPluginModelSerializer.read(self.model, doc, resolver)
+        if not ThreeDiPluginModelSerializer.read(self.loader, doc, resolver):
+            self.model.clear()
+            return False
+
+        return True
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on
