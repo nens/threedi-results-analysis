@@ -390,8 +390,11 @@ class GraphWidget(QWidget):
 
     def set_parameter_list(self, parameter_config):
 
-        logger.error(parameter_config)
         self.parameter_combo_box.clear()
+
+        if not parameter_config:
+            return
+
         self.parameters = dict([(p["name"], p) for p in parameter_config])
 
         params = sorted([p["name"] for p in parameter_config])
