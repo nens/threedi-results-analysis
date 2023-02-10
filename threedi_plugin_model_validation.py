@@ -1,5 +1,4 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
-from qgis.PyQt.QtGui import QIcon
 from pathlib import Path
 from qgis.core import Qgis
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
@@ -30,7 +29,6 @@ class ThreeDiPluginModelValidator(QObject):
     @pyqtSlot(str)
     def validate_grid(self, grid_file: str):
         new_item = ThreeDiGridItem(Path(grid_file), "")
-        new_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
         self.grid_valid.emit(new_item)
 
     @pyqtSlot(str, ThreeDiGridItem)
@@ -98,12 +96,10 @@ class ThreeDiPluginModelValidator(QObject):
                     logger.info(f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.")
 
                     # Propagate the result with the new parent grid
-                    result_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
                     return self.result_valid.emit(result_item, other_grid_item)
 
             msg = "Result corresponds to different model than loaded grids, removed from Results Manager"
             pop_up_critical(msg)
             return fail(msg)
 
-        result_item.setIcon(QIcon(":images/themes/default/mIconSuccess.svg"))
         self.result_valid.emit(result_item, grid_item)
