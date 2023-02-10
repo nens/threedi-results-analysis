@@ -8,7 +8,7 @@ ARTIFACT=threedi_results_analysis.${VERSION}.zip
 PROJECT=ThreeDiToolbox
 
 # Rename generated ThreeDiToolbox.zip to include version number.
-cp ThreeDiTothreedi_results_analysisolbox.zip ${ARTIFACT}
+cp threedi_results_analysis.zip ${ARTIFACT}
 
 curl -X POST \
      --retry 3 \
