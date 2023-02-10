@@ -164,7 +164,7 @@ class MapAnimator(QGroupBox):
 
     def __init__(self, parent, model):
 
-        super().__init__("Animation", parent)
+        super().__init__("Visualization settings", parent)
         self.model = model
         self.node_parameters = None
         self.line_parameters = None
