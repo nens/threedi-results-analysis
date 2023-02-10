@@ -5,7 +5,7 @@
 3.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Renamed module name in code.
 
 
 3.1 (2023-02-10)
