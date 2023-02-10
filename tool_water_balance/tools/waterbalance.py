@@ -2,8 +2,8 @@ from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.tool_water_balance.views.waterbalance_widget import (
+from threedi_results_analysis.datasource.threedi_results import find_h5_file
+from threedi_results_analysis.tool_water_balance.views.waterbalance_widget import (
     WaterBalanceWidget, NotSynchronizedTimestampsError,
 )
 from threedigrid.admin.gridadmin import GridH5Admin

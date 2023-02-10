@@ -1,17 +1,17 @@
 # See https://docs.qgis.org/3.10/en/docs/pyqgis_developer_cookbook/processing.html
 from qgis.core import QgsProcessingProvider
 from qgis.PyQt.QtGui import QIcon
-from ThreeDiToolbox.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
-from ThreeDiToolbox.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
-from ThreeDiToolbox.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
-from ThreeDiToolbox.processing.schematisation_algorithms import (
+from threedi_results_analysis.processing.dwf_calculation_algorithm import DWFCalculatorAlgorithm
+from threedi_results_analysis.processing.gpkg_conversion_algorithm import ThreeDiConvertToGpkgAlgorithm
+from threedi_results_analysis.processing.grid_creation_algorithm import ThreeDiGenerateCompGridAlgorithm
+from threedi_results_analysis.processing.schematisation_algorithms import (
     CheckSchematisationAlgorithm,
     MigrateAlgorithm,
     ImportSufHydAlgorithm,
     GuessIndicatorAlgorithm,
     ImportHydXAlgorithm,
 )
-from ThreeDiToolbox.processing.threedidepth_algorithm import ThreediDepthAlgorithm
+from threedi_results_analysis.processing.threedidepth_algorithm import ThreediDepthAlgorithm
 import os
 
 

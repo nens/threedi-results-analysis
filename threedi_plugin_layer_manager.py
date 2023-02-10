@@ -9,10 +9,10 @@ from PyQt5.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
 from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal, QVariant
 from qgis.core import QgsVectorLayer, QgsProject, QgsMapLayer, QgsField, QgsWkbTypes, QgsLayerTreeNode
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_GROUP_NAME, TOOLBOX_MESSAGE_TITLE
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
-from ThreeDiToolbox.utils.utils import safe_join
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_GROUP_NAME, TOOLBOX_MESSAGE_TITLE
+from threedi_results_analysis.utils.user_messages import StatusProgressBar, messagebar_message, pop_up_critical
+from threedi_results_analysis.utils.utils import safe_join
 from qgis.utils import iface
 
 styles_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "layer_styles", "grid")

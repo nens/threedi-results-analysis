@@ -1,4 +1,4 @@
-ThreeDiToolBox changelog
+3Di Results Analysis changelog
 ========================
 
 

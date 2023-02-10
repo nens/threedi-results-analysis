@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import Qt
-from ThreeDiToolbox.tool_sideview.sideview_view import SideViewDockWidget
+from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
 
 import qgis
 import os

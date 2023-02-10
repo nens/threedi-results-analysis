@@ -27,14 +27,14 @@ Take a look at the `Wiki`_ for more information.
 Installation on windows
 -----------------------
 
-You need to install Qgis 3.16.5+ (the "long term release"). Either the
+You need to install Qgis 3.22.16+ (the "long term release"). Either the
 stand-alone installer or the osgeo4w install is fine. For osgeo4w, pick the
 "qgis LTR full" version.
 
 Add the Lizard QGIS repository: via the QGIS menu bar go to "Plugins > Manage
 And Install Plugins... > Settings". Add
 ``https://plugins.lizard.net/plugins.xml`` and reload. Install the plugin by
-selecting ThreeDiToolbox.
+selecting 3Di Results Analysis.
 
 The extra dependencies that we need are bundled with the plugins and
 automatically installed into the ``python\`` directory of your qgis profile.
@@ -125,7 +125,7 @@ commands and follow their steps::
     $ fullrelease
 
 This creates a new release and tag on github. Additionally, a zip file
-``ThreeDiToolbox.<version>.zip`` is created. Github actions is configured to also
+``threedi_results_analysis.<version>.zip`` is created. Github actions is configured to also
 create this zip and upload it to https://plugins.lizard.net/ when a new tag is
 created, using the ``upload-artifact.sh`` script.
 

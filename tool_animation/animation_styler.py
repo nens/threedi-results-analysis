@@ -2,11 +2,11 @@ from pathlib import Path
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsMarkerSymbol
 from qgis.utils import iface
-from ThreeDiToolbox.datasource.result_constants import WET_CROSS_SECTION_AREA
-from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_CURL
-from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_DEEP
-from ThreeDiToolbox.utils.color import COLOR_RAMP_OCEAN_HALINE
-from ThreeDiToolbox.utils.color import color_ramp_from_data
+from threedi_results_analysis.datasource.result_constants import WET_CROSS_SECTION_AREA
+from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_CURL
+from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_DEEP
+from threedi_results_analysis.utils.color import COLOR_RAMP_OCEAN_HALINE
+from threedi_results_analysis.utils.color import color_ramp_from_data
 from typing import List
 
 import logging

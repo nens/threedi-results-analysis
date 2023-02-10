@@ -12,12 +12,12 @@ from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_schema import ThreediDatabase
 from threedi_schema import errors
-from ThreeDiToolbox.datasource.result_constants import LAYER_QH_TYPE_MAPPING
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.tool_result_selection.login_dialog import LoginDialog
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.utils.user_messages import pop_up_question
-from ThreeDiToolbox.utils.utils import backup_sqlite
+from threedi_results_analysis.datasource.result_constants import LAYER_QH_TYPE_MAPPING
+from threedi_results_analysis.datasource.threedi_results import find_h5_file
+from threedi_results_analysis.tool_result_selection.login_dialog import LoginDialog
+from threedi_results_analysis.utils.user_messages import pop_up_info
+from threedi_results_analysis.utils.user_messages import pop_up_question
+from threedi_results_analysis.utils.utils import backup_sqlite
 from urllib.error import HTTPError
 
 import h5py
@@ -264,7 +264,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                         "You selected a netcdf that was created "
                         "(after May 2018) with a 3Di calculation"
                         "core that is able to include groundwater"
-                        " calculations. The ThreeDiToolbox reads "
+                        " calculations. The plugin reads "
                         "this netcdf together with an .h5 file, we "
                         "could however not find this .h5 file. Please "
                         "add this file next to the netcdf and try "
@@ -278,7 +278,7 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
                 )
                 pop_up_info(
                     "The selected result data is too old and no longer "
-                    "supported in this version of ThreediToolbox. Please "
+                    "supported in this version of the plugin. Please "
                     "recalculate the results with a newer version of the "
                     "threedicore or use the ThreediToolbox plugin for QGIS 2",
                     title="Error",

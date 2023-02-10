@@ -1,9 +1,9 @@
 import logging
 
-from ThreeDiToolbox.utils.qlogging import ConsoleHandler
-from ThreeDiToolbox.utils.qlogging import FileHandler
-from ThreeDiToolbox.utils.qlogging import QgisHandler
-from ThreeDiToolbox.utils.qlogging import setup_logging
+from threedi_results_analysis.utils.qlogging import ConsoleHandler
+from threedi_results_analysis.utils.qlogging import FileHandler
+from threedi_results_analysis.utils.qlogging import QgisHandler
+from threedi_results_analysis.utils.qlogging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def test_root_logsetup():
 
 def test_plugin_logsetup():
     setup_logging()
-    our_plugin_logger = logging.getLogger("ThreeDiToolbox")
+    our_plugin_logger = logging.getLogger("threedi_results_analysis")
     handler_classes = [h.__class__ for h in our_plugin_logger.handlers]
     assert ConsoleHandler not in handler_classes
     assert FileHandler not in handler_classes

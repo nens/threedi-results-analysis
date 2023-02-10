@@ -7,10 +7,10 @@ from qgis.core import QgsVectorLayer
 from qgis.PyQt import QtSql
 from qgis.PyQt.QtCore import QVariant
 from sqlalchemy.exc import ResourceClosedError
-from ThreeDiToolbox.utils import constants
-from ThreeDiToolbox.utils.geo_utils import get_coord_transformation_instance
-from ThreeDiToolbox.utils.raw_sql import get_query_strings
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from threedi_results_analysis.utils import constants
+from threedi_results_analysis.utils.geo_utils import get_coord_transformation_instance
+from threedi_results_analysis.utils.raw_sql import get_query_strings
+from threedi_results_analysis.utils.threedi_database import ThreediDatabase
 
 import logging
 

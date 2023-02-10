@@ -1,7 +1,7 @@
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QObject
-from ThreeDiToolbox.tool_graph.graph_view import GraphDockWidget
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from threedi_results_analysis.tool_graph.graph_view import GraphDockWidget
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
 from qgis.PyQt.QtCore import pyqtSlot
 import qgis
 import os

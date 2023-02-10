@@ -38,10 +38,10 @@ def enable_high_dpi_scaling():
 
 
 def classFactory(iface):
-    """Return ThreeDiToolbox class from file ThreeDiToolbox.
+    """Return plugin class.
 
     In addition, we set up python logging (see
-    :py:mod:`ThreeDiToolbox.utils.qlogging`).
+    :py:mod:`threedi_results_analysis.utils.qlogging`).
 
     args:
         iface (QgsInterface): A QGIS interface instance.

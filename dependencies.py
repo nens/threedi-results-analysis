@@ -154,7 +154,7 @@ def ensure_everything_installed():
         if restart_required or not restart_marker.exists():
             if _is_windows():
                 # We always want to restart when deps are missing
-                from ThreeDiToolbox.utils.user_messages import pop_up_info
+                from threedi_results_analysis.utils.user_messages import pop_up_info
 
                 pop_up_info(
                     "Please restart QGIS to complete the installation process of "
@@ -191,9 +191,9 @@ def _ensure_h5py_installed():
     problems.
 
     Situations B occur when a user upgrades/downgrades their Qgis version when
-    the ThreediToolbox is already installed with a specific version of h5py.
+    the plugin is already installed with a specific version of h5py.
     In these cases we also need to upgrade/downgrade the h5py version installed with
-    ThreediToolbox.
+    the plugin.
 
     In situations B Qgis will crash when trying to import h5py.
 

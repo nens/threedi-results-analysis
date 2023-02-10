@@ -5,7 +5,7 @@ Qgis comes bundled with several python libraries, but we need a few more. The
 extra dependencies (as wheels and eggs) are retrieved or stored into the
 ``external-dependencies/`` directory and bundled with the plugin.
 
-The main ``ThreeDiToolbox/__init__.py`` (see :py:mod:`ThreeDiToolbox`) calls
+The main ``threedi_results_analysis/__init__.py`` (see :py:mod:`ThreeDiToolbox`) calls
 ``dependencies.py`` and installs the dependencies the subfolder ``deps`` of
 the plugin folder. The dependency folder is also added (prepended) to the path.
 
@@ -87,7 +87,7 @@ two exceptions:
 Our dependency handling
 -----------------------
 
-``dependencies.py`` (see :py:mod:`ThreeDiToolbox.dependencies`) can be called
+``dependencies.py`` (see :py:mod:`threedi_results_analysis.dependencies`) can be called
 directly, which generates a ``constraints.txt`` file for use with pip. The
 ``Makefile`` handles this for us: it updates the constraints file when the
 python file changes.
@@ -104,8 +104,8 @@ directory with our dependencies so that we can bundle it with the plugin:
 
 - Lastly, it copies the custom built h5py package from the folder 'h5py'.
 
-The :py:func:`ThreeDiToolbox.dependencies.ensure_everything_installed`
-function is called by our main ``ThreeDiToolbox/__init__.py``:
+The :py:func:`threedi_results_analysis.dependencies.ensure_everything_installed`
+function is called by our main ``threedi_results_analysis/__init__.py``:
 
 - It first checks if the correct versions of our dependencies are
   installed. It doesn't matter where they're installed: system packages,
@@ -115,8 +115,8 @@ function is called by our main ``ThreeDiToolbox/__init__.py``:
   from the ``external-dependencies/`` directory into the plugin's
   ``deps/`` directory.
 
-As a last step, ``ThreeDiToolbox/__init__.py`` calls
-:py:func:`ThreeDiToolbox.dependencies.check_importability` to make doubly sure
+As a last step, ``threedi_results_analysis/__init__.py`` calls
+:py:func:`threedi_results_analysis.dependencies.check_importability` to make doubly sure
 all dependencies are present. Not only the ones from
 ``external-dependencies/``, but also ``gdal`` and ``numpy`` to make sure
 they're properly included with qgis.

@@ -18,7 +18,7 @@ import logging
 from qgis.core import Qgis
 from qgis.core import QgsApplication
 from qgis.core import QgsMessageLog
-from ThreeDiToolbox.utils import log_traceback_monkeypatch  # noqa
+from threedi_results_analysis.utils import log_traceback_monkeypatch  # noqa
 
 
 LOGFILE_NAME = "threedi-qgis-log.txt"
@@ -101,7 +101,7 @@ def setup_logging():
 
     Set the root logger level to DEBUG.
     Add file and console handlers to the root logger.
-    Add a QGIS handler to loggers within ThreeDiToolbox.
+    Add a QGIS handler to loggers within plugin.
     Set level of PyQt5 loggers to INFO
     """
     root_logger = logging.getLogger("")
@@ -114,8 +114,8 @@ def setup_logging():
         root_logger.addHandler(FileHandler())
         logger.info("Started logfile: %s", FileHandler.get_filename())
 
-    # QGIS handler for all "__name__" loggers in the ThreeDiToolbox package
-    our_plugin_logger = logging.getLogger("ThreeDiToolbox")
+    # QGIS handler for all "__name__" loggers in the plugin package
+    our_plugin_logger = logging.getLogger("threedi_results_analysis")
     if not has_handler(root_logger, QgisHandler):
         our_plugin_logger.addHandler(QgisHandler())
 

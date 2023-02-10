@@ -1,6 +1,6 @@
 from pathlib import Path
-from ThreeDiToolbox import dependencies
-from ThreeDiToolbox.dependencies import Dependency
+from threedi_results_analysis import dependencies
+from threedi_results_analysis.dependencies import Dependency
 
 import mock
 import os

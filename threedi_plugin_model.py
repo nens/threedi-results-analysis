@@ -4,12 +4,12 @@ from functools import cached_property
 from qgis.PyQt.QtCore import QModelIndex, pyqtSignal, pyqtSlot
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_cell_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_flowline_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_node_layer
-from ThreeDiToolbox.utils.layer_from_netCDF import get_or_create_pumpline_layer
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.utils.layer_from_netCDF import get_or_create_cell_layer
+from threedi_results_analysis.utils.layer_from_netCDF import get_or_create_flowline_layer
+from threedi_results_analysis.utils.layer_from_netCDF import get_or_create_node_layer
+from threedi_results_analysis.utils.layer_from_netCDF import get_or_create_pumpline_layer
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
 
 import logging
 import uuid

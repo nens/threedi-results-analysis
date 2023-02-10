@@ -1,15 +1,15 @@
 from logging import getLogger
 from pathlib import Path
 
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem
-from ThreeDiToolbox.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
-from ThreeDiToolbox import PLUGIN_DIR
+from threedi_results_analysis import PLUGIN_DIR
 
 logger = getLogger(__name__)
 

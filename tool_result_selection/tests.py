@@ -1,6 +1,6 @@
-from ThreeDiToolbox.tool_result_selection import login_dialog
-from ThreeDiToolbox.tool_result_selection import models
-from ThreeDiToolbox.tool_result_selection import result_selection
+from threedi_results_analysis.tool_result_selection import login_dialog
+from threedi_results_analysis.tool_result_selection import models
+from threedi_results_analysis.tool_result_selection import result_selection
 
 import mock
 

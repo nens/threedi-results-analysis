@@ -4,27 +4,27 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from qgis.utils import iface
 from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
-from ThreeDiToolbox.misc_tools import About
-from ThreeDiToolbox.misc_tools import CacheClearer
-from ThreeDiToolbox.misc_tools import ShowLogfile
-from ThreeDiToolbox.misc_tools import ToggleResultsManager
-from ThreeDiToolbox.processing.providers import ThreediProvider
-from ThreeDiToolbox.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
-from ThreeDiToolbox.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
-from ThreeDiToolbox.threedi_plugin_model_validation import ThreeDiPluginModelValidator
-from ThreeDiToolbox.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
-from ThreeDiToolbox.tool_animation.map_animator import MapAnimator
-from ThreeDiToolbox.tool_graph.graph import ThreeDiGraph
-from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
-from ThreeDiToolbox.tool_result_selection.result_selection import ThreeDiResultSelection
-from ThreeDiToolbox.tool_sideview.sideview import ThreeDiSideView
-from ThreeDiToolbox.tool_statistics import StatisticsTool
-from ThreeDiToolbox.tool_water_balance import WaterBalanceTool
-from ThreeDiToolbox.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
-from ThreeDiToolbox.utils import color
-from ThreeDiToolbox.utils.layer_tree_manager import LayerTreeManager
-from ThreeDiToolbox.utils.qprojects import ProjectStateMixin
+from threedi_results_analysis.misc_tools import About
+from threedi_results_analysis.misc_tools import CacheClearer
+from threedi_results_analysis.misc_tools import ShowLogfile
+from threedi_results_analysis.misc_tools import ToggleResultsManager
+from threedi_results_analysis.processing.providers import ThreediProvider
+from threedi_results_analysis.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_model_validation import ThreeDiPluginModelValidator
+from threedi_results_analysis.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
+from threedi_results_analysis.tool_animation.map_animator import MapAnimator
+from threedi_results_analysis.tool_graph.graph import ThreeDiGraph
+from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
+from threedi_results_analysis.tool_result_selection.result_selection import ThreeDiResultSelection
+from threedi_results_analysis.tool_sideview.sideview import ThreeDiSideView
+from threedi_results_analysis.tool_statistics import StatisticsTool
+from threedi_results_analysis.tool_water_balance import WaterBalanceTool
+from threedi_results_analysis.tool_watershed.watershed_analysis import ThreeDiWatershedAnalyst
+from threedi_results_analysis.utils import color
+from threedi_results_analysis.utils.layer_tree_manager import LayerTreeManager
+from threedi_results_analysis.utils.qprojects import ProjectStateMixin
 
 import logging
 
@@ -71,7 +71,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.ts_datasources = TimeseriesDatasourceModel()
 
         # Set toolbar and init a few toolbar widgets
-        self.toolbar = self.iface.addToolBar("ThreeDiToolbox")
+        self.toolbar = self.iface.addToolBar("ThreeDiResultAnalysis")
 
         # Init the rest of the tools
         self.about_tool = About(iface)

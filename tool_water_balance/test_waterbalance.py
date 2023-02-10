@@ -4,10 +4,10 @@ from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
-from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
-from ThreeDiToolbox.tool_water_balance.views import waterbalance_widget
+from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
+from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
+from threedi_results_analysis.tool_water_balance.tools.waterbalance import WaterBalanceCalculation
+from threedi_results_analysis.tool_water_balance.views import waterbalance_widget
 
 import mock
 import numpy as np
@@ -133,7 +133,7 @@ def wb_calculation(ts_datasources):
     return wb_calculation
 
 
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def test_get_incoming_and_outcoming_link_ids(
     progress_bar_mock, wb_calculation, wb_polygon
 ):
@@ -144,13 +144,13 @@ def test_get_incoming_and_outcoming_link_ids(
     assert links == LINKS_EXPECTED
 
 
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def test_get_nodes(progress_bar_mock, wb_calculation, wb_polygon):
     nodes = wb_calculation.get_nodes(wb_polygon, None)
     assert nodes == NODES_EXPECTED
 
 
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
     """test A) number of timesteps, B) wheter we get a time series for each link,
     pump and node"""
@@ -179,7 +179,7 @@ def test_time_steps_get_aggregated_flows(progress_bar_mock, wb_calculation):
     )
 
 
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
     link_ids = LINKS_EXPECTED[0]
     pump_ids = LINKS_EXPECTED[1]
@@ -215,7 +215,7 @@ def test_get_aggregated_flows_2d_and_1d(progress_bar_mock, wb_calculation):
 
 @pytest.fixture()
 @mock.patch(
-    "ThreeDiToolbox.tool_water_balance.views.waterbalance_widget.PolygonDrawTool"
+    "threedi_results_analysis.tool_water_balance.views.waterbalance_widget.PolygonDrawTool"
 )
 def wb_widget(mock_it, ts_datasources, wb_calculation):
     ensure_qgis_app_is_initialized()
@@ -322,7 +322,7 @@ def test_barmanger_2d_groundwater(wb_widget):
 
 
 @pytest.fixture()
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def waterbalance_widget_timeseries(progress_bar_mock, wb_widget, wb_polygon):
     # always use domain '1d and 2d' to get all flows in the barchart
     wb_widget.wb_polygon = wb_polygon
@@ -357,7 +357,7 @@ def helper_get_flows_and_dvol(domain=None):
     return sum_inflow, sum_outflow, d_vol
 
 
-@mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar")
+@mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar")
 def test_waterbalance_closure(
     progress_bar_mock, wb_widget, wb_polygon, waterbalance_widget_timeseries
 ):

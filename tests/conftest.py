@@ -1,6 +1,6 @@
 import pytest
 
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
+from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
 
 
 @pytest.fixture(autouse=True)

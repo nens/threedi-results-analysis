@@ -19,11 +19,11 @@ from sqlalchemy import MetaData
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
 from sqlite3 import dbapi2
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.utils.threedi_database import load_spatialite
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.utils.user_messages import pop_up_question
-from ThreeDiToolbox.utils.user_messages import progress_bar
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.utils.threedi_database import load_spatialite
+from threedi_results_analysis.utils.user_messages import pop_up_info
+from threedi_results_analysis.utils.user_messages import pop_up_question
+from threedi_results_analysis.utils.user_messages import progress_bar
 
 import logging
 import numpy as np

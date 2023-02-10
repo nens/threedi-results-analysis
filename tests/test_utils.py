@@ -1,7 +1,7 @@
 """
 Test utils.
 """
-from ThreeDiToolbox.utils.utils import parse_db_source_info
+from threedi_results_analysis.utils.utils import parse_db_source_info
 
 import unittest
 

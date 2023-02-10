@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
+from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
 
 import unittest
 

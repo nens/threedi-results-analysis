@@ -1,9 +1,9 @@
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
-from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
-from ThreeDiToolbox.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
+from threedi_results_analysis.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from pathlib import Path
 import logging
 import re

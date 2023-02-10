@@ -13,20 +13,20 @@ from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
 from threedigrid.admin.constants import NO_DATA_VALUE
-from ThreeDiToolbox.datasource.result_constants import DISCHARGE
-from ThreeDiToolbox.datasource.result_constants import H_TYPES
-from ThreeDiToolbox.datasource.result_constants import NEGATIVE_POSSIBLE
-from ThreeDiToolbox.datasource.result_constants import Q_TYPES
-from ThreeDiToolbox.datasource.result_constants import WATERLEVEL
-from ThreeDiToolbox.datasource.result_constants import AGGREGATION_OPTIONS
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
-from ThreeDiToolbox.utils.utils import generate_parameter_config
-from ThreeDiToolbox.utils.timing import timing
+from threedi_results_analysis.datasource.result_constants import DISCHARGE
+from threedi_results_analysis.datasource.result_constants import H_TYPES
+from threedi_results_analysis.datasource.result_constants import NEGATIVE_POSSIBLE
+from threedi_results_analysis.datasource.result_constants import Q_TYPES
+from threedi_results_analysis.datasource.result_constants import WATERLEVEL
+from threedi_results_analysis.datasource.result_constants import AGGREGATION_OPTIONS
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.threedi_plugin_model import ThreeDiResultItem, ThreeDiGridItem
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
+from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.timing import timing
 from typing import List
 
-import ThreeDiToolbox.tool_animation.animation_styler as styler
+import threedi_results_analysis.tool_animation.animation_styler as styler
 import copy
 import logging
 import math
@@ -87,7 +87,7 @@ def threedi_result_percentiles(
 
     :param gr: GridH5ResultAdmin
     :param groundwater: calculate percentiles for groundwater (True) or anything but groundwater (False)
-    :param variable: one of ThreeDiToolbox.datasource.result_constants.SUBGRID_MAP_VARIABLES,
+    :param variable: one of threedi_results_analysis.datasource.result_constants.SUBGRID_MAP_VARIABLES,
     with the exception of q_pump
     :param percentile: Percentile or sequence of class_bounds to compute, which must be between 0 and 100 inclusive.
     :param absolute: calculate percentiles on absolute values

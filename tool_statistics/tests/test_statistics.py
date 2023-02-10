@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2 as dbapi
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tool_statistics.tools.statistics import StatisticsTool
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
+from threedi_results_analysis.tool_statistics.tools.statistics import StatisticsTool
 
 import mock
 import os.path
@@ -29,7 +29,7 @@ class DummyTimeseriesDatasourceModel(object):
 
 class TestStatistics(unittest.TestCase):
     """In TestStatistics the gridadmin.sqlite is updated: tables are added if
-    they not exist (or removed first if they exist). ThreeDiToolbox assumes:
+    they not exist (or removed first if they exist). Plugin assumes:
     - gridadmin.sqlite is in same folder as model.sqlite and two netcdf files
     - filename must be "gridadmin.sqlite"
     We do not want to copy (large!) netcdfs to tempdir, therefore we
@@ -38,8 +38,8 @@ class TestStatistics(unittest.TestCase):
     - remove tempdir (e.g. in a tearDownClass() is not needed apparently"""
 
     @classmethod
-    @mock.patch("ThreeDiToolbox.tool_statistics.tools.statistics.progress_bar")
-    @mock.patch("ThreeDiToolbox.tool_statistics.tools.statistics.pop_up_question")
+    @mock.patch("threedi_results_analysis.tool_statistics.tools.statistics.progress_bar")
+    @mock.patch("threedi_results_analysis.tool_statistics.tools.statistics.pop_up_question")
     def setUpClass(cls, mock_pop_up_question, mock_progress_bar):
         mock_pop_up_question.return_value = True
 

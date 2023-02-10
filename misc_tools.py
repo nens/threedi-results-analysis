@@ -5,13 +5,13 @@ Miscellaneous tools.
 from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsProject
-from ThreeDiToolbox import PLUGIN_DIR
-from ThreeDiToolbox.utils.qlogging import FileHandler
-from ThreeDiToolbox.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
-from ThreeDiToolbox.utils.layer_from_netCDF import NODES_LAYER_NAME
-from ThreeDiToolbox.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
-from ThreeDiToolbox.utils.user_messages import pop_up_info
-from ThreeDiToolbox.utils.user_messages import pop_up_question
+from threedi_results_analysis import PLUGIN_DIR
+from threedi_results_analysis.utils.qlogging import FileHandler
+from threedi_results_analysis.utils.layer_from_netCDF import FLOWLINES_LAYER_NAME
+from threedi_results_analysis.utils.layer_from_netCDF import NODES_LAYER_NAME
+from threedi_results_analysis.utils.layer_from_netCDF import PUMPLINES_LAYER_NAME
+from threedi_results_analysis.utils.user_messages import pop_up_info
+from threedi_results_analysis.utils.user_messages import pop_up_question
 
 import logging
 import os

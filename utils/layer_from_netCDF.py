@@ -2,7 +2,7 @@
 from osgeo import ogr
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsVectorLayer
-from ThreeDiToolbox.datasource.spatialite import disable_sqlite_synchronous
+from threedi_results_analysis.datasource.spatialite import disable_sqlite_synchronous
 
 import logging
 import os

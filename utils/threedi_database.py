@@ -6,7 +6,7 @@ from sqlalchemy.event import listen
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
-from ThreeDiToolbox.utils.user_messages import StatusProgressBar
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
 
 import collections
 import copy

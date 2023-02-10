@@ -7,10 +7,10 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QUrl
 from qgis.PyQt.QtNetwork import QNetworkRequest
 from qgis.PyQt.QtWidgets import QFileDialog
-from ThreeDiToolbox.tool_result_selection import models
-from ThreeDiToolbox.tool_result_selection import result_selection_view
-from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.utils.user_messages import pop_up_info
+from threedi_results_analysis.tool_result_selection import models
+from threedi_results_analysis.tool_result_selection import result_selection_view
+from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.utils.user_messages import pop_up_info
 from urllib.parse import urlparse
 
 import json

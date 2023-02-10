@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from random import randint
-from ThreeDiToolbox.models.base import BaseModel
-from ThreeDiToolbox.models.base_fields import CheckboxField
-from ThreeDiToolbox.models.base_fields import ColorField
-from ThreeDiToolbox.models.base_fields import ValueField
+from threedi_results_analysis.models.base import BaseModel
+from threedi_results_analysis.models.base_fields import CheckboxField
+from threedi_results_analysis.models.base_fields import ColorField
+from threedi_results_analysis.models.base_fields import ValueField
 
 import numpy as np
 

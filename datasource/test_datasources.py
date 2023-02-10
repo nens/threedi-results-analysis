@@ -6,14 +6,14 @@ from qgis.core import QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin import gridresultadmin
 from threedigrid.admin.constants import NO_DATA_VALUE
-from ThreeDiToolbox.datasource import base
-from ThreeDiToolbox.datasource.spatialite import Spatialite
-from ThreeDiToolbox.datasource.threedi_results import find_aggregation_netcdf
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tests.utilities import TemporaryDirectory
+from threedi_results_analysis.datasource import base
+from threedi_results_analysis.datasource.spatialite import Spatialite
+from threedi_results_analysis.datasource.threedi_results import find_aggregation_netcdf
+from threedi_results_analysis.datasource.threedi_results import find_h5_file
+from threedi_results_analysis.datasource.threedi_results import normalized_object_type
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
+from threedi_results_analysis.tests.utilities import TemporaryDirectory
 
 import h5py
 import mock
@@ -101,10 +101,10 @@ class TestNetcdfGroundwaterDataSource(unittest.TestCase):
         ThreediResult()
 
     @mock.patch(
-        "ThreeDiToolbox.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
+        "threedi_results_analysis.datasource.threedi_results.ThreediResult.available_subgrid_map_vars",
         ["s1"],
     )
-    @mock.patch("ThreeDiToolbox.datasource.threedi_results.ThreediResult.result_admin")
+    @mock.patch("threedi_results_analysis.datasource.threedi_results.ThreediResult.result_admin")
     def test_get_timeseries(self, result_admin_mock):
         threedi_result = ThreediResult()
         threedi_result.get_timeseries("s1", 3)

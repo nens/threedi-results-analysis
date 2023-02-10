@@ -1,7 +1,7 @@
-from ThreeDiToolbox.datasource.threedi_results import ThreediResult
-from ThreeDiToolbox.tests.test_init import TEST_DATA_DIR
-from ThreeDiToolbox.tests.utilities import ensure_qgis_app_is_initialized
-from ThreeDiToolbox.tool_result_selection import models
+from threedi_results_analysis.datasource.threedi_results import ThreediResult
+from threedi_results_analysis.tests.test_init import TEST_DATA_DIR
+from threedi_results_analysis.tests.utilities import ensure_qgis_app_is_initialized
+from threedi_results_analysis.tool_result_selection import models
 
 import mock
 import pytest
@@ -77,7 +77,7 @@ def test_get_line_pattern():
 
 def test_pop_up_unkown_datasource_type():
     with mock.patch(
-        "ThreeDiToolbox.tool_result_selection.models.pop_up_info"
+        "threedi_results_analysis.tool_result_selection.models.pop_up_info"
     ) as mock_pop_up_info:
         models.pop_up_unkown_datasource_type()
         assert mock_pop_up_info.called
@@ -137,7 +137,7 @@ def test_ts_datasource_model_field_models():
     ts_datasources.insertRows([test_values])
     assert ts_datasources.rows[0].threedi_result()
     assert ts_datasources.rows[0].sqlite_gridadmin_filepath()
-    with mock.patch("ThreeDiToolbox.tool_result_selection.models.StatusProgressBar"):
+    with mock.patch("threedi_results_analysis.tool_result_selection.models.StatusProgressBar"):
         assert ts_datasources.rows[0].get_result_layers()
 
 
@@ -153,7 +153,7 @@ def test_ts_datasource_model_barfs_on_unkown_type():
     ts_datasources = models.TimeseriesDatasourceModel()
     ts_datasources.insertRows([test_values])
     with mock.patch(
-        "ThreeDiToolbox.tool_result_selection.models.pop_up_info"
+        "threedi_results_analysis.tool_result_selection.models.pop_up_info"
     ) as mock_pop_up_info:
         with pytest.raises(AssertionError):
             # Barfs on the unknown datasource_type

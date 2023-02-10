@@ -25,10 +25,10 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox import PLUGIN_DIR
-from ThreeDiToolbox.datasource.threedi_results import find_h5_file
-from ThreeDiToolbox.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
-from ThreeDiToolbox.utils.user_messages import messagebar_message
+from threedi_results_analysis import PLUGIN_DIR
+from threedi_results_analysis.datasource.threedi_results import find_h5_file
+from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
+from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedigrid.admin.gridadmin import GridH5Admin
 
 import copy

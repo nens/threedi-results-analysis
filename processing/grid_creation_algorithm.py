@@ -9,7 +9,7 @@ from qgis.core import (
     QgsVectorLayer,
 )
 from threedigrid_builder import make_gridadmin, SchematisationError
-from ThreeDiToolbox.processing.processing_utils import gridadmin2geopackage, load_computational_layers
+from threedi_results_analysis.processing.processing_utils import gridadmin2geopackage, load_computational_layers
 
 
 class ThreeDiGenerateCompGridAlgorithm(QgsProcessingAlgorithm):

@@ -34,7 +34,7 @@ from threedidepth.calculate import MODE_CONSTANT_S1
 from threedidepth.calculate import MODE_LINEAR
 from threedidepth.calculate import MODE_LIZARD
 from threedidepth.calculate import MODE_LIZARD_S1
-from ThreeDiToolbox.utils.user_messages import pop_up_info
+from threedi_results_analysis.utils.user_messages import pop_up_info
 
 import h5py
 import logging

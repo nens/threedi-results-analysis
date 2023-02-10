@@ -1,9 +1,9 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from pathlib import Path
 from qgis.core import Qgis
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
-from ThreeDiToolbox.utils.user_messages import messagebar_message, pop_up_critical
-from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from threedi_results_analysis.utils.user_messages import messagebar_message, pop_up_critical
+from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 import h5py
 from osgeo import ogr
 import logging

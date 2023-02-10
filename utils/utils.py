@@ -1,11 +1,11 @@
 """Imported in __init__.py"""
 from itertools import tee
 from uuid import uuid4
-from ThreeDiToolbox.datasource.result_constants import AGGREGATION_VARIABLES
-from ThreeDiToolbox.datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
-from ThreeDiToolbox.datasource.result_constants import H_TYPES
-from ThreeDiToolbox.datasource.result_constants import Q_TYPES
-from ThreeDiToolbox.datasource.result_constants import SUBGRID_MAP_VARIABLES
+from threedi_results_analysis.datasource.result_constants import AGGREGATION_VARIABLES
+from threedi_results_analysis.datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
+from threedi_results_analysis.datasource.result_constants import H_TYPES
+from threedi_results_analysis.datasource.result_constants import Q_TYPES
+from threedi_results_analysis.datasource.result_constants import SUBGRID_MAP_VARIABLES
 
 import logging
 import os

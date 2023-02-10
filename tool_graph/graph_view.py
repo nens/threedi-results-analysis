@@ -27,14 +27,14 @@ from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QColorDialog
 from qgis.utils import iface
-from ThreeDiToolbox.tool_graph.graph_model import LocationTimeseriesModel
-from ThreeDiToolbox.utils.user_messages import messagebar_message
-from ThreeDiToolbox.utils.user_messages import statusbar_message
-from ThreeDiToolbox.utils.utils import generate_parameter_config
-from ThreeDiToolbox.utils.constants import TOOLBOX_MESSAGE_TITLE
+from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
+from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.utils.user_messages import statusbar_message
+from threedi_results_analysis.utils.utils import generate_parameter_config
+from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from qgis.core import QgsVectorLayer
-from ThreeDiToolbox.datasource.threedi_results import normalized_object_type
-from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem, ThreeDiGridItem
+from threedi_results_analysis.datasource.threedi_results import normalized_object_type
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel, ThreeDiResultItem, ThreeDiGridItem
 
 from typing import List
 

@@ -1,5 +1,4 @@
 #/***************************************************************************
-# ThreeDiToolbox
 #
 # Toolbox for working with 3Di hydraulic models
 #							 -------------------

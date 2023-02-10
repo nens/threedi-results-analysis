@@ -36,11 +36,11 @@ from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from ThreeDiToolbox.tool_sideview.route import Route
-from ThreeDiToolbox.tool_sideview.utils import haversine
-from ThreeDiToolbox.tool_sideview.utils import split_line_at_points
-from ThreeDiToolbox.utils.user_messages import statusbar_message
-from ThreeDiToolbox.utils.user_messages import messagebar_message
+from threedi_results_analysis.tool_sideview.route import Route
+from threedi_results_analysis.tool_sideview.utils import haversine
+from threedi_results_analysis.tool_sideview.utils import split_line_at_points
+from threedi_results_analysis.utils.user_messages import statusbar_message
+from threedi_results_analysis.utils.user_messages import messagebar_message
 
 import logging
 import numpy as np

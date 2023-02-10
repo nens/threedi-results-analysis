@@ -1,6 +1,6 @@
 from ..sql_models.statistics import Base
 from osgeo import ogr
-from ThreeDiToolbox.utils.threedi_database import ThreediDatabase
+from threedi_results_analysis.utils.threedi_database import ThreediDatabase
 
 import copy
 import logging

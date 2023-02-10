@@ -6,7 +6,7 @@ can have also have such files in subdirectories. The fixtures in this file
 
 """
 
-from ThreeDiToolbox import PLUGIN_DIR
+from threedi_results_analysis import PLUGIN_DIR
 
 import os
 import pytest
@@ -39,7 +39,7 @@ def threedi_result():
 
     """
     # Late import, otherwise we get circular import errors.
-    from ThreeDiToolbox.datasource.threedi_results import ThreediResult
+    from threedi_results_analysis.datasource.threedi_results import ThreediResult
 
     return ThreediResult(file_path=results_3di_path)
 
@@ -52,7 +52,7 @@ def ts_datasources(tmp_path):
 
     """
     # Late import, otherwise we get circular import errors.
-    from ThreeDiToolbox.tool_result_selection.models import TimeseriesDatasourceModel
+    from threedi_results_analysis.tool_result_selection.models import TimeseriesDatasourceModel
 
     shutil.copytree(bergermeer_dir, tmp_path / "v2_bergermeer")
     copied_results_3di_path = tmp_path / "v2_bergermeer" / "results_3di.nc"
