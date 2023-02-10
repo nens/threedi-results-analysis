@@ -1,8 +1,10 @@
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from ThreeDiToolbox.utils.constants import TOOLBOX_XML_ELEMENT_ROOT
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiPluginModel
+from ThreeDiToolbox.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from qgis.PyQt.QtGui import QStandardItem
 from ThreeDiToolbox.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
+from pathlib import Path
 import logging
 import re
 
@@ -12,14 +14,13 @@ logger = logging.getLogger(__name__)
 class ThreeDiPluginModelSerializer:
 
     @staticmethod
-    def read(model: ThreeDiPluginModel, doc: QDomDocument, resolver) -> bool:
+    def read(loader: ThreeDiPluginLayerManager, doc: QDomDocument, resolver) -> bool:
         """Reads the model from the provided XML DomDocument
 
         Recursively traverses down the XML tree. Returns True
         on success. Resolver is used to convert between relative
         and absolute paths.
         """
-        model.clear()
 
         # Find existing element corresponding to the result model
         results_nodes = doc.elementsByTagName(TOOLBOX_XML_ELEMENT_ROOT)
@@ -34,15 +35,14 @@ class ThreeDiPluginModelSerializer:
         assert results_node.parentNode() is not None
 
         # Now traverse through the XML tree and add model items
-        if not ThreeDiPluginModelSerializer._read_recursive(model, results_node, model.invisibleRootItem(), resolver):
+        if not ThreeDiPluginModelSerializer._read_recursive(loader, results_node, None, resolver):
             logger.error("Unable to read XML, aborting read")
-            model.clear()
             return False
 
         return True
 
     @staticmethod
-    def _read_recursive(model: ThreeDiPluginModel, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
+    def _read_recursive(loader: ThreeDiPluginLayerManager, xml_parent: QDomElement, model_parent: QStandardItem, resolver) -> bool:
 
         if not xml_parent.hasChildNodes():
             return True
@@ -57,35 +57,35 @@ class ThreeDiPluginModelSerializer:
                 tag_name = xml_element_node.tagName()
                 model_node = None
                 if tag_name == "grid":
-                    # First read the grids layer ids
-                    layer_ids = {}
+
+                    model_node = ThreeDiGridItem(Path(resolver.readPath(xml_element_node.attribute("path"))), xml_element_node.attribute("text"))
+
                     assert xml_node.hasChildNodes()
                     layer_nodes = xml_element_node.elementsByTagName("layer")
                     for i in range(layer_nodes.count()):
                         label_node = layer_nodes.at(i).toElement()
-                        layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
+                        model_node.layer_ids[label_node.attribute("table_name")] = label_node.attribute("id")
 
-                    model_node = model.add_grid(
-                        resolver.readPath(xml_element_node.attribute("path")),
-                        xml_element_node.attribute("text"),
-                        layer_ids
-                    )
+                    if not loader.load_grid(model_node):
+                        return False
+
                 elif tag_name == "result":
-                    model_node = model.add_result(
-                        resolver.readPath(xml_element_node.attribute("path")),
-                        model_parent,
-                        xml_element_node.attribute("text"),
-                    )
-                    # TODO: this should also be passed before the add_result.
-                    # Otherwise the signal is emitted with a possible unchecked item
+
+                    model_node = ThreeDiResultItem(Path(resolver.readPath(xml_element_node.attribute("path"))))
                     model_node.setCheckState(int(xml_element_node.attribute("check_state")))
+                    model_node.setText(xml_element_node.attribute("text"))
+
+                    assert isinstance(model_parent, ThreeDiGridItem)
+                    if not loader.load_result(model_node, model_parent):
+                        return False
+
                 elif tag_name == "layer":  # Subelement of grid
                     continue  # Leaf of XML tree, no processing
                 else:
                     logger.error("Unexpected XML item type, aborting read")
                     return False
 
-                if not ThreeDiPluginModelSerializer._read_recursive(model, xml_node, model_node, resolver):
+                if not ThreeDiPluginModelSerializer._read_recursive(loader, xml_node, model_node, resolver):
                     return False
             else:
                 return False

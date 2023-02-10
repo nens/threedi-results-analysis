@@ -1,9 +1,9 @@
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
-from qgis.PyQt.QtXml import QDomDocument
+from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from qgis.utils import iface
-from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings
+from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
 from ThreeDiToolbox.misc_tools import About
 from ThreeDiToolbox.misc_tools import CacheClearer
 from ThreeDiToolbox.misc_tools import ShowLogfile
@@ -119,23 +119,26 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
         # Connect the signals
-        self.dockwidget.grid_file_selected.connect(self.model.add_grid)
-        self.dockwidget.result_file_selected.connect(self.model.add_result)
-        self.dockwidget.item_selected.connect(self.model.select_item)
-        self.dockwidget.item_deselected.connect(self.model.deselect_item)
-        self.dockwidget.remove_current_index_clicked.connect(self.model.remove_index)
 
-        self.model.grid_added.connect(self.loader.load_grid)
+        self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
+        self.dockwidget.result_file_selected.connect(self.validator.validate_result)
+
+        self.validator.result_valid.connect(self.loader.load_result)
+        self.validator.grid_valid.connect(self.loader.load_grid)
+
+        self.loader.grid_loaded.connect(self.model.add_grid)
+        self.loader.result_loaded.connect(self.model.add_result)
+
         self.model.grid_added.connect(self.dockwidget.expand_grid)
-        self.model.result_added.connect(self.loader.load_result)
-        self.model.grid_removed.connect(self.loader.unload_grid)
-        self.model.result_removed.connect(self.loader.unload_result)
+
+        # Selection and removal can be direct forwarded to the model
+
+        self.dockwidget.remove_current_index_clicked.connect(self.model.remove_index)
         self.model.grid_changed.connect(self.loader.update_grid)
         self.model.result_changed.connect(self.loader.update_result)
         self.model.result_unchecked.connect(self.loader.result_unchecked)
-
-        self.loader.grid_loaded.connect(self.validator.validate_grid)
-        self.loader.result_loaded.connect(self.validator.validate_result)
+        self.model.grid_removed.connect(self.loader.unload_grid)
+        self.model.result_removed.connect(self.loader.unload_result)
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
@@ -148,22 +151,21 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.initProcessing()
 
+        # animation signals
         self.map_animator = MapAnimator(self.dockwidget.get_tools_widget(), self.model)
-
         self.model.result_checked.connect(self.map_animator.results_changed)
         self.model.result_unchecked.connect(self.map_animator.results_changed)
-
-        # start animating
+        self.model.result_added.connect(self.map_animator.results_changed)
         tc = iface.mapCanvas().temporalController()
         tc.updateTemporalRange.connect(self.map_animator.update_results)
 
+        # graph signals
         self.model.result_added.connect(self.graph_tool.result_added)
         self.model.result_removed.connect(self.graph_tool.result_removed)
         self.model.result_changed.connect(self.graph_tool.result_changed)
         self.model.grid_changed.connect(self.graph_tool.grid_changed)
 
         self.init_state_sync()
-        # tc.setTemporalExtents(QgsDateTimeRange(Datetime(2020, 5, 17), Datetime.now()))
 
         # Disable warning that scratch layer data will be lost
         QgsSettings().setValue("askToSaveMemoryLayers", False, QgsSettings.App)
@@ -175,16 +177,22 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
         return ThreeDiPluginModelSerializer.write(self.model, doc, resolver)
 
-    def write_map_layer(self, layer, elem, doc):
+    def write_map_layer(self, layer: QgsMapLayer, elem: QDomElement, _: QDomDocument):
+        # Ensure all our dynamically added attributes are not serialized
         result_field_names = self.model.get_result_field_names(layer.id())
         ThreeDiPluginModelSerializer.remove_result_field_references(
             elem, result_field_names,
         )
 
     def read(self, doc: QDomDocument) -> bool:
+        self.model.clear()
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
-        return ThreeDiPluginModelSerializer.read(self.model, doc, resolver)
+        if not ThreeDiPluginModelSerializer.read(self.loader, doc, resolver):
+            self.model.clear()
+            return False
+
+        return True
 
     def check_status_model_and_results(self, *args):
         """Check if a (new and valid) model or result is selected and react on
@@ -228,29 +236,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Clears model and emits subsequent signals
         self.model.clear()
 
-        # Disconnect all signals
-        self.dockwidget.grid_file_selected.disconnect(self.model.add_grid)
-        self.dockwidget.result_file_selected.disconnect(self.model.add_result)
-        self.dockwidget.item_selected.disconnect(self.model.select_item)
-        self.dockwidget.item_deselected.disconnect(self.model.deselect_item)
-        self.dockwidget.remove_current_index_clicked.disconnect(self.model.remove_index)
-
-        self.model.grid_added.disconnect(self.loader.load_grid)
-        self.model.grid_added.disconnect(self.dockwidget.expand_grid)
-        self.model.result_added.disconnect(self.loader.load_result)
-        self.model.grid_removed.disconnect(self.loader.unload_grid)
-        self.model.result_removed.disconnect(self.loader.unload_result)
-        self.model.grid_changed.disconnect(self.loader.update_grid)
-        self.model.result_changed.disconnect(self.loader.update_result)
-
-        self.loader.grid_loaded.disconnect(self.validator.validate_grid)
-        self.loader.result_loaded.disconnect(self.validator.validate_result)
-
         self.ts_datasources.rowsRemoved.disconnect(self.check_status_model_and_results)
         self.ts_datasources.rowsInserted.disconnect(self.check_status_model_and_results)
         self.ts_datasources.dataChanged.disconnect(self.check_status_model_and_results)
-
-        # Clean up resources
 
         self.unload_state_sync()
         QgsApplication.processingRegistry().removeProvider(self.provider)
