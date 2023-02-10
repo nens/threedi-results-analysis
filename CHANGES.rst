@@ -2,10 +2,10 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.6 (unreleased)
+3.0 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Initial beta version of results analysis feature.
 
 
 2.5 (2023-02-06)

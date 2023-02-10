@@ -6,11 +6,11 @@ set -e
 
 BRANCH=${GITHUB_HEAD_REF:-master}
 
-ARTIFACT=ThreeDiToolbox-${BRANCH}.zip
+ARTIFACT=threedi_results_analysis-${BRANCH}.zip
 PROJECT=threeditoolbox-dev
 
 # Rename generated ThreeDiToolbox.zip to include branch name.
-cp ThreeDiToolbox.zip ${ARTIFACT}
+cp threedi_results_analysis.zip ${ARTIFACT}
 
 curl -X POST \
      --retry 3 \

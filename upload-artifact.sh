@@ -4,11 +4,11 @@ set -u
 
 VERSION=$(grep "^version" metadata.txt| cut -d= -f2)
 
-ARTIFACT=ThreeDiToolbox.${VERSION}.zip
+ARTIFACT=threedi_results_analysis.${VERSION}.zip
 PROJECT=ThreeDiToolbox
 
 # Rename generated ThreeDiToolbox.zip to include version number.
-cp ThreeDiToolbox.zip ${ARTIFACT}
+cp ThreeDiTothreedi_results_analysisolbox.zip ${ARTIFACT}
 
 curl -X POST \
      --retry 3 \

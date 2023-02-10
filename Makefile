@@ -31,7 +31,7 @@ LOCALES =
 # translation
 SOURCES = __init__.py threedi_plugin.py
 
-PLUGINNAME = ThreeDiToolbox
+PLUGINNAME = threedi_results_analysis
 
 PY_FILES = __init__.py
 # ^^^ The rest of the python files is picked up because they're in git.
