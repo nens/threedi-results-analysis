@@ -122,6 +122,20 @@ class GraphPlot(pg.PlotWidget):
     def set_result_model(self, model: ThreeDiPluginModel):
         self.result_model = model
 
+    def set_absolute(self, absolute: bool):
+        # Remove and re-add to set correct absoluteness
+        for item in self.location_model.rows:
+            self.removeItem(
+                item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
+            )
+
+            self.addItem(
+                 item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=absolute)
+            )
+
+        self.absolute = absolute
+        self.plotItem.vb.menu.viewAll.triggered.emit()
+
     def on_insert_locations(self, parent, start, end):
         """
         add list of items to graph. based on Qt addRows model trigger
@@ -152,6 +166,8 @@ class GraphPlot(pg.PlotWidget):
             self.removeItem(
                         item.plots(self.current_parameter["parameters"], time_units=self.current_time_units, absolute=self.absolute)
                     )
+
+        self.plotItem.vb.menu.viewAll.triggered.emit()
 
     def location_data_changed(self, index):
         """
@@ -601,7 +617,7 @@ class GraphWidget(QWidget):
             logger.warning("No results loaded for this grid")
             return True
 
-        # Retrieve summary of existing items
+        # Retrieve summary of existing items in model (!= graph plots)
         existing_items = [
             f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.location_model.rows
         ]
@@ -793,10 +809,9 @@ class GraphDockWidget(QDockWidget):
 
     def on_btnAbsoluteState(self, state):
         """Toggle ``absolute`` state of the GraphPlots."""
-        checked = state == Qt.Checked
-        self.q_graph_widget.graph_plot.absolute = (
-            self.h_graph_widget.graph_plot.absolute
-        ) = checked
+        checked = (state == Qt.Checked)
+        self.q_graph_widget.graph_plot.set_absolute(checked)
+        self.h_graph_widget.graph_plot.set_absolute(checked)
 
     def setup_ui(self):
 

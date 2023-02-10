@@ -144,13 +144,13 @@ class LocationTimeseriesModel(BaseModel):
             """
             Get pyqtgraph plot of selected object and timeseries.
 
-            Performs some caching on key: "id(result_item) feature_id time_unit"
+            Performs some caching on key: "result_uuid, feature_id, layer_name (pump, flowlines), time-unit, absolute"
             :param parameters: string, parameter identification
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
             # Key is result uuid, feature id, layer name (pump, flowlines), time-unit
-            result_key = (self.result.value.id, str(self.object_id.value), self.object_type.value, time_units)
+            result_key = (self.result.value.id, str(self.object_id.value), self.object_type.value, time_units, absolute)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}
             if result_key not in self._plots[str(parameters)]:
@@ -163,6 +163,7 @@ class LocationTimeseriesModel(BaseModel):
                 logger.info(f"Creating plot item for {result_key}: {parameters}")
                 self._plots[str(parameters)][result_key] = pg.PlotDataItem(ts_table, pen=pen)
 
+            logger.info(f"Retrieving plot for {result_key}: {parameters}")
             return self._plots[str(parameters)][result_key]
 
         def timeseries_table(self, parameters, absolute, time_units):
@@ -189,6 +190,7 @@ class LocationTimeseriesModel(BaseModel):
                 parameters, node_id=self.object_id.value, fill_value=np.NaN
             )
             if timeseries.shape[1] == 1:
+                logger.info("1-element timeserie, plotting empty serie")
                 return EMPTY_TIMESERIES
             if absolute:
                 timeseries = np.abs(timeseries)
