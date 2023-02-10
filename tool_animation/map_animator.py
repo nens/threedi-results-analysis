@@ -168,6 +168,9 @@ class MapAnimator(QGroupBox):
         self.model = model
         self.node_parameters = None
         self.line_parameters = None
+        self.last_line_parameter = None
+        self.last_node_parameter = None
+
         self.current_datetime = None
         self.setup_ui(parent)
         self._updating_temporal_controller = False
@@ -234,8 +237,8 @@ class MapAnimator(QGroupBox):
 
     def _style_line_layers(self, result_item: ThreeDiResultItem, progress_bar):
         threedi_result = result_item.threedi_result
-        line_variable = self.current_line_parameter["parameters"]
-        line_parameter_class_bounds, _ = self._get_class_bounds_line(threedi_result, line_variable)
+        self.last_line_parameter = self.current_line_parameter["parameters"]
+        line_parameter_class_bounds, _ = self._get_class_bounds_line(threedi_result, self.last_line_parameter)
         grid_item = result_item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
         logger.info("Styling flowline layer")
@@ -254,8 +257,8 @@ class MapAnimator(QGroupBox):
     def _style_node_layers(self, result_item: ThreeDiResultItem, progress_bar):
         """ Compute class bounds and apply style to node and cell layers. """
         threedi_result = result_item.threedi_result
-        node_variable = self.current_node_parameter["parameters"]
-        node_parameter_class_bounds, _ = self._get_class_bounds_node(threedi_result, node_variable)
+        self.last_node_parameter = self.current_node_parameter["parameters"]
+        node_parameter_class_bounds, _ = self._get_class_bounds_node(threedi_result, self.last_node_parameter)
 
         # Adjust the styling of the grid layer based on the bounds and result field name
         grid_item = result_item.parent()
@@ -392,19 +395,24 @@ class MapAnimator(QGroupBox):
         if Q_CUM not in (v['parameters'] for v in self.line_parameters.values()):
             active.add(DISCHARGE.name)
 
-        for combo_box, parameters in (
-            (self.line_parameter_combo_box, self.line_parameters),
-            (self.node_parameter_combo_box, self.node_parameters),
+        for combo_box, parameters, last_param in (
+            (self.line_parameter_combo_box, self.line_parameters, self.last_line_parameter),
+            (self.node_parameter_combo_box, self.node_parameters, self.last_node_parameter),
         ):
             combo_box.clear()
             if parameters:
                 active_idx = None
                 for idx, param_name in enumerate(sorted(parameters)):  # Sort on key
                     combo_box.addItem(param_name)
-                    if parameters[param_name]["parameters"] in active:
-                        active_idx = idx
+                    if last_param:
+                        if parameters[param_name]["parameters"] == last_param:
+                            active_idx = idx
+                    elif parameters[param_name]["parameters"] in active:
+                        active_idx = active_idx or idx  # Only assign if not yet set
 
                 combo_box.setCurrentIndex(active_idx)
+            else:
+                last_param = None
 
     def _get_active_parameter_config(self):
         """
