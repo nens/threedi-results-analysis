@@ -2,7 +2,7 @@ ThreeDiToolBox changelog
 ========================
 
 
-3.1 (unreleased)
+3.1 (2023-02-10)
 ----------------
 
 - Fixed upload script.
