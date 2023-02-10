@@ -386,7 +386,9 @@ class MapAnimator(QGroupBox):
         Fills parameter and combo boxes based on selected result
         """
         self._update_parameter_attributes()
+        logger.error(self.line_parameters)
 
+        logger.error(self.node_parameters)
         Q_CUM = 'q_cum'
         active = {WATERLEVEL.name, Q_CUM}
         if Q_CUM not in (v['parameters'] for v in self.line_parameters.values()):
@@ -397,13 +399,13 @@ class MapAnimator(QGroupBox):
             (self.node_parameter_combo_box, self.node_parameters),
         ):
             combo_box.clear()
-            for param_name, param in parameters.items():
-                if param["parameters"] in active:
-                    idx = 0
-                else:
-                    idx = 99999
-                combo_box.insertItem(idx, param_name)
-            combo_box.setCurrentIndex(0)
+            active_idx = None
+            for idx, param_name in enumerate(sorted(parameters)):  # Sort on key
+                combo_box.addItem(param_name)
+                if parameters[param_name]["parameters"] in active:
+                    active_idx = idx
+
+            combo_box.setCurrentIndex(active_idx)
 
     def _get_active_parameter_config(self):
         """

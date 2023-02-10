@@ -390,24 +390,27 @@ class GraphWidget(QWidget):
 
     def set_parameter_list(self, parameter_config):
 
-        # reset
-        nr_old_parameters = self.parameter_combo_box.count()
+        self.parameter_combo_box.clear()
+
+        if not parameter_config:
+            return
 
         self.parameters = dict([(p["name"], p) for p in parameter_config])
 
-        self.parameter_combo_box.insertItems(0, [p["name"] for p in parameter_config])
+        params = sorted([p["name"] for p in parameter_config])
 
-        # todo: find best matching parameter based on previous selection
-        if nr_old_parameters > 0:
-            self.parameter_combo_box.setCurrentIndex(0)
+        Q_CUM = 'Net cumulative discharge'
+        active = {'Waterlevel', Q_CUM}
+        if Q_CUM not in params:
+            active.add('Discharge')
+        active_idx = None
 
-        nr_parameters_tot = self.parameter_combo_box.count()
-        for i in reversed(
-            list(range(nr_parameters_tot - nr_old_parameters, nr_parameters_tot))
-        ):
-            self.parameter_combo_box.removeItem(i)
+        for idx, param in enumerate(params):
+            self.parameter_combo_box.addItem(param)
+            if param in active:
+                active_idx = idx
 
-        # self.graph_plot.set_parameter(self.current_parameter)
+        self.parameter_combo_box.setCurrentIndex(active_idx)
 
     def on_close(self):
         """
