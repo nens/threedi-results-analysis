@@ -2,7 +2,13 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.5 (unreleased)
+2.6 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+2.5 (2023-02-06)
 ----------------
 
 - Improved NetCDF validation (detect partial downloads). (#471)
@@ -17,8 +23,12 @@ ThreeDiToolBox changelog
 - Added usage of threedi_schema package
 - Replaced pygeos dependency with a Shapely
 - Fixed raster checks
-- Fixed database interface in sufyd importer
-
+- Fixed database interface in sufhyd importer
+- Removed Command Tool and converted commands to processing algorithms (#715)
+- Bumped several dependencies (Alembic)
+- Add processing algorithm Import Hydx (#730)
+- Do not set default inputs for "Computational grid from schematisation" processing algorithm (#723)
+- Computational grid from h5 file: use file as input instead of containing folder (#722)
 
 2.4.1 (2022-12-08)
 ------------------
