@@ -2,7 +2,7 @@
 name=3Di toolbox
 qgisMinimumVersion=3.22
 description=Toolbox for working with 3Di hydraulic models
-version=2.5.dev0
+version=2.6
 author=3Di Water Management
 email=servicedesk@nelen-schuurmans.nl
 
@@ -25,7 +25,7 @@ tags=analysis, dem, hydraulics, network analysis, postgis
 
 homepage=https://github.com/nens/ThreeDiToolbox
 category=Plugins
-icon=icons/icon.png
+icon=icon.png
 experimental=False
 hasProcessingProvider=yes
 
