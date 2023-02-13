@@ -60,17 +60,18 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # Connect signal to signal
         dialog.grid_file_selected.connect(self.grid_file_selected)
         dialog.exec()
-        return
 
     def _add_result_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
         if index is None:
+            logger.warning("No current index in model")
             return
 
         model = self.treeView.model()
 
         item = model.itemFromIndex(index)
         if not isinstance(item, ThreeDiGridItem):
+            logger.warning(f"No grid item at index {index}")
             return
 
         dialog = ThreeDiPluginGridResultDialog(self)
@@ -119,4 +120,4 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # Deselect other grids
         selection_model.clearSelection()
 
-        selection_model.setCurrentIndex(index, selection_model.Select)
+        selection_model.setCurrentIndex(index, selection_model.SelectCurrent)
