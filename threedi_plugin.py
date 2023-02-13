@@ -186,6 +186,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
     def read(self, doc: QDomDocument) -> bool:
         self.model.clear()
+        self.dockwidget.set_model(self.model)
+
         # Resolver convert relative to absolute paths and vice versa
         resolver = QgsPathResolver(QgsProject.instance().fileName() if (QgsProject.instance().filePathStorage() == 1) else "")
         if not ThreeDiPluginModelSerializer.read(self.loader, doc, resolver):

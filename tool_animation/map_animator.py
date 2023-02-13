@@ -34,9 +34,14 @@ import numpy as np
 from bisect import bisect
 from functools import lru_cache
 from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_layer_by_id(layer_id):
+    return QgsProject.instance().mapLayer(layer_id)
 
 
 def copy_layer_into_memory_layer(source_layer, layer_name):
@@ -197,6 +202,7 @@ class MapAnimator(QGroupBox):
         # extent
         start_time = min(d[0].item() for d in datetimes)
         end_time = max(d[-1].item() for d in datetimes)
+        end_time += Timedelta(seconds=frame_duration)  # to access last step
         temporal_extents = QgsDateTimeRange(start_time, end_time, True, True)
         logger.info(f"start_time {start_time}")
         logger.info(f"end_time {end_time}")
@@ -245,7 +251,7 @@ class MapAnimator(QGroupBox):
         layer_id = grid_item.layer_ids["flowline"]
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
-        layer = QgsProject.instance().mapLayer(layer_id)
+        layer = get_layer_by_id(layer_id)
         styler.style_animation_flowline_current(
             layer,
             line_parameter_class_bounds,
@@ -266,7 +272,7 @@ class MapAnimator(QGroupBox):
 
         logger.info("Styling node layer")
         layer_id = grid_item.layer_ids["node"]
-        layer = QgsProject.instance().mapLayer(layer_id)
+        layer = get_layer_by_id(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
         if self.difference_checkbox.isChecked():
@@ -289,7 +295,7 @@ class MapAnimator(QGroupBox):
 
         logger.info("Styling cell layer")
         layer_id = grid_item.layer_ids["cell"]
-        layer = QgsProject.instance().mapLayer(layer_id)
+        layer = get_layer_by_id(layer_id)
         virtual_field_name = result_item._result_field_names[layer_id][0]
         postfix = virtual_field_name[6:]  # remove "result" prefix
         if self.difference_checkbox.isChecked():
@@ -478,23 +484,41 @@ class MapAnimator(QGroupBox):
     def _update_result_item_results(self, result_item):
         """Fill initial value and result fields of the animation layers, based
         on currently set animation datetime and parameters."""
+        grid_item = result_item.parent()
+
+        layers_to_update = [
+            (
+                get_layer_by_id(grid_item.layer_ids["flowline"]),
+                self.current_line_parameter,
+            ),
+            (
+                get_layer_by_id(grid_item.layer_ids["node"]),
+                self.current_node_parameter,
+            ),
+            (
+                get_layer_by_id(grid_item.layer_ids["cell"]),
+                self.current_node_parameter,
+            ),
+        ]
+
+        # add item with relative time to model
         threedi_result = result_item.threedi_result
 
-        layers_to_update = []
-
-        qgs_instance = QgsProject.instance()
-        grid = result_item.parent()
-        line, node, cell = (
-            qgs_instance.mapLayer(grid.layer_ids[k])
-            for k in ("flowline", "node", "cell")
+        begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
+        end_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[-1])
+        current_datetime = max(
+            begin_datetime, min(self.current_datetime, end_datetime),
         )
-        layers_to_update.append((line, self.current_line_parameter))
-        layers_to_update.append((node, self.current_node_parameter))
-        layers_to_update.append((cell, self.current_node_parameter))
+
+        current_delta = (current_datetime - begin_datetime)
+        current_delta_str = '{}d {:02}:{:02}'.format(
+            current_delta.days,
+            current_delta.seconds // 3600,
+            current_delta.seconds % 3600 // 60,
+        )
+        self.model.set_time_item(result_item, current_delta_str)
 
         for layer, parameter_config in layers_to_update:
-            if layer is None:
-                continue
 
             layer_id = layer.id()
             provider = layer.dataProvider()
@@ -503,8 +527,7 @@ class MapAnimator(QGroupBox):
             parameter_units = parameter_config["unit"]
 
             # determine timestep number for current parameter
-            begin_datetime = Datetime.fromisoformat(threedi_result.dt_timestamps[0])
-            current_seconds = (self.current_datetime - begin_datetime).total_seconds()
+            current_seconds = current_delta.total_seconds()
             parameter_timestamps = threedi_result.get_timestamps(parameter)
             timestep_nr = bisect(parameter_timestamps, current_seconds)
             timestep_nr = min(timestep_nr, parameter_timestamps.size - 1)
@@ -545,6 +568,7 @@ class MapAnimator(QGroupBox):
             # TODO: to avoid all this BS this part should be refactored
             # by passing the index to get_values_by_timestep_nr, which
             # should take this into account
+            print(min(ids), max(ids), values_t0.size, values_ti.size)
             dvalues_t0 = values_t0[ids - 1]
             dvalues_ti = values_ti[ids - 1]
             update_dict = {
@@ -559,7 +583,10 @@ class MapAnimator(QGroupBox):
             }
             provider.changeAttributeValues(update_dict)
 
-            if self.difference_checkbox.isChecked() and layer in (node, cell):
+            if (
+                self.difference_checkbox.isChecked()
+                and parameter_config == self.current_node_parameter
+            ):
                 layer_name_postfix = "relative to t0"
             else:
                 layer_name_postfix = "current timestep"
