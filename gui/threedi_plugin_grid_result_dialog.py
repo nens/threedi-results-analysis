@@ -21,11 +21,13 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent):
         super(ThreeDiPluginGridResultDialog, self).__init__(parent)
         self.setupUi(self)
-        self.browseGridPushButton.clicked.connect(self._add_grid)
-        self.browseResultPushButton.clicked.connect(self._add_result)
+        self.browseGridPushButton.clicked.connect(self._select_grid)
+        self.browseResultPushButton.clicked.connect(self._select_result)
+        self.addGridPushButton.clicked.connect(self._add_grid)
+        self.addResultPushButton.clicked.connect(self._add_result)
 
     @pyqtSlot()
-    def _add_grid(self):
+    def _select_grid(self):
         dir_path = ThreeDiPluginGridResultDialog._get_dir()
         input_gridadmin_h5_or_gpkg, _ = QFileDialog.getOpenFileName(
             self,
@@ -34,12 +36,16 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             "HDF5 or GeoPackage (*.h5 *.gpkg)",
         )
         if not input_gridadmin_h5_or_gpkg:
+            self.gridFileLineEdit.clear()
+            self.addGridPushButton.setEnabled(False)
             return
+
         ThreeDiPluginGridResultDialog._set_dir(input_gridadmin_h5_or_gpkg)
-        self.grid_file_selected.emit(input_gridadmin_h5_or_gpkg)
+        self.gridFileLineEdit.setText(input_gridadmin_h5_or_gpkg)
+        self.addGridPushButton.setEnabled(True)
 
     @pyqtSlot()
-    def _add_result(self):
+    def _select_result(self):
         dir_path = self._get_dir()
         input_result_nc, _ = QFileDialog.getOpenFileName(
             self,
@@ -48,9 +54,20 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             "NetCDF (*.nc)"
         )
         if not input_result_nc:
+            self.addResultPushButton.setEnabled(False)
+            self.resultFileLineEdit.clear()
             return
-        self._set_dir(input_result_nc)
-        self.result_file_selected.emit(input_result_nc)
+        ThreeDiPluginGridResultDialog._set_dir(input_result_nc)
+        self.resultFileLineEdit.setText(input_result_nc)
+        self.addResultPushButton.setEnabled(True)
+
+    @pyqtSlot()
+    def _add_grid(self):
+        self.grid_file_selected.emit(self.gridFileLineEdit.text())
+
+    @pyqtSlot()
+    def _add_result(self):
+        self.result_file_selected.emit(self.resultFileLineedit.text())
 
     @staticmethod
     def _get_dir() -> str:

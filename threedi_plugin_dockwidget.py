@@ -49,21 +49,9 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def _add_grid_clicked(self):
         dialog = ThreeDiPluginGridResultDialog(self)
-        res = dialog.exec()
-
-        logger.error(f"res {res}")
+        dialog.grid_file_selected.connect(self.grid_file_selected)
+        dialog.exec()
         return
-        dir_path = self._get_dir()
-        input_gridadmin_h5_or_gpkg, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load HDF5 or GeoPackage",
-            dir_path,
-            "HDF5 or GeoPackage (*.h5 *.gpkg)",
-        )
-        if not input_gridadmin_h5_or_gpkg:
-            return
-        self._set_dir(input_gridadmin_h5_or_gpkg)
-        self.grid_file_selected.emit(input_gridadmin_h5_or_gpkg)
 
     def _add_result_clicked(self):
         index = self.treeView.selectionModel().currentIndex()
