@@ -7,7 +7,6 @@ from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import Three
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import QModelIndex
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QPixmap
 from threedi_results_analysis import PLUGIN_DIR
@@ -58,6 +57,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def _add_grid_clicked(self):
         dialog = ThreeDiPluginGridResultDialog(self)
+        # Connect signal to signal
         dialog.grid_file_selected.connect(self.grid_file_selected)
         dialog.exec()
         return
@@ -73,17 +73,9 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         if not isinstance(item, ThreeDiGridItem):
             return
 
-        dir_path = self._get_dir()
-        input_result_nc, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load NetCDF",
-            dir_path,
-            "NetCDF (*.nc)"
-        )
-        if not input_result_nc:
-            return
-        self._set_dir(input_result_nc)
-        self.result_file_selected.emit(input_result_nc, item)
+        dialog = ThreeDiPluginGridResultDialog(self)
+        dialog.result_file_selected.connect(lambda path, grid_item=item: self.result_file_selected.emit(path, grid_item))
+        dialog.exec()
 
     def _remove_current_index_clicked(self):
         # not that index is the "current", not the "selected"

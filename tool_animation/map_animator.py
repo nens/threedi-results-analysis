@@ -634,7 +634,7 @@ class MapAnimator(QGroupBox):
 
         self.HLayout.addWidget(node_group)
 
-        self.HLayout.addStretch()
+        # self.HLayout.addStretch()
 
         self.line_parameter_combo_box.activated.connect(self._restyle_and_update_lines)
         self.node_parameter_combo_box.activated.connect(self._restyle_and_update_nodes)

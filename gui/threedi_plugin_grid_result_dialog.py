@@ -67,7 +67,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def _add_result(self):
-        self.result_file_selected.emit(self.resultFileLineedit.text())
+        self.result_file_selected.emit(self.resultFileLineEdit.text())
 
     @staticmethod
     def _get_dir() -> str:
