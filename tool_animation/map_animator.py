@@ -568,7 +568,7 @@ class MapAnimator(QGroupBox):
             # TODO: to avoid all this BS this part should be refactored
             # by passing the index to get_values_by_timestep_nr, which
             # should take this into account
-            print(min(ids), max(ids), values_t0.size, values_ti.size)
+            # print(min(ids), max(ids), values_t0.size, values_ti.size)
             dvalues_t0 = values_t0[ids - 1]
             dvalues_ti = values_ti[ids - 1]
             update_dict = {
@@ -630,7 +630,7 @@ class MapAnimator(QGroupBox):
             "Display difference relative to simulation start (nodes only)"
         )
 
-        node_group.layout().addWidget(self.difference_checkbox, 0, 1)
+        node_group.layout().addWidget(self.difference_checkbox, 1, 0)
 
         self.HLayout.addWidget(node_group)
 
