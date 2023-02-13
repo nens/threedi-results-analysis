@@ -41,8 +41,17 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.logo.setPixmap(logo_3di)
 
     def set_model(self, model):
-        self.treeView.setModel(model)
-        self.treeView.selectionModel().selectionChanged.connect(self._selection_changed)
+
+        tree_view = self.treeView
+        tree_view.setModel(model)
+
+        tree_view.selectionModel().selectionChanged.connect(self._selection_changed)
+        tree_view.setColumnWidth(1, 65)
+
+        header = tree_view.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, header.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, header.ResizeMode.Fixed)
 
     def get_tools_widget(self):
         return self.toolWidget

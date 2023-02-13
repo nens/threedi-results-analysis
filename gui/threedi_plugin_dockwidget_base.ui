@@ -170,7 +170,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>:images/themes/default/mActionAddLayer.svg</normaloff>:images/themes/default/mActionAdd.svg</iconset>
+                  <normaloff>:images/themes/default/mActionAddLayer.svg</normaloff>:images/themes/default/mActionAddLayer.svg</iconset>
                 </property>
                </widget>
               </item>

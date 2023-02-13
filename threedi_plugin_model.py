@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List
 from functools import cached_property
-from qgis.PyQt.QtCore import QModelIndex, pyqtSignal, pyqtSlot
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import QModelIndex, Qt
 from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from threedi_results_analysis.datasource.threedi_results import ThreediResult
 from threedi_results_analysis.utils.layer_from_netCDF import get_or_create_cell_layer
@@ -151,12 +151,12 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setColumnCount(2)
         self.itemChanged.connect(self._item_changed)
 
     @pyqtSlot(ThreeDiGridItem)
     def add_grid(self, grid_item: ThreeDiGridItem) -> ThreeDiGridItem:
         """Adds a grid item to the model, emits grid_added"""
-
         if self.contains(grid_item.path, ignore_suffix=True):
             return None
 
@@ -176,7 +176,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             return
 
         result_item._old_text = result_item.text()
-        parent_item.appendRow(result_item)
+        parent_item.appendRow([result_item, QStandardItem()])  # for result time
         self.result_added.emit(result_item)
 
         return result_item
@@ -272,6 +272,7 @@ class ThreeDiPluginModel(QStandardItemModel):
             self._clear_recursive(self.invisibleRootItem())
         # Clear the actual model
         super().clear()
+        self.setColumnCount(2)
 
     def _clear_recursive(self, item: QStandardItemModel):
         """Traverses through the subthree top-down, emits grid_removed and
@@ -311,6 +312,10 @@ class ThreeDiPluginModel(QStandardItemModel):
 
     # @pyqtSlot(QStandardItem)
     def _item_changed(self, item: QStandardItem):
+        # Only signal changes in grid and result items
+        if not isinstance(item, (ThreeDiGridItem, ThreeDiResultItem)):
+            return
+
         # Distinguish changed and checked
         if item._old_text != item.text():
             item._old_text = item.text()
@@ -334,4 +339,11 @@ class ThreeDiPluginModel(QStandardItemModel):
                 other_item.setCheckState(Qt.CheckState.Unchecked)
             self.result_checked.emit(item)
             return
+
+        self.set_time_item(item)
         self.result_unchecked.emit(item)
+
+    def set_time_item(self, result_item, text=''):
+        result_index = self.indexFromItem(result_item)
+        time_item = self.itemFromIndex(result_index.siblingAtColumn(1))
+        time_item.setText(text)
