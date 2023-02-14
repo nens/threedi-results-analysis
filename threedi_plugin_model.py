@@ -296,7 +296,6 @@ class ThreeDiPluginModel(QStandardItemModel):
                 if ignore_suffix:
                     p1, p2 = p1.with_suffix(""), p2.with_suffix("")
                 if p1 == p2:
-                    logger.warning(f"Item {path} was already added.")
                     return True
             return any(_contains(
                 item=item.child(i),

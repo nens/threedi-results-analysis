@@ -9,7 +9,7 @@ from threedi_results_analysis.misc_tools import CacheClearer
 from threedi_results_analysis.misc_tools import ShowLogfile
 from threedi_results_analysis.misc_tools import ToggleResultsManager
 from threedi_results_analysis.processing.providers import ThreediProvider
-from threedi_results_analysis.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
+from threedi_results_analysis.gui.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.threedi_plugin_model_validation import ThreeDiPluginModelValidator
@@ -57,7 +57,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """
         self.model = ThreeDiPluginModel()
         self.loader = ThreeDiPluginLayerManager()
-        self.validator = ThreeDiPluginModelValidator()
+        self.validator = ThreeDiPluginModelValidator(self.model)
 
         QgsProject.instance().writeProject.connect(self.write)
         QgsProject.instance().writeMapLayer.connect(self.write_map_layer)

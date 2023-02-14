@@ -14,7 +14,7 @@ from threedi_results_analysis import PLUGIN_DIR
 logger = getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
-    Path(__file__).parent / 'gui' / 'threedi_plugin_dockwidget_base.ui',
+    Path(__file__).parent / 'threedi_plugin_dockwidget_base.ui',
 )
 
 

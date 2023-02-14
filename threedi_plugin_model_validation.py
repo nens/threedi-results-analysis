@@ -3,6 +3,7 @@ from pathlib import Path
 from qgis.core import Qgis
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from threedi_results_analysis.utils.user_messages import messagebar_message, pop_up_critical
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 import h5py
 from osgeo import ogr
@@ -20,15 +21,24 @@ class ThreeDiPluginModelValidator(QObject):
     """
     grid_valid = pyqtSignal(ThreeDiGridItem)
     result_valid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
-    grid_unvalid = pyqtSignal(ThreeDiGridItem)
-    result_unvalid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
+    grid_invalid = pyqtSignal(ThreeDiGridItem)
+    result_invalid = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model: ThreeDiPluginModel, *args, **kwargs):
+        self.model = model
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
     def validate_grid(self, grid_file: str):
         new_item = ThreeDiGridItem(Path(grid_file), "")
+        logger.info("validate grid")
+
+        # Check whether model already contains this grid file.
+        if self.model.contains(Path(grid_file), True):
+            logger.warning("Model already contains this file")
+            self.grid_invalid.emit(new_item)
+            return
+
         self.grid_valid.emit(new_item)
 
     @pyqtSlot(str, ThreeDiGridItem)
@@ -36,9 +46,12 @@ class ThreeDiPluginModelValidator(QObject):
 
         def fail(msg):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
-            self.result_unvalid.emit(result_item, grid_item)
+            self.result_invalid.emit(result_item, grid_item)
 
         result_item = ThreeDiResultItem(Path(results_path))
+
+        if self.model.contains(Path(results_path), True):
+            return fail("Model already contains this file")
 
         # Check correct file name
         if not result_item.path.name == "results_3di.nc":
