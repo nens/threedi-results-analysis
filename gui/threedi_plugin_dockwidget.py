@@ -61,7 +61,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         dialog.grid_file_selected.connect(self.grid_file_selected)
 
         def _get_current_grid() -> ThreeDiGridItem:
-            logger.error("Retrieving current grid")
             index = self.treeView.selectionModel().currentIndex()
             if index is None:
                 logger.warning("No current index in model")

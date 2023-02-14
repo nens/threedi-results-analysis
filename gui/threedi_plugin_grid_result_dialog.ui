@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>659</width>
-    <height>423</height>
+    <width>663</width>
+    <height>432</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,39 +29,6 @@
        <string>Browse</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="1">
-        <widget class="QPushButton" name="browseGridPushButton">
-         <property name="text">
-          <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="gridFileLineEdit">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="placeholderText">
-          <string/>
-         </property>
-         <property name="clearButtonEnabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLineEdit" name="resultFileLineEdit"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Computational grid</string>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
@@ -75,10 +42,33 @@
          </property>
         </spacer>
        </item>
-       <item row="4" column="1">
-        <widget class="QPushButton" name="browseResultPushButton">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Browse</string>
+          <string>Simulation result</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QgsFileWidget" name="gridQgsFileWidget">
+         <property name="dialogTitle">
+          <string>Load HDF5 or GeoPackage</string>
+         </property>
+         <property name="filter">
+          <string>HDF5 or GeoPackage (*.h5 *.gpkg)</string>
+         </property>
+         <property name="options">
+          <set>QFileDialog::ReadOnly</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="addResultPushButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Add to project</string>
          </property>
         </widget>
        </item>
@@ -92,22 +82,51 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Simulation result</string>
+          <string>Computational grid</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QPushButton" name="addResultPushButton">
-         <property name="enabled">
-          <bool>false</bool>
+       <item row="4" column="0" colspan="2">
+        <widget class="QgsFileWidget" name="resultQgsFileWidget">
+         <property name="dialogTitle">
+          <string>Load NetCDF</string>
          </property>
-         <property name="text">
-          <string>Add to project</string>
+         <property name="filter">
+          <string>NetCDF (*.nc)</string>
+         </property>
+         <property name="options">
+          <set>QFileDialog::ReadOnly</set>
          </property>
         </widget>
+       </item>
+       <item row="2" column="0">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="5" column="0">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -125,6 +144,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsFileWidget</class>
+   <extends>QWidget</extends>
+   <header>qgsfilewidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
