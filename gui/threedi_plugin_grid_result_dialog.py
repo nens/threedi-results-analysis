@@ -63,10 +63,12 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
     @pyqtSlot()
     def _add_grid(self):
+        self.addGridPushButton.setEnabled(False)
         self.grid_file_selected.emit(self.gridFileLineEdit.text())
 
     @pyqtSlot()
     def _add_result(self):
+        self.addResultPushButton.setEnabled(False)
         self.result_file_selected.emit(self.resultFileLineEdit.text())
 
     @staticmethod
