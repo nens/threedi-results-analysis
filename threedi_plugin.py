@@ -57,7 +57,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         """
         self.model = ThreeDiPluginModel()
         self.loader = ThreeDiPluginLayerManager()
-        self.validator = ThreeDiPluginModelValidator()
+        self.validator = ThreeDiPluginModelValidator(self.model)
 
         QgsProject.instance().writeProject.connect(self.write)
         QgsProject.instance().writeMapLayer.connect(self.write_map_layer)
