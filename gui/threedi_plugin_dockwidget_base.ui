@@ -150,7 +150,7 @@
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_AddGrid">
+               <widget class="QPushButton" name="pushButton_Add">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>

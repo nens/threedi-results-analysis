@@ -29,7 +29,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def __init__(self, parent):
         super(ThreeDiPluginDockWidget, self).__init__(parent)
         self.setupUi(self)
-        self.pushButton_AddGrid.clicked.connect(self._add_grid_clicked)
+        self.pushButton_Add.clicked.connect(self._add_clicked)
         self.pushButton_AddResult.clicked.connect(self._add_result_clicked)
         self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
 
@@ -55,10 +55,26 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def get_tools_widget(self):
         return self.toolWidget
 
-    def _add_grid_clicked(self):
+    def _add_clicked(self):
         dialog = ThreeDiPluginGridResultDialog(self)
         # Connect signal to signal
         dialog.grid_file_selected.connect(self.grid_file_selected)
+
+        def _get_current_grid() -> ThreeDiGridItem:
+            logger.error("Retrieving current grid")
+            index = self.treeView.selectionModel().currentIndex()
+            if index is None:
+                logger.warning("No current index in model")
+                return None
+
+            item = self.treeView.model().itemFromIndex(index)
+            if not isinstance(item, ThreeDiGridItem):
+                logger.warning(f"No grid item at index {index}")
+                return None
+
+            return item
+
+        dialog.result_file_selected.connect(lambda path: self.result_file_selected.emit(path, _get_current_grid()))
         dialog.exec()
 
     def _add_result_clicked(self):
@@ -67,9 +83,7 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             logger.warning("No current index in model")
             return
 
-        model = self.treeView.model()
-
-        item = model.itemFromIndex(index)
+        item = self.treeView.model().itemFromIndex(index)
         if not isinstance(item, ThreeDiGridItem):
             logger.warning(f"No grid item at index {index}")
             return
