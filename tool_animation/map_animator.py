@@ -6,7 +6,7 @@ from qgis.core import QgsTemporalNavigationObject
 from qgis.core import QgsVectorLayer
 from qgis.core import QgsWkbTypes
 from qgis.utils import iface
-from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
@@ -614,7 +614,7 @@ class MapAnimator(QGroupBox):
         self.line_parameter_combo_box = QComboBox(line_group)
         self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.line_parameter_combo_box.setToolTip("Choose flowline variable to display")
-        line_group.layout().addWidget(self.line_parameter_combo_box)
+        line_group.layout().addWidget(self.line_parameter_combo_box, 0, 0, Qt.AlignTop)
 
         self.HLayout.addWidget(line_group)
 
