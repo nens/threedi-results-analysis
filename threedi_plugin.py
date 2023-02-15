@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import QObject, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QDockWidget
 from qgis.PyQt.QtXml import QDomDocument, QDomElement
 from qgis.utils import iface
 from qgis.core import QgsApplication, QgsProject, QgsPathResolver, QgsSettings, QgsMapLayer
@@ -72,6 +72,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         # Set toolbar and init a few toolbar widgets
         self.toolbar = self.iface.addToolBar("ThreeDiResultAnalysis")
+        self.toolbar.setObjectName("ThreeDiResultAnalysisToolBar")
 
         # Init the rest of the tools
         self.about_tool = About(iface)
@@ -116,7 +117,20 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         assert not hasattr(self, "dockwidget")  # Should be destroyed on unload
         self.dockwidget = ThreeDiPluginDockWidget(None)
-        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+
+        # Add the dockwidget, tabified with any other right area dock widgets
+        main_window = iface.mainWindow()
+        right_area_dock_widgets = [
+            d for d in main_window.findChildren(QDockWidget)
+            if main_window.dockWidgetArea(d) == Qt.RightDockWidgetArea
+            if d.isVisible()
+        ] + [self.dockwidget]
+        tabify_with = [right_area_dock_widgets[0].objectName()]
+        for dock_widget in right_area_dock_widgets:
+            self.iface.removeDockWidget(dock_widget)
+            self.iface.addTabifiedDockWidget(
+                Qt.RightDockWidgetArea, dock_widget, tabify_with, True
+            )
 
         # Connect the signals
 

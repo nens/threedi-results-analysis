@@ -609,7 +609,7 @@ class MapAnimator(QGroupBox):
         self.setLayout(self.HLayout)
 
         line_group = QGroupBox("Flowline variable", self)
-        line_group.setLayout(QGridLayout(self))
+        line_group.setLayout(QGridLayout())
 
         self.line_parameter_combo_box = QComboBox(line_group)
         self.line_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -619,7 +619,7 @@ class MapAnimator(QGroupBox):
         self.HLayout.addWidget(line_group)
 
         node_group = QGroupBox("Node variable", self)
-        node_group.setLayout(QGridLayout(self))
+        node_group.setLayout(QGridLayout())
         self.node_parameter_combo_box = QComboBox(node_group)
         self.node_parameter_combo_box.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.node_parameter_combo_box.setToolTip("Choose node variable to display")
@@ -633,8 +633,6 @@ class MapAnimator(QGroupBox):
         node_group.layout().addWidget(self.difference_checkbox, 1, 0)
 
         self.HLayout.addWidget(node_group)
-
-        # self.HLayout.addStretch()
 
         self.line_parameter_combo_box.activated.connect(self._restyle_and_update_lines)
         self.node_parameter_combo_box.activated.connect(self._restyle_and_update_nodes)
