@@ -5,6 +5,9 @@ from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsSettings
+from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
+from threedi_results_analysis.utils.workingdir import list_local_schematisations
+from threedi_results_analysis.utils.user_messages import pop_up_critical
 
 logger = getLogger(__name__)
 
@@ -30,6 +33,11 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.resultQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
         self.resultQgsFileWidget.lineEdit().setEnabled(False)
         self.addResultPushButton.clicked.connect(self._add_result)
+
+        self.tabWidget.currentChanged.connect(self._tabChanged)
+        self.model = QStandardItemModel()
+        self.tableView.setModel(self.model)
+        self.header_labels = ["Schematisation", "Revision", "Simulation"]
 
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
@@ -83,3 +91,25 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsSettings().setValue(TOOLBOX_QGIS_SETTINGS_GROUP + "/lastOpenDir", str(dir_path))
         else:
             QgsSettings().remove(TOOLBOX_QGIS_SETTINGS_GROUP + "/lastOpenDir")
+
+    @pyqtSlot(int)
+    def _tabChanged(self, idx: int) -> None:
+        if self.tabWidget.currentWidget() is self.threedi:
+
+            # Repopulate the table
+            self.model.clear()
+            self.model.setHorizontalHeaderLabels(self.header_labels)
+            threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
+            if not threedi_working_dir:
+                pop_up_critical("3Di Models & Simulations working directory not yet set.")
+
+            local_schematisations = list_local_schematisations(threedi_working_dir)
+            for schematisation_id, local_schematisation in local_schematisations.items():
+                # Iterate over revisions
+                name_item = QStandardItem(local_schematisation.name)
+                id_item = QStandardItem(str(schematisation_id))
+                dir_item = QStandardItem(local_schematisation.main_dir)
+                self.model.appendRow([name_item, id_item, dir_item])
+
+        for i in range(len(self.header_labels)):
+            self.tableView.resizeColumnToContents(i)
