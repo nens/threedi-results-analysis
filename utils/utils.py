@@ -26,6 +26,10 @@ def backup_sqlite(filename):
     return backup_sqlite_path
 
 
+def listdirs(path: str):
+    return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+
+
 def safe_join(*path):
     """
     Join path parts and replace any backslashes with slash to make QGIS happy when accessing a Windows network location.

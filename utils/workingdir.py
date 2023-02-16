@@ -4,6 +4,7 @@ import json
 import shutil
 import os
 from uuid import uuid4
+from threedi_results_analysis.utils.utils import listdirs
 
 UNC_PREFIX = "\\\\?\\"
 FILE_MAX_PATH = 260
@@ -79,6 +80,11 @@ class LocalRevision:
         if self.number:
             grid_dir_path = os.path.join(self.main_dir, "results")
             return grid_dir_path
+
+    @property
+    def results_dirs(self):
+        """Get all result folders"""
+        return listdirs(self.results_dir)
 
     @property
     def schematisation_dir(self):

@@ -4,6 +4,7 @@ from pathlib import Path
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from threedi_results_analysis.utils.workingdir import list_local_schematisations
@@ -37,7 +38,10 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tabWidget.currentChanged.connect(self._tabChanged)
         self.model = QStandardItemModel()
         self.tableView.setModel(self.model)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
         self.header_labels = ["Schematisation", "Revision", "Simulation"]
+        self.tableView.horizontalHeader().setStretchLastSection(True)
 
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
@@ -106,10 +110,16 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
             local_schematisations = list_local_schematisations(threedi_working_dir)
             for schematisation_id, local_schematisation in local_schematisations.items():
                 # Iterate over revisions
-                name_item = QStandardItem(local_schematisation.name)
-                id_item = QStandardItem(str(schematisation_id))
-                dir_item = QStandardItem(local_schematisation.main_dir)
-                self.model.appendRow([name_item, id_item, dir_item])
+                for revision_number, local_revision in local_schematisation.revisions.items():
+                    # Iterate over results
+                    for results in local_revision.results_dirs:
+                        name_item = QStandardItem(local_schematisation.name)
+                        name_item.setEditable(False)
+                        revision_item = QStandardItem(str(revision_number))
+                        revision_item.setEditable(False)
+                        result_item = QStandardItem(results)
+                        result_item.setEditable(False)
+                        self.model.appendRow([name_item, revision_item, result_item])
 
         for i in range(len(self.header_labels)):
             self.tableView.resizeColumnToContents(i)
