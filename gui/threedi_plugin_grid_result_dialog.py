@@ -129,7 +129,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
                         self.model.appendRow([schema_item, revision_item, result_item])
 
-                self.tableView.resizeColumnsToContents()
+            for i in range(len(self.header_labels)):
+                self.tableView.resizeColumnToContents(i)
 
     def _retrieve_selected_result_folder(self) -> str:
         result_item = self.model.item(self.tableView.currentIndex().row(), 2)
