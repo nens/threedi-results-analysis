@@ -1,6 +1,7 @@
 """Imported in __init__.py"""
 from itertools import tee
 from uuid import uuid4
+from typing import List
 from threedi_results_analysis.datasource.result_constants import AGGREGATION_VARIABLES
 from threedi_results_analysis.datasource.result_constants import CUMULATIVE_AGGREGATION_UNITS
 from threedi_results_analysis.datasource.result_constants import H_TYPES
@@ -26,7 +27,10 @@ def backup_sqlite(filename):
     return backup_sqlite_path
 
 
-def listdirs(path: str):
+def listdirs(path: str) -> List[str]:
+    """
+    Returns a (non-recursive) list of directories in a specific path.
+    """
     return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
 

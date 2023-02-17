@@ -1,5 +1,6 @@
 from logging import getLogger
 from pathlib import Path
+import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
@@ -42,6 +43,10 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
         self.header_labels = ["Schematisation", "Revision", "Simulation"]
         self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.clicked.connect(self._item_selected)
+
+        self.loadResultPushButton.clicked.connect(self._add_result_from_table)
+        self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
 
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
@@ -112,14 +117,36 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                 # Iterate over revisions
                 for revision_number, local_revision in local_schematisation.revisions.items():
                     # Iterate over results
-                    for results in local_revision.results_dirs:
-                        name_item = QStandardItem(local_schematisation.name)
-                        name_item.setEditable(False)
+                    for result_dir in local_revision.results_dirs:
+                        schema_item = QStandardItem(local_schematisation.name)
+                        schema_item.setEditable(False)
                         revision_item = QStandardItem(str(revision_number))
                         revision_item.setEditable(False)
-                        result_item = QStandardItem(results)
+                        result_item = QStandardItem(result_dir)
                         result_item.setEditable(False)
-                        self.model.appendRow([name_item, revision_item, result_item])
+                        # We'll store the result folder with the result_item for fast retrieval
+                        result_item.setData(os.path.join(local_revision.results_dir, result_dir))
 
-        for i in range(len(self.header_labels)):
-            self.tableView.resizeColumnToContents(i)
+                        self.model.appendRow([schema_item, revision_item, result_item])
+
+                self.tableView.resizeColumnsToContents()
+
+    def _retrieve_selected_result_folder(self) -> str:
+        result_item = self.model.item(self.tableView.currentIndex().row(), 2)
+        result_dir = result_item.data()
+        assert result_dir
+        return result_dir
+
+    @pyqtSlot()
+    def _add_grid_from_table(self) -> None:
+        grid_file = os.path.join(self._retrieve_selected_result_folder(), "gridadmin.h5")
+        self.grid_file_selected.emit(grid_file)
+
+    @pyqtSlot()
+    def _add_result_from_table(self) -> None:
+        result_file = os.path.join(self._retrieve_selected_result_folder(), "results_3di.nc")
+        self.result_file_selected.emit(result_file)
+
+    def _item_selected(self, _):
+        self.loadResultPushButton.setEnabled(True)
+        self.loadGridPushButton.setEnabled(True)
