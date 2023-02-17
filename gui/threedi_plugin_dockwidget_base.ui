@@ -185,7 +185,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>:images/themes/default/mActionRemoveLayer.svg</normaloff>:images/themes/default/mActionRemoveLayer.svg</iconset>
+                  <normaloff>:images/themes/default/mActionRemove.svg</normaloff>:images/themes/default/mActionRemove.svg</iconset>
                 </property>
                </widget>
               </item>
