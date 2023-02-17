@@ -164,7 +164,7 @@
               <item>
                <widget class="QPushButton" name="pushButton_Add">
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di grids or results&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="styleSheet">
                  <string notr="true"/>
@@ -185,7 +185,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>:images/themes/default/mActionRemove.svg</normaloff>:images/themes/default/mActionRemove.svg</iconset>
+                  <normaloff>:images/themes/default/mActionRemoveLayer.svg</normaloff>:images/themes/default/mActionRemoveLayer.svg</iconset>
                 </property>
                </widget>
               </item>
