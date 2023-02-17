@@ -30,7 +30,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         super(ThreeDiPluginDockWidget, self).__init__(parent)
         self.setupUi(self)
         self.pushButton_Add.clicked.connect(self._add_clicked)
-        self.pushButton_AddResult.clicked.connect(self._add_result_clicked)
         self.pushButton_RemoveItem.clicked.connect(self._remove_current_index_clicked)
 
         # Set logo
@@ -74,21 +73,6 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             return item
 
         dialog.result_file_selected.connect(lambda path: self.result_file_selected.emit(path, _get_current_grid()))
-        dialog.exec()
-
-    def _add_result_clicked(self):
-        index = self.treeView.selectionModel().currentIndex()
-        if index is None:
-            logger.warning("No current index in model")
-            return
-
-        item = self.treeView.model().itemFromIndex(index)
-        if not isinstance(item, ThreeDiGridItem):
-            logger.warning(f"No grid item at index {index}")
-            return
-
-        dialog = ThreeDiPluginGridResultDialog(self)
-        dialog.result_file_selected.connect(lambda path, grid_item=item: self.result_file_selected.emit(path, grid_item))
         dialog.exec()
 
     def _remove_current_index_clicked(self):

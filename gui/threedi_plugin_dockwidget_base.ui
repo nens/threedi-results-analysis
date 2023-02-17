@@ -176,17 +176,6 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_AddResult">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add 3Di result&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>:images/themes/default/mActionAddLayer.svg</normaloff>:images/themes/default/mActionAddLayer.svg</iconset>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QPushButton" name="pushButton_RemoveItem">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected item&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -196,7 +185,7 @@
                 </property>
                 <property name="icon">
                  <iconset>
-                  <normaloff>:images/themes/default/mActionRemoveLayer.svg</normaloff>:images/themes/default/mActionRemoveLayer.svg</iconset>
+                  <normaloff>:images/themes/default/mActionRemove.svg</normaloff>:images/themes/default/mActionRemove.svg</iconset>
                 </property>
                </widget>
               </item>
