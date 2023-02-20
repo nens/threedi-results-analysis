@@ -83,7 +83,7 @@ class LocalRevision:
 
     @property
     def results_dirs(self):
-        """Get all result folders"""
+        """Get all (full) result folders"""
         return listdirs(self.results_dir)
 
     @property
