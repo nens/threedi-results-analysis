@@ -5,6 +5,7 @@ from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, Three
 from threedi_results_analysis.utils.user_messages import messagebar_message, pop_up_critical
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
+from threedi_results_analysis.utils.utils import listdirs
 import h5py
 from osgeo import ogr
 import logging
@@ -39,18 +40,19 @@ class ThreeDiPluginModelValidator(QObject):
             self.grid_invalid.emit(new_item)
             return
 
-        # TODO: Note that in the 3Di M&S working directory setup, each results
-        # folder can contain the same gridadmin file.
-
-        # Check whether there is a grid loaded from one of these result folders
+        # Note that in the 3Di M&S working directory setup, each results
+        # folder in the revision can contain the same gridadmin file. Check
+        # whether there is a grid loaded from one of these result folders.
         folder = Path(grid_file).parent
         if folder.parent.name == 'results':
             if str(folder.parent.parent.name).startswith('revision'):
-                # Check whether there is a grid loaded from one of these result folders,
-                # do a simple shallow file-compare (Checks os.stat() properties:
-                # file type, size, and modification time)
-                # iterate over grids and check
-                pass
+                result_folders = listdirs(folder.parent)
+                for result_folder in result_folders:
+                    if self.model.contains(path=Path(result_folder) / 'gridadmin.h5', ignore_suffix=True):
+                        logger.warning("Model already contains grid file from this revision.")
+                        # Todo: should we do a simple shallow file-compare?
+                        self.grid_invalid.emit(new_item)
+                        return
 
         self.grid_valid.emit(new_item)
 
