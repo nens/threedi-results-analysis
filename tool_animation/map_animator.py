@@ -156,6 +156,8 @@ def threedi_result_percentiles(
     result = np.nanpercentile(
         values_above_threshold, MapAnimator.CLASS_BOUNDS_PERCENTILES
     ).tolist()
+    if lower_threshold == 0:
+        result[0] = lower_threshold
     return result
 
 
