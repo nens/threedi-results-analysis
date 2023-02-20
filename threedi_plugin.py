@@ -11,7 +11,7 @@ from threedi_results_analysis.misc_tools import ToggleResultsManager
 from threedi_results_analysis.processing.providers import ThreediProvider
 from threedi_results_analysis.gui.threedi_plugin_dockwidget import ThreeDiPluginDockWidget
 from threedi_results_analysis.threedi_plugin_layer_manager import ThreeDiPluginLayerManager
-from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
+from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel, ThreeDiGridItem
 from threedi_results_analysis.threedi_plugin_model_validation import ThreeDiPluginModelValidator
 from threedi_results_analysis.threedi_plugin_model_serialization import ThreeDiPluginModelSerializer
 from threedi_results_analysis.tool_animation.map_animator import MapAnimator
@@ -135,7 +135,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         # Connect the signals
 
         self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
-        self.dockwidget.result_file_selected.connect(self.validator.validate_result)
+        self.dockwidget.result_file_selected[str, ThreeDiGridItem].connect(self.validator.validate_result)
+        self.dockwidget.result_file_selected[str, str].connect(self.validator.validate_result_grid)
 
         self.validator.result_valid.connect(self.loader.load_result)
         self.validator.grid_valid.connect(self.loader.load_grid)

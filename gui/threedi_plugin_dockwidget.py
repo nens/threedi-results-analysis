@@ -20,7 +20,8 @@ FORM_CLASS, _ = uic.loadUiType(
 
 class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
-    result_file_selected = pyqtSignal(str, ThreeDiGridItem)
+    result_file_selected = pyqtSignal([str, ThreeDiGridItem], [str, str])
+
     remove_current_index_clicked = pyqtSignal(QModelIndex)
 
     item_selected = pyqtSignal(QModelIndex)
@@ -72,7 +73,11 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
             return item
 
-        dialog.result_file_selected.connect(lambda path: self.result_file_selected.emit(path, _get_current_grid()))
+        # User just adds a result file
+        dialog.result_file_selected[str].connect(lambda path: self.result_file_selected.emit(path, _get_current_grid()))
+
+        # User selected a result from 3Di working dir dialog
+        dialog.result_file_selected[str, str].connect(self.result_file_selected[str, str])
         dialog.exec()
 
     def _remove_current_index_clicked(self):

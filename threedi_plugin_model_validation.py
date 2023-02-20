@@ -56,9 +56,20 @@ class ThreeDiPluginModelValidator(QObject):
 
         self.grid_valid.emit(new_item)
 
+    @pyqtSlot(str, str)
+    def validate_result_grid(self, results_path: str, grid_path: str):
+        """
+        Validate the result, but first validate (and add) the grid.
+        """
+        self.validate_grid(grid_path)
+
+        # The grid should be added
+
     @pyqtSlot(str, ThreeDiGridItem)
     def validate_result(self, results_path: str, grid_item: ThreeDiGridItem):
-
+        """
+        Validate the result when added to the selected grid item.
+        """
         def fail(msg):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             self.result_invalid.emit(result_item, grid_item)
