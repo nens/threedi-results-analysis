@@ -85,13 +85,13 @@ def style_animation_flowline_current(
         renderer.addClassLowerUpper(lower=class_bounds[i], upper=class_bounds[i + 1])
         class_middle = (class_bounds[i] + class_bounds[i + 1]) / 2
         symbol = renderer.symbolForValue(class_middle).clone()
-        color_ramp_fraction = (i + 0.5) / nr_classes
+        color_ramp_fraction = 0.2 + 0.8 * i / (nr_classes - 1)
         color = color_ramp.color(color_ramp_fraction)
         symbol.setColor(color)
         renderer.setLegendSymbolItem(str(i), symbol)
 
     # Symbol size
-    renderer.setSymbolSizes(0.1, max_symbol_size)
+    renderer.setSymbolSizes(max_symbol_size / 3, max_symbol_size)
 
     iface.layerTreeView().refreshLayerSymbology(lyr.id())
     lyr.triggerRepaint()
