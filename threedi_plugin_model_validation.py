@@ -39,6 +39,19 @@ class ThreeDiPluginModelValidator(QObject):
             self.grid_invalid.emit(new_item)
             return
 
+        # TODO: Note that in the 3Di M&S working directory setup, each results
+        # folder can contain the same gridadmin file.
+
+        # Check whether there is a grid loaded from one of these result folders
+        folder = Path(grid_file).parent
+        if folder.parent.name == 'results':
+            if str(folder.parent.parent.name).startswith('revision'):
+                # Check whether there is a grid loaded from one of these result folders,
+                # do a simple shallow file-compare (Checks os.stat() properties:
+                # file type, size, and modification time)
+                # iterate over grids and check
+                pass
+
         self.grid_valid.emit(new_item)
 
     @pyqtSlot(str, ThreeDiGridItem)

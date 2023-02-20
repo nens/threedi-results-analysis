@@ -122,7 +122,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                         schema_item.setEditable(False)
                         revision_item = QStandardItem(str(revision_number))
                         revision_item.setEditable(False)
-                        result_item = QStandardItem(result_dir)
+                        result_item = QStandardItem(Path(result_dir).name)
                         result_item.setEditable(False)
                         # We'll store the result folder with the result_item for fast retrieval
                         result_item.setData(os.path.join(local_revision.results_dir, result_dir))

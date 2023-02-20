@@ -31,7 +31,7 @@ def listdirs(path: str) -> List[str]:
     """
     Returns a (non-recursive) list of directories in a specific path.
     """
-    return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+    return [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
 
 def safe_join(*path):
