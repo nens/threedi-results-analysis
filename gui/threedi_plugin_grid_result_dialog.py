@@ -20,8 +20,7 @@ FORM_CLASS, _ = uic.loadUiType(
 
 class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
-    # Either emit with result file or [result, grid] file
-    result_file_selected = pyqtSignal([str], [str, str])
+    result_file_selected = pyqtSignal([str, str])
 
     def __init__(self, parent):
         super(ThreeDiPluginGridResultDialog, self).__init__(parent)
@@ -86,7 +85,13 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     def _add_result(self) -> None:
         self.addResultPushButton.setEnabled(False)
-        self.result_file_selected[str].emit(self.resultQgsFileWidget.filePath())
+
+        grid_file = os.path.join(os.path.dirname(self.resultQgsFileWidget.filePath()), "gridadmin.h5")
+        if not os.path.isfile(grid_file):
+            pop_up_critical("No computational grid file (gridadmin.h5) could be found for the selected simulation result. Simulation result not added to the project.")
+            return
+
+        self.result_file_selected.emit(self.resultQgsFileWidget.filePath(), grid_file)
 
     @staticmethod
     def _get_dir() -> str:
@@ -128,7 +133,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         grid_file = os.path.join(self._retrieve_selected_result_folder(), "gridadmin.h5")
 
         # Also emit corresponding grid file
-        self.result_file_selected[str, str].emit(result_file, grid_file)
+        self.result_file_selected.emit(result_file, grid_file)
 
     def _item_selected(self, _):
         self.loadResultPushButton.setEnabled(True)

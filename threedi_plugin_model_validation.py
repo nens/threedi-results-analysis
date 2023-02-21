@@ -72,7 +72,6 @@ class ThreeDiPluginModelValidator(QObject):
         """
         Validate the result, but first validate (and add) the grid.
         """
-        logger.error("validate_result_grid")
         grid_item = self.validate_grid(grid_path)
         if not grid_item:
             return
