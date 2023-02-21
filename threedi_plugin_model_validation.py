@@ -38,10 +38,12 @@ class ThreeDiPluginModelValidator(QObject):
         logger.info("validate grid")
 
         # Check whether model already contains this grid file.
-        if self.model.contains(Path(grid_file), True):
-            logger.warning("Model already contains this file")
-            self.grid_invalid.emit(new_item)
-            return None
+        for i in range(self.model.invisibleRootItem().rowCount()):
+            grid_item = self.model.invisibleRootItem().child(i)
+            if grid_item.path.with_suffix("") == Path(grid_file).with_suffix(""):
+                logger.warning("Model already contains this file")
+                self.grid_invalid.emit(new_item)
+                return grid_item
 
         # Note that in the 3Di M&S working directory setup, each results
         # folder in the revision can contain the same gridadmin file. Check
@@ -54,6 +56,7 @@ class ThreeDiPluginModelValidator(QObject):
                 # Iterate over the grids
                 for i in range(self.model.invisibleRootItem().rowCount()):
                     grid_item = self.model.invisibleRootItem().child(i)
+                    assert isinstance(grid_item, ThreeDiGridItem)
                     grid_folder = Path(grid_item.path).parent
                     if grid_folder in result_folders:
                         logger.warning("Model already contains grid file from this revision.")
