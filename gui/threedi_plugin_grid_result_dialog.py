@@ -59,6 +59,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         ThreeDiPluginGridResultDialog._set_dir(input_gridadmin_h5_or_gpkg)
         self.gridQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
+        self.resultQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
 
         self.addGridPushButton.setEnabled(True)
 
@@ -71,6 +72,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         ThreeDiPluginGridResultDialog._set_dir(input_result_nc)
         self.resultQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
+        self.gridQgsFileWidget.setDefaultRoot(ThreeDiPluginGridResultDialog._get_dir())
 
         self.addResultPushButton.setEnabled(True)
 

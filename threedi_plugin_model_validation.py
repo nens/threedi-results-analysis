@@ -30,7 +30,10 @@ class ThreeDiPluginModelValidator(QObject):
         super().__init__(*args, **kwargs)
 
     @pyqtSlot(str)
-    def validate_grid(self, grid_file: str):
+    def validate_grid(self, grid_file: str) -> ThreeDiGridItem:
+        """
+        Validates the grid and returns the new (or already existing) ThreeDiGridItem
+        """
         new_item = ThreeDiGridItem(Path(grid_file), "")
         logger.info("validate grid")
 
@@ -38,7 +41,7 @@ class ThreeDiPluginModelValidator(QObject):
         if self.model.contains(Path(grid_file), True):
             logger.warning("Model already contains this file")
             self.grid_invalid.emit(new_item)
-            return
+            return None
 
         # Note that in the 3Di M&S working directory setup, each results
         # folder in the revision can contain the same gridadmin file. Check
@@ -46,27 +49,37 @@ class ThreeDiPluginModelValidator(QObject):
         folder = Path(grid_file).parent
         if folder.parent.name == 'results':
             if str(folder.parent.parent.name).startswith('revision'):
-                result_folders = listdirs(folder.parent)
-                for result_folder in result_folders:
-                    if self.model.contains(path=Path(result_folder) / 'gridadmin.h5', ignore_suffix=True):
+                result_folders = [Path(d) for d in listdirs(folder.parent)]
+
+                # Iterate over the grids
+                for i in range(self.model.invisibleRootItem().rowCount()):
+                    grid_item = self.model.invisibleRootItem().child(i)
+                    grid_folder = Path(grid_item.path).parent
+                    if grid_folder in result_folders:
                         logger.warning("Model already contains grid file from this revision.")
                         # Todo: should we do a simple shallow file-compare?
-                        self.grid_invalid.emit(new_item)
-                        return
+                        self.grid_invalid.emit(grid_item)
+                        return grid_item
 
         self.grid_valid.emit(new_item)
+        return new_item
 
     @pyqtSlot(str, str)
     def validate_result_grid(self, results_path: str, grid_path: str):
         """
         Validate the result, but first validate (and add) the grid.
         """
-        self.validate_grid(grid_path)
+        logger.error("validate_result_grid")
+        grid_item = self.validate_grid(grid_path)
+        if not grid_item:
+            return
 
-        # The grid should be added
+        # The grid should now be added, retrieve the corresponding grid from model and validate result
+        self.validate_result(results_path, grid_item)
 
     @pyqtSlot(str, ThreeDiGridItem)
     def validate_result(self, results_path: str, grid_item: ThreeDiGridItem):
+        logger.info(f"Validating result with grid item {grid_item.text()}")
         """
         Validate the result when added to the selected grid item.
         """

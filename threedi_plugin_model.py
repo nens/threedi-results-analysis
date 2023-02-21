@@ -161,9 +161,6 @@ class ThreeDiPluginModel(QStandardItemModel):
             return None
 
         grid_item._old_text = grid_item.text()
-        # if layer_ids:
-        #    grid_item.layer_ids = dict(layer_ids)  # Make an explicit copy
-
         self.invisibleRootItem().appendRow(grid_item)
         self.grid_added.emit(grid_item)
 
@@ -182,7 +179,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         return result_item
 
     def _remove_grid(self, item: ThreeDiGridItem) -> bool:
-        """Removes a grid from the model, emits grid_removed"""
+        """Removes a grid (and children) from the model, emits grid_removed"""
         # Emit the removed signals for the node and its children
         self._clear_recursive(item)
 
