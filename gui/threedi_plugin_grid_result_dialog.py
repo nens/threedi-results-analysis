@@ -49,6 +49,8 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
         self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
 
+        self._populate_table()
+
     @pyqtSlot(str)
     def _select_grid(self, input_gridadmin_h5_or_gpkg: str) -> None:
 
@@ -107,33 +109,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot(int)
     def _tabChanged(self, idx: int) -> None:
         if self.tabWidget.currentWidget() is self.threedi:
-
-            # Repopulate the table
-            self.model.clear()
-            self.model.setHorizontalHeaderLabels(self.header_labels)
-            threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
-            if not threedi_working_dir:
-                pop_up_critical("3Di Models & Simulations working directory not yet set.")
-
-            local_schematisations = list_local_schematisations(threedi_working_dir)
-            for schematisation_id, local_schematisation in local_schematisations.items():
-                # Iterate over revisions
-                for revision_number, local_revision in local_schematisation.revisions.items():
-                    # Iterate over results
-                    for result_dir in local_revision.results_dirs:
-                        schema_item = QStandardItem(local_schematisation.name)
-                        schema_item.setEditable(False)
-                        revision_item = QStandardItem(str(revision_number))
-                        revision_item.setEditable(False)
-                        result_item = QStandardItem(Path(result_dir).name)
-                        result_item.setEditable(False)
-                        # We'll store the result folder with the result_item for fast retrieval
-                        result_item.setData(os.path.join(local_revision.results_dir, result_dir))
-
-                        self.model.appendRow([schema_item, revision_item, result_item])
-
-            for i in range(len(self.header_labels)):
-                self.tableView.resizeColumnToContents(i)
+            self._populate_table()
 
     def _retrieve_selected_result_folder(self) -> str:
         result_item = self.model.item(self.tableView.currentIndex().row(), 2)
@@ -157,3 +133,33 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     def _item_selected(self, _):
         self.loadResultPushButton.setEnabled(True)
         self.loadGridPushButton.setEnabled(True)
+
+    def _populate_table(self):
+        # Repopulate the table
+        self.model.clear()
+        self.model.setHorizontalHeaderLabels(self.header_labels)
+        threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
+        if not threedi_working_dir:
+            pop_up_critical("3Di Models & Simulations working directory not yet set.")
+
+        local_schematisations = list_local_schematisations(threedi_working_dir)
+        for schematisation_id, local_schematisation in local_schematisations.items():
+            logger.error(str(local_schematisation.name))
+            # Iterate over revisions
+            for revision_number, local_revision in local_schematisation.revisions.items():
+                # Iterate over results
+                for result_dir in local_revision.results_dirs:
+                    logger.error(f"revision {revision_number}")
+                    schema_item = QStandardItem(local_schematisation.name)
+                    schema_item.setEditable(False)
+                    revision_item = QStandardItem(str(revision_number))
+                    revision_item.setEditable(False)
+                    result_item = QStandardItem(Path(result_dir).name)
+                    result_item.setEditable(False)
+                    # We'll store the result folder with the result_item for fast retrieval
+                    result_item.setData(os.path.join(local_revision.results_dir, result_dir))
+
+                    self.model.appendRow([schema_item, revision_item, result_item])
+
+        for i in range(len(self.header_labels)):
+            self.tableView.resizeColumnToContents(i)
