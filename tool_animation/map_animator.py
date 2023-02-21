@@ -113,15 +113,15 @@ def threedi_result_percentiles(
     elif stripped_variable in H_TYPES:
         if groundwater:
             nodes_or_lines = gr.nodes.filter(node_type__in=[2, 6])
-            if variable == WATERLEVEL.name and relative_to_t0:
-                z_coordinates = gr.cells.filter(node_type__in=[2, 6]).z_coordinate
+            if variable == WATERLEVEL.name:
+                bottom_level = gr.cells.filter(node_type__in=[2, 6]).dmax
         else:
             nodes_or_lines = gr.nodes.filter(node_type__ne=2).filter(node_type__ne=6)
-            if variable == WATERLEVEL.name and relative_to_t0:
-                z_coordinates = (
+            if variable == WATERLEVEL.name:
+                bottom_level = (
                     gr.cells.filter(node_type__ne=2)
                     .filter(node_type__ne=6)
-                    .z_coordinate
+                    .dmax
                 )
     else:
         raise ValueError(f"unknown variable: {variable}")
@@ -135,27 +135,28 @@ def threedi_result_percentiles(
         ts = nodes_or_lines.timeseries(indexes=slice(None))
 
     values = getattr(ts, variable)
-    values_t0 = values[0]
-    if absolute:
-        values = np.absolute(values)
-        values_t0 = np.absolute(values_t0)
     values[values == NO_DATA_VALUE] = np.nan
-    values_t0[values_t0 == NO_DATA_VALUE] = np.nan
+
+    if variable == WATERLEVEL.name:
+        # replace NaN with dmax a.k.a. bottom_level
+        mask = np.isnan(values)
+        values[mask] = np.broadcast_to(bottom_level, values.shape)[mask]
 
     if relative_to_t0:
-        if variable == WATERLEVEL.name:
-            mask_t0 = np.isnan(values_t0)
-            values_t0[mask_t0] = z_coordinates[mask_t0]
-            z_coordinates_tiled = np.tile(z_coordinates, (values.shape[0], 1))
-            mask = np.isnan(values)
-            values[mask] = z_coordinates_tiled[mask]
-        values -= values_t0
+        values -= values[0]
+
+    if absolute:
+        np.abs(values, out=values)
+
     values_above_threshold = values[values > lower_threshold]
     if np.isnan(values_above_threshold).all():
         return MapAnimator.CLASS_BOUNDS_EMPTY
+
     result = np.nanpercentile(
         values_above_threshold, MapAnimator.CLASS_BOUNDS_PERCENTILES
     ).tolist()
+    result[-1] = np.nanmax(values).item()
+
     if lower_threshold == 0:
         result[0] = lower_threshold
     return result
