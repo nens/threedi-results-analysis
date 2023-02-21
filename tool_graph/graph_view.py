@@ -611,11 +611,11 @@ class GraphWidget(QWidget):
             msg = """Please select results from either the 'flowlines', 'nodes' or
             'pumplines' layer."""
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
-            return
+            return False
 
         if len(self.model.get_results(checked_only=False)) == 0:
             logger.warning("No results loaded for this grid")
-            return True
+            return False
 
         # Retrieve summary of existing items in model (!= graph plots)
         existing_items = [
