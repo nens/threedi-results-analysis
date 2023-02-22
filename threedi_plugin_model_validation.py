@@ -107,7 +107,7 @@ class ThreeDiPluginModelValidator(QObject):
                     f"Results file {result_item.path} is incomplete. "
                     "If possible, copy or download it again."
                 )
-            return fail("Results file cannot be opened.")
+            return fail(f"Results file cannot be opened: {str(error.errno)} {str(error.strerror)} {str(error.args)}")
 
         # Try to open accompanying aggregate results file
         aggregate_results_path = result_item.path.with_name("aggregate_results_3di.nc")

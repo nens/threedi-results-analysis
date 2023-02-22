@@ -1,4 +1,3 @@
-from logging import getLogger
 from pathlib import Path
 import os
 
@@ -10,8 +9,6 @@ from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
 from threedi_results_analysis.utils.workingdir import list_local_schematisations
 from threedi_results_analysis.utils.user_messages import pop_up_critical
-
-logger = getLogger(__name__)
 
 FORM_CLASS, _ = uic.loadUiType(
     Path(__file__).parent / 'threedi_plugin_grid_result_dialog.ui',
@@ -149,12 +146,10 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
 
         local_schematisations = list_local_schematisations(threedi_working_dir)
         for schematisation_id, local_schematisation in local_schematisations.items():
-            logger.error(str(local_schematisation.name))
             # Iterate over revisions
             for revision_number, local_revision in local_schematisation.revisions.items():
                 # Iterate over results
                 for result_dir in local_revision.results_dirs:
-                    logger.error(f"revision {revision_number}")
                     schema_item = QStandardItem(local_schematisation.name)
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
