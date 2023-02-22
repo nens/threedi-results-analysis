@@ -4,8 +4,8 @@
 # installing our application's dependencies like numpy or Shapely!
 #
 black
-coverage > 5
 coveralls
+coverage > 5
 docstr-coverage >= 1.0.4
 flake8
 isort
