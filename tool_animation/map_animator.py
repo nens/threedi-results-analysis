@@ -9,6 +9,7 @@ from qgis.utils import iface
 from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtWidgets import QCheckBox
 from qgis.PyQt.QtWidgets import QComboBox
+from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout, QGridLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QGroupBox
@@ -185,6 +186,11 @@ class MapAnimator(QGroupBox):
 
     def _update_temporal_controller(self, results):
         logger.info("Updating temporal controller")
+
+        # make temporal controller widget visible
+        for dock_widget in iface.mainWindow().findChildren(QDockWidget):
+            if dock_widget.objectName() == 'Temporal Controller':
+                dock_widget.setVisible(True)
 
         # gather info
         threedi_results = [r.threedi_result for r in results]
