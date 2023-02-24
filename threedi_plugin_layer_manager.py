@@ -279,7 +279,7 @@ class ThreeDiPluginLayerManager(QObject):
     @staticmethod
     def _generate_gpkg(path_h5, path_gpkg) -> None:
         progress_bar = StatusProgressBar(100, "Generating geopackage")
-        exporter = GeopackageExporter(str(path_h5), str(path_gpkg))
+        exporter = GeopackageExporter(path_h5.open('rb'), str(path_gpkg))
         exporter.export(
             lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
         )

@@ -321,7 +321,7 @@ class ThreediResult(BaseDataSource):
     @cached_property
     def gridadmin(self):
         h5 = find_h5_file(self.file_path)
-        return GridH5Admin(h5)
+        return GridH5Admin(open(h5, 'rb'))
 
     @cached_property
     def result_admin(self):
@@ -329,7 +329,7 @@ class ThreediResult(BaseDataSource):
         # TODO: there's no FileNotFound try/except here like for
         # aggregates. Richard says that a missing regular result file is just
         # as likely.
-        return GridH5ResultAdmin(h5, self.file_path)
+        return GridH5ResultAdmin(open(h5, 'rb'), self.file_path)
 
     @cached_property
     def aggregate_result_admin(self):
@@ -340,7 +340,7 @@ class ThreediResult(BaseDataSource):
         except FileNotFoundError:
             logger.exception("Aggregate result not found")
             return None
-        return GridH5AggregateResultAdmin(h5, agg_path)
+        return GridH5AggregateResultAdmin(open(h5, 'rb'), agg_path)
 
     @cached_property
     def datasource(self):
