@@ -288,7 +288,7 @@ class ThreeDiPluginLayerManager(QObject):
         # Copy some info from h5 to geopackage for future validation
         # TODO: should be added to threedigrid
         try:
-            h5 = h5py.File(path_h5, "r")
+            h5 = h5py.File(path_h5.open("rb"), "r")
             model_slug = h5.attrs['model_slug'].decode()
             logger.info(f"Model slug: {model_slug}")
             driver = ogr.GetDriverByName('GPKG')

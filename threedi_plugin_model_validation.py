@@ -100,7 +100,7 @@ class ThreeDiPluginModelValidator(QObject):
 
         # Check opening with h5py, detects a.o. incomplete downloads
         try:
-            results_h5 = h5py.File(result_item.path, "r")
+            results_h5 = h5py.File(result_item.path.open("rb"), "r")
         except OSError as error:
             if "truncated file" in str(error):
                 return fail(
@@ -113,7 +113,7 @@ class ThreeDiPluginModelValidator(QObject):
         aggregate_results_path = result_item.path.with_name("aggregate_results_3di.nc")
         if aggregate_results_path.exists():
             try:
-                h5py.File(aggregate_results_path, "r")
+                h5py.File(aggregate_results_path.open("rb"), "r")
             except OSError as error:
                 if "truncated file" in str(error):
                     return fail(
