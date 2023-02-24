@@ -1,26 +1,20 @@
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QObject
 from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
-
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from qgis.PyQt.QtCore import pyqtSlot
 import qgis
 import os
 
 
-class ThreeDiSideView(object):
+class ThreeDiSideView(QObject):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, tdi_root_tool):
-        """Constructor.
+    def __init__(self, iface, tdi_root_tool, model):
+        QObject.__init__(self)
 
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        :param tdi_root_tool: 3Di root tool instance
-        :type tdi_root_tool: ThreeDiPlugin
-        """
-        # Save reference to the QGIS interface
         self.iface = iface
         self.tdi_root_tool = tdi_root_tool
+        self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
         self.menu_text = u"Show sideview of 3Di model with results"
@@ -43,6 +37,14 @@ class ThreeDiSideView(object):
         """
         for widget in self.dock_widgets:
             widget.close()
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_added(self, grid_item: ThreeDiGridItem):
+        self.action_icon.setEnabled(self.model.number_of_grids() > 0)
+
+    @pyqtSlot(ThreeDiGridItem)
+    def grid_removed(self, grid_item: ThreeDiGridItem):
+        self.action_icon.setEnabled(self.model.number_of_grids() > 0)
 
     def on_close_child_widget(self, widget_nr):
         """Cleanup necessary items here when plugin dockwidget is closed"""

@@ -80,7 +80,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.cache_clearer = CacheClearer(iface, self.ts_datasources)
         self.result_selection_tool = ThreeDiResultSelection(iface, self.ts_datasources)
         self.graph_tool = ThreeDiGraph(iface, self.model)
-        self.sideview_tool = ThreeDiSideView(iface, self)
+        self.sideview_tool = ThreeDiSideView(iface, self, self.model)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
         self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.ts_datasources)
@@ -179,6 +179,10 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.model.result_changed.connect(self.graph_tool.result_changed)
         self.model.grid_changed.connect(self.graph_tool.grid_changed)
 
+        # sideview signals
+        self.model.grid_added.connect(self.sideview_tool.grid_added)
+        self.model.grid_removed.connect(self.sideview_tool.grid_removed)
+
         self.init_state_sync()
 
         # Disable warning that scratch layer data will be lost
@@ -231,11 +235,9 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             self.ts_datasources.rowCount() > 0
             and self.ts_datasources.model_spatialite_filepath is not None
         ):
-            self.sideview_tool.action_icon.setEnabled(True)
             self.stats_tool.action_icon.setEnabled(True)
             self.water_balance_tool.action_icon.setEnabled(True)
         else:
-            self.sideview_tool.action_icon.setEnabled(False)
             self.stats_tool.action_icon.setEnabled(False)
             self.water_balance_tool.action_icon.setEnabled(False)
 

@@ -29,11 +29,9 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
-from qgis.PyQt.QtWidgets import QLabel
 from qgis.PyQt.QtWidgets import QPushButton
 from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
-from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis.tool_sideview.route import Route
@@ -131,6 +129,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         super().__init__(parent)
 
         self.name = name
+
+        # TODO: the following line was missing...
+        self.tdi_root_tool = tdi_root_tool
+
         self.nr = nr
         self.node_dict = point_dict
         self.line_layer = line_layer
@@ -1137,7 +1139,8 @@ class SideViewDockWidget(QDockWidget):
         )
 
         self.sideviews = []
-        widget = SideViewPlotWidget(
+
+        self.side_view_plot_widget = SideViewPlotWidget(
             self,
             0,
             self.line_layer,
@@ -1146,9 +1149,11 @@ class SideViewDockWidget(QDockWidget):
             self.tdi_root_tool,
             "name",
         )
-        self.active_sideview = widget
-        self.sideviews.append((0, widget))
-        self.side_view_tab_widget.addTab(widget, widget.name)
+        self.side_view_plot_widget.setObjectName("sideViewTabWidget")
+        self.main_vlayout.addWidget(self.side_view_plot_widget)
+
+        self.active_sideview = self.side_view_plot_widget
+        self.sideviews.append((0, self.side_view_plot_widget))
 
         # init route graph
         # QgsLineVectorLayerDirector
@@ -1790,15 +1795,13 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout = QHBoxLayout(self)
 
         # add title to graph
-        self.title_label = QLabel(self)
-        self.title_label.setObjectName("TitleLabel")
-        self.button_bar_hlayout.addWidget(self.title_label)
+        self.setWindowTitle(f"3Di Sideview Plot {self.nr}")
 
-        self.select_sideview_button = QPushButton(self)
+        self.select_sideview_button = QPushButton("Choose sideview trajectory", self)
         self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
 
-        self.reset_sideview_button = QPushButton(self)
+        self.reset_sideview_button = QPushButton("Reset sideview trajectory", self)
         self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
 
@@ -1806,32 +1809,6 @@ class SideViewDockWidget(QDockWidget):
         self.button_bar_hlayout.addItem(spacer_item)
         self.main_vlayout.addItem(self.button_bar_hlayout)
 
-        # add tabWidget for graphWidgets
-        self.side_view_tab_widget = QTabWidget(self)
-        size_policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        size_policy.setHorizontalStretch(6)
-        size_policy.setVerticalStretch(0)
-        size_policy.setHeightForWidth(
-            self.side_view_tab_widget.sizePolicy().hasHeightForWidth()
-        )
-        self.side_view_tab_widget.setSizePolicy(size_policy)
-        self.side_view_tab_widget.setObjectName("sideViewTabWidget")
-        self.main_vlayout.addWidget(self.side_view_tab_widget)
-
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
-        self.retranslate_ui(dock_widget)
         QMetaObject.connectSlotsByName(dock_widget)
-
-    def retranslate_ui(self, dock_widget):
-        # dock_widget.setWindowTitle(_translate(
-        #    "DockWidget", "3Di sideview %i" % self.nr, None))
-        self.title_label.setText(
-            _translate("DockWidget", "3Di sideview nr. %i " % self.nr, None)
-        )
-        self.select_sideview_button.setText(
-            _translate("DockWidget", "Choose sideview trajectory", None)
-        )
-        self.reset_sideview_button.setText(
-            _translate("DockWidget", "Reset sideview trajectory", None)
-        )
