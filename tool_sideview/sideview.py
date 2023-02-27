@@ -9,11 +9,10 @@ import os
 class ThreeDiSideView(QObject):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, tdi_root_tool, model):
+    def __init__(self, iface, model):
         QObject.__init__(self)
 
         self.iface = iface
-        self.tdi_root_tool = tdi_root_tool
         self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "icon_route.png")
@@ -39,11 +38,11 @@ class ThreeDiSideView(QObject):
             widget.close()
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_added(self, grid_item: ThreeDiGridItem):
+    def grid_added(self, _: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_removed(self, grid_item: ThreeDiGridItem):
+    def grid_removed(self, _: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
 
     def on_close_child_widget(self, widget_nr):
@@ -73,9 +72,8 @@ class ThreeDiSideView(QObject):
         self.widget_nr += 1
         new_widget = SideViewDockWidget(
             self.iface,
-            parent_class=self,
             nr=self.widget_nr,
-            tdi_root_tool=self.tdi_root_tool,
+            model=self.model,
         )
         self.dock_widgets.append(new_widget)
 

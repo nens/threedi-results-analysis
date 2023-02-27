@@ -119,7 +119,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         line_layer=None,
         point_dict=None,
         channel_profiles=None,
-        tdi_root_tool=None,
+        model=None,
         name="",
     ):
         """
@@ -130,8 +130,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.name = name
 
-        # TODO: the following line was missing...
-        self.tdi_root_tool = tdi_root_tool
+        self.model = model
 
         self.nr = nr
         self.node_dict = point_dict
@@ -808,7 +807,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
-        ds_item = self.tdi_root_tool.ts_datasources.rows[0]  # TODO: ACTIVE
+        ds_item = self.model.get_results(False)[0]  # TODO: ACTIVE
         if ds_item:
             ds = ds_item.threedi_result()
             for node in self.sideview_nodes:
@@ -1097,15 +1096,13 @@ class SideViewDockWidget(QDockWidget):
     CHANNEL = 16
 
     def __init__(
-        self, iface, parent_widget=None, parent_class=None, nr=0, tdi_root_tool=None
+        self, iface, nr, model, parent=None
     ):
-        """Constructor"""
-        super().__init__(parent_widget)
+        super().__init__(parent)
 
         self.iface = iface
-        self.parent_class = parent_class
         self.nr = nr
-        self.tdi_root_tool = tdi_root_tool
+        self.model = model
 
         # setup ui
         self.setup_ui(self)
@@ -1118,16 +1115,9 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        if self.tdi_root_tool.ts_datasources.rows[0] is not None:  # TODO: ACTIVE
-            (
-                line,
-                node,
-                cell,
-                pump,
-            ) = (
-                self.tdi_root_tool.ts_datasources.rows[0].get_result_layers()  # TODO: ACTIVE
-            )
-        else:
+        if self.model.number_of_results() > 0:
+            line, node, cell, pump = self.model.get_results(checked_only=False)[0].get_result_layers()
+        else:  # is this case possible?
             line = None
 
         (
@@ -1138,22 +1128,19 @@ class SideViewDockWidget(QDockWidget):
             self.tdi_root_tool.ts_datasources.model_spatialite_filepath, line
         )
 
-        self.sideviews = []
-
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
             0,
             self.line_layer,
             self.point_dict,
             self.channel_profiles,
-            self.tdi_root_tool,
+            self.model,
             "name",
         )
         self.side_view_plot_widget.setObjectName("sideViewTabWidget")
         self.main_vlayout.addWidget(self.side_view_plot_widget)
 
         self.active_sideview = self.side_view_plot_widget
-        self.sideviews.append((0, self.side_view_plot_widget))
 
         # init route graph
         # QgsLineVectorLayerDirector
@@ -1759,8 +1746,7 @@ class SideViewDockWidget(QDockWidget):
         )
         self.map_visualisation.close()
 
-        for sideview_plot in self.sideviews:
-            sideview_plot[1].on_close()
+        self.side_view_plot_widget.on_close()
 
         # todo: find out how to unload layer from memory (done automic if
         # there are no references?)
