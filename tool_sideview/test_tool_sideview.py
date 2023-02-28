@@ -11,7 +11,7 @@ class TestThreeDiSideView(unittest.TestCase):
         iface = mock.Mock()
         # tdi_root_tool = mock.Mock()
         tdi_root_tool = About(iface)
-        self.sideview = ThreeDiSideView(iface, tdi_root_tool)
+        self.sideview = ThreeDiSideView(iface, None, tdi_root_tool)
 
     def test_icon_path_is_set(self):
         self.assertEqual(
