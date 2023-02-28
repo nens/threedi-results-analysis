@@ -5,7 +5,12 @@
 3.1.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Initial work on Sideview refactor.
+- New working directory dialog when opening files.
+- Animation tool: time indicator now shown in Results Manager
+- Minor changes to animation styling and class bound calculations (#784).
+- Added support for special symbols in paths (#782).
+- Make temporal controller visible when checking (visualizing) result (#768).
 
 
 3.1.1 (2023-02-10)
