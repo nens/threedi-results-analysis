@@ -1096,7 +1096,7 @@ class SideViewDockWidget(QDockWidget):
     CHANNEL = 16
 
     def __init__(
-        self, iface, nr, model, parent=None
+        self, iface, nr, model, datasources, parent=None
     ):
         super().__init__(parent)
 
@@ -1105,7 +1105,7 @@ class SideViewDockWidget(QDockWidget):
         self.model = model
 
         # setup ui
-        self.setup_ui(self)
+        self.setup_ui()
 
         # add listeners
         self.select_sideview_button.clicked.connect(self.toggle_route_tool)
@@ -1120,12 +1120,13 @@ class SideViewDockWidget(QDockWidget):
         else:  # is this case possible?
             line = None
 
+        logger.error(datasources.model_spatialite_filepath)
         (
             self.line_layer,
             self.point_dict,
             self.channel_profiles,
         ) = self.create_combined_layers(
-            self.tdi_root_tool.ts_datasources.model_spatialite_filepath, line
+            datasources.model_spatialite_filepath, line
         )
 
         self.side_view_plot_widget = SideViewPlotWidget(
@@ -1187,10 +1188,6 @@ class SideViewDockWidget(QDockWidget):
 
     def create_combined_layers(self, spatialite_path, model_line_layer):
 
-        # if model_line_layer is None:
-        #     canvas = self.tdi_root_tool.iface.mapCanvas()
-        #     model_line_layer = canvas.currentLayer()
-
         def get_layer(spatialite_path, table_name, geom_column=""):
             uri2 = QgsDataSourceUri()
             uri2.setDatabase(spatialite_path)
@@ -1198,16 +1195,10 @@ class SideViewDockWidget(QDockWidget):
 
             return QgsVectorLayer(uri2.uri(), table_name, "spatialite")
 
-        # connection node layer
         profile_layer = get_layer(spatialite_path, "v2_cross_section_definition")
+        cross_section_location_layer = get_layer(spatialite_path, "v2_cross_section_location", "the_geom")
+        connection_node_layer = get_layer(spatialite_path, "v2_connection_nodes", "the_geom")
 
-        cross_section_location_layer = get_layer(
-            spatialite_path, "v2_cross_section_location", "the_geom"
-        )
-
-        connection_node_layer = get_layer(
-            spatialite_path, "v2_connection_nodes", "the_geom"
-        )
         manhole_layer = get_layer(spatialite_path, "v2_manhole")
         boundary_layer = get_layer(spatialite_path, "v2_1d_boundary_conditions")
         pipe_layer = get_layer(spatialite_path, "v2_pipe")
@@ -1270,6 +1261,7 @@ class SideViewDockWidget(QDockWidget):
                 "bottom_level": None,
                 "length": 0.0,
             }
+
         for manhole in manhole_layer.getFeatures():
             p = points[manhole["connection_node_id"]]
             p["type"] = self.MANHOLE
@@ -1762,14 +1754,14 @@ class SideViewDockWidget(QDockWidget):
         self.closingWidget.emit(self.nr)
         event.accept()
 
-    def setup_ui(self, dock_widget):
+    def setup_ui(self):
         """
         initiate main Qt building blocks of interface
         :param dock_widget: QDockWidget instance
         """
 
-        dock_widget.setObjectName("dock_widget")
-        dock_widget.setAttribute(Qt.WA_DeleteOnClose)
+        self.setObjectName("dock_widget")
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.dock_widget_content = QWidget(self)
         self.dock_widget_content.setObjectName("dockWidgetContent")
@@ -1783,11 +1775,11 @@ class SideViewDockWidget(QDockWidget):
         # add title to graph
         self.setWindowTitle(f"3Di Sideview Plot {self.nr}")
 
-        self.select_sideview_button = QPushButton("Choose sideview trajectory", self)
+        self.select_sideview_button = QPushButton("Choose sideview trajectory", self.dock_widget_content)
         self.select_sideview_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_sideview_button)
 
-        self.reset_sideview_button = QPushButton("Reset sideview trajectory", self)
+        self.reset_sideview_button = QPushButton("Reset sideview trajectory", self.dock_widget_content)
         self.reset_sideview_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_sideview_button)
 
@@ -1796,5 +1788,5 @@ class SideViewDockWidget(QDockWidget):
         self.main_vlayout.addItem(self.button_bar_hlayout)
 
         # add dockwidget
-        dock_widget.setWidget(self.dock_widget_content)
-        QMetaObject.connectSlotsByName(dock_widget)
+        self.setWidget(self.dock_widget_content)
+        QMetaObject.connectSlotsByName(self)
