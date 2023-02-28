@@ -75,7 +75,7 @@ class ThreeDiSideView(QObject):
             self.iface,
             nr=self.widget_nr,
             model=self.model,
-            datasources = self.datasources,
+            datasources=self.datasources,
         )
         self.dock_widgets.append(new_widget)
 
