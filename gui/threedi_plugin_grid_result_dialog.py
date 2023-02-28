@@ -3,7 +3,7 @@ import os
 
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from qgis.PyQt import QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot, QModelIndex
 from qgis.PyQt.QtWidgets import QAbstractItemView
 from qgis.core import QgsSettings
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
@@ -41,6 +41,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         self.header_labels = ["Schematisation", "Revision", "Simulation"]
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.tableView.clicked.connect(self._item_selected)
+        self.tableView.doubleClicked.connect(self._item_double_clicked)
 
         self.loadResultPushButton.clicked.connect(self._add_result_from_table)
         self.loadGridPushButton.clicked.connect(self._add_grid_from_table)
@@ -113,21 +114,21 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         if self.tabWidget.currentWidget() is self.threedi:
             self._populate_table()
 
-    def _retrieve_selected_result_folder(self) -> str:
-        result_item = self.model.item(self.tableView.currentIndex().row(), 2)
+    def _retrieve_selected_result_folder(self, index: QModelIndex) -> str:
+        result_item = self.model.item(index.row(), 2)
         result_dir = result_item.data()
         assert result_dir
         return result_dir
 
     @pyqtSlot()
     def _add_grid_from_table(self) -> None:
-        grid_file = os.path.join(self._retrieve_selected_result_folder(), "gridadmin.h5")
+        grid_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "gridadmin.h5")
         self.grid_file_selected.emit(grid_file)
 
     @pyqtSlot()
     def _add_result_from_table(self) -> None:
-        result_file = os.path.join(self._retrieve_selected_result_folder(), "results_3di.nc")
-        grid_file = os.path.join(self._retrieve_selected_result_folder(), "gridadmin.h5")
+        result_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "results_3di.nc")
+        grid_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "gridadmin.h5")
 
         # Also emit corresponding grid file
         self.result_file_selected.emit(result_file, grid_file)
@@ -135,6 +136,13 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
     def _item_selected(self, _):
         self.loadResultPushButton.setEnabled(True)
         self.loadGridPushButton.setEnabled(True)
+
+    def _item_double_clicked(self, item: QModelIndex):
+        result_file = os.path.join(self._retrieve_selected_result_folder(item), "results_3di.nc")
+        grid_file = os.path.join(self._retrieve_selected_result_folder(item), "gridadmin.h5")
+
+        # Also emit corresponding grid file
+        self.result_file_selected.emit(result_file, grid_file)
 
     def _populate_table(self):
         # Repopulate the table
