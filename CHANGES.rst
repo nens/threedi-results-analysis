@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.2 (unreleased)
+3.1.2 (2023-02-28)
 ------------------
 
 - Initial work on Sideview refactor.
