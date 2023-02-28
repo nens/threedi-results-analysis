@@ -3,7 +3,7 @@ SQLAlchemy<1.4
 GeoAlchemy2==0.10.2
 lizard-connector==0.7.3
 pyqtgraph>=0.11.1,<0.12
-threedigrid>=2.0.0
+threedigrid==2.0.*
 threedi-schema==0.214.4
 threedi-modelchecker==1.0.*
 threedidepth==0.4

@@ -1,9 +1,7 @@
 import os
 from collections import OrderedDict
-import h5py
 from pathlib import Path
 import re
-from osgeo import ogr
 import uuid
 from PyQt5.QtCore import Qt
 from threedigrid.admin.exporters.geopackage import GeopackageExporter
@@ -284,18 +282,6 @@ class ThreeDiPluginLayerManager(QObject):
             lambda count, total, pb=progress_bar: pb.set_value((count * 100) // total)
         )
         del progress_bar
-
-        # Copy some info from h5 to geopackage for future validation
-        # TODO: should be added to threedigrid
-        try:
-            h5 = h5py.File(path_h5.open("rb"), "r")
-            model_slug = h5.attrs['model_slug'].decode()
-            logger.info(f"Model slug: {model_slug}")
-            driver = ogr.GetDriverByName('GPKG')
-            package = driver.Open(str(path_gpkg), True)
-            package.SetMetadataItem('model_slug', model_slug)
-        except Exception:
-            logger.error("Unable to extract meta information from h5 file")
 
         messagebar_message(TOOLBOX_MESSAGE_TITLE, "Generated geopackage")
 

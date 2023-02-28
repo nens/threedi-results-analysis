@@ -1,13 +1,12 @@
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 from pathlib import Path
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsVectorLayer
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from threedi_results_analysis.utils.user_messages import messagebar_message, pop_up_critical
 from threedi_results_analysis.threedi_plugin_model import ThreeDiPluginModel
 from threedi_results_analysis.utils.constants import TOOLBOX_MESSAGE_TITLE
 from threedi_results_analysis.utils.utils import listdirs
 import h5py
-from osgeo import ogr
 import logging
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,6 @@ class ThreeDiPluginModelValidator(QObject):
         Validates the grid and returns the new (or already existing) ThreeDiGridItem
         """
         new_item = ThreeDiGridItem(Path(grid_file), "")
-        logger.info("validate grid")
 
         # Check whether model already contains this grid file.
         for i in range(self.model.invisibleRootItem().rowCount()):
@@ -130,11 +128,11 @@ class ThreeDiPluginModelValidator(QObject):
         # Check whether corresponding grid item belongs to same model
         result_model_slug = results_h5.attrs['model_slug'].decode()
 
-        driver = ogr.GetDriverByName('GPKG')
-        package = driver.Open(str(grid_item.path), True)
-        grid_model_slug = package.GetMetadataItem('model_slug')
+        grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(grid_item.path)
 
-        if grid_model_slug is None or grid_model_slug is None:
+        logger.info(f"Comparing grid slug {grid_model_slug} to {result_model_slug}")
+
+        if grid_model_slug is None or result_model_slug is None:
             msg = "No model meta information in result or grid, skipping slug validation."
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
         elif result_model_slug != grid_model_slug:
@@ -142,9 +140,7 @@ class ThreeDiPluginModelValidator(QObject):
             root_node = grid_item.model().invisibleRootItem()
             for i in range(root_node.rowCount()):
                 other_grid_item = root_node.child(i)
-
-                package = ogr.GetDriverByName('GPKG').Open(str(other_grid_item.path), True)
-                other_grid_model_slug = package.GetMetadataItem('model_slug')
+                other_grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(other_grid_item.path)
 
                 if result_model_slug == other_grid_model_slug:
                     logger.info(f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.")
@@ -157,3 +153,15 @@ class ThreeDiPluginModelValidator(QObject):
             return fail(msg)
 
         self.result_valid.emit(result_item, grid_item)
+
+    @staticmethod
+    def get_grid_slug(geopackage_path: Path) -> str:
+        meta_layer = QgsVectorLayer(str(geopackage_path) + "|layername=meta", "meta", "ogr")
+
+        if not meta_layer.isValid() or not (meta_layer.featureCount() == 1):
+            logger.warning("Invalid, zero or more than 1 meta data table. Unable to derive slug")
+            return None
+
+        # Take first
+        meta = next(meta_layer.getFeatures())
+        return meta["model_slug"]
