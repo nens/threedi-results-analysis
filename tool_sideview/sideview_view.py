@@ -114,7 +114,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         self,
         parent=None,
         nr=0,
-        line_layer=None,
+        graph_layer=None,
         point_dict=None,
         channel_profiles=None,
         model=None,
@@ -132,7 +132,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.nr = nr
         self.node_dict = point_dict
-        self.line_layer = line_layer
+        self.graph_layer = graph_layer
         self.channel_profiles = channel_profiles
 
         self.profile = []
@@ -807,7 +807,7 @@ class SideViewPlotWidget(pg.PlotWidget):
     def update_water_level_cache(self):
         ds_item = self.model.get_results(False)[0]  # TODO: ACTIVE
         if ds_item:
-            ds = ds_item.threedi_result()
+            ds = ds_item.threedi_result
             for node in self.sideview_nodes:
                 try:
                     if python_value(node["idx"]) is not None:
@@ -837,6 +837,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def draw_waterlevel_line(self):
 
+        # TODO: reconnect to Temporal controller
         timestamp_nr = self.time_slider.value()
 
         water_level_line = []
@@ -871,10 +872,10 @@ class SideViewPlotWidget(pg.PlotWidget):
 
 
 class RouteTool(QgsMapTool):
-    def __init__(self, canvas, line_layer, callback_on_select):
+    def __init__(self, canvas, graph_layer, callback_on_select):
         QgsMapTool.__init__(self, canvas)
         self.canvas = canvas
-        self.line_layer = line_layer
+        self.graph_layer = graph_layer
         self.callback_on_select = callback_on_select
 
     def canvasPressEvent(self, event):
@@ -900,13 +901,13 @@ class RouteTool(QgsMapTool):
 
         transform = QgsCoordinateTransform(
             self.canvas.mapSettings().destinationCrs(),
-            self.line_layer.crs(),
+            self.graph_layer.crs(),
             QgsProject.instance(),
         )
 
         rect = transform.transform(rect)
         filter = QgsFeatureRequest().setFilterRect(rect)
-        selected = self.line_layer.getFeatures(filter)
+        selected = self.graph_layer.getFeatures(filter)
 
         clicked_point = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
         # transform to wgs84 (lon, lat) if not already:
@@ -1012,17 +1013,23 @@ class SideViewDockWidget(QDockWidget):
 
         logger.error(datasources.model_spatialite_filepath)
         (
-            self.line_layer,
+            self.graph_layer,
             self.point_dict,
             self.channel_profiles,
         ) = self.create_combined_layers(
             datasources.model_spatialite_filepath, line
         )
+        logger.error('graph_layer')
+        logger.error(self.graph_layer)
+        logger.error('point_dict')
+        logger.error(self.point_dict)
+        logger.error('channel_profiles')
+        logger.error(self.channel_profiles)
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
             0,
-            self.line_layer,
+            self.graph_layer,
             self.point_dict,
             self.channel_profiles,
             self.model,
@@ -1036,11 +1043,11 @@ class SideViewDockWidget(QDockWidget):
         # init route graph
         # QgsLineVectorLayerDirector
         director = QgsVectorLayerDirector(
-            self.line_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth
+            self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth
         )
 
         self.route = Route(
-            self.line_layer,
+            self.graph_layer,
             director,
             id_field="nr",
             weight_properter=CustomDistancePropeter(),
@@ -1049,13 +1056,13 @@ class SideViewDockWidget(QDockWidget):
 
         # link route map tool
         self.route_tool = RouteTool(
-            self.iface.mapCanvas(), self.line_layer, self.on_route_point_select
+            self.iface.mapCanvas(), self.graph_layer, self.on_route_point_select
         )
 
         self.route_tool.deactivated.connect(self.unset_route_tool)
 
         self.map_visualisation = SideViewMapVisualisation(
-            self.iface, self.line_layer.crs()
+            self.iface, self.graph_layer.crs()
         )
 
         # connect graph hover to point visualisation on map
@@ -1084,20 +1091,6 @@ class SideViewDockWidget(QDockWidget):
             return QgsVectorLayer(uri2.uri(), table_name, "spatialite")
 
         profile_layer = get_layer(spatialite_path, "v2_cross_section_definition")
-        cross_section_location_layer = get_layer(spatialite_path, "v2_cross_section_location", "the_geom")
-        connection_node_layer = get_layer(spatialite_path, "v2_connection_nodes", "the_geom")
-
-        manhole_layer = get_layer(spatialite_path, "v2_manhole")
-        boundary_layer = get_layer(spatialite_path, "v2_1d_boundary_conditions")
-        pipe_layer = get_layer(spatialite_path, "v2_pipe")
-        channel_layer = get_layer(spatialite_path, "v2_channel", "the_geom")
-        weir_layer = get_layer(spatialite_path, "v2_weir")
-        orifice_layer = get_layer(spatialite_path, "v2_orifice")
-        pump_layer = get_layer(spatialite_path, "v2_pumpstation")
-        culvert_layer = get_layer(spatialite_path, "v2_culvert")
-
-        lines = []
-        points = {}
         profiles = {}
         for profile in profile_layer.getFeatures():
             # todo: add support for other definitions
@@ -1106,7 +1099,9 @@ class SideViewDockWidget(QDockWidget):
             height_was_none = False
 
             if profile["shape"] in (1, 2, 3):
+
                 height = python_value(profile["height"], func=float)
+                # grid['cross_sections']['width_1d'] in netcdf?
                 width = python_value(profile["width"], func=float)
                 if profile["shape"] == 1:
                     # rectangle
@@ -1140,6 +1135,17 @@ class SideViewDockWidget(QDockWidget):
                 "height_was_none": height_was_none,
             }
 
+        connection_node_layer = get_layer(spatialite_path, "v2_connection_nodes", "the_geom")
+        manhole_layer = get_layer(spatialite_path, "v2_manhole")
+        boundary_layer = get_layer(spatialite_path, "v2_1d_boundary_conditions")
+        pipe_layer = get_layer(spatialite_path, "v2_pipe")
+        weir_layer = get_layer(spatialite_path, "v2_weir")
+        orifice_layer = get_layer(spatialite_path, "v2_orifice")
+        pump_layer = get_layer(spatialite_path, "v2_pumpstation")
+        culvert_layer = get_layer(spatialite_path, "v2_culvert")
+
+        lines = []
+        points = {}
         for cn in connection_node_layer.getFeatures():
             points[cn["id"]] = {
                 "point": cn.geometry().asPoint(),
@@ -1292,7 +1298,12 @@ class SideViewDockWidget(QDockWidget):
             }
             lines.append(pump_def)
 
+        # This dict is being returned:
         channel_profiles = {}
+
+        cross_section_location_layer = get_layer(spatialite_path, "v2_cross_section_location", "the_geom")
+        channel_layer = get_layer(spatialite_path, "v2_channel", "the_geom")
+
         channel_calc_points = {}
         channel_cs_locations = {}
 
@@ -1454,8 +1465,8 @@ class SideViewDockWidget(QDockWidget):
 
         # create line layer
         uri = "LineString?crs=epsg:4326&index=yes"
-        vl = QgsVectorLayer(uri, "graph_layer", "memory")
-        pr = vl.dataProvider()
+        graph_layer = QgsVectorLayer(uri, "graph_layer", "memory")
+        pr = graph_layer.dataProvider()
 
         pr.addAttributes(
             [
@@ -1480,7 +1491,7 @@ class SideViewDockWidget(QDockWidget):
             ]
         )
         # tell the vector layer to fetch changes from the provider
-        vl.updateFields()
+        graph_layer.updateFields()
 
         features = []
         i = 0
@@ -1521,14 +1532,14 @@ class SideViewDockWidget(QDockWidget):
             i += 1
 
         pr.addFeatures(features)
-        vl.updateExtents()
+        graph_layer.updateExtents()
 
-        QgsProject.instance().addMapLayer(vl)
+        QgsProject.instance().addMapLayer(graph_layer)
         # We need to make sure that all ids are strings
         points = {str(point_id): point for point_id, point in points.items()}
         #  make point dict permanent
         self.point_dict = points
-        return vl, points, channel_profiles
+        return graph_layer, points, channel_profiles
 
     def unset_route_tool(self):
         if self.route_tool_active:
@@ -1631,7 +1642,7 @@ class SideViewDockWidget(QDockWidget):
         # todo: find out how to unload layer from memory (done automic if
         # there are no references?)
         QgsProject.instance().removeMapLayer(self.vl_tree_layer.id())
-        QgsProject.instance().removeMapLayer(self.line_layer.id())
+        QgsProject.instance().removeMapLayer(self.graph_layer.id())
 
     def closeEvent(self, event):
         """
