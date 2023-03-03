@@ -891,19 +891,19 @@ class GraphDockWidget(QDockWidget):
                 if layer_key in item.child(i).layer_ids:
                     relevant_grid_layer_ids.append(item.child(i).layer_ids[layer_key])
 
+        object_added = False
         for result in results:
             layer_id = result.mLayer.id()
             if layer_id not in relevant_grid_layer_ids:
                 continue
             result.mLayer.select(result.mFeature.id())
             graph_widget.add_objects(result.mLayer, [result.mFeature])
-            break
-        else:  # there was no break
-            return
+            object_added = True
 
-        tab_index = self.graphTabWidget.indexOf(graph_widget)
-        self.graphTabWidget.setCurrentIndex(tab_index)
-        graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
+        if object_added:
+            tab_index = self.graphTabWidget.indexOf(graph_widget)
+            self.graphTabWidget.setCurrentIndex(tab_index)
+            graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
 
 
 class BaseAddMapTool(QgsMapToolIdentify):

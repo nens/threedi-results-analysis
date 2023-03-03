@@ -5,7 +5,8 @@
 3.1.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Graph tool: let map tool select all layers, not just the top one (#787).
+- Use ThreeDiGrid to retrieve model slug.
 
 
 3.1.2 (2023-02-28)
