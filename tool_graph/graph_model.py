@@ -78,9 +78,12 @@ class LocationTimeseriesModel(BaseModel):
             # Update user-editable label of other plots for same feature
             updated_item = self.rows[index.row()]
             updated_feature_id = updated_item.object_id.value
+            updated_grid = updated_item.result.value.parent()
+            assert updated_grid
             new_label = updated_item.object_label.value
             for item in self.rows:
-                if item.object_id.value == updated_feature_id:
+                if (item.object_id.value == updated_feature_id and
+                        item.result.value.parent() is updated_grid):
                     self.blockSignals(True)
                     item.object_label.value = new_label
                     self.blockSignals(False)
@@ -131,7 +134,7 @@ class LocationTimeseriesModel(BaseModel):
         )
 
         grid_name = ValueField(show=True, column_width=100, column_name="grid", default_value="grid")
-        result = ValueField(show=True, column_width=100, column_name="result", default_value="result")
+        result = ValueField(show=True, column_width=100, column_name="result")
         object_id = ValueField(show=True, column_width=50, column_name="id")
         object_label = ValueField(show=True, column_width=100, column_name="label")  # user-defined label per feature
         object_name = ValueField(show=True, column_width=50, column_name="type")  # e.g. 2D-1D
