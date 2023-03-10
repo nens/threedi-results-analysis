@@ -172,13 +172,16 @@ class ThreeDiPluginModel(QStandardItemModel):
         if self.contains(result_item.path):
             return False
 
+        if not parent_item:
+            return False
+
         result_item._old_text = result_item.text()
         parent_item.appendRow([result_item, QStandardItem()])  # for result time
         self.result_added.emit(result_item)
 
         return True
 
-    def _remove_grid(self, item: ThreeDiGridItem) -> bool:
+    def remove_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes a grid (and children) from the model, emits grid_removed"""
         # Emit the removed signals for the node and its children
         self._clear_recursive(item)
@@ -186,7 +189,7 @@ class ThreeDiPluginModel(QStandardItemModel):
         # Remove the actual grid
         return self.removeRows(self.indexFromItem(item).row(), 1)
 
-    def _remove_result(self, item: ThreeDiResultItem) -> bool:
+    def remove_result(self, item: ThreeDiResultItem) -> bool:
         """Removes a result from the model, emits result_removed"""
         grid_item = item.parent()
         assert isinstance(grid_item, ThreeDiGridItem)
@@ -202,9 +205,9 @@ class ThreeDiPluginModel(QStandardItemModel):
         """Removes a result from the model, emits result_removed"""
         item = self.itemFromIndex(index)
         if isinstance(item, ThreeDiGridItem):
-            return self._remove_grid(item)
+            return self.remove_grid(item)
         if isinstance(item, ThreeDiResultItem):
-            return self._remove_result(item)
+            return self.remove_result(item)
 
     def get_results(self, checked_only: bool) -> List[ThreeDiResultItem]:
         """Returns the list of selected results (traversal)"""
