@@ -152,7 +152,7 @@ class LocationTimeseriesModel(BaseModel):
             :param result_ds_nr: nr of result ts_datasources in model
             :return: pyqtgraph PlotDataItem
             """
-            # Key is result uuid, feature id, layer name (pump, flowlines), time-unit
+            # Key is result uuid, feature id, layer name (pump, flowlines), time-unit, absolute
             result_key = (self.result.value.id, str(self.object_id.value), self.object_type.value, time_units, absolute)
             if not str(parameters) in self._plots:
                 self._plots[str(parameters)] = {}

@@ -155,28 +155,28 @@ class ThreeDiPluginModel(QStandardItemModel):
         self.itemChanged.connect(self._item_changed)
 
     @pyqtSlot(ThreeDiGridItem)
-    def add_grid(self, grid_item: ThreeDiGridItem) -> ThreeDiGridItem:
+    def add_grid(self, grid_item: ThreeDiGridItem) -> bool:
         """Adds a grid item to the model, emits grid_added"""
         if self.contains(grid_item.path, ignore_suffix=True):
-            return None
+            return False
 
         grid_item._old_text = grid_item.text()
         self.invisibleRootItem().appendRow(grid_item)
         self.grid_added.emit(grid_item)
 
-        return grid_item
+        return True
 
     @pyqtSlot(ThreeDiResultItem, ThreeDiGridItem)
-    def add_result(self, result_item: ThreeDiResultItem, parent_item: ThreeDiGridItem) -> ThreeDiResultItem:
+    def add_result(self, result_item: ThreeDiResultItem, parent_item: ThreeDiGridItem) -> bool:
         """Adds a result item to the parent grid item, emits result_added"""
         if self.contains(result_item.path):
-            return
+            return False
 
         result_item._old_text = result_item.text()
         parent_item.appendRow([result_item, QStandardItem()])  # for result time
         self.result_added.emit(result_item)
 
-        return result_item
+        return True
 
     def _remove_grid(self, item: ThreeDiGridItem) -> bool:
         """Removes a grid (and children) from the model, emits grid_removed"""
