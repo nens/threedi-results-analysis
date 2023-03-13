@@ -125,14 +125,14 @@ class ThreeDiPluginModelValidator(QObject):
         if "threedicore_version" not in results_h5.attrs:
             return fail("Result file is too old, please recalculate.")
 
-        # Check whether corresponding grid item belongs to same model
-        result_model_slug = results_h5.attrs['model_slug'].decode()
+        # Check whether corresponding grid item belongs to same model as result
+        result_model_slug = ThreeDiPluginModelValidator.get_result_slug(result_item.path)
 
         grid_model_slug = ThreeDiPluginModelValidator.get_grid_slug(grid_item.path)
 
-        logger.info(f"Comparing grid slug {grid_model_slug} to {result_model_slug}")
+        logger.info(f"Comparing grid slug: {grid_model_slug} to result slug: {result_model_slug}")
 
-        if grid_model_slug is None or result_model_slug is None:
+        if not grid_model_slug or not result_model_slug:
             msg = "No model meta information in result or grid, skipping slug validation."
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5)
         elif result_model_slug != grid_model_slug:
@@ -165,3 +165,12 @@ class ThreeDiPluginModelValidator(QObject):
         # Take first
         meta = next(meta_layer.getFeatures())
         return meta["model_slug"]
+
+    @staticmethod
+    def get_result_slug(netcdf_path: Path) -> str:
+        results_h5 = h5py.File(netcdf_path.open("rb"), "r")
+        result_model_slug = results_h5.attrs['model_slug'].decode()
+        if result_model_slug == "NO SLUG FOUND":
+            result_model_slug = ""
+
+        return result_model_slug

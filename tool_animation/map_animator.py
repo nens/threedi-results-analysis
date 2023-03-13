@@ -302,27 +302,29 @@ class MapAnimator(QGroupBox):
             )
         progress_bar.increase_progress()
 
-        logger.info("Styling cell layer")
-        layer_id = grid_item.layer_ids["cell"]
-        layer = get_layer_by_id(layer_id)
-        virtual_field_name = result_item._result_field_names[layer_id][0]
-        postfix = virtual_field_name[6:]  # remove "result" prefix
-        if self.difference_checkbox.isChecked():
-            styler.style_animation_node_difference(
-                layer,
-                node_parameter_class_bounds,
-                self.current_node_parameter["parameters"],
-                True,
-                postfix,
-            )
-        else:
-            styler.style_animation_node_current(
-                layer,
-                node_parameter_class_bounds,
-                self.current_node_parameter["parameters"],
-                True,
-                postfix,
-            )
+        # Pure 1D models do not have cells
+        if "cell" in grid_item.layer_ids:
+            logger.info("Styling cell layer")
+            layer_id = grid_item.layer_ids["cell"]
+            layer = get_layer_by_id(layer_id)
+            virtual_field_name = result_item._result_field_names[layer_id][0]
+            postfix = virtual_field_name[6:]  # remove "result" prefix
+            if self.difference_checkbox.isChecked():
+                styler.style_animation_node_difference(
+                    layer,
+                    node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    True,
+                    postfix,
+                )
+            else:
+                styler.style_animation_node_current(
+                    layer,
+                    node_parameter_class_bounds,
+                    self.current_node_parameter["parameters"],
+                    True,
+                    postfix,
+                )
         progress_bar.increase_progress()
 
     @property
@@ -504,11 +506,15 @@ class MapAnimator(QGroupBox):
                 get_layer_by_id(grid_item.layer_ids["node"]),
                 self.current_node_parameter,
             ),
-            (
-                get_layer_by_id(grid_item.layer_ids["cell"]),
-                self.current_node_parameter,
-            ),
         ]
+
+        # Pure 1D models do not have a cells
+        if "cell" in grid_item.layer_ids:
+            layers_to_update.append(
+                (
+                    get_layer_by_id(grid_item.layer_ids["cell"]),
+                    self.current_node_parameter,
+                ))
 
         # add item with relative time to model
         threedi_result = result_item.threedi_result
