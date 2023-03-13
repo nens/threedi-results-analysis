@@ -7,6 +7,8 @@
 
 - Graph tool: let map tool select all layers, not just the top one (#787).
 - Use ThreeDiGrid to retrieve model slug.
+- Fixed Animation Tool for 1D (no cells) model (#788).
+- Added unit tests for Results Analysis model.
 
 
 3.1.2 (2023-02-28)
