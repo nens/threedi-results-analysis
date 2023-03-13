@@ -78,14 +78,16 @@ class ThreeDiPluginModelValidator(QObject):
         self.validate_result(results_path, grid_item)
 
     @pyqtSlot(str, ThreeDiGridItem)
-    def validate_result(self, results_path: str, grid_item: ThreeDiGridItem):
+    def validate_result(self, results_path: str, grid_item: ThreeDiGridItem) -> bool:
         logger.info(f"Validating result with grid item {grid_item.text()}")
         """
-        Validate the result when added to the selected grid item.
+        Validate the result when added to the selected grid item. Returns True
+        on success and emits result_valid or result_invalid.
         """
         def fail(msg):
             messagebar_message(TOOLBOX_MESSAGE_TITLE, msg, Qgis.Warning, 5.0)
             self.result_invalid.emit(result_item, grid_item)
+            return False
 
         result_item = ThreeDiResultItem(Path(results_path))
 
@@ -146,13 +148,15 @@ class ThreeDiPluginModelValidator(QObject):
                     logger.info(f"Found other corresponding grid with slug {other_grid_model_slug}, setting that grid as parent.")
 
                     # Propagate the result with the new parent grid
-                    return self.result_valid.emit(result_item, other_grid_item)
+                    self.result_valid.emit(result_item, other_grid_item)
+                    return True
 
             msg = "Result corresponds to different model than loaded grids, removed from Results Manager"
             pop_up_critical(msg)
             return fail(msg)
 
         self.result_valid.emit(result_item, grid_item)
+        return True
 
     @staticmethod
     def get_grid_slug(geopackage_path: Path) -> str:
