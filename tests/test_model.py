@@ -82,6 +82,27 @@ class TestResult(unittest.TestCase):
         self.assertTrue(self.model.remove_result(item))
         self.assertEqual(self.model.number_of_results(), 0)
 
+    def test_removing_grid_removes_result(self):
+        item = ThreeDiResultItem(self.result_path, "text")
+        self.assertTrue(self.model.add_result(item, self.grid_item))
+        self.assertEqual(self.model.number_of_results(), 1)
+        self.assertTrue(self.model.remove_grid(self.grid_item))
+        self.assertEqual(self.model.number_of_results(), 0)
+
+    def test_removing_by_index(self):
+        item = ThreeDiResultItem(self.result_path, "text")
+        self.assertTrue(self.model.add_result(item, self.grid_item))
+        self.assertEqual(self.model.number_of_results(), 1)
+        self.assertTrue(self.model.remove_index(item.index()))
+        self.assertEqual(self.model.number_of_results(), 0)
+
+    def test_result_can_be_retrieved(self):
+        item = ThreeDiResultItem(self.result_path, "text")
+        self.assertTrue(self.model.add_result(item, self.grid_item))
+        results = self.model.get_results(checked_only=False)
+        self.assertEqual(len(results), 1)
+        self.assertTrue(results[0] is item)
+
     def test_parent_should_be_provided(self):
         item = ThreeDiResultItem(self.result_path, "text")
         self.assertFalse(self.model.add_result(item, None))
