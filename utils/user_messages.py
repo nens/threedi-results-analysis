@@ -15,6 +15,9 @@ def pop_up_info(msg: str = "", title: str = "Information", parent=None):
 
 
 def pop_up_critical(msg: str = "", title: str = "Critical", parent=None):
+    if iface is None:
+        return
+
     """Display an error message via Qt box"""
     QMessageBox.critical(parent, title, msg)
 
