@@ -84,22 +84,24 @@ class TestResultValidation(unittest.TestCase):
             self.assertFalse(validator.validate_result("c:/test/results_3di.nc", self.grid_item))
             result_invalid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    class TestGridValidator(unittest.TestCase):
-        def setUp(self):
-            ensure_qgis_app_is_initialized()
-            self.model = ThreeDiPluginModel()
 
-        def test_grid_is_valid(self):
-            validator = ThreeDiPluginModelValidator(self.model)
-            with patch.object(validator, "grid_valid") as grid_valid:
-                new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")
-                grid_valid.emit.assert_called_once_with(new_grid_item)
+class TestGridValidator(unittest.TestCase):
+    def setUp(self):
+        ensure_qgis_app_is_initialized()
+        self.model = ThreeDiPluginModel()
 
-        def test_grid_already_present(self):
-            grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text")
-            self.model.add_grid(grid_item)
+    def test_grid_is_valid(self):
+        validator = ThreeDiPluginModelValidator(self.model)
+        with patch.object(validator, "grid_valid") as grid_valid:
+            new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")
+            grid_valid.emit.assert_called_once_with(new_grid_item)
 
-            validator = ThreeDiPluginModelValidator(self.model)
-            with patch.object(validator, "grid_invalid") as grid_invalid:
-                new_grid_item = validator.validate_grid("c:/test/gridadmin.h5")
-                grid_invalid.emit.assert_called_once_with(new_grid_item)
+    def test_grid_already_present(self):
+        grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text")
+        self.model.add_grid(grid_item)
+
+        validator = ThreeDiPluginModelValidator(self.model)
+        with patch.object(validator, "grid_invalid") as grid_invalid:
+            existing_grid = validator.validate_grid("c:/test/gridadmin.h5")
+            grid_invalid.emit.assert_called_once()
+            self.assertTrue(existing_grid is grid_item)
