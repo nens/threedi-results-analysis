@@ -62,7 +62,8 @@ DEPENDENCIES = [
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ">=1.5.0"),
     Dependency("packaging", "packaging", ""),
-    Dependency("greenlet", "greenlet", ""),
+    Dependency("greenlet", "greenlet", "!=0.4.17"),
+    Dependency("typing-extensions", "typing_extensions", ">=4.2.0"),
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
