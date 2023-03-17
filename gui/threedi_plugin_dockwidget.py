@@ -1,7 +1,7 @@
 from logging import getLogger
 from pathlib import Path
 
-from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem, ThreeDiResultItem
 from threedi_results_analysis.utils.constants import TOOLBOX_QGIS_SETTINGS_GROUP
 from threedi_results_analysis.gui.threedi_plugin_grid_result_dialog import ThreeDiPluginGridResultDialog
 from qgis.PyQt import QtWidgets, uic
@@ -22,7 +22,8 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     grid_file_selected = pyqtSignal(str)
     result_file_selected = pyqtSignal([str, str])
 
-    remove_current_index_clicked = pyqtSignal(QModelIndex)
+    grid_removal_selected = pyqtSignal(ThreeDiGridItem)
+    result_removal_selected = pyqtSignal(ThreeDiResultItem)
 
     item_selected = pyqtSignal(QModelIndex)
     item_deselected = pyqtSignal(QModelIndex)
@@ -65,10 +66,16 @@ class ThreeDiPluginDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         dialog.exec()
 
     def _remove_current_index_clicked(self):
-        # not that index is the "current", not the "selected"
+        # note that index is the "current", not the "selected"
         index = self.treeView.selectionModel().currentIndex()
         if index is not None:
-            self.remove_current_index_clicked.emit(index)
+            item = self.treeView.model().itemFromIndex(index)
+            if isinstance(item, ThreeDiGridItem):
+                self.grid_removal_selected.emit(item)
+            elif isinstance(item, ThreeDiResultItem):
+                self.result_removal_selected.emit(item)
+            else:
+                raise RuntimeError("Unknown model item type")
 
     def _selection_changed(self, selected, deselected):
         deselected_indexes = deselected.indexes()

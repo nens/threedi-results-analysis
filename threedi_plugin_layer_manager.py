@@ -78,6 +78,8 @@ class ThreeDiPluginLayerManager(QObject):
     """
     grid_loaded = pyqtSignal(ThreeDiGridItem)
     result_loaded = pyqtSignal(ThreeDiResultItem, ThreeDiGridItem)
+    grid_unloaded = pyqtSignal(ThreeDiGridItem)
+    result_unloaded = pyqtSignal(ThreeDiResultItem)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -132,6 +134,8 @@ class ThreeDiPluginLayerManager(QObject):
 
         item.layer_group = None
         iface.mapCanvas().refresh()
+
+        self.grid_unloaded.emit(item)
 
     @dirty
     @pyqtSlot(ThreeDiGridItem)
@@ -217,6 +221,7 @@ class ThreeDiPluginLayerManager(QObject):
 
         self.reset_styling(grid_item)
 
+        self.result_unloaded.emit(threedi_result_item)
         return True
 
     @dirty
