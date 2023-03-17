@@ -136,23 +136,22 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
 
         self.dockwidget.grid_file_selected.connect(self.validator.validate_grid)
         self.dockwidget.result_file_selected.connect(self.validator.validate_result_grid)
-
         self.validator.result_valid.connect(self.loader.load_result)
         self.validator.grid_valid.connect(self.loader.load_grid)
-
         self.loader.grid_loaded.connect(self.model.add_grid)
         self.loader.result_loaded.connect(self.model.add_result)
 
         self.model.grid_added.connect(self.dockwidget.expand_grid)
 
-        # Selection and removal can be direct forwarded to the model
+        # Removal signals
+        self.dockwidget.result_removal_selected.connect(self.loader.unload_result)
+        self.dockwidget.grid_removal_selected.connect(self.loader.unload_grid)
+        self.loader.grid_unloaded.connect(self.model.remove_grid)
+        self.loader.result_unloaded.connect(self.model.remove_result)
 
-        self.dockwidget.remove_current_index_clicked.connect(self.model.remove_index)
         self.model.grid_changed.connect(self.loader.update_grid)
         self.model.result_changed.connect(self.loader.update_result)
         self.model.result_unchecked.connect(self.loader.result_unchecked)
-        self.model.grid_removed.connect(self.loader.unload_grid)
-        self.model.result_removed.connect(self.loader.unload_result)
 
         self.toggle_results_manager.triggered.connect(self.dockwidget.toggle_visible)
 
