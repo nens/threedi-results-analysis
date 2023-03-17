@@ -6,23 +6,25 @@ from pathlib import Path
 from mock import patch
 
 
-class TestModelValidator(unittest.TestCase):
+@patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
+@patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
+class TestResultValidator(unittest.TestCase):
     def setUp(self):
         ensure_qgis_app_is_initialized()
         self.model = ThreeDiPluginModel()
         self.grid_item = ThreeDiGridItem(Path("c:/test/gridadmin.h5"), "text")
         self.model.add_grid(self.grid_item)
 
-    def test_creation(self):
+    def test_creation(self, *args):
         validator = ThreeDiPluginModelValidator(self.model)
         self.assertTrue(validator)
 
-    def test_invalid_result_filename(self):
+    def test_invalid_result_filename(self, test_h5, result_item_mock):
         validator = ThreeDiPluginModelValidator(self.model)
-        self.assertFalse(validator.validate_result("c:/test/incorrectfilename_3di.nc", self.grid_item))
+        with patch.object(validator, "result_invalid") as result_invalid:
+            self.assertFalse(validator.validate_result("c:/test/incorrectfilename_3di.nc", self.grid_item))
+            result_invalid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
     def test_missing_threedicore_function(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = ["no_threedicore_version"]
         result_item_mock.return_value.path.name = "results_3di.nc"
@@ -32,8 +34,6 @@ class TestModelValidator(unittest.TestCase):
             self.assertFalse(validator.validate_result("c:/test/results_3di.nc", self.grid_item))
             result_invalid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
     def test_incompatible_slug_function(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
@@ -45,8 +45,6 @@ class TestModelValidator(unittest.TestCase):
             self.assertFalse(validator.validate_result("c:/test/results_3di.nc", self.grid_item))
             result_invalid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
     def test_result_item_is_added(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
@@ -58,8 +56,6 @@ class TestModelValidator(unittest.TestCase):
             self.assertTrue(validator.validate_result("c:/test/results_3di.nc", self.grid_item))
             result_valid.emit.assert_called_once_with(result_item_mock.return_value, self.grid_item)
 
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
     def test_result_item_is_reparented(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
@@ -75,8 +71,6 @@ class TestModelValidator(unittest.TestCase):
             self.assertTrue(validator.validate_result("c:/test/results_3di.nc", self.grid_item))
             result_valid.emit.assert_called_once_with(result_item_mock.return_value, second_grid_item)
 
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.ThreeDiResultItem")
-    @patch("threedi_results_analysis.threedi_plugin_model_validation.h5py.File")
     def test_result_item_is_already_present(self, test_h5, result_item_mock):
         test_h5.return_value.attrs = {"threedicore_version": "", "model_slug": "result_slug".encode()}
         result_item_mock.return_value.path.name = "results_3di.nc"
