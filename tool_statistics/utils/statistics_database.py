@@ -41,8 +41,7 @@ class StaticsticsDatabase(ThreediDatabase):
             if engine is None:
                 engine = self.engine
 
-            metadata.bind = engine
-            metadata.reflect(extend_existing=True)
+            metadata.reflect(bind=engine, extend_existing=True)
             return metadata
         else:
             if self._base_metadata is None:

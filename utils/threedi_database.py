@@ -3,8 +3,8 @@ from osgeo import ogr
 from qgis.PyQt.QtCore import QSettings
 from sqlalchemy import create_engine
 from sqlalchemy.event import listen
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+# from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.sql import text
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 
@@ -131,8 +131,7 @@ class ThreediDatabase(object):
             if engine is None:
                 engine = self.engine
 
-            metadata.bind = engine
-            metadata.reflect(extend_existing=True)
+            metadata.reflect(bind=engine, extend_existing=True)
             return metadata
         else:
             if self._base_metadata is None:

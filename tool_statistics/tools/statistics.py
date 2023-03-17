@@ -15,6 +15,7 @@ from qgis.core import QgsVectorLayer
 from qgis.core import NULL
 from sqlalchemy import create_engine
 from sqlalchemy import func
+from sqlalchemy import text
 from sqlalchemy import MetaData
 from sqlalchemy.event import listen
 from sqlalchemy.orm import sessionmaker
@@ -387,7 +388,7 @@ class StatisticsTool(object):
                 manhole_stats.append(mhs)
 
         logger.info("delete old mahole statistics from database")
-        res_session.execute("Delete from {0}".format(ManholeStats.__tablename__))
+        res_session.execute(text(f"Delete from {ManholeStats.__tablename__}"))
 
         logger.info("Save manhole statistic instances to database ")
         res_session.bulk_save_objects(manhole_stats)
@@ -594,7 +595,7 @@ class StatisticsTool(object):
             flowline_list.append(fls)
 
         logger.info("delete old flowline statistics from database")
-        res_session.execute("Delete from {0}".format(FlowlineStats.__tablename__))
+        res_session.execute(text(f"Delete from {FlowlineStats.__tablename__}"))
 
         logger.info("commit flowline statistics to database")
         res_session.bulk_save_objects(flowline_list)
@@ -740,7 +741,7 @@ class StatisticsTool(object):
             pipe_stats.append(ps)
 
         logger.info("delete old pipe statistics from database")
-        res_session.execute("Delete from {0}".format(PipeStats.__tablename__))
+        res_session.execute(text(f"Delete from {PipeStats.__tablename__}"))
 
         logger.info("commit pipe characteristics to database")
         res_session.bulk_save_objects(pipe_stats)
@@ -767,7 +768,7 @@ class StatisticsTool(object):
             weir_stats.append(ws)
 
         logger.info("delete old weir statistics from database")
-        res_session.execute("Delete from {0}".format(WeirStats.__tablename__))
+        res_session.execute(text(f"Delete from {WeirStats.__tablename__}"))
 
         logger.info("commit weir characteristics to database")
         res_session.bulk_save_objects(weir_stats)
@@ -987,7 +988,7 @@ class StatisticsTool(object):
             pump_stats.append(ps)
 
         logger.info("delete old pumpline statistics from database")
-        res_session.execute("Delete from {0}".format(PumplineStats.__tablename__))
+        res_session.execute(text(f"Delete from {PumplineStats.__tablename__}"))
 
         logger.info("Save pumpline statistic instances to database ")
         res_session.bulk_save_objects(pump_stats)
@@ -1033,7 +1034,7 @@ class StatisticsTool(object):
         session = self.db.get_session()
 
         # flowline stat view
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS flowline_stats_view AS
             SELECT f.id,
@@ -1057,26 +1058,26 @@ class StatisticsTool(object):
                  flowline_stats fs
             WHERE f.id = fs.id;
            """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'flowline_stats_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
             INSERT INTO geometry_columns (
                 f_table_name, f_geometry_column, geometry_type,
                 coord_dimension, SRID, spatial_index_enabled)
             VALUES ('flowline_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # pipe stat view
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_view AS
             SELECT f.id,
@@ -1112,26 +1113,26 @@ class StatisticsTool(object):
             WHERE f.id = fs.id
               AND f.id = ps.id;
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
             INSERT INTO geometry_columns (
                 f_table_name, f_geometry_column, geometry_type,
                 coord_dimension, SRID, spatial_index_enabled)
             VALUES ('pipe_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # dwa+mixed of pipestats
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_dwa_mixed_view
              AS
@@ -1139,26 +1140,26 @@ class StatisticsTool(object):
              FROM pipe_stats_view
              WHERE pipe_stats_view.sewerage_type IN (0, 2);
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_dwa_mixed_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (
                     f_table_name, f_geometry_column, geometry_type,
                     coord_dimension, SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_dwa_mixed_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # rwa views of pipestats
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS pipe_stats_rwa_view
             AS
@@ -1166,25 +1167,25 @@ class StatisticsTool(object):
             FROM pipe_stats_view
             WHERE pipe_stats_view.sewerage_type IN (1);
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'pipe_stats_rwa_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('pipe_stats_rwa_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # weir stat view
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS weir_stats_view AS
             SELECT f.id,
@@ -1216,20 +1217,20 @@ class StatisticsTool(object):
             WHERE f.id = fs.id
               AND f.id = ws.id;
                 """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'weir_stats_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('weir_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
@@ -1237,7 +1238,7 @@ class StatisticsTool(object):
         session = self.db.get_session()
 
         # manhole stat view
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS manhole_stats_view AS
             SELECT n.id,
@@ -1261,25 +1262,25 @@ class StatisticsTool(object):
                  manhole_stats mst
             WHERE n.id = mst.id;
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_view', 'the_geom', 1, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # dwa+mixed  of manholestats
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS manhole_stats_dwa_mixed_view
 
@@ -1288,25 +1289,25 @@ class StatisticsTool(object):
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (0, 2);
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_dwa_mixed_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_dwa_mixed_view', 'the_geom', 1, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
         # rwa views of manholestats
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS manhole_stats_rwa_view
              AS
@@ -1314,20 +1315,20 @@ class StatisticsTool(object):
              FROM manhole_stats_view
              WHERE manhole_stats_view.sewerage_type IN (1);
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'manhole_stats_rwa_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('manhole_stats_rwa_view', 'the_geom', 1, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
@@ -1335,7 +1336,7 @@ class StatisticsTool(object):
         session = self.db.get_session()
 
         # pump stat view Lines
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS pump_stats_view AS
             SELECT p.id,
@@ -1357,23 +1358,23 @@ class StatisticsTool(object):
                  pumpline_stats ps
             WHERE p.id = ps.id;
             """
-        )
+        ))
 
-        session.execute(
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'pump_stats_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('pump_stats_view', 'the_geom', 2, 2, 4326, 0);
             """
-        )
+        ))
 
         # pump stat view Lines - points
-        session.execute(
+        session.execute(text(
             """
             CREATE VIEW IF NOT EXISTS pump_stats_point_view AS
             SELECT p.id AS ROWID,
@@ -1396,19 +1397,19 @@ class StatisticsTool(object):
                  pumpline_stats ps
             WHERE p.id = ps.id;
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
             DELETE FROM geometry_columns WHERE f_table_name = 'pump_stats_point_view';
             """
-        )
-        session.execute(
+        ))
+        session.execute(text(
             """
                 INSERT INTO geometry_columns (f_table_name, f_geometry_column, geometry_type, coord_dimension,
                   SRID, spatial_index_enabled)
                 VALUES ('pump_stats_point_view', 'the_geom', 1, 2, 4326, 0);
             """
-        )
+        ))
 
         session.commit()
 
