@@ -12,18 +12,40 @@ rm -rf SQLAlchemy*
 rm -rf build
 
 # Download pure python dependencies and convert them to wheels.
-pip3 wheel --constraint ../constraints.txt --no-deps GeoAlchemy2 lizard-connector pyqtgraph threedigrid cached-property threedi-schema threedi-modelchecker click threedidepth alembic zipp importlib-resources mako packaging colorama networkx condenser hydxlib python-editor
+pip3 wheel --constraint ../constraints.txt --no-deps \
+packaging \
+GeoAlchemy2 \
+SQLAlchemy \
+alembic \
+cached-property \
+click \
+colorama \
+condenser \
+greenlet \
+hydxlib \
+importlib-resources \
+lizard-connector \
+mako \
+networkx \
+packaging \
+pyqtgraph \
+python-editor \
+threedi-modelchecker \
+threedi-schema \
+threedidepth \
+threedigrid \
+zipp \
 
 # Start a build/ directory for easier later cleanup.
 mkdir build
 cd build
 
 # Grab sqlalchemy. Use a small trick to get a universal egg.
-pip3 download --no-binary :all: --constraint ../../constraints.txt SQLAlchemy
-tar -xzf SQLAlchemy*gz
-rm SQLAlchemy*gz
-sed -i 's/distclass/\#distclass/g' SQLAlchemy*/setup.py
-DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
+#pip3 download --no-binary :all: --constraint ../../constraints.txt SQLAlchemy
+#tar -xzf SQLAlchemy*gz
+#rm SQLAlchemy*gz
+#sed -i 's/distclass/\#distclass/g' SQLAlchemy*/setup.py
+#DISABLE_SQLALCHEMY_CEXT=1 pip wheel --no-deps --wheel-dir .. SQLAlchemy-*/
 
 # Back up a level and clean up the build/ directory.
 cd ..

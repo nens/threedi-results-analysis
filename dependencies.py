@@ -43,7 +43,7 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 #: List of expected dependencies.
 DEPENDENCIES = [
     Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6"),
-    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.1"),
+    Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", "==2.0.*"),
@@ -57,11 +57,12 @@ DEPENDENCIES = [
     ),  # backward compat. alembic
     Dependency(
         "zipp", "zipp", ""
-    ),  # backward compat. alemic
+    ),  # backward compat. alembic
     Dependency("Mako", "mako", ""),
     Dependency("netCDF4", "netCDF4", ""),
     Dependency("cftime", "cftime", ">=1.5.0"),
     Dependency("packaging", "packaging", ""),
+    Dependency("greenlet", "greenlet", ""),
     Dependency(
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
