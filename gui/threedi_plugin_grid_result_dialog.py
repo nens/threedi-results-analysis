@@ -120,29 +120,51 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         assert result_dir
         return result_dir
 
+    def _retrieve_selected_grid_folder(self, index: QModelIndex) -> str:
+        # In case this grid has a corresponding result, we'll use that folder
+        result_item = self.model.item(index.row(), 2)
+        if result_item:
+            result_dir = result_item.data()
+            assert result_dir
+            return result_dir
+
+        revision_item = self.model.item(index.row(), 1)
+        grid_dir = revision_item.data()
+        assert grid_dir
+        return grid_dir
+
     @pyqtSlot()
     def _add_grid_from_table(self) -> None:
-        grid_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "gridadmin.h5")
+        grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
         self.grid_file_selected.emit(grid_file)
 
     @pyqtSlot()
     def _add_result_from_table(self) -> None:
         result_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "results_3di.nc")
-        grid_file = os.path.join(self._retrieve_selected_result_folder(self.tableView.currentIndex()), "gridadmin.h5")
+        grid_file = os.path.join(self._retrieve_selected_grid_folder(self.tableView.currentIndex()), "gridadmin.h5")
 
         # Also emit corresponding grid file
         self.result_file_selected.emit(result_file, grid_file)
 
-    def _item_selected(self, _):
-        self.loadResultPushButton.setEnabled(True)
+    def _item_selected(self, index: QModelIndex):
         self.loadGridPushButton.setEnabled(True)
+        # Only activate result button when revision contain results
+        if self.model.item(index.row(), 2):
+            self.loadResultPushButton.setEnabled(True)
+        else:
+            self.loadResultPushButton.setEnabled(False)
 
-    def _item_double_clicked(self, item: QModelIndex):
-        result_file = os.path.join(self._retrieve_selected_result_folder(item), "results_3di.nc")
-        grid_file = os.path.join(self._retrieve_selected_result_folder(item), "gridadmin.h5")
+    def _item_double_clicked(self, index: QModelIndex):
+        # The selection contains a result
+        if self.model.item(index.row(), 2):
+            result_file = os.path.join(self._retrieve_selected_result_folder(index), "results_3di.nc")
+            grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
 
-        # Also emit corresponding grid file
-        self.result_file_selected.emit(result_file, grid_file)
+            # Also emit corresponding grid file
+            self.result_file_selected.emit(result_file, grid_file)
+        else:
+            grid_file = os.path.join(self._retrieve_selected_grid_folder(index), "gridadmin.h5")
+            self.grid_file_selected.emit(grid_file)
 
     def _populate_table(self):
         # Repopulate the table
@@ -162,12 +184,23 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
                     schema_item.setEditable(False)
                     revision_item = QStandardItem(str(revision_number))
                     revision_item.setEditable(False)
+                    # We'll store the grid folder with the revision item for fast retrieval
+                    revision_item.setData(local_revision.grid_dir)
                     result_item = QStandardItem(Path(result_dir).name)
                     result_item.setEditable(False)
                     # We'll store the result folder with the result_item for fast retrieval
                     result_item.setData(os.path.join(local_revision.results_dir, result_dir))
-
                     self.model.appendRow([schema_item, revision_item, result_item])
+
+                # In case no results are present, but a gridadmin is present, we still add the grid, but without result item
+                if len(local_revision.results_dirs) == 0 and os.path.exists(os.path.join(local_revision.grid_dir, "gridadmin.h5")):
+                    schema_item = QStandardItem(local_schematisation.name)
+                    schema_item.setEditable(False)
+                    revision_item = QStandardItem(str(revision_number))
+                    revision_item.setEditable(False)
+                    # We'll store the grid folder with the revision item for fast retrieval
+                    revision_item.setData(local_revision.grid_dir)
+                    self.model.appendRow([schema_item, revision_item])
 
         for i in range(len(self.header_labels)):
             self.tableView.resizeColumnToContents(i)
