@@ -898,7 +898,6 @@ class GraphDockWidget(QDockWidget):
                 continue
             if layer_id in layers_added:
                 continue
-            result.mLayer.select(result.mFeature.id())
             graph_widget.add_objects(result.mLayer, [result.mFeature])
             layers_added.add(layer_id)
 
