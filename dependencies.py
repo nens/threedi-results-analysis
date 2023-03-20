@@ -47,8 +47,8 @@ DEPENDENCIES = [
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", "==2.0.*"),
-    Dependency("threedi-schema", "threedi_schema", "==0.216.0"),
-    Dependency("threedi-modelchecker", "threedi_modelchecker", "==1.0.*"),
+    Dependency("threedi-schema", "threedi_schema", "==0.214.6"),
+    Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.0.1"),
     Dependency("threedidepth", "threedidepth", "==0.4"),
     Dependency("click", "click", ">=8.0"),
     Dependency("alembic", "alembic", "==1.8.*"),
@@ -68,7 +68,7 @@ DEPENDENCIES = [
         "colorama", "colorama", ""
     ),  # dep of click and threedi-modelchecker (windows)
     Dependency("networkx", "networkx", ""),
-    Dependency("condenser", "condenser", ">=0.1.1"),
+    Dependency("condenser", "condenser", ">=0.2.1"),
     Dependency("Shapely", "shapely", ">=2.0.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.8.0"),
     Dependency("hydxlib", "hydxlib", "==1.4.*"),
@@ -541,11 +541,14 @@ def _check_presence(dependencies):
                 % (dependency.name, dependency.constraint, str(e))
             )
             missing.append(dependency)
-        except pkg_resources.VersionConflict:
+        except pkg_resources.VersionConflict as e:
             print(
-                "Dependency '%s' (%s) has the wrong version"
-                % (dependency.name, dependency.constraint)
+                'Version conflict:\n'
+                f'    Installed: {e.dist}\n'
+                f'    Required: {e.req}'
             )
+            if isinstance(e, pkg_resources.ContextualVersionConflict):
+                print(f'    By: {e.required_by}')
             missing.append(dependency)
         except Exception as e:
             print(
