@@ -891,16 +891,18 @@ class GraphDockWidget(QDockWidget):
                 if layer_key in item.child(i).layer_ids:
                     relevant_grid_layer_ids.append(item.child(i).layer_ids[layer_key])
 
-        object_added = False
+        layers_added = set()
         for result in results:
             layer_id = result.mLayer.id()
             if layer_id not in relevant_grid_layer_ids:
                 continue
+            if layer_id in layers_added:
+                continue
             result.mLayer.select(result.mFeature.id())
             graph_widget.add_objects(result.mLayer, [result.mFeature])
-            object_added = True
+            layers_added.add(layer_id)
 
-        if object_added:
+        if layers_added:
             tab_index = self.graphTabWidget.indexOf(graph_widget)
             self.graphTabWidget.setCurrentIndex(tab_index)
             graph_widget.graph_plot.plotItem.vb.menu.viewAll.triggered.emit()
