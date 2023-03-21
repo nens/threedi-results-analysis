@@ -5,12 +5,13 @@
 3.1.3 (unreleased)
 ------------------
 
-- Graph tool: let map tool select all layers, not just the top one (#787).
+- Graph tool: improved feature selection (#787, #787, #792).
 - Use ThreeDiGrid to retrieve model slug.
 - Fixed Animation Tool for 1D (no cells) model (#788).
 - Added unit tests for Results Analysis model and validation.
 - Revision without results (but with gridadmin file) is now shown in result dialog (#791)
 - Updated several dependencies, including SQLAlchemy (#793).
+- Updated docker image to QGIS 3.28 (#716).
 
 
 3.1.2 (2023-02-28)
