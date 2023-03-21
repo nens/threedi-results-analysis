@@ -1,11 +1,11 @@
 from pathlib import Path
-from qgis.core import QgsVectorLayer, QgsField, QgsFeature
+from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.core import QgsGeometry, QgsPointXY, QgsProject
-from qgis.PyQt.QtCore import QVariant
 from threedigrid.admin.gridadmin import GridH5Admin
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 class SideViewGraphGenerator():
     """Generates a graph based on a gridadmin file"""
