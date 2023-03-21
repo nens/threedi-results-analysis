@@ -2,7 +2,7 @@
 ========================
 
 
-3.1.3 (unreleased)
+3.1.3 (2023-03-21)
 ------------------
 
 - Graph tool: improved feature selection (#787, #787, #792).
