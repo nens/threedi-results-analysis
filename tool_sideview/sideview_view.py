@@ -37,6 +37,7 @@ from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import split_line_at_points
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 
 import logging
 import numpy as np
@@ -1019,6 +1020,9 @@ class SideViewDockWidget(QDockWidget):
         ) = self.create_combined_layers(
             datasources.model_spatialite_filepath, line
         )
+
+        SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
+
         logger.error('graph_layer')
         logger.error(self.graph_layer)
         logger.error('point_dict')
