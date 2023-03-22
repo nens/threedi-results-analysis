@@ -53,7 +53,7 @@ parameter_config = {
 INTERPOLATION_PHYSICAL = 0  # interpolation based on all profiles
 # interpolation as the 3Di calculation core is
 # performing the interpolation. for bottom
-# and surface level use profiles close to
+# level use profiles close to
 # calculation points. For height (profile) first
 # get heigth on centerpoints at links
 INTERPOLATION_CALCULATION = 1
@@ -121,9 +121,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
         self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
-        pen = pg.mkPen(color=QColor(0, 255, 0), width=2)
-        self.surface_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
-
         self.fill = pg.FillBetweenItem(
             self.bottom_plot, self.upper_plot, pg.mkBrush(200, 200, 200)
         )
@@ -132,7 +129,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.water_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
         self.addItem(self.drain_level_plot)
-        self.addItem(self.surface_level_plot)
 
         self.addItem(self.fill)
 
@@ -177,7 +173,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         bottom_line = []
         upper_line = []
         drain_level = []
-        surface_level = []
 
         first = True
         last_channel_id = None
@@ -247,7 +242,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         )
                     )
 
-                # 2. add contours (bottom, upper, drain and surface lines)
+                # 2. add contours (bottom, upper and drain lines)
                 if (
                     python_value(last_channel_id) is not None
                     and last_channel_id == feature["channel_id"]
@@ -360,7 +355,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 begin_upper_level = sub_end_node["height"] + begin_level
                             else:
                                 begin_upper_level = begin_level
-                            begin_surface = sub_end_node["surface_level"]
                             begin_drain = sub_end_node["drain_level"]
                         elif (
                             sub_first
@@ -385,14 +379,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 )
                             else:
                                 begin_upper_level = begin_level
-                            if (
-                                sub_begin_node["surface_level"] is not None
-                                and sub_end_node["surface_level"] is not None
-                            ):
-                                begin_surface = (
-                                    begin_weight * sub_begin_node["surface_level"]
-                                    + end_weight * sub_end_node["surface_level"]
-                                )
+
                             if (
                                 sub_begin_node["drain_level"] is not None
                                 and sub_end_node["drain_level"] is not None
@@ -409,7 +396,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 )
                             else:
                                 begin_upper_level = begin_level
-                            begin_surface = sub_begin_node["surface_level"]
                             begin_drain = sub_begin_node["drain_level"]
 
                         if sub_end_node["type"] != SideViewDockWidget.CROSS_SECTION:
@@ -418,7 +404,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_upper_level = sub_begin_node["height"] + end_level
                             else:
                                 end_upper_level = end_level
-                            end_surface = sub_begin_node["surface_level"]
                             end_drain = sub_begin_node["drain_level"]
                         elif (
                             i == len(profile_links) - 1
@@ -447,17 +432,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_upper_level = end_level
 
                             if (
-                                sub_begin_node["surface_level"] is not None
-                                and sub_end_node["surface_level"] is not None
-                            ):
-                                end_surface = (
-                                    begin_weight * sub_begin_node["surface_level"]
-                                    + end_weight * sub_end_node["surface_level"]
-                                )
-                            else:
-                                end_surface = np.nan
-
-                            if (
                                 sub_begin_node["drain_level"] is not None
                                 and sub_end_node["drain_level"] is not None
                             ):
@@ -474,7 +448,6 @@ class SideViewPlotWidget(pg.PlotWidget):
                                 end_upper_level = sub_end_node["height"] + end_level
                             else:
                                 end_upper_level = np.nan
-                            end_surface = sub_end_node["surface_level"]
                             end_drain = sub_end_node["drain_level"]
 
                         bottom_line.append(
@@ -512,10 +485,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             != SideViewDockWidget.CALCULATION_NODE
                         ):
                             drain_level.append((sub_begin_dist, begin_drain))
-                            surface_level.append((sub_begin_dist, begin_surface))
 
                         drain_level.append((sub_end_dist, end_drain))
-                        surface_level.append((sub_end_dist, end_surface))
 
                         sub_first = False
                 else:
@@ -570,10 +541,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                     if first:
                         drain_level.append((begin_dist, begin_node["drain_level"]))
-                        surface_level.append((begin_dist, begin_node["surface_level"]))
 
                     drain_level.append((end_dist, end_node["drain_level"]))
-                    surface_level.append((end_dist, end_node["surface_level"]))
 
                 last_channel_id = feature["channel_id"]
 
@@ -716,9 +685,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(drain_level, dtype=float)
             self.drain_level_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(surface_level, dtype=float)
-            self.surface_level_plot.setData(ts_table, connect="finite")
-
             # reset water level line
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
@@ -746,7 +712,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.pump_upper_plot.setData(ts_table)
 
             self.drain_level_plot.setData(ts_table)
-            self.surface_level_plot.setData(ts_table)
             self.water_level_plot.setData(ts_table)
 
             self.profile = []
@@ -1444,7 +1409,7 @@ class SideViewDockWidget(QDockWidget):
         values_valid = True
 
         if values_valid:
-            # self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
+            self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
             self.map_visualisation.set_sideview_route(self.route)
         else:
             self.reset_sideview()
