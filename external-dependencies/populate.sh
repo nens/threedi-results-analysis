@@ -20,6 +20,7 @@ cached-property \
 click \
 colorama \
 condenser \
+h5netcdf \
 hydxlib \
 importlib-resources \
 lizard-connector \

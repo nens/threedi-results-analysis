@@ -6,7 +6,8 @@ pyqtgraph>=0.13.2
 threedigrid==2.0.*
 threedi-schema==0.214.6
 threedi-modelchecker==2.0.1
-threedidepth==0.4
+threedidepth==0.5
+h5netcdf
 click>=8.0
 alembic==1.8.*
 importlib-resources

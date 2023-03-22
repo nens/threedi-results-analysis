@@ -49,7 +49,8 @@ DEPENDENCIES = [
     Dependency("threedigrid", "threedigrid", "==2.0.*"),
     Dependency("threedi-schema", "threedi_schema", "==0.214.6"),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.0.1"),
-    Dependency("threedidepth", "threedidepth", "==0.4"),
+    Dependency("threedidepth", "threedidepth", "==0.5"),
+    Dependency("h5netcdf", "h5netcdf", ""),
     Dependency("click", "click", ">=8.0"),
     Dependency("alembic", "alembic", "==1.8.*"),
     Dependency(
