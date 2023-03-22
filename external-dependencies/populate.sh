@@ -20,6 +20,7 @@ cached-property \
 click \
 colorama \
 condenser \
+h5netcdf \
 hydxlib \
 importlib-resources \
 lizard-connector \
@@ -49,15 +50,11 @@ cp h5py/h5py-2.10.0-cp39-cp39-win_amd64.whl .
 # Copy the compiled windows scipy to external dependencies
 cp scipy/scipy-1.6.2-cp39-cp39-win_amd64.whl .
 
-wget https://files.pythonhosted.org/packages/a1/f1/cbded664cf2b68224ff1915e6fdc722dcd3c86143d72c31036a519653d6d/cftime-1.5.0.tar.gz
-
 # Copy pure wheels to prevent pip in docker (or Windows) to select platform dependent version
 wget https://files.pythonhosted.org/packages/cd/84/66072ee12c3e79061f183c09a24be24f45bb1286600589640363d9d416b0/SQLAlchemy-2.0.6-py3-none-any.whl#sha256=c5d754665edea1ecdc79e3023659cb5594372e10776f3b3734d75c2c3ce95013
 
 # Download windows wheels (cp39, win, amd64)
-wget https://files.pythonhosted.org/packages/43/10/ead321694ef6adf0717ca4b3a7d4cf5b52e8456cc35c2b82abbd3777fd06/cftime-1.5.0-cp39-none-win_amd64.whl
 wget https://files.pythonhosted.org/packages/72/e4/05217659d428f2772a6f78018587da68d5f23b73515075f57b29f87fa8f8/threedigrid_builder-1.8.0-cp39-cp39-win_amd64.whl
-wget https://files.pythonhosted.org/packages/92/2e/8a85d66cd4646a81027f3efbc17278beaa86fd351b5f1339a7a5b0d79c14/netCDF4-1.5.4-cp39-cp39-win_amd64.whl#sha256=223b84f8d2a148e889b1933944109bdecbefc097200ab42e8a66c967b1398e1b
 wget https://files.pythonhosted.org/packages/b2/8e/83d9e3bff5c0ff7a0ec7e850c785916e616ab20d8793943f9e1d2a987fab/shapely-2.0.0-cp39-cp39-win_amd64.whl
 wget https://files.pythonhosted.org/packages/b3/89/1d3b78577a6b2762cb254f6ce5faec9b7c7b23052d1cdb7237273ff37d10/greenlet-2.0.2-cp39-cp39-win_amd64.whl#sha256=db1a39669102a1d8d12b57de2bb7e2ec9066a6f2b3da35ae511ff93b01b5d564
 
