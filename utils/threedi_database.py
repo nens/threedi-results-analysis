@@ -151,8 +151,7 @@ class ThreediDatabase(object):
             logger.warning(msg)
 
     def get_missing_index_tables(self, expected_index_table_names):
-
-        existing_tables = self.engine.table_names()
+        existing_tables = self.get_metadata().tables.keys()
         existing_index_tables = [
             table
             for table in existing_tables
