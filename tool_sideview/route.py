@@ -15,6 +15,9 @@ from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import QgsProject
 from qgis.core import QgsRectangle
+from qgis.core import QgsUnitTypes
+from qgis.core import QgsDistanceArea
+from threedi_results_analysis.utils.utils import python_value
 
 
 class AttributeProperter(QgsNetworkStrategy):
@@ -35,6 +38,35 @@ class AttributeProperter(QgsNetworkStrategy):
     def requiredAttributes(self):
         # Must be a list of the attribute indexes (int), not strings:
         attributes = [self.attribute_index]
+        return attributes
+
+
+class CustomDistancePropeter(QgsNetworkStrategy):
+    """custom properter for graph layer"""
+
+    def __init__(self):
+        QgsNetworkStrategy.__init__(self)
+
+    def cost(self, distance, feature):
+        value = feature["real_length"]
+        if python_value(value) is None:
+            # provided distance is not correct, so do a correct calculation
+            # value = distance
+            d = QgsDistanceArea()
+            length = d.measureLength(feature.geometry())
+            unit = d.lengthUnits()
+            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
+                unit, QgsUnitTypes.DistanceMeters
+            )
+            value = length * conversion_factor
+            # value, unit = d.convertMeasurement(
+            #     feature.geometry().length(),
+            #     Qgis.Degrees, Qgis.Meters, False)
+        return value
+
+    def requiredAttributes(self):
+        # Must be a list of the attribute indexes (int), not strings:
+        attributes = []
         return attributes
 
 

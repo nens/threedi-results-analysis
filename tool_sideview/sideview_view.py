@@ -1,16 +1,13 @@
 from collections import Counter
 from functools import reduce
-from qgis.analysis import QgsNetworkStrategy
 from qgis.analysis import QgsVectorLayerDirector
 from qgis.core import QgsDataSourceUri
-from qgis.core import QgsDistanceArea
 from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField
 from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
-from qgis.core import QgsUnitTypes
 from qgis.core import QgsVectorLayer
 from qgis.core import Qgis
 from qgis.core import NULL
@@ -19,7 +16,6 @@ from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
 from qgis.PyQt.QtWidgets import QPushButton
@@ -27,24 +23,21 @@ from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
+from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool, CustomDistancePropeter
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import split_line_at_points
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.utils.utils import python_value
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
-
 import logging
 import numpy as np
 import os
 import pyqtgraph as pg
 
-
 logger = logging.getLogger(__name__)
 
-
-# GraphDockWidget labels related parameters.
 parameter_config = {
     "q": [
         {"name": "Discharge", "unit": "m3/s", "parameters": ["q"]},
@@ -55,41 +48,6 @@ parameter_config = {
         {"name": "Volume", "unit": "m3", "parameters": ["vol"]},
     ],
 }
-
-
-def python_value(value, default_value=None, func=None):
-    """
-    help function for translating QVariant Null values into None
-    value: QVariant value or python value
-    default_value: value in case provided value is None
-    func (function): function for transforming value
-    :return: python value
-    """
-
-    # check on QVariantNull... type
-    if hasattr(value, "isNull") and value.isNull():
-        return default_value
-    else:
-        if default_value is not None and value is None:
-            return default_value
-        else:
-            if func is not None:
-                return func(value)
-            else:
-                return value
-
-
-try:
-    _encoding = QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-
-
-except AttributeError:
-
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
 
 
 INTERPOLATION_PHYSICAL = 0  # interpolation based on all profiles
@@ -859,35 +817,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         """
         self.on_close()
         event.accept()
-
-
-class CustomDistancePropeter(QgsNetworkStrategy):
-    """custom properter for graph layer"""
-
-    def __init__(self):
-        QgsNetworkStrategy.__init__(self)
-
-    def cost(self, distance, feature):
-        value = feature["real_length"]
-        if python_value(value) is None:
-            # provided distance is not correct, so do a correct calculation
-            # value = distance
-            d = QgsDistanceArea()
-            length = d.measureLength(feature.geometry())
-            unit = d.lengthUnits()
-            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                unit, QgsUnitTypes.DistanceMeters
-            )
-            value = length * conversion_factor
-            # value, unit = d.convertMeasurement(
-            #     feature.geometry().length(),
-            #     Qgis.Degrees, Qgis.Meters, False)
-        return value
-
-    def requiredAttributes(self):
-        # Must be a list of the attribute indexes (int), not strings:
-        attributes = []
-        return attributes
 
 
 class SideViewDockWidget(QDockWidget):
