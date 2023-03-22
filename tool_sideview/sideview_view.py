@@ -2,7 +2,6 @@ from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsNetworkStrategy
 from qgis.analysis import QgsVectorLayerDirector
-from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
 from qgis.core import QgsDistanceArea
 from qgis.core import QgsFeature
@@ -11,18 +10,15 @@ from qgis.core import QgsField
 from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
-from qgis.core import QgsRectangle
 from qgis.core import QgsUnitTypes
 from qgis.core import QgsVectorLayer
 from qgis.core import Qgis
 from qgis.core import NULL
-from qgis.gui import QgsMapTool
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtWidgets import QApplication
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -31,7 +27,7 @@ from qgis.PyQt.QtWidgets import QSizePolicy
 from qgis.PyQt.QtWidgets import QSpacerItem
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
-from threedi_results_analysis.tool_sideview.route import Route
+from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import split_line_at_points
@@ -114,12 +110,9 @@ class SideViewPlotWidget(pg.PlotWidget):
     def __init__(
         self,
         parent=None,
-        nr=0,
-        graph_layer=None,
         point_dict=None,
         channel_profiles=None,
         model=None,
-        name="",
     ):
         """
 
@@ -127,13 +120,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         """
         super().__init__(parent)
 
-        self.name = name
-
         self.model = model
 
-        self.nr = nr
         self.node_dict = point_dict
-        self.graph_layer = graph_layer
         self.channel_profiles = channel_profiles
 
         self.profile = []
@@ -872,69 +861,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         event.accept()
 
 
-class RouteTool(QgsMapTool):
-    def __init__(self, canvas, graph_layer, callback_on_select):
-        QgsMapTool.__init__(self, canvas)
-        self.canvas = canvas
-        self.graph_layer = graph_layer
-        self.callback_on_select = callback_on_select
-
-    def canvasPressEvent(self, event):
-        pass
-
-    def canvasMoveEvent(self, event):
-        pass
-
-    def canvasReleaseEvent(self, event):
-        # Get the click
-        x = event.pos().x()
-        y = event.pos().y()
-
-        # use 5 pixels for selecting
-        point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x - 5, y - 5)
-        point_ru = self.canvas.getCoordinateTransform().toMapCoordinates(x + 5, y + 5)
-        rect = QgsRectangle(
-            min(point_ll.x(), point_ru.x()),
-            min(point_ll.y(), point_ru.y()),
-            max(point_ll.x(), point_ru.x()),
-            max(point_ll.y(), point_ru.y()),
-        )
-
-        transform = QgsCoordinateTransform(
-            self.canvas.mapSettings().destinationCrs(),
-            self.graph_layer.crs(),
-            QgsProject.instance(),
-        )
-
-        rect = transform.transform(rect)
-        filter = QgsFeatureRequest().setFilterRect(rect)
-        selected = self.graph_layer.getFeatures(filter)
-
-        clicked_point = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
-        # transform to wgs84 (lon, lat) if not already:
-        transformed_point = transform.transform(clicked_point)
-
-        selected_points = [s for s in selected]
-        if len(selected_points) > 0:
-            self.callback_on_select(selected_points, transformed_point)
-
-    def activate(self):
-        self.canvas.setCursor(QCursor(Qt.CrossCursor))
-
-    def deactivate(self):
-        self.deactivated.emit()
-        self.canvas.setCursor(QCursor(Qt.ArrowCursor))
-
-    def isZoomTool(self):
-        return False
-
-    def isTransient(self):
-        return False
-
-    def isEditTool(self):
-        return False
-
-
 class CustomDistancePropeter(QgsNetworkStrategy):
     """custom properter for graph layer"""
 
@@ -1023,8 +949,6 @@ class SideViewDockWidget(QDockWidget):
 
         SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
 
-        logger.error('graph_layer')
-        logger.error(self.graph_layer)
         logger.error('point_dict')
         logger.error(self.point_dict)
         logger.error('channel_profiles')
@@ -1032,12 +956,9 @@ class SideViewDockWidget(QDockWidget):
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
-            0,
-            self.graph_layer,
             self.point_dict,
             self.channel_profiles,
             self.model,
-            "name",
         )
         self.side_view_plot_widget.setObjectName("sideViewTabWidget")
         self.main_vlayout.addWidget(self.side_view_plot_widget)
@@ -1045,7 +966,6 @@ class SideViewDockWidget(QDockWidget):
         self.active_sideview = self.side_view_plot_widget
 
         # init route graph
-        # QgsLineVectorLayerDirector
         director = QgsVectorLayerDirector(
             self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth
         )
@@ -1059,7 +979,7 @@ class SideViewDockWidget(QDockWidget):
         )
 
         # link route map tool
-        self.route_tool = RouteTool(
+        self.route_tool = RouteMapTool(
             self.iface.mapCanvas(), self.graph_layer, self.on_route_point_select
         )
 

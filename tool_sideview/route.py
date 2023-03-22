@@ -6,9 +6,15 @@ from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsField
 from qgis.core import QgsGeometry
+from qgis.core import QgsCoordinateTransform
+from qgis.gui import QgsMapTool
 from qgis.core import QgsPoint
+from qgis.PyQt.QtCore import Qt
 from qgis.core import QgsVectorLayer
+from qgis.PyQt.QtGui import QCursor
 from qgis.PyQt.QtCore import QVariant
+from qgis.core import QgsProject
+from qgis.core import QgsRectangle
 
 
 class AttributeProperter(QgsNetworkStrategy):
@@ -285,3 +291,66 @@ class Route(object):
         self.path_points = []
         self.path = []
         self.path_vertexes = []
+
+
+class RouteMapTool(QgsMapTool):
+    def __init__(self, canvas, graph_layer, callback_on_select):
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+        self.graph_layer = graph_layer
+        self.callback_on_select = callback_on_select
+
+    def canvasPressEvent(self, event):
+        pass
+
+    def canvasMoveEvent(self, event):
+        pass
+
+    def canvasReleaseEvent(self, event):
+        # Get the click
+        x = event.pos().x()
+        y = event.pos().y()
+
+        # use 5 pixels for selecting
+        point_ll = self.canvas.getCoordinateTransform().toMapCoordinates(x - 5, y - 5)
+        point_ru = self.canvas.getCoordinateTransform().toMapCoordinates(x + 5, y + 5)
+        rect = QgsRectangle(
+            min(point_ll.x(), point_ru.x()),
+            min(point_ll.y(), point_ru.y()),
+            max(point_ll.x(), point_ru.x()),
+            max(point_ll.y(), point_ru.y()),
+        )
+
+        transform = QgsCoordinateTransform(
+            self.canvas.mapSettings().destinationCrs(),
+            self.graph_layer.crs(),
+            QgsProject.instance(),
+        )
+
+        rect = transform.transform(rect)
+        filter = QgsFeatureRequest().setFilterRect(rect)
+        selected = self.graph_layer.getFeatures(filter)
+
+        clicked_point = self.canvas.getCoordinateTransform().toMapCoordinates(x, y)
+        # transform to wgs84 (lon, lat) if not already:
+        transformed_point = transform.transform(clicked_point)
+
+        selected_points = [s for s in selected]
+        if len(selected_points) > 0:
+            self.callback_on_select(selected_points, transformed_point)
+
+    def activate(self):
+        self.canvas.setCursor(QCursor(Qt.CrossCursor))
+
+    def deactivate(self):
+        self.deactivated.emit()
+        self.canvas.setCursor(QCursor(Qt.ArrowCursor))
+
+    def isZoomTool(self):
+        return False
+
+    def isTransient(self):
+        return False
+
+    def isEditTool(self):
+        return False

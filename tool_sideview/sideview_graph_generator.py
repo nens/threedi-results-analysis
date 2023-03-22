@@ -1,6 +1,6 @@
 from pathlib import Path
 from qgis.core import QgsVectorLayer, QgsFeature
-from qgis.core import QgsGeometry, QgsPointXY, QgsProject
+from qgis.core import QgsGeometry, QgsPointXY
 from threedigrid.admin.gridadmin import GridH5Admin
 
 import logging
@@ -46,9 +46,11 @@ class SideViewGraphGenerator():
         # Retrieve lines from gridadmin
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
+        # TODO: also add pumps
+
         features = []
         i = 0
-        line_coords = ga.lines.subset("1D_ALL").line_coords.transpose()
+        line_coords = ga.lines.subset("1D").line_coords.transpose()
         for x_start, y_start, x_end, y_end in line_coords:
             feat = QgsFeature()
 
@@ -56,7 +58,6 @@ class SideViewGraphGenerator():
             p2 = QgsPointXY(x_end, y_end)
 
             geom = QgsGeometry.fromPolylineXY([p1, p2])
-            # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
 
             feat.setGeometry(geom)
             # Casting ids to strings is needed due to issue with casting values in memory layers in QGIS < 3.16.6
@@ -85,4 +86,4 @@ class SideViewGraphGenerator():
         pr.addFeatures(features)
         graph_layer.updateExtents()
 
-        QgsProject.instance().addMapLayer(graph_layer)
+        return graph_layer

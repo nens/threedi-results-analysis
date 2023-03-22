@@ -1,7 +1,9 @@
 from qgis.PyQt.QtCore import Qt, QObject
 from threedi_results_analysis.tool_sideview.sideview_view import SideViewDockWidget
 from threedi_results_analysis.threedi_plugin_model import ThreeDiGridItem
+from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 from qgis.PyQt.QtCore import pyqtSlot
+from qgis.core import QgsProject
 import qgis
 import os
 
@@ -39,8 +41,10 @@ class ThreeDiSideView(QObject):
             widget.close()
 
     @pyqtSlot(ThreeDiGridItem)
-    def grid_added(self, _: ThreeDiGridItem):
+    def grid_added(self, item: ThreeDiGridItem):
         self.action_icon.setEnabled(self.model.number_of_grids() > 0)
+        graph_layer = SideViewGraphGenerator.generate(item.path)
+        QgsProject.instance().addMapLayer(graph_layer)
 
     @pyqtSlot(ThreeDiGridItem)
     def grid_removed(self, _: ThreeDiGridItem):
