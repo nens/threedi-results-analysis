@@ -15,7 +15,7 @@ class SideViewGraphGenerator():
     def generate(gridadmin_file: Path) -> QgsVectorLayer:
         logger.error(f"Calculating layer from {gridadmin_file}")
 
-        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&field=id:integer&field=real_length:double&index=yes", "yoyo", "memory")
+        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&field=id:integer&field=real_length:double&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
         pr.addAttributes([QgsField("id", QVariant.Int), QgsField("start_node_idx", QVariant.Int), QgsField("real_length", QVariant.Double)])

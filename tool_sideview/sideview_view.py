@@ -2,10 +2,7 @@ from collections import Counter
 from functools import reduce
 from qgis.analysis import QgsVectorLayerDirector
 from qgis.core import QgsDataSourceUri
-from qgis.core import QgsFeature
 from qgis.core import QgsFeatureRequest
-from qgis.core import QgsField
-from qgis.core import QgsGeometry
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.core import QgsVectorLayer
@@ -14,7 +11,6 @@ from qgis.core import NULL
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QMetaObject
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtCore import QVariant
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QHBoxLayout
@@ -165,9 +161,9 @@ class SideViewPlotWidget(pg.PlotWidget):
         mouse_point = self.plotItem.vb.mapSceneToView(evt[0]).x()
         self.profile_hovered.emit(mouse_point)
 
-    def set_sideprofile(self, profile, route_points):
+    def set_sideprofile(self, route_path):
 
-        self.profile = profile
+        self.profile = route_path
         self.sideview_nodes = []
 
         bottom_line = []
@@ -177,7 +173,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         first = True
         last_channel_id = None
 
-        for route_part in profile:
+        for route_part in route_path:
             sub_first = True
             last_channel_id = None
             route_part_total_distance = float(route_part[-1][1])
@@ -596,7 +592,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                     {"distance": end_dist, "id": end_node_id, "idx": end_node_idx}
                 )
 
-        if len(profile) > 0:
+        if len(self.profile) > 0:
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
@@ -749,28 +745,27 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.water_level_plot.setData(ts_table)
 
     def draw_waterlevel_line(self):
-
+        pass
         # TODO: reconnect to Temporal controller
-        timestamp_nr = self.time_slider.value()
+        # timestamp_nr = self.time_slider.value()
 
-        water_level_line = []
-        for node in self.sideview_nodes:
-            if node["timeseries"] is not None:
-                water_level = node["timeseries"][timestamp_nr][1]
-                water_level_line.append((node["distance"], water_level))
-            else:
-                # todo: check this is required behavior
-                water_level = None
+        # water_level_line = []
+        # for node in self.sideview_nodes:
+        #     if node["timeseries"] is not None:
+        #         water_level = node["timeseries"][timestamp_nr][1]
+        #         water_level_line.append((node["distance"], water_level))
+        #     else:
+        #         # todo: check this is required behavior
+        #         water_level = None
 
-        ts_table = np.array(water_level_line, dtype=float)
-        self.water_level_plot.setData(ts_table)
+        # ts_table = np.array(water_level_line, dtype=float)
+        # self.water_level_plot.setData(ts_table)
 
     def on_close(self):
         """
         unloading widget and remove all required stuff
         :return:
         """
-        logger.info("close sideview graph")
         self.profile_route_updated.disconnect(self.update_water_level_cache)
         # self.time_slider.valueChanged.disconnect(self.draw_waterlevel_line)
         # self.time_slider.datasource_changed.disconnect(self.update_water_level_cache)
@@ -834,7 +829,6 @@ class SideViewDockWidget(QDockWidget):
 
         logger.error(datasources.model_spatialite_filepath)
         (
-            self.graph_layer,
             self.point_dict,
             self.channel_profiles,
         ) = self.create_combined_layers(
@@ -842,6 +836,7 @@ class SideViewDockWidget(QDockWidget):
         )
 
         self.graph_layer = SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
+        QgsProject.instance().addMapLayer(self.graph_layer)
 
         logger.error('point_dict')
         logger.error(self.point_dict)
@@ -956,13 +951,7 @@ class SideViewDockWidget(QDockWidget):
         connection_node_layer = get_layer(spatialite_path, "v2_connection_nodes", "the_geom")
         manhole_layer = get_layer(spatialite_path, "v2_manhole")
         boundary_layer = get_layer(spatialite_path, "v2_1d_boundary_conditions")
-        pipe_layer = get_layer(spatialite_path, "v2_pipe")
-        weir_layer = get_layer(spatialite_path, "v2_weir")
-        orifice_layer = get_layer(spatialite_path, "v2_orifice")
-        pump_layer = get_layer(spatialite_path, "v2_pumpstation")
-        culvert_layer = get_layer(spatialite_path, "v2_culvert")
 
-        lines = []
         points = {}
         for cn in connection_node_layer.getFeatures():
             points[cn["id"]] = {
@@ -989,132 +978,6 @@ class SideViewDockWidget(QDockWidget):
             p["drain_level"] = None
             p["bottom_level"] = None
             p["length"] = 0.0
-
-        for pipe in pipe_layer.getFeatures():
-            # note: no support of calculation nodes on pipes
-            profile = profiles[pipe["cross_section_definition_id"]]
-            pipe_def = {
-                "id": "pipe_" + str(pipe["id"]),
-                "type": self.PIPE,
-                "start_node": pipe["connection_node_start_id"],
-                "end_node": pipe["connection_node_end_id"],
-                "start_level": pipe["invert_level_start_point"]
-                + profile["rel_bottom_level"],
-                "end_level": pipe["invert_level_end_point"]
-                + profile["rel_bottom_level"],
-                "start_height": profile["height"],
-                "end_height": profile["height"],
-            }
-
-            lines.append(pipe_def)
-
-        for orifice in orifice_layer.getFeatures():
-            profile = profiles[orifice["cross_section_definition_id"]]
-            orifice_def = {
-                "id": "orifice_" + str(orifice["id"]),
-                "type": self.ORIFICE,
-                "start_node": orifice["connection_node_start_id"],
-                "end_node": orifice["connection_node_end_id"],
-                "start_level": orifice["crest_level"],
-                "end_level": orifice["crest_level"],
-                "start_height": profile["height"],
-                "end_height": profile["height"],
-            }
-            lines.append(orifice_def)
-
-        for weir in weir_layer.getFeatures():
-            profile = profiles[weir["cross_section_definition_id"]]
-
-            # weirs without height are not square, but open
-            if profile["height_was_none"]:
-                height = None
-            else:
-                height = profile["height"]
-
-            weir_def = {
-                "id": "weir_" + str(weir["id"]),
-                "type": self.WEIR,
-                "start_node": weir["connection_node_start_id"],
-                "end_node": weir["connection_node_end_id"],
-                "start_level": weir["crest_level"],
-                "end_level": weir["crest_level"],
-                "start_height": height,
-                "end_height": height,
-            }
-            lines.append(weir_def)
-
-        for culvert in culvert_layer.getFeatures():
-            profile = profiles[culvert["cross_section_definition_id"]]
-
-            culvert_def = {
-                "id": "culvert_" + str(culvert["id"]),
-                "type": self.CULVERT,
-                "start_node": culvert["connection_node_start_id"],
-                "end_node": culvert["connection_node_end_id"],
-                "start_level": culvert["invert_level_start_point"]
-                + profile["rel_bottom_level"],
-                "end_level": culvert["invert_level_end_point"]
-                + profile["rel_bottom_level"],
-                "start_height": profile["height"],
-                "end_height": profile["height"],
-            }
-            lines.append(culvert_def)
-
-        for pump in pump_layer.getFeatures():
-
-            try:
-                start_upper_level = pump["start_level_suction_side"]
-                end_upper_level = pump["start_level_delivery_side"]
-                start_lower_level = pump["stop_level_suction_side"]
-                end_lower_level = pump["stop_level_delivery_side"]
-            except KeyError:
-                logger.exception(
-                    "Pump is missing one of the suction/delivery side levels: "
-                    "using start_level and lower_stop_level instead"
-                )
-                start_upper_level = pump["start_level"]
-                end_upper_level = start_upper_level
-                start_lower_level = pump["lower_stop_level"]
-                end_lower_level = start_lower_level
-
-            start_height = None
-            end_height = None
-
-            # default values from each other
-            # QpyNullVariant is behaving strange,
-            if hasattr(start_lower_level, "isNull") and start_lower_level.isNull():
-                if not hasattr(end_lower_level, "isNull"):
-                    start_lower_level = end_lower_level
-            else:
-                if hasattr(end_lower_level, "isNull") and end_lower_level.isNull():
-                    end_lower_level = start_lower_level
-
-            if hasattr(start_upper_level, "isNull") and start_upper_level.isNull():
-                if not hasattr(end_upper_level, "isNull"):
-                    start_upper_level = end_upper_level
-            else:
-                if hasattr(end_upper_level, "isNull") and end_upper_level.isNull():
-                    end_upper_level = start_upper_level
-
-            if start_upper_level is not None and start_lower_level is not None:
-                start_height = float(start_upper_level) - float(start_lower_level)
-                end_height = float(end_upper_level) - float(end_lower_level)
-
-            # TODO: ^^^ perhaps add some logger.debug() to those 20 lines
-            # above? It smells to me like there could possibly be some
-            # unintended side effects.
-
-            pump_def = {
-                "id": "pump_" + str(pump["id"]),
-                "type": self.PUMP,
-                "start_node": pump["connection_node_start_id"],
-                "end_node": pump["connection_node_end_id"],
-                "start_level": start_lower_level,
-                "end_level": end_lower_level,
-                "start_height": start_height,
-                "end_height": end_height,
-            }
-            lines.append(pump_def)
 
         # This dict is being returned:
         channel_profiles = {}
@@ -1181,10 +1044,7 @@ class SideViewDockWidget(QDockWidget):
                     "channel_id": channel["id"],
                     "start_channel_distance": part["distance_at_line"],
                 }
-                if model_line_layer is None:
-                    # no calc points available, use cross sections to devide
-                    # graph layer in parts
-                    lines.append(channel_part)
+
                 # use cross sections part for only as info for drawing
                 # sideview
                 channel_profiles[channel["id"]].append(channel_part)
@@ -1268,7 +1128,6 @@ class SideViewDockWidget(QDockWidget):
                         "start_channel_distance": part["distance_at_line"],
                         "geom": part["geom"],
                     }
-                    lines.append(channel_part)
 
                 for p in calculation_points:
                     points["calc_" + str(p["id"])] = {
@@ -1281,83 +1140,11 @@ class SideViewDockWidget(QDockWidget):
                         "length": 0.0,
                     }
 
-        # create line layer
-        uri = "LineString?crs=epsg:4326&index=yes"
-        graph_layer = QgsVectorLayer(uri, "graph_layer_original", "memory")
-        pr = graph_layer.dataProvider()
-
-        pr.addAttributes(
-            [
-                # This is the flowline index in Python (0-based indexing)
-                # Important: this differs from the feature id which is flowline
-                # idx+1!!
-                QgsField("nr", QVariant.Int),
-                QgsField("id", QVariant.String, len=25),
-                QgsField("type", QVariant.Int),
-                QgsField("start_node", QVariant.String),
-                QgsField("end_node", QVariant.String),
-                QgsField("start_node_idx", QVariant.Int),
-                QgsField("end_node_idx", QVariant.Int),
-                QgsField("start_level", QVariant.Double),
-                QgsField("end_level", QVariant.Double),
-                QgsField("start_height", QVariant.Double),
-                QgsField("end_height", QVariant.Double),
-                QgsField("channel_id", QVariant.Int),
-                QgsField("sub_channel_nr", QVariant.Int),
-                QgsField("start_channel_distance", QVariant.Double),
-                QgsField("real_length", QVariant.Double),
-            ]
-        )
-        # tell the vector layer to fetch changes from the provider
-        graph_layer.updateFields()
-
-        features = []
-        i = 0
-        for line in lines:
-            feat = QgsFeature()
-
-            p1 = points[line["start_node"]]["point"]
-            if python_value(line["end_node"]) is not None:
-                p2 = points[line["end_node"]]["point"]
-            else:
-                p2 = QgsPointXY(p1.x(), p1.y() + 0.0001)
-
-            geom = QgsGeometry.fromPolylineXY([p1, p2])
-            # geom = line.get('geom', QgsGeometry.fromPolyline([p1, p2]))
-
-            feat.setGeometry(geom)
-            # Casting ids to strings is needed due to issue with casting values in memory layers in QGIS < 3.16.6
-            feat.setAttributes(
-                [
-                    i,
-                    str(line["id"]),
-                    line["type"],
-                    str(line["start_node"]),
-                    str(line["end_node"]),
-                    line.get("start_node_idx", None),
-                    line.get("end_node_idx", None),
-                    line.get("start_level", None),
-                    line.get("end_level", None),
-                    line.get("start_height", None),
-                    line.get("end_height", None),
-                    line.get("channel_id", None),
-                    line.get("sub_channel_nr", None),
-                    line.get("start_channel_distance", None),
-                    line.get("real_length", None),
-                ]
-            )
-            features.append(feat)
-            i += 1
-
-        pr.addFeatures(features)
-        graph_layer.updateExtents()
-
-        QgsProject.instance().addMapLayer(graph_layer)
         # We need to make sure that all ids are strings
         points = {str(point_id): point for point_id, point in points.items()}
         #  make point dict permanent
         self.point_dict = points
-        return graph_layer, points, channel_profiles
+        return points, channel_profiles
 
     def unset_route_tool(self):
         if self.route_tool_active:
@@ -1409,7 +1196,7 @@ class SideViewDockWidget(QDockWidget):
         values_valid = True
 
         if values_valid:
-            self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
+            self.active_sideview.set_sideprofile(self.route.path)
             self.map_visualisation.set_sideview_route(self.route)
         else:
             self.reset_sideview()
@@ -1439,7 +1226,7 @@ class SideViewDockWidget(QDockWidget):
         self.route.reset()
         self.map_visualisation.reset()
 
-        self.active_sideview.set_sideprofile([], [])
+        self.active_sideview.set_sideprofile([])
 
     def on_close(self):
         """

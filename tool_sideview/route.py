@@ -179,7 +179,7 @@ class Route(object):
 
     def get_path(self, id_start_point, id_end_point, begin_distance=0):
         """
-        get path between the to graph points
+        get path between the two graph points
         :param id_start_point: graph identifier of start point of (sub)path
         :param id_end_point: graph identifier of end point of (sub) path
         :param begin_distance: start distance of cumulative path distance
