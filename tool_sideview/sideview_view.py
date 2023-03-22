@@ -876,7 +876,7 @@ class SideViewDockWidget(QDockWidget):
             datasources.model_spatialite_filepath, line
         )
 
-        SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
+        self.graph_layer = SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
 
         logger.error('point_dict')
         logger.error(self.point_dict)
@@ -902,7 +902,7 @@ class SideViewDockWidget(QDockWidget):
         self.route = Route(
             self.graph_layer,
             director,
-            id_field="nr",
+            id_field="id",
             weight_properter=CustomDistancePropeter(),
             distance_properter=CustomDistancePropeter(),
         )
@@ -1318,7 +1318,7 @@ class SideViewDockWidget(QDockWidget):
 
         # create line layer
         uri = "LineString?crs=epsg:4326&index=yes"
-        graph_layer = QgsVectorLayer(uri, "graph_layer", "memory")
+        graph_layer = QgsVectorLayer(uri, "graph_layer_original", "memory")
         pr = graph_layer.dataProvider()
 
         pr.addAttributes(
@@ -1439,9 +1439,12 @@ class SideViewDockWidget(QDockWidget):
         if not success:
             statusbar_message(msg)
 
-        values_valid = self.validate_path_nodes_values(self.route.path, "surface_level")
+        # values_valid = self.validate_path_nodes_values(self.route.path, "surface_level")
+        # As we are no longer using surface level, this validation can be skipped
+        values_valid = True
+
         if values_valid:
-            self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
+            # self.active_sideview.set_sideprofile(self.route.path, self.route.path_points)
             self.map_visualisation.set_sideview_route(self.route)
         else:
             self.reset_sideview()
