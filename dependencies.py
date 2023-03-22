@@ -46,7 +46,7 @@ DEPENDENCIES = [
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.13.2"),
-    Dependency("threedigrid", "threedigrid", "==2.0.*"),
+    Dependency("threedigrid", "threedigrid", "==2.0.3"),
     Dependency("threedi-schema", "threedi_schema", "==0.214.6"),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.0.1"),
     Dependency("threedidepth", "threedidepth", "==0.5"),
@@ -60,8 +60,6 @@ DEPENDENCIES = [
         "zipp", "zipp", ""
     ),  # backward compat. alembic
     Dependency("Mako", "mako", ""),
-    Dependency("netCDF4", "netCDF4", ""),
-    Dependency("cftime", "cftime", ">=1.5.0"),
     Dependency("packaging", "packaging", ""),
     Dependency("greenlet", "greenlet", "!=0.4.17"),
     Dependency("typing-extensions", "typing_extensions", ">=4.2.0"),
