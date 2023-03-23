@@ -2,6 +2,7 @@ from pathlib import Path
 from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.core import QgsGeometry, QgsPointXY, QgsField
 from threedigrid.admin.gridadmin import GridH5Admin
+from threedi_results_analysis.tool_sideview.utils import LineType
 from qgis.PyQt.QtCore import QVariant
 
 import logging
@@ -18,7 +19,11 @@ class SideViewGraphGenerator():
         graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
-        pr.addAttributes([QgsField("id", QVariant.Int), QgsField("start_node_idx", QVariant.Int), QgsField("end_node_idx", QVariant.Int), QgsField("real_length", QVariant.Double)])
+        pr.addAttributes([QgsField("id", QVariant.Int),
+                          QgsField("start_node_idx", QVariant.Int),
+                          QgsField("end_node_idx", QVariant.Int),
+                          QgsField("real_length", QVariant.Double),
+                          QgsField("type", QVariant.Int)])
     #             QgsField("end_node_idx", QVariant.Int),
     # # #         # This is the flowline index in Python (0-based indexing)
     # # #         # Important: this differs from the feature id which is flowline
@@ -51,8 +56,10 @@ class SideViewGraphGenerator():
         distances_1d = ga.lines.subset("1D").ds1d.tolist()  # tolist converts to native python floats
         line_coords = ga.lines.subset("1D").line_coords.transpose()
         nodes_ids = ga.lines.subset("1D").line.transpose().tolist()
+        content_types = ga.lines.subset('1D').content_type.tolist()
         assert len(distances_1d) == len(line_coords)
         assert len(nodes_ids) == len(line_coords)
+        assert len(nodes_ids) == len(content_types)
 
         # As we already subset the list, we do not need to skip the first nan-element
         last_index = 0
@@ -64,8 +71,9 @@ class SideViewGraphGenerator():
             geom = QgsGeometry.fromPolylineXY([p1, p2])
             feat.setGeometry(geom)
 
-            # Note that id is the flowline index in Python (0-based indexing)
-            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count]])
+            # Note that id (count) is the flowline index in Python (0-based indexing)
+            line_type = SideViewGraphGenerator.content_type_to_line_type(content_types[count].decode())
+            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type])
             features.append(feat)
             last_index = count
 
@@ -81,9 +89,25 @@ class SideViewGraphGenerator():
             geom = QgsGeometry.fromPolylineXY([p1, p2])
             feat.setGeometry(geom)
 
-            feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None])
+            feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP])
             features.append(feat)
 
         pr.addFeatures(features)
         graph_layer.updateExtents()
         return graph_layer
+
+    @staticmethod
+    def content_type_to_line_type(content_type: str) -> int:
+        content_type = content_type.removeprefix('v2_')
+        if content_type == "pipe":
+            return LineType.PIPE
+        elif content_type == "culvert":
+            return LineType.CULVERT
+        elif content_type == "orifice":
+            return LineType.ORIFICE
+        elif content_type == "weir":
+            return LineType.WEIR
+        elif content_type == "channel":
+            return LineType.CHANNEL
+
+        raise AttributeError(f"Unknown content type: {content_type}")

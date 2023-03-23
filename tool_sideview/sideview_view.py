@@ -23,6 +23,7 @@ from threedi_results_analysis.tool_sideview.route import Route, RouteMapTool, Cu
 from threedi_results_analysis.tool_sideview.sideview_visualisation import SideViewMapVisualisation
 from threedi_results_analysis.tool_sideview.utils import haversine
 from threedi_results_analysis.tool_sideview.utils import split_line_at_points
+from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.utils import python_value
@@ -170,427 +171,77 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []
         drain_level = []
 
-        first = True
-        last_channel_id = None
-
         for route_part in route_path:
-            sub_first = True
-            last_channel_id = None
-            route_part_total_distance = float(route_part[-1][1])
+
             for begin_dist, end_dist, distance, direction, feature in route_part:
 
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
 
-                if direction == 1:
-                    begin_node_id = feature["start_node"]
-                    end_node_id = feature["end_node"]
-                    begin_node_idx = feature["start_node_idx"]
-                    end_node_idx = feature["end_node_idx"]
-                else:
-                    begin_node_id = feature["end_node"]
-                    end_node_id = feature["start_node"]
-                    end_node_idx = feature["start_node_idx"]
-                    begin_node_idx = feature["end_node_idx"]
+                # if direction == 1:
+                #     begin_node_idx = feature["start_node_idx"]
+                #     end_node_idx = feature["end_node_idx"]
+                # else:
+                #     end_node_idx = feature["start_node_idx"]
+                #     begin_node_idx = feature["end_node_idx"]
 
                 ltype = feature["type"]
 
-                begin_node = self.node_dict[str(begin_node_id)]
-                end_node = self.node_dict[str(end_node_id)]
+                # TODO 1. add manhole if needed
 
-                # 1. add manhole if needed
-                if first and begin_node["type"] == SideViewDockWidget.MANHOLE:
-                    # add contours of first manhole
-                    bottom_line.append(
-                        (
-                            begin_dist - 0.5 * float(begin_node["length"]),
-                            begin_node["surface_level"],
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    bottom_line.append(
-                        (
-                            begin_dist - 0.5 * float(begin_node["length"]),
-                            float(begin_node["bottom_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    bottom_line.append(
-                        (
-                            begin_dist + 0.5 * float(begin_node["length"]),
-                            float(begin_node["bottom_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
+                # TODO 2. add contours (bottom, upper and drain lines)
 
-                    upper_line.append(
-                        (
-                            begin_dist - 0.5 * float(begin_node["length"]),
-                            float(begin_node["surface_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    upper_line.append(
-                        (
-                            begin_dist + 0.5 * float(begin_node["length"]),
-                            float(begin_node["surface_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-
-                # 2. add contours (bottom, upper and drain lines)
-                if (
-                    python_value(last_channel_id) is not None
-                    and last_channel_id == feature["channel_id"]
-                ):
-                    # 2a. contours based on cross section lines already added,
-                    # skip for this line element based on sideview
-                    logger.info("skip channel part")
-                    pass
-                elif ltype == SideViewDockWidget.CHANNEL:
-                    # 2b. add all information of channel based on cross section
-                    # do this for the relevant part of the channel at once
-
-                    # get cross section channel information
-                    profile_links = self.channel_profiles[feature["channel_id"]]
-
-                    max_length_on_channel = route_part_total_distance - begin_dist
-
-                    # 2b.1 get relevant channel_profiles and sort based on
-                    # direction
-                    if direction == 1:
-                        # get start distance from (selected) calc node layer
-                        channel_length = (
-                            profile_links[-1]["real_length"]
-                            + profile_links[-1]["start_channel_distance"]
-                        )
-
-                        dist_from_begin = feature["start_channel_distance"]
-                        end_dist_from_begin = min(
-                            channel_length, dist_from_begin + max_length_on_channel
-                        )
-                        length_on_channel = end_dist_from_begin - dist_from_begin
-
-                        profile_links = [
-                            link
-                            for link in profile_links
-                            if link["start_channel_distance"] + link["real_length"]
-                            >= dist_from_begin
-                            and link["start_channel_distance"] <= end_dist_from_begin
-                        ]
-                        profile_links = sorted(
-                            profile_links, key=lambda x: x["start_channel_distance"]
-                        )
-                    else:
-                        # get start distance from (selected) calc node layer
-                        dist_from_begin = (
-                            feature["start_channel_distance"] + feature["real_length"]
-                        )
-                        end_dist_from_begin = max(
-                            dist_from_begin - max_length_on_channel, 0.0
-                        )
-                        length_on_channel = dist_from_begin - end_dist_from_begin
-
-                        profile_links = [
-                            link
-                            for link in profile_links
-                            if link["start_channel_distance"]
-                            <= (dist_from_begin + 0.01)
-                            and (link["start_channel_distance"] + link["real_length"])
-                            >= (end_dist_from_begin - 0.01)
-                        ]
-                        profile_links = sorted(
-                            profile_links,
-                            key=lambda x: x["start_channel_distance"],
-                            reverse=True,
-                        )
-
-                    # 2b.2 get data for contours from relevant profile
-                    sub_distance = begin_dist
-                    for i, link in enumerate(profile_links):
-                        sub_begin_dist = sub_distance
-                        # get information of nodes and profiles and links
-                        # between profiles
-                        if direction == 1:
-                            link_left = max(
-                                link["start_channel_distance"], dist_from_begin
-                            )
-                            link_right = min(
-                                link["start_channel_distance"] + link["real_length"],
-                                end_dist_from_begin,
-                            )
-                            link_length = link_right - link_left
-                            sub_begin_node_id = link["start_node"]
-                            sub_end_node_id = link["end_node"]
-
-                        else:
-                            link_left = max(
-                                link["start_channel_distance"], end_dist_from_begin
-                            )
-                            link_right = min(
-                                link["start_channel_distance"] + link["real_length"],
-                                dist_from_begin,
-                            )
-                            link_length = link_right - link_left
-                            sub_begin_node_id = link["end_node"]
-                            sub_end_node_id = link["start_node"]
-
-                        length_on_channel -= link_length
-                        sub_distance += link_length
-                        sub_end_dist = sub_distance
-
-                        sub_begin_node = self.node_dict[str(sub_begin_node_id)]
-                        sub_end_node = self.node_dict[str(sub_end_node_id)]
-
-                        if sub_begin_node["type"] != SideViewDockWidget.CROSS_SECTION:
-                            # only level is known at cross_section. For other
-                            # nodes, the profile is the same as their nearest
-                            # cross-section on the link
-                            begin_level = sub_end_node["bottom_level"]
-                            if sub_end_node["height"] is not None:
-                                begin_upper_level = sub_end_node["height"] + begin_level
-                            else:
-                                begin_upper_level = begin_level
-                            begin_drain = sub_end_node["drain_level"]
-                        elif (
-                            sub_first
-                            and sub_end_node["type"] == SideViewDockWidget.CROSS_SECTION
-                        ):
-                            # if end en begin are crosssections and the
-                            # sideview starts in between cross sections
-                            begin_weight = link_length / link["real_length"]
-                            end_weight = 1 - begin_weight
-                            begin_level = (
-                                begin_weight * sub_begin_node["bottom_level"]
-                                + end_weight * sub_end_node["bottom_level"]
-                            )
-                            if (
-                                sub_begin_node["height"] is not None
-                                and sub_end_node["height"] is not None
-                            ):
-                                begin_upper_level = (
-                                    begin_weight * sub_begin_node["height"]
-                                    + end_weight * sub_end_node["height"]
-                                    + begin_level
-                                )
-                            else:
-                                begin_upper_level = begin_level
-
-                            if (
-                                sub_begin_node["drain_level"] is not None
-                                and sub_end_node["drain_level"] is not None
-                            ):
-                                begin_drain = (
-                                    begin_weight * sub_begin_node["drain_level"]
-                                    + end_weight * sub_end_node["drain_level"]
-                                )
-                        else:
-                            begin_level = sub_begin_node["bottom_level"]
-                            if sub_begin_node["height"] is not None:
-                                begin_upper_level = (
-                                    sub_begin_node["height"] + begin_level
-                                )
-                            else:
-                                begin_upper_level = begin_level
-                            begin_drain = sub_begin_node["drain_level"]
-
-                        if sub_end_node["type"] != SideViewDockWidget.CROSS_SECTION:
-                            end_level = sub_begin_node["bottom_level"]
-                            if sub_begin_node["height"] is not None:
-                                end_upper_level = sub_begin_node["height"] + end_level
-                            else:
-                                end_upper_level = end_level
-                            end_drain = sub_begin_node["drain_level"]
-                        elif (
-                            i == len(profile_links) - 1
-                            and sub_begin_node["type"]
-                            == SideViewDockWidget.CROSS_SECTION
-                        ):
-                            # interpolate based on starting point
-
-                            end_weight = link_length / link["real_length"]
-                            begin_weight = 1 - end_weight
-                            end_level = (
-                                begin_weight * sub_begin_node["bottom_level"]
-                                + end_weight * sub_end_node["bottom_level"]
-                            )
-
-                            if (
-                                sub_begin_node["height"] is not None
-                                and sub_end_node["height"] is not None
-                            ):
-                                end_upper_level = (
-                                    begin_weight * sub_begin_node["height"]
-                                    + end_weight * sub_end_node["height"]
-                                    + end_level
-                                )
-                            else:
-                                end_upper_level = end_level
-
-                            if (
-                                sub_begin_node["drain_level"] is not None
-                                and sub_end_node["drain_level"] is not None
-                            ):
-                                end_drain = (
-                                    begin_weight * sub_begin_node["drain_level"]
-                                    + end_weight * sub_end_node["drain_level"]
-                                )
-                            else:
-                                end_drain = np.nan
-
-                        else:
-                            end_level = sub_end_node["bottom_level"]
-                            if sub_end_node["height"] is not None:
-                                end_upper_level = sub_end_node["height"] + end_level
-                            else:
-                                end_upper_level = np.nan
-                            end_drain = sub_end_node["drain_level"]
-
-                        bottom_line.append(
-                            (
-                                sub_begin_dist + 0.5 * float(sub_begin_node["length"]),
-                                begin_level,
-                                ltype,
-                            )
-                        )
-                        bottom_line.append(
-                            (
-                                sub_end_dist - 0.5 * float(sub_end_node["length"]),
-                                end_level,
-                                ltype,
-                            )
-                        )
-                        upper_line.append(
-                            (
-                                sub_begin_dist + 0.5 * float(sub_begin_node["length"]),
-                                begin_upper_level,
-                                ltype,
-                            )
-                        )
-                        upper_line.append(
-                            (
-                                sub_end_dist - 0.5 * float(sub_end_node["length"]),
-                                end_upper_level,
-                                ltype,
-                            )
-                        )
-
-                        if (
-                            sub_first
-                            or sub_begin_node["type"]
-                            != SideViewDockWidget.CALCULATION_NODE
-                        ):
-                            drain_level.append((sub_begin_dist, begin_drain))
-
-                        drain_level.append((sub_end_dist, end_drain))
-
-                        sub_first = False
+                # 2.c contours based on structure or pipe
+                if direction == 1:
+                    begin_level = float(feature["start_level"])
+                    end_level = float(feature["end_level"])
+                    begin_height = feature["start_height"]
+                    end_height = feature["end_height"]
                 else:
-                    # 2.c contours based on structure or pipe
-                    if direction == 1:
-                        begin_level = float(feature["start_level"])
-                        end_level = float(feature["end_level"])
-                        begin_height = feature["start_height"]
-                        end_height = feature["end_height"]
-                    else:
-                        begin_level = float(feature["end_level"])
-                        end_level = float(feature["start_level"])
-                        begin_height = feature["end_height"]
-                        end_height = feature["start_height"]
+                    begin_level = float(feature["end_level"])
+                    end_level = float(feature["start_level"])
+                    begin_height = feature["end_height"]
+                    end_height = feature["start_height"]
 
-                    if python_value(begin_height) is not None:
-                        begin_upper_level = begin_level + begin_height
-                    else:
-                        begin_upper_level = begin_level
+                if python_value(begin_height) is not None:
+                    begin_upper_level = begin_level + begin_height
+                else:
+                    begin_upper_level = begin_level
 
-                    if python_value(end_height) is not None:
-                        end_upper_level = end_level + end_height
-                    else:
-                        end_upper_level = end_level
+                if python_value(end_height) is not None:
+                    end_upper_level = end_level + end_height
+                else:
+                    end_upper_level = end_level
 
                     bottom_line.append(
                         (
-                            begin_dist + 0.5 * float(begin_node["length"]),
+                            begin_dist,  # + 0.5 * float(begin_node["length"]),
                             begin_level,
                             ltype,
                         )
                     )
                     bottom_line.append(
-                        (end_dist - 0.5 * float(end_node["length"]), end_level, ltype)
+                        (
+                            end_dist,  # - 0.5 * float(end_node["length"]),
+                            end_level,
+                            ltype)
                     )
 
                     # upper line
                     upper_line.append(
                         (
-                            begin_dist + 0.5 * float(begin_node["length"]),
+                            begin_dist,  # + 0.5 * float(begin_node["length"]),
                             begin_upper_level,
                             ltype,
                         )
                     )
                     upper_line.append(
                         (
-                            end_dist - 0.5 * float(end_node["length"]),
+                            end_dist,  # - 0.5 * float(end_node["length"]),
                             end_upper_level,
                             ltype,
                         )
                     )
-
-                    if first:
-                        drain_level.append((begin_dist, begin_node["drain_level"]))
-
-                    drain_level.append((end_dist, end_node["drain_level"]))
-
-                last_channel_id = feature["channel_id"]
-
-                if end_node["type"] == SideViewDockWidget.MANHOLE:
-                    bottom_line.append(
-                        (
-                            end_dist - 0.5 * float(end_node["length"]),
-                            float(end_node["bottom_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    bottom_line.append(
-                        (
-                            end_dist + 0.5 * float(end_node["length"]),
-                            float(end_node["bottom_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    # todo last: bottom_line.append((float(begin_dist)+0,5*
-                    # float(end_node['length']), float(
-                    # begin_node['surface_level'])))
-
-                if end_node["type"] == SideViewDockWidget.MANHOLE:
-                    upper_line.append(
-                        (
-                            end_dist - 0.5 * float(end_node["length"]),
-                            float(end_node["surface_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-                    upper_line.append(
-                        (
-                            end_dist + 0.5 * float(end_node["length"]),
-                            float(end_node["surface_level"]),
-                            SideViewDockWidget.PIPE,
-                        )
-                    )
-
-                # store node information for water level line
-                if first:
-                    self.sideview_nodes.append(
-                        {
-                            "distance": begin_dist,
-                            "id": begin_node_id,
-                            "idx": begin_node_idx,
-                        }
-                    )
-                    first = False
-
-                self.sideview_nodes.append(
-                    {"distance": end_dist, "id": end_node_id, "idx": end_node_idx}
-                )
 
         if len(self.profile) > 0:
             # Draw data into graph
@@ -598,12 +249,12 @@ class SideViewPlotWidget(pg.PlotWidget):
             # (channel, structure, etc.)
 
             tables = {
-                SideViewDockWidget.PIPE: [],
-                SideViewDockWidget.CHANNEL: [],
-                SideViewDockWidget.CULVERT: [],
-                SideViewDockWidget.PUMP: [],
-                SideViewDockWidget.WEIR: [],
-                SideViewDockWidget.ORIFICE: [],
+                LineType.PIPE: [],
+                LineType.CHANNEL: [],
+                LineType.CULVERT: [],
+                LineType.PUMP: [],
+                LineType.WEIR: [],
+                LineType.ORIFICE: [],
             }
             last_type = None
             for point in bottom_line:
@@ -620,31 +271,31 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array([(b[0], b[1]) for b in bottom_line], dtype=float)
             self.bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.PIPE], dtype=float)
+            ts_table = np.array(tables[LineType.PIPE], dtype=float)
             self.sewer_bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.CHANNEL], dtype=float)
+            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
             self.channel_bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.CULVERT], dtype=float)
+            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
             self.culvert_bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.WEIR], dtype=float)
+            ts_table = np.array(tables[LineType.WEIR], dtype=float)
             self.weir_bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.ORIFICE], dtype=float)
+            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
             self.orifice_bottom_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.PUMP], dtype=float)
+            ts_table = np.array(tables[LineType.PUMP], dtype=float)
             self.pump_bottom_plot.setData(ts_table, connect="finite")
 
             tables = {
-                SideViewDockWidget.PIPE: [],
-                SideViewDockWidget.CHANNEL: [],
-                SideViewDockWidget.CULVERT: [],
-                SideViewDockWidget.PUMP: [],
-                SideViewDockWidget.WEIR: [],
-                SideViewDockWidget.ORIFICE: [],
+                LineType.PIPE: [],
+                LineType.CHANNEL: [],
+                LineType.CULVERT: [],
+                LineType.PUMP: [],
+                LineType.WEIR: [],
+                LineType.ORIFICE: [],
             }
             last_type = None
             for point in upper_line:
@@ -789,18 +440,6 @@ class SideViewDockWidget(QDockWidget):
     # let op CRS van vreschillende lagen en CRS changes
 
     closingWidget = pyqtSignal(int)
-
-    CONNECTION_NODE = 1
-    MANHOLE = 2
-    BOUNDARY = 3
-    CROSS_SECTION = 4
-    CALCULATION_NODE = 5
-    PIPE = 11
-    WEIR = 12
-    CULVERT = 13
-    ORIFICE = 14
-    PUMP = 15
-    CHANNEL = 16
 
     def __init__(
         self, iface, nr, model, datasources, parent=None
@@ -956,7 +595,7 @@ class SideViewDockWidget(QDockWidget):
         for cn in connection_node_layer.getFeatures():
             points[cn["id"]] = {
                 "point": cn.geometry().asPoint(),
-                "type": self.CONNECTION_NODE,
+                "type": LineType.CONNECTION_NODE,
                 "surface_level": None,
                 "drain_level": None,
                 "bottom_level": None,
@@ -965,7 +604,7 @@ class SideViewDockWidget(QDockWidget):
 
         for manhole in manhole_layer.getFeatures():
             p = points[manhole["connection_node_id"]]
-            p["type"] = self.MANHOLE
+            p["type"] = LineType.MANHOLE
             p["surface_level"] = python_value(manhole["surface_level"])
             p["drain_level"] = python_value(manhole["drain_level"], p["surface_level"])
             p["bottom_level"] = python_value(manhole["bottom_level"])
@@ -973,7 +612,7 @@ class SideViewDockWidget(QDockWidget):
 
         for bound in boundary_layer.getFeatures():
             p = points[bound["connection_node_id"]]
-            p["type"] = self.BOUNDARY
+            p["type"] = LineType.BOUNDARY
             p["surface_level"] = None
             p["drain_level"] = None
             p["bottom_level"] = None
@@ -1036,7 +675,7 @@ class SideViewDockWidget(QDockWidget):
 
                 channel_part = {
                     "id": "subch_" + str(channel["id"]) + "_" + str(i),
-                    "type": self.CHANNEL,
+                    "type": LineType.CHANNEL,
                     "start_node": start_id,
                     "end_node": end_id,
                     "real_length": part["length"],
@@ -1062,7 +701,7 @@ class SideViewDockWidget(QDockWidget):
 
                 points["crs_" + str(p["id"])] = {
                     "point": p.geometry().asPoint(),
-                    "type": self.CROSS_SECTION,
+                    "type": LineType.CROSS_SECTION,
                     "surface_level": bank_level,
                     "drain_level": bank_level,
                     "bottom_level": level,
@@ -1117,7 +756,7 @@ class SideViewDockWidget(QDockWidget):
 
                     channel_part = {
                         "id": "subch_" + str(channel["id"]) + "_" + str(i),
-                        "type": self.CHANNEL,
+                        "type": LineType.CHANNEL,
                         "start_node": start_node_id,
                         "end_node": end_node_id,
                         "start_node_idx": part["start_point_id"],
@@ -1132,7 +771,7 @@ class SideViewDockWidget(QDockWidget):
                 for p in calculation_points:
                     points["calc_" + str(p["id"])] = {
                         "point": p["geom"],
-                        "type": self.CALCULATION_NODE,
+                        "type": LineType.CALCULATION_NODE,
                         "surface_level": None,
                         "drain_level": None,
                         "bottom_level": None,
@@ -1214,7 +853,7 @@ class SideViewDockWidget(QDockWidget):
                 nodes[end_node_id] = end_node
 
         for node_id, node in nodes.items():
-            if node["type"] == SideViewDockWidget.MANHOLE:
+            if node["type"] == LineType.MANHOLE:
                 for attr in attributes:
                     if node[attr] in invalid_values:
                         error_msg = f"Manhole with 'connection_node_id' {node_id} is missing '{attr}' value."

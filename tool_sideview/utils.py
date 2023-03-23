@@ -8,6 +8,20 @@ from qgis.core import QgsProject
 import math
 
 
+class LineType:
+    CONNECTION_NODE = 1
+    MANHOLE = 2
+    BOUNDARY = 3
+    CROSS_SECTION = 4
+    CALCULATION_NODE = 5
+    PIPE = 11
+    WEIR = 12
+    CULVERT = 13
+    ORIFICE = 14
+    PUMP = 15
+    CHANNEL = 16
+
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
