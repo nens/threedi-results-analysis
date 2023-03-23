@@ -15,10 +15,10 @@ class SideViewGraphGenerator():
     def generate(gridadmin_file: Path) -> QgsVectorLayer:
         logger.error(f"Calculating layer from {gridadmin_file}")
 
-        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&field=id:integer&field=real_length:double&index=yes", "graph_layer", "memory")
+        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
-        pr.addAttributes([QgsField("id", QVariant.Int), QgsField("start_node_idx", QVariant.Int), QgsField("real_length", QVariant.Double)])
+        pr.addAttributes([QgsField("id", QVariant.Int), QgsField("start_node_idx", QVariant.Int), QgsField("end_node_idx", QVariant.Int), QgsField("real_length", QVariant.Double)])
     #             QgsField("end_node_idx", QVariant.Int),
     # # #         # This is the flowline index in Python (0-based indexing)
     # # #         # Important: this differs from the feature id which is flowline
@@ -47,8 +47,6 @@ class SideViewGraphGenerator():
         # Retrieve lines from gridadmin
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
-        # TODO: also add pumps
-
         features = []
         distances_1d = ga.lines.subset("1D").ds1d.tolist()  # tolist converts to native python floats
         line_coords = ga.lines.subset("1D").line_coords.transpose()
@@ -56,20 +54,36 @@ class SideViewGraphGenerator():
         assert len(distances_1d) == len(line_coords)
         assert len(nodes_ids) == len(line_coords)
 
+        # As we already subset the list, we do not need to skip the first nan-element
+        last_index = 0
         for count, (x_start, y_start, x_end, y_end) in enumerate(line_coords):
             feat = QgsFeature()
 
             p1 = QgsPointXY(x_start, y_start)
             p2 = QgsPointXY(x_end, y_end)
-
             geom = QgsGeometry.fromPolylineXY([p1, p2])
-
             feat.setGeometry(geom)
+
             # Note that id is the flowline index in Python (0-based indexing)
             feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count]])
+            features.append(feat)
+            last_index = count
+
+        # Pumps are not part of lines, add as well.
+        pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
+        node1_ids = ga.pumps.node1_id[1:].tolist()
+        node2_ids = ga.pumps.node2_id[1:].tolist()
+        for count, pump_coord in enumerate(pump_coords):
+            feat = QgsFeature()
+
+            p1 = QgsPointXY(pump_coord[0], pump_coord[1])
+            p2 = QgsPointXY(pump_coord[2], pump_coord[3])
+            geom = QgsGeometry.fromPolylineXY([p1, p2])
+            feat.setGeometry(geom)
+
+            feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None])
             features.append(feat)
 
         pr.addFeatures(features)
         graph_layer.updateExtents()
-
         return graph_layer
