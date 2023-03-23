@@ -192,26 +192,32 @@ class SideViewPlotWidget(pg.PlotWidget):
                 # TODO 2. add contours (bottom, upper and drain lines)
 
                 # 2.c contours based on structure or pipe
-                if direction == 1:
-                    begin_level = float(feature["start_level"])
-                    end_level = float(feature["end_level"])
-                    begin_height = feature["start_height"]
-                    end_height = feature["end_height"]
-                else:
-                    begin_level = float(feature["end_level"])
-                    end_level = float(feature["start_level"])
-                    begin_height = feature["end_height"]
-                    end_height = feature["start_height"]
+                if ltype == LineType.PIPE:
+                    logger.error("PIPE")
+                    if direction == 1:
+                        begin_level = float(feature["start_level"])
+                        end_level = float(feature["end_level"])
+                        # begin_height = feature["start_height"]
+                        # end_height = feature["end_height"]
+                    else:
+                        begin_level = float(feature["end_level"])
+                        end_level = float(feature["start_level"])
+                        # begin_height = feature["end_height"]
+                        # end_height = feature["start_height"]
 
-                if python_value(begin_height) is not None:
-                    begin_upper_level = begin_level + begin_height
-                else:
-                    begin_upper_level = begin_level
+                    # TODO: temp
+                    begin_height = 3.0
+                    end_height = 3.0
 
-                if python_value(end_height) is not None:
-                    end_upper_level = end_level + end_height
-                else:
-                    end_upper_level = end_level
+                    if python_value(begin_height) is not None:
+                        begin_upper_level = begin_level + begin_height
+                    else:
+                        begin_upper_level = begin_level
+
+                    if python_value(end_height) is not None:
+                        end_upper_level = end_level + end_height
+                    else:
+                        end_upper_level = end_level
 
                     bottom_line.append(
                         (
@@ -224,7 +230,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         (
                             end_dist,  # - 0.5 * float(end_node["length"]),
                             end_level,
-                            ltype)
+                            ltype
+                        )
                     )
 
                     # upper line
@@ -247,6 +254,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
+            logger.error("DRAW")
 
             tables = {
                 LineType.PIPE: [],
@@ -311,22 +319,22 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array([(b[0], b[1]) for b in upper_line], dtype=float)
             self.upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.PIPE], dtype=float)
+            ts_table = np.array(tables[LineType.PIPE], dtype=float)
             self.sewer_upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.CHANNEL], dtype=float)
+            ts_table = np.array(tables[LineType.CHANNEL], dtype=float)
             self.channel_upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.CULVERT], dtype=float)
+            ts_table = np.array(tables[LineType.CULVERT], dtype=float)
             self.culvert_upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.WEIR], dtype=float)
+            ts_table = np.array(tables[LineType.WEIR], dtype=float)
             self.weir_upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.ORIFICE], dtype=float)
+            ts_table = np.array(tables[LineType.ORIFICE], dtype=float)
             self.orifice_upper_plot.setData(ts_table, connect="finite")
 
-            ts_table = np.array(tables[SideViewDockWidget.PUMP], dtype=float)
+            ts_table = np.array(tables[LineType.PUMP], dtype=float)
             self.pump_upper_plot.setData(ts_table, connect="finite")
 
             ts_table = np.array(drain_level, dtype=float)

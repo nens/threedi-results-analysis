@@ -23,20 +23,19 @@ class SideViewGraphGenerator():
                           QgsField("start_node_idx", QVariant.Int),
                           QgsField("end_node_idx", QVariant.Int),
                           QgsField("real_length", QVariant.Double),
-                          QgsField("type", QVariant.Int)])
+                          QgsField("type", QVariant.Int),
+                          QgsField("start_level", QVariant.Double),
+                          QgsField("end_level", QVariant.Double)])
     #             QgsField("end_node_idx", QVariant.Int),
     # # #         # This is the flowline index in Python (0-based indexing)
     # # #         # Important: this differs from the feature id which is flowline
     # # #         # idx+1!!
     # # #         QgsField("nr", QVariant.Int),
-    #             QgsField("id", QVariant.Int),
     # # #         QgsField("type", QVariant.Int),
     #             # QgsField("start_node", QVariant.String),
     #             # QgsField("end_node", QVariant.String),
     #             QgsField("start_node_idx", QVariant.Int),
     #             QgsField("end_node_idx", QVariant.Int),
-    # # #         QgsField("start_level", QVariant.Double),
-    # # #         QgsField("end_level", QVariant.Double),
     # # #         QgsField("start_height", QVariant.Double),
     # # #         QgsField("end_height", QVariant.Double),
     # # #         QgsField("channel_id", QVariant.Int),
@@ -53,13 +52,18 @@ class SideViewGraphGenerator():
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
         features = []
-        distances_1d = ga.lines.subset("1D").ds1d.tolist()  # tolist converts to native python floats
-        line_coords = ga.lines.subset("1D").line_coords.transpose()
-        nodes_ids = ga.lines.subset("1D").line.transpose().tolist()
-        content_types = ga.lines.subset('1D').content_type.tolist()
+        lines_1d = ga.lines.subset("1D")
+        distances_1d = lines_1d.ds1d.tolist()  # tolist converts to native python floats
+        line_coords = lines_1d.line_coords.transpose()
+        nodes_ids = lines_1d.line.transpose().tolist()
+        content_types = lines_1d.content_type.tolist()
+        invert_level_start_points = lines_1d.invert_level_start_point.tolist()
+        invert_level_end_points = lines_1d.invert_level_end_point.tolist()
         assert len(distances_1d) == len(line_coords)
         assert len(nodes_ids) == len(line_coords)
         assert len(nodes_ids) == len(content_types)
+        assert len(nodes_ids) == len(invert_level_start_points)
+        assert len(nodes_ids) == len(invert_level_end_points)
 
         # As we already subset the list, we do not need to skip the first nan-element
         last_index = 0
@@ -71,9 +75,16 @@ class SideViewGraphGenerator():
             geom = QgsGeometry.fromPolylineXY([p1, p2])
             feat.setGeometry(geom)
 
+            start_level = None
+            end_level = None
+
             # Note that id (count) is the flowline index in Python (0-based indexing)
             line_type = SideViewGraphGenerator.content_type_to_line_type(content_types[count].decode())
-            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type])
+            if line_type == LineType.PIPE:
+                start_level = invert_level_start_points[count]
+                end_level = invert_level_start_points[count]
+
+            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level])
             features.append(feat)
             last_index = count
 
