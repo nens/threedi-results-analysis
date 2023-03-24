@@ -25,23 +25,19 @@ class SideViewGraphGenerator():
                           QgsField("real_length", QVariant.Double),
                           QgsField("type", QVariant.Int),
                           QgsField("start_level", QVariant.Double),
-                          QgsField("end_level", QVariant.Double)])
+                          QgsField("end_level", QVariant.Double),
+                          QgsField("start_height", QVariant.Double),
+                          QgsField("end_height", QVariant.Double)])
     #             QgsField("end_node_idx", QVariant.Int),
     # # #         # This is the flowline index in Python (0-based indexing)
     # # #         # Important: this differs from the feature id which is flowline
     # # #         # idx+1!!
     # # #         QgsField("nr", QVariant.Int),
-    # # #         QgsField("type", QVariant.Int),
     #             # QgsField("start_node", QVariant.String),
     #             # QgsField("end_node", QVariant.String),
-    #             QgsField("start_node_idx", QVariant.Int),
-    #             QgsField("end_node_idx", QVariant.Int),
-    # # #         QgsField("start_height", QVariant.Double),
-    # # #         QgsField("end_height", QVariant.Double),
     # # #         QgsField("channel_id", QVariant.Int),
     # # #         QgsField("sub_channel_nr", QVariant.Int),
     # # #         QgsField("start_channel_distance", QVariant.Double),
-    #             QgsField("real_length", QVariant.Double),
     #         ]
     #     )
 
@@ -55,6 +51,7 @@ class SideViewGraphGenerator():
         lines_1d = ga.lines.subset("1D")
         distances_1d = lines_1d.ds1d.tolist()  # tolist converts to native python floats
         line_coords = lines_1d.line_coords.transpose()
+        line_ids = lines_1d.id.tolist()
         nodes_ids = lines_1d.line.transpose().tolist()
         content_types = lines_1d.content_type.tolist()
         invert_level_start_points = lines_1d.invert_level_start_point.tolist()
@@ -64,6 +61,7 @@ class SideViewGraphGenerator():
         assert len(nodes_ids) == len(content_types)
         assert len(nodes_ids) == len(invert_level_start_points)
         assert len(nodes_ids) == len(invert_level_end_points)
+        assert len(nodes_ids) == len(line_ids)
 
         # As we already subset the list, we do not need to skip the first nan-element
         last_index = 0
@@ -77,14 +75,33 @@ class SideViewGraphGenerator():
 
             start_level = None
             end_level = None
+            # TODO: Retrieve cross section
+            start_height = 3.0
+            end_height = 3.0
 
-            # Note that id (count) is the flowline index in Python (0-based indexing)
             line_type = SideViewGraphGenerator.content_type_to_line_type(content_types[count].decode())
+
             if line_type == LineType.PIPE:
                 start_level = invert_level_start_points[count]
-                end_level = invert_level_start_points[count]
+                end_level = invert_level_end_points[count]
+            elif line_type == LineType.CULVERT:
+                start_level = invert_level_start_points[count]
+                end_level = invert_level_end_points[count]
+            elif line_type == LineType.ORIFICE:
+                crest_level = lines_1d.orifices.filter(id=line_ids[count]).crest_level[0].item()
+                start_level = crest_level
+                end_level = crest_level
+            elif line_type == LineType.WEIR:
+                crest_level = lines_1d.weirs.filter(id=line_ids[count]).crest_level[0].item()
+                start_level = crest_level
+                end_level = crest_level
+            elif line_type == LineType.CHANNEL:
+                reference_level = lines_1d.channels.filter(id=line_ids[count]).dpumax[0].item()
+                start_level = reference_level
+                end_level = reference_level
 
-            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level])
+            # Note that id (count) is the flowline index in Python (0-based indexing)
+            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level, start_height, end_height])
             features.append(feat)
             last_index = count
 
@@ -100,10 +117,11 @@ class SideViewGraphGenerator():
             geom = QgsGeometry.fromPolylineXY([p1, p2])
             feat.setGeometry(geom)
 
-            feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP])
+            feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP, start_level, end_level, start_height, end_height])
             features.append(feat)
 
-        pr.addFeatures(features)
+        if not pr.addFeatures(features):
+            logger.error(f"Unable to add all features: {pr.lastError()}")
         graph_layer.updateExtents()
         return graph_layer
 

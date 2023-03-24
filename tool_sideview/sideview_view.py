@@ -186,38 +186,24 @@ class SideViewPlotWidget(pg.PlotWidget):
                 #     begin_node_idx = feature["end_node_idx"]
 
                 ltype = feature["type"]
+                logger.error(f"type: {ltype}")
 
                 # TODO 1. add manhole if needed
 
                 # TODO 2. add contours (bottom, upper and drain lines)
 
                 # 2.c contours based on structure or pipe
-                if ltype == LineType.PIPE:
-                    logger.error("PIPE")
+                if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
                     if direction == 1:
                         begin_level = float(feature["start_level"])
                         end_level = float(feature["end_level"])
-                        # begin_height = feature["start_height"]
-                        # end_height = feature["end_height"]
+                        begin_height = feature["start_height"]
+                        end_height = feature["end_height"]
                     else:
                         begin_level = float(feature["end_level"])
                         end_level = float(feature["start_level"])
-                        # begin_height = feature["end_height"]
-                        # end_height = feature["start_height"]
-
-                    # TODO: temp
-                    begin_height = 3.0
-                    end_height = 3.0
-
-                    if python_value(begin_height) is not None:
-                        begin_upper_level = begin_level + begin_height
-                    else:
-                        begin_upper_level = begin_level
-
-                    if python_value(end_height) is not None:
-                        end_upper_level = end_level + end_height
-                    else:
-                        end_upper_level = end_level
+                        begin_height = feature["end_height"]
+                        end_height = feature["start_height"]
 
                     bottom_line.append(
                         (
@@ -238,14 +224,14 @@ class SideViewPlotWidget(pg.PlotWidget):
                     upper_line.append(
                         (
                             begin_dist,  # + 0.5 * float(begin_node["length"]),
-                            begin_upper_level,
+                            begin_level + begin_height,
                             ltype,
                         )
                     )
                     upper_line.append(
                         (
                             end_dist,  # - 0.5 * float(end_node["length"]),
-                            end_upper_level,
+                            end_level + end_height,
                             ltype,
                         )
                     )
@@ -254,7 +240,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
-            logger.error("DRAW")
 
             tables = {
                 LineType.PIPE: [],
@@ -485,10 +470,10 @@ class SideViewDockWidget(QDockWidget):
         self.graph_layer = SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
         QgsProject.instance().addMapLayer(self.graph_layer)
 
-        logger.error('point_dict')
-        logger.error(self.point_dict)
-        logger.error('channel_profiles')
-        logger.error(self.channel_profiles)
+        # logger.error('point_dict')
+        # logger.error(self.point_dict)
+        # logger.error('channel_profiles')
+        # logger.error(self.channel_profiles)
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
