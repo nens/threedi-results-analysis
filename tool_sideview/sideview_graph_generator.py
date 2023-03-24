@@ -13,9 +13,7 @@ class SideViewGraphGenerator():
     """Generates a graph based on a gridadmin file"""
 
     @staticmethod
-    def generate(gridadmin_file: Path) -> QgsVectorLayer:
-        logger.error(f"Calculating layer from {gridadmin_file}")
-
+    def generate_layer(gridadmin_file: Path) -> QgsVectorLayer:
         graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
@@ -109,6 +107,12 @@ class SideViewGraphGenerator():
         pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
         node1_ids = ga.pumps.node1_id[1:].tolist()
         node2_ids = ga.pumps.node2_id[1:].tolist()
+
+        # TODO: Retrieve this info
+        start_level = 3.0
+        end_level = 3.0
+        start_height = 3.0
+        end_height = 3.0
         for count, pump_coord in enumerate(pump_coords):
             feat = QgsFeature()
 
@@ -118,6 +122,33 @@ class SideViewGraphGenerator():
             feat.setGeometry(geom)
 
             feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP, start_level, end_level, start_height, end_height])
+            features.append(feat)
+
+        if not pr.addFeatures(features):
+            logger.error(f"Unable to add all features: {pr.lastError()}")
+        graph_layer.updateExtents()
+        return graph_layer
+
+    @staticmethod
+    def generate_nodes(gridadmin_file: Path) -> QgsVectorLayer:
+        graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
+        pr = graph_layer.dataProvider()
+
+        pr.addAttributes([QgsField("id", QVariant.Int)])
+        graph_layer.updateFields()
+
+        features = []
+        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+        nodes_1d = ga.nodes.subset("1D")
+
+        node_coords = nodes_1d.coordinates.transpose().tolist()
+        node_ids = nodes_1d.id.tolist()
+        assert len(node_coords) == len(node_ids)
+        for count, (x_pos, y_pos) in enumerate(node_coords):
+            feat = QgsFeature()
+            p = QgsPointXY(x_pos, y_pos)
+            feat.setGeometry(QgsGeometry.fromPointXY(p))
+            feat.setAttributes([node_ids[count]])
             features.append(feat)
 
         if not pr.addFeatures(features):

@@ -467,8 +467,11 @@ class SideViewDockWidget(QDockWidget):
             datasources.model_spatialite_filepath, line
         )
 
-        self.graph_layer = SideViewGraphGenerator.generate(self.model.get_results(checked_only=False)[0].parent().path)
+        self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path)
+        point_layer = SideViewGraphGenerator.generate_nodes(self.model.get_results(checked_only=False)[0].parent().path)
+
         QgsProject.instance().addMapLayer(self.graph_layer)
+        QgsProject.instance().addMapLayer(point_layer)
 
         # logger.error('point_dict')
         # logger.error(self.point_dict)
