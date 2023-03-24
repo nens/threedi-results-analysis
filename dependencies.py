@@ -52,6 +52,7 @@ DEPENDENCIES = [
     Dependency("threedidepth", "threedidepth", "==0.5"),
     Dependency("h5netcdf", "h5netcdf", ""),
     Dependency("click", "click", ">=8.0"),
+    Dependency("cftime", "cftime", ">=1.5.0"),  # via threedigrid[results]
     Dependency("alembic", "alembic", "==1.8.*"),
     Dependency(
         "importlib-resources", "importlib_resources", ""

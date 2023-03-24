@@ -9,6 +9,7 @@ threedi-modelchecker==2.0.1
 threedidepth==0.5
 h5netcdf
 click>=8.0
+cftime>=1.5.0
 alembic==1.8.*
 importlib-resources
 zipp
