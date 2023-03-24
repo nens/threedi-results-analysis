@@ -26,7 +26,6 @@ from qgis.PyQt.QtWidgets import QTabWidget
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from qgis.PyQt.QtWidgets import QColorDialog
-from qgis.utils import iface
 from threedi_results_analysis.tool_graph.graph_model import LocationTimeseriesModel
 from threedi_results_analysis.utils.user_messages import messagebar_message
 from threedi_results_analysis.utils.user_messages import statusbar_message
@@ -622,10 +621,6 @@ class GraphWidget(QWidget):
             f"{item.object_type.value}_{str(item.object_id.value)}_{item.result.value.id}" for item in self.location_model.rows
         ]
 
-        for lyr in iface.mapCanvas().layers():
-            if lyr.type() == lyr.VectorLayer:
-                lyr.removeSelection()
-
         # Determine new items
         new_items = []
         for feature in features:
@@ -637,8 +632,6 @@ class GraphWidget(QWidget):
                 # Check whether this result belongs to the selected grid
                 if layer.id() not in result_item.parent().layer_ids.values():
                     continue
-
-                layer.select(feature.id())
 
                 if (layer.objectName() + "_" + str(new_idx) + "_" + result_item.id) not in existing_items:
                     item = {
