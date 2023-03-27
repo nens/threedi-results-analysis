@@ -42,12 +42,11 @@ Dependency = namedtuple("Dependency", ["name", "package", "constraint"])
 
 #: List of expected dependencies.
 DEPENDENCIES = [
-    Dependency("SQLAlchemy", "sqlalchemy", "2.0.6"),
+    Dependency("SQLAlchemy", "sqlalchemy", "==2.0.6"),
     Dependency("GeoAlchemy2", "geoalchemy2", "==0.13.*"),
     Dependency("lizard-connector", "lizard_connector", "==0.7.3"),
     Dependency("pyqtgraph", "pyqtgraph", ">=0.11.1,<0.12"),
     Dependency("threedigrid", "threedigrid", ">=2.0.3"),
-    Dependency("cached-property", "cached_property", ""),
     Dependency("threedi-schema", "threedi_schema", "==0.214.6"),
     Dependency("threedi-modelchecker", "threedi_modelchecker", "==2.0.1"),
     Dependency("threedidepth", "threedidepth", "==0.5"),

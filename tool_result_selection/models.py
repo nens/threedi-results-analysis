@@ -1,4 +1,4 @@
-from cached_property import cached_property
+from functools import cached_property
 from pathlib import Path
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import Qt
