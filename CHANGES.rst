@@ -5,7 +5,9 @@ ThreeDiToolBox changelog
 2.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump threedi-schema to 0.214.6
+- Bump SQLAlchemy to 2.0.6
+- Bump threedidepth to 0.5
 
 
 2.5 (2023-02-06)

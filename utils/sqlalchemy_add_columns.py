@@ -4,6 +4,7 @@ https://stackoverflow.com/questions/2103274/sqlalchemy-add-new-field-to-class-an
 """
 
 from sqlalchemy import exc
+from sqlalchemy import text
 from sqlalchemy import MetaData
 from sqlalchemy import Table
 
@@ -26,7 +27,11 @@ def create_and_upgrade(engine, metadata):
 
     for model_table in metadata.sorted_tables:
         try:
-            db_table = Table(model_table.name, db_metadata, autoload=True)
+            db_table = Table(
+                model_table.name,
+                db_metadata,
+                autoload_with=engine,
+            )
         except exc.NoSuchTableError:
             logger.info("Creating table %s" % model_table.name)
             model_table.create(bind=engine)
@@ -53,7 +58,8 @@ def create_and_upgrade(engine, metadata):
             )
             model_col_spec = ddl_c.get_column_specification(model_column)
             sql = "ALTER TABLE %s ADD %s" % (model_table.name, model_col_spec)
-            engine.execute(sql)
+            with engine.connect() as connection:
+                connection.execute(text(sql))
 
         # It's difficult to reliably determine if the model has changed
         # a column definition. E.g. the default precision of columns
