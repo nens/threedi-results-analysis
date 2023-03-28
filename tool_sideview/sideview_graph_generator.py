@@ -3,6 +3,7 @@ from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.core import QgsGeometry, QgsPointXY, QgsField
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
+from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
 from qgis.PyQt.QtCore import QVariant
 
 import logging
@@ -54,6 +55,8 @@ class SideViewGraphGenerator():
         content_types = lines_1d.content_type.tolist()
         invert_level_start_points = lines_1d.invert_level_start_point.tolist()
         invert_level_end_points = lines_1d.invert_level_end_point.tolist()
+        cross1_ids = lines_1d.cross1.tolist()
+        cross2_ids = lines_1d.cross2.tolist()
         assert len(distances_1d) == len(line_coords)
         assert len(nodes_ids) == len(line_coords)
         assert len(nodes_ids) == len(content_types)
@@ -73,30 +76,22 @@ class SideViewGraphGenerator():
 
             start_level = None
             end_level = None
-            # TODO: Retrieve cross section
-            start_height = 3.0
-            end_height = 3.0
+            start_height = None
+            end_height = None
 
             line_type = SideViewGraphGenerator.content_type_to_line_type(content_types[count].decode())
 
-            if line_type == LineType.PIPE:
+            if line_type == LineType.PIPE or line_type == LineType.CULVERT:
                 start_level = invert_level_start_points[count]
                 end_level = invert_level_end_points[count]
-            elif line_type == LineType.CULVERT:
-                start_level = invert_level_start_points[count]
-                end_level = invert_level_end_points[count]
-            elif line_type == LineType.ORIFICE:
-                crest_level = lines_1d.orifices.filter(id=line_ids[count]).crest_level[0].item()
-                start_level = crest_level
-                end_level = crest_level
-            elif line_type == LineType.WEIR:
-                crest_level = lines_1d.weirs.filter(id=line_ids[count]).crest_level[0].item()
-                start_level = crest_level
-                end_level = crest_level
-            elif line_type == LineType.CHANNEL:
-                reference_level = lines_1d.channels.filter(id=line_ids[count]).dpumax[0].item()
-                start_level = reference_level
-                end_level = reference_level
+
+                cross1 = cross1_ids[count]
+                cross2 = cross2_ids[count]
+                assert cross1 == cross2  # pipes have only one cross section definition
+                cross_section = ga.cross_sections.filter(id=cross1)
+                height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
+                start_height = start_level + height
+                end_height = end_level + height
 
             # Note that id (count) is the flowline index in Python (0-based indexing)
             feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level, start_height, end_height])
@@ -171,3 +166,17 @@ class SideViewGraphGenerator():
             return LineType.CHANNEL
 
         raise AttributeError(f"Unknown content type: {content_type}")
+
+    @staticmethod
+    def cross_section_max_height(cross_section, tables) -> float:
+        count = cross_section.count[0]
+        offset = cross_section.offset[0]
+        shape = cross_section.shape[0]
+
+        if shape == CrossSectionShape.CIRCLE or shape == CrossSectionShape.CIRCLE:
+            assert count == 0
+
+        if shape not in (CrossSectionShape.OPEN_RECTANGLE, CrossSectionShape.CIRCLE, CrossSectionShape.TABULATED_RECTANGLE, CrossSectionShape.TABULATED_TRAPEZIUM):
+            raise AttributeError(f"Unsupported shape type: {shape}")
+
+        return max(tables[:, offset, offset+count][1])
