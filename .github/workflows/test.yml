@@ -54,11 +54,11 @@ jobs:
         env:
           THREEDITOOLBOX_DEV_ARTIFACTS_KEY: ${{ secrets.THREEDITOOLBOX_DEV_ARTIFACTS_KEY }}
 
-      - name: store cache, if needed
-        run: |
-          df -h
-          ls
-          mkdir -p ~/docker-cache
-          df -h ~/docker-cache
-          scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop --output ~/docker-cache/our-image.tar
-          scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
+      #- name: store cache, if needed
+        #run: |
+          #df -h
+          #ls
+          #mkdir -p ~/docker-cache
+          #df -h ~/docker-cache
+          #scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop --output ~/docker-cache/our-image.tar
+          #scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
