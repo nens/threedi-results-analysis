@@ -27,7 +27,7 @@ jobs:
         run: |
           # If the docker cache is still valid, use the cached docker image.
           scripts/travis-cache-ok.sh && \
-          cat ~/docker-cache/our-image.tar | docker load || true
+          docker load --input ~/docker-cache/our-image.tar || true
           # Rebuild the docker image, but only if the docker cache isn't valid anymore.
           scripts/travis-cache-ok.sh || \
           docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g`
@@ -42,12 +42,6 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
-      - name: store cache, if needed
-        run: |
-          mkdir -p ~/docker-cache
-          scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop > ~/docker-cache/our-image.tar
-          scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
-
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
         run: bash upload-artifact.sh
@@ -59,3 +53,12 @@ jobs:
         run: bash upload-dev-artifact.sh
         env:
           THREEDITOOLBOX_DEV_ARTIFACTS_KEY: ${{ secrets.THREEDITOOLBOX_DEV_ARTIFACTS_KEY }}
+
+      - name: store cache, if needed
+        run: |
+          df -h
+          ls
+          mkdir -p ~/docker-cache
+          df -h ~/docker-cache
+          scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop --output ~/docker-cache/our-image.tar
+          scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
