@@ -176,7 +176,8 @@ class SideViewGraphGenerator():
         if shape == CrossSectionShape.CIRCLE or shape == CrossSectionShape.CIRCLE:
             assert count == 0
 
-        if shape not in (CrossSectionShape.OPEN_RECTANGLE, CrossSectionShape.CIRCLE, CrossSectionShape.TABULATED_RECTANGLE, CrossSectionShape.TABULATED_TRAPEZIUM):
+        if shape not in (CrossSectionShape.OPEN_RECTANGLE.value, CrossSectionShape.CIRCLE.value,
+                         CrossSectionShape.TABULATED_RECTANGLE.value, CrossSectionShape.TABULATED_TRAPEZIUM.value):
             raise AttributeError(f"Unsupported shape type: {shape}")
 
-        return max(tables[:, offset, offset+count][1])
+        return max(tables[:, offset:offset+count][1])
