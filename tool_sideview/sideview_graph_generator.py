@@ -5,8 +5,9 @@ from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
 from qgis.PyQt.QtCore import QVariant
-import math
+import numpy as np
 import statistics
+import math
 import logging
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,9 @@ class SideViewGraphGenerator():
                 except AttributeError:
                     logger.error(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1} {cross2} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
 
+                if math.isnan(height):
+                    logger.warning(f"Unable to derive cross section height for cross section {cross1}, setting height to 0")
+                    height = 0.0
                 start_height = height
                 end_height = height
 
@@ -150,6 +154,7 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def content_type_to_line_type(content_type: str) -> int:
+        """Convertes content_type string to LineType enum"""
         content_type = content_type.removeprefix('v2_')
         if content_type == "pipe":
             return LineType.PIPE
@@ -166,6 +171,10 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def cross_section_max_height(cross_section, tables, node1_id: int, node2_id: int, lines_1d2d, nodes, has_2d: bool) -> float:
+        """Retrieves (or estimates) the height for a cross section using various heuristics.
+            Returns nan when estimation not possible. Raises exception when inconsistencies are
+            encountered.
+        """
         count = cross_section.count[0]
         offset = cross_section.offset[0]
         shape = cross_section.shape[0]
@@ -182,12 +191,7 @@ class SideViewGraphGenerator():
             if not has_2d:
                 height1 = nodes.filter(id=node1_id).drain_level[0]  # Can be nan when not manhole
                 height2 = nodes.filter(id=node2_id).drain_level[0]
-                if math.isnan(height1) and not math.isnan(height2):
-                    return height2
-                elif math.isnan(height2) and not math.isnan(height1):
-                    return height1
-                elif not math.isnan(height2) and not math.isnan(height1):
-                    return (height1+height2) / 2.0
+                return np.nanmean([height1, height2])
             else:
                 # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
                 nodes_ids = lines_1d2d.line.transpose().tolist()
@@ -202,5 +206,12 @@ class SideViewGraphGenerator():
 
                 if dpumax_list:
                     return statistics.fmean(dpumax_list)
+                else:
+                    # Check whether the nodes are manholes and isolated (1), in that
+                    # case it is correct that there are no adjacent 1D2D lines
+                    if not (nodes.filter(id=node1_id)[0] == 1) and (nodes.filter(id=node2_id)[0] == 1):
+                        raise AttributeError(f"Unexpected missing 1D2D lines for cross section: {cross_section.id[0]}")
+                    else:
+                        return math.nan
 
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
