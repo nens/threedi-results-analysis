@@ -1,6 +1,7 @@
 from pathlib import Path
 from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.core import QgsGeometry, QgsPointXY, QgsField
+from qgis.core import QgsProject
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
@@ -128,10 +129,9 @@ class SideViewGraphGenerator():
         return graph_layer
 
     @staticmethod
-    def generate_nodes(gridadmin_file: Path) -> QgsVectorLayer:
+    def generate_node_info(gridadmin_file: Path):
         graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
         pr = graph_layer.dataProvider()
-
         pr.addAttributes([QgsField("id", QVariant.Int)])
         graph_layer.updateFields()
 
@@ -139,20 +139,33 @@ class SideViewGraphGenerator():
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
         nodes_1d = ga.nodes.subset("1D")
 
+        node_info = {}
         node_coords = nodes_1d.coordinates.transpose().tolist()
+        node_storage = nodes_1d.storage_area.tolist()
+        node_types = nodes_1d.calculation_type.tolist()
         node_ids = nodes_1d.id.tolist()
         assert len(node_coords) == len(node_ids)
         for count, (x_pos, y_pos) in enumerate(node_coords):
             feat = QgsFeature()
             p = QgsPointXY(x_pos, y_pos)
             feat.setGeometry(QgsGeometry.fromPointXY(p))
-            feat.setAttributes([node_ids[count]])
+            node_id = node_ids[count]
+            feat.setAttributes([node_id])
             features.append(feat)
+            node_info[node_id] = {
+                "type": round(node_types[count]),
+                "level": 0,
+                "height": 0,
+                "length": math.sqrt(node_storage[count]),
+            }
 
         if not pr.addFeatures(features):
             logger.error(f"Unable to add all features: {pr.lastError()}")
         graph_layer.updateExtents()
-        return graph_layer
+
+        QgsProject.instance().addMapLayer(graph_layer)
+
+        return node_info
 
     @staticmethod
     def content_type_to_line_type(content_type: str) -> int:

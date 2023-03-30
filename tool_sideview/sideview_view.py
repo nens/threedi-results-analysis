@@ -188,11 +188,9 @@ class SideViewPlotWidget(pg.PlotWidget):
                 ltype = feature["type"]
                 logger.error(f"type: {ltype}")
 
-                # TODO 1. add manhole if needed
+                # 1. add point structure (manhole)
 
-                # TODO 2. add contours (bottom, upper and drain lines)
-
-                # 2.c contours based on structure or pipe
+                # 2 contours based on structure or pipe
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
                     if direction == 1:
                         begin_level = float(feature["start_level"])
@@ -235,6 +233,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                             ltype,
                         )
                     )
+
+                # 3 Add closing point/manhole (if last segment)
 
         if len(self.profile) > 0:
             # Draw data into graph
@@ -468,10 +468,9 @@ class SideViewDockWidget(QDockWidget):
         )
 
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path)
-        point_layer = SideViewGraphGenerator.generate_nodes(self.model.get_results(checked_only=False)[0].parent().path)
+        _ = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
 
         QgsProject.instance().addMapLayer(self.graph_layer)
-        QgsProject.instance().addMapLayer(point_layer)
 
         # logger.error('point_dict')
         # logger.error(self.point_dict)
