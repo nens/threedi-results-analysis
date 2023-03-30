@@ -86,18 +86,20 @@ class SideViewGraphGenerator():
                 try:
                     height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables, nodes_ids[count][0], nodes_ids[count][1], lines_1d2d, ga.nodes, ga.has_2d)
                 except AttributeError:
-                    logger.error(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1} {cross2} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
+                    raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1} {cross2} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
 
-                if math.isnan(height):
-                    logger.warning(f"Unable to derive cross section height for cross section {cross1}, setting height to 0")
+                if math.isnan(height):  # Not an error, simply not enough information
+                    logger.warning(f"Unable to derive cross section height for cross section {cross1} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, setting height to 0.")
                     height = 0.0
                 start_height = height
                 end_height = height
 
-            # Note that id (count) is the flowline index in Python (0-based indexing)
-            feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level, start_height, end_height])
-            features.append(feat)
-            last_index = count  # noqa
+                logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
+
+                # Note that id (count) is the flowline index in Python (0-based indexing)
+                feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level, start_height, end_height])
+                features.append(feat)
+                last_index = count  # noqa
 
         # # Pumps are not part of lines, add as well.
         # pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
@@ -182,16 +184,16 @@ class SideViewGraphGenerator():
 
         if shape == CrossSectionShape.CIRCLE.value:
             assert count == 0
-            return width_1d  # for circle width = height
+            return width_1d.item()  # for circle width = height
         elif shape in (CrossSectionShape.TABULATED_RECTANGLE.value, CrossSectionShape.TABULATED_TRAPEZIUM.value):
-            return max(tables[:, offset:offset+count][1])
+            return max(tables[:, offset:offset+count][1]).item()
         elif shape == CrossSectionShape.OPEN_RECTANGLE.value:
             # In case cross section is OPEN_RECTANGLE, the cross section itself does not have an height.
             # For 1D model (ga.has_2d is False, take drain_level from adjacent nodes)
             if not has_2d:
                 height1 = nodes.filter(id=node1_id).drain_level[0]  # Can be nan when not manhole
                 height2 = nodes.filter(id=node2_id).drain_level[0]
-                return np.nanmean([height1, height2])
+                return np.nanmean([height1, height2]).item()
             else:
                 # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
                 nodes_ids = lines_1d2d.line.transpose().tolist()
@@ -205,11 +207,11 @@ class SideViewGraphGenerator():
                         dpumax_list.append(dpumax[count])
 
                 if dpumax_list:
-                    return statistics.fmean(dpumax_list)
+                    return float(statistics.fmean(dpumax_list))
                 else:
                     # Check whether the nodes are manholes and isolated (1), in that
                     # case it is correct that there are no adjacent 1D2D lines
-                    if not (nodes.filter(id=node1_id)[0] == 1) and (nodes.filter(id=node2_id)[0] == 1):
+                    if not (round(nodes.filter(id=node1_id).calculation_type[0]) == 1) and (round(nodes.filter(id=node2_id).calculation_type[0]) == 1):
                         raise AttributeError(f"Unexpected missing 1D2D lines for cross section: {cross_section.id[0]}")
                     else:
                         return math.nan
