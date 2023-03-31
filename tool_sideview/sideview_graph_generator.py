@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class SideViewGraphGenerator():
-    """Generates a graph based on a gridadmin file"""
+    """Generates a profile graph based on a gridadmin file"""
 
     @staticmethod
     def generate_layer(gridadmin_file: Path) -> QgsVectorLayer:
@@ -84,7 +84,7 @@ class SideViewGraphGenerator():
                 start_height = height
                 end_height = height
 
-                logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
+                # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
@@ -205,9 +205,9 @@ class SideViewGraphGenerator():
                 node1d2d_1 = lines_1d2d_data["line"][0][count]
                 node1d2d_2 = lines_1d2d_data["line"][1][count]
 
-                if node1_id == node1d2d_1 or node1_id == node1d2d_2:
+                if node1_id in (node1d2d_1, node1d2d_2):
                     dpumax_list.append(lines_1d2d_data["dpumax"][count])
-                if node2_id == node1d2d_1 or node2_id == node1d2d_2:
+                if node2_id in (node1d2d_1, node1d2d_2):
                     dpumax_list.append(lines_1d2d_data["dpumax"][count])
 
             if dpumax_list:
