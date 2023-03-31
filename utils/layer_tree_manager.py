@@ -1,5 +1,4 @@
 from . import styler
-from .threedi_database import ThreediDatabase
 from PyQt5.QtCore import QSettings
 from qgis.core import QgsCoordinateTransform
 from qgis.core import QgsDataSourceUri
@@ -175,11 +174,6 @@ class LayerTreeManager(object):
         split_dir = os.path.split(split[0])
 
         name = self.model_layergroup_basename + "/".join((split_dir[-1], split[-1]))
-
-        # adjust spatialite for correct visualization of layers
-        db_settings = {"db_path": filename}
-        threedi_db = ThreediDatabase(db_settings)
-        threedi_db.fix_spatial_indices()
 
         if self.model_layergroup is None:
             # todo: see if we can set 'tracer' as custom property to identify
