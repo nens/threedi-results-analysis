@@ -130,7 +130,7 @@ class SideViewGraphGenerator():
 
         features = []
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-        nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole").data
+        nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
         nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
 
         lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
@@ -145,11 +145,23 @@ class SideViewGraphGenerator():
             length = math.sqrt(nodes_1d["storage_area"][count])
             length = 0.0 if math.isnan(length) else length
 
+            upper_level = SideViewGraphGenerator.retrieve_node_upper_level(count, nodes_1d, lines_1d2d_data, ga.has_2d)
+            bottom_level = nodes_1d["dmax"][count]
+            height = 0.0
+            if math.isnan(upper_level):
+                height = 0.0
+            else:
+                if upper_level < bottom_level:
+                    logger.error(f"Derived upper level of node is below bottom level for node {node_id}")
+                assert upper_level >= bottom_level
+                height = upper_level-bottom_level
+
             node_info[node_id] = {
                 "type": nodes_1d["calculation_type"][count],
-                "level": nodes_1d["dmax"][count],
-                "height": SideViewGraphGenerator.retrieve_node_height(count, nodes_1d, lines_1d2d_data, ga.has_2d),
-                "length": length
+                "is_manhole": nodes_1d["is_manhole"][count],
+                "level": bottom_level,
+                "height": height,
+                "length": length,
             }
 
             feat.setAttributes([node_id, node_info[node_id]["type"], node_info[node_id]["level"], node_info[node_id]["height"], length])
@@ -231,7 +243,7 @@ class SideViewGraphGenerator():
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
 
     @staticmethod
-    def retrieve_node_height(node_idx: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
+    def retrieve_node_upper_level(node_idx: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
         if not model_is_2d:
             return nodes_1d["drain_level"][node_idx]  # Can be nan when not manhole
 
@@ -247,7 +259,8 @@ class SideViewGraphGenerator():
         else:
             # Check whether the nodes are manholes and isolated (1), in that
             # case it is correct that there are no adjacent 1D2D lines
-            if not ((nodes_1d["calculation_type"][node_id] == 1) and nodes_1d["is_manhole"][node_id]):
-                raise AttributeError(f"Unexpected missing 1D2D lines for node: {node_id}")
+            if not ((nodes_1d["calculation_type"][node_idx] == 1) and nodes_1d["is_manhole"][node_idx]):
+                # raise AttributeError(f"Unexpected missing 1D2D lines for node: {node_id}")
+                return math.nan
             else:
                 return math.nan

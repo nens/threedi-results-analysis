@@ -176,41 +176,81 @@ class SideViewPlotWidget(pg.PlotWidget):
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
 
-                # if direction == 1:
-                #     begin_node_idx = feature["start_node_idx"]
-                #     end_node_idx = feature["end_node_idx"]
-                # else:
-                #     end_node_idx = feature["start_node_idx"]
-                #     begin_node_idx = feature["end_node_idx"]
+                if direction == 1:
+                    begin_node_idx = feature["start_node_idx"]
+                    end_node_idx = feature["end_node_idx"]
+                else:
+                    end_node_idx = feature["start_node_idx"]
+                    begin_node_idx = feature["end_node_idx"]
 
-                ltype = feature["type"]
-                logger.error(f"type: {ltype}")
+                begin_node = self.node_dict[begin_node_idx]
+                end_node = self.node_dict[end_node_idx]
 
                 # 1. add point structure (manhole)
+                logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
+                if begin_node['is_manhole']:
+                    bottom_line.append(
+                        (
+                            begin_dist - 0.5 * begin_node["length"],
+                            begin_node["level"] + begin_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
+                    bottom_line.append(
+                        (
+                            begin_dist - 0.5 * begin_node["length"],
+                            begin_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+                    bottom_line.append(
+                        (
+                            begin_dist + 0.5 * begin_node["length"],
+                            begin_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+
+                    upper_line.append(
+                        (
+                            begin_dist - 0.5 * begin_node["length"],
+                            begin_node["level"] + begin_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
+                    upper_line.append(
+                        (
+                            begin_dist + 0.5 * begin_node["length"],
+                            begin_node["level"] + begin_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
 
                 # 2 contours based on structure or pipe
+                ltype = feature["type"]
+                logger.error(f"type: {ltype}")
                 if (ltype == LineType.PIPE) or (ltype == LineType.CULVERT) or (ltype == LineType.ORIFICE) or (ltype == LineType.WEIR) or (ltype == LineType.CHANNEL):
                     if direction == 1:
-                        begin_level = float(feature["start_level"])
-                        end_level = float(feature["end_level"])
+                        begin_level = feature["start_level"]
+                        end_level = feature["end_level"]
                         begin_height = feature["start_height"]
                         end_height = feature["end_height"]
                     else:
-                        begin_level = float(feature["end_level"])
-                        end_level = float(feature["start_level"])
+                        begin_level = feature["end_level"]
+                        end_level = feature["start_level"]
                         begin_height = feature["end_height"]
                         end_height = feature["start_height"]
 
                     bottom_line.append(
                         (
-                            begin_dist,  # + 0.5 * float(begin_node["length"]),
+                            begin_dist + 0.5 * begin_node["length"],
                             begin_level,
                             ltype,
                         )
                     )
                     bottom_line.append(
                         (
-                            end_dist,  # - 0.5 * float(end_node["length"]),
+                            end_dist - 0.5 * end_node["length"],
                             end_level,
                             ltype
                         )
@@ -219,14 +259,14 @@ class SideViewPlotWidget(pg.PlotWidget):
                     # upper line
                     upper_line.append(
                         (
-                            begin_dist,  # + 0.5 * float(begin_node["length"]),
+                            begin_dist + 0.5 * begin_node["length"],
                             begin_level + begin_height,
                             ltype,
                         )
                     )
                     upper_line.append(
                         (
-                            end_dist,  # - 0.5 * float(end_node["length"]),
+                            end_dist - 0.5 * end_node["length"],
                             end_level + end_height,
                             ltype,
                         )
@@ -470,8 +510,8 @@ class SideViewDockWidget(QDockWidget):
 
         QgsProject.instance().addMapLayer(self.graph_layer)
 
-        logger.error('point_dict')
-        logger.error(self.point_dict)
+        # logger.error('point_dict')
+        # logger.error(self.point_dict)
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
