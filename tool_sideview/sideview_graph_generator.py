@@ -38,33 +38,21 @@ class SideViewGraphGenerator():
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
         features = []
-        lines_1d = ga.lines.subset("1D")
-        lines_1d2d = ga.lines.subset("1D2D")
+        lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
+        lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
 
-        distances_1d = lines_1d.ds1d.tolist()  # tolist converts to native python floats
-        line_coords = lines_1d.line_coords.transpose()
-        line_ids = lines_1d.id.tolist()
-        line_pks = lines_1d.content_pk.tolist()
-        nodes_ids = lines_1d.line.transpose().tolist()
-        content_types = lines_1d.content_type.tolist()
-        invert_level_start_points = lines_1d.invert_level_start_point.tolist()
-        invert_level_end_points = lines_1d.invert_level_end_point.tolist()
-        cross1_ids = lines_1d.cross1.tolist()
-        cross2_ids = lines_1d.cross2.tolist()
-        assert len(distances_1d) == len(line_coords)
-        assert len(nodes_ids) == len(line_coords)
-        assert len(nodes_ids) == len(content_types)
-        assert len(nodes_ids) == len(invert_level_start_points)
-        assert len(nodes_ids) == len(invert_level_end_points)
-        assert len(nodes_ids) == len(line_ids)
+        lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
+        lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
+
+        model_2d = ga.has_2d
 
         # As we already subset the list, we do not need to skip the first nan-element
         last_index = 0
-        for count, (x_start, y_start, x_end, y_end) in enumerate(line_coords):
+        for count in range(len(lines_1d_data["line_coords"][0])):  # line_coords is transposed
             feat = QgsFeature()
 
-            p1 = QgsPointXY(x_start, y_start)
-            p2 = QgsPointXY(x_end, y_end)
+            p1 = QgsPointXY(lines_1d_data["line_coords"][0][count], lines_1d_data["line_coords"][1][count])
+            p2 = QgsPointXY(lines_1d_data["line_coords"][2][count], lines_1d_data["line_coords"][3][count])
             geom = QgsGeometry.fromPolylineXY([p1, p2])
             feat.setGeometry(geom)
 
@@ -73,24 +61,25 @@ class SideViewGraphGenerator():
             start_height = None
             end_height = None
 
-            line_type = SideViewGraphGenerator.content_type_to_line_type(content_types[count].decode())
+            line_type = SideViewGraphGenerator.content_type_to_line_type(lines_1d_data["content_type"][count].decode())
 
             if line_type == LineType.PIPE or line_type == LineType.CULVERT:
-                start_level = invert_level_start_points[count]
-                end_level = invert_level_end_points[count]
-                cross1 = cross1_ids[count]
-                cross2 = cross2_ids[count]
-                assert cross1 == cross2  # pipes and culverts have only one cross section definition
+                start_level = lines_1d_data["invert_level_start_point"][count]
+                end_level = lines_1d_data["invert_level_end_point"][count]
+                cross1_id = lines_1d_data["cross1"][count]
+                cross2_id = lines_1d_data["cross2"][count]
+                assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
+                cross_section = ga.cross_sections.filter(id=cross1_id)
+                node_id_1 = lines_1d_data["line"][0][count]
+                node_id_2 = lines_1d_data["line"][1][count]
 
-                cross_section = ga.cross_sections.filter(id=cross1)
-                assert ga.cross_sections.id[cross1] == cross_section.id[0]
                 try:
-                    height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables, nodes_ids[count][0], nodes_ids[count][1], lines_1d2d, ga.nodes, ga.has_2d)
+                    height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables, node_id_1, node_id_2, lines_1d2d_data, ga.nodes, model_2d)
                 except AttributeError:
-                    raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1} {cross2} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
+                    raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} {cross1_id} {cross1_id} with shape {cross_section.shape[0]} for line {lines_1d_data['id'][count]}, count {count}, pk: {lines_1d_data['content_pk'][count]}, type: {line_type}, start_level {start_level}, end_level {end_level}, cs_pk {cross_section.content_pk[0]}, width_1d {cross_section.width_1d[0]}")
 
                 if math.isnan(height):  # Not an error, simply not enough information
-                    logger.warning(f"Unable to derive cross section height for cross section {cross1} with shape {cross_section.shape[0]} for line {line_ids[count]}, count {count}, pk: {line_pks[count]}, type: {line_type}, setting height to 0.")
+                    logger.warning(f"Unable to derive cross section height for cross section {cross1_id} with shape {cross_section.shape[0]} for line {lines_1d_data['id'][count]}, count {count}, pk: {lines_1d_data['content_pk'][count]}, type: {line_type}, setting height to 0.")
                     height = 0.0
                 start_height = height
                 end_height = height
@@ -98,7 +87,7 @@ class SideViewGraphGenerator():
                 logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
-                feat.setAttributes([count, nodes_ids[count][0], nodes_ids[count][1], distances_1d[count], line_type, start_level, end_level, start_height, end_height])
+                feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
                 features.append(feat)
                 last_index = count  # noqa
 
@@ -130,6 +119,7 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_node_info(gridadmin_file: Path):
+        return
         graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
         pr = graph_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int)])
@@ -143,6 +133,7 @@ class SideViewGraphGenerator():
         node_coords = nodes_1d.coordinates.transpose().tolist()
         node_storage = nodes_1d.storage_area.tolist()
         node_types = nodes_1d.calculation_type.tolist()
+        node_dmax = nodes_1d.dmax.tolist()
         node_ids = nodes_1d.id.tolist()
         assert len(node_coords) == len(node_ids)
         for count, (x_pos, y_pos) in enumerate(node_coords):
@@ -154,7 +145,7 @@ class SideViewGraphGenerator():
             features.append(feat)
             node_info[node_id] = {
                 "type": round(node_types[count]),
-                "level": 0,
+                "level": node_dmax[count],
                 "height": 0,
                 "length": math.sqrt(node_storage[count]),
             }
@@ -185,7 +176,7 @@ class SideViewGraphGenerator():
         raise AttributeError(f"Unknown content type: {content_type}")
 
     @staticmethod
-    def cross_section_max_height(cross_section, tables, node1_id: int, node2_id: int, lines_1d2d, nodes, has_2d: bool) -> float:
+    def cross_section_max_height(cross_section, tables, node1_id: int, node2_id: int, lines_1d2d_data, all_nodes, has_2d: bool) -> float:
         """Retrieves (or estimates) the height for a cross section using various heuristics.
             Returns nan when estimation not possible. Raises exception when inconsistencies are
             encountered.
@@ -204,29 +195,56 @@ class SideViewGraphGenerator():
             # In case cross section is OPEN_RECTANGLE, the cross section itself does not have an height.
             # For 1D model (ga.has_2d is False, take drain_level from adjacent nodes)
             if not has_2d:
-                height1 = nodes.filter(id=node1_id).drain_level[0]  # Can be nan when not manhole
-                height2 = nodes.filter(id=node2_id).drain_level[0]
+                height1 = all_nodes.filter(id=node1_id).drain_level[0]  # Can be nan when not manhole
+                height2 = all_nodes.filter(id=node2_id).drain_level[0]
                 return np.nanmean([height1, height2]).item()
-            else:
-                # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
-                nodes_ids = lines_1d2d.line.transpose().tolist()
-                dpumax = lines_1d2d.dpumax.tolist()
-                assert len(nodes_ids) == len(dpumax)
-                dpumax_list = []
-                for count, (node1d2d_1, node1d2d_2) in enumerate(nodes_ids):
-                    if node1_id == node1d2d_1 or node1_id == node1d2d_2:
-                        dpumax_list.append(dpumax[count])
-                    if node2_id == node1d2d_1 or node2_id == node1d2d_2:
-                        dpumax_list.append(dpumax[count])
 
-                if dpumax_list:
-                    return float(statistics.fmean(dpumax_list))
+            # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
+            dpumax_list = []
+            for count in range(len(lines_1d2d_data["line"][0])):
+                node1d2d_1 = lines_1d2d_data["line"][0][count]
+                node1d2d_2 = lines_1d2d_data["line"][1][count]
+
+                if node1_id == node1d2d_1 or node1_id == node1d2d_2:
+                    dpumax_list.append(lines_1d2d_data["dpumax"][count])
+                if node2_id == node1d2d_1 or node2_id == node1d2d_2:
+                    dpumax_list.append(lines_1d2d_data["dpumax"][count])
+
+            if dpumax_list:
+                return float(statistics.fmean(dpumax_list))
+            else:
+                # Check whether the nodes are manholes and isolated (1), in that
+                # case it is correct that there are no adjacent 1D2D lines
+                node1 = all_nodes.filter(id=node1_id)
+                node2 = all_nodes.filter(id=node2_id)
+
+                if not (round(node1.calculation_type[0]) == 1) and (round(node2.calculation_type[0]) == 1 and node1.is_manhole[0] and node2.is_manhole[0]):
+                    raise AttributeError(f"Unexpected missing 1D2D lines for cross section: {cross_section.id[0]}")
                 else:
-                    # Check whether the nodes are manholes and isolated (1), in that
-                    # case it is correct that there are no adjacent 1D2D lines
-                    if not (round(nodes.filter(id=node1_id).calculation_type[0]) == 1) and (round(nodes.filter(id=node2_id).calculation_type[0]) == 1):
-                        raise AttributeError(f"Unexpected missing 1D2D lines for cross section: {cross_section.id[0]}")
-                    else:
-                        return math.nan
+                    return math.nan
 
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
+
+    @staticmethod
+    def retrieve_node_height(node_id: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
+        return 2.0
+        if not model_is_2d:
+            return nodes_1d.filter(id=node_id).drain_level[0].item()  # Can be nan when not manhole
+
+        # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
+        dpumax = lines_1d2d.dpumax.tolist()
+        line_nodes_ids = lines_1d2d.line.transpose().tolist()
+        dpumax_list = []
+        for count, (node1d2d_1, node1d2d_2) in enumerate(line_nodes_ids):
+            if node_id == node1d2d_1 or node_id == node1d2d_2:
+                dpumax_list.append(dpumax[count])
+
+        if dpumax_list:
+            return float(statistics.fmean(dpumax_list))
+        else:
+            # Check whether the nodes are manholes and isolated (1), in that
+            # case it is correct that there are no adjacent 1D2D lines
+            if not (round(nodes_1d.filter(id=node_id).calculation_type[0]) == 1):
+                raise AttributeError(f"Unexpected missing 1D2D lines for node: {node_id}")
+            else:
+                return math.nan
