@@ -171,7 +171,7 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         for route_part in route_path:
 
-            for begin_dist, end_dist, distance, direction, feature in route_part:
+            for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
 
                 begin_dist = float(begin_dist)
                 end_dist = float(end_dist)
@@ -189,13 +189,16 @@ class SideViewPlotWidget(pg.PlotWidget):
                 # 1. add point structure (manhole)
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
                 if begin_node['is_manhole']:
-                    bottom_line.append(
-                        (
-                            begin_dist - 0.5 * begin_node["length"],
-                            begin_node["level"] + begin_node["height"],
-                            LineType.PIPE,
+
+                    if count == 0:
+                        bottom_line.append(
+                            (
+                                begin_dist - 0.5 * begin_node["length"],
+                                begin_node["level"] + begin_node["height"],
+                                LineType.PIPE,
+                            )
                         )
-                    )
+
                     bottom_line.append(
                         (
                             begin_dist - 0.5 * begin_node["length"],
@@ -492,10 +495,10 @@ class SideViewDockWidget(QDockWidget):
         self.route_tool_active = False
 
         # create point and line layer out of spatialite layers
-        if self.model.number_of_results() > 0:
-            line, node, cell, pump = self.model.get_results(checked_only=False)[0].get_result_layers()
-        else:  # is this case possible?
-            line = None # noqa
+        # if self.model.number_of_results() > 0:
+        #     line, node, cell, pump = self.model.get_results(checked_only=False)[0].get_result_layers()
+        # else:  # is this case possible?
+        #     line = None # noqa
 
         # logger.error(datasources.model_spatialite_filepath)
         # (
