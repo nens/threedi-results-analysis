@@ -162,7 +162,7 @@ class Importer(object):
 
             msg = (
                 "{errors} errors and {warnings} warnings, see qgis log for "
-                "the summary and {log_file} for the full log".format(
+                "the summary and {log_file.name} for the full log".format(
                     errors=self.log.level_count.get(logging.ERROR, 0),
                     warnings=self.log.level_count.get(logging.WARNING, 0),
                     log_file=log_file,
@@ -439,7 +439,12 @@ class Importer(object):
 
         crs_list = (
             session.query(CrossSectionDefinition)
-            .options(load_only("id", "code"))
+            .options(
+                load_only(
+                    CrossSectionDefinition.id,
+                    CrossSectionDefinition.code,
+                )
+            )
             .order_by(CrossSectionDefinition.id)
             .all()
         )
@@ -466,7 +471,12 @@ class Importer(object):
 
         con_list = (
             session.query(ConnectionNode)
-            .options(load_only("id", "code"))
+            .options(
+                load_only(
+                    ConnectionNode.id,
+                    ConnectionNode.code,
+                )
+            )
             .order_by(ConnectionNode.id)
             .all()
         )
@@ -690,7 +700,12 @@ class Importer(object):
 
         imp_list = (
             session.query(ImperviousSurface)
-            .options(load_only("id", "code"))
+            .options(
+                load_only(
+                    ImperviousSurface.id,
+                    ImperviousSurface.code,
+                )
+            )
             .order_by(ImperviousSurface.id)
             .all()
         )
