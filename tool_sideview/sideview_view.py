@@ -66,7 +66,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self,
         parent=None,
         point_dict=None,
-        channel_profiles=None,
         model=None,
     ):
         """
@@ -78,7 +77,6 @@ class SideViewPlotWidget(pg.PlotWidget):
         self.model = model
 
         self.node_dict = point_dict
-        self.channel_profiles = channel_profiles
 
         self.profile = []
         self.sideview_nodes = []
@@ -457,33 +455,29 @@ class SideViewDockWidget(QDockWidget):
         if self.model.number_of_results() > 0:
             line, node, cell, pump = self.model.get_results(checked_only=False)[0].get_result_layers()
         else:  # is this case possible?
-            line = None
+            line = None # noqa
 
-        logger.error(datasources.model_spatialite_filepath)
-        (
-            self.point_dict,
-            self.channel_profiles,
-        ) = self.create_combined_layers(
-            datasources.model_spatialite_filepath, line
-        )
+        # logger.error(datasources.model_spatialite_filepath)
+        # (
+        #     self.point_dict,
+        #     self.channel_profiles,
+        # ) = self.create_combined_layers(
+        #     datasources.model_spatialite_filepath, line
+        # )
 
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path)
-        _ = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
+        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
 
         QgsProject.instance().addMapLayer(self.graph_layer)
 
-        # logger.error('point_dict')
-        # logger.error(self.point_dict)
-        # logger.error('channel_profiles')
-        # logger.error(self.channel_profiles)
+        logger.error('point_dict')
+        logger.error(self.point_dict)
 
         self.side_view_plot_widget = SideViewPlotWidget(
             self,
             self.point_dict,
-            self.channel_profiles,
             self.model,
         )
-        self.side_view_plot_widget.setObjectName("sideViewTabWidget")
         self.main_vlayout.addWidget(self.side_view_plot_widget)
 
         self.active_sideview = self.side_view_plot_widget
