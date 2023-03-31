@@ -119,36 +119,41 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_node_info(gridadmin_file: Path):
-        return
         graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
         pr = graph_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int)])
+        pr.addAttributes([QgsField("type", QVariant.Int)])
+        pr.addAttributes([QgsField("level", QVariant.Int)])
+        pr.addAttributes([QgsField("height", QVariant.Int)])
+        pr.addAttributes([QgsField("length", QVariant.Int)])
         graph_layer.updateFields()
 
         features = []
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-        nodes_1d = ga.nodes.subset("1D")
+        nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole").data
+        nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
+
+        lines_1d2d_data = ga.lines.subset("1D2D").only("dpumax", "line").data
+        lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         node_info = {}
-        node_coords = nodes_1d.coordinates.transpose().tolist()
-        node_storage = nodes_1d.storage_area.tolist()
-        node_types = nodes_1d.calculation_type.tolist()
-        node_dmax = nodes_1d.dmax.tolist()
-        node_ids = nodes_1d.id.tolist()
-        assert len(node_coords) == len(node_ids)
-        for count, (x_pos, y_pos) in enumerate(node_coords):
+        for count in range(len(nodes_1d["coordinates"][0])):
             feat = QgsFeature()
-            p = QgsPointXY(x_pos, y_pos)
+            p = QgsPointXY(nodes_1d["coordinates"][0][count], nodes_1d["coordinates"][0][count])
             feat.setGeometry(QgsGeometry.fromPointXY(p))
-            node_id = node_ids[count]
-            feat.setAttributes([node_id])
-            features.append(feat)
+            node_id = nodes_1d["id"][count]
+            length = math.sqrt(nodes_1d["storage_area"][count])
+            length = 0.0 if math.isnan(length) else length
+
             node_info[node_id] = {
-                "type": round(node_types[count]),
-                "level": node_dmax[count],
-                "height": 0,
-                "length": math.sqrt(node_storage[count]),
+                "type": nodes_1d["calculation_type"][count],
+                "level": nodes_1d["dmax"][count],
+                "height": SideViewGraphGenerator.retrieve_node_height(count, nodes_1d, lines_1d2d_data, ga.has_2d),
+                "length": length
             }
+
+            feat.setAttributes([node_id, node_info[node_id]["type"], node_info[node_id]["level"], node_info[node_id]["height"], length])
+            features.append(feat)
 
         if not pr.addFeatures(features):
             logger.error(f"Unable to add all features: {pr.lastError()}")
@@ -226,25 +231,23 @@ class SideViewGraphGenerator():
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
 
     @staticmethod
-    def retrieve_node_height(node_id: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
-        return 2.0
+    def retrieve_node_height(node_idx: int, nodes_1d, lines_1d2d, model_is_2d: bool) -> float:
         if not model_is_2d:
-            return nodes_1d.filter(id=node_id).drain_level[0].item()  # Can be nan when not manhole
+            return nodes_1d["drain_level"][node_idx]  # Can be nan when not manhole
 
         # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
-        dpumax = lines_1d2d.dpumax.tolist()
-        line_nodes_ids = lines_1d2d.line.transpose().tolist()
         dpumax_list = []
-        for count, (node1d2d_1, node1d2d_2) in enumerate(line_nodes_ids):
-            if node_id == node1d2d_1 or node_id == node1d2d_2:
-                dpumax_list.append(dpumax[count])
+        node_id = nodes_1d["id"][node_idx]
+        for count in range(len(lines_1d2d["line"][0])):
+            if node_id == lines_1d2d["line"][0][count] or node_id == lines_1d2d["line"][1][count]:
+                dpumax_list.append(lines_1d2d["dpumax"][count])
 
         if dpumax_list:
             return float(statistics.fmean(dpumax_list))
         else:
             # Check whether the nodes are manholes and isolated (1), in that
             # case it is correct that there are no adjacent 1D2D lines
-            if not (round(nodes_1d.filter(id=node_id).calculation_type[0]) == 1):
+            if not ((nodes_1d["calculation_type"][node_id] == 1) and nodes_1d["is_manhole"][node_id]):
                 raise AttributeError(f"Unexpected missing 1D2D lines for node: {node_id}")
             else:
                 return math.nan
