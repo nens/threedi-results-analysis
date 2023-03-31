@@ -389,7 +389,6 @@ class ThreeDiResultSelectionWidget(QWidget, FORM_CLASS):
             pop_up_info(msg, "Warning")
             return False
 
-        self.ts_datasources.spatialite_filepath = filepath
         index_nr = self.modelSpatialiteComboBox.findText(filepath)
         if index_nr < 0:
             self.modelSpatialiteComboBox.addItem(filepath)
