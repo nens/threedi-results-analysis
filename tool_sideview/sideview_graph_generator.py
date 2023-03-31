@@ -5,6 +5,7 @@ from qgis.core import QgsProject
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from qgis.PyQt.QtCore import QVariant
 import numpy as np
 import statistics
@@ -17,7 +18,7 @@ class SideViewGraphGenerator():
     """Generates a profile graph based on a gridadmin file"""
 
     @staticmethod
-    def generate_layer(gridadmin_file: Path) -> QgsVectorLayer:
+    def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
         graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
@@ -48,7 +49,8 @@ class SideViewGraphGenerator():
 
         # As we already subset the list, we do not need to skip the first nan-element
         last_index = 0
-        for count in range(len(lines_1d_data["line_coords"][0])):  # line_coords is transposed
+        number_of_lines = len(lines_1d_data["line_coords"][0])
+        for count in range(number_of_lines):  # line_coords is transposed
             feat = QgsFeature()
 
             p1 = QgsPointXY(lines_1d_data["line_coords"][0][count], lines_1d_data["line_coords"][1][count])
@@ -89,6 +91,9 @@ class SideViewGraphGenerator():
                 # Note that id (count) is the flowline index in Python (0-based indexing)
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
                 features.append(feat)
+
+                progress_bar.increase_progress((count / (number_of_lines-1)) * 50.0)
+
                 last_index = count  # noqa
 
         # # Pumps are not part of lines, add as well.
@@ -118,7 +123,7 @@ class SideViewGraphGenerator():
         return graph_layer
 
     @staticmethod
-    def generate_node_info(gridadmin_file: Path):
+    def generate_node_info(gridadmin_file: Path, progress_bar: StatusProgressBar):
         graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
         pr = graph_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int)])
@@ -137,7 +142,8 @@ class SideViewGraphGenerator():
         lines_1d2d_data = {k: v.tolist() for (k, v) in lines_1d2d_data.items()}
 
         node_info = {}
-        for count in range(len(nodes_1d["coordinates"][0])):
+        number_of_nodes = len(nodes_1d["coordinates"][0])
+        for count in range(number_of_nodes):
             feat = QgsFeature()
             p = QgsPointXY(nodes_1d["coordinates"][0][count], nodes_1d["coordinates"][0][count])
             feat.setGeometry(QgsGeometry.fromPointXY(p))
@@ -166,6 +172,8 @@ class SideViewGraphGenerator():
 
             feat.setAttributes([node_id, node_info[node_id]["type"], node_info[node_id]["level"], node_info[node_id]["height"], length])
             features.append(feat)
+
+            progress_bar.increase_progress((count / (number_of_nodes-1)) * 50.0)
 
         if not pr.addFeatures(features):
             logger.error(f"Unable to add all features: {pr.lastError()}")

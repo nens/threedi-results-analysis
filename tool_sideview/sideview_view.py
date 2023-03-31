@@ -26,6 +26,7 @@ from threedi_results_analysis.tool_sideview.utils import split_line_at_points
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.utils.user_messages import statusbar_message
 from threedi_results_analysis.utils.user_messages import messagebar_message
+from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from threedi_results_analysis.utils.utils import python_value
 from threedi_results_analysis.tool_sideview.sideview_graph_generator import SideViewGraphGenerator
 import logging
@@ -508,8 +509,12 @@ class SideViewDockWidget(QDockWidget):
         #     datasources.model_spatialite_filepath, line
         # )
 
-        self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path)
-        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
+        progress_bar = StatusProgressBar(100, "3Di Sideview")
+        progress_bar.increase_progress(0, "Creating flowline graph")
+        self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
+        progress_bar.increase_progress(0, "Creating node information")
+        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
+        del progress_bar
 
         QgsProject.instance().addMapLayer(self.graph_layer)
 
