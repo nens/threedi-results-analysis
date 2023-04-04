@@ -19,8 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class WaterBalanceCalculation(object):
-    def __init__(self, ts_datasources):
-        self.ts_datasources = ts_datasources
+    def __init__(self, model):
+        self.model = model
+        return
 
         # gridadmin
         nc_path = self.ts_datasources.rows[0].threedi_result().file_path
@@ -120,7 +121,7 @@ class WaterBalanceCalculation(object):
         }
         pump_selection = {"in": [], "out": []}
 
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
+        lines, points, cells, pumps = self.model.get_result_layers()
 
         # all links in and out
         # use bounding box and spatial index to prefilter lines
@@ -867,7 +868,7 @@ class WaterBalanceCalculation(object):
 class WaterBalanceTool(object):
     """QGIS Plugin Implementation."""
 
-    def __init__(self, iface, ts_datasources):
+    def __init__(self, iface, model):
         """Constructor.
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -876,12 +877,11 @@ class WaterBalanceTool(object):
         """
         # Save reference to the QGIS interface
         self.iface = iface
-        self.ts_datasources = ts_datasources
+        self.model = model
 
         self.icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "icons", "weight-scale.png")
         self.menu_text = u"Water Balance Tool"
 
-        self.plugin_is_active = False
         self.widget = None
 
         self.toolbox = None
@@ -954,7 +954,7 @@ class WaterBalanceTool(object):
         )
         QMessageBox.warning(None, header, msg)
 
-    def get_missing_agg_vars(self):
+    def get_missing_agg_vars(self, threedi_result):
         """Returns a list with tuples of aggregation vars (vol, discharge) +
         methods (cum, current, etc) that are not (but should be) in the
         v2_aggregation_settings
@@ -963,9 +963,6 @@ class WaterBalanceTool(object):
         2.  some vars methods are required when included in the model
             schematisation (e.g. pumps, laterals).
         """
-
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
         check_available_vars = threedi_result.available_vars
 
         ga = threedi_result.gridadmin
@@ -1048,33 +1045,32 @@ class WaterBalanceTool(object):
         return missing_vars
 
     def run(self):
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
-        if not threedi_result.ds_aggregation:
+        # TODO make the tool work for al results - tabbed?
+        results = self.model.get_results(checked_only=False)
+        result = results[0]
+        threedi_result = result.threedi_result
+        aggregate_result_admin = threedi_result.aggregate_result_admin
+
+        if aggregate_result_admin is None:
             self.pop_up_no_agg_found()
-        elif self.get_missing_agg_vars():
+        elif self.get_missing_agg_vars(threedi_result):
             self.pop_up_missing_agg_vars()
         else:
-            self.run_it()
+            self.run_it(threedi_result)
 
-    def run_it(self):
+    def run_it(self, threedi_result):
         """Run_it method that loads and starts the plugin"""
+        if self.widget is None:
+            # Create the widget (after translation) and keep reference
+            self.widget = WaterBalanceWidget(
+                iface=self.iface,
+                threedi_result=threedi_result,
+            )
 
-        if not self.plugin_is_active:
-            self.plugin_is_active = True
+        # connect to provide cleanup on closing of widget
+        self.widget.closingWidget.connect(self.on_close_child_widget)
 
-            if self.widget is None:
-                # Create the widget (after translation) and keep reference
-                self.widget = WaterBalanceWidget(
-                    iface=self.iface,
-                    ts_datasources=self.ts_datasources,
-                    wb_calc=WaterBalanceCalculation(self.ts_datasources),
-                )
+        # show the #widget
+        self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.widget)
 
-            # connect to provide cleanup on closing of widget
-            self.widget.closingWidget.connect(self.on_close_child_widget)
-
-            # show the #widget
-            self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.widget)
-
-            self.widget.show()
+        self.widget.show()

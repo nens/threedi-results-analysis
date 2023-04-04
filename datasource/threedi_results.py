@@ -344,7 +344,7 @@ class ThreediResult(BaseDataSource):
             logger.exception("Aggregate result not found")
             return None
         file_like_object_h5 = open(h5, 'rb')
-        file_like_object_h5.startswith = lambda x: ''
+        file_like_object_h5.startswith = lambda x: False
         file_like_object_nc = open(agg_path, 'rb')
         return GridH5AggregateResultAdmin(file_like_object_h5, file_like_object_nc)
 
@@ -374,6 +374,20 @@ class ThreediResult(BaseDataSource):
 
         logger.info("Opening aggregation netcdf: %s" % aggregation_netcdf_file)
         return h5py.File(aggregation_netcdf_file, mode="r")
+
+    @property
+    def short_model_slug(self):
+        model_slug = self.gridadmin.model_slug
+        try:
+            return model_slug.rsplit("-", 1)[0]
+        except Exception:
+            logger.exception(
+                "TODO: overly broad exception while splitting model_slug. "
+                "Using model_name"
+            )
+            return gridadmin.model_name
+
+
 
 
 def find_h5_file(netcdf_file_path):

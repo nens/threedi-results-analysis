@@ -82,7 +82,7 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
         self.graph_tool = ThreeDiGraph(iface, self.model)
         self.sideview_tool = ThreeDiSideView(iface, self.model, self.ts_datasources)
         self.stats_tool = StatisticsTool(iface, self.ts_datasources)
-        self.water_balance_tool = WaterBalanceTool(iface, self.ts_datasources)
+        self.water_balance_tool = WaterBalanceTool(iface, self.model)
         self.watershed_tool = ThreeDiWatershedAnalyst(iface, self.ts_datasources)
         self.logfile_tool = ShowLogfile(iface)
 
@@ -235,10 +235,8 @@ class ThreeDiPlugin(QObject, ProjectStateMixin):
             and self.ts_datasources.model_spatialite_filepath is not None
         ):
             self.stats_tool.action_icon.setEnabled(True)
-            self.water_balance_tool.action_icon.setEnabled(True)
         else:
             self.stats_tool.action_icon.setEnabled(False)
-            self.water_balance_tool.action_icon.setEnabled(False)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI.

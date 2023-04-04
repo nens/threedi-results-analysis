@@ -664,14 +664,14 @@ class WaterBalanceWidget(QDockWidget):
         },
     ]
 
-    def __init__(self, parent=None, iface=None, ts_datasources=None, wb_calc=None):
+    def __init__(self, parent=None, iface=None, threedi_result=None, wb_calc=None):
         """Constructor."""
         super().__init__(parent)
 
         self.iface = iface
-        self.ts_datasources = ts_datasources
+        self.threedi_result = threedi_result
         self.calc = wb_calc
-
+        
         # setup ui
         self.setup_ui(self)
 
@@ -797,19 +797,7 @@ class WaterBalanceWidget(QDockWidget):
         )
         bm_1d.calc_balance(ts, ts_series, t1, t2)
 
-        nc_path = self.ts_datasources.rows[0].threedi_result().file_path
-        h5 = find_h5_file(nc_path)
-        ga = GridH5Admin(h5)
-
         t_start = max(0, t1)
-        try:
-            short_model_slug = ga.model_slug.rsplit("-", 1)[0]
-        except Exception:
-            logger.exception(
-                "TODO: overly broad exception while splitting model_slug. "
-                "Using model_name"
-            )
-            short_model_slug = ga.model_name
 
         self.wb_barchart_widget = pg.GraphicsView()
         layout = pg.GraphicsLayout()
@@ -817,7 +805,7 @@ class WaterBalanceWidget(QDockWidget):
         text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
             t_start,
             t2,
-            short_model_slug,
+            self.short_model_slug,
         )
         layout.addLabel(text, row=0, col=0, colspan=3)
 
@@ -1225,6 +1213,8 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_lower)
 
     def get_wb_result_layers(self):
+        # no, we return the grid layers corresponding to self.result!
+
         lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
         return lines, points, pumps
 
