@@ -26,10 +26,8 @@ from qgis.PyQt.QtWidgets import QTableView
 from qgis.PyQt.QtWidgets import QVBoxLayout
 from qgis.PyQt.QtWidgets import QWidget
 from threedi_results_analysis import PLUGIN_DIR
-from threedi_results_analysis.datasource.threedi_results import find_h5_file
 from threedi_results_analysis.tool_water_balance.views.custom_pg_Items import RotateLabelAxisItem
 from threedi_results_analysis.utils.user_messages import messagebar_message
-from threedigrid.admin.gridadmin import GridH5Admin
 
 import copy
 import functools
@@ -664,14 +662,13 @@ class WaterBalanceWidget(QDockWidget):
         },
     ]
 
-    def __init__(self, parent=None, iface=None, threedi_result=None, wb_calc=None):
+    def __init__(self, parent=None, iface=None, result=None, calc=None):
         """Constructor."""
         super().__init__(parent)
 
         self.iface = iface
-        self.threedi_result = threedi_result
-        self.calc = wb_calc
-        
+        self.calc = calc
+
         # setup ui
         self.setup_ui(self)
 
@@ -1212,25 +1209,20 @@ class WaterBalanceWidget(QDockWidget):
         self.plot_widget.addItem(text_upper)
         self.plot_widget.addItem(text_lower)
 
-    def get_wb_result_layers(self):
-        # no, we return the grid layers corresponding to self.result!
-
-        lines, points, cells, pumps = self.ts_datasources.rows[0].get_result_layers()
-        return lines, points, pumps
-
     def get_wb_polygon(self):
-        lines, points, pumps = self.get_wb_result_layers()
         poly_points = self.polygon_tool.points
         self.wb_polygon = QgsGeometry.fromPolygonXY([poly_points])
         tr = QgsCoordinateTransform(
             self.iface.mapCanvas().mapSettings().destinationCrs(),
-            lines.crs(),
+            self.calc.result.lines.crs(),
             QgsProject.instance(),
         )
         self.wb_polygon.transform(tr)
 
     def calc_wb_graph(self, model_part, aggregation_type, settings):
-        lines, points, pumps = self.get_wb_result_layers()
+        lines = self.calc.result.lines
+        points = self.calc.result.points
+        pumps = self.calc.result.pumps
         self.get_wb_polygon()
         link_ids, pump_ids = self.calc.get_incoming_and_outcoming_link_ids(
             self.wb_polygon, model_part
