@@ -44,9 +44,9 @@ jobs:
 
       - name: store cache, if needed
         run: |
-          mkdir -p ~/docker-cache
-          scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop > ~/docker-cache/our-image.tar
-          scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
+          # mkdir -p ~/docker-cache
+          # scripts/travis-cache-ok.sh || docker save threeditoolbox_qgis-desktop > ~/docker-cache/our-image.tar
+          # scripts/travis-cache-ok.sh || scripts/create-travis-checksum.sh
 
       - name: Publish package
         if: startsWith(github.event.ref, 'refs/tags')
