@@ -170,7 +170,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []
         drain_level = []
 
+        first_node = True
+
         for route_part in route_path:
+            logger.error("ROUTE PATH")
 
             for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
 
@@ -189,46 +192,47 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 # 1. add point structure (manhole)
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
-                if begin_node['is_manhole']:
+                logger.info(f"Adding node {begin_node_idx} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
 
-                    if count == 0:
-                        bottom_line.append(
-                            (
-                                begin_dist - 0.5 * begin_node["length"],
-                                begin_node["level"] + begin_node["height"],
-                                LineType.PIPE,
-                            )
-                        )
-
+                if first_node:  # Add closing vertical line at beginning
                     bottom_line.append(
-                        (
-                            begin_dist - 0.5 * begin_node["length"],
-                            begin_node["level"],
-                            LineType.PIPE,
-                        )
-                    )
-                    bottom_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_node["level"],
-                            LineType.PIPE,
-                        )
-                    )
-
-                    upper_line.append(
                         (
                             begin_dist - 0.5 * begin_node["length"],
                             begin_node["level"] + begin_node["height"],
                             LineType.PIPE,
                         )
                     )
-                    upper_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_node["level"] + begin_node["height"],
-                            LineType.PIPE,
-                        )
+                    first_node = False
+
+                bottom_line.append(
+                    (
+                        begin_dist - 0.5 * begin_node["length"],
+                        begin_node["level"],
+                        LineType.PIPE,
                     )
+                )
+                bottom_line.append(
+                    (
+                        begin_dist + 0.5 * begin_node["length"],
+                        begin_node["level"],
+                        LineType.PIPE,
+                    )
+                )
+
+                upper_line.append(
+                    (
+                        begin_dist - 0.5 * begin_node["length"],
+                        begin_node["level"] + begin_node["height"],
+                        LineType.PIPE,
+                    )
+                )
+                upper_line.append(
+                    (
+                        begin_dist + 0.5 * begin_node["length"],
+                        begin_node["level"] + begin_node["height"],
+                        LineType.PIPE,
+                    )
+                )
 
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
@@ -244,6 +248,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         end_level = feature["start_level"]
                         begin_height = feature["end_height"]
                         end_height = feature["start_height"]
+
+                    logger.info(f"Adding line {feature['id']} with length: {feature['real_length']}, start_height: {feature['start_height']}, end_height: {feature['end_height']}, start_level: {feature['start_level']} and end_level {feature['end_level']}")
 
                     bottom_line.append(
                         (
@@ -277,6 +283,35 @@ class SideViewPlotWidget(pg.PlotWidget):
                     )
 
                 # 3 Add closing point/manhole (if last segment)
+                if count == (len(route_part)-1):
+                    bottom_line.append(
+                        (
+                            end_dist - 0.5 * end_node["length"],
+                            end_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+                    bottom_line.append(
+                        (
+                            end_dist + 0.5 * end_node["length"],
+                            end_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+                    upper_line.append(
+                        (
+                            end_dist - 0.5 * end_node["length"],
+                            end_node["level"] + end_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
+                    upper_line.append(
+                        (
+                            end_dist + 0.5 * end_node["length"],
+                            end_node["level"] + end_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
 
         if len(self.profile) > 0:
             # Draw data into graph
