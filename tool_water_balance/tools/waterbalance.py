@@ -1092,7 +1092,11 @@ class WaterBalanceTool(object):
         if self.widget is None:
             # Create the widget (after translation) and keep reference
             calc = WaterBalanceCalculation(result)
-            self.widget = WaterBalanceWidget(iface=self.iface, calc=calc)
+            self.widget = WaterBalanceWidget(
+                "3Di water balance",
+                iface=self.iface,
+                calc=calc
+            )
 
         # connect to provide cleanup on closing of widget
         self.widget.closingWidget.connect(self.on_close_child_widget)

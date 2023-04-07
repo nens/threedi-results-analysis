@@ -662,9 +662,8 @@ class WaterBalanceWidget(QDockWidget):
         },
     ]
 
-    def __init__(self, parent=None, iface=None, result=None, calc=None):
-        """Constructor."""
-        super().__init__(parent)
+    def __init__(self, title, iface, calc):
+        super().__init__(title)
 
         self.iface = iface
         self.calc = calc
@@ -802,7 +801,7 @@ class WaterBalanceWidget(QDockWidget):
         text = "Water balance from t=%.2f to t=%.2f \n Model name: %s" % (
             t_start,
             t2,
-            self.short_model_slug,
+            self.calc.result.threedi_result.short_model_slug,
         )
         layout.addLabel(text, row=0, col=0, colspan=3)
 
@@ -1477,6 +1476,8 @@ class WaterBalanceWidget(QDockWidget):
         self.select_polygon_button.setCheckable(True)
         self.select_polygon_button.setObjectName("SelectedSideview")
         self.button_bar_hlayout.addWidget(self.select_polygon_button)
+        self.select_polygon_button2 = QPushButton(parent=self, text="Select Polygon")
+        self.button_bar_hlayout.addWidget(self.select_polygon_button2)
         self.reset_waterbalans_button = QPushButton(self)
         self.reset_waterbalans_button.setObjectName("ResetSideview")
         self.button_bar_hlayout.addWidget(self.reset_waterbalans_button)
@@ -1540,13 +1541,9 @@ class WaterBalanceWidget(QDockWidget):
 
         # add dockwidget
         dock_widget.setWidget(self.dock_widget_content)
-        self.retranslate_ui(dock_widget)
-        QMetaObject.connectSlotsByName(dock_widget)
-
-    def retranslate_ui(self, dock_widget):
-        dock_widget.setWindowTitle("3Di water balance")
         self.select_polygon_button.setText("Draw new polygon")
         self.chart_button.setText("Show total balance")
         self.reset_waterbalans_button.setText("Hide on map")
         self.activate_all_button.setText("activate all")
         self.deactivate_all_button.setText("deactivate all")
+        QMetaObject.connectSlotsByName(dock_widget)
