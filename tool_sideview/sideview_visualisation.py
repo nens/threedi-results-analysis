@@ -12,10 +12,10 @@ class SideViewMapVisualisation(object):
     sideview.
     """
 
-    def __init__(self, iface, source_crs):
+    def __init__(self, iface, graph_layer_crs):
         self.iface = iface
 
-        self.source_crs = source_crs
+        self.graph_layer_crs = graph_layer_crs
 
         self.rb = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
         self.rb.setColor(Qt.red)
@@ -41,7 +41,7 @@ class SideViewMapVisualisation(object):
 
         self.active_route = route
         transform = QgsCoordinateTransform(
-            self.source_crs, QgsProject.instance().crs(), QgsProject.instance()
+            self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
         for pnt in route.path_vertexes:
@@ -74,7 +74,7 @@ class SideViewMapVisualisation(object):
             return
 
         transform = QgsCoordinateTransform(
-            self.source_crs, QgsProject.instance().crs(), QgsProject.instance()
+            self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
         logger.info(f"meters_from_start {meters_from_start}, length path {len(self.active_route.path)}")
@@ -108,10 +108,12 @@ class SideViewMapVisualisation(object):
                         else:
                             distance_on_line = part[1] - meters_from_start
 
-                        conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                            QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
-                        )
-                        conversion_factor = 1  # unclear why conversion is needed, distance already in meters
+                        conversion_factor = 1
+                        if self.graph_layer_crs.isGeographic():
+                            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
+                                QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
+                            )
+
                         length = distance_on_line * conversion_factor
                         logger.info(f"distance_on_line {distance_on_line}, length: {length}")
                         # Note that interpolate() uses absolute weight (instead of normalized)
