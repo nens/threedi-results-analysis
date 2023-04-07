@@ -1,25 +1,38 @@
+import logging
+import os
+
+import numpy as np
+import numpy.ma as ma
 from qgis.core import QgsFeatureRequest
 from qgis.core import QgsPointXY
 from qgis.core import QgsProject
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QMessageBox
-from threedi_results_analysis.tool_water_balance.views.waterbalance_widget import (
-    WaterBalanceWidget, NotSynchronizedTimestampsError,
-)
-from threedigrid.admin.lines.subsets import KCU__IN_SUBSETS
+from threedigrid_builder.constants import LineType
 
-# line types from the threedigrid subsets for lines
-LINE_TYPE = {k.lower(): set(v) for k, v in KCU__IN_SUBSETS.items()}
-# waterbalance refinements
-LINE_TYPE["2d"] = {100}
-
-
-import os
-import logging
-import numpy as np
-import numpy.ma as ma
+from ..views.waterbalance_widget import WaterBalanceWidget
+from ..views.waterbalance_widget import NotSynchronizedTimestampsError
 
 NO_ENDPOINT_ID = -9999
+
+LINE_TYPES_1D = {
+    LineType.LINE_1D_EMBEDDED,
+    LineType.LINE_1D_ISOLATED,
+    LineType.LINE_1D_CONNECTED,
+    LineType.LINE_1D_LONG_CRESTED,
+    LineType.LINE_1D_SHORT_CRESTED,
+    LineType.LINE_1D_DOUBLE_CONNECTED,
+}
+LINE_TYPES_1D2D = {
+    LineType.LINE_1D2D_SINGLE_CONNECTED_CLOSED,
+    LineType.LINE_1D2D_SINGLE_CONNECTED_OPEN_WATER,
+    LineType.LINE_1D2D_DOUBLE_CONNECTED_CLOSED,
+    LineType.LINE_1D2D_DOUBLE_CONNECTED_OPEN_WATER,
+    LineType.LINE_1D2D_POSSIBLE_BREACH,
+    LineType.LINE_1D2D_ACTIVE_BREACH,
+    LineType.LINE_1D2D_GROUNDWATER,
+    58,  # Also LINE_1D2D_GROUNDWATER?
+}
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +173,7 @@ class WaterBalanceCalculation(object):
         for line in lines.getFeatures(request_filter):
             line_type = line.attribute('line_type')
 
-            if line_type in LINE_TYPE["2d_vertical_infiltration"]:
+            if line_type == LineType.LINE_2D_VERTICAL:
                 geom = line.geometry().asPolyline()
                 # 2d vertical infiltration line is handmade diagonal (drawn
                 # from 2d point 15m towards south-west ). Thus, if at-least
@@ -183,24 +196,24 @@ class WaterBalanceCalculation(object):
                     # polygon
                     pass
                 elif outgoing:
-                    if line_type in LINE_TYPE["1d"]:
+                    if line_type in LINE_TYPES_1D:
                         flow_lines["1d_out"].append(line["id"])
-                    elif line_type in LINE_TYPE["1d2d"]:
+                    elif line_type in LINE_TYPES_1D2D:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 2d node is inside polygon (and 1d
                         # node is not) we define it as a '2d__1d_2d_flow' link
                         # because
                         flow_lines["2d__1d_2d_flow"].append(line["id"])
                 elif incoming:
-                    if line_type in LINE_TYPE["1d"]:
+                    if line_type in LINE_TYPES_1D:
                         flow_lines["1d_in"].append(line["id"])
-                    elif line_type in LINE_TYPE["1d2d"]:
+                    elif line_type in LINE_TYPES_1D2D:
                         # draw direction of 1d_2d is always from 2d node to
                         # 1d node. So when 1d node is inside polygon (and 2d
                         # node is not) we define it as a '1d__1d_2d_flow' link
                         flow_lines["1d__1d_2d_flow"].append(line["id"])
 
-                if line_type in LINE_TYPE["2d"] and not (incoming and outgoing):
+                if line_type == LineType.LINE_2D and not (incoming and outgoing):
                     # 2d lines are a separate story: discharge on a 2d
                     # link in the nc can be positive and negative during 1
                     # simulation - like you would expect - but we also have
@@ -291,7 +304,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines["2d_out"].append(line["id"])
 
-                if line_type in LINE_TYPE["2d_groundwater"] and not (incoming and outgoing):
+                if line_type == LineType.LINE_2D_GROUNDWATER and not (incoming and outgoing):
 
                     start_x = geom[0][0]
                     start_y = geom[0][1]
@@ -326,7 +339,7 @@ class WaterBalanceCalculation(object):
                             else:
                                 flow_lines["2d_groundwater_out"].append(line["id"])
 
-            elif line_type == LINE_TYPE["1d2d"] and line.geometry().within(wb_polygon):
+            elif line_type in LINE_TYPES_1D2D and line.geometry().within(wb_polygon):
                 flow_lines["1d_2d_exch"].append(line["id"])
 
         # find boundaries in polygon
@@ -428,7 +441,7 @@ class WaterBalanceCalculation(object):
 
         for point in self.result.points.getFeatures(request_filter):
             import ipdb
-            ipdb.set_trace() 
+            ipdb.set_trace()
             # test if points are contained by polygon
             if wb_polygon.contains(point.geometry()):
                 _type = point["type"]
@@ -553,8 +566,7 @@ class WaterBalanceCalculation(object):
             np_link["ntype"] != TYPE_2D_VERTICAL_INFILTRATION
         )
 
-        active_ts_datasource = self.ts_datasources.rows[0]
-        threedi_result = active_ts_datasource.threedi_result()
+        threedi_result = self.result.threedi_result
 
         # get all flows through incoming and outgoing flows
         ts = threedi_result.get_timestamps(parameter="q_cum")
