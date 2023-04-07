@@ -565,14 +565,10 @@ class SideViewDockWidget(QDockWidget):
 
         self.active_sideview = self.side_view_plot_widget
 
-        # init route graph
-        director = QgsVectorLayerDirector(
-            self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth
-        )
-
+        # Init route graph
         self.route = Route(
             self.graph_layer,
-            director,
+            QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth),
             id_field="id",
             weight_properter=CustomDistancePropeter(),
             distance_properter=CustomDistancePropeter(),

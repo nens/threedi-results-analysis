@@ -287,12 +287,10 @@ class Route(object):
         point) changes
         :return: QgsVectorLayer in memory.
         """
-        # Enter editing mode
-
         if not self._virtual_tree_layer:
-            # create_layer
+
             self._virtual_tree_layer = QgsVectorLayer(
-                "linestring?crs=epsg:4326", "temporary_lines", "memory"
+                f"linestring?crs={self.line_layer.crs().authid()}", "temporary_lines", "memory"
             )
 
             self._virtual_tree_layer.dataProvider().addAttributes(
@@ -301,8 +299,6 @@ class Route(object):
                     QgsField("line_id", QVariant.LongLong),
                 ]
             )
-
-            self._virtual_tree_layer.commitChanges()
 
         if not self.tree_layer_up_to_date:
             self.update_virtual_tree_layer()
