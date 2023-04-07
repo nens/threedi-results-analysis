@@ -2,6 +2,9 @@ from qgis.gui import QgsRubberBand, QgsVertexMarker
 from qgis.core import QgsDistanceArea, QgsProject, QgsCoordinateTransform, QgsWkbTypes, QgsPointXY, QgsUnitTypes
 from qgis.PyQt.QtCore import Qt
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class SideViewMapVisualisation(object):
     """
@@ -65,15 +68,26 @@ class SideViewMapVisualisation(object):
 
         self.hover_marker.setCenter(QgsPointXY(0.0, 0.0))
 
-    def hover_graph(self, meters_from_start):
+    def hover_graph(self, meters_from_start):  # meters_from_start is mouse_x
+
+        if self.active_route is None:
+            return
 
         transform = QgsCoordinateTransform(
             self.source_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
-        if self.active_route is None:
-            return
+        logger.info(f"meters_from_start {meters_from_start}, length path {len(self.active_route.path)}")
 
+        """
+
+                   - begin distance of part (from initial start_point),
+                   - end distance of part
+                   - Some other distance?
+                   - direction of path equal to direction of feature definition
+                     1 in case ot is, -1 in case it is the opposite direction
+                   - feature
+        """
         if meters_from_start < 0.0:
             meters_from_start = 0.0
         elif (
@@ -82,10 +96,13 @@ class SideViewMapVisualisation(object):
         ):
             meters_from_start = self.active_route.path[-1][-1][1]
 
+        logger.info(f"meters_from_start after correction {meters_from_start}, distance unit: { QgsProject.instance().distanceUnits()}")
+
         for route_part in self.active_route.path:
             if meters_from_start <= route_part[-1][1]:
                 for part in route_part:
                     if meters_from_start <= part[1]:
+
                         if part[3] == 1:
                             distance_on_line = meters_from_start - part[0]
                         else:
@@ -94,7 +111,10 @@ class SideViewMapVisualisation(object):
                         conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
                             QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
                         )
+                        conversion_factor = 1  # unclear why conversion is needed, distance already in meters
                         length = distance_on_line * conversion_factor
+                        logger.info(f"distance_on_line {distance_on_line}, length: {length}")
+                        # Note that interpolate() uses absolute weight (instead of normalized)
                         point = part[4].geometry().interpolate(length)
                         if point.isEmpty():
                             return
@@ -102,6 +122,8 @@ class SideViewMapVisualisation(object):
                             transform.transform(point.asPoint())
                         )
                         return
+            else:
+                logger.error("Different routepart")
 
     def hover_map(self, point_geometry):
         pass

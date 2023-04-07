@@ -19,7 +19,10 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
-        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
+        # Retrieve lines from gridadmin
+        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+
+        graph_layer = QgsVectorLayer(f"LineString?crs=EPSG:{ga.epsg_code}&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
         pr.addAttributes([QgsField("id", QVariant.Int),
@@ -34,9 +37,6 @@ class SideViewGraphGenerator():
 
         # Tell the vector layer to fetch changes from the provider
         graph_layer.updateFields()
-
-        # Retrieve lines from gridadmin
-        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
 
         features = []
         lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
@@ -124,7 +124,9 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_node_info(gridadmin_file: Path, progress_bar: StatusProgressBar):
-        graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
+        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+
+        graph_layer = QgsVectorLayer(f"Point?crs=EPSG:{ga.epsg_code}&index=yes", "point_layer", "memory")
         pr = graph_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int)])
         pr.addAttributes([QgsField("type", QVariant.Int)])
@@ -134,7 +136,7 @@ class SideViewGraphGenerator():
         graph_layer.updateFields()
 
         features = []
-        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+
         nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
         nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
 

@@ -189,6 +189,7 @@ class Route(object):
                    a list of path line elements, represent as a tuple, with:
                    - begin distance of part (from initial start_point),
                    - end distance of part
+                   - Some other distance?
                    - direction of path equal to direction of feature definition
                      1 in case ot is, -1 in case it is the opposite direction
                    - feature

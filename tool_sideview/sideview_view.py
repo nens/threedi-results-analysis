@@ -158,8 +158,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         # self.scene().sigMouseMoved.connect(self.mouse_hover)
 
     def mouse_hover(self, evt):
-        mouse_point = self.plotItem.vb.mapSceneToView(evt[0]).x()
-        self.profile_hovered.emit(mouse_point)
+        mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
+        self.profile_hovered.emit(mouse_point_x)
 
     def set_sideprofile(self, route_path):
 
