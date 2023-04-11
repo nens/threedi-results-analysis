@@ -2,10 +2,11 @@ ThreeDiToolBox changelog
 ========================
 
 
-2.6 (unreleased)
+2.5.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Temporary pinned threedi-schema on bugfix version to deal with dropped sqlalchemy 1.3 support.
+- Fixed import issue with setuptools/importlib
 
 
 2.5 (2023-02-06)
