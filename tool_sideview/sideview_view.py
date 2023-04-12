@@ -79,7 +79,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
         self.node_dict = point_dict
 
-        self.profile = []
         self.sideview_nodes = []
 
         self.showGrid(True, True, 0.5)
@@ -165,7 +164,6 @@ class SideViewPlotWidget(pg.PlotWidget):
 
     def set_sideprofile(self, route_path):
 
-        self.profile = route_path
         self.sideview_nodes = []
 
         bottom_line = []
@@ -315,7 +313,7 @@ class SideViewPlotWidget(pg.PlotWidget):
                         )
                     )
 
-        if len(self.profile) > 0:
+        if len(route_path) > 0:
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
@@ -433,7 +431,6 @@ class SideViewPlotWidget(pg.PlotWidget):
             self.drain_level_plot.setData(ts_table)
             self.water_level_plot.setData(ts_table)
 
-            self.profile = []
             self.sideview_nodes = []
 
     def update_water_level_cache(self):
