@@ -117,8 +117,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
         self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
+        self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
+
         self.fill = pg.FillBetweenItem(
-            self.bottom_plot, self.upper_plot, pg.mkBrush(200, 200, 200)
+            self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
@@ -406,7 +408,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 
-            self.autoRange()
+            self.autoRange(items=[self.bottom_plot, self.upper_plot])
 
             self.profile_route_updated.emit()
         else:
