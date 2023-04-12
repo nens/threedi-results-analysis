@@ -77,8 +77,6 @@ class SideViewMapVisualisation(object):
             self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
-        logger.info(f"meters_from_start {meters_from_start}, length path {len(self.active_route.path)}")
-
         """
 
                    - begin distance of part (from initial start_point),
@@ -95,8 +93,6 @@ class SideViewMapVisualisation(object):
             and meters_from_start > self.active_route.path[-1][-1][1]
         ):
             meters_from_start = self.active_route.path[-1][-1][1]
-
-        logger.info(f"meters_from_start after correction {meters_from_start}, distance unit: { QgsProject.instance().distanceUnits()}")
 
         for route_part in self.active_route.path:
             if meters_from_start <= route_part[-1][1]:
@@ -115,7 +111,6 @@ class SideViewMapVisualisation(object):
                             )
 
                         length = distance_on_line * conversion_factor
-                        logger.info(f"distance_on_line {distance_on_line}, length: {length}")
                         # Note that interpolate() uses absolute weight (instead of normalized)
                         point = part[4].geometry().interpolate(length)
                         if point.isEmpty():

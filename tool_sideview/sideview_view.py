@@ -545,9 +545,8 @@ class SideViewDockWidget(QDockWidget):
         # )
 
         progress_bar = StatusProgressBar(100, "3Di Sideview")
-        progress_bar.increase_progress(0, "Creating flowline graph")
+        progress_bar.set_value(0, "Creating flowline graph")
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        progress_bar.increase_progress(0, "Creating node information")
         self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
         del progress_bar
 
