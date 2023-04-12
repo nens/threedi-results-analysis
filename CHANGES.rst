@@ -8,6 +8,7 @@ ThreeDiToolBox changelog
 - Bump threedi-schema to at least 0.216.2
 - Bump SQLAlchemy to 2.0.6
 - Bump threedidepth to 0.5
+- Bump hydxlib to 1.5.*
 
 
 2.5 (2023-02-06)
