@@ -2,6 +2,9 @@ from qgis.gui import QgsRubberBand, QgsVertexMarker
 from qgis.core import QgsDistanceArea, QgsProject, QgsCoordinateTransform, QgsWkbTypes, QgsPointXY, QgsUnitTypes
 from qgis.PyQt.QtCore import Qt
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class SideViewMapVisualisation(object):
     """
@@ -9,10 +12,10 @@ class SideViewMapVisualisation(object):
     sideview.
     """
 
-    def __init__(self, iface, source_crs):
+    def __init__(self, iface, graph_layer_crs):
         self.iface = iface
 
-        self.source_crs = source_crs
+        self.graph_layer_crs = graph_layer_crs
 
         self.rb = QgsRubberBand(self.iface.mapCanvas(), QgsWkbTypes.LineGeometry)
         self.rb.setColor(Qt.red)
@@ -38,7 +41,7 @@ class SideViewMapVisualisation(object):
 
         self.active_route = route
         transform = QgsCoordinateTransform(
-            self.source_crs, QgsProject.instance().crs(), QgsProject.instance()
+            self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
         )
 
         for pnt in route.path_vertexes:
@@ -65,15 +68,24 @@ class SideViewMapVisualisation(object):
 
         self.hover_marker.setCenter(QgsPointXY(0.0, 0.0))
 
-    def hover_graph(self, meters_from_start):
-
-        transform = QgsCoordinateTransform(
-            self.source_crs, QgsProject.instance().crs(), QgsProject.instance()
-        )
+    def hover_graph(self, meters_from_start):  # meters_from_start is mouse_x
 
         if self.active_route is None:
             return
 
+        transform = QgsCoordinateTransform(
+            self.graph_layer_crs, QgsProject.instance().crs(), QgsProject.instance()
+        )
+
+        """
+
+                   - begin distance of part (from initial start_point),
+                   - end distance of part
+                   - Some other distance?
+                   - direction of path equal to direction of feature definition
+                     1 in case ot is, -1 in case it is the opposite direction
+                   - feature
+        """
         if meters_from_start < 0.0:
             meters_from_start = 0.0
         elif (
@@ -86,15 +98,20 @@ class SideViewMapVisualisation(object):
             if meters_from_start <= route_part[-1][1]:
                 for part in route_part:
                     if meters_from_start <= part[1]:
+
                         if part[3] == 1:
                             distance_on_line = meters_from_start - part[0]
                         else:
                             distance_on_line = part[1] - meters_from_start
 
-                        conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
-                            QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
-                        )
+                        conversion_factor = 1
+                        if self.graph_layer_crs.isGeographic():
+                            conversion_factor = QgsUnitTypes.fromUnitToUnitFactor(
+                                QgsUnitTypes.DistanceMeters, QgsUnitTypes.DistanceDegrees
+                            )
+
                         length = distance_on_line * conversion_factor
+                        # Note that interpolate() uses absolute weight (instead of normalized)
                         point = part[4].geometry().interpolate(length)
                         if point.isEmpty():
                             return
@@ -102,6 +119,8 @@ class SideViewMapVisualisation(object):
                             transform.transform(point.asPoint())
                         )
                         return
+            else:
+                logger.error("Different routepart")
 
     def hover_map(self, point_geometry):
         pass

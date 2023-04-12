@@ -1,13 +1,11 @@
 from pathlib import Path
 from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.core import QgsGeometry, QgsPointXY, QgsField
-from qgis.core import QgsProject
 from threedigrid.admin.gridadmin import GridH5Admin
 from threedi_results_analysis.tool_sideview.utils import LineType
 from threedi_results_analysis.tool_sideview.cross_section_utils import CrossSectionShape
 from threedi_results_analysis.utils.user_messages import StatusProgressBar
 from qgis.PyQt.QtCore import QVariant
-import numpy as np
 import statistics
 import math
 import logging
@@ -19,7 +17,10 @@ class SideViewGraphGenerator():
 
     @staticmethod
     def generate_layer(gridadmin_file: Path, progress_bar: StatusProgressBar) -> QgsVectorLayer:
-        graph_layer = QgsVectorLayer("LineString?crs=EPSG:28992&index=yes", "graph_layer", "memory")
+        # Retrieve lines from gridadmin
+        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+
+        graph_layer = QgsVectorLayer(f"LineString?crs=EPSG:{ga.epsg_code}&index=yes", "graph_layer", "memory")
         pr = graph_layer.dataProvider()
 
         pr.addAttributes([QgsField("id", QVariant.Int),
@@ -35,10 +36,6 @@ class SideViewGraphGenerator():
         # Tell the vector layer to fetch changes from the provider
         graph_layer.updateFields()
 
-        # Retrieve lines from gridadmin
-        ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
-
-        features = []
         lines_1d_data = ga.lines.subset("1D").only("ds1d", "line_coords", "id", "content_pk", "line", "content_type", "invert_level_start_point", "invert_level_end_point", "cross1", "cross2").data
         lines_1d_data = {k: v.tolist() for (k, v) in lines_1d_data.items()}  # convert to native python items
 
@@ -90,9 +87,9 @@ class SideViewGraphGenerator():
 
                 # Note that id (count) is the flowline index in Python (0-based indexing)
                 feat.setAttributes([count, node_id_1, node_id_2, lines_1d_data["ds1d"][count], line_type, start_level, end_level, start_height, end_height])
-                features.append(feat)
-
-                progress_bar.increase_progress((count / (number_of_lines-1)) * 50.0)
+                progress_bar.set_value((count / number_of_lines) * 100.0)
+                if not pr.addFeature(feat):
+                    logger.error(f"Unable to add feature: {pr.lastError()}")
 
                 last_index = count  # noqa
 
@@ -117,24 +114,13 @@ class SideViewGraphGenerator():
         #     feat.setAttributes([count+last_index, node1_ids[count], node2_ids[count], None, LineType.PUMP, start_level, end_level, start_height, end_height])
         #     features.append(feat)
 
-        if not pr.addFeatures(features):
-            logger.error(f"Unable to add all features: {pr.lastError()}")
         graph_layer.updateExtents()
         return graph_layer
 
     @staticmethod
     def generate_node_info(gridadmin_file: Path, progress_bar: StatusProgressBar):
-        graph_layer = QgsVectorLayer("Point?crs=EPSG:28992&index=yes", "point_layer", "memory")
-        pr = graph_layer.dataProvider()
-        pr.addAttributes([QgsField("id", QVariant.Int)])
-        pr.addAttributes([QgsField("type", QVariant.Int)])
-        pr.addAttributes([QgsField("level", QVariant.Int)])
-        pr.addAttributes([QgsField("height", QVariant.Int)])
-        pr.addAttributes([QgsField("length", QVariant.Int)])
-        graph_layer.updateFields()
-
-        features = []
         ga = GridH5Admin(gridadmin_file.with_suffix('.h5'))
+
         nodes_1d = ga.nodes.subset("1D").only("coordinates", "storage_area", "calculation_type", "dmax", "id", "is_manhole", "content_pk").data
         nodes_1d = {k: v.tolist() for (k, v) in nodes_1d.items()}
 
@@ -170,17 +156,6 @@ class SideViewGraphGenerator():
                 "length": length,
             }
 
-            feat.setAttributes([node_id, node_info[node_id]["type"], node_info[node_id]["level"], node_info[node_id]["height"], length])
-            features.append(feat)
-
-            progress_bar.increase_progress((count / (number_of_nodes-1)) * 50.0)
-
-        if not pr.addFeatures(features):
-            logger.error(f"Unable to add all features: {pr.lastError()}")
-        graph_layer.updateExtents()
-
-        QgsProject.instance().addMapLayer(graph_layer)
-
         return node_info
 
     @staticmethod
@@ -215,38 +190,13 @@ class SideViewGraphGenerator():
             assert count == 0
             return width_1d.item()  # for circle width = height
         elif shape in (CrossSectionShape.TABULATED_RECTANGLE.value, CrossSectionShape.TABULATED_TRAPEZIUM.value):
-            return max(tables[:, offset:offset+count][1]).item()
-        elif shape == CrossSectionShape.OPEN_RECTANGLE.value:
-            # In case cross section is OPEN_RECTANGLE, the cross section itself does not have an height.
-            # For 1D model (ga.has_2d is False, take drain_level from adjacent nodes)
-            if not has_2d:
-                height1 = all_nodes.filter(id=node1_id).drain_level[0]  # Can be nan when not manhole
-                height2 = all_nodes.filter(id=node2_id).drain_level[0]
-                return np.nanmean([height1, height2]).item()
-
-            # For 2D model, take average dpumax from adjacent 1D2D lines (if available)
-            dpumax_list = []
-            for count in range(len(lines_1d2d_data["line"][0])):
-                node1d2d_1 = lines_1d2d_data["line"][0][count]
-                node1d2d_2 = lines_1d2d_data["line"][1][count]
-
-                if node1_id in (node1d2d_1, node1d2d_2):
-                    dpumax_list.append(lines_1d2d_data["dpumax"][count])
-                if node2_id in (node1d2d_1, node1d2d_2):
-                    dpumax_list.append(lines_1d2d_data["dpumax"][count])
-
-            if dpumax_list:
-                return float(statistics.fmean(dpumax_list))
+            # Check whether shape is closed (check whether last width is 0.0), otherwise return nan
+            if tables[:, offset:offset+count][:, -1][1] == 0.0:  # widths are second row
+                return max(tables[:, offset:offset+count][0]).item()  # heights are first row
             else:
-                # Check whether the nodes are manholes and isolated (1), in that
-                # case it is correct that there are no adjacent 1D2D lines
-                node1 = all_nodes.filter(id=node1_id)
-                node2 = all_nodes.filter(id=node2_id)
-
-                if not (round(node1.calculation_type[0]) == 1) and (round(node2.calculation_type[0]) == 1 and node1.is_manhole[0] and node2.is_manhole[0]):
-                    raise AttributeError(f"Unexpected missing 1D2D lines for cross section: {cross_section.id[0]}")
-                else:
-                    return math.nan
+                return math.nan
+        elif shape == CrossSectionShape.OPEN_RECTANGLE.value:
+            return math.nan
 
         raise AttributeError(f"Unable to derive height of cross section: {cross_section.id[0]} with shape {shape}")
 

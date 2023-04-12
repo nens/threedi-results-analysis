@@ -173,6 +173,7 @@ class ThreeDiPluginGridResultDialog(QtWidgets.QDialog, FORM_CLASS):
         threedi_working_dir = QgsSettings().value("threedi/working_dir", "")
         if not threedi_working_dir:
             pop_up_critical("3Di Models & Simulations working directory not yet set.")
+            return
 
         local_schematisations = list_local_schematisations(threedi_working_dir)
         for schematisation_id, local_schematisation in local_schematisations.items():

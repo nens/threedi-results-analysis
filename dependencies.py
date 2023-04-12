@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QProgressDialog
 
+import setuptools  # noqa: https://github.com/pypa/setuptools/issues/2993
 import importlib
 import logging
 import os
@@ -71,7 +72,7 @@ DEPENDENCIES = [
     Dependency("condenser", "condenser", ">=0.2.1"),
     Dependency("Shapely", "shapely", ">=2.0.0"),
     Dependency("threedigrid_builder", "threedigrid_builder", ">=1.10.0"),
-    Dependency("hydxlib", "hydxlib", ">=1.4.5"),
+    Dependency("hydxlib", "hydxlib", "==1.5.*"),
 ]
 
 # Dependencies that contain compiled extensions for windows platform

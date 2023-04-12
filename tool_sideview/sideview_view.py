@@ -117,8 +117,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
         self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
+        self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
+
         self.fill = pg.FillBetweenItem(
-            self.bottom_plot, self.upper_plot, pg.mkBrush(200, 200, 200)
+            self.bottom_plot, self.absolute_bottom, pg.mkBrush(200, 200, 200)
         )
 
         pen = pg.mkPen(color=QColor(0, 255, 255), width=2)
@@ -158,8 +160,8 @@ class SideViewPlotWidget(pg.PlotWidget):
         # self.scene().sigMouseMoved.connect(self.mouse_hover)
 
     def mouse_hover(self, evt):
-        mouse_point = self.plotItem.vb.mapSceneToView(evt[0]).x()
-        self.profile_hovered.emit(mouse_point)
+        mouse_point_x = self.plotItem.vb.mapSceneToView(evt[0]).x()
+        self.profile_hovered.emit(mouse_point_x)
 
     def set_sideprofile(self, route_path):
 
@@ -170,7 +172,10 @@ class SideViewPlotWidget(pg.PlotWidget):
         upper_line = []
         drain_level = []
 
+        first_node = True
+
         for route_part in route_path:
+            logger.error("ROUTE PATH")
 
             for count, (begin_dist, end_dist, distance, direction, feature) in enumerate(route_part):
 
@@ -189,46 +194,47 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 # 1. add point structure (manhole)
                 logger.info(f"node type {begin_node['type']}, manhole: {begin_node['is_manhole']}")
-                if begin_node['is_manhole']:
+                logger.info(f"Adding node {begin_node_idx} with length: {begin_node['length']}, height: {begin_node['height']} and level: {begin_node['level']}")
 
-                    if count == 0:
-                        bottom_line.append(
-                            (
-                                begin_dist - 0.5 * begin_node["length"],
-                                begin_node["level"] + begin_node["height"],
-                                LineType.PIPE,
-                            )
-                        )
-
+                if first_node:  # Add closing vertical line at beginning
                     bottom_line.append(
-                        (
-                            begin_dist - 0.5 * begin_node["length"],
-                            begin_node["level"],
-                            LineType.PIPE,
-                        )
-                    )
-                    bottom_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_node["level"],
-                            LineType.PIPE,
-                        )
-                    )
-
-                    upper_line.append(
                         (
                             begin_dist - 0.5 * begin_node["length"],
                             begin_node["level"] + begin_node["height"],
                             LineType.PIPE,
                         )
                     )
-                    upper_line.append(
-                        (
-                            begin_dist + 0.5 * begin_node["length"],
-                            begin_node["level"] + begin_node["height"],
-                            LineType.PIPE,
-                        )
+                    first_node = False
+
+                bottom_line.append(
+                    (
+                        begin_dist - 0.5 * begin_node["length"],
+                        begin_node["level"],
+                        LineType.PIPE,
                     )
+                )
+                bottom_line.append(
+                    (
+                        begin_dist + 0.5 * begin_node["length"],
+                        begin_node["level"],
+                        LineType.PIPE,
+                    )
+                )
+
+                upper_line.append(
+                    (
+                        begin_dist - 0.5 * begin_node["length"],
+                        begin_node["level"] + begin_node["height"],
+                        LineType.PIPE,
+                    )
+                )
+                upper_line.append(
+                    (
+                        begin_dist + 0.5 * begin_node["length"],
+                        begin_node["level"] + begin_node["height"],
+                        LineType.PIPE,
+                    )
+                )
 
                 # 2 contours based on structure or pipe
                 ltype = feature["type"]
@@ -244,6 +250,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                         end_level = feature["start_level"]
                         begin_height = feature["end_height"]
                         end_height = feature["start_height"]
+
+                    logger.info(f"Adding line {feature['id']} with length: {feature['real_length']}, start_height: {feature['start_height']}, end_height: {feature['end_height']}, start_level: {feature['start_level']} and end_level {feature['end_level']}")
 
                     bottom_line.append(
                         (
@@ -277,6 +285,35 @@ class SideViewPlotWidget(pg.PlotWidget):
                     )
 
                 # 3 Add closing point/manhole (if last segment)
+                if count == (len(route_part)-1):
+                    bottom_line.append(
+                        (
+                            end_dist - 0.5 * end_node["length"],
+                            end_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+                    bottom_line.append(
+                        (
+                            end_dist + 0.5 * end_node["length"],
+                            end_node["level"],
+                            LineType.PIPE,
+                        )
+                    )
+                    upper_line.append(
+                        (
+                            end_dist - 0.5 * end_node["length"],
+                            end_node["level"] + end_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
+                    upper_line.append(
+                        (
+                            end_dist + 0.5 * end_node["length"],
+                            end_node["level"] + end_node["height"],
+                            LineType.PIPE,
+                        )
+                    )
 
         if len(self.profile) > 0:
             # Draw data into graph
@@ -371,7 +408,7 @@ class SideViewPlotWidget(pg.PlotWidget):
             ts_table = np.array(np.array([(0.0, np.nan)]), dtype=float)
             self.water_level_plot.setData(ts_table)
 
-            self.autoRange()
+            self.autoRange(items=[self.bottom_plot, self.upper_plot])
 
             self.profile_route_updated.emit()
         else:
@@ -510,9 +547,8 @@ class SideViewDockWidget(QDockWidget):
         # )
 
         progress_bar = StatusProgressBar(100, "3Di Sideview")
-        progress_bar.increase_progress(0, "Creating flowline graph")
+        progress_bar.set_value(0, "Creating flowline graph")
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        progress_bar.increase_progress(0, "Creating node information")
         self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
         del progress_bar
 
@@ -530,14 +566,10 @@ class SideViewDockWidget(QDockWidget):
 
         self.active_sideview = self.side_view_plot_widget
 
-        # init route graph
-        director = QgsVectorLayerDirector(
-            self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth
-        )
-
+        # Init route graph
         self.route = Route(
             self.graph_layer,
-            director,
+            QgsVectorLayerDirector(self.graph_layer, -1, "", "", "", QgsVectorLayerDirector.DirectionBoth),
             id_field="id",
             weight_properter=CustomDistancePropeter(),
             distance_properter=CustomDistancePropeter(),
