@@ -116,6 +116,7 @@ class SideViewPlotWidget(pg.PlotWidget):
         pen = pg.mkPen(color=QColor(0, 255, 0), width=2, style=Qt.DashLine)
         self.drain_level_plot = pg.PlotDataItem(np.array([(0.0, np.nan)]), pen=pen)
 
+        # Required for fill in bottom of graph
         self.absolute_bottom = pg.PlotDataItem(np.array([(0.0, -10000), (10000, -10000)]), pen=pen)
 
         self.fill = pg.FillBetweenItem(
@@ -165,10 +166,10 @@ class SideViewPlotWidget(pg.PlotWidget):
     def set_sideprofile(self, route_path):
 
         self.sideview_nodes = []
+        drain_level = []
 
         bottom_line = []
         upper_line = []
-        drain_level = []
 
         first_node = True
 
@@ -317,6 +318,11 @@ class SideViewPlotWidget(pg.PlotWidget):
             # Draw data into graph
             # split lines into seperate parts for the different line types
             # (channel, structure, etc.)
+
+            # determine max and min x value to draw absolute bottom line
+            x_min = min([point[0] for point in bottom_line])
+            x_max = max([point[0] for point in bottom_line])
+            self.absolute_bottom.setData(np.array([(x_min, -10000), (x_max, -10000)], dtype=float), connect="finite")
 
             tables = {
                 LineType.PIPE: [],
