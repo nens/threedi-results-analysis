@@ -339,7 +339,8 @@ class SideViewPlotWidget(pg.PlotWidget):
                 if ptype != last_type:
                     if last_type is not None:
                         # add nan point to make gap in line
-                        tables[ptype].append((point[0], np.nan))
+                        # tables[ptype].append((point[0], np.nan))
+                        pass
                     last_type = ptype
 
                 tables[ptype].append((point[0], point[1]))
@@ -379,7 +380,8 @@ class SideViewPlotWidget(pg.PlotWidget):
 
                 if ptype != last_type:
                     if last_type is not None:
-                        tables[ptype].append((point[0], np.nan))
+                        # tables[ptype].append((point[0], np.nan))
+                        pass
                     last_type = ptype
 
                 tables[ptype].append((point[0], point[1]))
@@ -552,7 +554,7 @@ class SideViewDockWidget(QDockWidget):
         progress_bar = StatusProgressBar(100, "3Di Sideview")
         progress_bar.set_value(0, "Creating flowline graph")
         self.graph_layer = SideViewGraphGenerator.generate_layer(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
-        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path, progress_bar)
+        self.point_dict = SideViewGraphGenerator.generate_node_info(self.model.get_results(checked_only=False)[0].parent().path)
         del progress_bar
 
         QgsProject.instance().addMapLayer(self.graph_layer)

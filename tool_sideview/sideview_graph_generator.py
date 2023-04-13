@@ -65,6 +65,8 @@ class SideViewGraphGenerator():
                 cross2_id = lines_1d_data["cross2"][count]
                 assert cross1_id == cross2_id  # pipes and culverts have only one cross section definition
                 cross_section = ga.cross_sections.filter(id=cross1_id)
+                node_id_1 = lines_1d_data["line"][0][count]
+                node_id_2 = lines_1d_data["line"][1][count]
 
                 try:
                     height = SideViewGraphGenerator.cross_section_max_height(cross_section, ga.cross_sections.tables)
@@ -81,13 +83,11 @@ class SideViewGraphGenerator():
                     start_level = lines_1d_data["invert_level_start_point"][count]
                     end_level = lines_1d_data["invert_level_end_point"][count]
                 elif line_type == LineType.ORIFICE or line_type == LineType.WEIR:
-                    node_id_1 = lines_1d_data["line"][0][count]
-                    node_id_2 = lines_1d_data["line"][1][count]
                     # for bottom level, take dmax of adjacent nodes
                     node_1 = ga.nodes.filter(id=node_id_1)
                     node_2 = ga.nodes.filter(id=node_id_2)
-                    start_level = node_1.dmax[0]
-                    end_level = node_2.dmax[0]
+                    start_level = node_1.dmax[0].item()
+                    end_level = node_2.dmax[0].item()
 
                 # logger.info(f"Adding feature with {start_level}({str(type(start_level))}) {end_level}({str(type(end_level))}) {start_height}({str(type(start_height))}) {end_height}({str(type(end_height))})")
 
@@ -97,7 +97,7 @@ class SideViewGraphGenerator():
                 if not pr.addFeature(feat):
                     logger.error(f"Unable to add feature: {pr.lastError()}")
 
-                last_index = count  # noqa
+            last_index = count  # noqa
 
         # # Pumps are not part of lines, add as well.
         # pump_coords = ga.pumps.node_coordinates.transpose()[1:].tolist()  # drop nan-element
